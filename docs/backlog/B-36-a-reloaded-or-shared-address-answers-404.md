@@ -67,7 +67,8 @@ exist, as it already does in-page.
   Mutation-checked: no `default` (the two page tests fail), a catch-all `filter` (the two 404 tests
   fail), a product shape that takes extra segments (`StorefrontPageTest` and the 404 test fail), the
   client's prefix mapping restored (`AddressTest` fails). The gate: `check :server:installDist
-  :composeApp:wasmJsBrowserDistribution` (server 108 tests, client 38, `viddikVerify`),
+  :composeApp:wasmJsBrowserDistribution` (server 108 tests, client 38, `viddikVerify`; rebased on
+  B-14 with `/checkout` added: server 124, client 38),
   `scripts/image-check.sh` (now also `/p/p-sony-wh-1000xm6` → 200 `text/html` `no-cache` `br`, `/nowhere`
   → 404), `scripts/chart-check.sh`; `make check` on the Mac.
 - **The browser walk** (headless Chromium over CDP, B-35's harness, the image built from this branch,
