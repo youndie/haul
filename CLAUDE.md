@@ -34,6 +34,10 @@ scripts/image-check.sh                                                      # th
 scripts/chart-check.sh                                                      # the chart renders and refuses what it must
 ```
 
+A change that touches only documentation (`docs/`, `backlog.md`, `README.md`, `CLAUDE.md`) runs the
+documentation gate alone in CI: the code jobs report success with their steps skipped
+(`scripts/code-changed.sh`). The default branch runs everything on every push.
+
 The server's tests and the image check need Docker: PostgreSQL runs in Testcontainers, and the image
 trains its cache against a PostgreSQL of its own (`docker/Dockerfile`).
 
