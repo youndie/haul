@@ -1,7 +1,7 @@
 ---
 id: B-37
 title: "server + client: actions the trees draw but do not carry"
-status: wip
+status: done
 priority: P2
 size: M
 stage: stage-4-cart
@@ -84,25 +84,34 @@ command URL like the cart's), the client follows it. A control whose screen belo
   gives without an action); the strip's «Sell on HAUL», «Help», the language, the «HAUL PLUS» pill;
   the footer's links; the Plus block's offer.
 
-## Iteration 1 (2026-10-08)
+## Verification (2026-10-08)
 
-- **Done:** the contract, the server's trees and routes, the client's wiring, and the tests for every
-  control: `server/src/test/.../feature/catalog/DrawnActionsTest.kt` (10: the header on three screens
+- **Tests**, per control a route test (the action in the tree, followed) and a client wiring test
+  (pressed, followed): server `feature/catalog/DrawnActionsTest.kt` (10: the header on three screens
   and a row word followed; pages and «Show 24 more» with the filters kept and none on the last page;
   the sort's five orders, followed, prices ascending; «Clear all» keeping the sort; search's pages;
   «+» at 1, 2, gone at 10; none out of stock; home's deal links and the deal SKU; the deals page;
-  `page=0` refused), `feature/search/RecentSearchesRoutesTest.kt` (2, against shildik: clear empties
-  and the panel stops offering it; `401` without a token, a guest offered nothing), `KoinGraphTest`
-  (`DealsScreen`, `RecentSearches`); client `DrawnActionsTest.kt` (9: «Show 24 more» and a page
-  number, the sort menu, «Clear all», a row category, the «Catalog» menu, «Deals» and the cart, «View
-  all deals», «+» sending `PUT … {"quantity":2}` and redrawing without navigating, «Clear» sending
-  `DELETE` and asking for the panel again), `AddressTest` (`/cart`). Those suites passed on the Linux
-  build machine (server 13 of 13, client 26 of 26 with `StorefrontTest` and `AddressTest`);
-  `make check` green on the Mac.
-- **Stopped by:** the build machine stopped answering (SSH times out in the banner exchange, `wsl`
-  on the host reports the guest running but the service does not respond) while the full gate —
-  `check :server:installDist :composeApp:wasmJsBrowserDistribution`, with `viddikVerify` — was
-  running, before any result. Not restarted from here: the guest is shared with the other items'
-  agents.
-- **Left:** the full gate (the whole server suite, `viddikVerify`, the parity run), the mutation
-  checks, and then `done`.
+  `page=0` refused), `feature/search/RecentSearchesRoutesTest.kt` (2, against shildik: «Clear»
+  empties and the panel stops offering it; `401` without a token, a guest offered nothing),
+  `KoinGraphTest`, `StorefrontPageTest` and `WebBundleTest` (`/deals` is a page, `/deals/…` is not);
+  client `DrawnActionsTest.kt` (9: «Show 24 more» and a page number, the sort menu, «Clear all», a row
+  category, the «Catalog» menu, «Deals» and the cart, «View all deals», «+» sending
+  `CartCommand.ChangeLine` and redrawing without navigating, «Clear» sending `DELETE` and asking for
+  the panel again), `AddressTest`.
+- **B-13's `CartFixturesTest`** holds the client's cart bodies equal to the server's trees, so the six
+  `cart_*.json` bodies gained what the server now sends — the header's `catalog`, `deals` and `cart`,
+  and each of the empty cart's canvas picks an `add` — taken from what the test wrote; additions only,
+  nothing drawn changed.
+- **The gate** on the Linux build machine, after the rebase over B-13 and B-36:
+  `check :server:installDist :composeApp:wasmJsBrowserDistribution` green — server 137 tests, client
+  66, `viddikVerify` 68 screenshots with 0 failing and no golden re-recorded; `viddikDesignParity`
+  59/59 within 5 % (7 without a reference), `Catalog_Empty` at the 2.51 % B-13 recorded; `make check`
+  on the Mac.
+- **Mutations**, each seen failing the tests written for it (two batches, then restored): «Show 24
+  more» with no action (the category, search and deals paging tests); «+» always sending one (the
+  plus test); the `DELETE` route not clearing (the recent-searches test); `/deals` out of
+  `StorefrontPage` (`StorefrontPageTest`, `WebBundleTest`); the menu never opening (sort, «Catalog»);
+  «+» not pressable; «Clear all» not followed; «Clear» not asking for the panel again — 5 of the 9
+  client tests failed, the other 4 passed.
+- **The first gate run was lost** to the build machine going unresponsive mid-run (2026-10-08, before
+  its restart at 17:58); everything above ran after it.

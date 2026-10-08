@@ -57,7 +57,6 @@ A stage is a field on the item, not a directory.
 | [B-25](docs/backlog/B-25-recommendations-from-views-in-the-home.md) `[ ]` | server: recommendations from views in the Home tree | P2 | M | B-07, B-19 |
 | [B-27](docs/backlog/B-27-helm-chart-tracy-metrik-katcher-wiring.md) `[?]` | ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand | P2 | M | B-03 |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
-| [B-37](docs/backlog/B-37-actions-the-trees-draw-but-do-not-carry.md) `[~]` | server + client: actions the trees draw but do not carry | P2 | M | B-35 |
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
 
 ## Closed (22)
@@ -90,6 +89,7 @@ A stage is a field on the item, not a directory.
 - [B-11](docs/backlog/B-11-guests-cart-promo-codes-changed-lines.md) `[x]` - server: guests, cart, promo codes, changed lines, the Cart tree
 - [B-12](docs/backlog/B-12-shildik-sign-in-in-the-browser.md) `[x]` - server + client: shildik sign-in in the browser, customer creation, cart merge, header states
 - [B-13](docs/backlog/B-13-cart-renderers.md) `[x]` - design refs + client: Cart renderers
+- [B-37](docs/backlog/B-37-actions-the-trees-draw-but-do-not-carry.md) `[x]` - server + client: actions the trees draw but do not carry
 
 **Checkout and orders**
 
