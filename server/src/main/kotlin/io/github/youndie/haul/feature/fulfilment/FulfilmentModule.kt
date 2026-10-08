@@ -14,6 +14,15 @@ import org.koin.dsl.module
 internal val fulfilmentModule =
     module {
         single<FulfilmentRepository> { ExposedFulfilment(get()) }
-        single { FulfilmentSimulator(shipments = get(), orders = get(), payments = get(), clock = get(), pace = get()) }
+        single {
+            FulfilmentSimulator(
+                shipments = get(),
+                orders = get(),
+                payments = get(),
+                points = get(),
+                clock = get(),
+                pace = get(),
+            )
+        }
         single { OrderTracking(orders = get(), shipments = get(), payments = get(), returns = get()) }
     }

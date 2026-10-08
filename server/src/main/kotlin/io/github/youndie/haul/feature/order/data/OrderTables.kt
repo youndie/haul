@@ -39,6 +39,10 @@ internal object OrdersTable : Table("orders") {
     val totalCents = integer("total_cents")
     val points = integer("points")
     val placedAt = timestampWithTimeZone("placed_at")
+
+    // V19: what Plus waived, and the points the order was paid with (B-23).
+    val deliveryWaivedCents = integer("delivery_waived_cents").default(0)
+    val pointsRedeemed = integer("points_redeemed").default(0)
     override val primaryKey = PrimaryKey(id)
 
     init {

@@ -61,6 +61,8 @@ internal class ExposedOrders(
                         it[totalCents] = order.totalCents
                         it[points] = order.points
                         it[placedAt] = order.placedAt
+                        it[pointsRedeemed] = order.pointsRedeemed
+                        it[deliveryWaivedCents] = order.deliveryWaivedCents
                     }.insertedCount == 1
             // Written by an earlier run of this member: the lines and the shipments went with it.
             if (!inserted) return@tx
@@ -183,6 +185,8 @@ internal class ExposedOrders(
                         points = row[OrdersTable.points],
                         placedAt = row[OrdersTable.placedAt],
                         lines = lines[id].orEmpty(),
+                        pointsRedeemed = row[OrdersTable.pointsRedeemed],
+                        deliveryWaivedCents = row[OrdersTable.deliveryWaivedCents],
                     ),
                 status = OrderStatus.of(row[OrdersTable.status]),
                 cancelReason = row[OrdersTable.cancelReason],

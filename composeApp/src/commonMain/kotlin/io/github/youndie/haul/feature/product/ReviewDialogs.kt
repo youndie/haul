@@ -67,11 +67,13 @@ import kotlinx.coroutines.launch
 
 /**
  * The scrim and the card over the page: [content] at the canvas's place, the rest of the page dimmed.
- * Pressing the scrim is [onDismiss]; a card taller than the window scrolls.
+ * Pressing the scrim is [onDismiss]; a card taller than the window scrolls. [compactTop] is how far down
+ * a phone's card starts: 120 px for the review dialogs, 140 for the Plus trial's (B-23).
  */
 @Composable
 public fun DialogOverlay(
     onDismiss: (() -> Unit)?,
+    compactTop: Dp = 120.dp,
     content: @Composable () -> Unit,
 ) {
     val compact = LocalHaulCompact.current
@@ -83,7 +85,7 @@ public fun DialogOverlay(
                 .padding(
                     start = if (compact) 16.dp else 0.dp,
                     end = if (compact) 16.dp else 0.dp,
-                    top = if (compact) 120.dp else 200.dp,
+                    top = if (compact) compactTop else 200.dp,
                     bottom = 40.dp,
                 ),
             contentAlignment = Alignment.TopCenter,

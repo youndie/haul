@@ -269,12 +269,13 @@
                         "selected": false
                     }
                 ],
-                "url": "/api/v1/me/checkout",
                 "points": {
                     "label": "Use 2,480 points (−$24.80)",
                     "detail": "100 points = $1 · all or nothing",
-                    "on": true
-                }
+                    "on": true,
+                    "url": "/api/v1/me/checkout"
+                },
+                "url": "/api/v1/me/checkout"
             },
             "summary": {
                 "id": "summary",
@@ -332,7 +333,7 @@
                 "placingLabel": "Placing order…",
                 "placeEnabled": true,
                 "placeUrl": "/api/v1/orders",
-                "quote": "7bb3ef377d025c0546130a22f068f3a1"
+                "quote": "03821cdb6408d8aa01fec7530927a0a6"
             }
         }
     ]

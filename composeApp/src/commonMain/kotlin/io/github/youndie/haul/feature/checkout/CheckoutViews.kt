@@ -687,22 +687,32 @@ private fun Payment(
             )
         }
     }
-    payment.points?.let { PointsSwitch(it) }
+    payment.points?.let { toggle ->
+        val url = toggle.url
+        PointsSwitch(
+            toggle,
+            if (url == null) null else ({ send(CheckoutCommand.Choose(url, CheckoutChoice(usePoints = !toggle.on))) }),
+        )
+    }
 }
 
 /**
- * «Use 2,480 points (−$24.80)», off on Paper or on in acid (Checkout_PointsApplied). Redeeming is
- * feature-membership's (B-23): the toggle carries no command until its `url` does, and pressing it does
- * nothing.
+ * «Use 2,480 points (−$24.80)», off on Paper or on in acid (Checkout_PointsApplied). A press turns it the
+ * other way ([onToggle], `CheckoutChoice.usePoints` to the toggle's `url`, B-23); without a `url` it is
+ * drawn and does nothing.
  */
 @Composable
-private fun PointsSwitch(toggle: PointsToggle) {
+private fun PointsSwitch(
+    toggle: PointsToggle,
+    onToggle: (() -> Unit)?,
+) {
     val compact = LocalHaulCompact.current
     Row(
         Modifier
             .padding(top = 16.dp)
             .fillMaxWidth()
             .testTag(POINTS_TAG)
+            .pressable(onToggle)
             .background(
                 if (toggle.on) HaulColors.secondaryContainer else HaulColors.background,
                 RoundedCornerShape(18.dp),

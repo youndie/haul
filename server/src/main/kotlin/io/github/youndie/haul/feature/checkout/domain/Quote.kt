@@ -6,6 +6,7 @@ import io.github.youndie.haul.feature.cart.domain.PromoCode
 import io.github.youndie.haul.feature.cart.domain.Totals
 import io.github.youndie.haul.feature.checkout.AddressEntry
 import io.github.youndie.haul.feature.checkout.DeliveryMethod
+import io.github.youndie.haul.feature.membership.domain.PointsRules
 import java.security.MessageDigest
 import java.time.LocalDate
 
@@ -14,6 +15,10 @@ import java.time.LocalDate
  * and for placement alike (B-16): the cart's counted lines — selected, in stock, unchanged — with the
  * cart's [Totals], the promo code that still counts, the method, the address or the point, the window
  * and the way to pay.
+ *
+ * [pointsRedeemed] is what the points toggle takes off (B-23): the customer's balance, up to the items
+ * after discounts, a point a cent; [totalCents] is what is left to pay, and what the order earns
+ * ([points]) is counted on it — points do not earn points.
  *
  * [complete] is whether it can be placed: courier needs an address and a window, a pickup point or a
  * locker needs the point. [fingerprint] names every value above — the address by its id and its
@@ -30,7 +35,14 @@ internal data class Quote(
     val point: PickupPoint?,
     val slot: Slot?,
     val payment: PaymentMethod,
+    val pointsRedeemed: Int = 0,
 ) {
+    /** What the order costs once the points are taken off: the cart's total less [pointsRedeemed]. */
+    val totalCents: Int get() = totals.totalCents - pointsRedeemed * PointsRules.CENTS_PER_POINT
+
+    /** What the order earns on delivery: a point per whole dollar paid, ×2 for Plus. */
+    val points: Int get() = PointsRules.earned(totalCents, plus)
+
     val complete: Boolean
         get() =
             when (method) {
@@ -51,7 +63,9 @@ internal data class Quote(
                     append("point ${point?.id}\n")
                     append("slot ${slot?.id}\n")
                     append("payment ${payment.id}\n")
-                    append("total ${totals.totalCents}\n")
+                    // Only when some are taken off, so a quote without points keeps the fingerprint it had.
+                    if (pointsRedeemed > 0) append("points $pointsRedeemed\n")
+                    append("total $totalCents\n")
                 }
             val digest = MessageDigest.getInstance("SHA-256").digest(canonical.toByteArray())
             return digest.take(FINGERPRINT_BYTES).joinToString("") { "%02x".format(it) }
@@ -70,7 +84,9 @@ internal data class Quote(
  * day after it (research D7). [filledSlot] is the window they had chosen filling up since
  * (`Checkout_PlaceError`: the window is cleared and they are told); [expiredPromo] is the cart's code
  * that expired after it was applied and no longer counts (endpoint-cart's quirk: checkout must not
- * honour it). [draft] is the last address form refused, with its [draftProblems].
+ * honour it). [draft] is the last address form refused, with its [draftProblems]. [redeemable] is how
+ * many points the toggle would take off — none, and the toggle is not drawn — and [usePoints] whether it
+ * is on (B-23).
  */
 internal data class CheckoutState(
     val quote: Quote,
@@ -84,6 +100,8 @@ internal data class CheckoutState(
     val expiredPromo: String?,
     val draft: AddressEntry?,
     val draftProblems: List<FieldError>,
+    val redeemable: Int = 0,
+    val usePoints: Boolean = false,
 ) {
     val slotFilled: Boolean get() = filledSlot != null
 

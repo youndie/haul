@@ -20,10 +20,8 @@ internal data class Standing(
 )
 
 /**
- * Where the account's Points and Haul Plus tiles come from. Feature-membership's (B-23) — the points
- * ledger, the trial, the delivery savings — none of which is stored yet; until then the account reads the
- * canvas's numbers for the sample customers (`seed/SampleLoyalty.kt`), and B-23 replaces the source,
- * not the account.
+ * Where the account's Points and Haul Plus tiles come from: feature-membership's points ledger, membership
+ * and delivery savings (`feature/membership/domain/PlusCommands.kt`, B-23), which binds it.
  */
 internal fun interface Loyalty {
     suspend fun standing(customer: Customer): Standing

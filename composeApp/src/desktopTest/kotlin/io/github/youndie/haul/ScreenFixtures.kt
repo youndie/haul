@@ -3,12 +3,18 @@ package io.github.youndie.haul
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import io.github.youndie.haul.feature.catalog.FiltersSheet
+import io.github.youndie.haul.feature.home.PLUS_DIALOG_COMPACT_TOP
+import io.github.youndie.haul.feature.home.PlusTrialDialogView
+import io.github.youndie.haul.feature.product.DialogOverlay
 import io.github.youndie.haul.shell.CatalogLoading
 import io.github.youndie.haul.shell.ErrorShell
 import io.github.youndie.haul.shell.HomeLoading
 import io.github.youndie.haul.shell.ShellFailure
 import io.github.youndie.haul.ui.FilteredResults
+import io.github.youndie.haul.ui.PlusBlock
+import io.github.youndie.haul.ui.PlusTrialDialog
 import io.github.youndie.kompot.standard.ColumnComponent
+import io.github.youndie.kompot.standard.PresentAction
 import io.github.youndie.viddik.annotations.ViddikScreenshot
 
 // One fixture per artboard of the Home and Catalog screens (B-07), at the artboard's size
@@ -42,6 +48,14 @@ internal fun HomeGuestWide() = Fixture(compact = false) { Page { Body("home_gues
 @ViddikScreenshot(name = "Guest_Phone", group = "Home", width = 390, height = 2721)
 @Composable
 internal fun HomeGuestPhone() = Fixture(compact = true) { Page { Body("home_guest.json") } }
+
+@ViddikScreenshot(name = "PlusTrialDialog", group = "Home", width = 1440, height = 3134)
+@Composable
+internal fun HomePlusTrialDialogWide() = Fixture(compact = false) { TrialDialogOverHome() }
+
+@ViddikScreenshot(name = "PlusTrialDialog_Phone", group = "Home", width = 390, height = 3850)
+@Composable
+internal fun HomePlusTrialDialogPhone() = Fixture(compact = true) { TrialDialogOverHome() }
 
 @ViddikScreenshot(name = "Error", group = "Home", width = 1440, height = 900)
 @Composable
@@ -106,3 +120,23 @@ internal fun CatalogFiltersSheetPhone() =
             }
         FiltersSheet(results.facets, results.applied, results.showLabel)
     }
+
+/**
+ * Home_PlusTrialDialog: Sam's home page with the trial's dialog over it, the dialog the one its Plus block
+ * presents (B-23) — at its phone place, 140 px down, as the storefront puts it.
+ */
+@Composable
+private fun TrialDialogOverHome() {
+    val dialog =
+        remember {
+            val home = decode("home_plus_trial.json") as ColumnComponent
+            (
+                home.children
+                    .filterIsInstance<PlusBlock>()
+                    .single()
+                    .action as PresentAction
+            ).content as PlusTrialDialog
+        }
+    Page { Body("home_plus_trial.json") }
+    DialogOverlay(onDismiss = null, compactTop = PLUS_DIALOG_COMPACT_TOP) { PlusTrialDialogView(dialog) }
+}

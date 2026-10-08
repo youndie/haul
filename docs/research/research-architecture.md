@@ -459,8 +459,8 @@ the account need a shildik token; signing in merges the guest cart.
   holding the address delivered to, sent when the shopper leaves it; saved addresses are not listed.
   A method says when and where («Tomorrow, Oct 8», «Thu, Oct 9 · 240 m away» — a pickup a day after
   the courier, D7), the summary names the delivery day, and the button says why it is held («Pick a
-  delivery window», «Fill in the street address and ZIP»). Points stay B-23's: the toggle the canvas
-  draws is sent by no server yet.
+  delivery window», «Fill in the street address and ZIP»). The points toggle the canvas draws is the
+  server's since B-23 (below).
 - **The form edits the address it holds (B-40).** A save rewrites the address delivered to — the chosen one,
   else the newest — in place, keeping its id; the server's state names it and `AddressEntry` carries no id. A
   form equal to an address the customer already has chooses that one and stores nothing. An order copies the
@@ -497,11 +497,10 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   steps and its lines' tiles, or «Ready for *pickup*» with the point, how long it is kept and the code. The overview's
   history is the last four of the rest, with «All orders» whenever that leaves one out. A row's way on is «Track»
   (on its way), «Details» (waiting, returned, cancelled) or «Reorder» (delivered or picked up) — B-18's reorder.
-- **What the account cannot store yet is read through ports** with the canvas's numbers behind them: the points and
-  the membership (`Loyalty`, B-23's), bound to `seed/SampleLoyalty.kt` — Maya's 2,480 points, Plus since 2023
-  renewing Nov 2 with $186 saved; nobody else has any. The Saved list's counts (`SavedLists`) were bound there too
-  until B-20 read them from the list itself (below). The tree carries the tiles either way, so B-23 changes the
-  source, not the account. «Try 30 days free» has no action until B-23's trial, as the home page's offer has none.
+- **What the account cannot store yet is read through ports**: the points and the membership (`Loyalty`), bound
+  since B-23 to feature-membership's ledger and membership (`PlusCommands`), and the Saved list's counts
+  (`SavedLists`), read from the list itself since B-20 (below). The tree carries the tiles either way, so each item
+  changed the source, not the account.
 - **Returned** is a state of the history (the chip, the filter), derived since B-21 from the order's return: a
   refunded one reads «Returned», one asked for and not refunded yet «Returning» — Blush like it, under the same
   «Returned» filter, with «Details» rather than «Reorder».
@@ -542,6 +541,35 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   (−$40), the Bose and the Sony studio headphones at their price, and generated products picked by a fixed stride —
   four discounted ones saved at their old price. The fixtures keep the canvas's cards (`SavedFixturesTest` holds the
   rest of each body to the server's tree, and each card to the shape of a server card).
+
+**Decided in B-23, Haul Plus and points.**
+
+- **The points ledger is append-only** (`points_entries`, V19): a row per movement, the balance their sum, each
+  row's key what makes it happen once — `earned:<shipment>`, `redeemed:<order>`, `returned:<order or return>`,
+  `reversed:<return>`, `opening:<customer>`. Points do not expire (no document says they do). A point is a cent.
+- **Earning**: an order earns a point per whole dollar *paid* — its total after the points it was paid with — ×2
+  when the customer was a member at placement (Maya's $512 cart earns 1,024; with her 2,480 points off, $487.20 earns
+  974). The order keeps the number (`orders.points`); each shipment credits its share of it (shared as the capture
+  is, `ShipmentShares`) as it is delivered or collected, written before the move so a pass that dies between the two
+  credits nothing more.
+- **Redemption** is the checkout's toggle (`CheckoutChoice.usePoints`, stored with the checkout): on, the whole
+  balance comes off, capped at the items after discounts — points never pay for delivery. The quote's total, the ways
+  to pay offered (Haul Pay's range) and the fingerprint follow it; a quote without points keeps the fingerprint it
+  had. Placement takes the points in the saga (`redeem-points`, after the window, before the order opens), under a
+  lock on the customer, refusing a balance spent meanwhile as the quote having changed (`409 cart_changed`); undone —
+  a declined card, a failure further on — they come back as a `returned` row.
+- **Haul Plus** is a row per customer (`memberships`) and `customers.plus`, which every price already read; the trial
+  writes both in one transaction. 30 days free from the store's date, then «renewing» on the same day each month at
+  $4.99 with nothing charged; v1 has no way to end a membership, so `trial_used` cannot happen and is not a code. A
+  member asking for a trial — on one or paying — is `409 already_member`.
+- **Delivery savings this year** are the fees Plus waived on the member's placed orders since January 1 in the store's
+  zone (`orders.delivery_waived_cents`: $5.99 under $35 of items, research D7), plus what a membership carried in from
+  before the store kept orders (`memberships.carried_savings_cents`, counted in its year only) — the seed's $186 for
+  Maya, whose orders no seed holds. Her 2,480 points are an `opening` row. Both are seeded once, also into a database
+  seeded before they existed.
+- **The offer**: «Try 30 days free» on the home page's Plus block and on the account's tile presents the trial's
+  dialog (`PlusTrialDialog`), whose «Start trial» is `POST /api/v1/me/plus/trial` answered `201` with `close`,
+  `refresh`; a guest is sent to sign in first. A member's home page draws what Plus saved this year and when it renews.
 
 **How the stand is built (B-27).** One image serves the page and the API: the server's distribution
 carries the browser bundle and serves it at `/`, so the two cannot be deployed at different versions

@@ -319,7 +319,43 @@
                     "text": "Free delivery and double points, then $4.99 / month",
                     "accent": "free",
                     "button": {
-                        "label": "Try 30 days free"
+                        "label": "Try 30 days free",
+                        "action": {
+                            "type": "present",
+                            "content": {
+                                "type": "haul_plus_trial_dialog",
+                                "id": "plus-trial",
+                                "eyebrow": "Haul Plus",
+                                "title": "30 days free",
+                                "accent": "free",
+                                "benefits": [
+                                    {
+                                        "title": "Free delivery on every order",
+                                        "detail": "No minimum basket"
+                                    },
+                                    {
+                                        "title": "Next-day courier",
+                                        "detail": "Whatever the order total"
+                                    },
+                                    {
+                                        "title": "Double points",
+                                        "detail": "2 points for every dollar"
+                                    },
+                                    {
+                                        "title": "Early access to sales",
+                                        "detail": "Campaign prices 24 hours early"
+                                    }
+                                ],
+                                "terms": "30 days free, then $4.99/month",
+                                "startLabel": "Start trial",
+                                "dismissLabel": "Not now",
+                                "url": "/api/v1/me/plus/trial",
+                                "close": {
+                                    "type": "close"
+                                }
+                            },
+                            "kind": "dialog"
+                        }
                     }
                 },
                 {

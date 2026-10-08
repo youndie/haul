@@ -39,6 +39,10 @@ internal data class OrderPayload(
     val points: Int,
     val placedAt: String,
     val lines: List<Line>,
+    /** The points it is paid with, taken by the saga (B-23); none in a saga stored before V19. */
+    val pointsRedeemed: Int = 0,
+    /** The delivery fee Plus took off (B-23). */
+    val deliveryWaivedCents: Int = 0,
 ) : PetichPayload() {
     @Serializable
     data class Line(
@@ -71,6 +75,8 @@ internal data class OrderPayload(
             points = points,
             placedAt = placedAtTime,
             lines = lines.map { OrderLine(it.skuId, it.sellerId, it.title, it.quantity, it.priceCents, it.listCents) },
+            pointsRedeemed = pointsRedeemed,
+            deliveryWaivedCents = deliveryWaivedCents,
         )
 }
 
@@ -88,5 +94,8 @@ internal data class Refused(
         const val OUT_OF_STOCK = "out_of_stock"
         const val SLOT_UNAVAILABLE = "slot_unavailable"
         const val PAYMENT_DECLINED = "payment_declined"
+
+        /** The points the order was to be paid with are no longer there: spent by another order meanwhile. */
+        const val POINTS_SHORT = "points_short"
     }
 }

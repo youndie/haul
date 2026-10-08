@@ -1,5 +1,6 @@
 package io.github.youndie.haul.shell
 
+import io.github.youndie.haul.feature.identity.domain.Customer
 import io.github.youndie.haul.ui.FooterColumn
 import io.github.youndie.haul.ui.HaulFooter
 import io.github.youndie.haul.ui.HaulHeader
@@ -10,9 +11,9 @@ import io.github.youndie.kompot.standard.NavigateAction
 
 /**
  * Who is looking: what the header shows and which blocks a screen offers. [customerId] is a signed-in
- * customer's id, `null` for a guest; [inCart] is how many of each SKU their cart holds, by SKU id;
- * [saved] the products in their Saved list, whose hearts are drawn filled (B-20); [Viewers] tells them
- * from a request.
+ * customer's id, `null` for a guest, and [customer] the customer as signed in (their membership, B-23);
+ * [inCart] is how many of each SKU their cart holds, by SKU id; [saved] the products in their Saved list,
+ * whose hearts are drawn filled (B-20); [Viewers] tells them from a request.
  */
 internal data class Viewer(
     val firstName: String? = null,
@@ -20,6 +21,7 @@ internal data class Viewer(
     val customerId: String? = null,
     val inCart: Map<String, Int> = emptyMap(),
     val saved: Set<String> = emptySet(),
+    val customer: Customer? = null,
 )
 
 /**

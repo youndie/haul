@@ -12,18 +12,22 @@ import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.checkout.AddressEntry
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.checkout.DeliveryMethod
+import io.github.youndie.haul.feature.membership.domain.PointsLedger
+import io.github.youndie.haul.feature.membership.domain.PointsRules
 
 /**
  * Checkout (feature-checkout, endpoint-checkout): the quote and the choices that change it.
  *
  * The quote is the cart's — the lines it counts and its [Totals], computed by B-11's code and not again
- * here — with what the customer chose to receive and pay with. Every refusal is a [CheckoutError].
+ * here — with what the customer chose to receive and pay with, and the points they pay with ([ledger],
+ * B-23). Every refusal is a [CheckoutError].
  */
 internal class CheckoutCommands(
     private val checkouts: CheckoutRepository,
     private val slots: DeliverySlots,
     private val carts: CartRepository,
     private val cartCommands: CartCommands,
+    private val ledger: PointsLedger,
     private val clock: StoreClock,
 ) {
     /**
@@ -47,7 +51,10 @@ internal class CheckoutCommands(
                 chosen != null -> chosen.slot.takeUnless { chosen.full }
                 else -> loads.firstOrNull { !it.full }?.slot
             }
-        val allowed = PaymentMethod.entries.filter { it.allowed(method, basis.totals.totalCents) }
+        val redeemable = PointsRules.redeemable(ledger.balance(owner.id), basis.capCents)
+        val redeemed = if (stored.usePoints) redeemable else 0
+        val payable = basis.payable(redeemed)
+        val allowed = PaymentMethod.entries.filter { it.allowed(method, payable) }
         val payment = allowed.firstOrNull { it.id == stored.payment } ?: PaymentMethod.DEFAULT
         val quote =
             Quote(
@@ -60,6 +67,7 @@ internal class CheckoutCommands(
                 point = points.firstOrNull { it.id == stored.pointId } ?: points.firstOrNull(),
                 slot = slot,
                 payment = payment,
+                pointsRedeemed = redeemed,
             )
         return CheckoutState(
             quote = quote,
@@ -73,6 +81,8 @@ internal class CheckoutCommands(
             expiredPromo = basis.expiredPromo,
             draft = stored.draft,
             draftProblems = stored.draft?.let(::addressProblems).orEmpty(),
+            redeemable = redeemable,
+            usePoints = stored.usePoints,
         )
     }
 
@@ -83,17 +93,27 @@ internal class CheckoutCommands(
      * Changes what the checkout is quoted for; only the fields given change. A window must be one of
      * those offered and have room; a point decides the method (a locker's id is delivery to a locker);
      * a way to pay must be offered for the method and the total. A method that no longer allows the way
-     * to pay chosen falls back to the card.
+     * to pay chosen falls back to the card. The points toggle is the customer's to turn either way; with
+     * no points to spend it takes nothing off, and the total a way to pay is offered for is the one left
+     * once the points are off.
      */
     suspend fun choose(
         owner: CartOwner.Customer,
         choice: CheckoutChoice,
     ) {
         if (choice == CheckoutChoice()) {
-            throw CheckoutError.Invalid("body", "Choose a method, an address, a point, a window or a way to pay")
+            throw CheckoutError.Invalid(
+                "body",
+                "Choose a method, an address, a point, a window, a way to pay or whether to use points",
+            )
         }
         val basis = basis(owner)
         var next = checkouts.checkout(owner.id)
+        choice.usePoints?.let { next = next.copy(usePoints = it) }
+        val payable =
+            basis.payable(
+                if (next.usePoints) PointsRules.redeemable(ledger.balance(owner.id), basis.capCents) else 0,
+            )
         choice.method?.let { method ->
             next = next.copy(method = method, pointId = next.pointId.takeIf { method == next.method })
         }
@@ -116,17 +136,13 @@ internal class CheckoutCommands(
         }
         choice.payment?.let { id ->
             val payment = PaymentMethod.byId(id) ?: throw CheckoutError.Invalid("payment", "No way to pay «$id»")
-            if (!payment.allowed(
-                    next.method,
-                    basis.totals.totalCents,
-                )
-            ) {
+            if (!payment.allowed(next.method, payable)) {
                 throw CheckoutError.PaymentNotAllowed(payment.refusal())
             }
             next = next.copy(payment = payment.id)
         }
         val payment = next.payment?.let(PaymentMethod::byId)
-        if (payment != null && !payment.allowed(next.method, basis.totals.totalCents)) {
+        if (payment != null && !payment.allowed(next.method, payable)) {
             next = next.copy(payment = null)
         }
         checkouts.save(owner.id, next)
@@ -197,7 +213,13 @@ internal class CheckoutCommands(
         val expiredPromo: String?,
         val totals: Totals,
         val offered: List<Slot>,
-    )
+    ) {
+        /** The most points can take off: the items after discounts — never the delivery fee. */
+        val capCents: Int get() = totals.itemsCents - totals.discountCents
+
+        /** The total left to pay once [redeemed] points are off. */
+        fun payable(redeemed: Int): Int = totals.totalCents - redeemed * PointsRules.CENTS_PER_POINT
+    }
 
     private fun AddressEntry.trimmed(): AddressEntry =
         AddressEntry(street.trim(), apt.trim(), city.trim(), zip.trim(), doorCode.trim(), courierNote.trim())

@@ -31,6 +31,7 @@ import io.github.youndie.haul.feature.checkout.run
 import io.github.youndie.haul.feature.home.CampaignRowView
 import io.github.youndie.haul.feature.home.CategoryGridView
 import io.github.youndie.haul.feature.home.PlusBlockView
+import io.github.youndie.haul.feature.home.PlusTrialDialogPresented
 import io.github.youndie.haul.feature.home.SectionHeaderView
 import io.github.youndie.haul.feature.order.OrderBodyView
 import io.github.youndie.haul.feature.order.ReturnDialog
@@ -63,6 +64,7 @@ import io.github.youndie.haul.ui.HaulPagination
 import io.github.youndie.haul.ui.OrderBody
 import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.PlusBlock
+import io.github.youndie.haul.ui.PlusTrialDialog
 import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductCardView
 import io.github.youndie.haul.ui.ProductDescription
@@ -384,6 +386,18 @@ public class ReturnFormRenderer : KompotComponentRenderer<ReturnForm> {
         formController: FormController,
     ) {
         ReturnDialog(component, actionHandler::handle)
+    }
+}
+
+@KompotComponentMarker
+public class PlusTrialDialogRenderer : KompotComponentRenderer<PlusTrialDialog> {
+    @Composable
+    override fun Render(
+        component: PlusTrialDialog,
+        actionHandler: KompotActionHandler,
+        formController: FormController,
+    ) {
+        PlusTrialDialogPresented(component, actionHandler::handle)
     }
 }
 

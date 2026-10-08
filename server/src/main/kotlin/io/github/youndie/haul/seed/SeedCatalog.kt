@@ -1,5 +1,6 @@
 package io.github.youndie.haul.seed
 
+import io.github.youndie.haul.feature.membership.domain.PlusMembership
 import io.github.youndie.haul.feature.reviews.domain.StoredQuestion
 import io.github.youndie.haul.feature.reviews.domain.StoredReview
 import kotlinx.serialization.json.JsonArray
@@ -25,6 +26,10 @@ internal data class SeedCatalog(
     val ratingCounts: Map<String, Map<Int, Int>> = emptyMap(),
     val questions: List<StoredQuestion> = emptyList(),
     val saved: List<SeedSaved> = emptyList(),
+    /** The sample customers' Haul Plus memberships (B-23). */
+    val memberships: List<PlusMembership> = emptyList(),
+    /** The points the sample customers had before the store kept orders, by customer (B-23). */
+    val openingPoints: Map<String, Int> = emptyMap(),
 )
 
 internal data class SeedCategory(

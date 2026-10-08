@@ -13,6 +13,15 @@ internal val checkoutModule =
         single<CheckoutRepository> { ExposedCheckoutRepository(get()) }
         // An explicit lambda: the capacity is a defaulted parameter, which Koin would otherwise ask for.
         single<DeliverySlots> { ExposedDeliverySlots(get()) }
-        single { CheckoutCommands(get(), get(), get(), get(), get()) }
+        single {
+            CheckoutCommands(
+                checkouts = get(),
+                slots = get(),
+                carts = get(),
+                cartCommands = get(),
+                ledger = get(),
+                clock = get(),
+            )
+        }
         single { CheckoutScreen(get()) }
     }

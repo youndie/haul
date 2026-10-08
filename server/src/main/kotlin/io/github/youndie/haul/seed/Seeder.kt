@@ -12,15 +12,21 @@ import io.github.youndie.haul.feature.catalog.data.SkusTable
 import io.github.youndie.haul.feature.checkout.data.AddressesTable
 import io.github.youndie.haul.feature.checkout.data.PickupPointsTable
 import io.github.youndie.haul.feature.identity.data.CustomersTable
+import io.github.youndie.haul.feature.membership.data.MembershipsTable
+import io.github.youndie.haul.feature.membership.data.PointsEntriesTable
+import io.github.youndie.haul.feature.membership.domain.PointsMovement
 import io.github.youndie.haul.feature.reviews.data.QuestionsTable
 import io.github.youndie.haul.feature.reviews.data.RatingCountsTable
 import io.github.youndie.haul.feature.reviews.data.ReviewsTable
 import io.github.youndie.haul.feature.saved.data.SavedItemsTable
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
+import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.insertIgnore
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
@@ -35,14 +41,21 @@ internal object Seeder {
     /** An arbitrary key for `pg_advisory_xact_lock`, held for the seeding transaction only. */
     private const val LOCK_KEY = 0x4841554CL // "HAUL"
 
-    /** Returns whether it seeded; `false` means the catalog already had rows. */
+    /**
+     * Returns whether it seeded; `false` means the catalog already had rows. The sample customers' Plus
+     * memberships and opening points ([seedLoyalty], B-23) are written either way, each once: a database
+     * seeded before they existed gets them on its next start.
+     */
     fun seedIfEmpty(
         database: Database,
         catalog: SeedCatalog,
     ): Boolean =
         transaction(database) {
             exec("SELECT pg_advisory_xact_lock($LOCK_KEY)")
-            if (!CategoriesTable.selectAll().empty()) return@transaction false
+            if (!CategoriesTable.selectAll().empty()) {
+                seedLoyalty(catalog)
+                return@transaction false
+            }
 
             CategoriesTable.batchInsert(catalog.categories) {
                 this[CategoriesTable.slug] = it.slug
@@ -190,8 +203,43 @@ internal object Seeder {
                 this[QuestionsTable.answer] = it.answer
                 this[QuestionsTable.answeredAt] = it.answeredAt
             }
+            seedLoyalty(catalog)
             true
         }
+
+    /**
+     * The memberships and the opening balances of [catalog], for the customers that exist: a membership
+     * the customer has already, or an opening balance written before — spent since, perhaps — is left as it
+     * is (the membership's key is the customer, the balance's its ledger key).
+     */
+    private fun seedLoyalty(catalog: SeedCatalog) {
+        val known =
+            CustomersTable
+                .select(CustomersTable.id)
+                .where { CustomersTable.id inList catalog.customers.map { it.id } }
+                .map { it[CustomersTable.id] }
+                .toSet()
+        catalog.memberships.filter { it.customerId in known }.forEach { membership ->
+            MembershipsTable.insertIgnore {
+                it[customerId] = membership.customerId
+                it[startedAt] = membership.startedAt
+                it[trial] = membership.trial
+                it[paidFrom] = membership.paidFrom
+                it[carriedSavingsCents] = membership.carriedSavingsCents
+                it[carriedSavingsYear] = membership.carriedSavingsYear
+            }
+        }
+        catalog.openingPoints.filterKeys { it in known }.forEach { (customer, points) ->
+            val opening = PointsMovement.opening(customer, points, CatalogSeed.NOW)
+            PointsEntriesTable.insertIgnore {
+                it[key] = opening.key
+                it[customerId] = opening.customerId
+                it[kind] = opening.kind.id
+                it[PointsEntriesTable.points] = opening.points
+                it[at] = opening.at
+            }
+        }
+    }
 
     /** Maya's address was saved long before the canvas's «now». */
     private const val ADDRESS_AGE_DAYS = 365L

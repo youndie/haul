@@ -139,6 +139,13 @@ public enum class ErrorCode {
     @SerialName("already_returned")
     AlreadyReturned,
 
+    /**
+     * A Haul Plus trial asked for by somebody who is a member already — on a trial or paying
+     * (feature-membership): a membership is started once, and v1 has no way to end one.
+     */
+    @SerialName("already_member")
+    AlreadyMember,
+
     /** In [ErrorBody.fields] only: a form field that must be filled was left empty. */
     @SerialName("field_required")
     FieldRequired,

@@ -5,6 +5,8 @@ import io.github.youndie.haul.feature.cart.domain.CartRepository
 import io.github.youndie.haul.feature.checkout.domain.DeliverySlots
 import io.github.youndie.haul.feature.checkout.domain.PaymentMethod
 import io.github.youndie.haul.feature.checkout.domain.Slot
+import io.github.youndie.haul.feature.membership.domain.PointsLedger
+import io.github.youndie.haul.feature.membership.domain.PointsMovement
 import io.github.youndie.haul.feature.order.domain.CancelReason
 import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.domain.StockReservations
@@ -22,10 +24,10 @@ import io.github.youndie.petich.petichDefinition
 internal const val ORDER_SAGA = "order"
 
 /**
- * Placement as a saga (research D4, feature-orders): reserve the stock, take the delivery window, open
- * the order, authorise the payment, confirm — and the bought lines leave the cart. A member that refuses
- * or fails undoes the ones before it, in reverse: the authorisation is voided, the order cancelled, the
- * window and the stock given back.
+ * Placement as a saga (research D4, feature-orders): reserve the stock, take the delivery window, take
+ * the points it is paid with (B-23), open the order, authorise the payment, confirm — and the bought lines
+ * leave the cart. A member that refuses or fails undoes the ones before it, in reverse: the authorisation
+ * is voided, the order cancelled, the points, the window and the stock given back.
  *
  * The order of the members is a decision, not a habit. The stock and the window come first because a
  * refusal there sends the shopper back to checkout (`409`), and an order that never existed is the
@@ -39,10 +41,12 @@ internal fun orderSaga(
     orders: OrderRepository,
     payments: PaymentProcessor,
     carts: CartRepository,
+    points: PointsLedger,
 ): PetichDefinition<OrderPayload> =
     petichDefinition(ORDER_SAGA) {
         step("reserve-stock", ReserveStock(stock))
         step("reserve-slot", ReserveSlot(slots))
+        step("redeem-points", RedeemPoints(points))
         step("open-order", OpenOrder(orders))
         step("authorise-payment", AuthorisePayment(payments, orders))
         step("confirm", Confirm(orders))
@@ -101,6 +105,38 @@ internal class ReserveSlot(
 
     private fun OrderPayload.slot(): Slot? =
         slotId?.let { Slot.parse(it) ?: error("the order $orderId carries «$it», which is no window") }
+}
+
+/**
+ * The points the order is paid with, taken off the customer's balance (feature-checkout, «Points
+ * redeemed»): once per order, and only while the balance still covers them — another order may have spent
+ * them since the quote — or the saga is refused (`points_short`, answered as the quote having changed).
+ * Undone — a declined card, a failure further on — they come back as a `returned` row of their own. An
+ * order paid without points takes and gives back nothing.
+ */
+internal class RedeemPoints(
+    private val points: PointsLedger,
+) : PetichStep<OrderPayload> {
+    override suspend fun execute(
+        ctx: PetichStepContext,
+        payload: OrderPayload,
+    ) {
+        if (payload.pointsRedeemed <= 0) return
+        val redemption =
+            PointsMovement.redeemed(payload.customerId, payload.orderId, payload.pointsRedeemed, payload.placedAtTime)
+        if (!points.redeem(redemption)) {
+            ctx.record(Refused(Refused.POINTS_SHORT))
+            ctx.reject(Refused.POINTS_SHORT)
+        }
+    }
+
+    /** Gives back what the order took — nothing, when the redemption never landed. */
+    override suspend fun compensate(
+        ctx: PetichStepContext,
+        payload: OrderPayload,
+    ) {
+        if (payload.pointsRedeemed > 0) points.giveBack(payload.orderId, payload.placedAtTime)
+    }
 }
 
 /** The order, its lines and a shipment per seller, written as `placing`; undone, it is cancelled. */

@@ -24,6 +24,9 @@ import io.github.youndie.haul.feature.identity.domain.IdentityError
 import io.github.youndie.haul.feature.identity.identityModule
 import io.github.youndie.haul.feature.identity.identityRouting
 import io.github.youndie.haul.feature.identity.installSignIn
+import io.github.youndie.haul.feature.membership.domain.MembershipError
+import io.github.youndie.haul.feature.membership.membershipModule
+import io.github.youndie.haul.feature.membership.membershipRouting
 import io.github.youndie.haul.feature.order.domain.OrderError
 import io.github.youndie.haul.feature.order.orderModule
 import io.github.youndie.haul.feature.order.orderRouting
@@ -127,6 +130,7 @@ internal fun Application.haulModule(
             savedModule,
             accountModule,
             returnsModule,
+            membershipModule,
         )
     }
     // Carries on what a process that died left mid-saga, from the first moment this one serves; it
@@ -150,6 +154,7 @@ internal fun Application.haulModule(
         exception<ReturnError> { call, error ->
             call.respondError(error.code, error.message, error.field, error.fields)
         }
+        exception<MembershipError> { call, error -> call.respondError(error.code, error.message) }
         exception<ReviewError> { call, error ->
             call.respondError(error.code, error.message, error.field, error.fields)
         }
@@ -181,6 +186,7 @@ internal fun Application.haulModule(
             reviewsRouting()
             orderRouting()
             returnsRouting()
+            membershipRouting()
         }
         web?.let { webBundle(it) }
     }
@@ -232,6 +238,7 @@ internal fun status(code: ErrorCode): HttpStatusCode =
         ErrorCode.ReviewExists,
         ErrorCode.OwnReview,
         ErrorCode.AlreadyReturned,
+        ErrorCode.AlreadyMember,
         -> HttpStatusCode.Conflict
 
         ErrorCode.PromoExpired,

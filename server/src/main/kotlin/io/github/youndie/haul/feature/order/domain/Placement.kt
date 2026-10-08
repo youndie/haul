@@ -118,6 +118,10 @@ internal class Placement(
 
                     Refused.OUT_OF_STOCK -> throw OrderError.OutOfStock()
 
+                    // The balance was spent by another order between the quote and the saga: the quote
+                    // the shopper saw is no longer the one they would get.
+                    Refused.POINTS_SHORT -> throw OrderError.QuoteChanged()
+
                     // A declined card: the order exists, cancelled for that reason, and the shopper is shown it.
                     else -> orderId
                 }
@@ -152,8 +156,10 @@ internal class Placement(
             itemsCents = quote.totals.itemsCents,
             discountCents = quote.totals.discountCents,
             deliveryCents = quote.totals.deliveryCents,
-            totalCents = quote.totals.totalCents,
-            points = quote.totals.points(quote.plus),
+            totalCents = quote.totalCents,
+            points = quote.points,
+            pointsRedeemed = quote.pointsRedeemed,
+            deliveryWaivedCents = quote.totals.deliveryWaivedCents,
             placedAt = clock.now().toOffsetDateTime().toString(),
             lines =
                 quote.lines.map {

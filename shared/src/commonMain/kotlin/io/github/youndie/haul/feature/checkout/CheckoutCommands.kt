@@ -25,7 +25,8 @@ public enum class DeliveryMethod {
 /**
  * A change to what the checkout is quoted for, `PUT` to the url its component carries: only the
  * fields given change, and at least one is required. [addressId], [pointId], [slotId] and [payment]
- * are the ids the tree's options carry.
+ * are the ids the tree's options carry. [usePoints] turns the points toggle on or off (`PointsToggle.url`,
+ * B-23): on, the customer's whole balance comes off the order, up to its items after discounts.
  */
 @Serializable
 public data class CheckoutChoice(
@@ -34,6 +35,7 @@ public data class CheckoutChoice(
     val pointId: String? = null,
     val slotId: String? = null,
     val payment: String? = null,
+    val usePoints: Boolean? = null,
 )
 
 /**

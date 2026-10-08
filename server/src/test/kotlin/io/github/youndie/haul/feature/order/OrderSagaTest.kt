@@ -4,6 +4,7 @@ import io.github.youndie.haul.db.Databases
 import io.github.youndie.haul.feature.cart.data.ExposedCartRepository
 import io.github.youndie.haul.feature.checkout.DeliveryMethod
 import io.github.youndie.haul.feature.checkout.data.ExposedDeliverySlots
+import io.github.youndie.haul.feature.membership.data.ExposedPointsLedger
 import io.github.youndie.haul.feature.order.data.ExposedOrders
 import io.github.youndie.haul.feature.order.data.ExposedStock
 import io.github.youndie.haul.feature.order.domain.CancelReason
@@ -104,6 +105,7 @@ class OrderSagaTest {
                             orders = orders(ExposedOrders(database)),
                             payments = payments(ExposedPaymentSimulator(database, CANVAS_NOW)),
                             carts = ExposedCartRepository(database),
+                            points = ExposedPointsLedger(database),
                         ),
                     ),
                 )

@@ -43,6 +43,7 @@ import io.github.youndie.haul.ui.ShrinkFirstRow
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.accented
 import io.github.youndie.haul.ui.countdown
+import io.github.youndie.haul.ui.following
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.hatching
@@ -396,7 +397,10 @@ private fun Tile(
     }
 }
 
-/** Haul Plus: the offer to a guest or a non-member, the savings to a member. */
+/**
+ * Haul Plus: the offer to a guest or a non-member, the savings to a member. The offer's button follows
+ * [PlusBlock.action]: the trial's dialog for a customer, sign-in for a guest (B-23).
+ */
 @Composable
 public fun PlusBlockView(plus: PlusBlock) {
     val compact = LocalHaulCompact.current
@@ -507,6 +511,7 @@ private fun PlusDetails(
                         height = 56.dp,
                         radius = 18.dp,
                         fill = HaulColors.secondaryContainer,
+                        onClick = following(plus.action),
                     )
                     price?.let {
                         Text(
@@ -524,7 +529,13 @@ private fun PlusDetails(
                     horizontalArrangement = Arrangement.spacedBy(18.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    HaulButton(offer, height = 60.dp, radius = 16.dp, fill = HaulColors.secondaryContainer)
+                    HaulButton(
+                        offer,
+                        height = 60.dp,
+                        radius = 16.dp,
+                        fill = HaulColors.secondaryContainer,
+                        onClick = following(plus.action),
+                    )
                     price?.let { Text(it, HaulType.text(15f).copy(color = HaulColors.inverseOnSurfaceVariant)) }
                 }
             }

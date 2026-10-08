@@ -41,6 +41,7 @@ internal class ExposedCheckoutRepository(
                     slotId = it[CheckoutsTable.slot],
                     payment = it[CheckoutsTable.payment],
                     draft = it[CheckoutsTable.addressDraft],
+                    usePoints = it[CheckoutsTable.usePoints],
                 )
             } ?: StoredCheckout()
         }
@@ -100,6 +101,7 @@ internal class ExposedCheckoutRepository(
                     slotId = current?.get(CheckoutsTable.slot),
                     payment = current?.get(CheckoutsTable.payment),
                     draft = null,
+                    usePoints = current?.get(CheckoutsTable.usePoints) ?: false,
                 ),
             )
             ownAddresses(customerId).single { it.id == id }
@@ -131,6 +133,7 @@ internal class ExposedCheckoutRepository(
             it[slot] = checkout.slotId
             it[payment] = checkout.payment
             it[addressDraft] = checkout.draft
+            it[usePoints] = checkout.usePoints
         }
     }
 

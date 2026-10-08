@@ -1,10 +1,12 @@
 package io.github.youndie.haul.feature.catalog.screen
 
+import io.github.youndie.haul.feature.account.domain.Loyalty
 import io.github.youndie.haul.feature.catalog.domain.Campaign
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
+import io.github.youndie.haul.feature.membership.screen.PlusOffer
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.ui.CampaignHero
@@ -12,7 +14,6 @@ import io.github.youndie.haul.ui.CampaignRow
 import io.github.youndie.haul.ui.CategoryGrid
 import io.github.youndie.haul.ui.CategoryTile
 import io.github.youndie.haul.ui.Link
-import io.github.youndie.haul.ui.PlusBlock
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.PromoBanner
 import io.github.youndie.haul.ui.SectionHeader
@@ -22,14 +23,16 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /**
- * `/ui/home` (screen-home). A guest sees the campaign, the banners, the categories, the deals of the
- * day and the Plus offer; «Picked for you» and the member's Plus block arrive with feature-recommendations
- * and feature-membership.
+ * `/ui/home` (screen-home). Everybody sees the campaign, the banners, the categories, the deals of the
+ * day and the Plus block: the offer to a guest and a non-member — whose «Try 30 days free» is sign-in or
+ * the trial's dialog — and a member's savings and renewal (feature-membership, [PlusOffer]). «Picked for
+ * you» arrives with feature-recommendations.
  */
 internal class HomeScreen(
     private val catalog: CatalogRepository,
     private val calendar: DeliveryCalendar,
     private val photos: ProductPhotos,
+    private val loyalty: Loyalty,
 ) {
     suspend fun build(viewer: Viewer): KompotComponent {
         val categories = catalog.categories()
@@ -72,7 +75,7 @@ internal class HomeScreen(
                 scroll = true,
                 cards = dealCards(catalog, calendar, photos, viewer),
             )
-        if (viewer.firstName == null) sections += PLUS_OFFER
+        sections += PlusOffer.block(viewer, viewer.customer?.let { loyalty.standing(it) })
         return Frame.page("home", viewer, navigation(categories), sections, footer = true)
     }
 
@@ -110,22 +113,6 @@ internal class HomeScreen(
         private const val CATEGORY_TILES = 8
         private const val DEAL_COLUMNS = 6
         private val MONTH_DAY = DateTimeFormatter.ofPattern("MMM d", Locale.US)
-
-        val PLUS_OFFER =
-            PlusBlock(
-                id = "plus",
-                member = false,
-                title = "Free delivery. Every order.",
-                benefits =
-                    listOf(
-                        "Next-day delivery with no minimum",
-                        "Early access to sales",
-                        "Double points on every purchase",
-                    ),
-                offer = "Try 30 days free",
-                price = "then $4.99 / month",
-                accent = "Every",
-            )
     }
 }
 

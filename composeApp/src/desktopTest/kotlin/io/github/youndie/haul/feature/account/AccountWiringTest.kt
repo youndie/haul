@@ -23,6 +23,7 @@ import io.github.youndie.haul.feature.cart.LocalCartCommands
 import io.github.youndie.haul.registry.haulRegistry
 import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.ui.LocalHaulNow
+import io.github.youndie.haul.ui.PlusTrialDialog
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotActionHandler
 import io.github.youndie.kompot.KompotComponent
@@ -30,6 +31,7 @@ import io.github.youndie.kompot.KompotScreen
 import io.github.youndie.kompot.form.FormController
 import io.github.youndie.kompot.form.FormSchema
 import io.github.youndie.kompot.standard.NavigateAction
+import io.github.youndie.kompot.standard.PresentAction
 import io.github.youndie.kompot.standard.RefreshAction
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
@@ -40,8 +42,8 @@ import kotlin.test.assertEquals
  * app's registry (B-19): a delivered row's «Reorder» is the order page's cart command, whose answer —
  * `navigate` to the cart — goes to the screen's handler; everything else follows its tree's `navigate`:
  * «Details» and «Track» to the order's page, «All orders» and the menu to the account's pages, a chip to
- * its filter's address, «See today's deals» to the deals, «Saved» to the Saved list (B-20). «Try 30 days
- * free» is drawn and goes nowhere until B-23.
+ * its filter's address, «See today's deals» to the deals, «Saved» to the Saved list (B-20), «Try 30 days
+ * free» to the trial's dialog (B-23).
  */
 @OptIn(ExperimentalTestApi::class)
 class AccountWiringTest {
@@ -141,9 +143,9 @@ class AccountWiringTest {
             )
         }
 
-    /** Somebody with no orders is sent to the deals; a non-member's «Try 30 days free» starts nothing yet (B-23). */
+    /** Somebody with no orders is sent to the deals. */
     @Test
-    fun `no orders leads to the deals and the trial waits for its item`() =
+    fun `no orders leads to the deals`() =
         runDesktopComposeUiTest(WIDTH, 1_200) {
             account(decode("account_no_orders.json"))
             onNodeWithText("See today’s deals").performClick()
@@ -151,13 +153,15 @@ class AccountWiringTest {
             assertEquals(listOf<KompotAction>(NavigateAction("/deals")), followed.toList())
         }
 
+    /** A non-member's «Try 30 days free» presents the trial's dialog its tile carries, and sends nothing itself. */
     @Test
-    fun `the trial's button is drawn and sends nothing`() =
+    fun `the trial's button presents the trial dialog`() =
         runDesktopComposeUiTest(WIDTH, 1_200) {
             account(decode("account_not_member.json"))
             onNodeWithText("Try 30 days free").performClick()
             waitForIdle()
-            assertEquals(emptyList(), followed.toList())
+            val present = followed.single() as PresentAction
+            assertEquals("plus-trial", (present.content as PlusTrialDialog).id)
             assertEquals(emptyList(), sent.toList())
         }
 
