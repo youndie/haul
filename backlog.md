@@ -44,7 +44,7 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-11](docs/backlog/B-11-guests-cart-promo-codes-changed-lines.md) `[ ]` | server: guests, cart, promo codes, changed lines, the Cart tree | P1 | M | B-05 |
+| [B-11](docs/backlog/B-11-guests-cart-promo-codes-changed-lines.md) `[~]` | server: guests, cart, promo codes, changed lines, the Cart tree | P1 | M | B-05 |
 | [B-12](docs/backlog/B-12-shildik-sign-in-in-the-browser.md) `[ ]` | server + client: shildik sign-in in the browser, customer creation, cart merge, header states | P1 | L | B-04, B-11 |
 | [B-13](docs/backlog/B-13-cart-renderers.md) `[ ]` | design refs + client: Cart renderers | P1 | M | B-01, B-11, B-12 |
 | [B-14](docs/backlog/B-14-checkout-tree-slots-with-capacity-pickup.md) `[ ]` | server: checkout tree, slots with capacity, pickup points, quote, the address form | P1 | M | B-12 |

@@ -1,7 +1,7 @@
 ---
 id: B-11
 title: "server: guests, cart, promo codes, changed lines, the Cart tree"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-4-cart
