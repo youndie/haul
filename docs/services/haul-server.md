@@ -123,11 +123,11 @@ data); send e-mail or push notifications.
   against a PostgreSQL of its own; it sets `HAUL_WEB_DIR=/opt/app/web` and runs as uid 1000.
   `scripts/image-check.sh` checks the image, its cache, the page (`200`) and the module's
   `application/wasm` type.
-* **The web bundle:** the distribution carries the wasm bundle under `web/` (`server/build.gradle.kts`),
-  and `HaulModule.kt` serves `HAUL_WEB_DIR` at `/` with `staticFiles`, beside the API. Every API
-  route is more specific, so a screen route always wins, and there is no fallback to `index.html`:
-  an unknown `/ui/...` stays a `404` (`WebBundleTest`). The bundle is served uncompressed today
-  (B-34).
+* **The web bundle:** the distribution carries the wasm bundle in its `web` directory
+  (`server/build.gradle.kts`), and `HaulModule.kt` serves `HAUL_WEB_DIR` at `/` with `staticFiles`,
+  beside the API. Every API route is more specific, so a screen route always wins, and there is no
+  fallback to `index.html`: an unknown `/ui/...` stays a `404` (`WebBundleTest`). The bundle is
+  served uncompressed today (B-34).
 * **Chart:** `charts/haul/` (B-27) — the server Deployment (one replica, rolled with a surge of one
   and none unavailable; start-up
   and liveness on `/healthz`, readiness on `/readyz`; an init container that waits for the

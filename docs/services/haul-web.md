@@ -63,9 +63,9 @@ fee or a delivery date, or keep any state the server owns.
 ## 5. Infrastructure and deploy
 
 * Served as static files by [haul-server](haul-server.md): `:composeApp:wasmJsBrowserDistribution`
-  is copied into the server's distribution under `web/` (`server/build.gradle.kts`), and the server
-  serves `HAUL_WEB_DIR` at `/` with no fallback to `index.html`. One image and one origin, so the
-  client needs no base URL. Today the files go out uncompressed (B-34).
+  is copied into the server's distribution, in its `web` directory (`server/build.gradle.kts`), and
+  the server serves `HAUL_WEB_DIR` at `/` with no fallback to `index.html`. One image and one
+  origin, so the client needs no base URL. Today the files go out uncompressed (B-34).
 * **First load**, measured in B-28: the bytes and the time to the first frame, per file and per
   network profile, are in [research-architecture](../research/research-architecture.md) D9,
   «Measured in B-28». Skiko's wasm dominates them; what Haul's own screens add is about a tenth.
