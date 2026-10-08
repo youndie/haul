@@ -1,7 +1,7 @@
 ---
 id: B-23
 title: "server + client: Haul Plus trial and benefits, points ledger, redemption at checkout, delivery savings"
-status: wip
+status: done
 priority: P2
 size: M
 stage: stage-8-loyalty
@@ -50,3 +50,48 @@ Feature: `feature-membership` — its scenarios are this item's acceptance where
   through `LocalHaulCommands` (the storefront's `HaulCommands`), the home offer's and the account tile's buttons
   following their actions, the checkout's points toggle pressable (`CheckoutChoice.usePoints`), the dialog 140 px down
   on a phone (`DialogOverlay.compactTop`).
+- **Returns settle points (B-21, merged first).** `ReturnSimulator` writes the ledger when it refunds, before the move
+  to `refunded` and each once by its key: `reversed:<order>` for what the returned lines earned — B-21's stored
+  `returns.points`, so the order page's «−N points» stays B-21's number and is the one the ledger holds — and
+  `returned:return-<order>` for the returned lines' share of the points the order was paid with
+  (`ReturnRefunds.pointsBack`: redeemed × refund ÷ what was paid for the items), which is no longer paid back in
+  money. Orders paid without points refund exactly as before.
+- **Parity** (`viddikDesignParity`, references committed before this item, rendered on Linux with grayscale text,
+  tolerance untouched), all six within 5 %: `Home_PlusTrialDialog` 1.52 / 2.26 (wide / phone), `Account_NotMember`
+  1.42 / 2.69, `Checkout_PointsApplied` 1.41 / 2.55. Two rounds, both on the phone dialog: its title wraps where the
+  canvas's does («30 days» / «free» at 56 px in 310 px), and Sam's «Picked for you» says «Popular right now». The
+  NotMember and PointsApplied goldens are unchanged: their bodies gained the trial's action and the toggle's `url`,
+  which draw nothing. Goldens recorded for `Home - PlusTrialDialog*` only. Token notes: the dialog's «×» on black is
+  white at 12 %, a new role `HaulColors.inverseControl`; everything else maps onto existing tokens (Ink
+  `inverseSurface`, Acid `secondaryContainer`, Blue `primary`, `outline` for the benefit lines, `outlineVariant` for
+  the hairline). The phone artboard's benefit grid writes `gap:16` without a unit, so the browser lays the four
+  benefits with no gap; the client does the same.
+- **Tests written**: `MembershipRoutesTest` (Sam starts the trial and his next cart has free delivery; a member asking
+  for the trial is refused as already a member; the trial is offered to a non-member and the savings shown to a
+  member), `PointsTest` (Maya pays with her 2480 points and her balance is 0 until the order earns; a declined card
+  gives the redeemed points back; Sam's order of 103 dollars earns 103 points when its shipment is delivered; a balance
+  cannot be spent twice; a return takes back the points its line earned and gives back the points it was paid with; a
+  member's order under the threshold adds the waived fee to the year's savings; points are capped at the items after
+  discounts), `PlusMembershipTest`, `PlusOfferFixturesTest` (the dialog's body is what the server sends),
+  `SeedLoyaltyTest`, `SchemaTest` (V19's tables); changed: `CheckoutFixturesTest` (the toggle is the server's,
+  PointsApplied is the toggle turned on), `CheckoutRoutesTest`, `AccountRoutesTest`, `AccountFixturesTest`, `KoinGraphTest`;
+  in the client `PlusTrialWiringTest` (start trial sends the dialog's post and the page is drawn again; not now closes
+  the dialog and sends nothing; a refused trial closes the dialog and draws the page again), `CheckoutWiringTest` (the
+  toggle turns the points on and off), `AccountWiringTest` (the trial's button presents the trial dialog).
+- **Mutations**, each run against its tests on the Linux box and reverted: no credit on arrival (3 `PointsTest`
+  failures), redemption skipped (3), no give-back on compensation (declined card), no balance check (spent twice), the
+  waived fee zeroed (savings), the store's conditional `plus` update dropped (the trial test), the return's points not
+  settled (return test), the loyalty not re-seeded on a seeded database (`SeedLoyaltyTest`), the points line dropped
+  from the fingerprint (`CheckoutFixturesTest`), the toggle and «Start trial» made inert (both wiring tests). Removing
+  the use case's own member check failed nothing — the store's conditional update refuses the same requests — so the
+  check was removed.
+- **Where it ran**: everything on the Linux box (WSL, 16 GB, shared): `:composeApp:wasmJsBrowserDistribution`, then
+  `check :server:installDist` green — 251 server tests (PostgreSQL and shildik in Testcontainers), 139 desktop tests,
+  124 `viddikVerify` — and `scripts/image-check.sh` (tag `haul/server:b23`, port 18123): ready, 923 of 923 classes
+  from the AOT cache, page 200.
+- **Findings**: a saga in flight across the deploy meets the definition with one more step (`redeem-points`); petich's
+  chain fingerprint is what decides its fate, as for any change to the saga. Flyway runs V19 after V17 and before a
+  later V18 (B-20) only with out-of-order migrations on a database that already has V19 — fresh databases are fine.
+  The return dialog still states the refund as the lines' value; for an order paid partly in points the card gets
+  that less the points' share (above), which the dialog does not yet say.
+
