@@ -1,7 +1,7 @@
 ---
 id: B-36
 title: "server: a reloaded or shared storefront address answers 404"
-status: open
+status: wip
 priority: P1
 size: S
 stage: stage-3-search
