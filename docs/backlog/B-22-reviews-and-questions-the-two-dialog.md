@@ -1,7 +1,7 @@
 ---
 id: B-22
 title: "server + client: reviews and questions, the two dialog routes and forms"
-status: open
+status: wip
 priority: P2
 size: L
 stage: stage-7-reviews
