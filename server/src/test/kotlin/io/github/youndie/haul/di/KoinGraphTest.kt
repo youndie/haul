@@ -30,9 +30,11 @@ import io.github.youndie.haul.feature.identity.domain.Guests
 import io.github.youndie.haul.feature.identity.identityModule
 import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.domain.Placement
+import io.github.youndie.haul.feature.order.domain.Reorder
 import io.github.youndie.haul.feature.order.domain.StockReservations
 import io.github.youndie.haul.feature.order.orderModule
 import io.github.youndie.haul.feature.order.saga.SagaStorage
+import io.github.youndie.haul.feature.order.screen.OrderScreen
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
 import io.github.youndie.haul.feature.payment.paymentModule
 import io.github.youndie.haul.feature.reviews.domain.ReviewCommands
@@ -130,5 +132,7 @@ class KoinGraphTest {
         assertNotNull(koin.get<ReviewRepository>())
         assertNotNull(koin.get<ReviewCommands>())
         assertNotNull(koin.get<ReviewTabs>())
+        assertNotNull(koin.get<OrderScreen>())
+        assertNotNull(koin.get<Reorder>())
     }
 }

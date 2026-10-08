@@ -175,6 +175,45 @@ class StorefrontTest {
             assertEquals(listOf("/", "/p/p-1", "/"), history.entries)
         }
 
+    /**
+     * An order that is not there — or not the shopper's, which the server answers alike — is drawn under the
+     * header last drawn, and «Go to your orders» follows that header's «Orders» (B-18).
+     */
+    @Test
+    fun `an order that is not there leads to the shopper's orders`() =
+        runDesktopComposeUiTest(CANVAS_WIDTH, 1_000) {
+            val withOrders = header.copy(orders = NavigateAction(ORDERS))
+            answer(
+                "/ui/home",
+                ok(page(withOrders, ButtonComponent(id = "mine", text = "My order", action = NavigateAction(ORDER)))),
+            )
+            answer(
+                "/ui$ORDER",
+                status(404, """{"code":"order_not_found","message":"No order «HL-99999» among yours"}"""),
+            )
+            answer("/ui$ORDERS", ok(product))
+            storefront()
+            onNodeWithText("My order").performClick()
+            onNodeWithText("Order not found", substring = true).assertExists()
+            onNodeWithText(CUSTOMER).assertExists()
+            onNodeWithText("Go to your orders").performClick()
+            onNodeWithText(PRODUCT_TEXT).assertExists()
+            assertEquals(listOf("/", ORDER, ORDERS), history.entries)
+        }
+
+    /** An order whose tree did not arrive says so — «This order didn’t load» — and Retry asks again. */
+    @Test
+    fun `an order that did not load says so and Retry loads it again`() =
+        runDesktopComposeUiTest(CANVAS_WIDTH, 1_000) {
+            history.entries[0] = ORDER
+            answer("/ui$ORDER", status(500, """{"code":"internal","message":"boom"}"""), ok(product))
+            storefront()
+            onNodeWithText("This order didn", substring = true).assertExists()
+            onNodeWithText("Retry").performClick()
+            onNodeWithText(PRODUCT_TEXT).assertExists()
+            assertEquals(listOf("/ui$ORDER", "/ui$ORDER"), requests)
+        }
+
     @Test
     fun `refresh fetches the screen again and draws it in place`() =
         runDesktopComposeUiTest(CANVAS_WIDTH, 1_000) {
@@ -298,6 +337,8 @@ class StorefrontTest {
         const val PRODUCT_TEXT = "The next page"
         const val CUSTOMER = "Maya"
         const val SIGN_IN_HERE = "Sign in here"
+        const val ORDER = "/account/orders/HL-99999"
+        const val ORDERS = "/account"
 
         /** The canvas's deals end at local midnight: 04:12:37 from its «now». */
         const val MIDNIGHT = "2025-10-08T00:00-04:00"

@@ -26,6 +26,7 @@ import io.github.youndie.haul.feature.cart.LocalCartCommands
 import io.github.youndie.haul.feature.checkout.CheckoutCommands
 import io.github.youndie.haul.feature.checkout.LocalCheckoutCommands
 import io.github.youndie.haul.feature.identity.SignInActions
+import io.github.youndie.haul.feature.order.OrderNotFound
 import io.github.youndie.haul.feature.product.DialogOverlay
 import io.github.youndie.haul.feature.product.LocalReviewCommands
 import io.github.youndie.haul.feature.product.ProductNotFound
@@ -321,6 +322,7 @@ private fun Loading(address: Address) {
         PageKind.Search -> SearchLoading(address.query.orEmpty())
         PageKind.Cart -> CartLoading()
         PageKind.Checkout -> CheckoutLoading()
+        PageKind.Order -> OrderLoading()
         PageKind.Other -> HaulHeaderView(SHELL_HEADER, pending = true)
     }
 }
@@ -340,6 +342,10 @@ private fun Failed(
     when {
         cause is ScreenFailed.NotFound && address.kind == PageKind.Product -> {
             ProductNotFound(header, onHome = home)
+        }
+
+        cause is ScreenFailed.NotFound && address.kind == PageKind.Order -> {
+            OrderNotFound(header)
         }
 
         cause is ScreenFailed.NotFound -> {
@@ -380,6 +386,7 @@ private val PageKind.subject: String
             PageKind.Home -> "The home page"
             PageKind.Catalog -> "This category"
             PageKind.Product -> "This product"
+            PageKind.Order -> "This order"
             PageKind.Search, PageKind.Cart, PageKind.Checkout, PageKind.Other -> "This page"
         }
 

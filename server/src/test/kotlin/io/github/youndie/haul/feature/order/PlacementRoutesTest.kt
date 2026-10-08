@@ -108,8 +108,8 @@ class PlacementRoutesTest {
         assertEquals(HttpStatusCode.Accepted, status, bodyAsText())
         val action = haulWireJson.decodeKompotAction(bodyAsText())
         val deeplink = (action as NavigateAction).deeplink
-        assertTrue(deeplink.startsWith("/orders/HL-"), deeplink)
-        return deeplink.removePrefix("/orders/")
+        assertTrue(deeplink.startsWith("/account/orders/HL-"), deeplink)
+        return deeplink.removePrefix("/account/orders/")
     }
 
     private fun DataSource.order(id: String): Order =

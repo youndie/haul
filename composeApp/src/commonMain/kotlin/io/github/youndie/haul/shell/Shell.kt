@@ -777,3 +777,108 @@ private fun CheckoutSummarySkeleton(modifier: Modifier) {
         Skeleton(Modifier.fillMaxWidth().height(64.dp), 18.dp)
     }
 }
+
+/**
+ * An order's page before its tree (Order_Loading): the crumbs, the meta line and the title, the steps,
+ * two shipments of two lines and the summary as placeholders; the summary beside the column at 1440,
+ * under it on a phone.
+ */
+@Composable
+public fun OrderLoading() {
+    val compact = LocalHaulCompact.current
+    val gutter = gutter()
+    Column(Modifier.fillMaxWidth()) {
+        HaulHeaderView(SHELL_HEADER, pending = true)
+        Column(
+            Modifier.padding(
+                start = gutter,
+                end = gutter,
+                top = if (compact) 24.dp else 40.dp,
+                bottom = if (compact) 64.dp else 96.dp,
+            ),
+        ) {
+            Skeleton(Modifier.size(260.dp, 12.dp), 5.dp)
+            Skeleton(Modifier.padding(top = 20.dp).size(240.dp, 12.dp), 5.dp)
+            Skeleton(
+                Modifier
+                    .padding(top = 16.dp, bottom = if (compact) 28.dp else 40.dp)
+                    .size(if (compact) 300.dp else 760.dp, if (compact) 50.dp else 96.dp),
+                12.dp,
+            )
+            val column: @Composable (Modifier) -> Unit = { modifier ->
+                Column(modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    OrderStepsSkeleton()
+                    repeat(2) { OrderShipmentSkeleton() }
+                }
+            }
+            if (compact) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    column(Modifier.fillMaxWidth())
+                    OrderSummarySkeleton(Modifier.fillMaxWidth())
+                }
+            } else {
+                Row(horizontalArrangement = Arrangement.spacedBy(40.dp)) {
+                    column(Modifier.weight(1f))
+                    OrderSummarySkeleton(Modifier.width(420.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OrderStepsSkeleton() {
+    val compact = LocalHaulCompact.current
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .background(HaulColors.surfaceContainerLowest, RoundedCornerShape(24.dp))
+            .padding(horizontal = if (compact) 20.dp else 32.dp, vertical = if (compact) 22.dp else 28.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        repeat(4) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Skeleton(Modifier.fillMaxWidth().height(8.dp), 4.dp)
+                Skeleton(Modifier.fillMaxWidth(0.6f).height(12.dp), 5.dp)
+            }
+        }
+    }
+}
+
+@Composable
+private fun OrderShipmentSkeleton() {
+    val compact = LocalHaulCompact.current
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .background(HaulColors.surfaceContainerLowest, RoundedCornerShape(24.dp))
+            .padding(if (compact) 20.dp else 28.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp),
+    ) {
+        Skeleton(Modifier.size(240.dp, 16.dp), 6.dp)
+        repeat(2) {
+            Row(horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
+                Skeleton(Modifier.size(if (compact) 72.dp else 88.dp), 14.dp)
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Skeleton(Modifier.fillMaxWidth(0.8f).height(16.dp), 6.dp)
+                    Skeleton(Modifier.fillMaxWidth(0.45f).height(14.dp), 5.dp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OrderSummarySkeleton(modifier: Modifier) {
+    Column(
+        modifier
+            .background(HaulColors.surfaceContainerLowest, RoundedCornerShape(28.dp))
+            .padding(32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Skeleton(Modifier.size(180.dp, 30.dp), 8.dp)
+        repeat(3) { Skeleton(Modifier.fillMaxWidth().height(14.dp), 5.dp) }
+        Skeleton(Modifier.align(Alignment.End).size(140.dp, 44.dp), 10.dp)
+        Skeleton(Modifier.fillMaxWidth().height(60.dp), 14.dp)
+    }
+}

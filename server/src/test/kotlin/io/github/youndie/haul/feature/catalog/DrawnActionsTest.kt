@@ -46,7 +46,7 @@ class DrawnActionsTest {
     private val seed = CatalogSeed.generate()
 
     @Test
-    fun `the header links every top-level category and its deals and cart`() =
+    fun `the header links every top-level category and its deals cart and orders`() =
         haulTest {
             listOf("/ui/home", "/ui/c/headphones", "/ui/deals").forEach { path ->
                 val header = tree(path).only<HaulHeader>()
@@ -62,6 +62,8 @@ class DrawnActionsTest {
                 }
                 assertEquals(NavigateAction("/deals"), header.deals, path)
                 assertEquals(NavigateAction("/cart"), header.cart, path)
+                // A guest's «Orders» is sign-in, as the account shortcut is (B-18).
+                assertEquals(NavigateAction("/sign-in"), header.orders, path)
             }
             // Followed: a word of the row is that category's page.
             val electronics = tree("/ui/home").only<HaulHeader>().catalog.first { it.label == "Electronics" }

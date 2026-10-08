@@ -15,6 +15,10 @@ public enum class ErrorCode {
     @SerialName("product_not_found")
     ProductNotFound,
 
+    /** An order that is not the caller's — or none at all: the same answer (feature-orders, «not yours»). */
+    @SerialName("order_not_found")
+    OrderNotFound,
+
     /** A dependency the answer needs is down — the database could not be reached; try again later (`503`). */
     @SerialName("unavailable")
     Unavailable,

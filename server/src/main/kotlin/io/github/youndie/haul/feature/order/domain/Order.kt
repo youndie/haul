@@ -150,7 +150,10 @@ internal interface StockReservations {
     suspend fun release(holder: String): Boolean
 }
 
-/** What placement can refuse with, besides checkout's own refusals; the application answers each with its status. */
+/**
+ * What placement, the order's page and its reorder can refuse with, besides checkout's and the cart's own
+ * refusals; the application answers each with its status.
+ */
 internal sealed class OrderError(
     val code: ErrorCode,
     override val message: String,
@@ -195,4 +198,12 @@ internal sealed class OrderError(
 
     class OutOfStock :
         OrderError(ErrorCode.OutOfStock, "An item in your order is no longer in stock — check your cart", "quote")
+
+    /**
+     * The order's page or its reorder for an order that is not the caller's, or none at all: one answer for
+     * both (feature-orders), so an order number says nothing about whose it is.
+     */
+    class NotFound(
+        orderId: String,
+    ) : OrderError(ErrorCode.OrderNotFound, "No order «$orderId» among yours")
 }

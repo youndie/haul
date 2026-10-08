@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import io.github.youndie.haul.feature.cart.CartBodyView
+import io.github.youndie.haul.feature.cart.CartCommand
 import io.github.youndie.haul.feature.cart.LocalCartCommands
 import io.github.youndie.haul.feature.cart.run
 import io.github.youndie.haul.feature.catalog.BreadcrumbsView
@@ -30,6 +31,7 @@ import io.github.youndie.haul.feature.home.CampaignRowView
 import io.github.youndie.haul.feature.home.CategoryGridView
 import io.github.youndie.haul.feature.home.PlusBlockView
 import io.github.youndie.haul.feature.home.SectionHeaderView
+import io.github.youndie.haul.feature.order.OrderBodyView
 import io.github.youndie.haul.feature.product.ProductDescriptionView
 import io.github.youndie.haul.feature.product.ProductDetailsView
 import io.github.youndie.haul.feature.product.ProductQuestionsView
@@ -55,6 +57,7 @@ import io.github.youndie.haul.ui.HaulFooterView
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HaulHeaderView
 import io.github.youndie.haul.ui.HaulPagination
+import io.github.youndie.haul.ui.OrderBody
 import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.PlusBlock
 import io.github.youndie.haul.ui.ProductCard
@@ -461,5 +464,28 @@ public class CheckoutBodyRenderer : KompotComponentRenderer<CheckoutBody> {
                 }
             },
         )
+    }
+}
+
+// The order's page (screen-order). Its links follow the tree's actions; «Reorder» is a cart command
+// (`LocalCartCommands`, the storefront's), whose answer — `navigate` to the cart — goes to the screen's
+// handler, and a refusal draws the order again.
+
+@KompotComponentMarker
+public class OrderBodyRenderer : KompotComponentRenderer<OrderBody> {
+    @Composable
+    override fun Render(
+        component: OrderBody,
+        actionHandler: KompotActionHandler,
+        formController: FormController,
+    ) {
+        val commands = LocalCartCommands.current
+        val scope = rememberCoroutineScope()
+        OrderBodyView(component) {
+            val url = component.summary.reorderUrl
+            if (commands != null && url != null) {
+                scope.launch { commands.run(listOf(CartCommand.Reorder(url)))?.let(actionHandler::handle) }
+            }
+        }
     }
 }

@@ -1,0 +1,426 @@
+{
+    "type": "column",
+    "id": "order",
+    "children": [
+        {
+            "type": "haul_header",
+            "id": "header",
+            "deliverTo": "Brooklyn, NY 11211",
+            "deliveryPromise": "Free delivery over $35",
+            "customerName": "Maya",
+            "cartCount": 3,
+            "searchPlaceholder": "Search 2.4 million products",
+            "categories": [
+                "Electronics",
+                "Home & Kitchen",
+                "Fashion",
+                "Beauty",
+                "Kids & Toys",
+                "Sports",
+                "Grocery",
+                "Auto",
+                "Books",
+                "Pets"
+            ],
+            "account": {
+                "type": "navigate",
+                "deeplink": "/account"
+            },
+            "catalog": [
+                {
+                    "label": "Electronics",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/electronics"
+                    }
+                },
+                {
+                    "label": "Home & Kitchen",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/home-kitchen"
+                    }
+                },
+                {
+                    "label": "Fashion",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/fashion"
+                    }
+                },
+                {
+                    "label": "Beauty",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/beauty"
+                    }
+                },
+                {
+                    "label": "Kids & Toys",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/kids-toys"
+                    }
+                },
+                {
+                    "label": "Sports",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/sports"
+                    }
+                },
+                {
+                    "label": "Grocery",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/grocery"
+                    }
+                },
+                {
+                    "label": "Auto",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/auto"
+                    }
+                },
+                {
+                    "label": "Books",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/books"
+                    }
+                },
+                {
+                    "label": "Pets",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/pets"
+                    }
+                },
+                {
+                    "label": "Garden",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/garden"
+                    }
+                },
+                {
+                    "label": "Office",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/office"
+                    }
+                },
+                {
+                    "label": "Health",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/health"
+                    }
+                },
+                {
+                    "label": "Music",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/music"
+                    }
+                },
+                {
+                    "label": "Movies",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/movies"
+                    }
+                },
+                {
+                    "label": "Games",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/games"
+                    }
+                },
+                {
+                    "label": "Tools",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/tools"
+                    }
+                },
+                {
+                    "label": "Baby",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/baby"
+                    }
+                },
+                {
+                    "label": "Jewelry",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/jewelry"
+                    }
+                },
+                {
+                    "label": "Shoes",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/shoes"
+                    }
+                },
+                {
+                    "label": "Luggage",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/luggage"
+                    }
+                },
+                {
+                    "label": "Crafts",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/crafts"
+                    }
+                },
+                {
+                    "label": "Outdoors",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/outdoors"
+                    }
+                },
+                {
+                    "label": "Party",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/party"
+                    }
+                },
+                {
+                    "label": "Furniture",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/furniture"
+                    }
+                },
+                {
+                    "label": "Lighting",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/lighting"
+                    }
+                },
+                {
+                    "label": "Appliances",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/appliances"
+                    }
+                },
+                {
+                    "label": "Computers",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/computers"
+                    }
+                },
+                {
+                    "label": "Phones",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/phones"
+                    }
+                },
+                {
+                    "label": "Cameras",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/cameras"
+                    }
+                },
+                {
+                    "label": "Watches",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/watches"
+                    }
+                },
+                {
+                    "label": "Bags",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/bags"
+                    }
+                }
+            ],
+            "deals": {
+                "type": "navigate",
+                "deeplink": "/deals"
+            },
+            "cart": {
+                "type": "navigate",
+                "deeplink": "/cart"
+            },
+            "orders": {
+                "type": "navigate",
+                "deeplink": "/account"
+            }
+        },
+        {
+            "type": "haul_order_body",
+            "id": "order",
+            "crumbs": [
+                {
+                    "label": "Account",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/account"
+                    }
+                },
+                {
+                    "label": "Orders",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/account"
+                    }
+                },
+                {
+                    "label": "#HL-46102"
+                }
+            ],
+            "meta": "#HL-46102 · Placed Sep 24 · $103.00",
+            "title": "Delivered Sep 26",
+            "accent": "Sep 26",
+            "lead": "Returns are open until Oct 26.",
+            "steps": {
+                "labels": [
+                    "Placed",
+                    "Packed",
+                    "In transit",
+                    "Delivered"
+                ],
+                "current": 3,
+                "arrived": true
+            },
+            "shipments": [
+                {
+                    "id": "HL-46102-1",
+                    "seller": "Northline Knitwear",
+                    "status": "Delivered",
+                    "eta": "Delivered Sep 26",
+                    "items": [
+                        {
+                            "title": "Merino Wool Crewneck Sweater, Unisex",
+                            "details": "Moss · M · 1 × $80",
+                            "tone": "#FFE5DD",
+                            "action": {
+                                "type": "navigate",
+                                "deeplink": "/p/p-merino-sweater"
+                            },
+                            "review": {
+                                "label": "Write a review",
+                                "action": {
+                                    "type": "present",
+                                    "content": {
+                                        "type": "haul_review_form",
+                                        "id": "review-form",
+                                        "title": "Write a review",
+                                        "product": {
+                                            "name": "Northline Merino Wool Crewneck Sweater, Unisex",
+                                            "detail": "Moss · M",
+                                            "tone": "#FFE5DD"
+                                        },
+                                        "ratingLabel": "Your rating",
+                                        "titleLabel": "Title",
+                                        "bodyLabel": "Review",
+                                        "bodyHint": "At least 20 characters",
+                                        "submitLabel": "Post",
+                                        "cancelLabel": "Cancel",
+                                        "url": "/api/v1/products/p-merino-sweater/reviews",
+                                        "close": {
+                                            "type": "close"
+                                        }
+                                    },
+                                    "kind": "dialog"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": "HL-46102-2",
+                    "seller": "Clear Skin Lab",
+                    "status": "Delivered",
+                    "eta": "Delivered Sep 26",
+                    "items": [
+                        {
+                            "title": "Vitamin C Brightening Serum, 30 ml",
+                            "details": "30 ml · 1 × $23",
+                            "tone": "#F1E4F5",
+                            "action": {
+                                "type": "navigate",
+                                "deeplink": "/p/p-vitamin-c-serum"
+                            },
+                            "review": {
+                                "label": "Write a review",
+                                "action": {
+                                    "type": "present",
+                                    "content": {
+                                        "type": "haul_review_form",
+                                        "id": "review-form",
+                                        "title": "Write a review",
+                                        "product": {
+                                            "name": "Clear Skin Lab Vitamin C Brightening Serum, 30 ml",
+                                            "detail": "30 ml",
+                                            "tone": "#F1E4F5"
+                                        },
+                                        "ratingLabel": "Your rating",
+                                        "titleLabel": "Title",
+                                        "bodyLabel": "Review",
+                                        "bodyHint": "At least 20 characters",
+                                        "submitLabel": "Post",
+                                        "cancelLabel": "Cancel",
+                                        "url": "/api/v1/products/p-vitamin-c-serum/reviews",
+                                        "close": {
+                                            "type": "close"
+                                        }
+                                    },
+                                    "kind": "dialog"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "summary": {
+                "title": "Summary",
+                "rows": [
+                    {
+                        "label": "Items (2)",
+                        "value": "$103.00"
+                    },
+                    {
+                        "label": "Delivery",
+                        "value": "Free"
+                    }
+                ],
+                "totalLabel": "Total",
+                "total": "$103.00",
+                "facts": [
+                    {
+                        "kind": "card",
+                        "title": "Card ···· 4821",
+                        "detail": "$103.00 charged"
+                    },
+                    {
+                        "kind": "place",
+                        "title": "148 Wythe Avenue, Apt 4F",
+                        "detail": "Brooklyn, NY 11211 · courier"
+                    }
+                ],
+                "reorderLabel": "Reorder",
+                "reorderUrl": "/api/v1/me/orders/HL-46102/reorder",
+                "returnLabel": "Return items"
+            }
+        }
+    ]
+}

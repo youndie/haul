@@ -55,11 +55,19 @@ public sealed interface CartCommand {
     public data class RemovePromo(
         override val url: String,
     ) : CartCommand
+
+    /**
+     * «Reorder» on an order's page (B-18), `POST` to `OrderTotals.reorderUrl`: the order's lines back into
+     * the cart, answered with `navigate` to it rather than `refresh`.
+     */
+    public data class Reorder(
+        override val url: String,
+    ) : CartCommand
 }
 
 /**
- * Sends a cart command and returns the server's answer, an action — `refresh` — for the screen to
- * follow. A refusal throws [CartRefused]; no answer throws what the transport throws.
+ * Sends a cart command and returns the server's answer, an action — `refresh`, or a reorder's `navigate`
+ * to the cart — for the screen to follow. A refusal throws [CartRefused]; no answer throws what the transport throws.
  */
 public fun interface CartCommands {
     public suspend fun send(command: CartCommand): KompotAction
@@ -147,6 +155,7 @@ private fun CartCommand.request(): Pair<HttpMethod, String?> =
         is CartCommand.Acknowledge -> HttpMethod.Post to null
         is CartCommand.ApplyPromo -> HttpMethod.Put to haulJson.encodeToString(PromoEntry.serializer(), entry)
         is CartCommand.RemovePromo -> HttpMethod.Delete to null
+        is CartCommand.Reorder -> HttpMethod.Post to null
     }
 
 @Suppress(

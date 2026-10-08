@@ -63,6 +63,11 @@ class AddressTest {
         assertEquals(PageKind.Other, Address("/deals/today").kind)
         assertEquals("/ui/cart", Address("/cart").screen)
         assertEquals("/ui/checkout", Address("/checkout").screen)
+        // An order (B-18): under the account, where placement lands; the history is not a page yet (B-19).
+        assertEquals(PageKind.Order, Address("/account/orders/HL-48302").kind)
+        assertEquals("/ui/account/orders/HL-48302", Address("/account/orders/HL-48302").screen)
+        assertEquals(PageKind.Other, Address("/account/orders").kind)
+        assertEquals(PageKind.Other, Address("/orders/HL-48302").kind)
     }
 
     @Test
