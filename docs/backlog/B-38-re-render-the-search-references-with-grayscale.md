@@ -1,7 +1,7 @@
 ---
 id: B-38
 title: "design refs: re-render the Search references with grayscale text"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-3-search
