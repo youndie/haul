@@ -1,7 +1,7 @@
 ---
 id: B-24
 title: "server + client: Haul Pay, 4 payments two weeks apart"
-status: open
+status: wip
 priority: P2
 size: M
 stage: stage-8-loyalty
