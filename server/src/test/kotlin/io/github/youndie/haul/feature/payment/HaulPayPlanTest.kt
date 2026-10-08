@@ -205,6 +205,27 @@ class HaulPayPlanTest {
         }
 
     /**
+     * A payment is claimed once: a second claim — a pass that read the plan before another pass took the payment —
+     * finds it no longer scheduled and writes nothing, so it can neither be charged again nor be put back to
+     * «being charged» once paid.
+     */
+    @Test
+    fun `a payment is claimed once`() =
+        seededFreshDatabase().use { dataSource ->
+            FulfilmentWorld(dataSource).use { world ->
+                val order = world.placeOnHaulPay()
+                world.advance(Duration.ZERO)
+                world.advance(first * 3)
+                val repository = world.koin.get<InstalmentRepository>()
+
+                assertEquals(12_800, runBlocking { repository.claim(order, 2, 0) })
+                assertNull(runBlocking { repository.claim(order, 2, 0) }, "claimed twice")
+                assertNull(runBlocking { repository.claim(order, 1, 0) }, "a paid payment claimed again")
+                assertEquals(PAID, world.ledger.instalments(order)[1]?.first)
+            }
+        }
+
+    /**
      * A process that dies after a payment is charged and before it is marked paid leaves it claimed; the next
      * pass asks the processor again under the same key, is answered with what was taken, and marks it — the
      * shopper pays once.
