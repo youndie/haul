@@ -40,7 +40,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (14)
+## Open (13)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -54,12 +54,11 @@ A stage is a field on the item, not a directory.
 | [B-25](docs/backlog/B-25-recommendations-from-views-in-the-home.md) `[ ]` | server: recommendations from views in the Home tree | P2 | M | B-07, B-19 |
 | [B-27](docs/backlog/B-27-helm-chart-tracy-metrik-katcher-wiring.md) `[?]` | ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand | P2 | M | B-03 |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
-| [B-42](docs/backlog/B-42-a-refused-address-form-holds-pickup-orders.md) `[~]` | server: a refused address form does not hold a pickup or locker order | P2 | S | B-39 |
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
 | [B-40](docs/backlog/B-40-saving-an-address-updates-it-in-place.md) `[ ]` | server: saving the address being delivered to updates it in place | P3 | S | B-15 |
 | [B-43](docs/backlog/B-43-helpful-votes-on-reviews.md) `[ ]` | server + client: «Helpful» votes on reviews | P3 | S | B-22 |
 
-## Closed (29)
+## Closed (30)
 
 **Skeleton**
 
@@ -100,6 +99,7 @@ A stage is a field on the item, not a directory.
 - [B-17](docs/backlog/B-17-fulfilment-simulator-capture-per-shipment-pickup.md) `[x]` - server: fulfilment simulator, capture per shipment, pickup codes
 - [B-39](docs/backlog/B-39-placement-refuses-a-quote-checkout-holds.md) `[x]` - server: placement refuses a quote the checkout is holding
 - [B-41](docs/backlog/B-41-sign-in-returns-to-where-it-was-asked.md) `[x]` - client: sign-in returns to where it was asked for
+- [B-42](docs/backlog/B-42-a-refused-address-form-holds-pickup-orders.md) `[x]` - server: a refused address form does not hold a pickup or locker order
 
 **Reviews**
 
