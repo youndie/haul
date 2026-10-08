@@ -1,7 +1,7 @@
 ---
 id: B-14
 title: "server: checkout tree, slots with capacity, pickup points, quote, the address form"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-5-order
