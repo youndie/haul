@@ -107,7 +107,7 @@ Account and loyalty:
 - [ ] [endpoint-account](api/endpoint-account.md) — Account overview (draft)
 - [x] [endpoint-cart](api/endpoint-cart.md) — Cart
 - [ ] [endpoint-catalog](api/endpoint-catalog.md) — Home, deals, category, product, photos (draft)
-- [ ] [endpoint-checkout](api/endpoint-checkout.md) — Checkout and placement (draft)
+- [x] [endpoint-checkout](api/endpoint-checkout.md) — Checkout and placement
 - [x] [endpoint-identity](api/endpoint-identity.md) — Guests, sign-in, cart merge, addresses
 - [ ] [endpoint-membership](api/endpoint-membership.md) — Haul Plus (draft)
 - [x] [endpoint-ops](api/endpoint-ops.md) — Probes
