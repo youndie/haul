@@ -50,8 +50,8 @@ Feature: `feature-identity` — its scenarios are this item's acceptance where i
   or signed out; a forgotten guest replaced), `IdentityApi`, `SignInActions` (the seam a shell calls
   before its own navigation: `/sign-in` signs in and redraws), `BrowserSessionStore` (guest id in
   `localStorage`, tokens in `sessionStorage`), `OidcSignInFlow`; the header's account slot is
-  tappable and hands `HaulHeader.account` to the action handler. `shell/Storefront.kt` is a stand-in
-  host (the home page only) so sign-in can be reached in the browser; B-35's shell replaces it.
+  tappable and hands `HaulHeader.account` to the action handler. `shell/Storefront.kt` was a stand-in
+  host (the home page only) so sign-in could be reached in the browser; B-35's shell replaced it.
 - Scenarios of feature-identity, automated in `server/src/test/.../feature/identity/IdentityRoutesTest.kt`
   against shildik's published image (`ghcr.io/youndie/shildik-sqlite:0.4.1`, Testcontainers,
   `testing/ShildikHarness.kt` — each test signs a person in through the code flow with PKCE over HTTP):
@@ -72,7 +72,8 @@ Feature: `feature-identity` — its scenarios are this item's acceptance where i
 - **The client's host is a stand-in.** The app had no screen loader; to reach sign-in in the browser
   `shell/Storefront.kt` loads the home page only. B-35 (the app shell) replaces it and keeps the
   identity seam: `Identity.send` around every request and `SignInActions.handle` before its own
-  navigation. `App` now takes `Trees` and `Identity`, which the shell will reshape.
+  navigation. `App` took `Trees` and `Identity`; B-35 replaced `Trees` with its transport and kept
+  `Identity`.
 - **`/ui/account` is a placeholder** — the frame and «Hi, <name>» — so that «Account needs a sign-in»
   has a route and the header's shortcut a destination; the Account tree is B-19's.
 - **Not built here:** `DELETE /api/v1/me/recent-searches` (endpoint-search drafts it as B-12's; the
