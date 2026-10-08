@@ -1,7 +1,7 @@
 ---
 id: B-16
 title: "server: placement with an idempotency key; the petich saga — reserve, authorise, confirm, compensate; the payment simulator"
-status: open
+status: wip
 priority: P1
 size: L
 stage: stage-5-order
