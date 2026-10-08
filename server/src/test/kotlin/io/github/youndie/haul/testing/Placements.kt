@@ -4,6 +4,7 @@ import io.github.youndie.haul.db.Databases
 import io.github.youndie.haul.feature.cart.data.CartLinesTable
 import io.github.youndie.haul.feature.cart.data.CartsTable
 import io.github.youndie.haul.feature.catalog.data.SkusTable
+import io.github.youndie.haul.feature.checkout.data.AddressesTable
 import io.github.youndie.haul.feature.checkout.data.DeliverySlotsTable
 import io.github.youndie.haul.feature.fulfilment.data.ShipmentEventsTable
 import io.github.youndie.haul.feature.order.data.OrdersTable
@@ -15,6 +16,7 @@ import io.github.youndie.haul.feature.payment.data.PaymentCapturesTable
 import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
 import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
 import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
@@ -86,6 +88,16 @@ internal class Ledger(
         }
 
     fun orders(): Int = transaction(database) { OrdersTable.selectAll().count().toInt() }
+
+    /** [customerId]'s saved addresses, the newest first: each one's id and apt. */
+    fun addresses(customerId: String): List<Pair<String, String?>> =
+        transaction(database) {
+            AddressesTable
+                .selectAll()
+                .where { AddressesTable.customerId eq customerId }
+                .orderBy(AddressesTable.createdAt to SortOrder.DESC, AddressesTable.id to SortOrder.DESC)
+                .map { it[AddressesTable.id] to it[AddressesTable.apt] }
+        }
 
     /** The SKUs in [customerId]'s cart, in its order. */
     fun cartLines(customerId: String): List<String> =

@@ -5,10 +5,8 @@ import io.github.youndie.haul.feature.cart.screen.CartScreen
 import io.github.youndie.haul.feature.cart.screen.summaryRows
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.money
-import io.github.youndie.haul.feature.checkout.AddressEntry
 import io.github.youndie.haul.feature.checkout.CheckoutPaths
 import io.github.youndie.haul.feature.checkout.DeliveryMethod
-import io.github.youndie.haul.feature.checkout.domain.Address
 import io.github.youndie.haul.feature.checkout.domain.CheckoutCommands
 import io.github.youndie.haul.feature.checkout.domain.CheckoutError
 import io.github.youndie.haul.feature.checkout.domain.CheckoutState
@@ -275,9 +273,6 @@ internal class CheckoutScreen(
             else -> "Pick a delivery window"
         }
     }
-
-    private fun Address.entry(): AddressEntry =
-        AddressEntry(street, apt.orEmpty(), city, zip, doorCode.orEmpty(), courierNote.orEmpty())
 
     private fun PickupPoint.distance(): String? = distanceMeters?.let { "${count(it)} m" }
 

@@ -2,14 +2,17 @@ package io.github.youndie.haul.feature.order.data
 
 import io.github.youndie.haul.feature.catalog.data.SellersTable
 import io.github.youndie.haul.feature.catalog.data.SkusTable
+import io.github.youndie.haul.feature.checkout.AddressEntry
 import io.github.youndie.haul.feature.identity.data.CustomersTable
 import io.github.youndie.haul.feature.order.domain.OrderStatus
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus
+import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.javatime.timestampWithTimeZone
+import org.jetbrains.exposed.v1.json.jsonb
 
 // The Exposed side of V10__orders.sql. `SchemaTest` holds the two together, CHECK constraints included:
 // they are declared here under the names PostgreSQL gave them there.
@@ -23,6 +26,9 @@ internal object OrdersTable : Table("orders") {
     val method =
         text("method").check("orders_method_check") { it inList listOf("courier", "pickup_point", "parcel_locker") }
     val addressId = text("address_id").nullable()
+
+    // V14: the address the order was placed to, copied — the saved one is edited in place (B-40).
+    val address = jsonb<AddressEntry>("address", Json).nullable()
     val pointId = text("point_id").nullable()
     val slot = text("slot").nullable()
     val payment = text("payment")

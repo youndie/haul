@@ -56,12 +56,7 @@ internal class CheckoutCommands(
                 totals = basis.totals,
                 plus = owner.plus,
                 method = method,
-                address =
-                    if (method == DeliveryMethod.Courier) {
-                        addresses.firstOrNull { it.id == stored.addressId } ?: addresses.firstOrNull()
-                    } else {
-                        null
-                    },
+                address = if (method == DeliveryMethod.Courier) delivered(stored, addresses) else null,
                 point = points.firstOrNull { it.id == stored.pointId } ?: points.firstOrNull(),
                 slot = slot,
                 payment = payment,
@@ -138,21 +133,37 @@ internal class CheckoutCommands(
     }
 
     /**
-     * Saves an address from the form and makes it the checkout's. A form at fault is kept — the tree
-     * draws it again with an error under each field (`Checkout_Validation`) — and refused with every
-     * field at fault.
+     * Saves the address form and makes it the checkout's (B-40). The form holds the address delivered to
+     * — the one chosen, or by default the newest — and a save edits that address in place rather than
+     * adding another: changing «4F» to «5B» leaves one address, at «5B». The address is named by the
+     * server's state, not by the request: the form's body carries no id. A form equal to an address the
+     * customer already has chooses that one and stores nothing; a customer with no address gets their
+     * first. A form at fault is kept — the tree draws it again with an error under each field
+     * (`Checkout_Validation`) — and refused with every field at fault.
      */
-    suspend fun addAddress(
+    suspend fun saveAddress(
         owner: CartOwner.Customer,
         entry: AddressEntry,
     ) {
         val problems = addressProblems(entry)
+        val stored = checkouts.checkout(owner.id)
         if (problems.isNotEmpty()) {
-            checkouts.save(owner.id, checkouts.checkout(owner.id).copy(method = DeliveryMethod.Courier, draft = entry))
+            checkouts.save(owner.id, stored.copy(method = DeliveryMethod.Courier, draft = entry))
             throw CheckoutError.AddressRefused(problems)
         }
-        checkouts.addAddress(owner.id, entry.trimmed(), clock.now().toOffsetDateTime())
+        val editing = delivered(stored, checkouts.addresses(owner.id))
+        checkouts.saveAddress(owner.id, entry.trimmed(), editing?.id, clock.now().toOffsetDateTime())
     }
+
+    /**
+     * The address a courier delivers to, whatever the method chosen now: the one chosen while it is still
+     * the customer's, else the newest. The quote's address and the one the address form edits are this
+     * one, so the form always rewrites the address it shows.
+     */
+    private fun delivered(
+        stored: StoredCheckout,
+        addresses: List<Address>,
+    ): Address? = addresses.firstOrNull { it.id == stored.addressId } ?: addresses.firstOrNull()
 
     /** The cart's side of the quote, which every command needs: the lines, the code, the totals, the windows. */
     private suspend fun basis(owner: CartOwner.Customer): Basis {

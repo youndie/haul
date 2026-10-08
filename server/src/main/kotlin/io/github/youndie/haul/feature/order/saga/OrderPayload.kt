@@ -1,5 +1,6 @@
 package io.github.youndie.haul.feature.order.saga
 
+import io.github.youndie.haul.feature.checkout.AddressEntry
 import io.github.youndie.haul.feature.checkout.DeliveryMethod
 import io.github.youndie.haul.feature.order.domain.NewOrder
 import io.github.youndie.haul.feature.order.domain.OrderLine
@@ -25,6 +26,8 @@ internal data class OrderPayload(
     val plus: Boolean,
     val method: DeliveryMethod,
     val addressId: String? = null,
+    /** The address as placed (B-40); absent in a saga stored before V14, whose order keeps only the id. */
+    val address: AddressEntry? = null,
     val pointId: String? = null,
     val slotId: String? = null,
     val payment: String,
@@ -56,6 +59,7 @@ internal data class OrderPayload(
             customerId = customerId,
             method = method,
             addressId = addressId,
+            address = address,
             pointId = pointId,
             slotId = slotId,
             payment = payment,

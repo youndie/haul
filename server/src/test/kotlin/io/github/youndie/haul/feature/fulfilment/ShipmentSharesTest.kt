@@ -28,6 +28,7 @@ class ShipmentSharesTest {
                 customerId = "maya",
                 method = DeliveryMethod.Courier,
                 addressId = null,
+                address = null,
                 pointId = null,
                 slotId = null,
                 payment = "card-4821",
