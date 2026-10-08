@@ -63,6 +63,10 @@ Feature: `feature-checkout` — its scenarios are this item's acceptance where i
 - **Storage** (`V9__checkout.sql`): `addresses`, `pickup_points`, `delivery_slots` (a row from the first
   place taken, `taken <= capacity` checked), `slot_reservations`, `checkouts`. Seed: the points and
   Maya's address, in the seed digest. `HaulPay` moved out of the product page for the quote to share.
+- Where it ran: the server suite (118 tests; PostgreSQL and shildik in Testcontainers), `check
+  :server:installDist :composeApp:wasmJsBrowserDistribution` (client 37 tests and `viddikVerify`
+  untouched) and `scripts/image-check.sh` (V9 migrated in the training run, 629 of 629 classes from the
+  cache) on the Linux build machine; `make check` on the Mac.
 - Scenarios, automated in `server/src/test/.../feature/checkout/CheckoutRoutesTest.kt` against PostgreSQL
   and shildik (each test signs a person in through `ShildikHarness`, which can now create Maya by her
   seeded id): «Quote as drawn» (`Maya's quote is the cart's totals by courier to her address`: $652.00,
@@ -96,6 +100,11 @@ Feature: `feature-checkout` — its scenarios are this item's acceptance where i
 - **No tier test can tell the mount apart**: checkout's routes resolve a customer themselves, so mounted
   in the public tier they still answer a guest `401` — the mount is defence in depth, not what the
   sign-in test holds.
+- **The suite's PostgreSQL is near its connection limit.** Every `freshDatabase()` is a Hikari pool that
+  holds its four connections and is never closed; with this item's first tests (eight pools more) the
+  container refused clients and `SeedTest` failed with «too many clients». The checkout tests now close
+  their pools (`seededFreshDatabase().use`) and share one database for the slots; the older tests still
+  leave theirs open, so the next item with a few fresh databases will meet it again.
 - **Not built here**: the points toggle (B-23), placement (B-16), editing or deleting a saved address
   (no artboard), a card form (no artboard; the simulator's two cards are every customer's).
 - **Copy the tree had to choose, for B-15 to check against the artboards** (the `Checkout_*` sources are
