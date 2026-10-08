@@ -90,15 +90,19 @@ public fun interface CartCommands {
 
 /**
  * Sends [batch] in order — «Select all» is one command per line — and returns what the screen follows
- * next: the server's last answer (`refresh`). A refusal stops the batch and is a `refresh` too: the
- * server remembers a refused promo code and the next tree draws it with the reason, and any other
- * refusal is drawn as the cart now is. No answer at all is `null`: the page stays as it was.
+ * next: [next] when the tree gave one («Buy now»'s way to checkout, B-48), else the server's last
+ * answer (`refresh`). A refusal stops the batch and is a `refresh` too, [next] or not: the server
+ * remembers a refused promo code and the next tree draws it with the reason, and any other refusal is
+ * drawn as the cart now is. No answer at all is `null`: the page stays as it was.
  */
 @Suppress(
     "ktlint:kapkan:swallowed-failure",
     "A command that got no answer changed nothing the shopper can see; the page stays as the server last drew it and the next press tries again.",
 )
-public suspend fun CartCommands.run(batch: List<CartCommand>): KompotAction? {
+public suspend fun CartCommands.run(
+    batch: List<CartCommand>,
+    next: KompotAction? = null,
+): KompotAction? {
     var answer: KompotAction? = null
     for (command in batch) {
         answer =
@@ -113,7 +117,7 @@ public suspend fun CartCommands.run(batch: List<CartCommand>): KompotAction? {
                 return null
             }
     }
-    return answer
+    return next ?: answer
 }
 
 /** The server refused a command: its status and, when the body said, its [code] and [reason]. */

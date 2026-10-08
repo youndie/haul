@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.youndie.haul.feature.cart.linePress
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
@@ -484,7 +485,8 @@ internal fun LabelledRows(
 
 /**
  * The buy box: the price for the chosen SKU, the buttons, then the delivery lines — or, out of stock,
- * «Save» and where to turn — and the seller.
+ * «Save» and where to turn — and the seller. «Add to cart» and «Buy now» send the line changes the tree
+ * gave them (B-48); out of stock the tree gives none and they are drawn greyed, pressing nothing.
  */
 @Composable
 private fun BuyBox(
@@ -517,6 +519,7 @@ private fun BuyBox(
                     icon = HaulIcons.bag,
                     iconSize = 22.dp,
                     iconFirst = true,
+                    onClick = linePress(details.add),
                 )
                 HaulButton(
                     "Buy now",
@@ -527,6 +530,7 @@ private fun BuyBox(
                     content = if (live) HaulColors.onSurface else HaulColors.outlineMuted,
                     border = if (live) HaulColors.onSurface else null,
                     textSize = 16f,
+                    onClick = linePress(details.buy),
                 )
                 if (!live) {
                     HaulButton(
