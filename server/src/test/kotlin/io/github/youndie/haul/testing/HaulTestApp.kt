@@ -19,6 +19,7 @@ import io.github.youndie.haul.ui.OrderSummary
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.decodeKompotComponent
+import io.github.youndie.kompot.realtime.KompotScreenResponse
 import io.github.youndie.kompot.standard.BoxComponent
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.RowComponent
@@ -91,6 +92,19 @@ internal suspend fun HttpClient.tree(path: String): KompotComponent {
     val response: HttpResponse = get(path)
     check(response.status.value == 200) { "$path answered ${response.status}: ${response.bodyAsText()}" }
     return haulWireJson.decodeKompotComponent(response.bodyAsText())
+}
+
+/**
+ * The tree of a live screen — the order's (B-29) — out of kompot's `KompotScreenResponse`, which names the
+ * channel its updates arrive on; [topic] is that channel, checked so a page that lost it fails here.
+ */
+internal fun liveTree(
+    body: String,
+    topic: String,
+): KompotComponent {
+    val response = haulWireJson.decodeFromString(KompotScreenResponse.serializer(), body)
+    check(response.realtimeTopic == topic) { "the page names the channel ${response.realtimeTopic}, not $topic" }
+    return response.screen
 }
 
 /** Every component in a tree, depth first, through kompot's containers and the Haul components that hold others. */

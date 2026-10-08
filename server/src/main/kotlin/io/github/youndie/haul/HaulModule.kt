@@ -27,6 +27,7 @@ import io.github.youndie.haul.feature.identity.installSignIn
 import io.github.youndie.haul.feature.membership.domain.MembershipError
 import io.github.youndie.haul.feature.membership.membershipModule
 import io.github.youndie.haul.feature.membership.membershipRouting
+import io.github.youndie.haul.feature.order.LiveOrders
 import io.github.youndie.haul.feature.order.domain.OrderError
 import io.github.youndie.haul.feature.order.orderModule
 import io.github.youndie.haul.feature.order.orderRouting
@@ -60,6 +61,7 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.routing
+import io.ktor.server.sse.SSE
 import org.koin.dsl.module
 import org.koin.ktor.ext.get
 import org.koin.ktor.plugin.Koin
@@ -138,9 +140,13 @@ internal fun Application.haulModule(
     // Carries on what a process that died left mid-saga, from the first moment this one serves; it
     // stops with the application, whose scope it runs in.
     get<SuspendedPetichSweeper>().start(this)
+    // The order's live page (B-29): listening to the moves before anything can make one.
+    get<LiveOrders>().start(this)
     // The simulated world after placement, in the same scope: shipments move and are charged as they ship,
     // returns are refunded, and Haul Pay's payments are taken as they come due.
     fulfilment.interval?.let { FulfilmentRunner(get(), get(), get(), it).start(this) }
+    // Server-sent events, the live order page's stream (B-29).
+    install(SSE)
     install(StatusPages) {
         // A bearer token that did not verify, or none where the customer tier needs one: the
         // authentication challenge answers with an empty body, and every refusal here has one.

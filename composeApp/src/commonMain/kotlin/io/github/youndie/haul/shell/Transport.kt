@@ -5,6 +5,7 @@ import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.registry.haulJson
 import io.github.youndie.haul.ui.SearchSuggestPanel
 import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.realtime.KompotScreenResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -16,6 +17,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.content.TextContent
 import kotlinx.serialization.PolymorphicSerializer
+import kotlinx.serialization.json.JsonObject
 import kotlin.coroutines.cancellation.CancellationException
 
 // How the shell asks its server for a screen or a suggest panel: one function, so a test swaps the
@@ -114,8 +116,20 @@ public sealed class ScreenFailed(
     ) : ScreenFailed(path, "status $status ($code)", cause)
 }
 
+/**
+ * A screen as the server answered it: its [tree] and, for a live one — the order's page (B-29) — the channel
+ * its updates arrive on, [realtimeTopic], which the client hands back as it is and never reads.
+ */
+public class LoadedScreen(
+    public val tree: KompotComponent,
+    public val realtimeTopic: String? = null,
+)
+
 /** The kompot tree at [path], or the [ScreenFailed] that says why there is none. */
-internal suspend fun HaulTransport.tree(path: String): KompotComponent {
+internal suspend fun HaulTransport.tree(path: String): KompotComponent = screen(path).tree
+
+/** The screen at [path] — its tree, and its channel when it has one — or the [ScreenFailed] that says why not. */
+internal suspend fun HaulTransport.screen(path: String): LoadedScreen {
     val response =
         try {
             get(path)
@@ -130,7 +144,7 @@ internal suspend fun HaulTransport.tree(path: String): KompotComponent {
     return when (response.status) {
         in 200..299 -> {
             try {
-                haulJson.decodeFromString(PolymorphicSerializer(KompotComponent::class), response.body)
+                decodeScreen(response.body)
             } catch (error: IllegalArgumentException) {
                 // A body this build cannot decode is the server's answer gone wrong, not a missing network.
                 throw ScreenFailed.Refused(path, response.status, null, error)
@@ -146,6 +160,24 @@ internal suspend fun HaulTransport.tree(path: String): KompotComponent {
         }
     }
 }
+
+/**
+ * A bare tree, or kompot's `KompotScreenResponse` around one: the envelope a screen with a channel comes in
+ * (kompot's SPEC §10.4). Told apart by shape — a component always names its `type`, the envelope has none and
+ * holds a `screen` — rather than by the address: the server decides which of its screens are live.
+ */
+private fun decodeScreen(body: String): LoadedScreen {
+    val element = haulJson.parseToJsonElement(body)
+    return if (element is JsonObject && TYPE !in element && SCREEN in element) {
+        val response = haulJson.decodeFromJsonElement(KompotScreenResponse.serializer(), element)
+        LoadedScreen(response.screen, response.realtimeTopic)
+    } else {
+        LoadedScreen(haulJson.decodeFromJsonElement(PolymorphicSerializer(KompotComponent::class), element))
+    }
+}
+
+private const val TYPE = "type"
+private const val SCREEN = "screen"
 
 /**
  * The suggest panel for what the shopper has typed, or `null` when there is none to show: a query the

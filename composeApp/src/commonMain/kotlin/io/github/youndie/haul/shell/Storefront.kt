@@ -46,11 +46,13 @@ import io.github.youndie.haul.ui.SearchInput
 import io.github.youndie.haul.ui.SearchSuggestPanel
 import io.github.youndie.kompot.KompotActionHandler
 import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.KompotRealtimeProvider
 import io.github.youndie.kompot.KompotRegistry
 import io.github.youndie.kompot.KompotScreen
 import io.github.youndie.kompot.KompotScreenLoader
 import io.github.youndie.kompot.form.FormController
 import io.github.youndie.kompot.form.FormSchema
+import io.github.youndie.kompot.realtime.KompotRealtimeSource
 import io.github.youndie.kompot.standard.CloseAction
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
@@ -100,7 +102,9 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * same way. A tree's `present` draws its component over the page — the product page's review and
  * question dialogs (B-22), an order's return dialog (B-21) and the Haul Plus trial's (B-23) — until a
  * `close`, a new page or the scrim takes it away; their commands, and «Helpful» on a review (B-43), go to
- * [treeCommands] (B-51).
+ * [treeCommands] (B-51). A screen that names a channel — the order's page (B-29) — listens on it through
+ * [realtime] while it is shown, and each update redraws its node in place; with no [realtime] — a
+ * screenshot — it is drawn as it loaded.
  */
 @Composable
 public fun Storefront(
@@ -112,6 +116,7 @@ public fun Storefront(
     commands: HaulCommands? = null,
     checkoutCommands: CheckoutCommands? = null,
     treeCommands: TreeCommands? = null,
+    realtime: KompotRealtimeSource? = null,
 ) {
     val navigator = remember(history) { Navigator(history) }
     DisposableEffect(navigator) {
@@ -187,11 +192,14 @@ public fun Storefront(
                 // for — refused again, that one is an error page, not another prompt.
                 var loads by remember { mutableIntStateOf(0) }
                 var signedInFor by remember { mutableIntStateOf(-1) }
+                // The channel the page's tree named, when it named one (B-29).
+                var topic by remember { mutableStateOf<String?>(null) }
+                val live = remember(topic, realtime) { realtime?.let { source -> topic?.let { Live(it, source) } } }
                 Box(Modifier.fillMaxSize()) {
                     Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                         KompotScreenLoader(
                             key = address to loads,
-                            load = { transport.tree(address.screen) },
+                            load = { transport.screen(address.screen).also { topic = it.realtimeTopic }.tree },
                             loading = { Box(Modifier.testTag(LOADING_TAG)) { Loading(address) } },
                             failed = { cause, retry ->
                                 if (cause.asksForSignIn && signedInFor != loads) {
@@ -211,6 +219,7 @@ public fun Storefront(
                                 navigator,
                                 registry,
                                 signIn,
+                                live,
                                 { header = it },
                                 { loads += 1 },
                             ) {
@@ -232,6 +241,12 @@ public fun Storefront(
     }
 }
 
+/** The channel a screen named ([topic]) and where its updates come from. */
+internal class Live(
+    val topic: String,
+    val source: KompotRealtimeSource,
+)
+
 /** A component a tree's `present` shows over the page, and the screen's handler its actions go to. */
 internal class Presented(
     val content: KompotComponent,
@@ -242,7 +257,9 @@ internal class Presented(
  * A screen's tree, following its actions: `/sign-in` is sign-in's, any other `navigate` opens its
  * deeplink, and `refresh` — kompot's action, or [LocalScreenRefresh] — draws the screen again in place;
  * a refresh refused for want of a sign-in (a lapsed one, B-44) is [onSignedOut]'s.
- * `present` and `close` are [onPresent]'s, and a `sequence` is each of its actions in turn.
+ * `present` and `close` are [onPresent]'s, and a `sequence` is each of its actions in turn. A [live] screen
+ * listens on its channel while it is shown, and an update redraws the node it names (B-29); a refresh starts it
+ * over from the tree it brought, so an update older than the tree never covers it.
  */
 @Composable
 private fun Shown(
@@ -252,6 +269,7 @@ private fun Shown(
     navigator: Navigator,
     registry: KompotRegistry,
     signIn: suspend () -> Unit,
+    live: Live?,
     onHeader: (HaulHeader) -> Unit,
     onSignedOut: () -> Unit,
     onPresent: (Presented?) -> Unit,
@@ -279,7 +297,15 @@ private fun Shown(
             )
         }
     val forms = remember { FormController(FormSchema(formId = "none", fields = emptyList())) }
-    CompositionLocalProvider(LocalScreenRefresh provides refresh) { KompotScreen(tree, registry, forms, actions) }
+    CompositionLocalProvider(LocalScreenRefresh provides refresh) {
+        if (live == null) {
+            KompotScreen(tree, registry, forms, actions)
+        } else {
+            key(tree) {
+                KompotRealtimeProvider(live.topic, live.source, { KompotScreen(tree, registry, forms, actions) })
+            }
+        }
+    }
 }
 
 /**

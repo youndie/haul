@@ -24,6 +24,7 @@ internal val paymentModule =
                 clock = get(),
                 interval = pace.instalmentInterval,
                 retry = pace.instalmentRetry,
+                moves = get(),
             )
         }
     }

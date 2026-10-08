@@ -23,6 +23,7 @@ internal val fulfilmentModule =
                 points = get(),
                 clock = get(),
                 pace = get(),
+                moves = get(),
             )
         }
         single {

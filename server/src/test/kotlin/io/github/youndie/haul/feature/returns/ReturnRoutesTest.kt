@@ -16,13 +16,13 @@ import io.github.youndie.haul.testing.ShildikHarness
 import io.github.youndie.haul.testing.TestClock
 import io.github.youndie.haul.testing.assertError
 import io.github.youndie.haul.testing.haulTest
+import io.github.youndie.haul.testing.liveTree
 import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.ui.OrderBody
 import io.github.youndie.haul.ui.OrderFactKind
 import io.github.youndie.haul.ui.ReturnForm
 import io.github.youndie.kompot.decodeKompotAction
-import io.github.youndie.kompot.decodeKompotComponent
 import io.github.youndie.kompot.standard.PresentAction
 import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
@@ -111,7 +111,7 @@ class ReturnRoutesTest {
     private suspend fun HttpClient.page(orderId: String): OrderBody {
         val response = get("/ui" + OrderPaths.page(orderId)) { bearerAuth(maya) }
         assertEquals(HttpStatusCode.OK, response.status, response.bodyAsText())
-        return haulWireJson.decodeKompotComponent(response.bodyAsText()).only<OrderBody>()
+        return liveTree(response.bodyAsText(), "order:$orderId").only<OrderBody>()
     }
 
     private suspend fun HttpResponse.assertAccepted() {

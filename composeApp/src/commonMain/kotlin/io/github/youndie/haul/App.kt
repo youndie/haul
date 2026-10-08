@@ -20,6 +20,7 @@ import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.theme.rememberHaulFonts
 import io.github.youndie.haul.ui.LocalPhotoLoader
 import io.github.youndie.haul.ui.PhotoLoader
+import io.github.youndie.kompot.realtime.KompotRealtimeSource
 import kotlin.time.Clock
 
 /**
@@ -30,7 +31,8 @@ import kotlin.time.Clock
  * (B-30), [transport] fetches the screens through [identity]'s headers (B-12, B-35), [history] is the
  * browser's, [clock] is the one «now» the countdowns read, [cartCommands] sends the cart's commands
  * (B-13), [commands] the requests the trees name by method and path (B-37), [checkoutCommands] the
- * checkout's (B-15) and [treeCommands] the dialogs' and «Helpful»'s (B-51), through the same headers.
+ * checkout's (B-15) and [treeCommands] the dialogs' and «Helpful»'s (B-51), through the same headers;
+ * [realtime] streams the updates of a page that names a channel, the order's (B-29).
  */
 @Composable
 public fun App(
@@ -43,6 +45,7 @@ public fun App(
     commands: HaulCommands? = null,
     checkoutCommands: CheckoutCommands? = null,
     treeCommands: TreeCommands? = null,
+    realtime: KompotRealtimeSource? = null,
 ) {
     BoxWithConstraints(Modifier.fillMaxSize().background(HaulColors.background)) {
         CompositionLocalProvider(LocalPhotoLoader provides photos) {
@@ -56,6 +59,7 @@ public fun App(
                     commands,
                     checkoutCommands,
                     treeCommands,
+                    realtime,
                 )
             }
         }

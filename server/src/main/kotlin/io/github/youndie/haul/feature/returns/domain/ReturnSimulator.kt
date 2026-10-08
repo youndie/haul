@@ -4,6 +4,7 @@ import io.github.youndie.haul.feature.checkout.domain.PaymentMethod
 import io.github.youndie.haul.feature.fulfilment.domain.FulfilmentPace
 import io.github.youndie.haul.feature.membership.domain.PointsLedger
 import io.github.youndie.haul.feature.membership.domain.PointsMovement
+import io.github.youndie.haul.feature.order.domain.OrderMoves
 import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.payment.domain.HaulPayPlans
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
@@ -37,7 +38,8 @@ private val log = LoggerFactory.getLogger("io.github.youndie.haul.returns")
  * `returned:<order>` — kept apart from the cancellation's give-back, which an order that was delivered never
  * had); that part of the refund is not paid in money, and the rest is what the return dialog said (B-50).
  *
- * Every move is conditional on the status it leaves, so two passes at once move a return once.
+ * Every move is conditional on the status it leaves, so two passes at once move a return once. Each order whose
+ * return a pass moved is told to [moves] (B-29), so a page watching it is drawn again.
  */
 internal class ReturnSimulator(
     private val returns: ReturnRepository,
@@ -47,11 +49,14 @@ internal class ReturnSimulator(
     private val points: PointsLedger,
     private val clock: PetichClock,
     private val pace: FulfilmentPace,
+    private val moves: OrderMoves = OrderMoves(),
 ) {
     /** One pass; the number of moves it made. */
     suspend fun advance(): Int {
         val now = Instant.ofEpochMilli(clock.nowEpochMs())
-        return returns.active().sumOf { carry(it, now) }
+        return returns.active().sumOf { orderReturn ->
+            carry(orderReturn, now).also { if (it > 0) moves.moved(orderReturn.orderId) }
+        }
     }
 
     private suspend fun carry(

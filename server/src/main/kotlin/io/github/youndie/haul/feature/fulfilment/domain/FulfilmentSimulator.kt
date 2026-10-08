@@ -3,6 +3,7 @@ package io.github.youndie.haul.feature.fulfilment.domain
 import io.github.youndie.haul.feature.checkout.domain.PaymentMethod
 import io.github.youndie.haul.feature.membership.domain.PointsLedger
 import io.github.youndie.haul.feature.membership.domain.PointsMovement
+import io.github.youndie.haul.feature.order.domain.OrderMoves
 import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus
 import io.github.youndie.haul.feature.payment.domain.Capture
@@ -45,6 +46,9 @@ private val log = LoggerFactory.getLogger("io.github.youndie.haul.fulfilment")
  *
  * [clock] is the saga's (`Application.kt`): the stamps are compared across processes, which only the wall
  * clock can do; the store's «now» is not it.
+ *
+ * Each order a pass moved is told to [moves] once, after the pass (B-29): its page, if somebody is looking,
+ * is drawn again where the order now is.
  */
 internal class FulfilmentSimulator(
     private val shipments: FulfilmentRepository,
@@ -54,11 +58,18 @@ internal class FulfilmentSimulator(
     private val points: PointsLedger,
     private val clock: PetichClock,
     private val pace: FulfilmentPace,
+    private val moves: OrderMoves = OrderMoves(),
 ) {
     /** One pass; the number of moves it made. */
     suspend fun advance(): Int {
         val now = Instant.ofEpochMilli(clock.nowEpochMs())
-        return shipments.active().sumOf { carry(it, now) }
+        val moved = mutableSetOf<String>()
+        val count =
+            shipments.active().sumOf { shipment ->
+                carry(shipment, now).also { if (it > 0) moved += shipment.orderId }
+            }
+        moved.forEach(moves::moved)
+        return count
     }
 
     private suspend fun carry(

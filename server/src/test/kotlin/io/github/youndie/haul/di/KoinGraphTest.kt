@@ -35,6 +35,8 @@ import io.github.youndie.haul.feature.identity.domain.Customers
 import io.github.youndie.haul.feature.identity.domain.Guests
 import io.github.youndie.haul.feature.identity.identityModule
 import io.github.youndie.haul.feature.membership.membershipModule
+import io.github.youndie.haul.feature.order.LiveOrders
+import io.github.youndie.haul.feature.order.domain.OrderMoves
 import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.domain.Placement
 import io.github.youndie.haul.feature.order.domain.Reorder
@@ -71,6 +73,7 @@ import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.shell.Viewers
 import io.github.youndie.haul.testing.SAGA_CLOCK
 import io.github.youndie.haul.testing.SeededDatabase
+import io.github.youndie.kompot.realtime.server.KompotUpdateBroadcaster
 import io.github.youndie.petich.PetichEngine
 import io.github.youndie.petich.SuspendedPetichSweeper
 import org.koin.core.Koin
@@ -166,6 +169,9 @@ class KoinGraphTest {
         assertNotNull(koin.get<ReviewTabs>())
         assertNotNull(koin.get<OrderScreen>())
         assertNotNull(koin.get<Reorder>())
+        assertNotNull(koin.get<OrderMoves>())
+        assertNotNull(koin.get<KompotUpdateBroadcaster>())
+        assertNotNull(koin.get<LiveOrders>())
         assertNotNull(koin.get<Loyalty>())
         assertNotNull(koin.get<SavedRepository>())
         assertNotNull(koin.get<SavedCommands>())
