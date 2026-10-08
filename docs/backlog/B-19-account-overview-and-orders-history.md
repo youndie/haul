@@ -67,6 +67,31 @@ Feature: `feature-account` — its scenarios are this item's acceptance where it
   as CSS's content box (an outlined tab is 46, its row too; the selected chip stretches to its outlined neighbours'
   40), the tile row and the cards reporting their CSS heights, then the carry. Goldens recorded for `Account*` only.
 
+- **Tests written**: `AccountRoutesTest` (the overview draws the customer's own orders and nobody else's — Sam's
+  overview over the same database has none of Maya's; the tiles are the member's standing or the trial's offer; the
+  history filters by the status in its address, an unknown status is all of them, a delivered row reorders through
+  B-18's command, a declined one leads to its page; a customer with no orders is sent to the deals and greeted by
+  the month they joined; both pages need a sign-in), `AccountFixturesTest` (the four client bodies are the server's
+  trees), `StorefrontPageTest`, `WebBundleTest` (`/account/orders` and a filtered one reload as the page),
+  `KoinGraphTest`, `IdentityRoutesTest` (the greeting read from the account's body); in the client
+  `AccountWiringTest` (Reorder sends the row's reorder and follows the cart; a refusal redraws; cards, «All orders»,
+  the menu, chips and «Track» follow their addresses; «See today’s deals»; «Try 30 days free» and «Saved» send
+  nothing), `StorefrontTest` (a failed history says «Your account didn’t load» and Retry asks for the same address),
+  `AddressTest`, `DrawnActionsTest` («Orders» opens the history), and twelve `Account_*` goldens. The cart's and the
+  order's client bodies and B-18's tests follow the header's «Orders» to `/account/orders`.
+- **Mutations**, each seen failing and restored: the history ignoring its `status` (the history test); «Orders» back
+  to `/account` (four route and fixture tests); `StorefrontPage` without the history (`StorefrontPageTest`,
+  `WebBundleTest`, `AddressTest`); the renderer not sending a row's Reorder (two wiring tests); the shell without
+  Account_Error (`StorefrontTest`); nested columns not carrying the fraction (five `Account_*` goldens in
+  `viddikVerify`); «Joined» never said (the route and the fixture tests). Not run: the customer filter removed from
+  `OrderRepository.orders` — the session's safety check refused that edit; the «nobody else's» test covers it by its
+  assertions (Sam's overview and history empty over a database holding Maya's order).
+- **Where it ran**: the Linux build machine (WSL), on the branch rebased onto `1155b0d`:
+  `:composeApp:wasmJsBrowserDistribution` alone, then `./gradlew check :server:installDist`, two workers in a 5 GB
+  scope, green (`:server:test` 213 tests, `:composeApp:desktopTest` 125 and `viddikVerify` 118, 0 failed; PostgreSQL
+  and shildik in containers); `viddikDesignParity` as above. `make check` and `make docs-against BASE=origin/main` on
+  the Mac. No migration, so `scripts/image-check.sh` was not run; the chart is unchanged.
+
 ## Findings (2026-10-08)
 
 - **The avatar of a non-member** is the tile tone their reviews are signed with (`ReviewCommands.avatarTone`): Sam's
