@@ -154,6 +154,26 @@ Why:
 - rejected: JSON endpoints per screen and Compose layouts in the client — a second contract for the
   same screens, and the server would no longer own what the shopper sees.
 
+**Decided in B-37, what a drawn control carries.** Every control the canvas draws either carries
+something in its tree or belongs to a later item that will give it something; none is wired in the
+client alone.
+
+- A control that changes the page is a `navigate` to an address the shell maps to a screen route
+  (`/c/…?page=2`, `?sort=price-asc`, `/deals`, `/cart`); the server builds every address, filters,
+  sort and page included. A control that changes state is a command: the URL and the body sit in the
+  tree, fixed by the server — a card's «+» is `ProductCard.add`, the `LineChange` with the line's
+  *next* quantity (one more than the viewer's cart holds), so a press sent twice puts in one, and it
+  is absent at ten, at the stock or out of stock. The client sends it and draws the screen again.
+- A list of choices («Catalog»'s categories, the sort's orders) travels as `Link`s and opens as a
+  menu in the client. No artboard draws a menu open; the menu is drawn from the theme's tokens.
+- «Show 24 more» opens the next page, the same address as the page number. Appending to the grid in
+  place would need the shell to keep the scroll across an address change, which it does not (B-35).
+- **`/deals` is a screen** (owner's call in B-37): «Deals», «View all deals», «Shop the sale» and the
+  empty cart's «See today's deals» all lead there, and the server already had what it needs — today's
+  deals with their countdown on the first page, then every product whose shown price is under its old
+  one, the deepest discount first, 24 a page. It is built from the components other screens draw; no
+  artboard draws it, so it has no parity reference.
+
 ### D3. PostgreSQL; the access layer is chosen at scaffold
 
 Decision: one PostgreSQL database for the catalog, carts, orders and the saga's state. Exposed with

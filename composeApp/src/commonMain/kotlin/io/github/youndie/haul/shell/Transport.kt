@@ -8,8 +8,13 @@ import io.github.youndie.kompot.KompotComponent
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.request
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
+import io.ktor.http.content.TextContent
 import kotlinx.serialization.PolymorphicSerializer
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -43,6 +48,39 @@ public fun ktorTransport(
         val response =
             send { headers ->
                 http.get(origin.trimEnd('/') + path) { headers.forEach { (name, value) -> header(name, value) } }
+            }
+        HaulResponse(response.status.value, response.bodyAsText())
+    }
+
+/**
+ * Sends a command a tree carries (B-37): [method] to [path] — the server's string, from the tree — with
+ * a JSON [body] or none, and returns what the server answered (a kompot action, `refresh`, or an
+ * `ErrorBody`); no answer throws. The screens' half of the conversation is [HaulTransport].
+ */
+public fun interface HaulCommands {
+    public suspend fun send(
+        method: String,
+        path: String,
+        body: String?,
+    ): HaulResponse
+}
+
+/** The browser's commands: [http] against [origin], each through [send] — `Identity.send`, as for the screens. */
+public fun ktorCommands(
+    http: HttpClient,
+    origin: String,
+    send: suspend (
+        request: suspend (headers: Map<String, String>) -> HttpResponse,
+    ) -> HttpResponse = { it(emptyMap()) },
+): HaulCommands =
+    HaulCommands { method, path, body ->
+        val response =
+            send { headers ->
+                http.request(origin.trimEnd('/') + path) {
+                    this.method = HttpMethod.parse(method)
+                    headers.forEach { (name, value) -> header(name, value) }
+                    body?.let { setBody(TextContent(it, ContentType.Application.Json)) }
+                }
             }
         HaulResponse(response.status.value, response.bodyAsText())
     }

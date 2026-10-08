@@ -143,7 +143,7 @@ private fun Tip(
  *
  * [field] is the header's field the page is drawn with — a screenshot's is focused from the start, the
  * app's follows the real focus; with no [panel] the page is drawn alone. Pressing the scrim is
- * [onDismiss].
+ * [onDismiss], and «Clear» on recent searches [onClear].
  */
 @Composable
 public fun SearchSuggestOverlay(
@@ -152,6 +152,7 @@ public fun SearchSuggestOverlay(
     highlighted: Int = 0,
     field: SearchFieldState = remember { SearchFieldState(focused = true) },
     onDismiss: (() -> Unit)? = null,
+    onClear: (() -> Unit)? = null,
     page: @Composable () -> Unit,
 ) {
     val compact = LocalHaulCompact.current
@@ -188,20 +189,21 @@ public fun SearchSuggestOverlay(
                         )
                     }.width(with(density) { bounds.width.toDp() })
             }
-        SearchSuggestPanelView(panel, placed, highlighted)
+        SearchSuggestPanelView(panel, placed, highlighted, onClear)
     }
 }
 
 /**
  * The suggest panel (`SearchSuggestPanel`): queries, categories with counts, recent searches and, in a
  * column of their own at 1440 (under the rest on a phone), the top products and «All N results ↵».
- * [highlighted] is the query row the keyboard is on.
+ * [highlighted] is the query row the keyboard is on; [onClear] is «Clear» on recent searches.
  */
 @Composable
 public fun SearchSuggestPanelView(
     panel: SearchSuggestPanel,
     modifier: Modifier = Modifier,
     highlighted: Int = 0,
+    onClear: (() -> Unit)? = null,
 ) {
     val compact = LocalHaulCompact.current
     val shape = RoundedCornerShape(if (compact) 20.dp else 24.dp)
@@ -214,14 +216,14 @@ public fun SearchSuggestPanelView(
             .background(HaulColors.surfaceContainerLowest)
     if (compact) {
         Column(card) {
-            Suggestions(panel, highlighted, compact = true)
+            Suggestions(panel, highlighted, compact = true, onClear)
             TopProducts(panel, compact = true, modifier = Modifier.fillMaxWidth())
         }
     } else {
         // A grid row: the products' column is as tall as the suggestions, its button at the bottom.
         Layout(
             content = {
-                Suggestions(panel, highlighted, compact = false)
+                Suggestions(panel, highlighted, compact = false, onClear)
                 TopProducts(panel, compact = false, modifier = Modifier.fillMaxSize())
             },
             modifier = card,
@@ -246,6 +248,7 @@ private fun Suggestions(
     panel: SearchSuggestPanel,
     highlighted: Int,
     compact: Boolean,
+    onClear: (() -> Unit)?,
 ) {
     val side = if (compact) 16.dp else 24.dp
     val rowHeight = if (compact) 48.dp else 44.dp
@@ -269,8 +272,8 @@ private fun Suggestions(
             panel.categories.forEach { Category(it, side, rowHeight) }
         }
         if (panel.recent.isNotEmpty()) {
-            // «Clear» empties them (`clearAction`, the customer tier's, arriving with sign-in).
-            Heading("Recent", side, compact, action = "Clear")
+            // «Clear» empties them: a `DELETE` to `clearUrl`, the customer tier's, which the shell sends.
+            Heading("Recent", side, compact, action = "Clear", onAction = onClear)
             panel.recent.forEach { query ->
                 Line(side, rowHeight) {
                     Icon(HaulIcons.clock, 18.dp, HaulColors.outline)
@@ -287,6 +290,7 @@ private fun Heading(
     side: androidx.compose.ui.unit.Dp,
     compact: Boolean,
     action: String? = null,
+    onAction: (() -> Unit)? = null,
 ) {
     Row(
         Modifier
@@ -300,7 +304,13 @@ private fun Heading(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(label.uppercase(), HaulType.label(11f, 600, 0.08f).copy(color = HaulColors.outline))
-        action?.let { Text(it.uppercase(), HaulType.label(11f, 600, 0.08f).copy(color = HaulColors.primary)) }
+        action?.let {
+            Text(
+                it.uppercase(),
+                HaulType.label(11f, 600, 0.08f).copy(color = HaulColors.primary),
+                Modifier.pressable(onAction),
+            )
+        }
     }
 }
 

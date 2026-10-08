@@ -24,16 +24,27 @@ internal class Viewers(
             }
 
             is Caller.Guest -> {
-                Viewer(cartCount = carts.units(CartOwner.Guest(caller.id)))
+                withCart(Viewer(), CartOwner.Guest(caller.id))
             }
 
             is Caller.Customer -> {
                 val customer = caller.customer
-                Viewer(
-                    firstName = customer.firstName,
-                    cartCount = carts.units(CartOwner.Customer(customer.id, customer.plus)),
-                    customerId = customer.id,
+                withCart(
+                    Viewer(firstName = customer.firstName, customerId = customer.id),
+                    CartOwner.Customer(customer.id, customer.plus),
                 )
             }
         }
+
+    /** The header's count, and how many of each SKU the cart holds — what a card's «+» sends one more of. */
+    private suspend fun withCart(
+        viewer: Viewer,
+        owner: CartOwner,
+    ): Viewer {
+        val lines = carts.cart(owner).lines
+        return viewer.copy(
+            cartCount = lines.sumOf { it.quantity },
+            inCart = lines.associate { it.skuId to it.quantity },
+        )
+    }
 }

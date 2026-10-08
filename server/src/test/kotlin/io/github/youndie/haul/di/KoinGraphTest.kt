@@ -11,6 +11,7 @@ import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.screen.CatalogScreen
+import io.github.youndie.haul.feature.catalog.screen.DealsScreen
 import io.github.youndie.haul.feature.catalog.screen.HomeScreen
 import io.github.youndie.haul.feature.catalog.screen.ProductScreen
 import io.github.youndie.haul.feature.checkout.checkoutModule
@@ -29,6 +30,7 @@ import io.github.youndie.haul.feature.order.orderModule
 import io.github.youndie.haul.feature.order.saga.SagaStorage
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
 import io.github.youndie.haul.feature.payment.paymentModule
+import io.github.youndie.haul.feature.search.domain.RecentSearches
 import io.github.youndie.haul.feature.search.screen.SearchScreen
 import io.github.youndie.haul.feature.search.searchModule
 import io.github.youndie.haul.seed.CatalogSeed
@@ -89,7 +91,9 @@ class KoinGraphTest {
         assertNotNull(koin.get<HomeScreen>())
         assertNotNull(koin.get<CatalogScreen>())
         assertNotNull(koin.get<ProductScreen>())
+        assertNotNull(koin.get<DealsScreen>())
         assertNotNull(koin.get<SearchScreen>())
+        assertNotNull(koin.get<RecentSearches>())
         assertNotNull(koin.get<Guests>())
         assertNotNull(koin.get<Customers>())
         assertNotNull(koin.get<Callers>())

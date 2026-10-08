@@ -39,6 +39,7 @@ public data class Address(
 
             StorefrontPage.Cart -> PageKind.Cart
 
+            StorefrontPage.Deals,
             StorefrontPage.Checkout,
             StorefrontPage.Account,
             StorefrontPage.SignIn,

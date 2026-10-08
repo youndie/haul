@@ -36,8 +36,8 @@ class AddressTest {
 
     @Test
     fun `an address the storefront has no page for is still asked of the server`() {
-        assertEquals("/ui/deals", Address("/deals").screen)
-        assertEquals(PageKind.Other, Address("/deals").kind)
+        assertEquals("/ui/nowhere", Address("/nowhere").screen)
+        assertEquals(PageKind.Other, Address("/nowhere").kind)
     }
 
     /**
@@ -55,6 +55,10 @@ class AddressTest {
         assertEquals(PageKind.Cart, Address("/cart").kind)
         assertEquals(PageKind.Other, Address("/cart/x").kind)
         assertEquals(PageKind.Other, Address("/account").kind)
+        // The deals page (B-37) is a page a reload opens, drawn with the shell's own placeholders.
+        assertEquals("/ui/deals?page=2", Address("/deals?page=2").screen)
+        assertEquals(PageKind.Other, Address("/deals").kind)
+        assertEquals(PageKind.Other, Address("/deals/today").kind)
         assertEquals("/ui/cart", Address("/cart").screen)
     }
 

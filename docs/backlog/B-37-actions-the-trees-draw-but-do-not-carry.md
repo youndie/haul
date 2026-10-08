@@ -1,7 +1,7 @@
 ---
 id: B-37
 title: "server + client: actions the trees draw but do not carry"
-status: open
+status: done
 priority: P2
 size: M
 stage: stage-4-cart
@@ -25,3 +25,93 @@ command URL like the cart's), the client follows it. A control whose screen belo
   and a client wiring test (pressing it follows the action); `/deals` either draws a screen or is
   no longer linked.
 - Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/shell/Frame.kt`, `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/screen/`.
+
+## Findings (2026-10-08)
+
+- **Built, control by control** (the contract in `shared/.../ui/`; the server's trees in
+  `shell/Frame.kt` and `feature/*/screen/`; the client's views follow through `LocalHaulActions`):
+  - **Pagination and «Show 24 more»** — `HaulPagination.moreAction` (the next page) and `links` (every
+    page number but the current one and `…`), built once in `Cards.kt`'s `pagination()` for the
+    category, search and deals pages; the address keeps the filters, the sort and the query, and page
+    1 has no `page=`. «Show 24 more» opens the next page — the same address as its number — rather than
+    appending in place, which would need the shell to keep the scroll across an address (research D2,
+    «Decided in B-37»).
+  - **The sort** — `AppliedFilters.sorts`, one `Link` per order (`Sort`), the filters kept and the page
+    reset; the control opens them as a menu (`ui/LinkMenu.kt`).
+  - **«Clear all»** — `AppliedFilters.clearAction`, the category without filters, the sort kept; drawn
+    in three places (wide, phone, the filter sheet), all three follow it.
+  - **The header** — `HaulHeader.catalog` (every top-level category with its page: «Catalog» opens it
+    as a menu, and each word of the category row follows the entry of its name), `deals` (`/deals`),
+    `cart` (`/cart`). The row's first ten are cut in `Frame` now; `navigation()` returns `Link`s.
+  - **A card's «+»** — `ProductCard.add`, a `LineCommand` (`shared/.../feature/cart/CartCommands.kt`):
+    `PUT /api/v1/cart/lines/{sku}` with the line's *next* quantity, for the SKU whose price the card
+    shows (the deal's SKU on a deal card). The server knows the viewer's cart (`Viewer.inCart`, read in
+    `Viewers` from the cart's lines; `CartRepository.units` went with it), so «+» is absent at ten, at
+    the stock and out of stock, and a press sent twice adds one. The client sends it as B-13's cart
+    command, `CartCommand.ChangeLine(add.url, add.change)` through `LocalCartCommands`, and hands the
+    answer, `refresh`, to the renderer's action handler, as the cart's own presses do; the screen is
+    drawn again and the header's count moves.
+  - **«Clear» on recent searches** — `SearchSuggestPanel.clearUrl` (it replaces `clearAction`, never
+    set), present only when the customer has recent searches; `DELETE /api/v1/me/recent-searches` in
+    the customer tier (`customerSearchRouting`), `refresh`; the shell sends it and asks for the panel
+    again.
+  - **«View all deals»** now carries `/deals` (it carried nothing; «Shop the sale» and the empty cart
+    already pointed there).
+- **`/deals` is a screen** — the owner's call taken here (research D2): `DealsScreen`, `GET /ui/deals`
+  (`?page=`, `400 validation_failed` below 1): «Deals · N items on sale», today's deals with the
+  countdown on the first page, then every product whose shown price is under its old one, the deepest
+  discount first, 24 a page, footer. Built from the components other screens draw; **no artboard draws
+  it**, so it has no parity reference and no golden. It reads the whole catalog per request (some
+  3,000 products on the seed) the way a top-level category page reads its descendants; research D3's
+  in-memory note covers both.
+- **Folded into B-13 on the rebase.** The «+» first had a seam of its own (`AddToCart`); once B-13
+  merged with `CartCommands`, it goes through those, and the seam is gone. What B-37 keeps of its own
+  is `HaulCommands` / `ktorCommands` (`shell/Transport.kt`), the last, optional parameter of `App` and
+  `Storefront` beside B-13's `cartCommands`, for the one command outside the cart: «Clear» on recent
+  searches. Both go through `Identity.send`.
+- **`/deals` reloads too.** B-36's `StorefrontPage` — the one list the server serves the page at and
+  the client reads its page kinds from — gained `Deals` (`/deals`, its query in the query string; not
+  `/deals/…`), so a reloaded or shared `/deals` opens the page; the client draws it as `PageKind.Other`
+  (the shell's own placeholders). `StorefrontPageTest`, `WebBundleTest`'s listed shapes and
+  `AddressTest` say so. The cart button needed nothing: `/cart` was B-13's and B-36's already.
+- **Menus have no artboard.** «Catalog» and the sort open a menu drawn from the theme's tokens
+  (surface, outline, Archivo 15); the canvas draws both controls closed only, and closed is all a
+  screenshot draws (no handler, no menu).
+- **Still drawn and inert, owned elsewhere or by nobody** (not filed, per the assignment): the
+  heart and «Saved» (B-20) and «Orders» (B-18) — noted in those items; the product page's «Add to
+  cart» and «Buy now»; home's «All N categories»; the brand facet's «Show N more»; the filter sheet's
+  «×»; a recent search's own row (the client would have to build `/search?q=` from a string the tree
+  gives without an action); the strip's «Sell on HAUL», «Help», the language, the «HAUL PLUS» pill;
+  the footer's links; the Plus block's offer.
+
+## Verification (2026-10-08)
+
+- **Tests**, per control a route test (the action in the tree, followed) and a client wiring test
+  (pressed, followed): server `feature/catalog/DrawnActionsTest.kt` (10: the header on three screens
+  and a row word followed; pages and «Show 24 more» with the filters kept and none on the last page;
+  the sort's five orders, followed, prices ascending; «Clear all» keeping the sort; search's pages;
+  «+» at 1, 2, gone at 10; none out of stock; home's deal links and the deal SKU; the deals page;
+  `page=0` refused), `feature/search/RecentSearchesRoutesTest.kt` (2, against shildik: «Clear»
+  empties and the panel stops offering it; `401` without a token, a guest offered nothing),
+  `KoinGraphTest`, `StorefrontPageTest` and `WebBundleTest` (`/deals` is a page, `/deals/…` is not);
+  client `DrawnActionsTest.kt` (9: «Show 24 more» and a page number, the sort menu, «Clear all», a row
+  category, the «Catalog» menu, «Deals» and the cart, «View all deals», «+» sending
+  `CartCommand.ChangeLine` and redrawing without navigating, «Clear» sending `DELETE` and asking for
+  the panel again), `AddressTest`.
+- **B-13's `CartFixturesTest`** holds the client's cart bodies equal to the server's trees, so the six
+  `cart_*.json` bodies gained what the server now sends — the header's `catalog`, `deals` and `cart`,
+  and each of the empty cart's canvas picks an `add` — taken from what the test wrote; additions only,
+  nothing drawn changed.
+- **The gate** on the Linux build machine, after the rebase over B-13 and B-36:
+  `check :server:installDist :composeApp:wasmJsBrowserDistribution` green — server 137 tests, client
+  66, `viddikVerify` 68 screenshots with 0 failing and no golden re-recorded; `viddikDesignParity`
+  59/59 within 5 % (7 without a reference), `Catalog_Empty` at the 2.51 % B-13 recorded; `make check`
+  on the Mac.
+- **Mutations**, each seen failing the tests written for it (two batches, then restored): «Show 24
+  more» with no action (the category, search and deals paging tests); «+» always sending one (the
+  plus test); the `DELETE` route not clearing (the recent-searches test); `/deals` out of
+  `StorefrontPage` (`StorefrontPageTest`, `WebBundleTest`); the menu never opening (sort, «Catalog»);
+  «+» not pressable; «Clear all» not followed; «Clear» not asking for the panel again — 5 of the 9
+  client tests failed, the other 4 passed.
+- **The first gate run was lost** to the build machine going unresponsive mid-run (2026-10-08, before
+  its restart at 17:58); everything above ran after it.

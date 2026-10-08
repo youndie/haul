@@ -199,16 +199,19 @@ private fun WideHeader(
             dotMargin = 3.dp,
             modifier = Modifier.width(132.dp).pressable(LocalLogoAction.current),
         )
-        Row(
-            Modifier
-                .height(56.dp)
-                .background(HaulColors.primary, RoundedCornerShape(16.dp))
-                .padding(start = 18.dp, end = 22.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(HaulIcons.grid, 20.dp, HaulColors.onPrimary)
-            Text("Catalog", HaulType.text(16f, 700).copy(color = HaulColors.onPrimary))
+        // «Catalog» opens every top-level category as a menu (`HaulHeader.catalog`).
+        LinkMenu(header.catalog) { press ->
+            Row(
+                press
+                    .height(56.dp)
+                    .background(HaulColors.primary, RoundedCornerShape(16.dp))
+                    .padding(start = 18.dp, end = 22.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(HaulIcons.grid, 20.dp, HaulColors.onPrimary)
+                Text("Catalog", HaulType.text(16f, 700).copy(color = HaulColors.onPrimary))
+            }
         }
         SearchField(
             header,
@@ -239,7 +242,7 @@ private fun WideHeader(
             }
             CartButton(
                 if (pending) 0 else header.cartCount,
-                Modifier.padding(start = 6.dp),
+                Modifier.padding(start = 6.dp).follows(header.cart),
                 height = 56.dp,
                 radius = 16.dp,
                 horizontal = 18.dp,
@@ -253,8 +256,8 @@ private fun WideHeader(
         horizontalArrangement = Arrangement.spacedBy(28.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Deals(size = 15f)
-        SpacedWords(header.categories, 28.dp, HaulType.text(15f, 500))
+        Deals(size = 15f, Modifier.follows(header.deals))
+        SpacedWords(header.categories, 28.dp, HaulType.text(15f, 500), links = header.catalog)
         Spacer(Modifier.weight(1f))
         Text(
             "HAUL PLUS",
@@ -309,7 +312,7 @@ private fun CompactHeader(
         }
         CartButton(
             if (pending) 0 else header.cartCount,
-            Modifier.padding(start = 4.dp),
+            Modifier.padding(start = 4.dp).follows(header.cart),
             height = 44.dp,
             radius = 14.dp,
             horizontal = 12.dp,
@@ -356,8 +359,8 @@ private fun CompactHeader(
         horizontalArrangement = Arrangement.spacedBy(22.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Deals(size = 14f)
-        SpacedWords(header.categories, 22.dp, HaulType.text(14f, 500))
+        Deals(size = 14f, Modifier.follows(header.deals))
+        SpacedWords(header.categories, 22.dp, HaulType.text(14f, 500), links = header.catalog)
     }
 }
 
@@ -598,8 +601,11 @@ private fun CartButton(
 }
 
 @Composable
-private fun Deals(size: Float) {
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+private fun Deals(
+    size: Float,
+    modifier: Modifier = Modifier,
+) {
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
         Icon(HaulIcons.bolt, 16.dp, HaulColors.error)
         Text("Deals", HaulType.text(size, 800).copy(color = HaulColors.error))
     }

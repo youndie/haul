@@ -44,13 +44,16 @@ import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.HaulPagination
 import io.github.youndie.haul.ui.Icon
+import io.github.youndie.haul.ui.LinkMenu
 import io.github.youndie.haul.ui.LocalHaulActions
 import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.ProductGridView
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.appendLink
+import io.github.youndie.haul.ui.following
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
+import io.github.youndie.kompot.KompotAction
 
 // The category page's components (screen-catalog), each with the margin the page gives it; the
 // numbers are the artboards' (Catalog_Content, Catalog_Empty and their _Phone twins).
@@ -330,9 +333,9 @@ private fun WideApplied(applied: AppliedFilters) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         applied.chips.forEach { AppliedChip(it) }
-        ClearAll(applied.clearLabel, Modifier.padding(start = 4.dp))
+        ClearAll(applied, Modifier.padding(start = 4.dp))
         Spacer(Modifier.weight(1f))
-        Sort(applied.sortLabel, Modifier.height(44.dp), textSize = 14f)
+        Sort(applied, Modifier.height(44.dp), textSize = 14f)
     }
 }
 
@@ -366,7 +369,7 @@ private fun CompactApplied(
                 ) { Text(applied.filterCount.toString(), HaulType.text(12f, 800)) }
             }
         }
-        Sort(applied.sortLabel, Modifier.height(48.dp), textSize = 15f)
+        Sort(applied, Modifier.height(48.dp), textSize = 15f)
     }
     Row(
         Modifier
@@ -377,7 +380,7 @@ private fun CompactApplied(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         applied.chips.forEach { AppliedChip(it) }
-        ClearAll(applied.clearLabel)
+        ClearAll(applied)
     }
 }
 
@@ -396,19 +399,37 @@ private fun AppliedChip(chip: Chip) {
     }
 }
 
+/** «Clear all»: follows `AppliedFilters.clearAction`, the page without its filters. */
 @Composable
 private fun ClearAll(
-    label: String,
+    applied: AppliedFilters,
     modifier: Modifier = Modifier,
 ) {
-    Text(label, HaulType.text(14f, 600).copy(color = HaulColors.primary), modifier, softWrap = false)
+    Text(
+        applied.clearLabel,
+        HaulType.text(14f, 600).copy(color = HaulColors.primary),
+        modifier.follows(applied.clearAction),
+        softWrap = false,
+    )
 }
 
 /** The sort control's padding (16 each side) and border (1 each side). */
 private val SORT_FRAME = 34.dp
 
+/** The sort control; pressing it opens `AppliedFilters.sorts`, the orders it offers, as a menu. */
 @Composable
 private fun Sort(
+    applied: AppliedFilters,
+    modifier: Modifier,
+    textSize: Float,
+) {
+    LinkMenu(applied.sorts, current = applied.sortLabel, alignEnd = true) { press ->
+        SortControl(applied.sortLabel, press.then(modifier), textSize)
+    }
+}
+
+@Composable
+private fun SortControl(
     label: String,
     modifier: Modifier,
     textSize: Float,
@@ -437,13 +458,27 @@ public fun PaginationView(
     val more =
         @Composable { m: Modifier ->
             pagination.moreLabel?.let {
-                HaulButton(it, m, height = 60.dp, radius = 16.dp, border = HaulColors.onSurface, textSize = 16f)
+                HaulButton(
+                    it,
+                    m,
+                    height = 60.dp,
+                    radius = 16.dp,
+                    border = HaulColors.onSurface,
+                    textSize = 16f,
+                    onClick = following(pagination.moreAction),
+                )
             }
         }
     val pages =
         @Composable {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                pagination.pages.forEach { PageNumber(it, it == pagination.current.toString()) }
+                pagination.pages.forEach { label ->
+                    PageNumber(
+                        label,
+                        current = label == pagination.current.toString(),
+                        action = pagination.links.firstOrNull { it.label == label }?.action,
+                    )
+                }
             }
         }
     if (compact) {
@@ -471,6 +506,7 @@ public fun PaginationView(
 private fun PageNumber(
     label: String,
     current: Boolean,
+    action: KompotAction?,
 ) {
     val fill =
         when {
@@ -480,6 +516,7 @@ private fun PageNumber(
         }
     Box(
         Modifier
+            .follows(action)
             .defaultMinSize(minWidth = 44.dp)
             .height(44.dp)
             .then(if (fill != null) Modifier.background(fill, RoundedCornerShape(12.dp)) else Modifier)

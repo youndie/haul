@@ -15,17 +15,27 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import io.github.youndie.haul.feature.cart.CartCommand
+import io.github.youndie.haul.feature.cart.LocalCartCommands
+import io.github.youndie.haul.feature.cart.run
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
+import kotlinx.coroutines.launch
 import kotlin.math.sqrt
+
+/** What «+» on a card says to a screen reader, and what the tests find it by. */
+public const val ADD_TO_CART: String = "Add to cart"
 
 /** A product card (`ProductCard` on the wire), at the width its grid cell gives it. */
 @Composable
@@ -59,8 +69,29 @@ public fun ProductCardView(
                 }
             }
             val button = if (compact) 36.dp else 38.dp
+            // «+» sends the card's line change as a cart command (B-37) and follows the answer, `refresh`;
+            // the card's own press, under it, opens the product.
+            val cart = LocalCartCommands.current
+            val actions = LocalHaulActions.current
+            val scope = rememberCoroutineScope()
+            val add = card.add
+            val press =
+                if (cart == null || actions == null || add == null) {
+                    null
+                } else {
+                    {
+                        scope.launch {
+                            cart.run(listOf(CartCommand.ChangeLine(add.url, add.change)))?.let(actions::handle)
+                        }
+                        Unit
+                    }
+                }
             Box(
-                Modifier.size(button).background(HaulColors.primary, RoundedCornerShape(12.dp)),
+                Modifier
+                    .pressable(press)
+                    .semantics { if (add != null) contentDescription = ADD_TO_CART }
+                    .size(button)
+                    .background(HaulColors.primary, RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(HaulIcons.plus, 18.dp, HaulColors.onPrimary)

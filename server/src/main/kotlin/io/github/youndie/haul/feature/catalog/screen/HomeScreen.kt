@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.catalog.screen
 
 import io.github.youndie.haul.feature.catalog.domain.Campaign
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
+import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.shell.Frame
@@ -10,6 +11,7 @@ import io.github.youndie.haul.ui.CampaignHero
 import io.github.youndie.haul.ui.CampaignRow
 import io.github.youndie.haul.ui.CategoryGrid
 import io.github.youndie.haul.ui.CategoryTile
+import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.PlusBlock
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.PromoBanner
@@ -33,8 +35,6 @@ internal class HomeScreen(
         val categories = catalog.categories()
         val topLevel = categories.filter { it.parentSlug == null }.sortedBy { it.position }
         val campaigns = catalog.campaigns()
-        val deals = catalog.deals()
-        val dealItems = catalog.listed(deals.map { deal -> deal.skuId.substringBeforeLast('-') })
 
         val sections = mutableListOf<KompotComponent>()
         campaigns.firstOrNull()?.let { first ->
@@ -62,6 +62,7 @@ internal class HomeScreen(
                 "Deals of the day",
                 linkLabel = "View all deals",
                 countdownEndsAt = calendar.midnight(),
+                action = NavigateAction(Frame.DEALS),
                 accent = "day",
             )
         sections +=
@@ -69,15 +70,7 @@ internal class HomeScreen(
                 id = "deals",
                 columns = DEAL_COLUMNS,
                 scroll = true,
-                cards =
-                    deals.mapNotNull { deal ->
-                        val item =
-                            dealItems.firstOrNull { item -> item.skus.any { it.id == deal.skuId } }
-                                ?: return@mapNotNull null
-                        val sku = item.skus.first { it.id == deal.skuId }
-                        val old = if (deal.priceCents < sku.priceCents) sku.priceCents else sku.oldPriceCents
-                        card(item, calendar, photos, priceCents = deal.priceCents, oldCents = old)
-                    },
+                cards = dealCards(catalog, calendar, photos, viewer.inCart),
             )
         if (viewer.firstName == null) sections += PLUS_OFFER
         return Frame.page("home", viewer, navigation(categories), sections, footer = true)
@@ -92,7 +85,7 @@ internal class HomeScreen(
             actionLabel = "Shop the sale",
             tone = campaign.tone,
             label = "campaign image",
-            action = NavigateAction("/deals"),
+            action = NavigateAction(Frame.DEALS),
             accent = campaign.title.substringBeforeLast(' ', "").ifEmpty { null },
         )
 
@@ -136,10 +129,9 @@ internal class HomeScreen(
     }
 }
 
-/** The category row of the header: the first ten top-level categories. */
-internal fun navigation(categories: List<io.github.youndie.haul.feature.catalog.domain.Category>): List<String> =
+/** The header's categories ([Frame.page]): every top-level category, in order, with its page. */
+internal fun navigation(categories: List<Category>): List<Link> =
     categories
         .filter { it.parentSlug == null }
         .sortedBy { it.position }
-        .take(10)
-        .map { it.name }
+        .map { Link(it.name, categoryLink(it.slug)) }

@@ -1,21 +1,37 @@
 package io.github.youndie.haul.feature.catalog.screen
 
+import io.github.youndie.haul.feature.cart.CartPaths
+import io.github.youndie.haul.feature.cart.LineChange
+import io.github.youndie.haul.feature.cart.LineCommand
+import io.github.youndie.haul.feature.cart.domain.CartCommands
+import io.github.youndie.haul.feature.catalog.domain.Browse
+import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.Listed
+import io.github.youndie.haul.feature.catalog.domain.Page
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
+import io.github.youndie.haul.feature.catalog.domain.Sku
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.discount
 import io.github.youndie.haul.feature.catalog.domain.money
+import io.github.youndie.haul.ui.HaulPagination
+import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.kompot.standard.NavigateAction
 
-/** A product as a card: the shown SKU's price, the earliest delivery day (feature-browse), its photo if stored. */
+/**
+ * A product as a card: the shown SKU's price, the earliest delivery day (feature-browse), its photo if
+ * stored, and «+», which puts one more of [sku] into the cart — [inCart] is how many of each SKU the
+ * viewer's cart already holds (`Viewer.inCart`).
+ */
 internal fun card(
     item: Listed,
     calendar: DeliveryCalendar,
     photos: ProductPhotos,
-    priceCents: Int = item.shown.priceCents,
-    oldCents: Int? = item.shown.oldPriceCents,
+    inCart: Map<String, Int>,
+    sku: Sku = item.shown,
+    priceCents: Int = sku.priceCents,
+    oldCents: Int? = sku.oldPriceCents,
 ): ProductCard =
     ProductCard(
         id = "card-${item.product.id}",
@@ -31,11 +47,69 @@ internal fun card(
         label = item.product.label,
         image = photos.url(item.product),
         action = productLink(item.product.id),
+        add = addToCart(sku, inCart),
     )
+
+/**
+ * «+»: the line [sku] will have with one more in it (endpoint-cart, `PUT` `LineChange`) — or nothing to
+ * send when the cart already holds as many as can be bought (ten, or the stock), or there is no stock.
+ * The quantity is the line's next one rather than «add one», so a press sent twice puts in one, not two.
+ */
+internal fun addToCart(
+    sku: Sku,
+    inCart: Map<String, Int>,
+): LineCommand? {
+    val next = (inCart[sku.id] ?: 0) + 1
+    if (next > minOf(CartCommands.MAX_QUANTITY, sku.stock)) return null
+    return LineCommand(CartPaths.line(sku.id), LineChange(quantity = next))
+}
+
+/**
+ * The cards of today's deals (feature-browse): each at its deal price over the SKU's own, which is
+ * what «+» puts into the cart; a deal whose SKU is gone is left out.
+ */
+internal suspend fun dealCards(
+    catalog: CatalogRepository,
+    calendar: DeliveryCalendar,
+    photos: ProductPhotos,
+    inCart: Map<String, Int>,
+): List<ProductCard> {
+    val deals = catalog.deals()
+    val items = catalog.listed(deals.map { deal -> deal.skuId.substringBeforeLast('-') })
+    return deals.mapNotNull { deal ->
+        val item = items.firstOrNull { item -> item.skus.any { it.id == deal.skuId } } ?: return@mapNotNull null
+        val sku = item.skus.first { it.id == deal.skuId }
+        val old = if (deal.priceCents < sku.priceCents) sku.priceCents else sku.oldPriceCents
+        card(item, calendar, photos, inCart, sku = sku, priceCents = deal.priceCents, oldCents = old)
+    }
+}
 
 internal fun productLink(productId: String): NavigateAction = NavigateAction("/p/$productId")
 
 internal fun categoryLink(slug: String): NavigateAction = NavigateAction("/c/$slug")
+
+/**
+ * The pages under a grid: «Show 24 more» goes to the next page, and every page number but the current
+ * one to its own; [address] is the page's address at page n (`?page=` is left out for the first).
+ */
+internal fun pagination(
+    page: Page,
+    address: (page: Int) -> String,
+): HaulPagination {
+    val pages = pageNumbers(page.pages)
+    val more = page.page < page.pages
+    return HaulPagination(
+        id = "pagination",
+        current = page.page,
+        pages = pages,
+        moreLabel = if (more) "Show ${Browse.PAGE_SIZE} more" else null,
+        moreAction = if (more) NavigateAction(address(page.page + 1)) else null,
+        links =
+            pages.mapNotNull { label ->
+                label.toIntOrNull()?.takeIf { it != page.page }?.let { Link(label, NavigateAction(address(it))) }
+            },
+    )
+}
 
 /** «1 2 3 … 517»: the first three pages, and the last after an ellipsis when there are more. */
 internal fun pageNumbers(pages: Int): List<String> =
