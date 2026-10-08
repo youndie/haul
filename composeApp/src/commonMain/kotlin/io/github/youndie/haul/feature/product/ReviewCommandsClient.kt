@@ -5,6 +5,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import io.github.youndie.haul.ErrorBody
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.FieldError
+import io.github.youndie.haul.feature.returns.ReturnEntry
 import io.github.youndie.haul.feature.reviews.HelpfulVote
 import io.github.youndie.haul.feature.reviews.QuestionEntry
 import io.github.youndie.haul.feature.reviews.ReviewEntry
@@ -28,6 +29,8 @@ import kotlin.coroutines.cancellation.CancellationException
 // component says — `ReviewForm.url`, `QuestionForm.url`, a review's `HelpfulCommand.url` — with a body from
 // the contract. The two dialogs' are answered with kompot's `sequence` of `close` and `refresh`, which the
 // dialog hands to the screen's handler; «Helpful» with `refresh`, which the review's button hands there.
+// The order's return dialog (B-21) is a dialog like these and goes through the same seam: `ReturnForm.url`,
+// a `ReturnEntry`, answered the same way.
 
 /** One command, with the URL the tree gave it and its body. */
 public sealed interface ReviewCommand {
@@ -43,6 +46,12 @@ public sealed interface ReviewCommand {
     public data class Ask(
         override val url: String,
         val entry: QuestionEntry,
+    ) : ReviewCommand
+
+    /** «Request return» on an order (B-21), `POST` a [ReturnEntry] to `ReturnForm.url`. */
+    public data class Return(
+        override val url: String,
+        val entry: ReturnEntry,
     ) : ReviewCommand
 
     /** «Helpful» on a review (B-43), `PUT` the [HelpfulVote] its `HelpfulCommand` carries to its url. */
@@ -154,6 +163,11 @@ public fun ktorReviewCommands(
                 is ReviewCommand.Ask -> {
                     HttpMethod.Post to
                         haulJson.encodeToString(QuestionEntry.serializer(), command.entry)
+                }
+
+                is ReviewCommand.Return -> {
+                    HttpMethod.Post to
+                        haulJson.encodeToString(ReturnEntry.serializer(), command.entry)
                 }
 
                 is ReviewCommand.Vote -> {

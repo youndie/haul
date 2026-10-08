@@ -72,8 +72,9 @@ import kotlin.math.roundToInt
 
 // The Order screen (screen-order): the frame's header, then the crumbs and the title, and the order —
 // where it is, its shipments — in one column with the summary beside it at 1440 and under it on a phone.
-// The numbers are the artboards' (Order_Placed, _InTransit, _ReadyForPickup, _Delivered, _Cancelled and
-// their _Phone twins). Links follow the tree's actions; «Reorder» is a command for the renderer to send.
+// The numbers are the artboards' (Order_Placed, _InTransit, _ReadyForPickup, _Delivered, _Cancelled, _Returned
+// and their _Phone twins). Links follow the tree's actions — «Return items» presents the return dialog
+// (`ReturnDialog.kt`, B-21); «Reorder» is a command for the renderer to send.
 
 /** The order under the header. [onReorder] sends «Reorder» (`OrderTotals.reorderUrl`). */
 @Composable
@@ -396,8 +397,11 @@ private fun ShipmentHead(
                 shipment.status,
                 normal(13f, 600),
                 Modifier
-                    .background(HaulColors.background, CircleShape)
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                    // A return's chip is Blush («Returned» status, the canvas's roles), every other Paper.
+                    .background(
+                        if (shipment.returned) HaulColors.errorContainer else HaulColors.background,
+                        CircleShape,
+                    ).padding(horizontal = 10.dp, vertical = 6.dp),
                 softWrap = false,
             )
             Text(
@@ -519,15 +523,16 @@ private fun Summary(
                         onClick = onReorder,
                     )
                 }
-                // «Return items»: drawn; its dialog is the returns' (B-21).
+                // «Return items»: the tree's `present` of the return dialog (B-21).
                 totals.returnLabel?.let {
                     HaulButton(
                         it,
-                        Modifier.fillMaxWidth(),
+                        Modifier.fillMaxWidth().testTag(RETURN_TAG),
                         height = 56.dp,
                         radius = 18.dp,
                         border = HaulColors.onSurface,
                         textSize = 16f,
+                        onClick = following(totals.returnAction),
                     )
                 }
             }
@@ -634,3 +639,6 @@ private val RING: Dp = 4.dp
 
 /** «Reorder», for the tests that press it. */
 internal const val REORDER_TAG: String = "order-reorder"
+
+/** «Return items», for the tests that press it. */
+internal const val RETURN_TAG: String = "order-return"

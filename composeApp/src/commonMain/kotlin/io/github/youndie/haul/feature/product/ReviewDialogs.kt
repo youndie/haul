@@ -141,12 +141,12 @@ public fun ReviewFormView(
                     }
                 }
             }
-            problems.fields["rating"]?.let { FieldError(it) }
+            problems.fields["rating"]?.let { FieldProblem(it) }
         }
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             FieldLabel(form.titleLabel)
             LineField(draft.title, { onDraft(draft.copy(title = it)) }, problems.fields["title"], TITLE_TAG)
-            problems.fields["title"]?.let { FieldError(it) }
+            problems.fields["title"]?.let { FieldProblem(it) }
         }
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             FieldLabel(form.bodyLabel)
@@ -276,7 +276,7 @@ internal fun QuestionDialog(
 }
 
 /** An answer handed on, or what the dialog draws instead. */
-private fun settle(
+internal fun settle(
     outcome: ReviewOutcome,
     handle: (KompotAction) -> Unit,
 ): FormProblems =
@@ -306,13 +306,47 @@ private fun changedFields(
     }
 
 /** The problems once [fields] were changed: their errors go, and the form's own message with them. */
-private fun FormProblems.without(fields: Set<String>): FormProblems =
+internal fun FormProblems.without(fields: Set<String>): FormProblems =
     if (fields.isEmpty()) this else FormProblems(this.fields - fields, null)
 
 @Composable
 private fun DialogCard(
     title: String,
     product: FormProduct,
+    onClose: (() -> Unit)?,
+    content: @Composable () -> Unit,
+) {
+    DialogFrame(title, onClose) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .background(HaulColors.background, RoundedCornerShape(16.dp))
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(Modifier.size(56.dp).background(toneColor(product.tone), RoundedCornerShape(12.dp)))
+            Column(Modifier.weight(1f)) {
+                Text(product.name, HaulType.text(14f, 600, lineHeight = 1.35f), softWrap = false, maxLines = 1)
+                Text(
+                    product.detail,
+                    HaulType.text(14f, lineHeight = 1.35f).copy(color = HaulColors.outline),
+                    softWrap = false,
+                    maxLines = 1,
+                )
+            }
+        }
+        content()
+    }
+}
+
+/**
+ * The white card every dialog is (the review's, the question's, the return's, B-21): 680 wide at 1440 and
+ * the width on a phone, the [title] in Bodoni with «×» ([onClose]) at its right, then [content], 22 apart.
+ */
+@Composable
+internal fun DialogFrame(
+    title: String,
     onClose: (() -> Unit)?,
     content: @Composable () -> Unit,
 ) {
@@ -346,31 +380,12 @@ private fun DialogCard(
                 Icon(HaulIcons.close, 18.dp, HaulColors.onSurface)
             }
         }
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .background(HaulColors.background, RoundedCornerShape(16.dp))
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(Modifier.size(56.dp).background(toneColor(product.tone), RoundedCornerShape(12.dp)))
-            Column(Modifier.weight(1f)) {
-                Text(product.name, HaulType.text(14f, 600, lineHeight = 1.35f), softWrap = false, maxLines = 1)
-                Text(
-                    product.detail,
-                    HaulType.text(14f, lineHeight = 1.35f).copy(color = HaulColors.outline),
-                    softWrap = false,
-                    maxLines = 1,
-                )
-            }
-        }
         content()
     }
 }
 
 @Composable
-private fun FieldLabel(label: String) {
+internal fun FieldLabel(label: String) {
     Text(label.uppercase(), HaulType.label(11f, 600, 0.08f).copy(color = HaulColors.outline), softWrap = false)
 }
 
@@ -459,7 +474,7 @@ private fun AreaField(
 }
 
 @Composable
-private fun FieldError(message: String) {
+internal fun FieldProblem(message: String) {
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
         Icon(HaulIcons.alert, 14.dp, HaulColors.error)
         Text(message, normal(13f, 600).copy(color = HaulColors.error))
@@ -468,7 +483,7 @@ private fun FieldError(message: String) {
 
 /** The submit button filled and Cancel outlined: side by side at 1440, stacked full width on a phone. */
 @Composable
-private fun Buttons(
+internal fun Buttons(
     submit: String,
     cancel: String,
     message: String?,

@@ -262,7 +262,7 @@
             },
             "orders": {
                 "type": "navigate",
-                "deeplink": "/account/orders"
+                "deeplink": "/account"
             }
         },
         {
@@ -280,112 +280,59 @@
                     "label": "Orders",
                     "action": {
                         "type": "navigate",
-                        "deeplink": "/account/orders"
+                        "deeplink": "/account"
                     }
                 },
                 {
-                    "label": "#HL-46102"
+                    "label": "#HL-44019"
                 }
             ],
-            "meta": "#HL-46102 · Placed Sep 24 · $103.00",
-            "title": "Delivered Sep 26",
-            "accent": "Sep 26",
-            "lead": "Returns are open until Oct 26.",
+            "meta": "#HL-44019 · Placed Aug 30 · $87.50",
+            "title": "Return refunded",
+            "accent": "refunded",
+            "lead": "$87.50 is back on your card ···· 4821.",
             "steps": {
                 "labels": [
-                    "Placed",
-                    "Packed",
-                    "In transit",
-                    "Delivered"
+                    "Requested",
+                    "Picked up",
+                    "Refunded"
                 ],
-                "current": 3,
+                "current": 2,
                 "arrived": true
             },
             "shipments": [
                 {
-                    "id": "HL-46102-1",
-                    "seller": "Northline Knitwear",
-                    "status": "Delivered",
-                    "eta": "Delivered Sep 26",
+                    "id": "return",
+                    "seller": "Returned items",
+                    "status": "Refunded",
+                    "eta": "Refunded Sep 19",
+                    "returned": true,
                     "items": [
                         {
-                            "title": "Merino Wool Crewneck Sweater, Unisex",
-                            "details": "Moss · M · 1 × $80",
-                            "tone": "#FFE5DD",
+                            "title": "Building Blocks Space Station, 1,200 pcs",
+                            "details": "Ages 8+ · 1 × $35",
+                            "tone": "#FFF1C9",
                             "action": {
                                 "type": "navigate",
-                                "deeplink": "/p/p-merino-sweater"
-                            },
-                            "review": {
-                                "label": "Write a review",
-                                "action": {
-                                    "type": "present",
-                                    "content": {
-                                        "type": "haul_review_form",
-                                        "id": "review-form",
-                                        "title": "Write a review",
-                                        "product": {
-                                            "name": "Northline Merino Wool Crewneck Sweater, Unisex",
-                                            "detail": "Moss · M",
-                                            "tone": "#FFE5DD"
-                                        },
-                                        "ratingLabel": "Your rating",
-                                        "titleLabel": "Title",
-                                        "bodyLabel": "Review",
-                                        "bodyHint": "At least 20 characters",
-                                        "submitLabel": "Post",
-                                        "cancelLabel": "Cancel",
-                                        "url": "/api/v1/products/p-merino-sweater/reviews",
-                                        "close": {
-                                            "type": "close"
-                                        }
-                                    },
-                                    "kind": "dialog"
-                                }
+                                "deeplink": "/p/p-space-station-blocks"
                             }
-                        }
-                    ]
-                },
-                {
-                    "id": "HL-46102-2",
-                    "seller": "Clear Skin Lab",
-                    "status": "Delivered",
-                    "eta": "Delivered Sep 26",
-                    "items": [
+                        },
                         {
-                            "title": "Vitamin C Brightening Serum, 30 ml",
-                            "details": "30 ml · 1 × $23",
-                            "tone": "#F1E4F5",
+                            "title": "Silicone Food Storage Bags, Set of 6",
+                            "details": "Clear · 1 × $24.50",
+                            "tone": "#E3F5D8",
                             "action": {
                                 "type": "navigate",
-                                "deeplink": "/p/p-vitamin-c-serum"
-                            },
-                            "review": {
-                                "label": "Write a review",
-                                "action": {
-                                    "type": "present",
-                                    "content": {
-                                        "type": "haul_review_form",
-                                        "id": "review-form",
-                                        "title": "Write a review",
-                                        "product": {
-                                            "name": "Clear Skin Lab Vitamin C Brightening Serum, 30 ml",
-                                            "detail": "30 ml",
-                                            "tone": "#F1E4F5"
-                                        },
-                                        "ratingLabel": "Your rating",
-                                        "titleLabel": "Title",
-                                        "bodyLabel": "Review",
-                                        "bodyHint": "At least 20 characters",
-                                        "submitLabel": "Post",
-                                        "cancelLabel": "Cancel",
-                                        "url": "/api/v1/products/p-vitamin-c-serum/reviews",
-                                        "close": {
-                                            "type": "close"
-                                        }
-                                    },
-                                    "kind": "dialog"
-                                }
+                                "deeplink": "/p/p-silicone-bags"
+                            }
+                        },
+                        {
+                            "title": "USB-C Charging Cable, 2 m, 2-pack",
+                            "details": "White · 1 × $28",
+                            "tone": "#E6E4FF",
+                            "action": {
+                                "type": "navigate",
+                                "deeplink": "/p/p-usb-c-cable"
                             }
                         }
                     ]
@@ -395,87 +342,33 @@
                 "title": "Summary",
                 "rows": [
                     {
-                        "label": "Items (2)",
-                        "value": "$103.00"
+                        "label": "Items (3)",
+                        "value": "$87.50"
                     },
                     {
                         "label": "Delivery",
                         "value": "Free"
+                    },
+                    {
+                        "label": "Refunded",
+                        "value": "−$87.50",
+                        "saving": true
                     }
                 ],
-                "totalLabel": "Total",
-                "total": "$103.00",
+                "totalLabel": "Paid",
+                "total": "$0.00",
                 "facts": [
                     {
                         "kind": "card",
                         "title": "Card ···· 4821",
-                        "detail": "$103.00 charged"
+                        "detail": "$87.50 refunded Sep 19"
                     },
                     {
-                        "kind": "place",
-                        "title": "148 Wythe Avenue, Apt 4F",
-                        "detail": "Brooklyn, NY 11211 · courier"
+                        "kind": "points",
+                        "title": "−174 points",
+                        "detail": "Points earned on the returned lines were reversed"
                     }
-                ],
-                "reorderLabel": "Reorder",
-                "reorderUrl": "/api/v1/me/orders/HL-46102/reorder",
-                "returnLabel": "Return items",
-                "returnAction": {
-                    "type": "present",
-                    "content": {
-                        "type": "haul_return_form",
-                        "id": "return-form",
-                        "title": "Return items",
-                        "meta": "#HL-46102 · delivered Sep 26 · returns until Oct 26",
-                        "lines": [
-                            {
-                                "position": 0,
-                                "title": "Merino Wool Crewneck Sweater, Unisex",
-                                "details": "Moss · M · 1 × $80",
-                                "tone": "#FFE5DD",
-                                "refundCents": 8000
-                            },
-                            {
-                                "position": 1,
-                                "title": "Vitamin C Brightening Serum, 30 ml",
-                                "details": "30 ml · 1 × $23",
-                                "tone": "#F1E4F5",
-                                "refundCents": 2300
-                            }
-                        ],
-                        "reasonLabel": "Reason",
-                        "reasonHint": "Choose a reason",
-                        "reasons": [
-                            {
-                                "id": "doesnt_fit",
-                                "label": "Doesn’t fit"
-                            },
-                            {
-                                "id": "not_as_described",
-                                "label": "Not as described"
-                            },
-                            {
-                                "id": "damaged",
-                                "label": "Arrived damaged"
-                            },
-                            {
-                                "id": "changed_mind",
-                                "label": "Changed my mind"
-                            }
-                        ],
-                        "refund": "Refund {amount} to card ···· 4821",
-                        "note": "A courier picks it up for free.",
-                        "pointsOne": "Points earned on this line are reversed.",
-                        "pointsMany": "Points earned on these lines are reversed.",
-                        "submitLabel": "Request return",
-                        "cancelLabel": "Cancel",
-                        "url": "/api/v1/me/orders/HL-46102/returns",
-                        "close": {
-                            "type": "close"
-                        }
-                    },
-                    "kind": "dialog"
-                }
+                ]
             }
         }
     ]
