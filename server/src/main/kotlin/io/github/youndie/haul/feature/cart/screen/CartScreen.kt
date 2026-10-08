@@ -6,6 +6,7 @@ import io.github.youndie.haul.feature.cart.domain.CartCommands
 import io.github.youndie.haul.feature.cart.domain.CartOwner
 import io.github.youndie.haul.feature.cart.domain.CartRepository
 import io.github.youndie.haul.feature.cart.domain.PricedLine
+import io.github.youndie.haul.feature.cart.domain.PromoCode
 import io.github.youndie.haul.feature.cart.domain.StoredCart
 import io.github.youndie.haul.feature.cart.domain.Totals
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
@@ -18,6 +19,7 @@ import io.github.youndie.haul.feature.catalog.screen.navigation
 import io.github.youndie.haul.feature.catalog.screen.productLink
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.shell.Viewer
+import io.github.youndie.haul.ui.CartBody
 import io.github.youndie.haul.ui.CartGroup
 import io.github.youndie.haul.ui.CartLine
 import io.github.youndie.haul.ui.CartSelection
@@ -61,21 +63,28 @@ internal class CartScreen(
         val promo = cart.promoCode?.let { carts.promo(it) }
         val totals = Totals.of(lines, promo, plus, clock.now().toOffsetDateTime())
         val selectable = lines.filter { selectable(it) }
-        val sections =
-            listOf(
-                PageTitle("title", "Cart", items(units)),
-                CartSelection(
-                    id = "selection",
-                    allSelected = selectable.isNotEmpty() && selectable.all { it.counted },
-                    selectedCount = totals.counted,
-                    linesUrl = CartPaths.LINES,
-                ),
-            ) + groups(lines) +
-                listOf(
-                    promoField(cart),
-                    summary(totals, promo?.code, owner, plus),
-                )
-        return Frame.page("cart", frame, navigation(categories), sections)
+        val body =
+            CartBody(
+                id = "cart",
+                selection =
+                    CartSelection(
+                        id = "selection",
+                        allSelected = selectable.isNotEmpty() && selectable.all { it.counted },
+                        selectedCount = totals.counted,
+                        linesUrl = CartPaths.LINES,
+                    ),
+                groups = groups(lines),
+                summary =
+                    summary(
+                        totals,
+                        countedUnits = lines.filter { it.counted }.sumOf { it.stored.quantity },
+                        promoCode = promo?.code,
+                        promoField = promoField(cart, promo),
+                        owner = owner,
+                        plus = plus,
+                    ),
+            )
+        return Frame.page("cart", frame, navigation(categories), listOf(title(items(units)), body))
     }
 
     private suspend fun groups(lines: List<PricedLine>): List<CartGroup> =
@@ -85,7 +94,7 @@ internal class CartScreen(
             CartGroup(
                 id = "group-$sellerId",
                 seller = seller?.name ?: sellerId,
-                delivery = "Delivery " + calendar.label(day).let { if (it == "Tomorrow") "tomorrow" else it },
+                delivery = "Courier · " + calendar.label(day),
                 lines = sellerLines.map(::line),
             )
         }
@@ -112,6 +121,7 @@ internal class CartScreen(
             selected = line.counted,
             selectable = selectable(line),
             change = change,
+            changeDetail = CartCommands.changeDetail(line),
             acknowledgeLabel = if (line.changed) "OK" else null,
             url = CartPaths.line(line.sku.id),
             acknowledgeUrl = if (line.changed) CartPaths.acknowledge(line.sku.id) else null,
@@ -121,10 +131,13 @@ internal class CartScreen(
 
     private fun selectable(line: PricedLine): Boolean = !line.changed && !line.outOfStock
 
-    private fun promoField(cart: StoredCart): PromoField =
+    private fun promoField(
+        cart: StoredCart,
+        promo: PromoCode?,
+    ): PromoField =
         when {
             cart.promoCode != null -> {
-                PromoField("promo", CartPaths.PROMO, code = cart.promoCode, applied = true)
+                PromoField("promo", CartPaths.PROMO, code = cart.promoCode, applied = true, terms = promo?.terms())
             }
 
             cart.promoAttempt != null && cart.promoError != null -> {
@@ -143,18 +156,24 @@ internal class CartScreen(
 
     private fun summary(
         totals: Totals,
+        countedUnits: Int,
         promoCode: String?,
+        promoField: PromoField,
         owner: CartOwner,
         plus: Boolean,
     ): OrderSummary {
-        val rows = summaryRows(totals, promoCode)
+        val rows = summaryRows(totals, promoCode, countedUnits)
         val guest = owner is CartOwner.Guest
+        val points = "${count(totals.points(plus))} points"
         return OrderSummary(
             id = "summary",
             rows = rows,
             totalLabel = "Total",
-            total = exact(totals.totalCents),
-            points = if (guest) null else "You'll earn ${count(totals.points(plus))} points",
+            // A price tag, as the canvas writes the total («$512»); the rows above keep their cents.
+            total = money(totals.totalCents),
+            promo = promoField,
+            points = if (guest) null else "You'll earn $points on this order",
+            pointsAccent = if (guest) null else points,
             checkoutLabel = if (guest) "Sign in to check out" else "Checkout",
             checkoutEnabled = totals.counted > 0,
             checkoutAction = NavigateAction(if (guest) SIGN_IN else CHECKOUT),
@@ -165,15 +184,20 @@ internal class CartScreen(
         val deals = catalog.deals()
         val picks = catalog.listed(deals.map { it.skuId.substringBeforeLast('-') }.distinct())
         return listOf(
+            title(count = null),
             EmptyState(
                 id = "empty",
                 title = "Your cart is empty",
-                text = "Today's deals end at midnight.",
-                actionLabel = "See today's deals",
+                accent = "empty",
+                text = "Today’s deals end at midnight — up to −70 % in the Autumn mega sale.",
+                actionLabel = "See today’s deals",
                 action = NavigateAction("/deals"),
+                primary = true,
             ),
-            SectionHeader("picked-title", "Picked for you"),
-            ProductGrid("picked", picks.take(PICKS).map { card(it, calendar, photos) }, columns = PICKS, scroll = true),
+            // The picks are the day's deals, not recommendations (feature-recommendations), so the
+            // subtitle says so rather than the canvas's «Based on your recent views».
+            SectionHeader("picked-title", "Picked for you", subtitle = "From today’s deals", accent = "you"),
+            ProductGrid("picked", picks.take(PICKS).map { card(it, calendar, photos) }, columns = PICKS),
         )
     }
 
@@ -190,22 +214,31 @@ internal class CartScreen(
         fun exact(cents: Int): String = "$" + GROUPED.format(cents / 100) + ".%02d".format(cents % 100)
 
         private fun items(units: Int): String = if (units == 1) "1 item" else "${count(units)} items"
+
+        /** «Cart», with the count in its pill while the cart has lines. */
+        private fun title(count: String?) = PageTitle("title", "Cart", count, badge = true)
+
+        /** «10% off items, up to $50»: what an applied code takes off. */
+        private fun PromoCode.terms(): String =
+            "$percentOff% off items" + (capCents?.let { ", up to ${money(it)}" } ?: "")
     }
 }
 
 /**
- * The summary's rows over [totals] — «Items $652.00», «Discount −$140.00», the promo code inside the
- * discount when it took something off, «Delivery Free» — the same on the cart and at checkout.
+ * The summary's rows over [totals] — «Items (3) $652.00» for the [units] counted, «Discount −$140.00»,
+ * the promo code inside the discount when it took something off («Promo · AUTUMN10 −$50.00»), «Delivery
+ * Free» — the same on the cart and at checkout; the savings are marked to be drawn in the sale red.
  */
 internal fun summaryRows(
     totals: Totals,
     promoCode: String?,
+    units: Int,
 ): List<SummaryRow> =
     buildList {
-        add(SummaryRow("Items", CartScreen.exact(totals.itemsCents)))
-        add(SummaryRow("Discount", "−" + CartScreen.exact(totals.discountCents)))
+        add(SummaryRow("Items ($units)", CartScreen.exact(totals.itemsCents)))
+        add(SummaryRow("Discount", "−" + CartScreen.exact(totals.discountCents), saving = true))
         if (promoCode != null && totals.promoCents > 0) {
-            add(SummaryRow("Promo $promoCode", "−" + CartScreen.exact(totals.promoCents), detail = true))
+            add(SummaryRow("Promo · $promoCode", "−" + CartScreen.exact(totals.promoCents), saving = true))
         }
         add(SummaryRow("Delivery", if (totals.deliveryCents == 0) "Free" else CartScreen.exact(totals.deliveryCents)))
     }

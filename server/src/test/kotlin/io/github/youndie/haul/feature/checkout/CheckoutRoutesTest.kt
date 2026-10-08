@@ -206,8 +206,8 @@ class CheckoutRoutesTest {
                 val summary = tree.only<CheckoutSummary>()
                 assertEquals(
                     listOf(
-                        SummaryRow("Items", "$652.00"),
-                        SummaryRow("Discount", "−$140.00"),
+                        SummaryRow("Items (3)", "$652.00"),
+                        SummaryRow("Discount", "−$140.00", saving = true),
                         SummaryRow("Delivery", "Free"),
                     ),
                     summary.rows,

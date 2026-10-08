@@ -8,9 +8,26 @@ import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-// The pieces of the Cart screen (feature-cart). The title is the catalog's `PageTitle`, the empty cart
-// the shared `EmptyState` with a `ProductGrid` of picks. A command goes where the component says — its
-// `url`, the server's string — with a body from `feature/cart/CartCommands.kt`, and answers `refresh`.
+// The pieces of the Cart screen (feature-cart). The title is the catalog's `PageTitle` (its `badge`
+// form); under it a cart with lines is one `CartBody`, and an empty one the shared `EmptyState` with a
+// `ProductGrid` of picks. A command goes where the component says — its `url`, the server's string —
+// with a body from `feature/cart/CartCommands.kt`, and answers `refresh`.
+
+/**
+ * A cart with lines: the [selection] row and the seller [groups] in one column, the [summary] beside
+ * them at the desktop width and under them on a phone. One component, because the two columns are one
+ * layout that a page's column of sections cannot express.
+ */
+@Serializable
+@SerialName("haul_cart_body")
+@KompotComponentMarker
+public data class CartBody(
+    override val id: String,
+    val selection: CartSelection,
+    val groups: List<CartGroup>,
+    val summary: OrderSummary,
+    override val modifiers: List<KompotModifierNode> = emptyList(),
+) : KompotComponent
 
 /**
  * One line of the cart: the product tile, the title and the chosen options, the price of the line
@@ -19,8 +36,8 @@ import kotlinx.serialization.Serializable
  * [price] and [oldPrice] are the line's total; [each] is the unit price when [quantity] is above one.
  * [maxQuantity] is where «+» stops: ten, or the stock when it is lower. A line is [selectable] only
  * while it is in stock and unchanged; [change] is what changed since it was added («Price changed:
- * now $26», «Out of stock»), and [acknowledgeLabel] the button that accepts it («OK») — `null` on
- * both when nothing changed.
+ * now $26», «Out of stock»), [changeDetail] what it was before («It was $24 when you added it»), and
+ * [acknowledgeLabel] the button that accepts it («OK») — `null` on all three when nothing changed.
  *
  * The stepper and the box send a `LineChange` with `PUT` to [url]; «OK» is a `POST` to [acknowledgeUrl];
  * «Remove» is `CartSelection.linesUrl` with this [skuId].
@@ -44,6 +61,7 @@ public data class CartLine(
     val selected: Boolean,
     val selectable: Boolean,
     val change: String? = null,
+    val changeDetail: String? = null,
     val acknowledgeLabel: String? = null,
     val saveLabel: String = "Save for later",
     val removeLabel: String = "Remove",
@@ -54,7 +72,7 @@ public data class CartLine(
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
-/** One seller's lines and the day they arrive («Delivery tomorrow»). */
+/** One seller's lines and how and when they arrive («Courier · Tomorrow»). */
 @Serializable
 @SerialName("haul_cart_group")
 @KompotComponentMarker
@@ -85,9 +103,10 @@ public data class CartSelection(
 ) : KompotComponent
 
 /**
- * The promo code field. Empty: [code] `null`. Applied (`Cart_PromoApplied`): [applied] with the
- * [code] and [removeLabel]. Refused (`Cart_PromoError`): the [code] as typed and the [error]
- * («This code has expired»). Apply is a `PromoEntry` with `PUT` to [url], Remove a `DELETE` to it.
+ * The promo code field, inside the order summary. Empty: [code] `null`. Applied (`Cart_PromoApplied`):
+ * [applied] with the [code], its [terms] («10% off items, up to $50») and [removeLabel]. Refused
+ * (`Cart_PromoError`): the [code] as typed and the [error] («This code has expired»). Apply is a
+ * `PromoEntry` with `PUT` to [url], Remove a `DELETE` to it.
  */
 @Serializable
 @SerialName("haul_promo_field")
@@ -97,6 +116,7 @@ public data class PromoField(
     val url: String,
     val code: String? = null,
     val applied: Boolean = false,
+    val terms: String? = null,
     val error: String? = null,
     val placeholder: String = "Promo code",
     val applyLabel: String = "Apply",
@@ -105,30 +125,34 @@ public data class PromoField(
 ) : KompotComponent
 
 /**
- * A row of the summary: «Items $652.00», «Discount −$140.00», «Delivery Free». A [detail] row is a
- * part of the row above it (the promo code inside the discount) and is drawn smaller.
+ * A row of the summary: «Items (3) $652.00», «Discount −$140.00», «Promo · AUTUMN10 −$50.00»,
+ * «Delivery Free». A [saving] row's value is money taken off, drawn in the sale red.
  */
 @Serializable
 public data class SummaryRow(
     val label: String,
     val value: String,
-    val detail: Boolean = false,
+    val saving: Boolean = false,
 )
 
 /**
- * The totals and the way on: the rows, the total, the points the order earns ([points] `null` for a
- * guest, `Cart_Guest`), and the checkout button — «Sign in to check out» for a guest. [checkoutEnabled]
- * is `false` while no line is selected.
+ * The totals and the way on, under [title]: the rows, the total, the [promo] field, the checkout
+ * button — «Sign in to check out» for a guest — and the points the order earns: [points] is the
+ * sentence («You'll earn 1,024 points on this order»), [pointsAccent] its part in bold; both `null`
+ * for a guest (`Cart_Guest`). [checkoutEnabled] is `false` while no line is selected.
  */
 @Serializable
 @SerialName("haul_order_summary")
 @KompotComponentMarker
 public data class OrderSummary(
     override val id: String,
+    val title: String = "Order summary",
     val rows: List<SummaryRow>,
     val totalLabel: String,
     val total: String,
+    val promo: PromoField? = null,
     val points: String? = null,
+    val pointsAccent: String? = null,
     val checkoutLabel: String,
     val checkoutEnabled: Boolean,
     val checkoutAction: @Polymorphic KompotAction? = null,

@@ -179,7 +179,8 @@ public data class Breadcrumbs(
 
 /**
  * A page's title with the count beside it («Headphones · 12,408 items»); or, [quoted], a search's:
- * the query in quotes with the count above it («14,870 results», «“Running shoes”»).
+ * the query in quotes with the count above it («14,870 results», «“Running shoes”»); or, [badge], the
+ * cart's: the count in a pill at the title's top right («Cart 3 items»), where an empty cart has none.
  */
 @Serializable
 @SerialName("haul_page_title")
@@ -189,6 +190,7 @@ public data class PageTitle(
     val title: String,
     val count: String? = null,
     val quoted: Boolean = false,
+    val badge: Boolean = false,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
@@ -292,7 +294,10 @@ public data class HaulPagination(
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
-/** An empty, a no-results or a not-found state: a title, a sentence and what to do instead. */
+/**
+ * An empty, a no-results or a not-found state: a title, a sentence and what to do instead — an
+ * outlined button, or a filled one when it is the page's [primary] way on (the empty cart's deals).
+ */
 @Serializable
 @SerialName("haul_empty_state")
 @KompotComponentMarker
@@ -303,5 +308,6 @@ public data class EmptyState(
     val actionLabel: String? = null,
     val action: @Polymorphic KompotAction? = null,
     val accent: String? = null,
+    val primary: Boolean = false,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent

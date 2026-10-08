@@ -189,5 +189,13 @@ internal class CartCommands(
                 line.changed -> "Price changed: now ${money(line.sku.priceCents)}"
                 else -> null
             }
+
+        /** «It was $24 when you added it»: the price the shopper saw, under a changed price; `null` otherwise. */
+        fun changeDetail(line: PricedLine): String? =
+            if (!line.outOfStock && line.priceChanged) {
+                "It was ${money(line.stored.seenPriceCents)} when you added it"
+            } else {
+                null
+            }
     }
 }

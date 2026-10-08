@@ -10,9 +10,11 @@ import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.Seeder
 import io.github.youndie.haul.ui.CampaignRow
+import io.github.youndie.haul.ui.CartBody
 import io.github.youndie.haul.ui.CartGroup
 import io.github.youndie.haul.ui.CategoryGrid
 import io.github.youndie.haul.ui.FilteredResults
+import io.github.youndie.haul.ui.OrderSummary
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.decodeKompotComponent
 import io.github.youndie.kompot.standard.BoxComponent
@@ -77,7 +79,9 @@ internal fun KompotComponent.all(): List<KompotComponent> =
             is CampaignRow -> listOf(hero).flatMap { it.all() } + banners.flatMap { it.all() }
             is CategoryGrid -> tiles.flatMap { it.all() }
             is FilteredResults -> listOfNotNull(facets, applied, grid, pagination, empty).flatMap { it.all() }
+            is CartBody -> listOf(selection) + groups.flatMap { it.all() } + summary.all()
             is CartGroup -> lines
+            is OrderSummary -> listOfNotNull(promo)
             else -> emptyList()
         }
 

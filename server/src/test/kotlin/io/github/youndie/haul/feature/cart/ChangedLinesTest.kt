@@ -62,10 +62,11 @@ class ChangedLinesTest {
             val changed = cart(guest)
             val line = changed.line(mug)
             assertEquals("Price changed: now $26", line.change)
+            assertEquals("It was $24 when you added it", line.changeDetail)
             assertEquals("OK", line.acknowledgeLabel)
             assertFalse(line.selected, "a changed line is still selected")
             assertFalse(line.selectable)
-            assertEquals("$349.00", changed.only<OrderSummary>().total, "the changed line was counted")
+            assertEquals("$349", changed.only<OrderSummary>().total, "the changed line was counted")
             // «Select all» speaks for the lines that can be selected: the headphones are.
             assertEquals(
                 CartSelection("selection", allSelected = true, selectedCount = 1, linesUrl = "/api/v1/cart/lines"),
@@ -80,8 +81,9 @@ class ChangedLinesTest {
             post(line.acknowledgeUrl!!) { header(GUEST_HEADER, guest) }.assertRefresh()
             val accepted = cart(guest)
             assertNull(accepted.line(mug).change)
+            assertNull(accepted.line(mug).changeDetail)
             assertTrue(accepted.line(mug).selected)
-            assertEquals("$375.00", accepted.only<OrderSummary>().total)
+            assertEquals("$375", accepted.only<OrderSummary>().total)
         }
     }
 
@@ -109,6 +111,7 @@ class ChangedLinesTest {
 
             val line = cart(guest).line(mug)
             assertEquals("Out of stock", line.change)
+            assertNull(line.changeDetail, "a sold-out line has no old price to tell")
             assertEquals("OK", line.acknowledgeLabel)
             assertFalse(line.selected)
 

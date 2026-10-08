@@ -1,0 +1,156 @@
+{
+    "type": "column",
+    "id": "cart",
+    "children": [
+        {
+            "type": "haul_header",
+            "id": "header",
+            "deliverTo": "Brooklyn, NY 11211",
+            "deliveryPromise": "Free delivery over $35",
+            "customerName": "Maya",
+            "cartCount": 0,
+            "searchPlaceholder": "Search 2.4 million products",
+            "categories": [
+                "Electronics",
+                "Home & Kitchen",
+                "Fashion",
+                "Beauty",
+                "Kids & Toys",
+                "Sports",
+                "Grocery",
+                "Auto",
+                "Books",
+                "Pets"
+            ],
+            "account": {
+                "type": "navigate",
+                "deeplink": "/account"
+            }
+        },
+        {
+            "type": "haul_page_title",
+            "id": "title",
+            "title": "Cart",
+            "badge": true
+        },
+        {
+            "type": "haul_empty_state",
+            "id": "empty",
+            "title": "Your cart is empty",
+            "text": "Today’s deals end at midnight — up to −70 % in the Autumn mega sale.",
+            "actionLabel": "See today’s deals",
+            "action": {
+                "type": "navigate",
+                "deeplink": "/deals"
+            },
+            "accent": "empty",
+            "primary": true
+        },
+        {
+            "type": "haul_section_header",
+            "id": "picked-title",
+            "title": "Picked for you",
+            "subtitle": "From today’s deals",
+            "accent": "you"
+        },
+        {
+            "type": "haul_product_grid",
+            "id": "picked",
+            "cards": [
+                {
+                    "id": "card-p-pick-7",
+                    "productId": "p-pick-7",
+                    "title": "Mechanical Keyboard 75%, Hot-Swappable",
+                    "price": "$119",
+                    "rating": "4.8",
+                    "reviews": "940",
+                    "delivery": "Tomorrow",
+                    "tone": "#ECE9E2",
+                    "label": "keyboard",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/p/p-pick-7"
+                    }
+                },
+                {
+                    "id": "card-p-pick-8",
+                    "productId": "p-pick-8",
+                    "title": "Ceramic Pour-Over Coffee Set",
+                    "price": "$42",
+                    "rating": "4.9",
+                    "reviews": "611",
+                    "delivery": "Thu, Oct 9",
+                    "tone": "#F1EBDD",
+                    "label": "coffee set",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/p/p-pick-8"
+                    }
+                },
+                {
+                    "id": "card-p-pick-9",
+                    "productId": "p-pick-9",
+                    "title": "Linen Duvet Cover Set, Queen, Oat",
+                    "price": "$139",
+                    "oldPrice": "$179",
+                    "badge": "−22%",
+                    "rating": "4.7",
+                    "reviews": "1,388",
+                    "delivery": "Thu, Oct 9",
+                    "tone": "#FFE5DD",
+                    "label": "bedding",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/p/p-pick-9"
+                    }
+                },
+                {
+                    "id": "card-p-pick-10",
+                    "productId": "p-pick-10",
+                    "title": "Building Blocks Space Station, 1,200 pcs",
+                    "price": "$35",
+                    "rating": "4.8",
+                    "reviews": "2,702",
+                    "delivery": "Tomorrow",
+                    "tone": "#FFF1C9",
+                    "label": "toy",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/p/p-pick-10"
+                    }
+                },
+                {
+                    "id": "card-p-pick-11",
+                    "productId": "p-pick-11",
+                    "title": "Smart Watch Series 4, 44 mm, Graphite",
+                    "price": "$229",
+                    "rating": "4.6",
+                    "reviews": "5,410",
+                    "delivery": "Tomorrow",
+                    "tone": "#E6E4FF",
+                    "label": "watch",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/p/p-pick-11"
+                    }
+                },
+                {
+                    "id": "card-p-pick-12",
+                    "productId": "p-pick-12",
+                    "title": "Natural Rubber Yoga Mat, 6 mm",
+                    "price": "$58",
+                    "rating": "4.8",
+                    "reviews": "3,019",
+                    "delivery": "Fri, Oct 10",
+                    "tone": "#E3F5D8",
+                    "label": "yoga mat",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/p/p-pick-12"
+                    }
+                }
+            ],
+            "columns": 6
+        }
+    ]
+}

@@ -211,7 +211,7 @@ internal class CheckoutScreen(
                         label = it.item.product.label,
                     )
                 },
-            rows = summaryRows(quote.totals, quote.promo?.code),
+            rows = summaryRows(quote.totals, quote.promo?.code, quote.lines.sumOf { it.stored.quantity }),
             totalLabel = "Total",
             total = total,
             points = "You'll earn ${count(quote.totals.points(quote.plus))} points",

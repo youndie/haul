@@ -52,8 +52,9 @@ class CustomerCartTest {
     @Test
     fun `a Plus member earns double points on the total`() {
         val summary = summaryOf(plus = true)
-        assertEquals("$512.00", summary.total)
-        assertEquals("You'll earn 1,024 points", summary.points)
+        assertEquals("$512", summary.total)
+        assertEquals("You'll earn 1,024 points on this order", summary.points)
+        assertEquals("1,024 points", summary.pointsAccent)
         assertEquals("Checkout", summary.checkoutLabel)
     }
 
@@ -62,9 +63,9 @@ class CustomerCartTest {
         runBlocking {
             val tree = screen.build(CartOwner.Customer(SampleCustomers.MAYA, plus = true))
             val summary = tree.only<OrderSummary>()
-            assertEquals("$652.00", summary.rows.first { it.label == "Items" }.value)
-            assertEquals("$512.00", summary.total)
-            assertEquals("You'll earn 1,024 points", summary.points)
+            assertEquals("$652.00", summary.rows.first { it.label == "Items (3)" }.value)
+            assertEquals("$512", summary.total)
+            assertEquals("You'll earn 1,024 points on this order", summary.points)
             assertEquals(
                 listOf("$SONY_HEADPHONES-0", "$DUVET_COVER-0", "$STONEWARE_MUG-0"),
                 tree.all().filterIsInstance<CartLine>().map { it.skuId },
@@ -73,6 +74,6 @@ class CustomerCartTest {
 
     @Test
     fun `a customer without Plus earns a point per whole dollar`() {
-        assertEquals("You'll earn 512 points", summaryOf(plus = false).points)
+        assertEquals("You'll earn 512 points on this order", summaryOf(plus = false).points)
     }
 }
