@@ -51,7 +51,6 @@ A stage is a field on the item, not a directory.
 | [B-18](docs/backlog/B-18-order-tree-and-renderers-reorder.md) `[ ]` | server + client: Order tree and renderers, reorder | P1 | M | B-01, B-15, B-17 |
 | [B-19](docs/backlog/B-19-account-overview-and-orders-history.md) `[ ]` | server + client: Account overview and orders history | P1 | M | B-01, B-18 |
 | [B-26](docs/backlog/B-26-the-whole-path-over-http-against.md) `[ ]` | e2e: the whole path over HTTP against the composed stack | P1 | M | B-21, B-22 |
-| [B-36](docs/backlog/B-36-a-reloaded-or-shared-address-answers-404.md) `[~]` | server: a reloaded or shared storefront address answers 404 | P1 | S | B-35 |
 | [B-20](docs/backlog/B-20-saved-list-save-for-later-price.md) `[ ]` | server + client: Saved list, save for later, price drops | P2 | M | B-01, B-13, B-19 |
 | [B-21](docs/backlog/B-21-returns-and-refunds.md) `[ ]` | server + client: returns and refunds | P2 | M | B-18 |
 | [B-22](docs/backlog/B-22-reviews-and-questions-the-two-dialog.md) `[ ]` | server + client: reviews and questions, the two dialog routes and forms | P2 | L | B-08, B-17 |
@@ -86,6 +85,7 @@ A stage is a field on the item, not a directory.
 - [B-32](docs/backlog/B-32-catch-all-answers-500-with-unavailable.md) `[x]` - server: the catch-all answers 500 with the `unavailable` code
 - [B-33](docs/backlog/B-33-the-product-description-headline-is-never.md) `[x]` - server: the product description's headline is never sent
 - [B-35](docs/backlog/B-35-the-app-loads-screens-and-navigates.md) `[x]` - client: the app loads screens from the server and navigates between them
+- [B-36](docs/backlog/B-36-a-reloaded-or-shared-address-answers-404.md) `[x]` - server: a reloaded or shared storefront address answers 404
 
 **Cart and sign-in**
 
