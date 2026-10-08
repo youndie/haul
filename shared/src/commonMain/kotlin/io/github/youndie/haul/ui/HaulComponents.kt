@@ -1,8 +1,10 @@
 package io.github.youndie.haul.ui
 
+import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.KompotModifierNode
 import io.github.youndie.kompot.registry.KompotComponentMarker
+import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -53,5 +55,7 @@ public data class ProductCard(
     val tone: String,
     val label: String,
     val saved: Boolean = false,
+    /** Where a tap on the card goes: the product page. */
+    val action: @Polymorphic KompotAction? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent

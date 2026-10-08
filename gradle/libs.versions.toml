@@ -26,8 +26,11 @@ viddik = "0.7.0"
 ktor-server-core = { module = "io.ktor:ktor-server-core" }
 ktor-server-cio = { module = "io.ktor:ktor-server-cio" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+ktor-server-statusPages = { module = "io.ktor:ktor-server-status-pages" }
 ktor-server-testHost = { module = "io.ktor:ktor-server-test-host" }
 kompot-core = { module = "io.github.youndie.kompot:kompot-core", version.ref = "kompot" }
+kompot-standard = { module = "io.github.youndie.kompot:kompot-standard", version.ref = "kompot" }
+kompot-ktor = { module = "io.github.youndie.kompot:kompot-ktor", version.ref = "kompot" }
 kompot-client = { module = "io.github.youndie.kompot:kompot-client", version.ref = "kompot" }
 kompot-registryAnnotations = { module = "io.github.youndie.kompot:kompot-registry-annotations", version.ref = "kompot" }
 kompot-registryProcessor = { module = "io.github.youndie.kompot:kompot-registry-processor", version.ref = "kompot" }
@@ -41,6 +44,8 @@ postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" 
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
+
+koin-ktor = { module = "io.insert-koin:koin-ktor" }
 
 [plugins]
 sborkaJvm = { id = "io.github.youndie.sborka.jvm", version.ref = "sborka" }

@@ -1,13 +1,11 @@
 package io.github.youndie.haul
 
 import io.github.youndie.haul.db.Databases
-import io.github.youndie.haul.ops.probes
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.Seeder
 import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.routing.routing
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
@@ -32,9 +30,7 @@ public fun main() {
 
     embeddedServer(CIO, port = config.port) {
         monitor.subscribe(ApplicationStopped) { dataSource.close() }
-        routing {
-            probes(commit = config.commit, ready = { databaseAnswers(dataSource) })
-        }
+        haulModule(dataSource, systemClock(), config.commit)
     }.start(wait = true)
 }
 
@@ -53,3 +49,13 @@ internal suspend fun databaseAnswers(dataSource: DataSource): Boolean =
             false
         }
     }
+
+/**
+ * The one place the server reads the wall clock; everything else is handed a [StoreClock]. Research
+ * §1.6: the demo stand's «now» is the real one, the fixtures' is the canvas's.
+ */
+@Suppress(
+    "ktlint:kapkan:wall-clock",
+    "The composition root is the one reader of the clock: delivery days are this store's local dates, not a value another party must agree with.",
+)
+private fun systemClock(): StoreClock = StoreClock { java.time.ZonedDateTime.now() }

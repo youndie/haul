@@ -267,6 +267,20 @@ match the canvas while the server builds something else. Mitigation (*hypothesis
 each artboard is the server's recorded body for the sample data (kompot-studio records bodies), so
 the screenshot tests the tree and the renderer together. Settled in B-04.
 
+**Found in B-05: a parity fixture cannot be a recorded server body.** The canvas shows a catalogue
+at marketplace scale — «12,408 items», «517» pages, «2,341 reviews» on every product — and the seed
+holds about two thousand products. A tree the server builds from the seed is therefore not the tree
+an artboard draws, and comparing the two would measure the seed. So: the screenshot fixtures are
+bodies **in the wire shape**, written with the canvas's copy and decoded through the app's registry
+(as B-04 does), and the server's trees are held by the server's own tests, which assert their
+structure and the scenario values. The hypothesis above is refuted for screens; it stands for nothing.
+
+**Decided in B-05: facets are counted in memory.** One category's products are read once and
+filtered per facet in Kotlin (`Browse`); a facet's count leaves its own filter out, and every value
+the category has is listed, with 0 when the other filters rule it out — the facets of an empty
+result are what the shopper undoes it with. A leaf of the seed holds tens of products; this stops
+being the right shape at thousands per category, and then the counts move into SQL.
+
 **Risk 4. zavarnik's training needs the application to start, and the application needs
 PostgreSQL.** An image build without a database trains nothing or fails. Mitigation (*hypothesis*):
 train against a throw-away PostgreSQL in the build and verify the cache is accepted on the real

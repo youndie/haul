@@ -22,6 +22,8 @@ kotlin {
             // `api`: the components are kompot components, so their supertypes are in the contract's
             // public signatures and every consumer needs the same version.
             api(libs.kompot.core)
+            // The containers and text the trees are laid out with (column, row, box, tabs, text).
+            api(libs.kompot.standard)
             implementation(libs.kompot.registryAnnotations)
         }
         commonTest.dependencies {

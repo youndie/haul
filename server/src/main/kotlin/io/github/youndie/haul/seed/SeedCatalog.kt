@@ -46,6 +46,9 @@ internal data class SeedProduct(
     val tone: String,
     val label: String,
     val createdAt: OffsetDateTime,
+    val features: List<String> = emptyList(),
+    val kind: String? = null,
+    val dispatchDays: Int = 0,
 )
 
 internal data class SeedSku(
