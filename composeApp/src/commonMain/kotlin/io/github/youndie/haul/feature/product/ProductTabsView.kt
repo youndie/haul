@@ -18,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -36,6 +37,7 @@ import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.Highlight
+import io.github.youndie.haul.ui.LocalHaulActions
 import io.github.youndie.haul.ui.ProductDescription
 import io.github.youndie.haul.ui.ProductQuestions
 import io.github.youndie.haul.ui.ProductReviews
@@ -48,7 +50,9 @@ import io.github.youndie.haul.ui.accented
 import io.github.youndie.haul.ui.following
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
+import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.toneColor
+import kotlinx.coroutines.launch
 
 // The lower half of the product page: the tab row and the four tabs' content, each with the margins
 // the page gives it (Product_Description, _Specifications, _Reviews, _Questions and their _Phone twins).
@@ -121,6 +125,9 @@ internal const val WRITE_REVIEW_TAG: String = "write-review"
 
 /** «Ask a question», likewise. */
 internal const val ASK_TAG: String = "ask-question"
+
+/** «Helpful» on a review: a customer's vote, or the way to sign in for a guest (B-43). */
+internal const val HELPFUL_TAG: String = "review-helpful"
 
 /** The bottom of the page under the tab's content. */
 @Composable
@@ -379,11 +386,31 @@ private fun ReviewCard(
                 review.helpfulLabel,
                 HaulType.text(14f, 600),
                 Modifier
+                    .testTag(HELPFUL_TAG)
+                    .pressable(helpfulPress(review))
                     .border(1.dp, HaulColors.outlineVariant, CircleShape)
                     .padding(horizontal = 15.dp, vertical = 9.dp),
                 softWrap = false,
             )
         }
+    }
+}
+
+/**
+ * What pressing «Helpful» on [review] does (B-43): a customer's vote — the review's `HelpfulCommand` —
+ * sent through [LocalReviewCommands], its answer, `refresh`, handed to the screen's handler; a guest's
+ * `navigate` to sign in followed as it is. Nothing on the customer's own review, which carries neither.
+ */
+@Composable
+private fun helpfulPress(review: Review): (() -> Unit)? {
+    val command = review.helpfulCommand ?: return following(review.helpfulAction)
+    val commands = LocalReviewCommands.current
+    val actions = LocalHaulActions.current
+    val scope = rememberCoroutineScope()
+    return if (commands == null || actions == null) {
+        null
+    } else {
+        { scope.launch { commands.vote(ReviewCommand.Vote(command.url, command.vote))?.let(actions::handle) } }
     }
 }
 

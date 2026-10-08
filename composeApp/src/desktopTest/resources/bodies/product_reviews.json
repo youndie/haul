@@ -245,7 +245,13 @@
      "photos": [
       "#E9E6E0",
       "#E6E4FF"
-     ]
+     ],
+     "helpfulCommand": {
+      "url": "/api/v1/reviews/r-sony-daniel/helpful",
+      "vote": {
+       "helpful": true
+      }
+     }
     },
     {
      "author": "Aisha K.",
@@ -255,7 +261,13 @@
      "score": "4.0",
      "title": "Great sound, tight at first",
      "text": "Clear, balanced sound and the app EQ is easy to use. The headband felt tight for the first few days, then loosened up. Calls sound good even outside.",
-     "helpful": "48 people found this helpful"
+     "helpful": "48 people found this helpful",
+     "helpfulCommand": {
+      "url": "/api/v1/reviews/r-sony-aisha/helpful",
+      "vote": {
+       "helpful": true
+      }
+     }
     }
    ],
    "action": {

@@ -112,6 +112,14 @@ public enum class ErrorCode {
     @SerialName("review_exists")
     ReviewExists,
 
+    /** A review that is not there: a vote for an id no review has (feature-reviews). */
+    @SerialName("review_not_found")
+    ReviewNotFound,
+
+    /** A «Helpful» vote on the customer's own review: the author cannot vote on it (feature-reviews). */
+    @SerialName("own_review")
+    OwnReview,
+
     /** In [ErrorBody.fields] only: a form field that must be filled was left empty. */
     @SerialName("field_required")
     FieldRequired,

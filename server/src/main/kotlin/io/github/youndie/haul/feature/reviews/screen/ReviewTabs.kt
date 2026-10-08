@@ -5,6 +5,8 @@ import io.github.youndie.haul.feature.catalog.domain.Listed
 import io.github.youndie.haul.feature.catalog.domain.Seller
 import io.github.youndie.haul.feature.catalog.domain.Sku
 import io.github.youndie.haul.feature.catalog.domain.count
+import io.github.youndie.haul.feature.reviews.HelpfulCommand
+import io.github.youndie.haul.feature.reviews.HelpfulVote
 import io.github.youndie.haul.feature.reviews.ReviewPaths
 import io.github.youndie.haul.feature.reviews.ReviewRules
 import io.github.youndie.haul.feature.reviews.domain.ReviewRepository
@@ -37,8 +39,8 @@ import kotlin.math.roundToInt
  *
  * «Write a review» and «Ask a question» are a customer's: for one, kompot's `present` of the dialog's form,
  * which posts to `endpoint-reviews`; for a guest, the way to sign in, as the header's account shortcut.
- * The «Helpful» button carries nothing: voting (`PUT /api/v1/reviews/{id}/helpful`) is not built (B-22
- * findings).
+ * «Helpful» on each review is a customer's vote (B-43, `PUT /api/v1/reviews/{id}/helpful`), and the way to
+ * sign in for a guest.
  */
 internal class ReviewTabs(
     private val reviews: ReviewRepository,
@@ -51,6 +53,8 @@ internal class ReviewTabs(
         val product = item.product
         val counts = reviews.ratingCounts(product.id)
         val total = counts.values.sum()
+        val listed = reviews.reviews(product.id, SHOWN)
+        val voted = viewer.customerId?.let { reviews.votedHelpful(it, listed.map(StoredReview::id)) }.orEmpty()
         return ProductReviews(
             id = "reviews",
             rating = product.rating.toPlainString(),
@@ -60,7 +64,7 @@ internal class ReviewTabs(
                     HistogramBar(stars, if (total == 0) 0 else ((counts[stars] ?: 0) * PERCENT / total).roundToInt())
                 },
             actionLabel = "Write a review",
-            reviews = reviews.reviews(product.id, SHOWN).map(::review),
+            reviews = listed.map { review(it, viewer, it.id in voted) },
             action = forCustomer(viewer) { reviewForm(item, sku) },
         )
     }
@@ -83,7 +87,16 @@ internal class ReviewTabs(
         )
     }
 
-    private fun review(review: StoredReview): Review =
+    /**
+     * [review] as the page draws it for [viewer], who [voted] it helpful or not: «Helpful» is their vote —
+     * the opposite of the one they have — for a customer, the way to sign in for a guest, and nothing on
+     * the viewer's own review, which the route would refuse (`409 own_review`).
+     */
+    private fun review(
+        review: StoredReview,
+        viewer: Viewer,
+        voted: Boolean,
+    ): Review =
         Review(
             author = review.author,
             initial = review.author.take(1).uppercase(),
@@ -98,6 +111,11 @@ internal class ReviewTabs(
                     0 -> null
                     1 -> "1 person found this helpful"
                     else -> "${count(review.helpful)} people found this helpful"
+                },
+            helpfulAction = if (viewer.customerId == null) NavigateAction(Frame.SIGN_IN) else null,
+            helpfulCommand =
+                viewer.customerId?.takeIf { it != review.customerId }?.let {
+                    HelpfulCommand(ReviewPaths.helpful(review.id), HelpfulVote(helpful = !voted))
                 },
         )
 

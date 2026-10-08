@@ -5,27 +5,31 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import io.github.youndie.haul.ErrorBody
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.FieldError
+import io.github.youndie.haul.feature.reviews.HelpfulVote
 import io.github.youndie.haul.feature.reviews.QuestionEntry
 import io.github.youndie.haul.feature.reviews.ReviewEntry
 import io.github.youndie.haul.registry.haulJson
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.decodeKompotAction
+import io.github.youndie.kompot.standard.RefreshAction
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
-import io.ktor.client.request.post
+import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlin.coroutines.cancellation.CancellationException
 
-// The two dialogs' commands as the client sends them (endpoint-reviews): each goes where the dialog's
-// component says — `ReviewForm.url`, `QuestionForm.url` — with a body from the contract, and is answered
-// with kompot's `sequence` of `close` and `refresh`, which the dialog hands to the screen's handler.
+// feature-reviews' commands as the client sends them (endpoint-reviews): each goes where the tree's
+// component says — `ReviewForm.url`, `QuestionForm.url`, a review's `HelpfulCommand.url` — with a body from
+// the contract. The two dialogs' are answered with kompot's `sequence` of `close` and `refresh`, which the
+// dialog hands to the screen's handler; «Helpful» with `refresh`, which the review's button hands there.
 
-/** One command, with the URL the dialog gave it and its body. */
+/** One command, with the URL the tree gave it and its body. */
 public sealed interface ReviewCommand {
     public val url: String
 
@@ -40,11 +44,17 @@ public sealed interface ReviewCommand {
         override val url: String,
         val entry: QuestionEntry,
     ) : ReviewCommand
+
+    /** «Helpful» on a review (B-43), `PUT` the [HelpfulVote] its `HelpfulCommand` carries to its url. */
+    public data class Vote(
+        override val url: String,
+        val vote: HelpfulVote,
+    ) : ReviewCommand
 }
 
 /**
- * Sends a dialog's command and returns the server's answer. A refusal throws [ReviewRefused]; no answer
- * throws what the transport throws.
+ * Sends a command and returns the server's answer. A refusal throws [ReviewRefused]; no answer throws what
+ * the transport throws.
  */
 public fun interface ReviewCommands {
     public suspend fun send(command: ReviewCommand): KompotAction
@@ -92,11 +102,32 @@ public suspend fun ReviewCommands.run(command: ReviewCommand): ReviewOutcome =
         ReviewOutcome.NoAnswer
     }
 
+/**
+ * A «Helpful» press sent, and what the screen follows next: the server's answer, `refresh`. A refusal —
+ * the review gone, or the voter's own — is a `refresh` too, so the page is drawn as the server now has it;
+ * no answer at all is `null`, and the page stays as it was.
+ */
+@Suppress(
+    "ktlint:kapkan:swallowed-failure",
+    "A vote that got no answer changed nothing the shopper can see; the page stays as the server last drew it and the next press tries again.",
+)
+public suspend fun ReviewCommands.vote(command: ReviewCommand.Vote): KompotAction? =
+    try {
+        send(command)
+    } catch (cancelled: CancellationException) {
+        throw cancelled
+    } catch (_: ReviewRefused) {
+        RefreshAction
+    } catch (_: Throwable) {
+        // Throwable: in the browser a failed fetch is a JavaScript error, no `Exception` on Wasm.
+        null
+    }
+
 /** What a dialog says when its command got no answer, or a refusal that named nothing. */
 internal const val NOT_SENT: String = "That didn’t go through. Try again."
 
 /**
- * Where the dialogs send their commands; the storefront provides one. `null` — a screenshot, a view drawn
+ * Where the dialogs and «Helpful» send their commands; the storefront provides one. `null` — a screenshot, a view drawn
  * on its own — draws the same pixels, and pressing does nothing.
  */
 public val LocalReviewCommands: ProvidableCompositionLocal<ReviewCommands?> = staticCompositionLocalOf { null }
@@ -113,14 +144,27 @@ public fun ktorReviewCommands(
     ) -> HttpResponse = { it(emptyMap()) },
 ): ReviewCommands =
     ReviewCommands { command ->
-        val body =
+        val (method, body) =
             when (command) {
-                is ReviewCommand.Post -> haulJson.encodeToString(ReviewEntry.serializer(), command.entry)
-                is ReviewCommand.Ask -> haulJson.encodeToString(QuestionEntry.serializer(), command.entry)
+                is ReviewCommand.Post -> {
+                    HttpMethod.Post to
+                        haulJson.encodeToString(ReviewEntry.serializer(), command.entry)
+                }
+
+                is ReviewCommand.Ask -> {
+                    HttpMethod.Post to
+                        haulJson.encodeToString(QuestionEntry.serializer(), command.entry)
+                }
+
+                is ReviewCommand.Vote -> {
+                    HttpMethod.Put to
+                        haulJson.encodeToString(HelpfulVote.serializer(), command.vote)
+                }
             }
         val response =
             send { headers ->
-                http.post(origin.trimEnd('/') + command.url) {
+                http.request(origin.trimEnd('/') + command.url) {
+                    this.method = method
                     headers.forEach { (name, value) -> header(name, value) }
                     contentType(ContentType.Application.Json)
                     setBody(body)

@@ -73,6 +73,36 @@ internal interface ReviewRepository {
 
     /** Stores [question] and counts it into its product's questions. */
     suspend fun ask(question: StoredQuestion)
+
+    /** The ids among [reviewIds] that [customerId] has voted helpful. */
+    suspend fun votedHelpful(
+        customerId: String,
+        reviewIds: Collection<String>,
+    ): Set<String>
+
+    /**
+     * Leaves [customerId]'s «Helpful» on [reviewId] as [helpful], at [at]: a vote the customer did not have
+     * is stored and the review's count goes up by one, a vote taken back is removed and the count goes down
+     * by one — the row and the count in one transaction — and a vote already as asked changes nothing.
+     */
+    suspend fun vote(
+        reviewId: String,
+        customerId: String,
+        helpful: Boolean,
+        at: OffsetDateTime,
+    ): HelpfulOutcome
+}
+
+/** What became of a «Helpful» vote. */
+internal enum class HelpfulOutcome {
+    /** The vote is as asked now, whether or not it had to move. */
+    Counted,
+
+    /** No review has that id. */
+    NoReview,
+
+    /** The review is the voter's own; nothing was stored. */
+    OwnReview,
 }
 
 /** What a review or question command can refuse with; the application answers each with its status. */
@@ -99,4 +129,11 @@ internal sealed class ReviewError(
 
     /** One review per customer per product (feature-reviews, «A second review»). */
     class Exists : ReviewError(ErrorCode.ReviewExists, "You have already reviewed this product")
+
+    class ReviewNotFound(
+        id: String,
+    ) : ReviewError(ErrorCode.ReviewNotFound, "No review «$id»")
+
+    /** The author cannot vote on their own review (feature-reviews). */
+    class OwnReview : ReviewError(ErrorCode.OwnReview, "You cannot vote on your own review")
 }

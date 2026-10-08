@@ -18,6 +18,7 @@ import io.github.youndie.haul.ui.ProductQuestions
 import io.github.youndie.haul.ui.ProductReviews
 import io.github.youndie.haul.ui.ProductTabs
 import io.github.youndie.haul.ui.QuestionForm
+import io.github.youndie.haul.ui.Review
 import io.github.youndie.haul.ui.ReviewForm
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.decodeKompotAction
@@ -31,12 +32,16 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import javax.sql.DataSource
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -282,6 +287,109 @@ class ReviewRoutesTest {
             assertEquals("Keep it to 1,000 characters", long.fields.single().message)
         }
 
+    /** B-43: «Helpful» carries a customer's vote — the one they do not have — and a guest's way to sign in. */
+    @Test
+    fun `helpful is a customer's vote and a guest's way to sign in`() =
+        signedIn { token ->
+            val guest = tree(reviewsTab).only<ProductReviews>().reviews
+            assertEquals(List(2) { NavigateAction(Frame.SIGN_IN) }, guest.map { it.helpfulAction })
+            assertEquals(listOf(null, null), guest.map { it.helpfulCommand })
+            val customer = customerTree(token, reviewsTab).only<ProductReviews>().reviews
+            assertEquals(
+                listOf(
+                    HelpfulCommand(ReviewPaths.helpful(DANIEL), HelpfulVote(helpful = true)),
+                    HelpfulCommand(ReviewPaths.helpful(AISHA), HelpfulVote(helpful = true)),
+                ),
+                customer.map { it.helpfulCommand },
+            )
+            assertEquals(listOf(null, null), customer.map { it.helpfulAction })
+        }
+
+    /**
+     * B-43: a vote moves the review's count by one and the second press — the command the redrawn tree now
+     * carries — moves it back. The count is the stored one: Aisha's seeded 48 have no rows behind them.
+     */
+    @Test
+    fun `a vote moves the count by one and the second press moves it back`() =
+        ownDatabase { dataSource ->
+            signedIn(dataSource, "Sam Ortiz", SampleCustomers.SAM) { token ->
+                val press = review(token, "Aisha K.").helpfulCommand!!
+                vote(token, press.url, press.vote).assertRefreshed()
+                val voted = review(token, "Aisha K.")
+                assertEquals("49 people found this helpful", voted.helpful)
+                assertEquals(HelpfulVote(helpful = false), voted.helpfulCommand?.vote)
+                vote(token, voted.helpfulCommand!!.url, voted.helpfulCommand!!.vote).assertRefreshed()
+                val back = review(token, "Aisha K.")
+                assertEquals("48 people found this helpful", back.helpful)
+                assertEquals(HelpfulVote(helpful = true), back.helpfulCommand?.vote)
+                // Nobody had found Daniel's helpful: one vote is one person.
+                vote(token, ReviewPaths.helpful(DANIEL), HelpfulVote(helpful = true)).assertRefreshed()
+                assertEquals("1 person found this helpful", review(token, "Daniel R.").helpful)
+            }
+        }
+
+    /**
+     * B-43: one vote per customer per review. The same vote sent again — a retried press, a double click —
+     * or several at once counts once, and taking it back twice takes back one: the vote's row is the
+     * primary key of `helpful_votes`, and the count moves only when the row went in or out.
+     */
+    @Test
+    fun `one customer's vote sent twice or at once counts once`() =
+        ownDatabase { dataSource ->
+            signedIn(dataSource, "Sam Ortiz", SampleCustomers.SAM) { token ->
+                val url = ReviewPaths.helpful(AISHA)
+                vote(token, url, HelpfulVote(helpful = true)).assertRefreshed()
+                vote(token, url, HelpfulVote(helpful = true)).assertRefreshed()
+                coroutineScope {
+                    List(4) { async { vote(token, url, HelpfulVote(helpful = true)) } }
+                        .awaitAll()
+                        .forEach { it.assertRefreshed() }
+                }
+                assertEquals("49 people found this helpful", review(token, "Aisha K.").helpful)
+                assertEquals(1, dataSource.votes(AISHA), "one row per customer per review")
+                vote(token, url, HelpfulVote(helpful = false)).assertRefreshed()
+                vote(token, url, HelpfulVote(helpful = false)).assertRefreshed()
+                assertEquals("48 people found this helpful", review(token, "Aisha K.").helpful)
+                assertEquals(0, dataSource.votes(AISHA))
+            }
+        }
+
+    /** B-43: the author cannot vote on their own review — no vote in the tree, and `409 own_review`. */
+    @Test
+    fun `a vote on one's own review is refused with own_review`() =
+        ownDatabase { dataSource ->
+            signedIn(dataSource, "Maya Kowalski", SampleCustomers.MAYA) { token ->
+                postReview(token, good).assertClosed()
+                val mine = review(token, "Maya K.")
+                assertNull(mine.helpfulCommand, "the author's own review carries no vote")
+                assertNull(mine.helpfulAction)
+                val id = dataSource.reviewOf(SampleCustomers.MAYA)
+                vote(token, ReviewPaths.helpful(id), HelpfulVote(helpful = true))
+                    .assertError(HttpStatusCode.Conflict, ErrorCode.OwnReview)
+                assertNull(review(token, "Maya K.").helpful, "the refused vote was counted")
+                assertEquals(0, dataSource.votes(id))
+                // Her vote on somebody else's review still counts.
+                vote(token, ReviewPaths.helpful(AISHA), HelpfulVote(helpful = true)).assertRefreshed()
+                assertEquals("49 people found this helpful", review(token, "Aisha K.").helpful)
+            }
+        }
+
+    @Test
+    fun `a vote is a customer's for a review that exists`() =
+        signedIn { token ->
+            vote(null, ReviewPaths.helpful(AISHA), HelpfulVote(helpful = true))
+                .assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
+            vote(token, ReviewPaths.helpful("r-nope"), HelpfulVote(helpful = true))
+                .assertError(HttpStatusCode.NotFound, ErrorCode.ReviewNotFound)
+            put(ReviewPaths.helpful(AISHA)) {
+                bearerAuth(token)
+                contentType(ContentType.Application.Json)
+                setBody("{}")
+            }.assertError(HttpStatusCode.BadRequest, ErrorCode.ValidationFailed)
+                .also { assertEquals("request", it.field) }
+            assertEquals("48 people found this helpful", review(token, "Aisha K.").helpful)
+        }
+
     private fun signedIn(
         dataSource: DataSource = SeededDatabase.dataSource,
         name: String = "Reviewer",
@@ -322,6 +430,54 @@ class ReviewRoutesTest {
             setBody(haulWireJson.encodeToString(QuestionEntry.serializer(), entry))
         }
 
+    private suspend fun HttpClient.vote(
+        token: String?,
+        url: String,
+        vote: HelpfulVote,
+    ): HttpResponse =
+        put(url) {
+            token?.let { bearerAuth(it) }
+            contentType(ContentType.Application.Json)
+            setBody(haulWireJson.encodeToString(HelpfulVote.serializer(), vote))
+        }
+
+    /** The review by [author] on the reviews tab, as [token]'s customer sees it. */
+    private suspend fun HttpClient.review(
+        token: String,
+        author: String,
+    ): Review = customerTree(token, reviewsTab).only<ProductReviews>().reviews.single { it.author == author }
+
+    /** A vote done: `200` and the page drawn again. */
+    private suspend fun HttpResponse.assertRefreshed() {
+        assertEquals(HttpStatusCode.OK, status, bodyAsText())
+        assertEquals(RefreshAction, haulWireJson.decodeKompotAction(bodyAsText()))
+    }
+
+    /** How many `helpful_votes` rows [reviewId] has, read past the repository. */
+    private fun DataSource.votes(reviewId: String): Int =
+        connection.use { c ->
+            c.prepareStatement("SELECT count(*) FROM helpful_votes WHERE review_id = ?").use {
+                it.setString(1, reviewId)
+                it.executeQuery().use { rows ->
+                    rows.next()
+                    rows.getInt(1)
+                }
+            }
+        }
+
+    /** The id of [customer]'s review of the headphones. */
+    private fun DataSource.reviewOf(customer: String): String =
+        connection.use { c ->
+            c.prepareStatement("SELECT id FROM reviews WHERE customer_id = ? AND product_id = ?").use {
+                it.setString(1, customer)
+                it.setString(2, sony)
+                it.executeQuery().use { rows ->
+                    check(rows.next()) { "$customer has no review of $sony" }
+                    rows.getString(1)
+                }
+            }
+        }
+
     /** A dialog's command done: `201`, the dialog closed and the page drawn again. */
     private suspend fun HttpResponse.assertClosed() {
         assertEquals(HttpStatusCode.Created, status, bodyAsText())
@@ -356,4 +512,10 @@ class ReviewRoutesTest {
 
     /** A seeded database of the test's own, its pool closed afterwards. */
     private fun ownDatabase(block: (DataSource) -> Unit) = seededFreshDatabase().use(block)
+
+    private companion object {
+        /** The seed's two reviews of the headphones (`SampleReviews`): nobody's, so anyone may vote. */
+        const val DANIEL = "r-sony-daniel"
+        const val AISHA = "r-sony-aisha"
+    }
 }

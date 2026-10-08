@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.product
 
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.FieldError
+import io.github.youndie.haul.feature.reviews.HelpfulVote
 import io.github.youndie.haul.feature.reviews.QuestionEntry
 import io.github.youndie.haul.feature.reviews.ReviewEntry
 import io.github.youndie.kompot.standard.CloseAction
@@ -21,6 +22,7 @@ import java.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 /**
  * The dialogs' commands as the browser sends them (endpoint-reviews), against a server played by a mock
@@ -110,7 +112,35 @@ class ReviewCommandsTest {
             )
         }
 
+    /**
+     * B-43: «Helpful» is a `PUT` of the vote the tree carries — the state, not a toggle — and its answer,
+     * `refresh`, is what the screen follows. A refusal is a `refresh` too, so the page shows what the
+     * server has; no answer is nothing to follow.
+     */
+    @Test
+    fun `a vote is put where the review says and its answer or refusal redraws the page`() =
+        runBlocking {
+            answer = HttpStatusCode.OK to """{"type":"refresh"}"""
+            val command = ReviewCommand.Vote(HELPFUL, HelpfulVote(helpful = false))
+            assertEquals(RefreshAction, commands.vote(command))
+            val request = requests.single()
+            assertEquals(HttpMethod.Put, request.method)
+            assertEquals("http://haul.test$HELPFUL", request.url.toString())
+            assertEquals("""{"helpful":false}""", request.text())
+            assertEquals("Bearer t-1", request.headers[HttpHeaders.Authorization])
+
+            answer =
+                HttpStatusCode.Conflict to """{"code":"own_review","message":"You cannot vote on your own review"}"""
+            val refused = assertFailsWith<ReviewRefused> { commands.send(command) }
+            assertEquals(ErrorCode.OwnReview, refused.code)
+            assertEquals(RefreshAction, commands.vote(command))
+
+            unreachable = true
+            assertNull(commands.vote(command))
+        }
+
     private companion object {
+        const val HELPFUL = "/api/v1/reviews/r-sony-aisha/helpful"
         const val REVIEWS = "/api/v1/products/p-sony-wh-1000xm6/reviews"
         const val QUESTIONS = "/api/v1/products/p-sony-wh-1000xm6/questions"
         const val CLOSED = """{"type":"sequence","actions":[{"type":"close"},{"type":"refresh"}]}"""

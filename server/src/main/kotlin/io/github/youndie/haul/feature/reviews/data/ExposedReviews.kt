@@ -6,6 +6,7 @@ import io.github.youndie.haul.feature.order.data.OrderLinesTable
 import io.github.youndie.haul.feature.order.data.OrdersTable
 import io.github.youndie.haul.feature.order.data.ShipmentsTable
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus
+import io.github.youndie.haul.feature.reviews.domain.HelpfulOutcome
 import io.github.youndie.haul.feature.reviews.domain.ReviewRepository
 import io.github.youndie.haul.feature.reviews.domain.StoredQuestion
 import io.github.youndie.haul.feature.reviews.domain.StoredReview
@@ -21,8 +22,10 @@ import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.isNotNull
+import org.jetbrains.exposed.v1.core.minus
 import org.jetbrains.exposed.v1.core.plus
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
@@ -31,10 +34,13 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.OffsetDateTime
 
 /**
- * Reviews and questions over Exposed. Writing a review takes its product's row first (`FOR UPDATE`), so
- * two reviews of one product count into it one after the other and neither average is lost.
+ * Reviews, questions and «Helpful» votes over Exposed. Writing a review takes its product's row first
+ * (`FOR UPDATE`), so two reviews of one product count into it one after the other and neither average is
+ * lost. A vote needs no lock: the count moves by an increment in SQL, and only when the vote's row went in
+ * or out.
  */
 internal class ExposedReviews(
     private val database: Database,
@@ -173,6 +179,61 @@ internal class ExposedReviews(
             }
         }
     }
+
+    override suspend fun votedHelpful(
+        customerId: String,
+        reviewIds: Collection<String>,
+    ): Set<String> =
+        if (reviewIds.isEmpty()) {
+            emptySet()
+        } else {
+            tx {
+                HelpfulVotesTable
+                    .select(HelpfulVotesTable.reviewId)
+                    .where {
+                        (HelpfulVotesTable.customerId eq customerId) and
+                            (HelpfulVotesTable.reviewId inList reviewIds)
+                    }.mapTo(mutableSetOf()) { it[HelpfulVotesTable.reviewId] }
+            }
+        }
+
+    override suspend fun vote(
+        reviewId: String,
+        customerId: String,
+        helpful: Boolean,
+        at: OffsetDateTime,
+    ): HelpfulOutcome =
+        tx {
+            val review =
+                ReviewsTable
+                    .select(ReviewsTable.customerId)
+                    .where { ReviewsTable.id eq reviewId }
+                    .singleOrNull() ?: return@tx HelpfulOutcome.NoReview
+            if (review[ReviewsTable.customerId] == customerId) return@tx HelpfulOutcome.OwnReview
+            // The row decides whether the count moves: a vote the customer already has inserts nothing
+            // (the primary key, `ON CONFLICT DO NOTHING` — two at once included, the second waits for the
+            // first), and taking back one they do not have deletes nothing.
+            val moved =
+                if (helpful) {
+                    HelpfulVotesTable
+                        .insertIgnore {
+                            it[HelpfulVotesTable.reviewId] = reviewId
+                            it[HelpfulVotesTable.customerId] = customerId
+                            it[votedAt] = at
+                        }.insertedCount
+                } else {
+                    HelpfulVotesTable.deleteWhere {
+                        (HelpfulVotesTable.reviewId eq reviewId) and (HelpfulVotesTable.customerId eq customerId)
+                    }
+                }
+            if (moved > 0) {
+                ReviewsTable.update({ ReviewsTable.id eq reviewId }) {
+                    it[ReviewsTable.helpful] =
+                        if (helpful) ReviewsTable.helpful + moved else ReviewsTable.helpful - moved
+                }
+            }
+            HelpfulOutcome.Counted
+        }
 
     private fun review(row: ResultRow): StoredReview =
         StoredReview(

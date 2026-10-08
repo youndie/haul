@@ -15,7 +15,7 @@ import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.javatime.timestampWithTimeZone
 import org.jetbrains.exposed.v1.json.jsonb
 
-// The Exposed side of V12__reviews.sql. `SchemaTest` holds the two together, CHECK constraints included:
+// The Exposed side of V12__reviews.sql and V15__helpful_votes.sql. `SchemaTest` holds the two together, CHECK constraints included:
 // they are declared here under the names PostgreSQL gave them there.
 
 internal object ReviewsTable : Table("reviews") {
@@ -63,4 +63,12 @@ internal object QuestionsTable : Table("questions") {
     }
 }
 
-internal val reviewTables: List<Table> = listOf(ReviewsTable, RatingCountsTable, QuestionsTable)
+/** One customer's «Helpful» on one review (B-43); its primary key is the floor under «one vote each». */
+internal object HelpfulVotesTable : Table("helpful_votes") {
+    val reviewId = text("review_id").references(ReviewsTable.id)
+    val customerId = text("customer_id").references(CustomersTable.id)
+    val votedAt = timestampWithTimeZone("voted_at")
+    override val primaryKey = PrimaryKey(reviewId, customerId, name = "pk_helpful_votes")
+}
+
+internal val reviewTables: List<Table> = listOf(ReviewsTable, RatingCountsTable, QuestionsTable, HelpfulVotesTable)

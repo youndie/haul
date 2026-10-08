@@ -3,6 +3,7 @@ package io.github.youndie.haul.feature.reviews.domain
 import io.github.youndie.haul.StoreClock
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.identity.domain.Customer
+import io.github.youndie.haul.feature.reviews.HelpfulVote
 import io.github.youndie.haul.feature.reviews.QuestionEntry
 import io.github.youndie.haul.feature.reviews.ReviewEntry
 import io.github.youndie.haul.feature.reviews.questionProblems
@@ -10,8 +11,9 @@ import io.github.youndie.haul.feature.reviews.reviewProblems
 import java.util.UUID
 
 /**
- * feature-reviews' two commands, both a customer's: posting a review and asking a question. The rules are
- * the contract's (`reviewProblems`, `questionProblems`), the ones the client checks before sending.
+ * feature-reviews' commands, all a customer's: posting a review, asking a question and voting a review
+ * helpful. The rules are the contract's (`reviewProblems`, `questionProblems`), the ones the client checks
+ * before sending.
  *
  * Who may review: any customer, once per product. A review is «Verified purchase» when its author has
  * received the product — a delivered shipment holding it — at the moment it is written; without one it is
@@ -67,6 +69,22 @@ internal class ReviewCommands(
             )
         reviews.ask(question)
         return question
+    }
+
+    /**
+     * «Helpful» (B-43): leaves [customer]'s vote on [reviewId] as [vote] says. One vote per customer per
+     * review, so a vote sent twice counts once; the author's own review is refused.
+     */
+    suspend fun helpful(
+        customer: Customer,
+        reviewId: String,
+        vote: HelpfulVote,
+    ) {
+        when (reviews.vote(reviewId, customer.id, vote.helpful, clock.now().toOffsetDateTime())) {
+            HelpfulOutcome.Counted -> Unit
+            HelpfulOutcome.NoReview -> throw ReviewError.ReviewNotFound(reviewId)
+            HelpfulOutcome.OwnReview -> throw ReviewError.OwnReview()
+        }
     }
 
     companion object {
