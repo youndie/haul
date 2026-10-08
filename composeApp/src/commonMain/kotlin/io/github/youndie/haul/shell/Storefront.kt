@@ -87,13 +87,14 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
 /**
  * The storefront at the address [history] is at: every page from [transport], «now» from [clock] — one
  * clock, ticking each second, that every countdown reads. A tree's `navigate` to `/sign-in` is
- * sign-in's ([SignInActions]): [signIn] runs, then the screen is drawn again, signed in or not. The
- * cart's presses — the cart's own and a card's «+» — go to [cartCommands] (B-13, B-37), whose answer,
- * `refresh`, draws the screen again. «Clear» on recent searches goes through [commands] (B-37), and
- * the suggest panel is asked for again once the server has answered. The checkout's go to
- * [checkoutCommands] (B-15), whose `refresh` draws it again the same way. A tree's `present` draws its
- * component over the page — the product page's review and question dialogs (B-22), whose commands go to
- * [reviewCommands] — until a `close`, a new page or the scrim takes it away.
+ * sign-in's ([SignInActions]): [signIn] runs, then the page its `next` names opens (B-41), or the
+ * screen is drawn again, signed in or not. The cart's presses — the cart's own and a card's «+» — go
+ * to [cartCommands] (B-13, B-37), whose answer, `refresh`, draws the screen again. «Clear» on recent
+ * searches goes through [commands] (B-37), and the suggest panel is asked for again once the server
+ * has answered. The checkout's go to [checkoutCommands] (B-15), whose `refresh` draws it again the
+ * same way. A tree's `present` draws its component over the page — the product page's review and
+ * question dialogs (B-22), whose commands go to [reviewCommands] — until a `close`, a new page or the
+ * scrim takes it away.
  */
 @Composable
 public fun Storefront(
@@ -232,7 +233,11 @@ private fun Shown(
         }
     val actions =
         remember(address) {
-            val signInActions = SignInActions(signIn = signIn, redraw = refresh::refresh)
+            // A sign-in that returns to the page already shown draws it again: opening it would do nothing.
+            val signInActions =
+                SignInActions(signIn = signIn, redraw = refresh::refresh) { next ->
+                    if (next == address.value) refresh.refresh() else navigator.open(next)
+                }
             val navigate = navigating(navigator)
             presenting(
                 KompotActionHandler { action ->

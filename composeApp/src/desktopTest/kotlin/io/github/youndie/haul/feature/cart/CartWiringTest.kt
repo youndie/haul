@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -18,6 +19,8 @@ import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.FakeHistory
 import io.github.youndie.haul.FixtureFonts
 import io.github.youndie.haul.decode
+import io.github.youndie.haul.feature.checkout.PLACE_TAG
+import io.github.youndie.haul.feature.identity.SignInUnavailable
 import io.github.youndie.haul.read
 import io.github.youndie.haul.registry.haulRegistry
 import io.github.youndie.haul.shell.HaulResponse
@@ -274,6 +277,69 @@ class CartWiringTest {
             onNodeWithText("Nothing in it was lost. Try again in a moment.").assertExists()
         }
 
+    /**
+     * B-41, Cart_Guest in the storefront: «Sign in to check out» carries `next=%2Fcheckout`, and once
+     * the popup has signed the shopper in the storefront lands on the checkout — it used to draw the
+     * cart again and leave checkout to be found by hand.
+     */
+    @Test
+    fun `in the storefront a guest's Sign in to check out lands on the checkout`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            val history = FakeHistory("/cart")
+            val requests = CopyOnWriteArrayList<String>()
+            var signIns = 0
+            guestStorefront(history, requests, signIn = { signIns += 1 })
+
+            onNodeWithTag(CHECKOUT_TAG).performClick()
+            waitUntil(timeoutMillis = 5_000) { exists(PLACE_TAG) }
+
+            assertEquals(1, signIns)
+            assertEquals(listOf("/cart", "/checkout"), history.entries)
+            assertEquals(listOf("/ui/cart", "/ui/checkout"), requests.toList())
+        }
+
+    /** A popup the shopper closed is a guest still on the cart: drawn again, and nothing opened. */
+    @Test
+    fun `in the storefront a sign-in that does not go through stays on the cart`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            val history = FakeHistory("/cart")
+            val requests = CopyOnWriteArrayList<String>()
+            guestStorefront(history, requests, signIn = { throw SignInUnavailable() })
+
+            onNodeWithTag(CHECKOUT_TAG).performClick()
+            waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
+            waitForIdle()
+
+            assertEquals(listOf("/cart"), history.entries)
+            assertEquals(listOf("/ui/cart", "/ui/cart"), requests.toList())
+            onNodeWithTag(PLACE_TAG).assertDoesNotExist()
+        }
+
+    /** The storefront at `/cart` for a guest; `/ui/checkout` answers the checkout's tree. */
+    private fun ComposeUiTest.guestStorefront(
+        history: FakeHistory,
+        requests: MutableList<String>,
+        signIn: suspend () -> Unit,
+    ) {
+        val transport =
+            HaulTransport { path ->
+                requests += path
+                when (path) {
+                    "/ui/cart" -> HaulResponse(200, read(GUEST))
+                    "/ui/checkout" -> HaulResponse(200, read(CHECKOUT))
+                    else -> error("nothing answers $path")
+                }
+            }
+        setContent {
+            HaulTheme(FixtureFonts.fonts, compact = false) {
+                Storefront(transport, history, signIn = signIn, clock = FixedClock, cartCommands = commands)
+            }
+        }
+    }
+
+    private fun ComposeUiTest.exists(tag: String): Boolean =
+        onAllNodes(hasTestTag(tag)).fetchSemanticsNodes().isNotEmpty()
+
     private val mugUrl = "$LINES/$MUG"
 
     private object FixedClock : Clock {
@@ -288,6 +354,7 @@ class CartWiringTest {
         const val PROMO_APPLIED = "cart_promo_applied.json"
         const val PROMO_ERROR = "cart_promo_error.json"
         const val GUEST = "cart_guest.json"
+        const val CHECKOUT = "checkout_content.json"
         const val LINES = "/api/v1/cart/lines"
         const val PROMO = "/api/v1/cart/promo"
         const val HEADPHONES = "p-sony-wh-1000xm6-0"
