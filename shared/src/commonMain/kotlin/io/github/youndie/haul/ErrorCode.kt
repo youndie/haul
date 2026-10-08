@@ -60,12 +60,56 @@ public enum class ErrorCode {
     /** The code is valid but not for this cart: nothing selected, or its window has not opened. */
     @SerialName("promo_not_applicable")
     PromoNotApplicable,
+
+    /** Checkout with no line selected in the cart: nothing to quote (feature-checkout). */
+    @SerialName("cart_empty")
+    CartEmpty,
+
+    /** A delivery window at capacity: it is drawn and not selectable, and choosing it is refused. */
+    @SerialName("slot_unavailable")
+    SlotUnavailable,
+
+    /** A delivery window checkout does not offer: not one of the next five days' four windows. */
+    @SerialName("slot_not_found")
+    SlotNotFound,
+
+    @SerialName("pickup_point_not_found")
+    PickupPointNotFound,
+
+    /** An address that is not one of the caller's own. */
+    @SerialName("address_not_found")
+    AddressNotFound,
+
+    /** A way to pay this checkout does not offer: pay on delivery to a locker, Haul Pay outside $50–$2,000. */
+    @SerialName("payment_method_not_allowed")
+    PaymentMethodNotAllowed,
+
+    /** In [ErrorBody.fields] only: a form field that must be filled was left empty. */
+    @SerialName("field_required")
+    FieldRequired,
+
+    /** In [ErrorBody.fields] only: a form field filled with something it cannot hold (a ZIP of letters). */
+    @SerialName("field_invalid")
+    FieldInvalid,
 }
 
-/** The body of every error answer: the code, a sentence for a person, and the field when one is at fault. */
+/**
+ * The body of every error answer: the code, a sentence for a person, and the field when one is at
+ * fault. A form refused as a whole (`validation_failed`) also lists every field at fault in [fields],
+ * each with its own code and sentence; [field] is then the first of them.
+ */
 @Serializable
 public data class ErrorBody(
     val code: ErrorCode,
     val message: String,
     val field: String? = null,
+    val fields: List<FieldError> = emptyList(),
+)
+
+/** One field of a refused form: which, why ([code], `field_required` or `field_invalid`), and what to fix. */
+@Serializable
+public data class FieldError(
+    val field: String,
+    val code: ErrorCode,
+    val message: String,
 )

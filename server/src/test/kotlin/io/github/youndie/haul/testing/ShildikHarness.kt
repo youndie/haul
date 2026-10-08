@@ -92,14 +92,26 @@ internal object ShildikHarness {
     /** What the server under test is configured with. */
     val signIn: SignInConfig get() = realm.let { SignInConfig(issuer, CLIENT) }
 
-    /** A new person in the realm, named [name]; returns their id, which is the `sub` of their tokens. */
-    fun person(name: String): String {
+    /**
+     * A person in the realm, named [name]; returns their id, which is the `sub` of their tokens. A new
+     * random id unless [id] is given — a sample customer's (`maya`), whose seeded rows the server then
+     * recognises — and a person asked for by the same id twice is created once.
+     */
+    fun person(
+        name: String,
+        id: String = "u-${UUID.randomUUID()}",
+    ): String {
         realm
-        val id = "u-${UUID.randomUUID()}"
-        admin("POST", "/admin/tenants/$REALM/users", """{"id":"$id","email":"$id@example.test","name":"$name"}""")
-        admin("PUT", "/admin/tenants/$REALM/users/$id/password", """{"password":"$PASSWORD"}""")
+        synchronized(people) {
+            if (id in people) return id
+            admin("POST", "/admin/tenants/$REALM/users", """{"id":"$id","email":"$id@example.test","name":"$name"}""")
+            admin("PUT", "/admin/tenants/$REALM/users/$id/password", """{"password":"$PASSWORD"}""")
+            people += id
+        }
         return id
     }
+
+    private val people = mutableSetOf<String>()
 
     /**
      * Signs [person] in through [client] the way the browser does — authorization code with PKCE —

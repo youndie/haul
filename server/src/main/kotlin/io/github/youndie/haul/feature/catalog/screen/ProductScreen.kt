@@ -4,6 +4,7 @@ import io.github.youndie.haul.feature.catalog.domain.CatalogError
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
+import io.github.youndie.haul.feature.catalog.domain.HaulPay
 import io.github.youndie.haul.feature.catalog.domain.Listed
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.Seller
@@ -27,7 +28,6 @@ import io.github.youndie.haul.ui.VariantGroup
 import io.github.youndie.haul.ui.VariantOption
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.NavigateAction
-import kotlin.math.roundToInt
 
 /** The tabs the product page has; reviews and questions arrive with feature-reviews (B-22). */
 internal enum class ProductTab(
@@ -146,7 +146,7 @@ internal class ProductScreen(
             haulPayStrong =
                 haulPay(
                     sku.priceCents,
-                )?.let { "4 payments of ${money((sku.priceCents / 4.0).roundToInt())}" },
+                )?.let { "4 payments of ${money(HaulPay.paymentCents(sku.priceCents))}" },
             stockAdvice = if (inStock) null else stockAdvice(item, sku, courier),
             inStock = inStock,
             stockNote = if (inStock) null else "Out of stock",
@@ -238,13 +238,7 @@ internal class ProductScreen(
 
     /** «or 4 payments of $87.25 with Haul Pay», for prices from $50 to $2,000 (research D6). */
     private fun haulPay(cents: Int): String? =
-        if (cents in
-            HAUL_PAY_MIN..HAUL_PAY_MAX
-        ) {
-            "or 4 payments of ${money((cents / 4.0).roundToInt())} with Haul Pay"
-        } else {
-            null
-        }
+        if (HaulPay.offered(cents)) "or 4 payments of ${money(HaulPay.paymentCents(cents))} with Haul Pay" else null
 
     private fun crumbs(
         item: Listed,
@@ -268,7 +262,5 @@ internal class ProductScreen(
         private const val BESTSELLER_REVIEWS = 2_000
         private const val FREE_DELIVERY_CENTS = 3_500
         private const val DELIVERY_FEE_CENTS = 599
-        private const val HAUL_PAY_MIN = 5_000
-        private const val HAUL_PAY_MAX = 200_000
     }
 }

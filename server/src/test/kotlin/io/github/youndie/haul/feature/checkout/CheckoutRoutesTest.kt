@@ -1,0 +1,486 @@
+package io.github.youndie.haul.feature.checkout
+
+import io.github.youndie.haul.ErrorCode
+import io.github.youndie.haul.FieldError
+import io.github.youndie.haul.db.Databases
+import io.github.youndie.haul.feature.cart.CartPaths
+import io.github.youndie.haul.feature.cart.LineChange
+import io.github.youndie.haul.feature.checkout.data.DeliverySlotsTable
+import io.github.youndie.haul.feature.checkout.domain.CheckoutError
+import io.github.youndie.haul.feature.identity.GUEST_HEADER
+import io.github.youndie.haul.haulWireJson
+import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
+import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
+import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
+import io.github.youndie.haul.seed.SampleCheckout
+import io.github.youndie.haul.seed.SampleCustomers
+import io.github.youndie.haul.testing.SeededDatabase
+import io.github.youndie.haul.testing.ShildikHarness
+import io.github.youndie.haul.testing.all
+import io.github.youndie.haul.testing.assertError
+import io.github.youndie.haul.testing.assertRefresh
+import io.github.youndie.haul.testing.guest
+import io.github.youndie.haul.testing.haulTest
+import io.github.youndie.haul.testing.only
+import io.github.youndie.haul.testing.seededFreshDatabase
+import io.github.youndie.haul.ui.CheckoutAddress
+import io.github.youndie.haul.ui.CheckoutNotice
+import io.github.youndie.haul.ui.CheckoutSummary
+import io.github.youndie.haul.ui.DeliveryMethods
+import io.github.youndie.haul.ui.DeliverySlots
+import io.github.youndie.haul.ui.OrderSummary
+import io.github.youndie.haul.ui.PageTitle
+import io.github.youndie.haul.ui.PaymentMethods
+import io.github.youndie.haul.ui.PickupPoints
+import io.github.youndie.haul.ui.SummaryRow
+import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.decodeKompotComponent
+import io.ktor.client.HttpClient
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.put
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.upsert
+import java.time.LocalDate
+import javax.sql.DataSource
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
+
+/**
+ * feature-checkout's quote over HTTP, against a running shildik ([ShildikHarness]) and the seeded
+ * catalog in PostgreSQL, at the canvas's «now» (Tue 2025-10-07 19:47, so the windows run Wed 8 … Sun
+ * 12). Every test signs in a person of its own — Maya herself where the canvas draws her — and a test
+ * that fills a window works over a database of its own, because windows are shared by every customer.
+ */
+class CheckoutRoutesTest {
+    private val headphones = "$SONY_HEADPHONES-0"
+    private val duvet = "$DUVET_COVER-0"
+    private val mug = "$STONEWARE_MUG-0"
+
+    private fun signedIn(
+        name: String,
+        id: String? = null,
+        dataSource: DataSource = SeededDatabase.dataSource,
+        block: suspend HttpClient.(token: String) -> Unit,
+    ) {
+        val sub = if (id == null) ShildikHarness.person(name) else ShildikHarness.person(name, id)
+        val token = ShildikHarness.accessToken(sub)
+        haulTest(dataSource, signIn = ShildikHarness.signIn) { block(token) }
+    }
+
+    private suspend fun HttpClient.checkout(token: String): KompotComponent {
+        val response = get(CheckoutPaths.SCREEN) { bearerAuth(token) }
+        assertEquals(HttpStatusCode.OK, response.status, response.bodyAsText())
+        return haulWireJson.decodeKompotComponent(response.bodyAsText())
+    }
+
+    private suspend fun HttpClient.putLine(
+        token: String,
+        skuId: String,
+        change: LineChange,
+    ) = put(CartPaths.line(skuId)) {
+        bearerAuth(token)
+        contentType(ContentType.Application.Json)
+        setBody(haulWireJson.encodeToString(LineChange.serializer(), change))
+    }.assertRefresh()
+
+    /** Maya's three lines (research §6), in a cart of the caller's own. */
+    private suspend fun HttpClient.mayasLines(token: String) =
+        listOf(headphones, duvet, mug).forEach { putLine(token, it, LineChange(quantity = 1)) }
+
+    private suspend fun HttpClient.choose(
+        token: String,
+        choice: CheckoutChoice,
+    ): HttpResponse =
+        put(CheckoutPaths.CHOICE) {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody(haulWireJson.encodeToString(CheckoutChoice.serializer(), choice))
+        }
+
+    private suspend fun HttpClient.saveAddress(
+        token: String,
+        entry: AddressEntry,
+    ): HttpResponse =
+        post(CheckoutPaths.ADDRESSES) {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody(haulWireJson.encodeToString(AddressEntry.serializer(), entry))
+        }
+
+    /** Every place in [slotId]'s window taken, as twenty orders would leave it. */
+    private fun DataSource.fill(slotId: String) {
+        val (day, hour) = slotId.split('T')
+        transaction(Databases.connect(this)) {
+            DeliverySlotsTable.upsert {
+                it[DeliverySlotsTable.day] = LocalDate.parse(day)
+                it[startHour] = hour.toInt()
+                it[capacity] = 20
+                it[taken] = 20
+            }
+        }
+    }
+
+    /**
+     * A seeded database of the test's own, its pool closed afterwards: every pool holds its connections,
+     * and the suite's PostgreSQL ran out of them («too many clients») while these were left open.
+     */
+    private fun ownDatabase(block: (DataSource) -> Unit) = seededFreshDatabase().use(block)
+
+    private fun KompotComponent.selectedSlot(): String? =
+        only<DeliverySlots>()
+            .days
+            .flatMap { it.slots }
+            .singleOrNull { it.selected }
+            ?.id
+
+    private fun KompotComponent.rows(): List<SummaryRow> = only<CheckoutSummary>().rows
+
+    /**
+     * Scenario «Quote as drawn» (`Checkout_Content`): Maya's cart, courier to 148 Wythe Avenue 4F, Wed 8
+     * 15:00–18:00, card ···· 4821 — the totals are the cart's, $512.00, and the quote can be placed.
+     */
+    @Test
+    fun `Maya's quote is the cart's totals by courier to her address`() =
+        ownDatabase { database ->
+            signedIn("Maya Kowalski", id = SampleCustomers.MAYA, dataSource = database) { token ->
+                val before = checkout(token)
+                assertEquals(
+                    "09:00–12:00",
+                    before
+                        .only<DeliverySlots>()
+                        .days
+                        .first()
+                        .slots
+                        .first { it.selected }
+                        .label,
+                )
+
+                choose(token, CheckoutChoice(slotId = "2025-10-08T15")).assertRefresh()
+
+                val tree = checkout(token)
+                assertEquals("3 items", tree.only<PageTitle>().count)
+                assertEquals(
+                    DeliveryMethod.Courier,
+                    tree
+                        .only<DeliveryMethods>()
+                        .options
+                        .single { it.selected }
+                        .method,
+                )
+                val address = tree.only<CheckoutAddress>()
+                assertEquals(
+                    listOf("148 Wythe Avenue, Apt 4F" to "Brooklyn, NY 11211"),
+                    address.addresses.filter { it.selected }.map { it.line to it.detail },
+                )
+                assertFalse(address.formOpen, "the form is open for a customer with an address")
+                val slots = tree.only<DeliverySlots>()
+                assertEquals(listOf("Wed 8", "Thu 9", "Fri 10", "Sat 11", "Sun 12"), slots.days.map { it.label })
+                assertEquals(
+                    listOf("09:00–12:00", "12:00–15:00", "15:00–18:00", "18:00–21:00"),
+                    slots.days
+                        .first()
+                        .slots
+                        .map { it.label },
+                )
+                assertEquals("2025-10-08T15", tree.selectedSlot())
+                val payment = tree.only<PaymentMethods>()
+                assertEquals(
+                    listOf("card-4821", "card-0002", "haul_pay", "pay_on_delivery"),
+                    payment.options.map { it.id },
+                )
+                assertEquals("card-4821", payment.options.single { it.selected }.id)
+                assertEquals("4 payments of $128", payment.options.single { it.id == "haul_pay" }.detail)
+
+                val summary = tree.only<CheckoutSummary>()
+                assertEquals(
+                    listOf(
+                        SummaryRow("Items", "$652.00"),
+                        SummaryRow("Discount", "−$140.00"),
+                        SummaryRow("Delivery", "Free"),
+                    ),
+                    summary.rows,
+                )
+                assertEquals("$512.00", summary.total)
+                assertEquals("Place order · $512.00", summary.placeLabel)
+                assertEquals("You'll earn 1,024 points", summary.points)
+                assertEquals("Your card is charged when the order ships", summary.note)
+                assertEquals(3, summary.items.size)
+                assertTrue(summary.placeEnabled, "a complete quote cannot be placed")
+                assertNotEquals(
+                    before.only<CheckoutSummary>().quote,
+                    summary.quote,
+                    "the quote's fingerprint did not change with the window",
+                )
+            }
+        }
+
+    /**
+     * «Checkout takes the selected lines only» (feature-cart, B-11's finding for B-14): a line unticked
+     * in the cart is not quoted, and the quote's totals are the cart's own for the same selection.
+     */
+    @Test
+    fun `checkout quotes only the lines selected in the cart`() =
+        signedIn("Sam Ortiz") { token ->
+            mayasLines(token)
+            putLine(token, duvet, LineChange(selected = false))
+
+            val summary = checkout(token).only<CheckoutSummary>()
+            val cart = get(CartPaths.SCREEN) { bearerAuth(token) }.bodyAsText()
+            val cartSummary = haulWireJson.decodeKompotComponent(cart).only<OrderSummary>()
+
+            assertEquals(2, summary.items.size)
+            assertTrue(summary.items.none { it.title.startsWith("Linen") }, "the unticked duvet was quoted")
+            assertEquals(cartSummary.total, summary.total)
+            assertEquals(cartSummary.rows, summary.rows)
+
+            listOf(headphones, mug).forEach { putLine(token, it, LineChange(selected = false)) }
+            get(CheckoutPaths.SCREEN) { bearerAuth(token) }.assertError(HttpStatusCode.Conflict, ErrorCode.CartEmpty)
+            choose(token, CheckoutChoice(method = DeliveryMethod.PickupPoint))
+                .assertError(HttpStatusCode.Conflict, ErrorCode.CartEmpty)
+        }
+
+    /** «Shown when: signed in; a guest is sent to sign-in» (screen-checkout): a guest's id is not a customer. */
+    @Test
+    fun `checkout needs a sign-in`() =
+        signedIn("Sam Ortiz") { _ ->
+            val guest = guest()
+            get(CheckoutPaths.SCREEN).assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
+            get(CheckoutPaths.SCREEN) { header(GUEST_HEADER, guest) }
+                .assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
+            put(CheckoutPaths.CHOICE) { header(GUEST_HEADER, guest) }
+                .assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
+            post(CheckoutPaths.ADDRESSES) { header(GUEST_HEADER, guest) }
+                .assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
+        }
+
+    /**
+     * «A slot at capacity is shown and not selectable» (feature-checkout): the full window is drawn
+     * unavailable, the default skips it, and choosing it anyway is `409 slot_unavailable`. A window
+     * checkout does not offer is `404 slot_not_found`.
+     */
+    @Test
+    fun `a full window is drawn unavailable and refused`() =
+        ownDatabase { database ->
+            database.fill("2025-10-08T09")
+            database.fill("2025-10-08T15")
+            signedIn("Sam Ortiz", dataSource = database) { token ->
+                mayasLines(token)
+                val tree = checkout(token)
+                val wednesday =
+                    tree
+                        .only<DeliverySlots>()
+                        .days
+                        .first()
+                        .slots
+                assertEquals(listOf(false, true, false, true), wednesday.map { it.available })
+                assertEquals("2025-10-08T12", tree.selectedSlot(), "the default is the first window with room")
+
+                choose(token, CheckoutChoice(slotId = "2025-10-08T15"))
+                    .assertError(HttpStatusCode.Conflict, ErrorCode.SlotUnavailable)
+                assertEquals("2025-10-08T12", checkout(token).selectedSlot(), "a refused window was stored")
+
+                choose(token, CheckoutChoice(slotId = "2025-10-13T09"))
+                    .assertError(HttpStatusCode.NotFound, ErrorCode.SlotNotFound)
+                choose(token, CheckoutChoice(slotId = "2025-10-07T18"))
+                    .assertError(HttpStatusCode.NotFound, ErrorCode.SlotNotFound)
+                choose(token, CheckoutChoice(slotId = "2025-10-08T10"))
+                    .assertError(HttpStatusCode.NotFound, ErrorCode.SlotNotFound)
+                choose(token, CheckoutChoice(slotId = "2025-10-09T12")).assertRefresh()
+                assertEquals("2025-10-09T12", checkout(token).selectedSlot())
+            }
+        }
+
+    /**
+     * The quote's half of «Slot filled meanwhile» (`Checkout_PlaceError`): a window that fills after it
+     * was chosen is cleared — not swapped for another behind the shopper's back — the shopper is told,
+     * and the quote cannot be placed until they pick another.
+     */
+    @Test
+    fun `a window that filled after it was chosen is cleared and the shopper told`() =
+        ownDatabase { database ->
+            signedIn("Sam Ortiz", dataSource = database) { token ->
+                mayasLines(token)
+                saveAddress(token, AddressEntry("148 Wythe Avenue", "4F", "Brooklyn, NY", "11211")).assertRefresh()
+                choose(token, CheckoutChoice(slotId = "2025-10-09T12")).assertRefresh()
+                assertTrue(checkout(token).only<CheckoutSummary>().placeEnabled)
+
+                database.fill("2025-10-09T12")
+
+                val tree = checkout(token)
+                assertEquals(CheckoutError.SLOT_FILLED, tree.only<CheckoutNotice>().text)
+                assertEquals(null, tree.selectedSlot())
+                assertFalse(tree.only<CheckoutSummary>().placeEnabled, "a quote with no window can be placed")
+
+                choose(token, CheckoutChoice(slotId = "2025-10-09T15")).assertRefresh()
+                val again = checkout(token)
+                assertTrue(again.all().none { it is CheckoutNotice }, "the notice outlived the new window")
+                assertTrue(again.only<CheckoutSummary>().placeEnabled)
+            }
+        }
+
+    /**
+     * `Checkout_PickupPoint`: the two points near Wythe Avenue with distance and hours, the nearest
+     * chosen, no address and no window — a pickup needs neither — and pay on delivery still offered.
+     */
+    @Test
+    fun `a pickup point needs no address and no window`() =
+        signedIn("Sam Ortiz") { token ->
+            mayasLines(token)
+            choose(token, CheckoutChoice(method = DeliveryMethod.PickupPoint)).assertRefresh()
+
+            val tree = checkout(token)
+            val points = tree.only<PickupPoints>().points
+            assertEquals(
+                listOf(
+                    listOf("214 Bedford Ave", "240 m", "until 21:00", true),
+                    listOf("96 N 6th St", "650 m", "until 22:00", false),
+                ),
+                points.map { listOf(it.name, it.distance, it.hours, it.selected) },
+            )
+            assertTrue(
+                tree.all().none { it is DeliverySlots || it is CheckoutAddress },
+                "a pickup drew courier sections",
+            )
+            assertTrue(tree.only<CheckoutSummary>().placeEnabled, "a pickup without an address cannot be placed")
+            assertTrue("pay_on_delivery" in tree.only<PaymentMethods>().options.map { it.id })
+
+            choose(token, CheckoutChoice(pointId = SampleCheckout.NORTH_6TH)).assertRefresh()
+            assertEquals(
+                "96 N 6th St",
+                checkout(token)
+                    .only<PickupPoints>()
+                    .points
+                    .single { it.selected }
+                    .name,
+            )
+            choose(token, CheckoutChoice(pointId = "nowhere"))
+                .assertError(HttpStatusCode.NotFound, ErrorCode.PickupPointNotFound)
+        }
+
+    /**
+     * `Checkout_ParcelLocker` and «pay on delivery is not offered for parcel lockers»: the locker is
+     * listed, pay on delivery is not, choosing it is `422 payment_method_not_allowed`, and a shopper
+     * who had chosen it by courier is moved back to the card.
+     */
+    @Test
+    fun `a parcel locker is not paid on delivery`() =
+        signedIn("Sam Ortiz") { token ->
+            mayasLines(token)
+            choose(token, CheckoutChoice(payment = "pay_on_delivery")).assertRefresh()
+            assertEquals(
+                "pay_on_delivery",
+                checkout(token)
+                    .only<PaymentMethods>()
+                    .options
+                    .single { it.selected }
+                    .id,
+            )
+
+            choose(token, CheckoutChoice(method = DeliveryMethod.ParcelLocker)).assertRefresh()
+
+            val tree = checkout(token)
+            assertEquals(
+                listOf("Wythe & N 7th" to "24/7"),
+                tree.only<PickupPoints>().points.map { it.name to it.hours },
+            )
+            val payment = tree.only<PaymentMethods>()
+            assertEquals(listOf("card-4821", "card-0002", "haul_pay"), payment.options.map { it.id })
+            assertEquals("card-4821", payment.options.single { it.selected }.id)
+            choose(token, CheckoutChoice(payment = "pay_on_delivery"))
+                .assertError(HttpStatusCode.UnprocessableEntity, ErrorCode.PaymentMethodNotAllowed)
+        }
+
+    /** «Haul Pay is offered for totals between $50 and $2,000» (feature-checkout): a $24 order is not. */
+    @Test
+    fun `Haul Pay is refused for a total under fifty dollars`() =
+        signedIn("Sam Ortiz") { token ->
+            putLine(token, mug, LineChange(quantity = 1))
+            assertTrue("haul_pay" !in checkout(token).only<PaymentMethods>().options.map { it.id })
+            choose(token, CheckoutChoice(payment = "haul_pay"))
+                .assertError(HttpStatusCode.UnprocessableEntity, ErrorCode.PaymentMethodNotAllowed)
+            choose(token, CheckoutChoice(payment = "bitcoin"))
+                .assertError(HttpStatusCode.BadRequest, ErrorCode.ValidationFailed)
+            choose(token, CheckoutChoice()).assertError(HttpStatusCode.BadRequest, ErrorCode.ValidationFailed)
+        }
+
+    /**
+     * `Checkout_Validation`: a customer with no address sees the form open; one sent with the street and
+     * the ZIP empty is `400 validation_failed` naming both fields, and the tree draws it again with what
+     * was typed and an error under each; the quote cannot be placed until an address is saved.
+     */
+    @Test
+    fun `the address form is refused field by field and drawn again`() =
+        signedIn("Sam Ortiz") { token ->
+            mayasLines(token)
+            val empty = checkout(token)
+            assertTrue(empty.only<CheckoutAddress>().formOpen, "a customer without an address sees no form")
+            assertFalse(empty.only<CheckoutSummary>().placeEnabled, "a courier quote with no address can be placed")
+
+            val refused =
+                saveAddress(token, AddressEntry(street = " ", city = "Brooklyn, NY"))
+                    .assertError(HttpStatusCode.BadRequest, ErrorCode.ValidationFailed)
+            assertEquals(
+                listOf(
+                    FieldError("street", ErrorCode.FieldRequired, "Enter the street and house number"),
+                    FieldError("zip", ErrorCode.FieldRequired, "Enter the ZIP code"),
+                ),
+                refused.fields,
+            )
+            assertEquals("street", refused.field)
+
+            val form = checkout(token).only<CheckoutAddress>()
+            assertTrue(form.formOpen)
+            assertEquals(
+                mapOf(
+                    "street" to ("" to "Enter the street and house number"),
+                    "city" to ("Brooklyn, NY" to null),
+                    "zip" to ("" to "Enter the ZIP code"),
+                ),
+                form.form.filter { it.name in setOf("street", "city", "zip") }.associate {
+                    it.name to (it.value.trim() to it.error)
+                },
+            )
+
+            saveAddress(token, AddressEntry("148 Wythe Avenue", "4F", "Brooklyn, NY", "112ll"))
+                .assertError(HttpStatusCode.BadRequest, ErrorCode.ValidationFailed)
+                .also {
+                    assertEquals(
+                        listOf(FieldError("zip", ErrorCode.FieldInvalid, "A ZIP code is five digits")),
+                        it.fields,
+                    )
+                }
+
+            saveAddress(token, AddressEntry(" 148 Wythe Avenue ", "4F", "Brooklyn, NY", "11211")).assertRefresh()
+
+            val saved = checkout(token)
+            val address = saved.only<CheckoutAddress>()
+            assertFalse(address.formOpen, "the form stayed open after the address was saved")
+            assertTrue(
+                address.form.all { it.error == null && it.value.isEmpty() },
+                "the refused form outlived the save",
+            )
+            assertEquals(listOf("148 Wythe Avenue, Apt 4F"), address.addresses.filter { it.selected }.map { it.line })
+            assertTrue(saved.only<CheckoutSummary>().placeEnabled)
+        }
+
+    /** «Not yours» is «does not exist» (research §5): Maya's seeded address is no one else's to choose. */
+    @Test
+    fun `another customer's address is not found`() =
+        signedIn("Sam Ortiz") { token ->
+            mayasLines(token)
+            choose(token, CheckoutChoice(addressId = SampleCheckout.MAYA_ADDRESS))
+                .assertError(HttpStatusCode.NotFound, ErrorCode.AddressNotFound)
+        }
+}

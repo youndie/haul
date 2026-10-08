@@ -1,5 +1,6 @@
 package io.github.youndie.haul.testing
 
+import com.zaxxer.hikari.HikariDataSource
 import io.github.youndie.haul.StoreClock
 import io.github.youndie.haul.db.Databases
 import io.github.youndie.haul.feature.catalog.domain.PhotoStore
@@ -55,7 +56,7 @@ internal fun haulTest(
 }
 
 /** A database of its own, migrated and seeded: for a test that writes to the catalog. */
-internal fun seededFreshDatabase(): DataSource =
+internal fun seededFreshDatabase(): HikariDataSource =
     PostgresHarness.freshDatabase().also {
         check(Seeder.seedIfEmpty(Databases.connect(it), CatalogSeed.generate()))
     }

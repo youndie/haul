@@ -16,6 +16,8 @@ internal data class SeedCatalog(
     val promoCodes: List<SeedPromoCode>,
     val customers: List<SeedCustomer> = emptyList(),
     val carts: List<SeedCart> = emptyList(),
+    val pickupPoints: List<SeedPickupPoint> = emptyList(),
+    val addresses: List<SeedAddress> = emptyList(),
 )
 
 internal data class SeedCategory(
@@ -111,4 +113,24 @@ internal data class SeedCart(
     val id: String,
     val customerId: String,
     val skuIds: List<String>,
+)
+
+/** A pickup point or a locker: [kind] `pickup_point` or `parcel_locker`; [distanceMeters] `null` where research §6 gives none. */
+internal data class SeedPickupPoint(
+    val id: String,
+    val kind: String,
+    val name: String,
+    val distanceMeters: Int?,
+    val hours: String,
+    val position: Int,
+)
+
+/** A customer's saved address. */
+internal data class SeedAddress(
+    val id: String,
+    val customerId: String,
+    val street: String,
+    val apt: String?,
+    val city: String,
+    val zip: String,
 )
