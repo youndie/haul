@@ -1,7 +1,7 @@
 ---
 id: B-40
 title: "server: saving the address being delivered to updates it in place"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-5-order
