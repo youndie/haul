@@ -10,33 +10,41 @@ contract_source:
   - haul:shared LinesRemoval
   - haul:shared PromoEntry
   - haul:shared CartLine
+  - haul:shared CartBody
+  - haul:shared LineCommand
   - haul:shared ErrorCode
 parent_feature: feature-cart
 ---
 
 # API: Cart
 
-> The six routes exist since B-11 and are described as the code has them. There are no route
-> classes in `shared`: the paths are the server's strings (`CartPaths` in `CartRouting.kt`), handed
-> to the client inside the tree — `CartLine.url` and `acknowledgeUrl`, `CartSelection.linesUrl`,
-> `PromoField.url` — and the contract is the command bodies, the components and `ErrorCode`.
+> The six routes exist since B-11 and are described as the code has them; B-12 let a customer in,
+> B-13 gave the tree its canvas shape (`CartBody`) and the client its commands, B-37 put the same
+> line command on every product card. There are no route classes in `shared`: the paths are the
+> server's strings (`CartPaths` in `CartRouting.kt`), handed to the client inside the tree —
+> `CartLine.url` and `acknowledgeUrl`, `CartSelection.linesUrl`, `PromoField.url`, `ProductCard.add`
+> — and the contract is the command bodies, the components and `ErrorCode`.
 
-The public tier here means a guest id the server issued, sent as `X-Haul-Guest` (`GUEST_HEADER` in
+The public tier here means a cart owner: a customer by a verified shildik bearer, or a guest id the
+server issued, sent as `X-Haul-Guest` (`GUEST_HEADER` in
 `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/Guests.kt`; the id comes from
-`POST /api/v1/guests`, [endpoint-identity](endpoint-identity.md)). A request with no such header, or
-with an id the server never issued, is `401 unauthenticated` on every route below. A customer's
-bearer token is not read yet: it joins the guest id with sign-in (B-12).
+`POST /api/v1/guests`, [endpoint-identity](endpoint-identity.md)). A token wins over a guest id. A
+request with neither, or with an id the server never issued, is `401 unauthenticated` on every route
+below; so is a token that does not verify.
 
 ## Routes — all of them, no exceptions
 
 | Method and path | Service | Auth tier | In the generated schema? | Purpose |
 |---|---|---|---|---|
-| `GET` `/ui/cart` | haul-server | public (`X-Haul-Guest`) | yes | request: —; answers tree: Cart — Content, Empty, PromoApplied, PromoError, ItemChanged and Guest are all this one tree |
-| `PUT` `/api/v1/cart/lines/{skuId}` | haul-server | public (`X-Haul-Guest`) | yes | request: `LineChange` — adds the SKU, or changes its line's quantity or selection; answers action: `refresh` |
-| `DELETE` `/api/v1/cart/lines` | haul-server | public (`X-Haul-Guest`) | yes | request: `LinesRemoval` — «Remove» and «Delete selected»; answers action: `refresh` |
-| `POST` `/api/v1/cart/lines/{skuId}/acknowledge` | haul-server | public (`X-Haul-Guest`) | yes | request: —; «OK» on a changed line; answers action: `refresh` |
-| `PUT` `/api/v1/cart/promo` | haul-server | public (`X-Haul-Guest`) | yes | request: `PromoEntry`; answers action: `refresh` |
-| `DELETE` `/api/v1/cart/promo` | haul-server | public (`X-Haul-Guest`) | yes | request: —; answers action: `refresh` |
+| `GET` `/ui/cart` | haul-server | public (customer bearer or `X-Haul-Guest`) | yes | request: —; answers tree: Cart — Content, Empty, PromoApplied, PromoError, ItemChanged and Guest are all this one tree |
+| `PUT` `/api/v1/cart/lines/{skuId}` | haul-server | public (customer bearer or `X-Haul-Guest`) | yes | request: `LineChange` — adds the SKU, or changes its line's quantity or selection; a card's «+» sends it too (`ProductCard.add`); answers action: `refresh` |
+| `DELETE` `/api/v1/cart/lines` | haul-server | public (customer bearer or `X-Haul-Guest`) | yes | request: `LinesRemoval` — «Remove» and «Delete selected»; answers action: `refresh` |
+| `POST` `/api/v1/cart/lines/{skuId}/acknowledge` | haul-server | public (customer bearer or `X-Haul-Guest`) | yes | request: —; «OK» on a changed line; answers action: `refresh` |
+| `PUT` `/api/v1/cart/promo` | haul-server | public (customer bearer or `X-Haul-Guest`) | yes | request: `PromoEntry`; answers action: `refresh` |
+| `DELETE` `/api/v1/cart/promo` | haul-server | public (customer bearer or `X-Haul-Guest`) | yes | request: —; answers action: `refresh` |
+
+The guest cart's merge into the customer's on sign-in, `POST /api/v1/me/cart/merge`, is in
+[endpoint-identity](endpoint-identity.md).
 
 Every command answers kompot's `RefreshAction` (`respondKompotAction`), which redraws the cart and
 with it the header's count. Conventions for every group — trees versus actions, the error body,
@@ -53,11 +61,13 @@ with it the header's count. Conventions for every group — trees versus actions
 | `PUT` `/api/v1/cart/promo` | `server/src/main/kotlin/io/github/youndie/haul/feature/cart/CartRouting.kt` → `CartCommands.applyPromo` |
 | `DELETE` `/api/v1/cart/promo` | `server/src/main/kotlin/io/github/youndie/haul/feature/cart/CartRouting.kt` → `CartCommands.removePromo` |
 | contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/cart/CartCommands.kt`, `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/CartComponents.kt`, `shared/src/commonMain/kotlin/io/github/youndie/haul/ErrorCode.kt` |
+| client | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/cart/CartCommands.kt` — each press a `CartCommand` (`ChangeLine`, `RemoveLines`, `Acknowledge`, `ApplyPromo`, `RemovePromo`) sent to the URL the tree carries through `Identity.send` |
 
 ## Request and response bodies
 
 The command bodies are in `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/cart/CartCommands.kt`
-(`LineChange`, `LinesRemoval`, `PromoEntry`), the components in
+(`LineChange`, `LinesRemoval`, `PromoEntry`, and `LineCommand` — a URL and a `LineChange` — which a
+card's «+» carries), the components in
 `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/CartComponents.kt`; not copied here. What the
 server does with them:
 
@@ -67,18 +77,32 @@ server does with them:
 * **`LinesRemoval`** — the SKUs whose lines go; at least one. A SKU with no line is ignored.
 * **`PromoEntry`** — the code as typed; the server trims it and ignores its case. The code already
   applied, sent again, changes nothing and is not a refusal.
-* **The Cart tree** (`screen/CartScreen.kt`) — inside the frame (`HaulHeader` with the cart's unit
-  count): `PageTitle`, `CartSelection`, one `CartGroup` per seller in the order the lines were added,
-  each with its latest delivery day, `PromoField`, `OrderSummary`. An empty cart is `EmptyState`
-  followed by `SectionHeader` «Picked for you» and a `ProductGrid` of the day's deals. A refused
-  code is drawn in the `PromoField` (the code as typed and the reason) until the next command.
+* **The Cart tree** (`screen/CartScreen.kt`, B-13) — inside the frame (`HaulHeader` with the cart's
+  unit count): `PageTitle` «Cart» with the count in a pill (`badge`), then one `CartBody` (the
+  canvas lays the lines and the summary side by side, which a column of sections cannot): the
+  `CartSelection`, one `CartGroup` per seller in the order the lines were added, each with «Courier ·
+  <latest delivery day>», and the `OrderSummary` with the `PromoField` inside it. A line carries
+  `changeDetail` («It was $24 when you added it») when changed, `each` above one unit. The summary's
+  rows are «Items (N)» of the counted units, «Discount», «Promo · AUTUMN10» when the code took
+  something off, «Delivery»; `SummaryRow.saving` marks the savings; the total is a price tag («$512»);
+  «You'll earn **N points** on this order» (`pointsAccent`) for a customer only. «Checkout» goes to
+  `/checkout`, a guest's «Sign in to check out» to `/sign-in?next=%2Fcheckout`. An empty cart is
+  `EmptyState` «Your cart is empty» with a filled «See today’s deals» (`/deals`), then `SectionHeader`
+  «Picked for you» / «From today’s deals» and a `ProductGrid` of the day's deals, each card with its
+  «+». A refused code is drawn in the `PromoField` (the code as typed and the reason) until the next
+  command.
 
 ## Quirks
 
-* A code applied while it was valid and expired since stops counting in the totals, but the
-  `PromoField` still shows it applied and nothing tells the shopper (`Totals.of` drops a code that
-  is not `activeAt` now; the tree draws `cart.promoCode` as it is). Checkout's quote must refuse it
-  (B-14).
+* A code applied while it was valid and expired since stops counting in the totals, but the cart's
+  `PromoField` still shows it applied and nothing on the cart tells the shopper (`Totals.of` drops a
+  code that is not `activeAt` now; the tree draws `cart.promoCode` as it is). Checkout's quote does
+  not count it either and draws a notice saying so (B-14, `CheckoutQuoteTest`).
+* The discount folds the promo in: Cart_PromoApplied draws «Discount −$140.00» beside «Promo ·
+  AUTUMN10 −$50.00», while the server sends «Discount −$190.00» (B-11's tested rule, kept by B-13;
+  feature-cart). Unresolved between the canvas and the rule.
+* The guest's checkout action carries `?next=%2Fcheckout`, but the client's `SignInActions` reads only
+  the path: after sign-in the cart is drawn again, not the checkout.
 * No command takes an `Idempotency-Key`: each is idempotent as written — set a quantity, delete
   lines, acknowledge, apply the code already applied.
 
@@ -98,4 +122,8 @@ Every refusal is an `ErrorBody`; a body that does not parse as the command's JSO
 
 Tests: `server/src/test/kotlin/io/github/youndie/haul/feature/cart/CartRoutesTest.kt` (the routes,
 against PostgreSQL), `server/src/test/kotlin/io/github/youndie/haul/feature/cart/ChangedLinesTest.kt`
-(changed lines and acknowledging).
+(changed lines and acknowledging), `server/src/test/kotlin/io/github/youndie/haul/feature/cart/CustomerCartTest.kt`
+(a customer's cart), `server/src/test/kotlin/io/github/youndie/haul/feature/cart/CartFixturesTest.kt`
+(the client's six cart bodies are exactly the trees the server builds),
+`composeApp/src/desktopTest/kotlin/io/github/youndie/haul/feature/cart/CartCommandsTest.kt` (each
+command's method, URL and body).

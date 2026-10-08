@@ -31,16 +31,17 @@ design:
 
 | What | File |
 |---|---|
-| Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/cart/` (planned, B-13) |
-| Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` (the cart's pages planned, B-13) |
+| Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/cart/CartViews.kt` (`CartBodyRenderer` in `composeApp/src/commonMain/kotlin/io/github/youndie/haul/registry/HaulRenderers.kt`); the commands in `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/cart/CartCommands.kt` |
+| Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Shell.kt` (`CartLoading`, `CartError`); `/cart` is `PageKind.Cart` in `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Navigation.kt` |
 | The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/cart/screen/CartScreen.kt` |
 | The components on the wire | `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/CartComponents.kt` |
-| Reference PNGs, one per artboard | `composeApp/src/desktopTest/snapshots/design/` |
+| Reference PNGs, one per artboard | `composeApp/src/desktopTest/snapshots/design/` (rendered with grayscale text, B-13's findings) |
+| Parity fixtures, one per artboard | `composeApp/src/desktopTest/kotlin/io/github/youndie/haul/CartFixtures.kt`; the six server states are `composeApp/src/desktopTest/resources/bodies/cart_*.json`, held equal to the server's trees by `CartFixturesTest` |
 
 ## 0. Entry point and visibility
 
 - **Entry point:** `/cart` in the browser.
-- **Shown when:** always; guests included.
+- **Shown when:** always; guests included. Reached from the header's cart button (`HaulHeader.cart`, B-37) or the address; a reload answers the page (`StorefrontPage.Cart`).
 
 ## 1. Screen states
 
@@ -48,20 +49,20 @@ The names are the artboard names without the screen prefix. `Loading` and `Error
 client while it has no tree or after a failed request; every other state is a tree the server
 returns. The list is held against the real state when the code exists.
 
-Since B-11 the server answers Content, Empty, PromoApplied, PromoError, ItemChanged and Guest as one
-tree — each is what the stored cart is, not a builder of its own — and its tests hold them
-(`CartRoutesTest`, `ChangedLinesTest` in `server/src/test/kotlin/io/github/youndie/haul/feature/cart/`).
-The boxes are ticked when the client draws them (B-13). Content's «You'll earn 1,024 points» is
-Maya's as a Plus customer; over HTTP the cart is a guest's until B-12, and a guest's is Guest.
+The server answers Content, Empty, PromoApplied, PromoError, ItemChanged and Guest as one tree —
+each is what the stored cart is, not a builder of its own — and its tests hold them (`CartRoutesTest`,
+`ChangedLinesTest`, `CustomerCartTest` in `server/src/test/kotlin/io/github/youndie/haul/feature/cart/`).
+B-13 drew all eight: `viddikDesignParity` 16/16 (desktop and phone) within the default tolerance.
+Content's «You'll earn 1,024 points» is Maya's as a Plus customer; a guest's cart is Guest.
 
-- [ ] **Loading:** title, placeholder groups and summary
-- [ ] **Content:** 3 items in 2 seller groups, all selected, summary $652.00 / −$140.00 / Free / $512, empty promo field, «You'll earn 1,024 points»
-- [ ] **Empty:** «Your cart is empty», link to deals, «Picked for you» row
-- [ ] **PromoApplied:** Content with `AUTUMN10` applied: a promo line in the summary, the code with Remove
-- [ ] **PromoError:** Content with `SUMMER5` in the field and «This code has expired»
-- [ ] **ItemChanged:** the mug line marked «Price changed: now $26» (or «Out of stock»), unselected, «OK»
-- [ ] **Guest:** Content without the points line; button «Sign in to check out»
-- [ ] **Error:** header, message, Retry
+- [x] **Loading:** title, placeholder groups and summary
+- [x] **Content:** 3 items in 2 seller groups, all selected, summary $652.00 / −$140.00 / Free / $512, empty promo field, «You'll earn 1,024 points»
+- [x] **Empty:** «Your cart is empty», link to deals, «Picked for you» row
+- [x] **PromoApplied:** Content with `AUTUMN10` applied: a promo line in the summary, the code with Remove. The server's Discount reads −$190.00 (the promo inside it), the canvas −$140.00 — see feature-cart, Quirks
+- [x] **PromoError:** Content with `SUMMER5` in the field and «This code has expired»
+- [x] **ItemChanged:** the mug line marked «Price changed: now $26» (or «Out of stock»), unselected, «OK»
+- [x] **Guest:** Content without the points line; button «Sign in to check out»
+- [x] **Error:** header, message, Retry («Nothing in it was lost», `CartError`)
 
 ### Artboards and sizes
 
@@ -77,9 +78,19 @@ Desktop artboards are named as in `design.states`; each has a phone twin with th
 
 ## 5. Navigation (summary)
 
-- − / + → quantity
-- Remove
-- Save for later
-- Select all / Delete selected
-- Apply
-- Checkout → screen-checkout (guest → sign-in)
+Each press is a `CartCommand` sent to the URL the tree carries; the answer, `refresh`, makes the
+shell fetch `/ui/cart` again in place (`LocalScreenRefresh`) — a refusal too.
+
+- − / + → `PUT /api/v1/cart/lines/{skuId}` with the new quantity (− at one and + at the limit send nothing)
+- a line's box → `PUT` with `selected`; «Select all» → one `ChangeLine` per line, one redraw
+- Remove / Delete selected → `DELETE /api/v1/cart/lines`
+- «OK» on a changed line → `POST /api/v1/cart/lines/{skuId}/acknowledge`
+- Apply / Remove on the code → `PUT` / `DELETE /api/v1/cart/promo` (Apply with nothing typed sends nothing)
+- a line's title → screen-product
+- Save for later → nothing yet (B-20)
+- Checkout → screen-checkout (`/checkout`); a guest's «Sign in to check out» → sign-in, then the cart drawn again (the `?next=%2Fcheckout` it carries is not read)
+- the empty cart's «See today’s deals» → [screen-deals](screen-deals.md)
+
+The client's wiring is `CartWiringTest` and `CartCommandsTest` in
+`composeApp/src/desktopTest/kotlin/io/github/youndie/haul/feature/cart/`. This document stays a draft
+while «Save for later» (B-20) is drawn and inert.
