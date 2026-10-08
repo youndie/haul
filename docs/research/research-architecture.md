@@ -247,11 +247,35 @@ and FreeType instance a variable font's outlines differently. The tolerance stay
 the goldens are recorded where CI verifies them, on Linux (`CLAUDE.md` says how), and a verification
 on macOS is expected to fail by that margin.
 
-**The fonts (B-04).** Bodoni Moda, Archivo and JetBrains Mono are the variable files of
-`google/fonts@5e8a3ba`, OFL, bundled as Compose resources with their licences in
+**The fonts (B-04).** Bodoni Moda (roman and, since B-07, italic), Archivo and JetBrains Mono are the
+variable files of `google/fonts@5e8a3ba`, OFL, bundled as Compose resources with their licences in
 `composeResources/files/licences`. Bodoni Moda is loaded per optical size (`opsz`), because the canvas
 draws it with optical sizing on. *Hypothesis still open:* that wasmJs honours the `opsz` setting as the
 desktop target does — checked when a screen is first compared in the browser.
+
+**Found in B-07: three ways Compose lays text out unlike the browser the references come from.**
+Measured on the Home and Catalog artboards (B-07, Iteration 1):
+
+- A line height below the font's own (Bodoni Moda's natural line is 1.53 em; the canvas sets 1, .9,
+  .82) does not shrink the paragraph in Compose: a two-line 112 px title at `line-height: .9` measured
+  272 px instead of 202, the excess split above and below. CSS keeps the line boxes and lets the glyphs
+  overflow. The client's `Text` reports the line boxes as its size, with the leading split evenly
+  (`LineHeightStyle.Alignment.Center`, `Trim.None`); this alone took Home_Guest from 23.4 % to 4.7 %.
+- viddik's pinned rasterisation places glyphs on whole pixels, which rounds every advance up
+  (JetBrains Mono's 6.6 px to 7) and pushes the end of a line several pixels to the right. The
+  fixtures keep the pinning (no hinting, anti-aliased) but place glyphs at fractional positions
+  (`FixtureFonts`): 0.1–0.7 points off every screen.
+- An inline label in a block of another font sits on that block's strut (its own font and line
+  height): an 11 px mono eyebrow in a 16 px Archivo block sits on a line about 17 px tall. `InlineLine` adds the strut.
+
+The italic cut of Bodoni Moda was missing in the first iteration and the accents were synthesised
+obliques of the roman, the largest difference left on the phone artboards; it is bundled since
+(`bodoni_moda_italic.ttf`, weight 500 only, as the canvas uses it).
+
+Also learned on the way: CSS sizes boxes in fractions of a pixel and Compose in whole ones, so every
+text's width is rounded up — a row of ten separate category names ends visibly right of the canvas,
+and a row laid out as one paragraph with placeholder gaps does not. `flex: 1` grows from a basis of
+zero with padding and border on top, which is why two «halves» are not equal on the canvas.
 
 **Risk 1. The canvas and the code drift apart without anyone seeing it.** A renderer changed for one
 screen changes every screen that uses the component. Mitigation: one reference PNG per artboard

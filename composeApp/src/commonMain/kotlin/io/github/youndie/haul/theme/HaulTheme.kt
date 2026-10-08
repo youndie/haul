@@ -8,9 +8,11 @@ import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import io.github.youndie.kompot.LocalKompotDesignSystem
 
 /**
  * The canvas's three families. Bodoni Moda is asked for per optical size, because the canvas draws it
@@ -40,7 +42,12 @@ public fun HaulTheme(
     compact: Boolean,
     content: @Composable () -> Unit,
 ) {
-    CompositionLocalProvider(LocalHaulFonts provides fonts, LocalHaulCompact provides compact, content = content)
+    CompositionLocalProvider(
+        LocalHaulFonts provides fonts,
+        LocalHaulCompact provides compact,
+        LocalKompotDesignSystem provides HaulDesignSystem,
+        content = content,
+    )
 }
 
 /** The type roles of `canvas.json` (`typeRoles`), each built at the exact size an artboard uses. */
@@ -59,9 +66,22 @@ public object HaulType {
         size: Float,
         weight: Int,
         letterSpacing: Float = 0f,
+        lineHeight: Float = 1f,
     ): TextStyle =
-        style(LocalHaulFonts.current.bodoni(size.coerceIn(BODONI_OPSZ_MIN, BODONI_OPSZ_MAX)), size, weight, size.sp)
-            .copy(letterSpacing = letterSpacing.em)
+        style(
+            LocalHaulFonts.current.bodoni(size.coerceIn(BODONI_OPSZ_MIN, BODONI_OPSZ_MAX)),
+            size,
+            weight,
+            (
+                size *
+                    lineHeight
+            ).sp,
+        ).copy(letterSpacing = letterSpacing.em)
+
+    /** CSS's leading: the space a line height adds (or takes) split evenly above and below, nothing trimmed. */
+    public fun TextStyle.browserLeading(): TextStyle = copy(lineHeightStyle = BROWSER_LEADING)
+
+    private val BROWSER_LEADING = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None)
 
     /** JetBrains Mono — labels, counts, delivery days; uppercase is the caller's, as on the canvas. */
     @Composable
@@ -83,6 +103,8 @@ public object HaulType {
             fontSize = size.sp,
             fontWeight = FontWeight(weight),
             lineHeight = lineHeight ?: TextUnit.Unspecified,
+            // A set line height is laid out as CSS does: the leading split evenly, nothing trimmed.
+            lineHeightStyle = if (lineHeight != null) BROWSER_LEADING else null,
             color = HaulColors.onSurface,
             platformStyle = LocalHaulFonts.current.platformStyle,
         )

@@ -57,26 +57,6 @@ internal fun ProductCardGrid() = Fixture(compact = false) { Cards(cell = 236, ga
 internal fun ProductCardGridPhone() = Fixture(compact = true) { Cards(cell = 173, gap = 12, take = 2) }
 
 @Composable
-private fun Fixture(
-    compact: Boolean,
-    content: @Composable () -> Unit,
-) {
-    HaulTheme(FixtureFonts.fonts, compact) {
-        Box(
-            Modifier.fillMaxSize().background(HaulColors.background),
-            contentAlignment = Alignment.TopStart,
-        ) { content() }
-    }
-}
-
-@Composable
-private fun Body(name: String) {
-    val component =
-        remember(name) { haulJson.decodeFromString(PolymorphicSerializer(KompotComponent::class), read(name)) }
-    Render(component)
-}
-
-@Composable
 private fun Cards(
     cell: Int,
     gap: Int,
@@ -94,15 +74,3 @@ private fun Cards(
         cards.forEach { Box(Modifier.width(cell.dp)) { Render(it) } }
     }
 }
-
-@Composable
-private fun Render(component: KompotComponent) {
-    val registry = remember { haulRegistry() }
-    val forms = remember { FormController(FormSchema(formId = "none", fields = emptyList())) }
-    KompotScreen(component, registry, forms, KompotActionHandler { })
-}
-
-private fun read(name: String): String =
-    checkNotNull(object {}.javaClass.classLoader.getResourceAsStream("bodies/$name")) {
-        "no body $name"
-    }.use { it.readBytes().decodeToString() }

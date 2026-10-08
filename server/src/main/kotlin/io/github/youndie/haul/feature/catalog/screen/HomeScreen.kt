@@ -6,6 +6,8 @@ import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.ui.CampaignHero
+import io.github.youndie.haul.ui.CampaignRow
+import io.github.youndie.haul.ui.CategoryGrid
 import io.github.youndie.haul.ui.CategoryTile
 import io.github.youndie.haul.ui.PlusBlock
 import io.github.youndie.haul.ui.ProductGrid
@@ -13,7 +15,6 @@ import io.github.youndie.haul.ui.PromoBanner
 import io.github.youndie.haul.ui.SectionHeader
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.NavigateAction
-import io.github.youndie.kompot.standard.RowComponent
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -34,17 +35,24 @@ internal class HomeScreen(
         val dealItems = catalog.listed(deals.map { deal -> deal.skuId.substringBeforeLast('-') })
 
         val sections = mutableListOf<KompotComponent>()
-        campaigns.firstOrNull()?.let { sections += hero(it) }
-        campaigns.drop(1).take(2).forEach { sections += banner(it) }
-        sections += SectionHeader("categories-title", "Shop by category", linkLabel = "All ${topLevel.size} categories")
+        campaigns.firstOrNull()?.let { first ->
+            sections += CampaignRow("campaigns", hero(first), campaigns.drop(1).take(2).map(::banner))
+        }
         sections +=
-            RowComponent(
+            SectionHeader(
+                "categories-title",
+                "Shop by category",
+                linkLabel = "All ${topLevel.size} categories",
+                accent = "category",
+                compactLinkLabel = "All ${topLevel.size}",
+            )
+        sections +=
+            CategoryGrid(
                 id = "categories",
-                children =
+                tiles =
                     topLevel.take(CATEGORY_TILES).map {
                         CategoryTile("tile-${it.slug}", it.name, it.tone, it.label, categoryLink(it.slug))
                     },
-                spacing = 16,
             )
         sections +=
             SectionHeader(
@@ -52,11 +60,13 @@ internal class HomeScreen(
                 "Deals of the day",
                 linkLabel = "View all deals",
                 countdownEndsAt = calendar.midnight(),
+                accent = "day",
             )
         sections +=
             ProductGrid(
                 id = "deals",
                 columns = DEAL_COLUMNS,
+                scroll = true,
                 cards =
                     deals.mapNotNull { deal ->
                         val item =
@@ -81,6 +91,7 @@ internal class HomeScreen(
             tone = campaign.tone,
             label = "campaign image",
             action = NavigateAction("/deals"),
+            accent = campaign.title.substringBeforeLast(' ', "").ifEmpty { null },
         )
 
     private fun banner(campaign: Campaign) =
@@ -89,6 +100,7 @@ internal class HomeScreen(
             eyebrow = campaign.subtitle,
             title = campaign.title,
             tone = campaign.tone,
+            accent = campaign.title.substringAfterLast(' '),
         )
 
     /** «Oct 7 — 14»: the canvas's way of writing a window inside one month. */
@@ -117,6 +129,7 @@ internal class HomeScreen(
                     ),
                 offer = "Try 30 days free",
                 price = "then $4.99 / month",
+                accent = "Every",
             )
     }
 }

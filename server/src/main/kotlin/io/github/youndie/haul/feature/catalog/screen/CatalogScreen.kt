@@ -21,6 +21,7 @@ import io.github.youndie.haul.ui.Facet
 import io.github.youndie.haul.ui.FacetOption
 import io.github.youndie.haul.ui.FacetPanel
 import io.github.youndie.haul.ui.FilterChips
+import io.github.youndie.haul.ui.FilteredResults
 import io.github.youndie.haul.ui.HaulPagination
 import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.ProductGrid
@@ -68,8 +69,7 @@ internal class CatalogScreen(
             )
         sections += PageTitle("title", category.name, "${count(page.total)} items")
         kinds(all, request, url)?.let { sections += it }
-        sections += facets(all, request.filters, url)
-        sections +=
+        val applied =
             AppliedFilters(
                 id = "applied",
                 chips = applied(request.filters, url),
@@ -77,25 +77,41 @@ internal class CatalogScreen(
                 sortLabel = request.sort.label,
                 filterCount = request.filters.count,
             )
-        if (page.items.isEmpty()) {
-            sections +=
-                EmptyState(
-                    "empty",
-                    "No items match these filters",
-                    "Try removing a filter or two.",
-                    "Clear all",
-                    NavigateAction(url.cleared()),
+        // One component for the facets and the results, because a wide page puts them side by side and
+        // a phone moves the facets into a sheet (B-07).
+        sections +=
+            if (page.items.isEmpty()) {
+                FilteredResults(
+                    id = "results",
+                    facets = facets(all, request.filters, url),
+                    applied = applied,
+                    showLabel = "Show 0 items",
+                    empty =
+                        EmptyState(
+                            "empty",
+                            "No items match these filters",
+                            "Try removing a filter or two.",
+                            "Clear all",
+                            NavigateAction(url.cleared()),
+                            accent = "filters",
+                        ),
                 )
-        } else {
-            sections += ProductGrid("grid", page.items.map { card(it, calendar) }, columns = GRID_COLUMNS)
-            sections +=
-                HaulPagination(
-                    id = "pagination",
-                    current = page.page,
-                    pages = pageNumbers(page.page, page.pages),
-                    moreLabel = if (page.page < page.pages) "Show ${Browse.PAGE_SIZE} more" else null,
+            } else {
+                FilteredResults(
+                    id = "results",
+                    facets = facets(all, request.filters, url),
+                    applied = applied,
+                    showLabel = "Show ${count(page.total)} items",
+                    grid = ProductGrid("grid", page.items.map { card(it, calendar) }, columns = GRID_COLUMNS),
+                    pagination =
+                        HaulPagination(
+                            id = "pagination",
+                            current = page.page,
+                            pages = pageNumbers(page.page, page.pages),
+                            moreLabel = if (page.page < page.pages) "Show ${Browse.PAGE_SIZE} more" else null,
+                        ),
                 )
-        }
+            }
         return Frame.page("catalog", viewer, navigation(categories), sections)
     }
 
@@ -152,6 +168,7 @@ internal class CatalogScreen(
         val brands = browse.counts(all, filters, FacetKey.Brand) { listOf(it.product.brand) }
         val colours = browse.counts(all, filters, FacetKey.Colour) { it.colours }
         val features = browse.counts(all, filters, FacetKey.Feature) { it.product.features }
+        val ceiling = priceCeiling(all)
         val tomorrow = all.count { browse.matches(it, filters, except = FacetKey.Delivery) && calendar.isTomorrow(it) }
         // The six brands with the most products, and any brand that is ticked, wherever it ranks.
         val shownBrands =
@@ -174,6 +191,8 @@ internal class CatalogScreen(
                                 "$$it"
                             },
                         max = filters.priceMaxDollars?.let { "$$it" },
+                        rangeStart = track(filters.priceMinDollars, ceiling) ?: 0f,
+                        rangeEnd = track(filters.priceMaxDollars, ceiling) ?: 1f,
                     ),
                     Facet(
                         key = "brand",
@@ -270,6 +289,17 @@ internal class CatalogScreen(
         )
     }
 
+    /** The slider's track runs from $0 to the category's dearest price, rounded up to the next $100. */
+    private fun priceCeiling(all: List<Listed>): Int {
+        val dearest = (all.maxOfOrNull { it.shown.priceCents } ?: 0) / CENTS
+        return (dearest / PRICE_STEP + 1) * PRICE_STEP
+    }
+
+    private fun track(
+        dollars: Int?,
+        ceiling: Int,
+    ): Float? = dollars?.let { (it.toFloat() / ceiling).coerceIn(0f, 1f) }
+
     private fun applied(
         filters: Filters,
         url: CatalogUrl,
@@ -319,6 +349,8 @@ internal class CatalogScreen(
         private const val GRID_COLUMNS = 4
         private const val BRANDS_SHOWN = 6
         private const val PAGES_SHOWN = 3
+        private const val CENTS = 100
+        private const val PRICE_STEP = 100
         private val RATINGS =
             listOf(
                 "4.5 and up" to BigDecimal("4.5"),

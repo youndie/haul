@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,11 +36,16 @@ import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
 
-/** The header, at the width the page is drawn at (`HaulHeader` on the wire). */
+/**
+ * The header, at the width the page is drawn at (`HaulHeader` on the wire). [pending] is the client's
+ * own header before any tree has arrived (Loading, Error): who is looking is not known yet, so the
+ * account slot is a placeholder and the cart has no count.
+ */
 @Composable
 public fun HaulHeaderView(
     header: HaulHeader,
     modifier: Modifier = Modifier,
+    pending: Boolean = false,
 ) {
     val compact = LocalHaulCompact.current
     Column(
@@ -49,13 +53,16 @@ public fun HaulHeaderView(
             .fillMaxWidth()
             .background(HaulColors.surfaceContainerLowest),
     ) {
-        if (compact) CompactHeader(header) else WideHeader(header)
+        if (compact) CompactHeader(header, pending) else WideHeader(header, pending)
         Box(Modifier.fillMaxWidth().height(1.dp).background(HaulColors.outlineVariant))
     }
 }
 
 @Composable
-private fun WideHeader(header: HaulHeader) {
+private fun WideHeader(
+    header: HaulHeader,
+    pending: Boolean,
+) {
     Strip(height = 36.dp, padding = 48.dp, size = 11f, spacing = 0.06f) { style ->
         Row(horizontalArrangement = Arrangement.spacedBy(28.dp)) {
             DeliverTo(header.deliverTo, style)
@@ -104,9 +111,13 @@ private fun WideHeader(header: HaulHeader) {
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
             Shortcut(HaulIcons.box, "Orders")
             Shortcut(HaulIcons.heart, "Saved")
-            Shortcut(HaulIcons.person, header.customerName ?: "Sign in")
+            when {
+                pending -> Shortcut(HaulIcons.person) { Skeleton(Modifier.width(40.dp).height(10.dp), 5.dp) }
+                header.customerName == null -> Shortcut(HaulIcons.person, "Sign in", weight = 700)
+                else -> Shortcut(HaulIcons.person, header.customerName.orEmpty())
+            }
             CartButton(
-                header.cartCount,
+                if (pending) 0 else header.cartCount,
                 Modifier.padding(start = 6.dp),
                 height = 56.dp,
                 radius = 16.dp,
@@ -122,7 +133,7 @@ private fun WideHeader(header: HaulHeader) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Deals(size = 15f)
-        header.categories.forEach { Text(it, HaulType.text(15f, 500)) }
+        SpacedWords(header.categories, 28.dp, HaulType.text(15f, 500))
         Spacer(Modifier.weight(1f))
         Text(
             "HAUL PLUS",
@@ -137,7 +148,10 @@ private fun WideHeader(header: HaulHeader) {
 }
 
 @Composable
-private fun CompactHeader(header: HaulHeader) {
+private fun CompactHeader(
+    header: HaulHeader,
+    pending: Boolean,
+) {
     Strip(height = 32.dp, padding = 16.dp, size = 10f, spacing = 0.04f) { style ->
         DeliverTo(header.deliverTo, style)
         Text("HELP", style)
@@ -153,12 +167,26 @@ private fun CompactHeader(header: HaulHeader) {
             Modifier.size(44.dp),
             contentAlignment = Alignment.Center,
         ) { Icon(HaulIcons.heart, 24.dp, HaulColors.onSurface) }
-        Box(
-            Modifier.size(44.dp),
-            contentAlignment = Alignment.Center,
-        ) { Icon(HaulIcons.person, 24.dp, HaulColors.onSurface) }
+        when {
+            pending -> {
+                Skeleton(Modifier.width(44.dp).height(20.dp), 6.dp)
+            }
+
+            header.customerName == null -> {
+                Box(Modifier.height(44.dp).padding(horizontal = 6.dp), contentAlignment = Alignment.Center) {
+                    Text("Sign in", HaulType.text(15f, 700), softWrap = false)
+                }
+            }
+
+            else -> {
+                Box(
+                    Modifier.size(44.dp),
+                    contentAlignment = Alignment.Center,
+                ) { Icon(HaulIcons.person, 24.dp, HaulColors.onSurface) }
+            }
+        }
         CartButton(
-            header.cartCount,
+            if (pending) 0 else header.cartCount,
             Modifier.padding(start = 4.dp),
             height = 44.dp,
             radius = 14.dp,
@@ -187,14 +215,15 @@ private fun CompactHeader(header: HaulHeader) {
     Row(
         Modifier
             .fillMaxWidth()
-            .height(45.dp)
+            // `height: 46px` with a 1 px top border outside it: 47 in all.
+            .height(46.dp)
             .padding(horizontal = 16.dp)
             .clipToBounds(),
         horizontalArrangement = Arrangement.spacedBy(22.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Deals(size = 14f)
-        header.categories.forEach { Text(it, HaulType.text(14f, 500), softWrap = false) }
+        SpacedWords(header.categories, 22.dp, HaulType.text(14f, 500))
     }
 }
 
@@ -223,7 +252,7 @@ private fun DeliverTo(
     place: String,
     style: TextStyle,
 ) {
-    BasicText(
+    Text(
         buildAnnotatedString {
             append("DELIVER TO ")
             withStyle(
@@ -269,7 +298,8 @@ private fun SearchField(
             .height(height)
             .background(HaulColors.surfaceContainerLowest, shape)
             .border(2.dp, HaulColors.onSurface, shape)
-            .padding(start = start, end = end),
+            // The 2 px border is inside the box's size (`box-sizing: border-box`) but outside its padding.
+            .padding(start = start + 2.dp, end = end + 2.dp),
         horizontalArrangement = Arrangement.spacedBy(gap),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -304,6 +334,15 @@ private fun SearchField(
 private fun Shortcut(
     icon: ImageVector,
     label: String,
+    weight: Int = 500,
+) {
+    Shortcut(icon) { Text(label, HaulType.text(12f, weight)) }
+}
+
+@Composable
+private fun Shortcut(
+    icon: ImageVector,
+    label: @Composable () -> Unit,
 ) {
     Column(
         Modifier.width(76.dp),
@@ -311,7 +350,7 @@ private fun Shortcut(
         verticalArrangement = Arrangement.spacedBy(5.dp),
     ) {
         Icon(icon, 24.dp, HaulColors.onSurface)
-        Text(label, HaulType.text(12f, 500))
+        label()
     }
 }
 
@@ -335,14 +374,17 @@ private fun CartButton(
     ) {
         Icon(HaulIcons.bag, 22.dp, HaulColors.onPrimary)
         if (label) Text("Cart", HaulType.text(16f, 700).copy(color = HaulColors.onPrimary))
-        Box(
-            Modifier
-                .defaultMinSize(minWidth = 24.dp)
-                .height(24.dp)
-                .background(HaulColors.secondaryContainer, RoundedCornerShape(12.dp))
-                .padding(horizontal = 6.dp),
-            contentAlignment = Alignment.Center,
-        ) { Text(count.toString(), HaulType.text(13f, 800)) }
+        // A cart with nothing in it shows no count (Home_Guest).
+        if (count > 0) {
+            Box(
+                Modifier
+                    .defaultMinSize(minWidth = 24.dp)
+                    .height(24.dp)
+                    .background(HaulColors.secondaryContainer, RoundedCornerShape(12.dp))
+                    .padding(horizontal = 6.dp),
+                contentAlignment = Alignment.Center,
+            ) { Text(count.toString(), HaulType.text(13f, 800)) }
+        }
     }
 }
 
@@ -352,31 +394,6 @@ private fun Deals(size: Float) {
         Icon(HaulIcons.bolt, 16.dp, HaulColors.error)
         Text("Deals", HaulType.text(size, 800).copy(color = HaulColors.error))
     }
-}
-
-@Composable
-internal fun Text(
-    text: String,
-    style: TextStyle,
-    modifier: Modifier = Modifier,
-    softWrap: Boolean = true,
-    maxLines: Int = Int.MAX_VALUE,
-) {
-    BasicText(
-        text,
-        modifier,
-        style,
-        softWrap = softWrap,
-        maxLines = maxLines,
-        overflow =
-            if (maxLines ==
-                Int.MAX_VALUE
-            ) {
-                TextOverflow.Clip
-            } else {
-                TextOverflow.Ellipsis
-            },
-    )
 }
 
 @Composable

@@ -6,6 +6,9 @@ import io.github.youndie.haul.haulModule
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.Seeder
+import io.github.youndie.haul.ui.CampaignRow
+import io.github.youndie.haul.ui.CategoryGrid
+import io.github.youndie.haul.ui.FilteredResults
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.decodeKompotComponent
 import io.github.youndie.kompot.standard.BoxComponent
@@ -45,13 +48,16 @@ internal suspend fun HttpClient.tree(path: String): KompotComponent {
     return haulWireJson.decodeKompotComponent(response.bodyAsText())
 }
 
-/** Every component in a tree, depth first. */
+/** Every component in a tree, depth first, through kompot's containers and the Haul components that hold others. */
 internal fun KompotComponent.all(): List<KompotComponent> =
     listOf(this) +
         when (this) {
             is ColumnComponent -> children.flatMap { it.all() }
             is RowComponent -> children.flatMap { it.all() }
             is BoxComponent -> children.flatMap { it.all() }
+            is CampaignRow -> listOf(hero).flatMap { it.all() } + banners.flatMap { it.all() }
+            is CategoryGrid -> tiles.flatMap { it.all() }
+            is FilteredResults -> listOfNotNull(facets, applied, grid, pagination, empty).flatMap { it.all() }
             else -> emptyList()
         }
 
