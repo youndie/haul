@@ -1,7 +1,7 @@
 ---
 id: B-13
 title: "design refs + client: Cart renderers"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-4-cart
