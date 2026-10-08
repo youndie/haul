@@ -1,7 +1,7 @@
 ---
 id: B-09
 title: "server: search, suggest, recent searches; suggest latency measured on the seed"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-3-search
