@@ -22,7 +22,7 @@ screen, petich for the order, shildik for sign-in, Compose Multiplatform in the 
 | `:e2e` | the whole path over HTTP against a composed stack | JVM |
 
 One root package everywhere, `io.github.youndie.haul`; a feature lives in `feature/<name>/` in every
-module it touches, and only packages several features import (`db`, `seed`, `di`, `theme`,
+module it touches, and only packages several features import (`db`, `seed`, `di`, `ops`, `theme`,
 `registry`, `shell`, `ui`) sit at the root (research D3a).
 
 ## What runs on every pull request
@@ -30,7 +30,11 @@ module it touches, and only packages several features import (`db`, `seed`, `di`
 ```bash
 make check                                                                  # the documentation gate
 ./gradlew check :server:installDist :composeApp:wasmJsBrowserDistribution  # the code gate
+scripts/image-check.sh                                                      # the image and its AOT cache
 ```
+
+The server's tests and the image check need Docker: PostgreSQL runs in Testcontainers, and the image
+trains its cache against a PostgreSQL of its own (`docker/Dockerfile`).
 
 ## Rules
 
