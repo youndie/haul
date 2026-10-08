@@ -62,12 +62,13 @@ number was taken and is not edited after the first raw file exists.
   file and bucket (raw, gzip, brotli), the time per profile with its spread, the raw values per run and
   what they say about D9 (confirmed: skiko's wasm is 65.8 % of the wired first load, the runtime at
   least 78 %; on a throttled link the wait is the bundle crossing it — first frame 5.0 s on Fast 4G,
-  22.3 s on Slow 4G, 0.6–1.0 s on loopback).
+  22.3 s on Slow 4G, 0.4–1.2 s on loopback across two campaigns).
 - The harness: `scripts/measure-first-load.sh` builds the two arms and calls
   `scripts/measure-first-load.py`, which serves the distribution, drives headless Chromium over CDP
   and writes the raw runs (JSON lines), a summary per arm and a screenshot per run to `$OUT`. Standard
   library only; brotli through the `libbrotlienc` that ships with Chromium.
-- Ran on the shared Linux build machine with other agents' builds on it (load average 3.7–11.0); the
+- Ran on the shared Linux build machine with other agents' builds on it (load average 3.7–11.0, and
+  1.4–4.4 for a second, loopback-only campaign taken when it had calmed down); the
   throttled numbers are bounded by the link, the loopback ones by the CPU and are no better than a
   factor of two.
 - Anchors: `scripts/measure-first-load.sh`, `scripts/measure-first-load.py`,
@@ -89,10 +90,14 @@ number was taken and is not edited after the first raw file exists.
   (the fonts-blocked control drew the whole Home page with no other font requested); the canvas faces
   swap in 0.7 s (loopback) to 3.8 s (Slow 4G) later. Screenshot goldens never see that frame.
 - **Levers, not taken (optimising is out of scope):**
-  - *Compression where the bundle is served.* Nothing in the repository serves the bundle yet (the
-    server does not; the stand is B-27). Uncompressed the first load is 13.5 MB, gzip 4.9 MB, brotli
-    3.9 MB (wired); brotli saves 21 % over gzip. `application/wasm` is not in common default
-    compression lists (nginx's `gzip_types`), so it has to be named.
+  - *Compression where the bundle is served — the largest lever.* B-27 (merged while this item ran)
+    serves the bundle from the server with Ktor's `staticFiles("/", …)` and no `Compression` plugin,
+    and the chart's Traefik `IngressRoute` attaches no `compress` middleware (whether the cluster's
+    entrypoint compresses on its own was not checked). Served that way, main's first frame took 11.6 s
+    on Fast 4G and 62.1 s on Slow 4G, against 3.9 s and 19.5 s with brotli (research D9). Uncompressed
+    the wired first load is 13.5 MB, gzip 4.9 MB, brotli 3.9 MB; brotli saves 21 % over gzip, and
+    precompressed files avoid paying quality 11 per request. `application/wasm` is not in common
+    default compression lists (nginx's `gzip_types`), so it has to be named.
   - *The fonts.* `archivo.ttf` is the whole variable font, 643 KiB raw / 192 KiB brotli; a Latin subset
     (the storefront is English and USD) would cut most of it. Whether Compose's web font loading takes
     WOFF2 was not checked. Preloading the fonts from `index.html` would remove the face swap but, on a

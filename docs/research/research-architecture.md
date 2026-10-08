@@ -290,7 +290,8 @@ log: with every `.wasm` blocked the probe saw no GL call and no frame (both arms
 out in their known order; Slow 4G's first frame lies above the time its non-font bytes take at its
 bandwidth. The stand: the shared Linux build machine (WSL2 on an Intel Core Ultra 7 255HX, 20
 threads, 16 GB, kernel 6.6.87.2), **busy with other agents' Gradle builds** — 1-minute load average
-3.7–11.0 during the runs, MemAvailable never under 7.6 GB. The throttled profiles are bounded by the
+3.7–11.0 during the runs (1.4–4.4 in the second, loopback-only campaign), MemAvailable never under
+7.6 GB. The throttled profiles are bounded by the
 link and barely move with load; the unthrottled one is bounded by the CPU and its spread is the load's.
 
 **Sizes**, KiB, per bucket of the files the page requested (the source map and the licence texts are
@@ -334,6 +335,23 @@ The raw values, rounds 1–7 in order (round 1 discarded), first frame / settled
 | wired | Fast 4G | 4720 4575 4657 5060 5005 4899 5128 | 6402 5888 6289 6459 6992 6731 7344 | 5.3 4.7 5.6 4.5 7.1 6.6 6.7 |
 | wired | Slow 4G | 22048 22063 21968 22192 22330 22414 22606 | 25705 25415 25302 25640 26508 26816 26780 | 6.6 7.1 6.4 4.4 4.0 6.3 9.8 |
 
+A second campaign, loopback only, run when the machine's load had dropped (same host, same builds,
+same script with `--profiles none`, about 20 minutes after the first):
+
+| Arm | First frame | Settled | Raw first frame | Raw settled | 1-min load |
+|---|---:|---:|---|---|---|
+| main | 396 (328–566) | 548 (470–801) | 373 341 375 328 417 566 492 | 507 470 528 477 568 801 671 | 1.4–1.6 |
+| wired | 1,177 (833–1,268) | 2,302 (1,228–2,972) | 1034 1119 958 833 1243 1235 1268 | 2623 2191 2291 1229 2313 2508 2972 | 2.6–4.4 |
+
+A third campaign served main's bundle **uncompressed** (`--identity`; same bundle — the wasm digests
+match — same host, about 25 minutes after the first, 1-minute load 4.4–14.2): 11,707 KiB on the wire.
+
+| Arm | Profile | First frame | Settled | Raw first frame |
+|---|---|---:|---:|---|
+| main, identity | none | 942 (591–1,276) | 1,346 (868–1,829) | 2029 771 1055 1276 841 1043 591 |
+| main, identity | Fast 4G | 11,616 (11,530–11,664) | 13,081 (12,956–13,122) | 11369 11591 11635 11664 11530 11654 11597 |
+| main, identity | Slow 4G | 62,136 (62,083–62,342) | 69,405 (69,309–69,622) | 63004 62343 62153 62121 62152 62089 62083 |
+
 **What it says about D9.**
 
 - *Bytes: confirmed.* Skiko's wasm is 65.8 % of the wired first load; with the Compose framework in
@@ -343,8 +361,12 @@ The raw values, rounds 1–7 in order (round 1 discarded), first frame / settled
   skiko's last byte, so the wait is the bundle crossing the link: about 5 s on Fast 4G and 22 s on
   Slow 4G, of which skiko's 2,561 KiB alone are 14.6 s at Slow 4G's bandwidth.
 - *Time on loopback: the CPU,* compiling and instantiating the wasm and composing the first frame:
-  0.6 s for main and 1.0 s for wired, with a spread the shared machine's load explains; these two
-  numbers are not a property of the bundle to better than a factor of two.
+  0.4–0.6 s for main and 1.0–1.2 s for wired across the two campaigns, with a spread the shared
+  machine's load explains (main's 0.4 s is the one quiet run; wired's second campaign was slower than
+  its first). Below a second either way; not a property of the bundle to better than a factor of two.
+- *Compression is worth more than anything Haul's own code could save.* The same bundle served
+  without it reaches its first frame in 11.6 s instead of 3.9 s on Fast 4G and in 62.1 s instead of
+  19.5 s on Slow 4G — a factor of about three, against the 10 % Haul's screens weigh.
 - *The first frame is the page, in a fallback face.* The fonts are fetched only once the wasm runs
   (so they never compete with it on the link), and Compose draws before they arrive: with every font
   blocked, the wired arm still drew the whole Home page in a fallback face carried by the bundle (no
