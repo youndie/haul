@@ -58,10 +58,11 @@ status codes and error strings before this document goes `active`.
 * **Automated:** `ProductRoutesTest.a variant changes the price`
 
 ### Scenario: Out of stock
-* The page half — the SKU drawn «Out of stock», no cut-off offered, «Silver is out of stock.» (`stockAdvice`) where the delivery lines were — is `ProductRoutesTest.an out of stock SKU is drawn out of stock`; the `409` is the cart route's (B-11).
+* The page half — the SKU drawn «Out of stock», no cut-off offered, «Silver is out of stock.» (`stockAdvice`) where the delivery lines were — is `ProductRoutesTest.an out of stock SKU is drawn out of stock`; the `409` is the cart route's ([endpoint-cart](../api/endpoint-cart.md)).
 * **Given:** a `Sku` with stock 0
 * **When:** the client adds it to the cart
 * **Then:** the server returns `409` with `out_of_stock`.
+* **Automated:** `CartRoutesTest.quantities stay within one to ten and the stock` (`server/src/test/kotlin/io/github/youndie/haul/feature/cart/CartRoutesTest.kt`)
 
 ### Scenario: Unknown product
 * **When:** the client asks for a product id that does not exist
