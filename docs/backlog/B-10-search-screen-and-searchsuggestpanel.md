@@ -32,6 +32,10 @@ channel, untouched):
 | Search_NoResults | 2.50 % | | Search_NoResults_Phone | 4.04 % |
 | Search_Error | 1.84 % | | Search_Error_Phone | 3.76 % |
 
+These numbers were measured against references rendered with LCD (coloured) text; B-38 rendered
+them again with grayscale text and re-measured (0.26–2.97 %), see
+[B-38](B-38-re-render-the-search-references-with-grayscale.md).
+
 What is left is the text residual: glyph edges everywhere, the phone card titles up to 0.8 px right
 of the canvas's (the card's own residual, as on Catalog), and the header's Orders / Saved / account
 shortcuts, which sit about 7 px lower than the canvas's on every 1440 artboard — Home, Catalog and
