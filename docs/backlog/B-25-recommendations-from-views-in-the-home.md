@@ -1,7 +1,7 @@
 ---
 id: B-25
 title: "server: recommendations from views in the Home tree"
-status: open
+status: wip
 priority: P2
 size: M
 stage: stage-8-loyalty
