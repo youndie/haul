@@ -3,7 +3,7 @@ id: screen-account
 title: Account
 type: client_screen
 platform: [web]
-status: draft
+status: active
 entry:
   web: "/account"
 parent_feature: feature-account
@@ -25,26 +25,27 @@ design:
 
 # Screen: Account
 
-Menu items other than Overview, Orders and Saved are not shown in v1 (§2).
-
-> Today `/account` — where a customer's header shortcut goes — is a placeholder (B-12): `GET
-> /ui/account` answers the frame and «Hi, <first name>»
-> (`server/src/main/kotlin/io/github/youndie/haul/feature/account/AccountRouting.kt`), drawn with the
-> shell's generic placeholders (`PageKind.Other`). The Account tree and its renderers are B-19's.
+Two addresses draw this screen: the overview at `/account` (`GET /ui/account`) and the history at
+`/account/orders` (`GET /ui/account/orders`, the Orders state), both `PageKind.Account` in the shell.
+Menu items other than Overview, Orders and Saved are not shown in v1 (research D6). The Saved list,
+drawn inside the same frame, is [screen-saved](screen-saved.md).
 
 ## 0a. Code anchors
 
-| What | File (planned) |
+| What | File |
 |---|---|
-| Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/account/` |
-| Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` |
-| The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/account/` |
+| Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/account/AccountViews.kt` |
+| Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Shell.kt` (`AccountLoading`, `AccountError`) |
+| The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/account/screen/AccountScreen.kt` |
+| The contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/AccountComponents.kt` |
 | Reference PNGs, one per artboard | `composeApp/src/desktopTest/snapshots/design/` |
 
 ## 0. Entry point and visibility
 
-- **Entry point:** `/account` in the browser.
-- **Shown when:** signed in; a guest is sent to sign-in.
+- **Entry point:** `/account` and `/account/orders` (`?status=active|delivered|returned|cancelled`) in
+  the browser; the header's name and «Orders».
+- **Shown when:** signed in. A guest's `401` is drawn as the sign-in prompt («This page needs a
+  sign-in», «Sign in to continue»), which returns here once signed in (B-44).
 
 ## 1. Screen states
 
@@ -52,12 +53,12 @@ The names are the artboard names without the screen prefix. `Loading` and `Error
 client while it has no tree or after a failed request; every other state is a tree the server
 returns. The list is held against the real state when the code exists.
 
-- [ ] **Loading:** side menu, placeholder tiles and order cards
-- [ ] **Content:** «Hi, Maya», Points 2,480 / $24.80, Haul Plus $186 / renews Nov 2, Price drops 6, two active orders, 4 history rows
-- [ ] **NotMember:** Sam: the Plus tile offers the trial, points 0, no active orders, history with one order
-- [ ] **Orders:** «Orders» selected: the full history with a status filter (All / Active / Delivered / Returned / Cancelled)
-- [ ] **NoOrders:** a customer with no orders: «No orders yet», link to deals
-- [ ] **Error:** header, message, Retry
+- [x] **Loading:** side menu, placeholder tiles and order cards (`AccountLoading`)
+- [x] **Content:** «Hi, Maya», Points 2,480 / $24.80, Haul Plus $186 / renews Nov 2, Price drops 6, two active orders, 4 history rows
+- [x] **NotMember:** Sam: the Plus tile offers the trial («Try 30 days free» presents the trial dialog), points 0, no active orders, history with one order
+- [x] **Orders:** «Orders» selected: the full history with a status filter (All / Active / Delivered / Returned / Cancelled), each chip its own address
+- [x] **NoOrders:** a customer with no orders: «No orders yet», «See today's deals», «Joined <month>»
+- [x] **Error:** header, «Your account didn’t load», Retry (`AccountError`)
 
 ### Artboards and sizes
 
@@ -73,4 +74,17 @@ Desktop artboards are named as in `design.states`; each has a phone twin with th
 
 ## 5. Navigation (summary)
 
-- see the parent feature
+- the menu's Overview, Orders, Saved → `/account`, `/account/orders`, `/account/saved`
+- an active order's card, «Track», «Details» → the order (`/account/orders/{id}`, screen-order)
+- «Reorder» on a delivered row → `POST /api/v1/me/orders/{id}/reorder` (`CartCommand.Reorder`), then `/cart`; a refusal draws the page again
+- «All orders» → `/account/orders`; a filter chip → `/account/orders?status=…`
+- «See today's deals» → `/deals`
+- «Try 30 days free» → the trial dialog (kompot `present`, [feature-membership](../features/feature-membership.md))
+
+## 6. Quirks
+
+- The header's Orders, Saved and name labels sit 7 px below the canvas on every screen with the full
+  header (the shared `HaulHeaderView`).
+- A non-member's avatar tone, and an overview without past orders, a filter matching nothing or an
+  active order going to a pickup point, are drawn without artboards
+  ([feature-account](../features/feature-account.md), quirks).
