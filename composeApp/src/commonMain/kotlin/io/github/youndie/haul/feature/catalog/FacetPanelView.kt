@@ -39,6 +39,7 @@ import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Icon
 import io.github.youndie.haul.ui.Text
+import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.toneColor
 
 /**
@@ -82,7 +83,7 @@ private fun FacetBlock(
             else -> {
                 facet.options.forEach { option ->
                     Row(
-                        Modifier.fillMaxWidth().heightIn(min = if (sheet) 44.dp else 0.dp),
+                        Modifier.fillMaxWidth().heightIn(min = if (sheet) 44.dp else 0.dp).follows(option.action),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -238,7 +239,7 @@ private fun Swatches(
             val colour = option.swatch?.let(::toneColor) ?: HaulColors.outlineVariant
             // The selected ring is a box shadow on the canvas: 2 px of Paper, then 2 px of Cobalt,
             // drawn outside the swatch without moving its neighbours.
-            Box(Modifier.size(size), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(size).follows(option.action), contentAlignment = Alignment.Center) {
                 if (option.selected) {
                     Box(Modifier.requiredSize(size + 8.dp).background(HaulColors.primary, CircleShape))
                     Box(Modifier.requiredSize(size + 4.dp).background(HaulColors.background, CircleShape))
@@ -281,7 +282,7 @@ private fun Pills(options: List<FacetOption>) {
             Text(
                 option.label,
                 HaulType.text(14f, if (option.selected) 600 else 500),
-                box.padding(horizontal = 13.dp, vertical = 9.dp),
+                box.follows(option.action).padding(horizontal = 13.dp, vertical = 9.dp),
                 softWrap = false,
             )
         }

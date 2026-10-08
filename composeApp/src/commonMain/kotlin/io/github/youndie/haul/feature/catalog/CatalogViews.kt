@@ -44,9 +44,12 @@ import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.HaulPagination
 import io.github.youndie.haul.ui.Icon
+import io.github.youndie.haul.ui.LocalHaulActions
 import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.ProductGridView
 import io.github.youndie.haul.ui.Text
+import io.github.youndie.haul.ui.appendLink
+import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 
 // The category page's components (screen-catalog), each with the margin the page gives it; the
@@ -61,10 +64,14 @@ public fun BreadcrumbsView(breadcrumbs: Breadcrumbs) {
     // Product_Description_Phone); a category's four still fit.
     val crumbs = breadcrumbs.crumbs
     val shown = if (compact && crumbs.size > COMPACT_CRUMBS) crumbs.takeLast(2) else crumbs
+    val actions = LocalHaulActions.current
     Text(
         buildAnnotatedString {
             if (shown.size < crumbs.size) append("… / ")
-            shown.dropLast(1).forEach { append(it.label + " / ") }
+            shown.dropLast(1).forEach {
+                appendLink(it.label, it.action, actions)
+                append(" / ")
+            }
             withStyle(SpanStyle(color = HaulColors.onSurface)) { append(shown.lastOrNull()?.label.orEmpty()) }
         },
         Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = if (compact) 20.dp else 28.dp),
@@ -206,7 +213,7 @@ private fun KindChip(
                 .border(1.dp, HaulColors.outlineVariant, CircleShape)
                 .padding(1.dp)
         }
-    Box(Modifier.fillMaxHeight().then(box)) {
+    Box(Modifier.fillMaxHeight().then(box).follows(chip.action)) {
         Text(
             chip.count?.let { "${chip.label} $it" } ?: chip.label,
             style,
@@ -323,6 +330,7 @@ private fun AppliedChip(chip: Chip) {
     Row(
         Modifier
             .background(HaulColors.inverseSurface, CircleShape)
+            .follows(chip.action)
             .padding(start = 14.dp, end = 12.dp, top = 9.dp, bottom = 9.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,

@@ -123,7 +123,8 @@ internal fun Modifier.negativeBottomMargin(less: Dp): Modifier =
 
 /**
  * The canvas's button: a filled or outlined pill-cornered block, its label in Archivo 700 and an
- * optional icon after (or, with [iconFirst], before) it, 10 px apart.
+ * optional icon after (or, with [iconFirst], before) it, 10 px apart. [onClick] makes it a button;
+ * without one it is drawn and does nothing.
  */
 @Composable
 internal fun HaulButton(
@@ -140,10 +141,12 @@ internal fun HaulButton(
     iconSize: Dp = 20.dp,
     iconFirst: Boolean = false,
     gap: Dp = 10.dp,
+    onClick: (() -> Unit)? = null,
 ) {
     val shape = RoundedCornerShape(radius)
     Row(
         modifier
+            .pressable(onClick)
             .height(height)
             .then(if (fill != null) Modifier.background(fill, shape) else Modifier)
             // A CSS border takes room of its own, outside the padding.

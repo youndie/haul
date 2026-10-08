@@ -92,7 +92,7 @@ public fun ErrorShell(
     failure: ShellFailure,
     onRetry: () -> Unit = {},
 ) {
-    ErrorPage(SHELL_HEADER, accented("$subject didn’t\u00A0load", "load"), failure.message, balanced = false)
+    ErrorPage(SHELL_HEADER, accented("$subject didn’t\u00A0load", "load"), failure.message, balanced = false, onRetry)
 }
 
 /** A failed search (Search_Error): the query stays in the field, and the shopper is told so. */
@@ -108,6 +108,7 @@ public fun SearchError(
         // `text-wrap: balance` keeps «didn’t respond» together at 1440 and breaks it on a phone,
         // where the two words do not fit one line.
         balanced = true,
+        onRetry = onRetry,
     )
 }
 
@@ -117,6 +118,7 @@ private fun ErrorPage(
     title: AnnotatedString,
     message: String,
     balanced: Boolean,
+    onRetry: () -> Unit,
 ) {
     val compact = LocalHaulCompact.current
     Column(Modifier.fillMaxWidth()) {
@@ -167,6 +169,7 @@ private fun ErrorPage(
                 content = HaulColors.onPrimary,
                 icon = HaulIcons.retry,
                 iconFirst = true,
+                onClick = onRetry,
             )
         }
     }
@@ -428,6 +431,7 @@ public fun NotFoundShell(
                 fill = HaulColors.primary,
                 content = HaulColors.onPrimary,
                 icon = HaulIcons.arrowRight,
+                onClick = onAction,
             )
         }
     }

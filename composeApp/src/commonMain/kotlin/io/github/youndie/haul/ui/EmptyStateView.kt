@@ -47,6 +47,7 @@ public fun EmptyStateView(
                 radius = 18.dp,
                 border = HaulColors.onSurface,
                 icon = HaulIcons.arrowRight,
+                onClick = following(empty.action),
             )
         }
     }

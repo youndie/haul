@@ -17,7 +17,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -27,18 +31,29 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
@@ -66,6 +81,44 @@ public class SearchFieldState(
 
 /** The search field's state, provided by whoever owns the field's focus; none is a field nobody types in. */
 public val LocalSearchField: ProvidableCompositionLocal<SearchFieldState?> = staticCompositionLocalOf { null }
+
+/**
+ * What the shopper types into the header's search field, owned by the app's shell; [submit] hands the
+ * text to [onSubmit], which opens the results. Without one — a screenshot — the field is drawn, not edited.
+ */
+@Stable
+public class SearchInput(
+    private val onSubmit: (String) -> Unit,
+) {
+    public var text: TextFieldValue by mutableStateOf(TextFieldValue())
+        private set
+
+    /** Whether [text] is the shopper's own typing, rather than the query the page arrived with. */
+    public var typed: Boolean by mutableStateOf(false)
+        private set
+
+    /** The shopper changed the text (or only moved the caret). */
+    public fun type(value: TextFieldValue) {
+        if (value.text != text.text) typed = true
+        text = value
+    }
+
+    /** A page arrived holding [query] (none outside search): the field shows it, caret at its end. */
+    public fun show(query: String) {
+        text = TextFieldValue(query, TextRange(query.length))
+        typed = false
+    }
+
+    public fun submit() {
+        onSubmit(text.text)
+    }
+}
+
+/** The header's search field as the shopper edits it; none draws the field as the tree has it. */
+public val LocalSearchInput: ProvidableCompositionLocal<SearchInput?> = staticCompositionLocalOf { null }
+
+/** Where pressing the logo goes — the home page, which is the app's own; none leaves the logo inert. */
+public val LocalLogoAction: ProvidableCompositionLocal<(() -> Unit)?> = staticCompositionLocalOf { null }
 
 /**
  * The header, at the width the page is drawn at (`HaulHeader` on the wire). [pending] is the client's
@@ -140,7 +193,12 @@ private fun WideHeader(
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Logo(size = 44f, dot = 11.dp, dotMargin = 3.dp, modifier = Modifier.width(132.dp))
+        Logo(
+            size = 44f,
+            dot = 11.dp,
+            dotMargin = 3.dp,
+            modifier = Modifier.width(132.dp).pressable(LocalLogoAction.current),
+        )
         Row(
             Modifier
                 .height(56.dp)
@@ -225,7 +283,7 @@ private fun CompactHeader(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Logo(size = 34f, dot = 9.dp, dotMargin = 2.dp)
+        Logo(size = 34f, dot = 9.dp, dotMargin = 2.dp, modifier = Modifier.pressable(LocalLogoAction.current))
         Spacer(Modifier.weight(1f))
         Box(
             Modifier.size(44.dp),
@@ -381,36 +439,103 @@ private fun SearchField(
         horizontalArrangement = Arrangement.spacedBy(gap),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-            val query = header.query
-            if (query == null) {
-                Text(
-                    header.searchPlaceholder,
-                    HaulType.text(textSize).copy(color = HaulColors.outlineMuted),
-                    softWrap = false,
-                )
-            } else {
-                Text(query, HaulType.text(textSize, 500), softWrap = false)
-                // The caret only while the shopper is typing (Search_Autocomplete); a page showing its
-                // query has none (Search_Results).
-                if (field?.focused == true) {
-                    Box(
-                        Modifier
-                            .padding(start = 2.dp)
-                            .width(2.dp)
-                            .height(20.dp)
-                            .background(HaulColors.primary),
-                    )
-                }
-            }
+        val input = LocalSearchInput.current
+        if (input != null) {
+            EditableQuery(header, input, field, textSize, Modifier.weight(1f))
+        } else {
+            DrawnQuery(header, field, textSize, Modifier.weight(1f))
         }
         trailing()
         Box(
-            Modifier.size(button).background(HaulColors.secondaryContainer, RoundedCornerShape(buttonRadius)),
+            Modifier
+                .size(button)
+                .background(HaulColors.secondaryContainer, RoundedCornerShape(buttonRadius))
+                .pressable(input?.let { it::submit }),
             contentAlignment = Alignment.Center,
         ) { Icon(HaulIcons.search, glyph, HaulColors.onSurface) }
     }
 }
+
+/** The query as the tree has it, or the placeholder; the caret only while the field is focused. */
+@Composable
+private fun DrawnQuery(
+    header: HaulHeader,
+    field: SearchFieldState?,
+    textSize: Float,
+    modifier: Modifier,
+) {
+    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        val query = header.query
+        if (query == null) {
+            Text(
+                header.searchPlaceholder,
+                HaulType.text(textSize).copy(color = HaulColors.outlineMuted),
+                softWrap = false,
+            )
+        } else {
+            Text(query, HaulType.text(textSize, 500), softWrap = false)
+            // The caret only while the shopper is typing (Search_Autocomplete); a page showing its
+            // query has none (Search_Results).
+            if (field?.focused == true) {
+                Box(
+                    Modifier
+                        .padding(start = 2.dp)
+                        .width(2.dp)
+                        .height(20.dp)
+                        .background(HaulColors.primary),
+                )
+            }
+        }
+    }
+}
+
+/**
+ * The field the shopper types in: it starts from the query the page arrived with, reports its focus
+ * to [field] (the suggest panel opens under a focused field) and submits on Enter or the search button.
+ */
+@Composable
+private fun EditableQuery(
+    header: HaulHeader,
+    input: SearchInput,
+    field: SearchFieldState?,
+    textSize: Float,
+    modifier: Modifier,
+) {
+    LaunchedEffect(header.query) { input.show(header.query.orEmpty()) }
+    BasicTextField(
+        value = input.text,
+        onValueChange = input::type,
+        modifier =
+            modifier
+                .testTag(SEARCH_FIELD_TAG)
+                .onFocusChanged { field?.focused = it.isFocused }
+                .onPreviewKeyEvent {
+                    val enter = it.key == Key.Enter || it.key == Key.NumPadEnter
+                    if (enter && it.type == KeyEventType.KeyDown) input.submit()
+                    enter
+                },
+        textStyle = HaulType.text(textSize, 500),
+        singleLine = true,
+        cursorBrush = SolidColor(HaulColors.primary),
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(onSearch = { input.submit() }),
+        decorationBox = { inner ->
+            Box(contentAlignment = Alignment.CenterStart) {
+                if (input.text.text.isEmpty()) {
+                    Text(
+                        header.searchPlaceholder,
+                        HaulType.text(textSize).copy(color = HaulColors.outlineMuted),
+                        softWrap = false,
+                    )
+                }
+                inner()
+            }
+        },
+    )
+}
+
+/** The tag of the header's editable search field, for the tests that type into it. */
+public const val SEARCH_FIELD_TAG: String = "search-field"
 
 @Composable
 private fun Shortcut(
