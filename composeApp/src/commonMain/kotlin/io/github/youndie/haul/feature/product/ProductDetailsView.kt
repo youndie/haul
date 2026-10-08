@@ -43,6 +43,7 @@ import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Highlight
 import io.github.youndie.haul.ui.Icon
+import io.github.youndie.haul.ui.PhotoOrPlaceholder
 import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.haul.ui.SellerSummary
 import io.github.youndie.haul.ui.Text
@@ -116,13 +117,20 @@ private fun Gallery(
         Column(Modifier.width(76.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             details.gallery.forEachIndexed { index, tone ->
                 val shape = RoundedCornerShape(14.dp)
-                Box(
+                val thumbnail =
                     Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f)
                         .then(if (index == 0) Modifier.ring(2.dp, HaulColors.onSurface, 14.dp) else Modifier)
-                        .background(toneColor(tone), shape),
-                )
+                val photo = details.photo?.takeIf { index == 0 }
+                if (photo == null) {
+                    Box(thumbnail.background(toneColor(tone), shape))
+                } else {
+                    // The first thumbnail is the shown photo's (B-30).
+                    PhotoOrPlaceholder(photo, thumbnail.clip(shape)) {
+                        Box(Modifier.fillMaxSize().background(toneColor(tone)))
+                    }
+                }
             }
             details.morePhotos?.let {
                 Box(
@@ -168,15 +176,23 @@ private fun Photo(
     Box(
         modifier
             .aspectRatio(1f)
-            .clip(RoundedCornerShape(radius))
-            .background(toneColor(details.photoTone))
-            .hatching(period = 14f),
+            .clip(RoundedCornerShape(radius)),
     ) {
-        Text(
-            "${details.photoLabel} · ${details.photoCount}".uppercase(),
-            HaulType.label(11f, 500, 0.06f).copy(color = HaulColors.tileLabel),
-            Modifier.align(Alignment.BottomStart).padding(start = 20.dp, bottom = 20.dp),
-        )
+        // The stored photo (B-30) over the canvas's placeholder tile, which stays while there is none.
+        PhotoOrPlaceholder(details.photo, Modifier.matchParentSize()) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(toneColor(details.photoTone))
+                    .hatching(period = 14f),
+            ) {
+                Text(
+                    "${details.photoLabel} · ${details.photoCount}".uppercase(),
+                    HaulType.label(11f, 500, 0.06f).copy(color = HaulColors.tileLabel),
+                    Modifier.align(Alignment.BottomStart).padding(start = 20.dp, bottom = 20.dp),
+                )
+            }
+        }
         details.badge?.let {
             Text(
                 it,
