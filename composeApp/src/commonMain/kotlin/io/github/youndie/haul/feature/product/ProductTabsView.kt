@@ -44,6 +44,7 @@ import io.github.youndie.haul.ui.Review
 import io.github.youndie.haul.ui.SpecificationList
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.accented
+import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.toneColor
 
@@ -82,7 +83,7 @@ public fun ProductTabsView(tabs: ProductTabs) {
         ) {
             tabs.tabs.forEach { tab ->
                 val title = if (compact) tab.compactTitle ?: tab.title else tab.title
-                Column(Modifier.width(androidx.compose.foundation.layout.IntrinsicSize.Max)) {
+                Column(Modifier.width(androidx.compose.foundation.layout.IntrinsicSize.Max).follows(tab.action)) {
                     Text(
                         buildAnnotatedString {
                             append(title)

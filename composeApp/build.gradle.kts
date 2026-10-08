@@ -41,6 +41,7 @@ kotlin {
             implementation(project.dependencies.platform("io.ktor:ktor-bom:${wip.versions.ktor.get()}"))
             implementation(libs.coil.compose)
             implementation(libs.coil.networkKtor)
+            // The screens' trees and the suggest panel come over the same client (B-35).
             implementation(libs.ktor.client.core)
         }
         wasmJsMain.dependencies {

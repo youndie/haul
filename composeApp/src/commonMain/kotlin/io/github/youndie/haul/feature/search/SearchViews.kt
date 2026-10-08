@@ -59,8 +59,11 @@ import io.github.youndie.haul.ui.SearchNoResults
 import io.github.youndie.haul.ui.SearchSuggestPanel
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.accented
+import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
+import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.toneColor
+import io.github.youndie.kompot.KompotAction
 import kotlin.math.roundToInt
 
 // The Search screen's own components (screen-search): the page for a query that found nothing and the
@@ -90,19 +93,21 @@ public fun SearchNoResultsView(none: SearchNoResults) {
             ),
             Modifier.padding(top = 14.dp, bottom = if (compact) 24.dp else 32.dp),
         )
-        val pills: List<Pair<String?, AnnotatedString>> =
+        val pills: List<Triple<String?, AnnotatedString, KompotAction?>> =
             if (none.suggestions.isNotEmpty()) {
-                none.suggestions.map { null to suggestionText(it) }
+                none.suggestions.map { Triple(null, suggestionText(it), it.action) }
             } else {
-                none.tips.mapIndexed { index, tip -> (index + 1).toString().padStart(2, '0') to AnnotatedString(tip) }
+                none.tips.mapIndexed { index, tip ->
+                    Triple((index + 1).toString().padStart(2, '0'), AnnotatedString(tip), null)
+                }
             }
         if (compact) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                pills.forEach { (number, text) -> Tip(number, text, Modifier.fillMaxWidth()) }
+                pills.forEach { (number, text, action) -> Tip(number, text, Modifier.fillMaxWidth().follows(action)) }
             }
         } else {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                pills.forEach { (number, text) -> Tip(number, text) }
+                pills.forEach { (number, text, action) -> Tip(number, text, Modifier.follows(action)) }
             }
         }
     }
@@ -135,22 +140,27 @@ private fun Tip(
  * The page with the suggest panel open over it (Search_Autocomplete): the header's field is focused,
  * a scrim covers the page from under the header (from under the field's row on a phone), and the
  * panel hangs 10 px under the field, as wide as it — on a phone 4 px under it, 8 px from either edge.
+ *
+ * [field] is the header's field the page is drawn with — a screenshot's is focused from the start, the
+ * app's follows the real focus; with no [panel] the page is drawn alone. Pressing the scrim is
+ * [onDismiss].
  */
 @Composable
 public fun SearchSuggestOverlay(
-    panel: SearchSuggestPanel,
+    panel: SearchSuggestPanel?,
     modifier: Modifier = Modifier,
     highlighted: Int = 0,
+    field: SearchFieldState = remember { SearchFieldState(focused = true) },
+    onDismiss: (() -> Unit)? = null,
     page: @Composable () -> Unit,
 ) {
     val compact = LocalHaulCompact.current
-    val field = remember { SearchFieldState(focused = true) }
     var origin by remember { mutableStateOf(Offset.Zero) }
     Box(modifier.fillMaxSize().onGloballyPositioned { origin = it.positionInRoot() }) {
         CompositionLocalProvider(LocalSearchField provides field) { page() }
         val bounds = field.bounds
         val scrimTop = field.scrimTop
-        if (bounds == null || scrimTop == null) return@Box
+        if (panel == null || bounds == null || scrimTop == null) return@Box
         Box(
             Modifier.fillMaxSize().drawBehind {
                 val top = scrimTop - origin.y
@@ -158,6 +168,11 @@ public fun SearchSuggestOverlay(
             },
         )
         val density = LocalDensity.current
+        // Only the scrim dismisses: the header above it, the field included, stays the header's.
+        if (onDismiss != null) {
+            val top = with(density) { (scrimTop - origin.y).coerceAtLeast(0f).toDp() }
+            Box(Modifier.fillMaxSize().padding(top = top).pressable(onDismiss))
+        }
         val placed =
             if (compact) {
                 Modifier
@@ -238,7 +253,12 @@ private fun Suggestions(
         if (panel.suggestions.isNotEmpty()) {
             Heading("Suggestions", side, compact)
             panel.suggestions.forEachIndexed { index, suggestion ->
-                Line(side, rowHeight, if (index == highlighted) HaulColors.background else null) {
+                Line(
+                    side,
+                    rowHeight,
+                    if (index == highlighted) HaulColors.background else null,
+                    Modifier.follows(suggestion.action),
+                ) {
                     Icon(HaulIcons.search, 18.dp, HaulColors.outline)
                     Text(suggestionText(suggestion), style = HaulType.text(16f), softWrap = false)
                 }
@@ -289,10 +309,11 @@ private fun Line(
     side: androidx.compose.ui.unit.Dp,
     height: androidx.compose.ui.unit.Dp,
     fill: androidx.compose.ui.graphics.Color? = null,
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
     Row(
-        Modifier
+        modifier
             .fillMaxWidth()
             .heightIn(min = height)
             .then(if (fill != null) Modifier.background(fill) else Modifier)
@@ -310,7 +331,11 @@ private fun Category(
     height: androidx.compose.ui.unit.Dp,
 ) {
     Row(
-        Modifier.fillMaxWidth().heightIn(min = height).padding(horizontal = side),
+        Modifier
+            .fillMaxWidth()
+            .follows(category.action)
+            .heightIn(min = height)
+            .padding(horizontal = side),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -354,6 +379,7 @@ private fun TopProducts(
         Row(
             Modifier
                 .fillMaxWidth()
+                .follows(panel.allResultsAction)
                 .height(52.dp)
                 .background(HaulColors.inverseSurface, RoundedCornerShape(14.dp)),
             horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
@@ -370,7 +396,11 @@ private fun TopProduct(
     product: ProductSuggestion,
     tile: androidx.compose.ui.unit.Dp,
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        Modifier.follows(product.action),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         Box(Modifier.size(tile).background(toneColor(product.tone), RoundedCornerShape(14.dp)))
         Column {
             Text(product.title, HaulType.text(14f, lineHeight = 1.3f).browserLeading())

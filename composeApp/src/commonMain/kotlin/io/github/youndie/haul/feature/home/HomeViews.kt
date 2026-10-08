@@ -43,6 +43,7 @@ import io.github.youndie.haul.ui.ShrinkFirstRow
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.accented
 import io.github.youndie.haul.ui.countdown
+import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.hatching
 import io.github.youndie.haul.ui.toneColor
@@ -87,7 +88,7 @@ private fun Hero(
     val shape = RoundedCornerShape(if (compact) 24.dp else 28.dp)
     val lead = hero.accent?.takeIf { hero.title.startsWith(it) }
     val figure = if (lead != null) hero.title.removePrefix(lead).trim() else hero.title
-    Box(modifier.clip(shape).background(toneColor(hero.tone))) {
+    Box(modifier.clip(shape).follows(hero.action).background(toneColor(hero.tone))) {
         Box(
             Modifier
                 .align(Alignment.TopEnd)
@@ -190,7 +191,7 @@ private fun Banner(
     modifier: Modifier,
 ) {
     val shape = RoundedCornerShape(if (compact) 24.dp else 28.dp)
-    Box(modifier.clip(shape).background(toneColor(banner.tone))) {
+    Box(modifier.clip(shape).follows(banner.action).background(toneColor(banner.tone))) {
         val label = banner.label
         if (!compact && label != null) {
             Box(
@@ -325,6 +326,7 @@ public fun SectionHeaderView(header: SectionHeader) {
             when {
                 link != null -> {
                     Row(
+                        Modifier.follows(header.action),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -373,7 +375,7 @@ private fun Tile(
     compact: Boolean,
     modifier: Modifier,
 ) {
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 12.dp)) {
+    Column(modifier.follows(tile.action), verticalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 12.dp)) {
         Box(
             Modifier
                 .fillMaxWidth()

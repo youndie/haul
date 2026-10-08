@@ -71,12 +71,12 @@ katcher-client = { module = "io.github.youndie.katcher:client", version.ref = "k
 # browser's fetch engine in the bundle, a mock engine in the tests; Ktor's versions come from its BOM.
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-networkKtor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
+ktor-client-core = { module = "io.ktor:ktor-client-core" }
 ktor-client-js = { module = "io.ktor:ktor-client-js" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock" }
 
 shildik-oidcAuthServer = { module = "io.github.youndie.shildik:oidc-auth-server", version.ref = "shildik" }
 oidc-appsupport = { module = "io.github.kalinjul.kotlin.multiplatform:oidc-appsupport", version.ref = "oidc" }
-ktor-client-core = { module = "io.ktor:ktor-client-core" }
 
 [plugins]
 sborkaJvm = { id = "io.github.youndie.sborka.jvm", version.ref = "sborka" }

@@ -34,7 +34,7 @@ public fun ProductCardView(
     modifier: Modifier = Modifier,
 ) {
     val compact = LocalHaulCompact.current
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(modifier.follows(card.action), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         PhotoTile(card, compact, Modifier.padding(bottom = 4.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Row(
