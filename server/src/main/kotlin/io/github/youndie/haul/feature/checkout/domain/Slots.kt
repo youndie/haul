@@ -16,8 +16,8 @@ internal data class Slot(
 ) {
     val id: String get() = "${day}T" + "%02d".format(startHour)
 
-    /** «15:00–18:00». */
-    val label: String get() = "%02d:00–%02d:00".format(startHour, startHour + LENGTH_HOURS)
+    /** «15:00 – 18:00», «9:00 – 12:00», as the canvas writes a window. */
+    val label: String get() = "$startHour:00 – ${startHour + LENGTH_HOURS}:00"
 
     companion object {
         /** Four windows a day, three hours each (feature-checkout); the hours are a decision of B-14. */
@@ -49,10 +49,14 @@ internal data class Slot(
             }
         }
 
-        /** «Wed 8». */
+        /** «Wed», the day tile's weekday. */
+        fun weekday(day: LocalDate): String = WEEKDAY.format(day)
+
+        /** «Wed, Oct 8»: a day in a sentence (the summary's delivery row, the notice of a window that filled). */
         fun dayLabel(day: LocalDate): String = DAY.format(day)
 
-        private val DAY = DateTimeFormatter.ofPattern("EEE d", Locale.US)
+        private val WEEKDAY = DateTimeFormatter.ofPattern("EEE", Locale.US)
+        private val DAY = DateTimeFormatter.ofPattern("EEE, MMM d", Locale.US)
     }
 }
 

@@ -1,0 +1,342 @@
+{
+    "type": "column",
+    "id": "checkout",
+    "children": [
+        {
+            "type": "haul_checkout_header",
+            "id": "checkout-header",
+            "steps": [
+                "Delivery",
+                "Payment",
+                "Review"
+            ],
+            "secureLabel": "Secure checkout",
+            "home": {
+                "type": "navigate",
+                "deeplink": "/"
+            }
+        },
+        {
+            "type": "haul_checkout_body",
+            "id": "checkout-body",
+            "title": "Checkout",
+            "notices": [
+                {
+                    "id": "slot-filled",
+                    "text": "That delivery window just filled up — pick another"
+                }
+            ],
+            "methods": {
+                "id": "methods",
+                "title": "How to receive",
+                "options": [
+                    {
+                        "method": "courier",
+                        "label": "Courier",
+                        "detail": "Tomorrow, Oct 8",
+                        "price": "Free",
+                        "selected": true
+                    },
+                    {
+                        "method": "pickup_point",
+                        "label": "Pickup point",
+                        "detail": "Thu, Oct 9 · 240 m away",
+                        "price": "Free",
+                        "selected": false
+                    },
+                    {
+                        "method": "parcel_locker",
+                        "label": "Parcel locker",
+                        "detail": "Thu, Oct 9 · 24/7 access",
+                        "price": "Free",
+                        "selected": false
+                    }
+                ],
+                "url": "/api/v1/me/checkout"
+            },
+            "address": {
+                "id": "address",
+                "title": "Address",
+                "form": [
+                    {
+                        "name": "street",
+                        "label": "Street address",
+                        "value": "148 Wythe Avenue",
+                        "required": true
+                    },
+                    {
+                        "name": "apt",
+                        "label": "Apt / suite",
+                        "value": "4F"
+                    },
+                    {
+                        "name": "city",
+                        "label": "City",
+                        "value": "Brooklyn, NY",
+                        "required": true
+                    },
+                    {
+                        "name": "zip",
+                        "label": "ZIP",
+                        "value": "11211",
+                        "required": true
+                    },
+                    {
+                        "name": "doorCode",
+                        "label": "Door code",
+                        "placeholder": "Optional"
+                    },
+                    {
+                        "name": "courierNote",
+                        "label": "Note for courier",
+                        "placeholder": "e.g. leave with the doorman"
+                    }
+                ],
+                "url": "/api/v1/me/addresses"
+            },
+            "slots": {
+                "id": "slots",
+                "title": "Delivery time",
+                "days": [
+                    {
+                        "weekday": "Wed",
+                        "date": "8",
+                        "selected": true,
+                        "slots": [
+                            {
+                                "id": "2025-10-08T09",
+                                "label": "9:00 – 12:00",
+                                "available": true,
+                                "selected": false
+                            },
+                            {
+                                "id": "2025-10-08T12",
+                                "label": "12:00 – 15:00",
+                                "available": true,
+                                "selected": false
+                            },
+                            {
+                                "id": "2025-10-08T15",
+                                "label": "15:00 – 18:00 · Full",
+                                "available": false,
+                                "selected": false
+                            },
+                            {
+                                "id": "2025-10-08T18",
+                                "label": "18:00 – 21:00",
+                                "available": true,
+                                "selected": false
+                            }
+                        ]
+                    },
+                    {
+                        "weekday": "Thu",
+                        "date": "9",
+                        "slots": [
+                            {
+                                "id": "2025-10-09T09",
+                                "label": "9:00 – 12:00",
+                                "available": true,
+                                "selected": false
+                            },
+                            {
+                                "id": "2025-10-09T12",
+                                "label": "12:00 – 15:00",
+                                "available": true,
+                                "selected": false
+                            },
+                            {
+                                "id": "2025-10-09T15",
+                                "label": "15:00 – 18:00",
+                                "available": true,
+                                "selected": false
+                            },
+                            {
+                                "id": "2025-10-09T18",
+                                "label": "18:00 – 21:00",
+                                "available": true,
+                                "selected": false
+                            }
+                        ]
+                    },
+                    {
+                        "weekday": "Fri",
+                        "date": "10",
+                        "slots": [
+                            {
+                                "id": "2025-10-10T09",
+                                "label": "9:00 – 12:00",
+                                "available": true,
+                                "selected": false
+                            },
+                            {
+                                "id": "2025-10-10T12",
+                                "label": "12:00 – 15:00",
+                                "available": true,
+                                "selected": false
+                            },
+                            {
+                                "id": "2025-10-10T15",
+                                "label": "15:00 – 18:00",
+                                "available": true,
+                                "selected": false
+                            },
+                            {
+                                "id": "2025-10-10T18",
+                                "label": "18:00 – 21:00",
+                                "available": true,
+                                "selected": false
+                            }
+                        ]
+                    },
+                    {
+                        "weekday": "Sat",
+                        "date": "11",
+                        "slots": [
+                            {
+                                "id": "2025-10-11T09",
+                                "label": "9:00 – 12:00",
+                                "available": true,
+                                "selected": false
+                            },
+                            {
+                                "id": "2025-10-11T12",
+                                "label": "12:00 – 15:00",
+                                "available": true,
+                                "selected": false
+                            },
+                            {
+                                "id": "2025-10-11T15",
+                                "label": "15:00 – 18:00",
+                                "available": true,
+                                "selected": false
+                            },
+                            {
+                                "id": "2025-10-11T18",
+                                "label": "18:00 – 21:00",
+                                "available": true,
+                                "selected": false
+                            }
+                        ]
+                    },
+                    {
+                        "weekday": "Sun",
+                        "date": "12",
+                        "slots": [
+                            {
+                                "id": "2025-10-12T09",
+                                "label": "9:00 – 12:00",
+                                "available": true,
+                                "selected": false
+                            },
+                            {
+                                "id": "2025-10-12T12",
+                                "label": "12:00 – 15:00",
+                                "available": true,
+                                "selected": false
+                            },
+                            {
+                                "id": "2025-10-12T15",
+                                "label": "15:00 – 18:00",
+                                "available": true,
+                                "selected": false
+                            },
+                            {
+                                "id": "2025-10-12T18",
+                                "label": "18:00 – 21:00",
+                                "available": true,
+                                "selected": false
+                            }
+                        ]
+                    }
+                ],
+                "notice": "Pick another window for Wed, Oct 8",
+                "url": "/api/v1/me/checkout"
+            },
+            "payment": {
+                "id": "payment",
+                "title": "Payment",
+                "options": [
+                    {
+                        "id": "card-4821",
+                        "label": "Card ···· 4821",
+                        "detail": "Expires 08/28",
+                        "selected": true
+                    },
+                    {
+                        "id": "haul_pay",
+                        "label": "Haul Pay",
+                        "detail": "4 payments of $128",
+                        "selected": false
+                    },
+                    {
+                        "id": "pay_on_delivery",
+                        "label": "Pay on delivery",
+                        "detail": "Card or cash",
+                        "selected": false
+                    }
+                ],
+                "url": "/api/v1/me/checkout",
+                "points": {
+                    "label": "Use 2,480 points (−$24.80)",
+                    "detail": "100 points = $1 · all or nothing",
+                    "on": false
+                }
+            },
+            "summary": {
+                "id": "summary",
+                "title": "Your order",
+                "items": [
+                    {
+                        "title": "WH-1000XM6 Wireless Noise Cancelling Headphones",
+                        "options": "Midnight Black · Headphones only",
+                        "quantity": 1,
+                        "price": "$349",
+                        "tone": "#E6E4FF",
+                        "label": "headphones"
+                    },
+                    {
+                        "title": "Linen Duvet Cover Set, Queen",
+                        "options": "Oat · 3 pieces",
+                        "quantity": 1,
+                        "price": "$139",
+                        "tone": "#F1EBDD",
+                        "label": "bedding"
+                    },
+                    {
+                        "title": "Stoneware Mug, 12 oz",
+                        "options": "Sage · Set of 2",
+                        "quantity": 1,
+                        "price": "$24",
+                        "tone": "#E3F5D8",
+                        "label": "mug"
+                    }
+                ],
+                "rows": [
+                    {
+                        "label": "Items (3)",
+                        "value": "$652.00"
+                    },
+                    {
+                        "label": "Discount",
+                        "value": "−$140.00",
+                        "saving": true
+                    },
+                    {
+                        "label": "Delivery · Wed, Oct 8",
+                        "value": "Free"
+                    }
+                ],
+                "totalLabel": "Total",
+                "total": "$512",
+                "note": "By placing the order you agree to the Terms of Sale. Your card is charged when the order ships.",
+                "placeLabel": "Place order · $512.00",
+                "placingLabel": "Placing order…",
+                "placeEnabled": false,
+                "placeHint": "Pick a delivery window",
+                "placeUrl": "/api/v1/orders",
+                "quote": "fcbc2ea24b1afd80d269358ef5403707"
+            }
+        }
+    ]
+}

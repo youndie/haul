@@ -8,17 +8,20 @@ import io.github.youndie.haul.feature.checkout.DeliveryMethod
  * A way to pay (research §5, `PaymentMethod`: `card`, `haul_pay`, `pay_on_delivery`).
  *
  * v1 has no way to add a card — no artboard draws one, and research D6 hides the account's payment
- * methods — so every customer is offered the payment simulator's two cards (research §6): ···· 4821,
- * which it approves, and the test card ···· 0002, which it declines (B-16). [card] is whether the
- * money moves at shipping («Your card is charged when the order ships»).
+ * methods — so every customer pays with the payment simulator's cards (research §6): ···· 4821, which
+ * it approves, and the test card ···· 0002, which it declines (B-16). The canvas lists only the first
+ * (`Checkout_Content`): the test card is not [listed] — the tree shows it only once it is the one
+ * chosen — and is chosen by its id. [card] is whether the money moves at shipping («Your card is
+ * charged when the order ships»).
  */
 internal enum class PaymentMethod(
     val id: String,
     val label: String,
     val card: Boolean,
+    val listed: Boolean = true,
 ) {
     Card("card-4821", "Card ···· 4821", card = true),
-    TestCard("card-0002", "Card ···· 0002", card = true),
+    TestCard("card-0002", "Card ···· 0002", card = true, listed = false),
     HaulPayPlan("haul_pay", "Haul Pay", card = true),
     OnDelivery("pay_on_delivery", "Pay on delivery", card = false),
     ;
@@ -29,7 +32,7 @@ internal enum class PaymentMethod(
             Card -> "Expires 08/28"
             TestCard -> "Test card: always declined"
             HaulPayPlan -> "${HaulPay.PAYMENTS} payments of ${money(HaulPay.paymentCents(totalCents))}"
-            OnDelivery -> null
+            OnDelivery -> "Card or cash"
         }
 
     /**

@@ -334,10 +334,19 @@ the account need a shildik token; signing in merges the guest cart.
 - **Every customer pays with the simulator's cards.** v1 has no way to add a card (no artboard; D6 hides
   the account's payment methods), so the payment options are fixed: card ···· 4821 (approves), test
   card ···· 0002 (declines), Haul Pay for totals from $50 to $2,000, pay on delivery except to a locker.
+  The canvas lists only the card ···· 4821 (B-15): the test card is chosen by its id
+  (`CheckoutChoice.payment`) and drawn only once it is the one chosen.
 - **The address form** keeps research §5's fields (street, apt, city, ZIP, door code, courier note; no
   state, so Maya's city is «Brooklyn, NY»). A form at fault is `400 validation_failed` with every field
   at fault in `ErrorBody.fields` (`field_required`, `field_invalid`), and is stored and drawn again with
   an error under each field (`Checkout_Validation`), as B-11 stores a refused promo code.
+- **The canvas answered the copy (B-15).** The page is the checkout's header and one `CheckoutBody`:
+  the numbered sections beside the order at 1440, under it on a phone. The address is an inline form
+  holding the address delivered to, sent when the shopper leaves it; saved addresses are not listed.
+  A method says when and where («Tomorrow, Oct 8», «Thu, Oct 9 · 240 m away» — a pickup a day after
+  the courier, D7), the summary names the delivery day, and the button says why it is held («Pick a
+  delivery window», «Fill in the street address and ZIP»). Points stay B-23's: the toggle the canvas
+  draws is sent by no server yet.
 
 ### D6. Product decisions taken by the owner on the brief (2026-10-08)
 
@@ -767,7 +776,7 @@ for fixtures, not a target for the database.
 | `Customer` | Maya Kowalski — Plus since 2023, renews 2025-11-02, 2,480 points, $186 delivery savings, 48 saved, 6 price drops; Sam Ortiz — no membership, 0 points, one delivered order |
 | `Address` | 148 Wythe Avenue, Apt 4F, Brooklyn, NY 11211 |
 | `PaymentMethod` | Card ···· 4821, expires 08/28 (approves); test card ···· 0002 (declines) |
-| `PickupPoint` | 214 Bedford Ave, 240 m, until 21:00; 96 N 6th St, 650 m, until 22:00; locker «Wythe & N 7th», 24/7 |
+| `PickupPoint` | 214 Bedford Ave, 240 m, open until 21:00; 96 N 6th St, 650 m, open until 22:00; 315 Grand St, 900 m, open until 20:00; lockers «Wythe & N 7th», 180 m, and «Bedford Ave station», 700 m, 24/7 |
 | `Seller` | Sony Official Store — 4.9, 98 %, 6 yrs; Brooklyn Home Co. — 4.8, 97 %, 3 yrs |
 | `Product` | Sony WH-1000XM6 — $349, was $449, −22 %, 4.8, 2,341 reviews, 86 questions; Midnight Black, Silver (out of stock); bundles Headphones only / + Travel case / + 2-year care; description headline «Silence, tuned to you», accent «to you» |
 | `Cart` (Maya) | the headphones $349, Linen Duvet Cover Set Queen Oat $139 (was $179), Stoneware Mug 12 oz Sage set of 2 $24; Items $652.00, Discount −$140.00, Delivery Free, Total $512, 1,024 points; with points −$24.80 → $487.20 |

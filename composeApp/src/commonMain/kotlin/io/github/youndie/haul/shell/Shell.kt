@@ -26,16 +26,19 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.youndie.haul.feature.checkout.CheckoutHeaderView
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.HaulType.browserLeading
 import io.github.youndie.haul.theme.LocalHaulCompact
 import io.github.youndie.haul.ui.BalancedText
+import io.github.youndie.haul.ui.CheckoutHeader
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HaulHeaderView
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Icon
+import io.github.youndie.haul.ui.LocalLogoAction
 import io.github.youndie.haul.ui.Skeleton
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.accented
@@ -93,7 +96,9 @@ public fun ErrorShell(
     failure: ShellFailure,
     onRetry: () -> Unit = {},
 ) {
-    ErrorPage(SHELL_HEADER, accented("$subject didn’t\u00A0load", "load"), failure.message, balanced = false, onRetry)
+    ErrorPage({
+        HaulHeaderView(SHELL_HEADER, pending = true)
+    }, accented("$subject didn’t\u00A0load", "load"), failure.message, balanced = false, onRetry)
 }
 
 /** A failed search (Search_Error): the query stays in the field, and the shopper is told so. */
@@ -103,7 +108,7 @@ public fun SearchError(
     onRetry: () -> Unit = {},
 ) {
     ErrorPage(
-        SHELL_HEADER.copy(query = query),
+        { HaulHeaderView(SHELL_HEADER.copy(query = query), pending = true) },
         accented("Search didn’t respond", "respond"),
         "Your query is still in the field. Try again in a moment.",
         // `text-wrap: balance` keeps «didn’t respond» together at 1440 and breaks it on a phone,
@@ -115,7 +120,7 @@ public fun SearchError(
 
 @Composable
 private fun ErrorPage(
-    header: HaulHeader,
+    header: @Composable () -> Unit,
     title: AnnotatedString,
     message: String,
     balanced: Boolean,
@@ -123,7 +128,7 @@ private fun ErrorPage(
 ) {
     val compact = LocalHaulCompact.current
     Column(Modifier.fillMaxWidth()) {
-        HaulHeaderView(header, pending = true)
+        header()
         Column(
             Modifier.padding(
                 start = gutter(),
@@ -573,7 +578,7 @@ private val SEARCH_CHIP_WIDTHS = listOf(100, 140, 150, 130, 100, 90)
 @Composable
 public fun CartError(onRetry: () -> Unit = {}) {
     ErrorPage(
-        SHELL_HEADER,
+        { HaulHeaderView(SHELL_HEADER, pending = true) },
         accented("Your cart didn’t load", "load"),
         "Nothing in it was lost. Try again in a moment.",
         // `text-wrap: balance`: «Your cart / didn’t load» at both widths.
@@ -668,6 +673,107 @@ private fun CartSummarySkeleton(modifier: Modifier) {
         repeat(3) { Skeleton(Modifier.fillMaxWidth().height(14.dp), 5.dp) }
         Skeleton(Modifier.align(Alignment.End).size(160.dp, 52.dp), 10.dp)
         Skeleton(Modifier.fillMaxWidth().height(52.dp), 14.dp)
+        Skeleton(Modifier.fillMaxWidth().height(64.dp), 18.dp)
+    }
+}
+
+/**
+ * The checkout's header before its tree (Checkout_Loading, Checkout_Error): the client's own copy of
+ * what the server's tree draws, the first step current.
+ */
+public val CHECKOUT_SHELL_HEADER: CheckoutHeader =
+    CheckoutHeader(
+        id = "checkout-shell-header",
+        steps = listOf("Delivery", "Payment", "Review"),
+        current = 0,
+        secureLabel = "Secure checkout",
+    )
+
+/** A failed checkout (Checkout_Error): the cart is as it was, which is what the shopper is told. */
+@Composable
+public fun CheckoutError(onRetry: () -> Unit = {}) {
+    ErrorPage(
+        { CheckoutHeaderView(CHECKOUT_SHELL_HEADER, onHome = LocalLogoAction.current) },
+        accented("Checkout didn’t load", "load"),
+        "Your cart is unchanged. Try again in a moment.",
+        // `text-wrap: balance`: «Checkout / didn’t load» at both widths.
+        balanced = true,
+        onRetry = onRetry,
+    )
+}
+
+/**
+ * The checkout before its tree (Checkout_Loading): the title, four sections and the order as
+ * placeholders; the order beside the sections at 1440, under them on a phone.
+ */
+@Composable
+public fun CheckoutLoading() {
+    val compact = LocalHaulCompact.current
+    val gutter = gutter()
+    Column(Modifier.fillMaxWidth()) {
+        CheckoutHeaderView(CHECKOUT_SHELL_HEADER, onHome = LocalLogoAction.current)
+        Column(
+            Modifier.padding(
+                start = gutter,
+                end = gutter,
+                top = if (compact) 24.dp else 40.dp,
+                bottom = if (compact) 64.dp else 96.dp,
+            ),
+        ) {
+            Skeleton(
+                Modifier
+                    .padding(bottom = if (compact) 24.dp else 40.dp)
+                    .size(if (compact) 240.dp else 520.dp, if (compact) 50.dp else 96.dp),
+                12.dp,
+            )
+            val sections: @Composable (Modifier) -> Unit = { modifier ->
+                Column(modifier, verticalArrangement = Arrangement.spacedBy(if (compact) 16.dp else 20.dp)) {
+                    (if (compact) listOf(300, 330, 170, 280) else listOf(110, 220, 150, 110)).forEach {
+                        CheckoutSectionSkeleton(it.dp)
+                    }
+                }
+            }
+            if (compact) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    sections(Modifier.fillMaxWidth())
+                    CheckoutSummarySkeleton(Modifier.fillMaxWidth())
+                }
+            } else {
+                Row(horizontalArrangement = Arrangement.spacedBy(40.dp)) {
+                    sections(Modifier.weight(1f))
+                    CheckoutSummarySkeleton(Modifier.width(420.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CheckoutSectionSkeleton(block: Dp) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .background(HaulColors.surfaceContainerLowest, RoundedCornerShape(24.dp))
+            .padding(if (LocalHaulCompact.current) 20.dp else 32.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+    ) {
+        Skeleton(Modifier.size(240.dp, 30.dp), 8.dp)
+        Skeleton(Modifier.fillMaxWidth().height(block), 18.dp)
+    }
+}
+
+@Composable
+private fun CheckoutSummarySkeleton(modifier: Modifier) {
+    Column(
+        modifier
+            .background(HaulColors.surfaceContainerLowest, RoundedCornerShape(28.dp))
+            .padding(32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Skeleton(Modifier.size(200.dp, 30.dp), 8.dp)
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) { repeat(3) { Skeleton(Modifier.size(72.dp), 14.dp) } }
+        repeat(3) { Skeleton(Modifier.fillMaxWidth().height(14.dp), 5.dp) }
+        Skeleton(Modifier.align(Alignment.End).size(160.dp, 52.dp), 10.dp)
         Skeleton(Modifier.fillMaxWidth().height(64.dp), 18.dp)
     }
 }

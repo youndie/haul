@@ -36,17 +36,19 @@ internal class CheckoutCommands(
         val stored = checkouts.checkout(owner.id)
         val addresses = checkouts.addresses(owner.id)
         val method = stored.method
-        val points = checkouts.pickupPoints().filter { it.method == method }
+        val places = checkouts.pickupPoints()
+        val points = places.filter { it.method == method }
         val loads = slots.loads(basis.offered)
         val chosen = stored.slotId?.let(Slot::parse)?.let { slot -> loads.firstOrNull { it.slot == slot } }
-        val slotFilled = method == DeliveryMethod.Courier && chosen?.full == true
+        val filled = chosen?.slot?.takeIf { method == DeliveryMethod.Courier && chosen.full }
         val slot =
             when {
                 method != DeliveryMethod.Courier -> null
                 chosen != null -> chosen.slot.takeUnless { chosen.full }
                 else -> loads.firstOrNull { !it.full }?.slot
             }
-        val payments = PaymentMethod.entries.filter { it.allowed(method, basis.totals.totalCents) }
+        val allowed = PaymentMethod.entries.filter { it.allowed(method, basis.totals.totalCents) }
+        val payment = allowed.firstOrNull { it.id == stored.payment } ?: PaymentMethod.DEFAULT
         val quote =
             Quote(
                 lines = basis.lines,
@@ -62,15 +64,17 @@ internal class CheckoutCommands(
                     },
                 point = points.firstOrNull { it.id == stored.pointId } ?: points.firstOrNull(),
                 slot = slot,
-                payment = payments.firstOrNull { it.id == stored.payment } ?: PaymentMethod.DEFAULT,
+                payment = payment,
             )
         return CheckoutState(
             quote = quote,
             addresses = addresses,
             points = points,
+            places = places,
             slots = loads,
-            payments = payments,
-            slotFilled = slotFilled,
+            payments = allowed.filter { it.listed || it == payment },
+            firstDay = basis.offered.first().day,
+            filledSlot = filled,
             expiredPromo = basis.expiredPromo,
             draft = stored.draft,
             draftProblems = stored.draft?.let(::addressProblems).orEmpty(),

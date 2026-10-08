@@ -20,6 +20,12 @@ import io.github.youndie.haul.feature.catalog.FilteredResultsView
 import io.github.youndie.haul.feature.catalog.FiltersSheet
 import io.github.youndie.haul.feature.catalog.PageTitleView
 import io.github.youndie.haul.feature.catalog.PaginationView
+import io.github.youndie.haul.feature.checkout.CheckoutBodyView
+import io.github.youndie.haul.feature.checkout.CheckoutCommand
+import io.github.youndie.haul.feature.checkout.CheckoutHeaderView
+import io.github.youndie.haul.feature.checkout.LocalCheckoutCommands
+import io.github.youndie.haul.feature.checkout.newIdempotencyKey
+import io.github.youndie.haul.feature.checkout.run
 import io.github.youndie.haul.feature.home.CampaignRowView
 import io.github.youndie.haul.feature.home.CategoryGridView
 import io.github.youndie.haul.feature.home.PlusBlockView
@@ -36,6 +42,8 @@ import io.github.youndie.haul.ui.Breadcrumbs
 import io.github.youndie.haul.ui.CampaignRow
 import io.github.youndie.haul.ui.CartBody
 import io.github.youndie.haul.ui.CategoryGrid
+import io.github.youndie.haul.ui.CheckoutBody
+import io.github.youndie.haul.ui.CheckoutHeader
 import io.github.youndie.haul.ui.EmptyState
 import io.github.youndie.haul.ui.EmptyStateView
 import io.github.youndie.haul.ui.FilterChips
@@ -64,6 +72,7 @@ import io.github.youndie.kompot.KompotActionHandler
 import io.github.youndie.kompot.KompotComponentRenderer
 import io.github.youndie.kompot.form.FormController
 import io.github.youndie.kompot.registry.KompotComponentMarker
+import io.github.youndie.kompot.standard.NavigateAction
 import kotlinx.coroutines.launch
 
 // One renderer per Haul component; kompot's processor collects them into `generatedHaulAppRenderers`.
@@ -370,5 +379,56 @@ public class CartBodyRenderer : KompotComponentRenderer<CartBody> {
         CartBodyView(component) { batch ->
             if (commands != null) scope.launch { commands.run(batch)?.let(actionHandler::handle) }
         }
+    }
+}
+
+// The checkout (screen-checkout). A choice or the address form is a command to the server
+// (`LocalCheckoutCommands`, the storefront's), whose `refresh` goes to the screen's handler; «Place
+// order» is the same seam with the quote and its key, drawn as Placing until the server answers.
+
+@KompotComponentMarker
+public class CheckoutHeaderRenderer : KompotComponentRenderer<CheckoutHeader> {
+    @Composable
+    override fun Render(
+        component: CheckoutHeader,
+        actionHandler: KompotActionHandler,
+        formController: FormController,
+    ) {
+        CheckoutHeaderView(component, onHome = component.home?.let { home -> { actionHandler.handle(home) } })
+    }
+}
+
+@KompotComponentMarker
+public class CheckoutBodyRenderer : KompotComponentRenderer<CheckoutBody> {
+    @Composable
+    override fun Render(
+        component: CheckoutBody,
+        actionHandler: KompotActionHandler,
+        formController: FormController,
+    ) {
+        val commands = LocalCheckoutCommands.current
+        val scope = rememberCoroutineScope()
+        var placing by remember { mutableStateOf(false) }
+        // One key per quote: a retry of the same quote is the same order, a new quote a new one (B-16).
+        val key = remember(component.summary.quote) { newIdempotencyKey() }
+        CheckoutBodyView(
+            component,
+            placing = placing,
+            onCommand = { command ->
+                if (commands != null) scope.launch { commands.run(command)?.let(actionHandler::handle) }
+            },
+            onPlace = {
+                val url = component.summary.placeUrl
+                if (commands != null && url != null && !placing) {
+                    placing = true
+                    scope.launch {
+                        val answer = commands.run(CheckoutCommand.Place(url, component.summary.quote, key))
+                        // An order placed goes to its page; anything else leaves the checkout to be drawn again.
+                        if (answer !is NavigateAction) placing = false
+                        answer?.let(actionHandler::handle)
+                    }
+                }
+            },
+        )
     }
 }

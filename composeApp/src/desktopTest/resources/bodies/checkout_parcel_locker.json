@@ -1,0 +1,151 @@
+{
+    "type": "column",
+    "id": "checkout",
+    "children": [
+        {
+            "type": "haul_checkout_header",
+            "id": "checkout-header",
+            "steps": [
+                "Delivery",
+                "Payment",
+                "Review"
+            ],
+            "secureLabel": "Secure checkout",
+            "home": {
+                "type": "navigate",
+                "deeplink": "/"
+            }
+        },
+        {
+            "type": "haul_checkout_body",
+            "id": "checkout-body",
+            "title": "Checkout",
+            "methods": {
+                "id": "methods",
+                "title": "How to receive",
+                "options": [
+                    {
+                        "method": "courier",
+                        "label": "Courier",
+                        "detail": "Tomorrow, Oct 8",
+                        "price": "Free",
+                        "selected": false
+                    },
+                    {
+                        "method": "pickup_point",
+                        "label": "Pickup point",
+                        "detail": "Thu, Oct 9 · 240 m away",
+                        "price": "Free",
+                        "selected": false
+                    },
+                    {
+                        "method": "parcel_locker",
+                        "label": "Parcel locker",
+                        "detail": "Thu, Oct 9 · 24/7 access",
+                        "price": "Free",
+                        "selected": true
+                    }
+                ],
+                "url": "/api/v1/me/checkout"
+            },
+            "points": {
+                "id": "points",
+                "title": "Parcel locker",
+                "points": [
+                    {
+                        "id": "locker-wythe-n7th",
+                        "name": "Wythe & N 7th",
+                        "detail": "Parcel locker · 24/7 · Thu, Oct 9",
+                        "distance": "180 m",
+                        "selected": true
+                    },
+                    {
+                        "id": "locker-bedford-station",
+                        "name": "Bedford Ave station",
+                        "detail": "Parcel locker · 24/7 · Thu, Oct 9",
+                        "distance": "700 m",
+                        "selected": false
+                    }
+                ],
+                "url": "/api/v1/me/checkout"
+            },
+            "payment": {
+                "id": "payment",
+                "title": "Payment",
+                "options": [
+                    {
+                        "id": "card-4821",
+                        "label": "Card ···· 4821",
+                        "detail": "Expires 08/28",
+                        "selected": true
+                    },
+                    {
+                        "id": "haul_pay",
+                        "label": "Haul Pay",
+                        "detail": "4 payments of $128",
+                        "selected": false
+                    }
+                ],
+                "url": "/api/v1/me/checkout",
+                "points": {
+                    "label": "Use 2,480 points (−$24.80)",
+                    "detail": "100 points = $1 · all or nothing",
+                    "on": false
+                }
+            },
+            "summary": {
+                "id": "summary",
+                "title": "Your order",
+                "items": [
+                    {
+                        "title": "WH-1000XM6 Wireless Noise Cancelling Headphones",
+                        "options": "Midnight Black · Headphones only",
+                        "quantity": 1,
+                        "price": "$349",
+                        "tone": "#E6E4FF",
+                        "label": "headphones"
+                    },
+                    {
+                        "title": "Linen Duvet Cover Set, Queen",
+                        "options": "Oat · 3 pieces",
+                        "quantity": 1,
+                        "price": "$139",
+                        "tone": "#F1EBDD",
+                        "label": "bedding"
+                    },
+                    {
+                        "title": "Stoneware Mug, 12 oz",
+                        "options": "Sage · Set of 2",
+                        "quantity": 1,
+                        "price": "$24",
+                        "tone": "#E3F5D8",
+                        "label": "mug"
+                    }
+                ],
+                "rows": [
+                    {
+                        "label": "Items (3)",
+                        "value": "$652.00"
+                    },
+                    {
+                        "label": "Discount",
+                        "value": "−$140.00",
+                        "saving": true
+                    },
+                    {
+                        "label": "Delivery · Thu, Oct 9",
+                        "value": "Free"
+                    }
+                ],
+                "totalLabel": "Total",
+                "total": "$512",
+                "note": "By placing the order you agree to the Terms of Sale. Your card is charged when the order ships.",
+                "placeLabel": "Place order · $512.00",
+                "placingLabel": "Placing order…",
+                "placeEnabled": true,
+                "placeUrl": "/api/v1/orders",
+                "quote": "d47e50553ab414dc7e8ede4f3a0d5a93"
+            }
+        }
+    ]
+}
