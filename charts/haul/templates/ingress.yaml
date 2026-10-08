@@ -1,0 +1,42 @@
+{{- if .Values.traefik.enabled }}
+{{/*
+The public host, as the cluster's other public services expose theirs: Traefik's IngressRoute on both
+entrypoints, plain HTTP redirected to HTTPS.
+
+One rule for the whole host, because one process answers the page, the screens and the probes: the
+API routes are more specific than the bundle's in the server's own routing (`WebBundleTest`), so the
+routing table lives in one place. No forward-auth: the storefront is public by design, and the
+customer tier is the server's own (a shildik token, B-12).
+*/}}
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ .Release.Name }}-redirect-to-https
+  labels: {{- include "haul.labels" . | nindent 4 }}
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ .Release.Name }}
+  labels: {{- include "haul.labels" . | nindent 4 }}
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - match: Host(`{{ include "haul.require" (dict "name" "hostname" "because" "an empty one renders Host(``), a rule that matches nothing while looking like a working ingress" "value" .Values.hostname) }}`)
+      kind: Rule
+      middlewares:
+        - name: {{ .Release.Name }}-redirect-to-https
+      services:
+        - name: {{ .Release.Name }}
+          port: 80
+  tls:
+    {{- with .Values.traefik.certResolver }}
+    certResolver: {{ . | quote }}
+    {{- end }}
+{{- end }}

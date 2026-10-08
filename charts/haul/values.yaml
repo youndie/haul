@@ -1,0 +1,80 @@
+# The chart's defaults: everything a deployment must decide is empty and refused at render, so a
+# missing value stops `helm template` rather than arriving as a green deploy and a server that is down.
+# The public demo stand's choices are in values-stand.yaml, beside this file.
+
+# The public host the IngressRoute matches. Required while `traefik.enabled`: an empty one renders
+# Host(``), a rule that matches nothing while looking like a working ingress.
+hostname: ""
+
+server:
+  image: ghcr.io/youndie/haul-server
+  # **Required, and a commit, not `latest`.** A tag that moves leaves helm nothing to notice, so a
+  # green deploy keeps the previous binary. It is also what `/version` and every agent's release name.
+  version: ""
+  imagePullSecrets: []
+  # Any number is safe today: nothing is held in process (the screens are built from the database on
+  # every request), and Flyway serialises concurrent migrations on its own lock. Revisit when the
+  # order saga and the fulfilment simulator land (B-16, B-17): a simulator on a clock must run once.
+  replicas: 1
+  # Seed the catalog on the first start, when the database is empty. Off by default, as in the server:
+  # a production database is not a demo.
+  seed: false
+  dbPoolSize: 10
+  # Handed to the start script as JAVA_OPTS, after the AOT cache flag it adds itself. The heap follows
+  # the container's limit rather than a number that drifts away from it.
+  jvmOptions: >-
+    -XX:MaxRAMPercentage=60.0
+    -XX:+ExitOnOutOfMemoryError
+  resources:
+    requests:
+      cpu: 100m
+      memory: 384Mi
+    limits:
+      memory: 768Mi
+
+# The database: one pod with one volume, inside the release (templates/postgres.yaml).
+postgres:
+  image: postgres:18-alpine
+  user: haul
+  database: haul
+  # Required. Passed with --set from where the deploy keeps its secrets, never written into a values
+  # file: anything in one is readable by every reader of the repository.
+  password: ""
+  # Empty means the cluster's default storage class.
+  storageClass: ""
+  size: 2Gi
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+# Who watches it. An agent is on when its endpoint and key are both set; one without the other is
+# refused here and again by the server at start. Keys are passed with --set, like the password.
+#
+# The endpoints are not the same kind of address: metrik ingests over UDP and takes `host:port`
+# (reachable only inside the cluster metrik runs in), tracy and katcher take an HTTPS origin.
+observability:
+  # What katcher files a report under; the release is `server.version`.
+  environment: stand
+  metrik:
+    endpoint: ""
+    key: ""
+  tracy:
+    endpoint: ""
+    key: ""
+    # Empty is the agent's own 1 %. Tail sampling keeps failures and slow calls, so a quiet stand at
+    # 1 % shows an almost empty collector, which reads as broken wiring; a stand sets 1.0.
+    sampleRate: ""
+  katcher:
+    endpoint: ""
+    key: ""
+
+# The ingress, as the cluster's other public services have it: Traefik IngressRoutes on `web` and
+# `websecure`, plain HTTP redirected, a certificate from the named resolver. Off, the release has no
+# public address — what a throwaway cluster without Traefik's CRDs needs.
+traefik:
+  enabled: true
+  # Empty means Traefik's default certificate.
+  certResolver: ""

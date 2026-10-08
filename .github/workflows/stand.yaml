@@ -1,0 +1,125 @@
+name: stand
+
+# The public demo stand (research D6, B-27): publish the image of one commit, then install the chart
+# with it. **By hand only** — `workflow_dispatch`, no push, no tag, no schedule — so merging this file
+# deploys nothing; a deploy is a decision somebody makes and clicks.
+#
+# What it needs, created by the owner before the first run (nothing here creates them):
+#   secrets.STAND_KUBECONFIG    a kubeconfig for the stand's cluster, base64; the release goes to `haul`
+#   secrets.STAND_PG_PASSWORD   the stand database's password, chosen once and kept
+#   secrets.STAND_TRACY_KEY     the tracy ingest key       (values-stand.yaml names the endpoint)
+#   secrets.STAND_KATCHER_KEY   the katcher app key        (values-stand.yaml names the endpoint)
+#   secrets.STAND_METRIK_KEY    optional, with the input `metrik` naming the in-cluster ingest
+#
+# Every value is passed on every run and none is reused: `--reuse-values` drops keys the chart gained
+# since the previous release and renders them empty, and `--reset-then-reuse-values` still carries an
+# override forward. Passing everything is the one form where the render is what this file says.
+on:
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: "Install the chart after publishing (off: publish the image only)"
+        type: boolean
+        default: false
+      metrik:
+        description: "metrik's UDP ingest as host:port, reachable from the stand's cluster (empty: metrik off)"
+        type: string
+        default: ""
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/youndie/haul-server:${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # A commit's image is published once. Republishing a tag changes no rendered spec, so nothing
+      # downstream restarts and the cluster keeps the previous binary behind a green deploy.
+      - name: Refuse a commit that is already published
+        run: |
+          if docker manifest inspect "$IMAGE" >/dev/null 2>&1; then
+            echo "$IMAGE exists already: deploy it, or publish another commit"
+            echo "EXISTS=true" >> "$GITHUB_ENV"
+          fi
+
+      # The same script every pull request runs: the image is built, its AOT cache must be accepted
+      # with all of the server's classes in it, and it must serve the page — before anything is pushed.
+      - name: Build and verify the image
+        if: env.EXISTS != 'true'
+        run: scripts/image-check.sh "$IMAGE"
+
+      - name: Push
+        if: env.EXISTS != 'true'
+        run: docker push "$IMAGE"
+
+  deploy:
+    if: inputs.deploy
+    needs: image
+    runs-on: ubuntu-latest
+    concurrency: stand
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.17.0
+
+      - name: The cluster
+        env:
+          KUBECONFIG_B64: ${{ secrets.STAND_KUBECONFIG }}
+        run: |
+          test -n "$KUBECONFIG_B64" || { echo "secrets.STAND_KUBECONFIG is not set"; exit 1; }
+          echo "$KUBECONFIG_B64" | base64 -d > "$RUNNER_TEMP/kubeconfig"
+          echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> "$GITHUB_ENV"
+
+      - name: Install the chart
+        env:
+          PG_PASSWORD: ${{ secrets.STAND_PG_PASSWORD }}
+          TRACY_KEY: ${{ secrets.STAND_TRACY_KEY }}
+          KATCHER_KEY: ${{ secrets.STAND_KATCHER_KEY }}
+          METRIK_KEY: ${{ secrets.STAND_METRIK_KEY }}
+          METRIK: ${{ inputs.metrik }}
+        run: |
+          metrik=()
+          if [ -n "$METRIK" ]; then
+            metrik=(--set "observability.metrik.endpoint=$METRIK" --set "observability.metrik.key=$METRIK_KEY")
+          fi
+          helm upgrade --install haul charts/haul --namespace haul --create-namespace \
+            -f charts/haul/values-stand.yaml \
+            --set server.version=${{ github.sha }} \
+            --set postgres.password="$PG_PASSWORD" \
+            --set observability.tracy.key="$TRACY_KEY" \
+            --set observability.katcher.key="$KATCHER_KEY" \
+            "${metrik[@]}" \
+            --atomic --wait --timeout 6m
+
+      # «Deployed» is helm's word; this asks the public host which commit is answering, and whether the
+      # page is there. A release that rolled out and a stand that serves it are different facts.
+      - name: The stand answers at its host with this commit
+        run: |
+          host=$(grep -E '^hostname:' charts/haul/values-stand.yaml | awk '{print $2}')
+          for _ in $(seq 30); do
+            body=$(curl -fsS "https://$host/version" || true)
+            [ "$body" = '{"commit":"${{ github.sha }}"}' ] && break
+            sleep 5
+          done
+          echo "https://$host/version -> $body"
+          [ "$body" = '{"commit":"${{ github.sha }}"}' ]
+          test "$(curl -s -o /dev/null -w '%{http_code}' "https://$host/")" = 200

@@ -30,7 +30,8 @@ module it touches, and only packages several features import (`db`, `seed`, `di`
 ```bash
 make check                                                                  # the documentation gate
 ./gradlew check :server:installDist :composeApp:wasmJsBrowserDistribution  # the code gate
-scripts/image-check.sh                                                      # the image and its AOT cache
+scripts/image-check.sh                                                      # the image, its AOT cache, the page it serves
+scripts/chart-check.sh                                                      # the chart renders and refuses what it must
 ```
 
 The server's tests and the image check need Docker: PostgreSQL runs in Testcontainers, and the image

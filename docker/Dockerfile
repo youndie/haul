@@ -40,6 +40,8 @@ RUN set -eu; \
     chmod -R a+rX /opt/app
 
 FROM eclipse-temurin:${TEMURIN}-jre
+# Links the published package to the repository, whose visibility it then takes (B-27).
+LABEL org.opencontainers.image.source="https://github.com/youndie/haul"
 COPY --from=train /opt/app /opt/app
 # The browser bundle the distribution carries (`server/build.gradle.kts`), served at `/`.
 ENV HAUL_WEB_DIR=/opt/app/web

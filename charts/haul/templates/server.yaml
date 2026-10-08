@@ -1,0 +1,144 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    {{- include "haul.labels" . | nindent 4 }}
+    app.kubernetes.io/name: haul-server
+spec:
+  replicas: {{ .Values.server.replicas }}
+  {{- /*
+  Rolled, one extra pod at a time and never one fewer: the old pod serves until the new one is ready,
+  and Traefik follows readiness. The price is that a migration must leave the running version working
+  (expand, then contract) — the new pod migrates while the old one still serves.
+  */}}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/name: haul-server
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/name: haul-server
+      annotations:
+        checksum/secrets: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+    spec:
+      {{- /*
+      No service links: the kubelet would inject HAUL_PORT, HAUL_SERVICE_HOST, HAUL_POSTGRES_PORT… for
+      the Services named `haul` and `haul-postgres` — variables under the prefix the server's own
+      configuration owns. Nothing here discovers anything through them.
+      */}}
+      enableServiceLinks: false
+      {{- with .Values.server.imagePullSecrets }}
+      imagePullSecrets: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+      {{- /*
+      The server migrates before it listens and exits when the database refuses it. On a first install
+      the database is still initialising, and the server was measured restarting three times in a
+      minute before it came up (kind, B-27) — a crash loop on every fresh release. So the pod waits
+      for the database here, with the database's own image, which asks the server rather than a port.
+      */}}
+      initContainers:
+        - name: wait-for-postgres
+          image: {{ .Values.postgres.image | quote }}
+          command:
+            - sh
+            - -c
+            - until pg_isready -h {{ .Release.Name }}-postgres -p 5432 -U {{ .Values.postgres.user }} -d {{ .Values.postgres.database }}; do sleep 2; done
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+      containers:
+        - name: server
+          image: {{ include "haul.image" . | quote }}
+          env:
+            - name: HAUL_DB_URL
+              value: {{ include "haul.dbUrl" . | quote }}
+            - name: HAUL_DB_USER
+              value: {{ .Values.postgres.user | quote }}
+            - name: HAUL_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: postgres-password
+            - name: HAUL_DB_POOL_SIZE
+              value: {{ .Values.server.dbPoolSize | quote }}
+            - name: HAUL_SEED
+              value: {{ .Values.server.seed | quote }}
+            - name: HAUL_COMMIT
+              value: {{ .Values.server.version | quote }}
+            - name: HAUL_ENVIRONMENT
+              value: {{ .Values.observability.environment | quote }}
+            {{- if .Values.server.jvmOptions }}
+            - name: JAVA_OPTS
+              value: {{ .Values.server.jvmOptions | trim | quote }}
+            {{- end }}
+            {{- if and .Values.observability.tracy.endpoint .Values.observability.tracy.sampleRate }}
+            - name: HAUL_TRACY_SAMPLE_RATE
+              value: {{ .Values.observability.tracy.sampleRate | quote }}
+            {{- end }}
+            {{- include "haul.agentEnv" (dict "name" "metrik" "agent" .Values.observability.metrik "root" .) | nindent 12 }}
+            {{- include "haul.agentEnv" (dict "name" "tracy" "agent" .Values.observability.tracy "root" .) | nindent 12 }}
+            {{- include "haul.agentEnv" (dict "name" "katcher" "agent" .Values.observability.katcher "root" .) | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: 8080
+          {{- /*
+          The server listens only after Flyway has migrated and, on a stand's first start, the catalog
+          has been seeded, so the start-up probe gets a minute and a half before liveness takes over.
+          Liveness asks only the process (`/healthz`); readiness asks the database (`/readyz`), so a
+          database that is gone takes the pod out of the Service without restarting a process a
+          restart cannot fix (endpoint-ops, `ops/Probes.kt`).
+          */}}
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 2
+            failureThreshold: 45
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 5
+          resources: {{- toYaml .Values.server.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  labels: {{- include "haul.labels" . | nindent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: haul-server
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
