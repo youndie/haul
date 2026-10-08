@@ -88,6 +88,9 @@ internal interface CatalogRepository {
 
     suspend fun listed(productIds: List<String>): List<Listed>
 
+    /** The listed products that own these SKUs, each with all its SKUs; an unknown id matches nothing. */
+    suspend fun listedBySkus(skuIds: Set<String>): List<Listed>
+
     suspend fun product(id: String): Listed?
 
     suspend fun seller(id: String): Seller?

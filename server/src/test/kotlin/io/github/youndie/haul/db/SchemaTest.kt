@@ -1,5 +1,6 @@
 package io.github.youndie.haul.db
 
+import io.github.youndie.haul.feature.cart.data.cartTables
 import io.github.youndie.haul.feature.catalog.data.catalogTables
 import io.github.youndie.haul.feature.search.data.searchTables
 import io.github.youndie.haul.testing.PostgresHarness
@@ -46,6 +47,18 @@ class SchemaTest {
             }
         assertEquals(emptyList(), required, "still required:\n" + required.joinToString("\n"))
         assertEquals(1, searchTables.size)
+    }
+
+    /** V4's guests, promo codes, carts and lines against their Exposed declarations. */
+    @Test
+    fun `the migrated schema needs no further DDL for the cart tables`() {
+        val database = Databases.connect(PostgresHarness.freshDatabase())
+        val required =
+            transaction(database) {
+                MigrationUtils.statementsRequiredForDatabaseMigration(*cartTables.toTypedArray())
+            }
+        assertEquals(emptyList(), required, "still required:\n" + required.joinToString("\n"))
+        assertEquals(4, cartTables.size)
     }
 
     /** The guard on the guard: an empty table list also needs no DDL. */

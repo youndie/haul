@@ -2,16 +2,23 @@ package io.github.youndie.haul.di
 
 import io.github.youndie.haul.StoreClock
 import io.github.youndie.haul.db.Databases
+import io.github.youndie.haul.feature.cart.cartModule
+import io.github.youndie.haul.feature.cart.domain.CartCommands
+import io.github.youndie.haul.feature.cart.domain.CartRepository
+import io.github.youndie.haul.feature.cart.screen.CartScreen
 import io.github.youndie.haul.feature.catalog.catalogModule
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.screen.CatalogScreen
 import io.github.youndie.haul.feature.catalog.screen.HomeScreen
 import io.github.youndie.haul.feature.catalog.screen.ProductScreen
+import io.github.youndie.haul.feature.identity.domain.Guests
+import io.github.youndie.haul.feature.identity.identityModule
 import io.github.youndie.haul.feature.search.screen.SearchScreen
 import io.github.youndie.haul.feature.search.searchModule
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.testing.SeededDatabase
+import org.koin.core.Koin
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import javax.sql.DataSource
@@ -22,14 +29,16 @@ import kotlin.test.assertNotNull
  * Every type a route injects resolves. Koin creates a `single` on first use, so a binding that cannot
  * be built otherwise fails at the first request of one route while the server starts healthy.
  *
- * The database is the suite's seeded one, not a stub address: `Database.connect` registers globally in
- * Exposed, and a stub registered here was picked up by the next test's queries (a `500` on `/ui/home`
- * naming port 1).
+ * The graph is closed at the end, and that is load-bearing: a `single` resolved here is cached in the
+ * shared module object (`catalogModule`, …), not in this Koin, until a Koin that loaded the module
+ * closes. Left open, the next test application served this graph's instances — the repositories over
+ * the suite's seeded database instead of its own (B-11: a cart test over a fresh database read the
+ * shared one; and, before it, a stub address here surfaced as a `500` on `/ui/home` naming port 1).
  */
 class KoinGraphTest {
     @Test
     fun `every screen resolves`() {
-        val koin =
+        val application =
             koinApplication {
                 modules(
                     module {
@@ -40,12 +49,26 @@ class KoinGraphTest {
                     },
                     catalogModule,
                     searchModule,
+                    identityModule,
+                    cartModule,
                 )
-            }.koin
+            }
+        try {
+            resolveEverything(application.koin)
+        } finally {
+            application.close()
+        }
+    }
+
+    private fun resolveEverything(koin: Koin) {
         assertNotNull(koin.get<CatalogRepository>())
         assertNotNull(koin.get<HomeScreen>())
         assertNotNull(koin.get<CatalogScreen>())
         assertNotNull(koin.get<ProductScreen>())
         assertNotNull(koin.get<SearchScreen>())
+        assertNotNull(koin.get<Guests>())
+        assertNotNull(koin.get<CartRepository>())
+        assertNotNull(koin.get<CartCommands>())
+        assertNotNull(koin.get<CartScreen>())
     }
 }

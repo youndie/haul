@@ -1,11 +1,12 @@
 package io.github.youndie.haul.seed
 
+import io.github.youndie.haul.feature.cart.data.PromoCodesTable
 import io.github.youndie.haul.feature.catalog.data.catalogTables
 import java.security.MessageDigest
 import javax.sql.DataSource
 
 /**
- * A SHA-256 over every row of the catalog, as PostgreSQL prints it — the «same hash twice» of B-03.
+ * A SHA-256 over every row the seed writes — the catalog and the promo codes — as PostgreSQL prints it — the «same hash twice» of B-03.
  *
  * Read through JDBC as text, not through the Exposed tables, so a column the tables forgot is still
  * in the hash; ordered by the primary key, and in UTC, so neither the physical order of the rows nor
@@ -16,7 +17,7 @@ internal object SeedDigest {
         val sha = MessageDigest.getInstance("SHA-256")
         dataSource.connection.use { connection ->
             connection.createStatement().use { it.execute("SET TIME ZONE 'UTC'") }
-            for (table in catalogTables) {
+            for (table in catalogTables + PromoCodesTable) {
                 connection.createStatement().use { statement ->
                     statement.executeQuery("SELECT * FROM ${table.tableName} ORDER BY 1").use { rows ->
                         val columns = rows.metaData.columnCount
