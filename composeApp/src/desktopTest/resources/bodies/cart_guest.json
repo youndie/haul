@@ -258,6 +258,10 @@
             "cart": {
                 "type": "navigate",
                 "deeplink": "/cart"
+            },
+            "orders": {
+                "type": "navigate",
+                "deeplink": "/sign-in"
             }
         },
         {
