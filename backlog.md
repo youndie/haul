@@ -40,10 +40,11 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (9)
+## Open (11)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
+| [B-48](docs/backlog/B-48-the-product-page-adds-to-cart-and-buys-now.md) `[ ]` | server + client: the product page adds to cart and buys now | P1 | S | B-37 |
 | [B-20](docs/backlog/B-20-saved-list-save-for-later-price.md) `[ ]` | server + client: Saved list, save for later, price drops | P2 | M | B-01, B-13, B-19 |
 | [B-23](docs/backlog/B-23-haul-plus-trial-and-benefits-points.md) `[ ]` | server + client: Haul Plus trial and benefits, points ledger, redemption at checkout, delivery savings | P2 | M | B-15, B-17, B-19 |
 | [B-24](docs/backlog/B-24-haul-pay-4-payments-two-weeks.md) `[ ]` | server + client: Haul Pay, 4 payments two weeks apart | P2 | M | B-15, B-16 |
@@ -53,6 +54,7 @@ A stage is a field on the item, not a directory.
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
 | [B-45](docs/backlog/B-45-a-product-s-listing-name.md) `[ ]` | server: a product's listing name, as cards, cart and orders write it | P3 | S | B-18 |
 | [B-47](docs/backlog/B-47-a-sign-in-that-fails-with-a-js-error.md) `[ ]` | client: a sign-in that fails with a browser error ends as not gone through | P3 | S | B-46 |
+| [B-49](docs/backlog/B-49-the-last-drawn-controls-without-actions.md) `[ ]` | server + client: the last drawn controls without actions | P3 | S | B-37 |
 
 ## Closed (38)
 
