@@ -38,9 +38,9 @@ code, not observed, until this document goes `active`.
 
 | Service | Code (planned) |
 |---|---|
-| haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/reviews/` — the contract |
-| haul-server | `server/src/main/kotlin/io/github/youndie/haul/server/reviews/` |
-| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/product/` |
+| haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/reviews/` — the contract |
+| haul-server | `server/src/main/kotlin/io/github/youndie/haul/feature/reviews/` |
+| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/product/` |
 
 ## 5. Scenarios (BDD / test cases)
 

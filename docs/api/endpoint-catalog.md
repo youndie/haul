@@ -31,14 +31,14 @@ in [haul-server](../services/haul-server.md), section 2.
 
 | Route | Handler (planned) |
 |---|---|
-| `GET` `/ui/home` | `server/src/main/kotlin/io/github/youndie/haul/server/catalog/` |
-| `GET` `/ui/c/{categoryPath}` | `server/src/main/kotlin/io/github/youndie/haul/server/catalog/` |
-| `GET` `/ui/p/{productId}` | `server/src/main/kotlin/io/github/youndie/haul/server/catalog/` |
-| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/catalog/` — ``CatalogRoutes`` |
+| `GET` `/ui/home` | `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/` |
+| `GET` `/ui/c/{categoryPath}` | `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/` |
+| `GET` `/ui/p/{productId}` | `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/` |
+| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/catalog/` — ``CatalogRoutes`` |
 
 ## Request and response bodies
 
-In `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/catalog/` once it exists; not copied here.
+In `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/catalog/` once it exists; not copied here.
 
 ## Errors
 

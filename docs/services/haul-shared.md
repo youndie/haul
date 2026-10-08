@@ -28,8 +28,8 @@ reads.
 
 | File (planned) | What is there |
 |---|---|
-| `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/ui/` | the Haul components |
-| `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/ErrorCode.kt` | every error code |
+| `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/` | the Haul components |
+| `shared/src/commonMain/kotlin/io/github/youndie/haul/ErrorCode.kt` | every error code |
 | `shared/build.gradle.kts` | targets: jvm, wasmJs; the KSP registry processor |
 
 ## 4. Dependencies

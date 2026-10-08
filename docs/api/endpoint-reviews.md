@@ -34,14 +34,14 @@ in [haul-server](../services/haul-server.md), section 2.
 
 | Route | Handler (planned) |
 |---|---|
-| `POST` `/api/v1/products/{id}/reviews` | `server/src/main/kotlin/io/github/youndie/haul/server/reviews/` |
-| `PUT` `/api/v1/reviews/{id}/helpful` | `server/src/main/kotlin/io/github/youndie/haul/server/reviews/` |
-| `POST` `/api/v1/products/{id}/questions` | `server/src/main/kotlin/io/github/youndie/haul/server/reviews/` |
-| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/reviews/` — ``ReviewRoutes`` |
+| `POST` `/api/v1/products/{id}/reviews` | `server/src/main/kotlin/io/github/youndie/haul/feature/reviews/` |
+| `PUT` `/api/v1/reviews/{id}/helpful` | `server/src/main/kotlin/io/github/youndie/haul/feature/reviews/` |
+| `POST` `/api/v1/products/{id}/questions` | `server/src/main/kotlin/io/github/youndie/haul/feature/reviews/` |
+| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/reviews/` — ``ReviewRoutes`` |
 
 ## Request and response bodies
 
-In `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/reviews/` once it exists; not copied here.
+In `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/reviews/` once it exists; not copied here.
 
 ## Errors
 

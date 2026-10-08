@@ -32,15 +32,15 @@ in [haul-server](../services/haul-server.md), section 2.
 
 | Route | Handler (planned) |
 |---|---|
-| `GET` `/ui/account/saved` | `server/src/main/kotlin/io/github/youndie/haul/server/saved/` |
-| `PUT` `/api/v1/me/saved/{productId}` | `server/src/main/kotlin/io/github/youndie/haul/server/saved/` |
-| `DELETE` `/api/v1/me/saved/{productId}` | `server/src/main/kotlin/io/github/youndie/haul/server/saved/` |
-| `POST` `/api/v1/cart/lines/{skuId}/save-for-later` | `server/src/main/kotlin/io/github/youndie/haul/server/saved/` |
-| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/saved/` — ``SavedRoutes`` |
+| `GET` `/ui/account/saved` | `server/src/main/kotlin/io/github/youndie/haul/feature/saved/` |
+| `PUT` `/api/v1/me/saved/{productId}` | `server/src/main/kotlin/io/github/youndie/haul/feature/saved/` |
+| `DELETE` `/api/v1/me/saved/{productId}` | `server/src/main/kotlin/io/github/youndie/haul/feature/saved/` |
+| `POST` `/api/v1/cart/lines/{skuId}/save-for-later` | `server/src/main/kotlin/io/github/youndie/haul/feature/saved/` |
+| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/saved/` — ``SavedRoutes`` |
 
 ## Request and response bodies
 
-In `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/saved/` once it exists; not copied here.
+In `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/saved/` once it exists; not copied here.
 
 ## Errors
 

@@ -41,9 +41,9 @@ code, not observed, until this document goes `active`.
 
 | Service | Code (planned) |
 |---|---|
-| haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/cart/` — the contract |
-| haul-server | `server/src/main/kotlin/io/github/youndie/haul/server/cart/` |
-| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/cart/` |
+| haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/cart/` — the contract |
+| haul-server | `server/src/main/kotlin/io/github/youndie/haul/feature/cart/` |
+| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/cart/` |
 
 ## 5. Scenarios (BDD / test cases)
 

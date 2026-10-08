@@ -10,7 +10,7 @@ parent_feature: feature-cart
 calls_api:
   - endpoint-cart
   - endpoint-saved
-source: haul/composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/cart
+source: haul/composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/cart
 design:
   canvas: https://claude.ai/design/p/d306660f-831e-43aa-8911-ca02a3397c59 (page canvas/Cart)
   references: haul/composeApp/src/desktopTest/snapshots/design
@@ -31,9 +31,9 @@ design:
 
 | What | File (planned) |
 |---|---|
-| Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/cart/` |
-| Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/shell/` |
-| The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/server/cart/` |
+| Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/cart/` |
+| Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` |
+| The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/cart/` |
 | Reference PNGs, one per artboard | `composeApp/src/desktopTest/snapshots/design/` |
 
 ## 0. Entry point and visibility

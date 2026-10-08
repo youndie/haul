@@ -31,14 +31,14 @@ in [haul-server](../services/haul-server.md), section 2.
 
 | Route | Handler (planned) |
 |---|---|
-| `POST` `/api/v1/guests` | `server/src/main/kotlin/io/github/youndie/haul/server/identity/` |
-| `POST` `/api/v1/me/cart/merge` | `server/src/main/kotlin/io/github/youndie/haul/server/identity/` |
-| `POST` `/api/v1/me/addresses` | `server/src/main/kotlin/io/github/youndie/haul/server/identity/` |
-| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/identity/` — ``GuestRoutes, AddressRoutes`` |
+| `POST` `/api/v1/guests` | `server/src/main/kotlin/io/github/youndie/haul/feature/identity/` |
+| `POST` `/api/v1/me/cart/merge` | `server/src/main/kotlin/io/github/youndie/haul/feature/identity/` |
+| `POST` `/api/v1/me/addresses` | `server/src/main/kotlin/io/github/youndie/haul/feature/identity/` |
+| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/` — ``GuestRoutes, AddressRoutes`` |
 
 ## Request and response bodies
 
-In `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/identity/` once it exists; not copied here.
+In `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/` once it exists; not copied here.
 
 ## Errors
 

@@ -37,9 +37,9 @@ code, not observed, until this document goes `active`.
 
 | Service | Code (planned) |
 |---|---|
-| haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/search/` — the contract |
-| haul-server | `server/src/main/kotlin/io/github/youndie/haul/server/search/` |
-| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/search/` |
+| haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/search/` — the contract |
+| haul-server | `server/src/main/kotlin/io/github/youndie/haul/feature/search/` |
+| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/search/` |
 
 ## 5. Scenarios (BDD / test cases)
 

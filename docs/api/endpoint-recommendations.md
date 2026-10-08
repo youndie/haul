@@ -32,12 +32,12 @@ in [haul-server](../services/haul-server.md), section 2.
 
 | Route | Handler (planned) |
 |---|---|
-| `GET` `/ui/home` (the `PlusBlock` and «Picked for you» part) | `server/src/main/kotlin/io/github/youndie/haul/server/recommendations/` |
-| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/recommendations/` — ``CatalogRoutes`` |
+| `GET` `/ui/home` (the `PlusBlock` and «Picked for you» part) | `server/src/main/kotlin/io/github/youndie/haul/feature/recommendations/` |
+| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/recommendations/` — ``CatalogRoutes`` |
 
 ## Request and response bodies
 
-In `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/recommendations/` once it exists; not copied here.
+In `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/recommendations/` once it exists; not copied here.
 
 ## Errors
 

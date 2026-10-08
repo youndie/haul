@@ -37,17 +37,17 @@ in [haul-server](../services/haul-server.md), section 2.
 
 | Route | Handler (planned) |
 |---|---|
-| `GET` `/ui/cart` | `server/src/main/kotlin/io/github/youndie/haul/server/cart/` |
-| `PUT` `/api/v1/cart/lines/{skuId}` | `server/src/main/kotlin/io/github/youndie/haul/server/cart/` |
-| `DELETE` `/api/v1/cart/lines` | `server/src/main/kotlin/io/github/youndie/haul/server/cart/` |
-| `POST` `/api/v1/cart/lines/{skuId}/acknowledge` | `server/src/main/kotlin/io/github/youndie/haul/server/cart/` |
-| `PUT` `/api/v1/cart/promo` | `server/src/main/kotlin/io/github/youndie/haul/server/cart/` |
-| `DELETE` `/api/v1/cart/promo` | `server/src/main/kotlin/io/github/youndie/haul/server/cart/` |
-| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/cart/` — ``CartRoutes`` |
+| `GET` `/ui/cart` | `server/src/main/kotlin/io/github/youndie/haul/feature/cart/` |
+| `PUT` `/api/v1/cart/lines/{skuId}` | `server/src/main/kotlin/io/github/youndie/haul/feature/cart/` |
+| `DELETE` `/api/v1/cart/lines` | `server/src/main/kotlin/io/github/youndie/haul/feature/cart/` |
+| `POST` `/api/v1/cart/lines/{skuId}/acknowledge` | `server/src/main/kotlin/io/github/youndie/haul/feature/cart/` |
+| `PUT` `/api/v1/cart/promo` | `server/src/main/kotlin/io/github/youndie/haul/feature/cart/` |
+| `DELETE` `/api/v1/cart/promo` | `server/src/main/kotlin/io/github/youndie/haul/feature/cart/` |
+| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/cart/` — ``CartRoutes`` |
 
 ## Request and response bodies
 
-In `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/cart/` once it exists; not copied here.
+In `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/cart/` once it exists; not copied here.
 
 ## Errors
 

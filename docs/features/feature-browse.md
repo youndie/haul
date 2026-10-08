@@ -41,10 +41,10 @@ code, not observed, until this document goes `active`.
 
 | Service | Code (planned) |
 |---|---|
-| haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/catalog/` — the contract |
-| haul-server | `server/src/main/kotlin/io/github/youndie/haul/server/catalog/` |
-| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/home/` |
-| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/catalog/` |
+| haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/catalog/` — the contract |
+| haul-server | `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/` |
+| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/home/` |
+| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/catalog/` |
 
 ## 5. Scenarios (BDD / test cases)
 

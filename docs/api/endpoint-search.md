@@ -31,14 +31,14 @@ in [haul-server](../services/haul-server.md), section 2.
 
 | Route | Handler (planned) |
 |---|---|
-| `GET` `/ui/search` | `server/src/main/kotlin/io/github/youndie/haul/server/search/` |
-| `GET` `/ui/search/suggest` | `server/src/main/kotlin/io/github/youndie/haul/server/search/` |
-| `DELETE` `/api/v1/me/recent-searches` | `server/src/main/kotlin/io/github/youndie/haul/server/search/` |
-| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/search/` — ``SearchRoutes`` |
+| `GET` `/ui/search` | `server/src/main/kotlin/io/github/youndie/haul/feature/search/` |
+| `GET` `/ui/search/suggest` | `server/src/main/kotlin/io/github/youndie/haul/feature/search/` |
+| `DELETE` `/api/v1/me/recent-searches` | `server/src/main/kotlin/io/github/youndie/haul/feature/search/` |
+| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/search/` — ``SearchRoutes`` |
 
 ## Request and response bodies
 
-In `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/search/` once it exists; not copied here.
+In `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/search/` once it exists; not copied here.
 
 ## Errors
 

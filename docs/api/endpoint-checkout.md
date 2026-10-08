@@ -30,13 +30,13 @@ in [haul-server](../services/haul-server.md), section 2.
 
 | Route | Handler (planned) |
 |---|---|
-| `GET` `/ui/checkout` | `server/src/main/kotlin/io/github/youndie/haul/server/checkout/` |
-| `POST` `/api/v1/orders` | `server/src/main/kotlin/io/github/youndie/haul/server/checkout/` |
-| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/checkout/` — ``CheckoutRoutes`` |
+| `GET` `/ui/checkout` | `server/src/main/kotlin/io/github/youndie/haul/feature/checkout/` |
+| `POST` `/api/v1/orders` | `server/src/main/kotlin/io/github/youndie/haul/feature/checkout/` |
+| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/checkout/` — ``CheckoutRoutes`` |
 
 ## Request and response bodies
 
-In `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/checkout/` once it exists; not copied here.
+In `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/checkout/` once it exists; not copied here.
 
 ## Errors
 

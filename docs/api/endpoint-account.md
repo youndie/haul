@@ -29,12 +29,12 @@ in [haul-server](../services/haul-server.md), section 2.
 
 | Route | Handler (planned) |
 |---|---|
-| `GET` `/ui/account` | `server/src/main/kotlin/io/github/youndie/haul/server/account/` |
-| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/account/` — ``AccountRoutes`` |
+| `GET` `/ui/account` | `server/src/main/kotlin/io/github/youndie/haul/feature/account/` |
+| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/account/` — ``AccountRoutes`` |
 
 ## Request and response bodies
 
-In `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/account/` once it exists; not copied here.
+In `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/account/` once it exists; not copied here.
 
 ## Errors
 

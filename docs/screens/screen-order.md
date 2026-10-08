@@ -9,7 +9,7 @@ entry:
 parent_feature: feature-orders
 calls_api:
   - endpoint-orders
-source: haul/composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/order
+source: haul/composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/order
 design:
   canvas: https://claude.ai/design/p/d306660f-831e-43aa-8911-ca02a3397c59 (page canvas/Order)
   references: haul/composeApp/src/desktopTest/snapshots/design
@@ -34,9 +34,9 @@ Not on the canvas at all; the account's «Details» link and «Place order» bot
 
 | What | File (planned) |
 |---|---|
-| Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/order/` |
-| Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/shell/` |
-| The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/server/order/` |
+| Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/order/` |
+| Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` |
+| The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/order/` |
 | Reference PNGs, one per artboard | `composeApp/src/desktopTest/snapshots/design/` |
 
 ## 0. Entry point and visibility

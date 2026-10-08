@@ -10,7 +10,7 @@ parent_feature: feature-checkout
 calls_api:
   - endpoint-checkout
   - endpoint-identity
-source: haul/composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/checkout
+source: haul/composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/checkout
 design:
   canvas: https://claude.ai/design/p/d306660f-831e-43aa-8911-ca02a3397c59 (page canvas/Checkout)
   references: haul/composeApp/src/desktopTest/snapshots/design
@@ -35,9 +35,9 @@ The checkout page has its own minimal header (logo, steps «Delivery · Payment 
 
 | What | File (planned) |
 |---|---|
-| Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/checkout/` |
-| Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/shell/` |
-| The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/server/checkout/` |
+| Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/checkout/` |
+| Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` |
+| The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/checkout/` |
 | Reference PNGs, one per artboard | `composeApp/src/desktopTest/snapshots/design/` |
 
 ## 0. Entry point and visibility

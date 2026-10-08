@@ -42,12 +42,12 @@ code, not observed, until this document goes `active`.
 
 | Service | Code (planned) |
 |---|---|
-| haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/membership/` — the contract |
-| haul-server | `server/src/main/kotlin/io/github/youndie/haul/server/membership/` |
-| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/home/` |
-| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/cart/` |
-| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/checkout/` |
-| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/account/` |
+| haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/membership/` — the contract |
+| haul-server | `server/src/main/kotlin/io/github/youndie/haul/feature/membership/` |
+| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/home/` |
+| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/cart/` |
+| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/checkout/` |
+| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/account/` |
 
 ## 5. Scenarios (BDD / test cases)
 

@@ -11,7 +11,7 @@ calls_api:
   - endpoint-catalog
   - endpoint-cart
   - endpoint-saved
-source: haul/composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/catalog
+source: haul/composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/catalog
 design:
   canvas: https://claude.ai/design/p/d306660f-831e-43aa-8911-ca02a3397c59 (page canvas/Catalog)
   references: haul/composeApp/src/desktopTest/snapshots/design
@@ -29,9 +29,9 @@ design:
 
 | What | File (planned) |
 |---|---|
-| Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/catalog/` |
-| Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/shell/` |
-| The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/server/catalog/` |
+| Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/catalog/` |
+| Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` |
+| The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/` |
 | Reference PNGs, one per artboard | `composeApp/src/desktopTest/snapshots/design/` |
 
 ## 0. Entry point and visibility

@@ -10,7 +10,7 @@ parent_feature: feature-account
 calls_api:
   - endpoint-account
   - endpoint-orders
-source: haul/composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/account
+source: haul/composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/account
 design:
   canvas: https://claude.ai/design/p/d306660f-831e-43aa-8911-ca02a3397c59 (page canvas/Account)
   references: haul/composeApp/src/desktopTest/snapshots/design
@@ -31,9 +31,9 @@ Menu items other than Overview, Orders and Saved are not shown in v1 (§2).
 
 | What | File (planned) |
 |---|---|
-| Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/account/` |
-| Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/shell/` |
-| The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/server/account/` |
+| Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/account/` |
+| Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` |
+| The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/account/` |
 | Reference PNGs, one per artboard | `composeApp/src/desktopTest/snapshots/design/` |
 
 ## 0. Entry point and visibility

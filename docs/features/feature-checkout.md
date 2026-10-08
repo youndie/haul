@@ -40,9 +40,9 @@ code, not observed, until this document goes `active`.
 
 | Service | Code (planned) |
 |---|---|
-| haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/checkout/` — the contract |
-| haul-server | `server/src/main/kotlin/io/github/youndie/haul/server/checkout/` |
-| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/checkout/` |
+| haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/checkout/` — the contract |
+| haul-server | `server/src/main/kotlin/io/github/youndie/haul/feature/checkout/` |
+| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/checkout/` |
 
 ## 5. Scenarios (BDD / test cases)
 

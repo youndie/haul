@@ -59,13 +59,13 @@ data); send e-mail or push notifications.
 
 | File (planned) | What is there |
 |---|---|
-| `server/src/main/kotlin/io/github/youndie/haul/server/Application.kt` | entry point, route composition and the tier of every mount |
-| `server/src/main/kotlin/io/github/youndie/haul/server/di/` | dependency wiring and config bindings |
+| `server/src/main/kotlin/io/github/youndie/haul/Application.kt` | entry point, route composition and the tier of every mount |
+| `server/src/main/kotlin/io/github/youndie/haul/di/` | dependency wiring and config bindings |
 | `server/src/main/resources/db/migration/` | migrations |
-| `server/src/main/kotlin/io/github/youndie/haul/server/seed/` | the generated catalog and the sample-data fixtures |
-| `server/src/main/kotlin/io/github/youndie/haul/server/order/` | the order saga |
-| `server/src/main/kotlin/io/github/youndie/haul/server/payment/` | the payment simulator |
-| `server/src/main/kotlin/io/github/youndie/haul/server/fulfilment/` | the fulfilment simulator |
+| `server/src/main/kotlin/io/github/youndie/haul/seed/` | the generated catalog and the sample-data fixtures |
+| `server/src/main/kotlin/io/github/youndie/haul/feature/order/` | the order saga |
+| `server/src/main/kotlin/io/github/youndie/haul/feature/payment/` | the payment simulator |
+| `server/src/main/kotlin/io/github/youndie/haul/feature/fulfilment/` | the fulfilment simulator |
 | `server/build.gradle.kts` | the `application` plugin and zavarnik |
 
 ## 3. How it is built

@@ -32,15 +32,15 @@ in [haul-server](../services/haul-server.md), section 2.
 
 | Route | Handler (planned) |
 |---|---|
-| `GET` `/ui/orders/{id}` | `server/src/main/kotlin/io/github/youndie/haul/server/order/` |
-| `GET` `/ui/account/orders` | `server/src/main/kotlin/io/github/youndie/haul/server/order/` |
-| `POST` `/api/v1/me/orders/{id}/reorder` | `server/src/main/kotlin/io/github/youndie/haul/server/order/` |
-| `POST` `/api/v1/me/orders/{id}/returns` | `server/src/main/kotlin/io/github/youndie/haul/server/order/` |
-| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/order/` — ``OrderRoutes`` |
+| `GET` `/ui/orders/{id}` | `server/src/main/kotlin/io/github/youndie/haul/feature/order/` |
+| `GET` `/ui/account/orders` | `server/src/main/kotlin/io/github/youndie/haul/feature/order/` |
+| `POST` `/api/v1/me/orders/{id}/reorder` | `server/src/main/kotlin/io/github/youndie/haul/feature/order/` |
+| `POST` `/api/v1/me/orders/{id}/returns` | `server/src/main/kotlin/io/github/youndie/haul/feature/order/` |
+| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/order/` — ``OrderRoutes`` |
 
 ## Request and response bodies
 
-In `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/order/` once it exists; not copied here.
+In `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/order/` once it exists; not copied here.
 
 ## Errors
 

@@ -33,10 +33,10 @@ fee or a delivery date, or keep any state the server owns.
 
 | File (planned) | What is there |
 |---|---|
-| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/theme/` | colour roles and the three bundled fonts |
-| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/registry/` | the renderer registry |
-| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/shell/` | navigation, Loading, Error |
-| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/identity/` | sign-in and the guest id |
+| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/theme/` | colour roles and the three bundled fonts |
+| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/registry/` | the renderer registry |
+| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` | navigation, Loading, Error |
+| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/` | sign-in and the guest id |
 | `composeApp/src/desktopTest/snapshots/design/` | one reference PNG per artboard, exported from the canvas |
 
 ## 3. How it is built
