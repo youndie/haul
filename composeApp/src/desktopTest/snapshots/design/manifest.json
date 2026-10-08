@@ -3,6 +3,114 @@
   "source": "/Users/youndie/Documents/GitHub/haul/composeApp/src/desktopTest/snapshots/design/.canvas",
   "references": [
     {
+      "artboard": "Account_Content.dc.html",
+      "frame": null,
+      "reference": "Account_Content.png",
+      "width": 1440,
+      "height": 1629,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Account_Content_Phone.dc.html",
+      "frame": null,
+      "reference": "Account_Content_Phone.png",
+      "width": 390,
+      "height": 2255,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Account_Error.dc.html",
+      "frame": null,
+      "reference": "Account_Error.png",
+      "width": 1440,
+      "height": 900,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Account_Error_Phone.dc.html",
+      "frame": null,
+      "reference": "Account_Error_Phone.png",
+      "width": 390,
+      "height": 641,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Account_Loading.dc.html",
+      "frame": null,
+      "reference": "Account_Loading.png",
+      "width": 1440,
+      "height": 1014,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Account_Loading_Phone.dc.html",
+      "frame": null,
+      "reference": "Account_Loading_Phone.png",
+      "width": 390,
+      "height": 1403,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Account_NoOrders.dc.html",
+      "frame": null,
+      "reference": "Account_NoOrders.png",
+      "width": 1440,
+      "height": 708,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Account_NoOrders_Phone.dc.html",
+      "frame": null,
+      "reference": "Account_NoOrders_Phone.png",
+      "width": 390,
+      "height": 693,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Account_NotMember.dc.html",
+      "frame": null,
+      "reference": "Account_NotMember.png",
+      "width": 1440,
+      "height": 1112,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Account_NotMember_Phone.dc.html",
+      "frame": null,
+      "reference": "Account_NotMember_Phone.png",
+      "width": 390,
+      "height": 1378,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Account_Orders.dc.html",
+      "frame": null,
+      "reference": "Account_Orders.png",
+      "width": 1440,
+      "height": 1067,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Account_Orders_Phone.dc.html",
+      "frame": null,
+      "reference": "Account_Orders_Phone.png",
+      "width": 390,
+      "height": 1332,
+      "page": null,
+      "warnings": []
+    },
+    {
       "artboard": "Cart_Content.dc.html",
       "frame": null,
       "reference": "Cart_Content.png",

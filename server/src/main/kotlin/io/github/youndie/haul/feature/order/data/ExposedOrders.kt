@@ -10,9 +10,11 @@ import io.github.youndie.haul.feature.order.domain.Shipment
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.batchInsert
@@ -103,40 +105,57 @@ internal class ExposedOrders(
     }
 
     override suspend fun order(orderId: String): Order? =
+        tx { read(OrdersTable.selectAll().where { OrdersTable.id eq orderId }.toList()).singleOrNull() }
+
+    override suspend fun orders(customerId: String): List<Order> =
         tx {
-            val row = OrdersTable.selectAll().where { OrdersTable.id eq orderId }.singleOrNull() ?: return@tx null
-            val lines =
-                OrderLinesTable
+            read(
+                OrdersTable
                     .selectAll()
-                    .where { OrderLinesTable.orderId eq orderId }
-                    .orderBy(OrderLinesTable.position, SortOrder.ASC)
-                    .map {
-                        OrderLine(
-                            skuId = it[OrderLinesTable.skuId],
-                            sellerId = it[OrderLinesTable.sellerId],
-                            title = it[OrderLinesTable.title],
-                            quantity = it[OrderLinesTable.quantity],
-                            priceCents = it[OrderLinesTable.priceCents],
-                            listCents = it[OrderLinesTable.listCents],
-                        )
-                    }
-            val shipments =
-                ShipmentsTable
-                    .selectAll()
-                    .where { ShipmentsTable.orderId eq orderId }
-                    .orderBy(ShipmentsTable.position, SortOrder.ASC)
-                    .map {
-                        Shipment(
-                            it[ShipmentsTable.id],
-                            it[ShipmentsTable.sellerId],
-                            it[ShipmentsTable.status],
-                            it[ShipmentsTable.pickupCode],
-                        )
-                    }
+                    .where { OrdersTable.customerId eq customerId }
+                    .orderBy(OrdersTable.placedAt to SortOrder.DESC, OrdersTable.id to SortOrder.DESC)
+                    .toList(),
+            )
+        }
+
+    /** The orders of [rows], in their order, each with its lines and its shipments: three queries, whatever the count. */
+    private fun read(rows: List<ResultRow>): List<Order> {
+        if (rows.isEmpty()) return emptyList()
+        val ids = rows.map { it[OrdersTable.id] }
+        val lines =
+            OrderLinesTable
+                .selectAll()
+                .where { OrderLinesTable.orderId inList ids }
+                .orderBy(OrderLinesTable.position, SortOrder.ASC)
+                .groupBy({ it[OrderLinesTable.orderId] }) {
+                    OrderLine(
+                        skuId = it[OrderLinesTable.skuId],
+                        sellerId = it[OrderLinesTable.sellerId],
+                        title = it[OrderLinesTable.title],
+                        quantity = it[OrderLinesTable.quantity],
+                        priceCents = it[OrderLinesTable.priceCents],
+                        listCents = it[OrderLinesTable.listCents],
+                    )
+                }
+        val shipments =
+            ShipmentsTable
+                .selectAll()
+                .where { ShipmentsTable.orderId inList ids }
+                .orderBy(ShipmentsTable.position, SortOrder.ASC)
+                .groupBy({ it[ShipmentsTable.orderId] }) {
+                    Shipment(
+                        it[ShipmentsTable.id],
+                        it[ShipmentsTable.sellerId],
+                        it[ShipmentsTable.status],
+                        it[ShipmentsTable.pickupCode],
+                    )
+                }
+        return rows.map { row ->
+            val id = row[OrdersTable.id]
             Order(
                 placed =
                     NewOrder(
-                        id = row[OrdersTable.id],
+                        id = id,
                         sagaId = row[OrdersTable.sagaId],
                         customerId = row[OrdersTable.customerId],
                         method = ExposedCheckoutRepository.method(row[OrdersTable.method]),
@@ -152,11 +171,12 @@ internal class ExposedOrders(
                         totalCents = row[OrdersTable.totalCents],
                         points = row[OrdersTable.points],
                         placedAt = row[OrdersTable.placedAt],
-                        lines = lines,
+                        lines = lines[id].orEmpty(),
                     ),
                 status = OrderStatus.of(row[OrdersTable.status]),
                 cancelReason = row[OrdersTable.cancelReason],
-                shipments = shipments,
+                shipments = shipments[id].orEmpty(),
             )
         }
+    }
 }

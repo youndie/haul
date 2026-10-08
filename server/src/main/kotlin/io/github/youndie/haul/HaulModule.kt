@@ -1,6 +1,7 @@
 package io.github.youndie.haul
 
 import io.github.youndie.haul.db.Databases
+import io.github.youndie.haul.feature.account.accountModule
 import io.github.youndie.haul.feature.account.accountRouting
 import io.github.youndie.haul.feature.cart.cartModule
 import io.github.youndie.haul.feature.cart.cartRouting
@@ -118,6 +119,7 @@ internal fun Application.haulModule(
             orderModule,
             fulfilmentModule,
             reviewsModule,
+            accountModule,
         )
     }
     // Carries on what a process that died left mid-saga, from the first moment this one serves; it

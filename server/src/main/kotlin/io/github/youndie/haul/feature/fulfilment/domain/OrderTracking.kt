@@ -85,8 +85,14 @@ internal class OrderTracking(
     suspend fun track(
         customerId: String,
         orderId: String,
-    ): TrackedOrder? {
-        val order = orders.order(orderId)?.takeIf { it.placed.customerId == customerId } ?: return null
+    ): TrackedOrder? = orders.order(orderId)?.takeIf { it.placed.customerId == customerId }?.let { of(it) }
+
+    /**
+     * [order] as its customer sees it, for a caller that already read it as theirs — the account reads a
+     * customer's orders by the customer ([OrderRepository.orders]) and tracks each.
+     */
+    suspend fun of(order: Order): TrackedOrder {
+        val orderId = order.id
         val history = shipments.history(orderId)
         val shares = ShipmentShares.of(order)
         val captured = payments.captured(orderId)

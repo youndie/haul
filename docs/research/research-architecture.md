@@ -304,8 +304,8 @@ and on the stand.
   of the order into the cart through the cart's own `changeLine`, selected, at the order's quantity — at
   most ten and the stock; a line already holding as many is only selected, so a second press adds
   nothing. A SKU gone or out of stock is left out. It answers `navigate` to the cart.
-- **«Orders» in the header** goes to `/account` until the history has its own address (B-19), and a
-  guest's to sign-in, as the account shortcut does.
+- **«Orders» in the header** goes to the orders' history, `/account/orders` (B-19; until then `/account`),
+  and a guest's to sign-in, as the account shortcut does. The page's «Orders» crumb goes there too.
 - **The address drawn is the order's** (`NewOrder.address`, B-40's copy), never the saved address it came from,
   which the checkout edits in place.
 - **«Write a review»** on a delivered line is the product page's own: B-22's review dialog, presented over the
@@ -448,6 +448,32 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   Settings) are hidden in v1; returns themselves are requested from the order page.
 - A public demo stand on the owner's domain, with synthetic shoppers walking the path continuously
   (B-31), so the stand has traffic to measure.
+
+**Decided in B-19, the account.**
+
+- **Two addresses, one tree.** The overview is `/account` (`StorefrontPage.Account`, tree `GET /ui/account`), the
+  orders' history `/account/orders` (`StorefrontPage.Orders`, tree `GET /ui/account/orders`), which the order pages
+  sit under. Both are one `AccountBody` built by `feature/account/screen/AccountScreen.kt` from the customer's own
+  orders (`OrderRepository.orders`, the customer in the filter) as `OrderTracking` reads them, newest first.
+- **The history's filter is the query string**: `?status=active|delivered|returned|cancelled`, none for all; a
+  status the history does not have is all of them rather than an error page. The chips count every order and each
+  is a `navigate` to its own address, so a filtered history is a page a reload or a link opens. On the history the
+  orders on their way come first, then newest first (the canvas's note on `Account_Orders`).
+- **Active** is placed, packed, in transit or waiting at a point; such an order is a card on the overview (at most
+  three) drawn by the order page's own builder (`OrderScreen.card`): «Arriving *tomorrow*, 15:00 – 18:00» with the
+  steps and its lines' tiles, or «Ready for *pickup*» with the point, how long it is kept and the code. The overview's
+  history is the last four of the rest, with «All orders» whenever that leaves one out. A row's way on is «Track»
+  (on its way), «Details» (waiting, returned, cancelled) or «Reorder» (delivered or picked up) — B-18's reorder.
+- **What the account cannot store yet is read through ports** with the canvas's numbers behind them: the points and
+  the membership (`Loyalty`, B-23's) and the Saved list's counts (`SavedLists`, B-20's), bound to
+  `seed/SampleLoyalty.kt` — Maya's 2,480 points, Plus since 2023 renewing Nov 2 with $186 saved, 48 saved and 6
+  price drops; nobody else has any. The tree carries the tiles either way, so B-23 and B-20 change the source, not the
+  account. «Try 30 days free» has no action until B-23's trial, as the home page's offer has none; «Saved» has none
+  until `/saved` is a page.
+- **Returned** is a state of the history (the chip, the filter) that nothing derives until B-21's returns exist.
+- **The profile line** is «Plus member since <year>» for a member, «Joined <month year>» (the customer row's
+  `created_at`) for somebody who has never ordered, «No membership» otherwise; a non-member's avatar is the tile tone
+  their reviews are signed with (`ReviewCommands.avatarTone`), a member's Acid.
 
 **How the stand is built (B-27).** One image serves the page and the API: the server's distribution
 carries the browser bundle and serves it at `/`, so the two cannot be deployed at different versions
@@ -861,7 +887,7 @@ for fixtures, not a target for the database.
 | Entity | Values |
 |---|---|
 | Now | 2025-10-07 19:47:23 America/New_York (Tuesday) |
-| `Customer` | Maya Kowalski — Plus since 2023, renews 2025-11-02, 2,480 points, $186 delivery savings, 48 saved, 6 price drops; Sam Ortiz — no membership, 0 points, one delivered order |
+| `Customer` | Maya Kowalski — Plus since 2023, renews 2025-11-02, 2,480 points, $186 delivery savings, 48 saved, 6 price drops; Sam Ortiz — no membership, 0 points, one delivered order; Jordan Lee — joined Oct 2025, no orders (the canvas's `Account_NoOrders`; not seeded) |
 | `Address` | 148 Wythe Avenue, Apt 4F, Brooklyn, NY 11211 |
 | `PaymentMethod` | Card ···· 4821, expires 08/28 (approves); test card ···· 0002 (declines) |
 | `PickupPoint` | 214 Bedford Ave, 240 m, open until 21:00; 96 N 6th St, 650 m, open until 22:00; 315 Grand St, 900 m, open until 20:00; lockers «Wythe & N 7th», 180 m, and «Bedford Ave station», 700 m, 24/7 |
@@ -869,7 +895,7 @@ for fixtures, not a target for the database.
 | `Product` | Sony WH-1000XM6 — $349, was $449, −22 %, 4.8, 2,341 reviews, 86 questions; Midnight Black, Silver (out of stock); bundles Headphones only / + Travel case / + 2-year care; description headline «Silence, tuned to you», accent «to you» |
 | `Cart` (Maya) | the headphones $349, Linen Duvet Cover Set Queen Oat $139 (was $179), Stoneware Mug 12 oz Sage set of 2 $24; Items $652.00, Discount −$140.00, Delivery Free, Total $512, 1,024 points; with points −$24.80 → $487.20 |
 | `PromoCode` | `AUTUMN10` — 10 % off items up to $50, 2025-10-07…14; `SUMMER5` — expired 2025-08-31 |
-| `Order` | #HL-48211 (Oct 5, $512.00, in transit); #HL-47960 (Oct 3, $58.00, ready for pickup, code 4821, held until Oct 10); #HL-46102, #HL-45277, #HL-42860 delivered; #HL-44019 returned; #HL-48302 placed from the checkout fixture; #HL-48303 cancelled, card ···· 0002 |
+| `Order` | #HL-48211 (Oct 5, $512.00, in transit); #HL-47960 (Oct 3, $58.00, ready for pickup, code 4821, held until Oct 10); #HL-46102 (Sep 24, $103.00), #HL-45277 (Sep 11, $299.00), #HL-42860 (Aug 12, $42.00) delivered; #HL-44019 (Aug 30, $87.50) returned; #HL-48302 placed from the checkout fixture; #HL-48303 cancelled, card ···· 0002; Sam's #HL-45890 (Sep 18, $103.00) delivered. None is seeded: the fixture tests write them (`server/src/test/kotlin/io/github/youndie/haul/testing/SampleOrders.kt`) |
 
 The canvas's *canvas/canvas.json* and the artboards hold the rest of the copy (product lists,
 campaigns, reviews); the fixtures take it from there, not from this table.

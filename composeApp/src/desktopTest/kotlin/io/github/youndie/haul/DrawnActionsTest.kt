@@ -186,17 +186,17 @@ class DrawnActionsTest {
             assertEquals(listOf("/ui/home", "/ui/deals", "/ui/home", "/ui/cart"), requests)
         }
 
-    /** «Orders» in the header (B-18) opens where its tree says: a customer's orders. */
+    /** «Orders» in the header (B-18) opens where its tree says: a customer's orders' history (B-19). */
     @Test
     fun `orders in the header opens the customer's orders`() =
         runDesktopComposeUiTest(WIDTH, 1_000) {
             answer("/ui/home", page(header))
-            destinations("/account")
+            destinations("/account/orders")
             storefront()
             onNodeWithText("Orders").performClick()
             onNodeWithText(NEXT).assertExists()
-            assertEquals(listOf("/", "/account"), history.entries)
-            assertEquals(listOf("/ui/home", "/ui/account"), requests)
+            assertEquals(listOf("/", "/account/orders"), history.entries)
+            assertEquals(listOf("/ui/home", "/ui/account/orders"), requests)
         }
 
     @Test
@@ -274,7 +274,7 @@ class DrawnActionsTest {
                     ),
                 deals = NavigateAction("/deals"),
                 cart = NavigateAction("/cart"),
-                orders = NavigateAction("/account"),
+                orders = NavigateAction("/account/orders"),
             )
 
         val mug =

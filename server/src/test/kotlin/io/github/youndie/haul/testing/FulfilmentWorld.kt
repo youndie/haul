@@ -2,6 +2,7 @@ package io.github.youndie.haul.testing
 
 import io.github.youndie.haul.StoreClock
 import io.github.youndie.haul.db.Databases
+import io.github.youndie.haul.feature.account.accountModule
 import io.github.youndie.haul.feature.cart.cartModule
 import io.github.youndie.haul.feature.cart.domain.CartOwner
 import io.github.youndie.haul.feature.catalog.catalogModule
@@ -86,6 +87,7 @@ internal class FulfilmentWorld(
                 orderModule,
                 fulfilmentModule,
                 reviewsModule,
+                accountModule,
             )
         }
     val koin: Koin get() = application.koin

@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import io.github.youndie.haul.feature.account.AccountBodyView
 import io.github.youndie.haul.feature.cart.CartBodyView
 import io.github.youndie.haul.feature.cart.CartCommand
 import io.github.youndie.haul.feature.cart.LocalCartCommands
@@ -42,6 +43,7 @@ import io.github.youndie.haul.feature.product.ReviewDialog
 import io.github.youndie.haul.feature.product.SpecificationListView
 import io.github.youndie.haul.feature.search.SearchNoResultsView
 import io.github.youndie.haul.theme.LocalHaulCompact
+import io.github.youndie.haul.ui.AccountBody
 import io.github.youndie.haul.ui.Breadcrumbs
 import io.github.youndie.haul.ui.CampaignRow
 import io.github.youndie.haul.ui.CartBody
@@ -484,6 +486,28 @@ public class OrderBodyRenderer : KompotComponentRenderer<OrderBody> {
         OrderBodyView(component) {
             val url = component.summary.reorderUrl
             if (commands != null && url != null) {
+                scope.launch { commands.run(listOf(CartCommand.Reorder(url)))?.let(actionHandler::handle) }
+            }
+        }
+    }
+}
+
+// The account (screen-account). Its links follow the tree's actions; a row's «Reorder» is the order page's
+// cart command (`LocalCartCommands`), whose answer — `navigate` to the cart — goes to the screen's handler,
+// and a refusal draws the account again.
+
+@KompotComponentMarker
+public class AccountBodyRenderer : KompotComponentRenderer<AccountBody> {
+    @Composable
+    override fun Render(
+        component: AccountBody,
+        actionHandler: KompotActionHandler,
+        formController: FormController,
+    ) {
+        val commands = LocalCartCommands.current
+        val scope = rememberCoroutineScope()
+        AccountBodyView(component) { url ->
+            if (commands != null) {
                 scope.launch { commands.run(listOf(CartCommand.Reorder(url)))?.let(actionHandler::handle) }
             }
         }

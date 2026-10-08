@@ -18,3 +18,9 @@ Feature: `feature-membership` — its scenarios are this item's acceptance where
 
 - AC: feature-membership and «points redeemed» pass; parity for `Home_PlusTrialDialog`, `Account_NotMember`, `Checkout_PointsApplied`.
 - Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/feature/membership/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/home/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/checkout/`.
+
+- **From B-19:** the account's Points and Haul Plus tiles read `Loyalty`
+  (`server/src/main/kotlin/io/github/youndie/haul/feature/account/domain/Account.kt`), bound in `AccountModule.kt` to
+  `SampleLoyalty` (Maya's 2,480 points, Plus since 2023, renewing Nov 2, $186 saved on delivery; research §6). Bind it
+  to the ledger and the membership here. A non-member's tile (`AccountTileKind.PlusOffer`, `Account_NotMember`) draws
+  «Try 30 days free» with no action, as the home page's offer; it gets the trial's command here.

@@ -262,7 +262,7 @@
             },
             "orders": {
                 "type": "navigate",
-                "deeplink": "/account"
+                "deeplink": "/account/orders"
             }
         },
         {
