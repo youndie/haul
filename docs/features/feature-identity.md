@@ -33,7 +33,11 @@ for a customer), and `/sign-in` is an action the client handles rather than a pa
 * a token must verify against the realm (signature, lifetime, issuer) and be issued to the storefront's client (`azp`); one that does not is `401`, also on the public routes — a lapsed sign-in is told, not shown as a guest;
 * the client answers a `401` once: a customer's token is renewed with the refresh token (shildik's access token lives five minutes), or the customer is signed out back to the guest; a guest the server forgot is replaced; then the request is sent again;
 * with sign-in off (no `HAUL_OIDC_ISSUER`/`HAUL_OIDC_CLIENT_ID`) every bearer is refused and `GET /api/v1/sign-in` is `503`;
-* after a sign-in that went through, the client opens the action's `next` (`/sign-in?next=%2Fcheckout`) — decoded once, its query kept — **only** when it is a storefront address, a path `StorefrontPage` has a page for, and not `/sign-in` itself (`SignInActions.next`, B-41); an absolute URL, `//host` or `/\host`, a scheme (`javascript:`), a path with no page (`/nowhere`, `/ui/…`, `/api/…`) or a query that does not decode is ignored and the screen is drawn again; a `next` that is the page already shown draws it again in place; a sign-in that was cancelled or failed (a closed popup, a server without sign-in, a merge that failed) opens nothing.
+* after a sign-in that went through, the client opens the action's `next` (`/sign-in?next=%2Fcheckout`) — decoded once, its query kept — **only** when it is a storefront address, a path `StorefrontPage` has a page for, and not `/sign-in` itself (`SignInActions.next`, B-41); an absolute URL, `//host` or `/\host`, a scheme (`javascript:`), a path with no page (`/nowhere`, `/ui/…`, `/api/…`) or a query that does not decode is ignored and the screen is drawn again; a `next` that is the page already shown draws it again in place; a sign-in that was cancelled or failed (a closed popup, a server without sign-in, a merge that failed) opens nothing;
+* **a guest on a customer page** — `/checkout`, `/account`, `/account/orders`, an order, `/account/saved` opened directly — gets the tree's `401`, which the storefront draws as the sign-in prompt (`SignInPrompt`, B-44): the page's last header (or the shell's own), «Checkout needs a sign-in», «This order needs a sign-in» or «This page needs a sign-in», and **«Sign in to continue»**, whose press is the sign-in with `next` the page itself (`SignInActions.returningTo`, B-41's allow-list included); signed in → the page loads again in place (no new history entry); not gone through → `/`. A **press** starts the sign-in, not the page's arrival: a browser blocks a popup no click asked for (decided in B-44; no artboard draws this state, it reuses the not-found page's layout);
+* no loop: a `401` on the load a sign-in from this page asked for draws the page's own error, whose Retry asks no further sign-in; a later lapse is a new load and asks again. A lapsed session (renewal refused, signed out to the guest) shows the prompt on a page load, and a refresh in place refused with `401` loads the page again, which shows it;
+* **the popup is the storefront's** (B-46): it is opened blank under the name `haul-sign-in` from the press, before the provider's discovery, and the OIDC library is told to reuse it (`WebCodeAuthFlowFactory(windowTarget)`); the press watches it every 250 ms and ends as «did not go through» when it has been seen closed without the return page's answer on two polls in a row — within a second; a popup the browser blocks ends the same way before the provider is asked; a press while a sign-in is pending focuses that popup and opens no other; the popup is closed whenever its sign-in ends;
+* whatever fails inside a sign-in — the settings request, the provider's token exchange, the merge, a browser error that is not an `Exception` — ends it as «did not go through» (`SignInActions.attempt` catches `Throwable`, a cancellation rethrown; B-47); `Identity.renewed` still catches `Exception` only, on purpose: a refresh whose fetch fails reaches the request as unreachable with the tokens kept, rather than signing a customer out over a network blip.
 
 ## 3. Flow
 
@@ -52,7 +56,7 @@ for a customer), and `/sign-in` is an action the client handles rather than a pa
 |---|---|
 | haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/` — the contract (`GuestDto`, `GUEST_HEADER`, `SignInSettings`) |
 | haul-server | `server/src/main/kotlin/io/github/youndie/haul/feature/identity/` — guests, customers, `Callers`, the sign-in check (`SignIn.kt`); the merge in `server/src/main/kotlin/io/github/youndie/haul/feature/cart/domain/CartCommands.kt`; the header per caller in `server/src/main/kotlin/io/github/youndie/haul/shell/Viewers.kt` |
-| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/` (`Identity`, `IdentityApi`, `SignInActions`), `composeApp/src/wasmJsMain/kotlin/io/github/youndie/haul/feature/identity/` (`BrowserSessionStore`: guest id in `localStorage`, tokens in `sessionStorage`; `OidcSignInFlow`), `composeApp/src/wasmJsMain/resources/signed-in.html` |
+| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/` (`Identity`, `IdentityApi`, `SignInActions`, `PopupSignInFlow`), `composeApp/src/wasmJsMain/kotlin/io/github/youndie/haul/feature/identity/` (`BrowserSessionStore`: guest id in `localStorage`, tokens in `sessionStorage`; `OidcSignInFlow`; `BrowserSignInPopup`), `composeApp/src/wasmJsMain/resources/signed-in.html`; the prompt `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/SignInPrompt.kt` |
 
 ## 5. Scenarios (BDD / test cases)
 
@@ -60,13 +64,25 @@ for a customer), and `/sign-in` is an action the client handles rather than a pa
 * **Given:** a guest with 1 × Stoneware Mug in the cart and a customer whose cart holds 1 × the same mug
 * **When:** the guest signs in
 * **Then:** the customer's cart holds 2 × the mug and the guest cart no longer exists.
-* **Automated:** `IdentityRoutesTest.a guest cart survives sign-in` (`server/src/test/kotlin/io/github/youndie/haul/feature/identity/IdentityRoutesTest.kt`, against shildik in Testcontainers)
+* **Automated:** `IdentityRoutesTest.a guest cart survives sign-in` (`server/src/test/kotlin/io/github/youndie/haul/feature/identity/IdentityRoutesTest.kt`, against shildik in Testcontainers); through a realm a stand runs, over HTTP, `WholePathTest.a shopper browses buys receives and returns an order over HTTP` (`e2e/src/test/kotlin/io/github/youndie/haul/e2e/WholePathTest.kt`)
 
 ### Scenario: Account needs a sign-in
 * **Given:** no bearer token
 * **When:** the client opens `/ui/account`
 * **Then:** the server returns `401` with `unauthenticated`.
 * **Automated:** `IdentityRoutesTest.the account needs a sign-in`
+
+### Scenario: A guest opening a customer page is asked to sign in
+* **Given:** a guest who opens `/checkout`, or an order's address, directly
+* **When:** they press «Sign in to continue» and the sign-in goes through
+* **Then:** the page loads in place; a sign-in that does not go through lands on `/`; a page still refused after the sign-in draws its error and asks no more.
+* **Automated:** `SignInPromptTest.a guest opening the checkout signs in and lands on the checkout`, `SignInPromptTest.a guest opening an order signs in and lands on the order`, `SignInPromptTest.a sign-in that does not go through lands on the home page`, `SignInPromptTest.a page still refused after a sign-in draws the error page and asks no more`; a lapsed session, `SignInPromptTest.a lapsed sign-in that cannot be renewed asks again and lands on the page`, `SignInPromptTest.a refresh refused after the sign-in lapsed asks again and draws the page` (`composeApp/src/desktopTest/kotlin/io/github/youndie/haul/feature/identity/SignInPromptTest.kt`)
+
+### Scenario: A closed popup settles the sign-in
+* **Given:** a sign-in pending in its popup
+* **When:** the shopper closes the popup, or the browser blocks it, or presses again
+* **Then:** a closed or blocked popup ends the sign-in as not gone through within a second; a second press opens no second popup.
+* **Automated:** `PopupSignInFlowTest.a popup the shopper closes ends the sign-in as cancelled within a second`, `PopupSignInFlowTest.a blocked popup ends the sign-in as cancelled without starting the provider`, `PopupSignInFlowTest.a second press while a sign-in is pending focuses its popup and opens no other`; a browser error in the token exchange, `PopupSignInFlowTest.a token exchange that fails with a browser error ends the sign-in as cancelled` (`composeApp/src/desktopTest/kotlin/io/github/youndie/haul/feature/identity/PopupSignInFlowTest.kt`). Walked in headless Chrome against a shildik realm (B-46): closed → `/` 529 ms after the close.
 
 ### Scenario: Sign-in returns to where it was asked
 * **Given:** a guest on the cart
@@ -103,4 +119,13 @@ browser popup itself was walked by hand in headless Chrome, not by a test (B-12'
 * The desktop app's own browser pane opens the popup in the same tab, so the flow cannot finish
   there; a browser that opens popups as windows is fine.
 * A cart merge that fails after the tokens are stored leaves the shopper signed in with no message;
-  since B-41 that is a redraw of the page, not the `next` (B-41's findings; predates it).
+  since B-41 that is a redraw of the page, not the `next` (B-41's findings; predates it) — since B-47
+  a failed fetch there too.
+* kotlin-multiplatform-oidc 0.18.4's web popup flow waits only for the return page's message, in a
+  wait that ignores cancellation; the storefront's own popup handle is the workaround (B-46), and a
+  report to the library is drafted in B-46's findings, not filed.
+* The header's «Sign in» is inert on shell-drawn pages (not found, the sign-in prompt); the prompt's
+  button is the way in there.
+* The press reaches `window.open` after `GET /api/v1/sign-in` the first time, inside the browser's
+  transient-activation window (about five seconds; Safari's is likely stricter); held past it, the
+  popup is blocked and the sign-in ends as not gone through.
