@@ -1,7 +1,7 @@
 ---
 id: B-27
 title: "ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand"
-status: open
+status: wip
 priority: P2
 size: M
 stage: stage-9-ship
