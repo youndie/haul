@@ -10,12 +10,16 @@ import org.publicvalue.multiplatform.oidc.appsupport.WebCodeAuthFlowFactory
  * [redirectUri] — `signed-in.html`, a static page beside the bundle that posts the address back to
  * this window and closes — and the code is exchanged for tokens here, with PKCE, at the realm's token
  * endpoint, which shildik lets any page read.
+ *
+ * The popup is the one named [windowTarget]: the storefront opens it first and watches it
+ * ([PopupSignInFlow], B-46), because this library's flow does not notice the shopper closing it.
  */
 @OptIn(ExperimentalOpenIdConnect::class)
 public class OidcSignInFlow(
     private val redirectUri: String,
+    windowTarget: String,
 ) : SignInFlow {
-    private val factory = WebCodeAuthFlowFactory()
+    private val factory = WebCodeAuthFlowFactory(windowTarget = windowTarget)
 
     override suspend fun signIn(settings: SignInSettings): Tokens {
         val response = factory.createAuthFlow(client(settings)).getAccessToken()
