@@ -212,7 +212,7 @@ class CheckoutRoutesTest {
                     ),
                     summary.rows,
                 )
-                assertEquals("$512.00", summary.total)
+                assertEquals("$512", summary.total)
                 assertEquals("Place order · $512.00", summary.placeLabel)
                 assertEquals("You'll earn 1,024 points", summary.points)
                 assertEquals("Your card is charged when the order ships", summary.note)

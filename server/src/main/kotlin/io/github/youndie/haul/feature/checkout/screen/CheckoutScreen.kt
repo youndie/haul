@@ -194,7 +194,9 @@ internal class CheckoutScreen(
 
     private fun summary(state: CheckoutState): CheckoutSummary {
         val quote = state.quote
-        val total = CartScreen.exact(quote.totals.totalCents)
+        // The canvas writes the total as a price tag («$512», «$487.20»), as the cart does, and the
+        // button with its cents («Place order · $512.00», Checkout_Content).
+        val exact = CartScreen.exact(quote.totals.totalCents)
         return CheckoutSummary(
             id = "summary",
             items =
@@ -213,10 +215,10 @@ internal class CheckoutScreen(
                 },
             rows = summaryRows(quote.totals, quote.promo?.code, quote.lines.sumOf { it.stored.quantity }),
             totalLabel = "Total",
-            total = total,
+            total = money(quote.totals.totalCents),
             points = "You'll earn ${count(quote.totals.points(quote.plus))} points",
             note = if (quote.payment.card) "Your card is charged when the order ships" else null,
-            placeLabel = "Place order · $total",
+            placeLabel = "Place order · $exact",
             placeEnabled = quote.complete,
             quote = quote.fingerprint,
         )
