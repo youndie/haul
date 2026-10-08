@@ -40,6 +40,22 @@ class AddressTest {
         assertEquals(PageKind.Other, Address("/deals").kind)
     }
 
+    /**
+     * The kind is read off `StorefrontPage`, the list the server serves the page at (B-36): an address
+     * the client draws as a page is one a reload opens, and one the server has no page for is not drawn
+     * as one — `/p/p-1/reviews` has no screen route behind it (`/ui/p/{productId}`).
+     */
+    @Test
+    fun `an address is the page the server serves at it`() {
+        assertEquals(PageKind.Catalog, Address("/c/electronics/audio/headphones?brand=Sony").kind)
+        assertEquals(PageKind.Other, Address("/p/p-1/reviews").kind)
+        assertEquals(PageKind.Other, Address("/c/").kind)
+        assertEquals(PageKind.Other, Address("/search/extra").kind)
+        assertEquals(PageKind.Other, Address("/cart").kind)
+        assertEquals(PageKind.Other, Address("/account").kind)
+        assertEquals("/ui/cart", Address("/cart").screen)
+    }
+
     @Test
     fun `the search's query is read decoded and written the way the server writes it`() {
         assertEquals("running shoes", Address("/search?q=running%20shoes").query)

@@ -4,6 +4,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import io.github.youndie.haul.StorefrontPage
 import io.ktor.http.encodeURLParameter
 import io.ktor.http.parseQueryString
 
@@ -22,13 +23,17 @@ public data class Address(
     /** The path without the query; the bare origin is `/`. */
     val path: String = value.substringBefore('?').ifEmpty { "/" }
 
+    /**
+     * Read off [StorefrontPage], the list the server serves the page at (B-36), so an address the
+     * client draws as a page is one a reload answers too.
+     */
     val kind: PageKind =
-        when {
-            path == "/" -> PageKind.Home
-            path.startsWith("/c/") -> PageKind.Catalog
-            path.startsWith("/p/") -> PageKind.Product
-            path == "/search" -> PageKind.Search
-            else -> PageKind.Other
+        when (StorefrontPage.of(path)) {
+            StorefrontPage.Home -> PageKind.Home
+            StorefrontPage.Catalog -> PageKind.Catalog
+            StorefrontPage.Product -> PageKind.Product
+            StorefrontPage.Search -> PageKind.Search
+            StorefrontPage.Cart, StorefrontPage.Account, StorefrontPage.SignIn, null -> PageKind.Other
         }
 
     /** Where the server keeps this page's tree: `/` is `/ui/home`, any other address the same under `/ui`. */
