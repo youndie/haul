@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.catalog
 
 import io.github.youndie.haul.feature.catalog.domain.CatalogError
 import io.github.youndie.haul.feature.catalog.domain.Filters
+import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.Sort
 import io.github.youndie.haul.feature.catalog.screen.CatalogRequest
 import io.github.youndie.haul.feature.catalog.screen.CatalogScreen
@@ -11,7 +12,13 @@ import io.github.youndie.haul.feature.catalog.screen.ProductTab
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.kompot.ktor.respondKompotComponent
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
+import io.ktor.server.response.header
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import org.koin.ktor.ext.inject
@@ -25,6 +32,7 @@ internal fun Route.catalogRouting() {
     val home by inject<HomeScreen>()
     val catalog by inject<CatalogScreen>()
     val product by inject<ProductScreen>()
+    val photos by inject<ProductPhotos>()
 
     get("/ui/home") { call.respondKompotComponent(haulWireJson, home.build(Viewer())) }
 
@@ -50,7 +58,34 @@ internal fun Route.catalogRouting() {
             product.build(call.parameters["productId"]!!, query["sku"], tab, Viewer()),
         )
     }
+
+    // A product's photo out of the object storage (B-30), served from the server's own origin so the
+    // bucket stays private and the browser needs no CORS. Keys carry the content's hash, so an answer
+    // never changes and may be cached for good. No store, a key outside the photos, or nothing there:
+    // 404, and the client keeps the placeholder tile.
+    get("${ProductPhotos.PATH}/{key...}") {
+        val key =
+            call.parameters
+                .getAll("key")
+                .orEmpty()
+                .joinToString("/")
+        val photo = photos.read(key)
+        if (photo == null) {
+            call.respond(HttpStatusCode.NotFound)
+            return@get
+        }
+        call.response.header(HttpHeaders.CacheControl, "public, max-age=31536000, immutable")
+        call.response.header("X-Content-Type-Options", "nosniff")
+        call.respondBytes(photo.bytes, photoType(photo.contentType))
+    }
 }
+
+/** The stored media type when it is an image's, anything else as bytes: the route serves photos only. */
+private fun photoType(stored: String): ContentType =
+    runCatching { ContentType.parse(stored) }
+        .getOrNull()
+        ?.takeIf { it.match(ContentType.Image.Any) }
+        ?: ContentType.Application.OctetStream
 
 /** The category page's query, refused field by field (`validation_failed`) rather than ignored. */
 internal fun catalogRequest(

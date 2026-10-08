@@ -34,10 +34,13 @@ public data class HaulHeader(
 ) : KompotComponent
 
 /**
- * A product in a grid or a row: the photo tile (a placeholder in v1, research D8), the price, the
- * title, the rating and the earliest delivery day.
+ * A product in a grid or a row: the photo tile, the price, the title, the rating and the earliest
+ * delivery day.
  *
- * [tone] is one of the canvas's tile tones as `#RRGGBB`; [label] is what the placeholder tile says.
+ * [image] is where the product's stored photo is served (research D8, B-30), a path on the server the
+ * tree came from; absent when there is no photo or no object storage. The placeholder tile — [tone],
+ * one of the canvas's tile tones as `#RRGGBB`, and [label], what the tile says — is drawn whenever the
+ * photo is absent, still loading or failed to load.
  */
 @Serializable
 @SerialName("haul_product_card")
@@ -55,6 +58,7 @@ public data class ProductCard(
     val tone: String,
     val label: String,
     val saved: Boolean = false,
+    val image: String? = null,
     /** Where a tap on the card goes: the product page. */
     val action: @Polymorphic KompotAction? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),

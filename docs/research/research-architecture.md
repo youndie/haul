@@ -254,6 +254,17 @@ are written against them and verified against the code before they go `active`.
 The canvas marks photos as striped placeholder tiles (tone + label), and v1 ships those tiles.
 Images through object storage are B-30.
 
+**Settled in B-30: the mechanism, not the photography.** A product row may carry an `image_key` (V7);
+when the server has an S3-compatible bucket (`HAUL_S3_ENDPOINT`, `_BUCKET`, `_ACCESS_KEY`,
+`_SECRET_KEY`, optional `_REGION`), the card and the product page carry the photo's address,
+`/images/<key>`, which the server serves from its own origin — the bucket stays private and the browser
+needs no CORS — with an immutable cache header, because the key holds the content's hash. No endpoint, no
+photos: the server starts as before and every tile is the placeholder. The client draws a photo over the
+placeholder tile, which stays while the photo is absent, loading or failed (Coil 3 in the bundle). The
+seed draws photos for the sample products of §6 in code; real product photography is the owner's
+question (B-30 findings), and until it is answered the generated catalog keeps its tiles. The fixtures
+name no photo, so every artboard's parity is what it was.
+
 ### D9. No server rendering, no SEO
 
 A Compose canvas page is not indexable and its first load is dominated by the runtime. Accepted for

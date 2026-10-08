@@ -81,4 +81,38 @@ class ServerConfigTest {
         val dir = Files.createTempDirectory("haul-web").toFile()
         assertEquals(dir, config("HAUL_WEB_DIR" to dir.path).webDir)
     }
+
+    /** Object storage (B-30) is optional as a whole: no endpoint, no photos, and the start goes on. */
+    @Test
+    fun `no object storage endpoint is no photos`() {
+        assertNull(config().photos)
+    }
+
+    /** A half-configured store must stop the start, not surface later as photos that never load. */
+    @Test
+    fun `an object storage endpoint without its bucket refuses the start`() {
+        val error =
+            assertFailsWith<IllegalStateException> {
+                config(
+                    "HAUL_S3_ENDPOINT" to "http://s3:9000",
+                    "HAUL_S3_ACCESS_KEY" to "a",
+                    "HAUL_S3_SECRET_KEY" to "s",
+                ).photos
+            }
+        assertTrue("HAUL_S3_BUCKET" in error.message.orEmpty(), error.message)
+    }
+
+    @Test
+    fun `the object storage secret never reaches a log line through toString`() {
+        val photos =
+            config(
+                "HAUL_S3_ENDPOINT" to "http://s3:9000",
+                "HAUL_S3_BUCKET" to "photos",
+                "HAUL_S3_ACCESS_KEY" to "access",
+                "HAUL_S3_SECRET_KEY" to "very-secret",
+            ).photos
+        assertEquals("photos", photos?.bucket)
+        assertEquals("us-east-1", photos?.region)
+        assertTrue("very-secret" !in photos.toString(), "the config prints its secret: $photos")
+    }
 }

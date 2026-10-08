@@ -10,6 +10,7 @@ import io.github.youndie.haul.feature.cart.domain.StoredCart
 import io.github.youndie.haul.feature.cart.domain.Totals
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
+import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.money
 import io.github.youndie.haul.feature.catalog.screen.card
@@ -43,6 +44,7 @@ internal class CartScreen(
     private val catalog: CatalogRepository,
     private val calendar: DeliveryCalendar,
     private val clock: StoreClock,
+    private val photos: ProductPhotos,
 ) {
     suspend fun build(owner: CartOwner): KompotComponent {
         val cart = carts.cart(owner)
@@ -176,7 +178,7 @@ internal class CartScreen(
                 action = NavigateAction("/deals"),
             ),
             SectionHeader("picked-title", "Picked for you"),
-            ProductGrid("picked", picks.take(PICKS).map { card(it, calendar) }, columns = PICKS, scroll = true),
+            ProductGrid("picked", picks.take(PICKS).map { card(it, calendar, photos) }, columns = PICKS, scroll = true),
         )
     }
 

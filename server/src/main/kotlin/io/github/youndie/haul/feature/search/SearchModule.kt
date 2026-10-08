@@ -11,5 +11,5 @@ internal val searchModule =
     module {
         single<SearchRepository> { PostgresSearchRepository(get()) }
         single<RecentSearches> { ExposedRecentSearches(get()) }
-        single { SearchScreen(get(), get(), get(), get(), get(), get()) }
+        single { SearchScreen(get(), get(), get(), get(), get(), get(), get()) }
     }

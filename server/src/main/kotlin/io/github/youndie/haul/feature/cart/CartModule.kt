@@ -10,5 +10,5 @@ internal val cartModule =
     module {
         single<CartRepository> { ExposedCartRepository(get()) }
         single { CartCommands(get(), get(), get()) }
-        single { CartScreen(get(), get(), get(), get(), get()) }
+        single { CartScreen(get(), get(), get(), get(), get(), get()) }
     }

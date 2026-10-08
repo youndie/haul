@@ -59,6 +59,9 @@ internal object ProductsTable : Table("products") {
     // the accent occurs in the headline).
     val headline = text("headline")
     val headlineAccent = text("headline_accent").nullable()
+
+    // V7: the key of the product's photo in the object storage; null is the placeholder tile.
+    val imageKey = text("image_key").nullable()
     override val primaryKey = PrimaryKey(id)
 
     init {

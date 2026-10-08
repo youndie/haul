@@ -8,6 +8,8 @@ import io.github.youndie.haul.feature.catalog.catalogModule
 import io.github.youndie.haul.feature.catalog.catalogRouting
 import io.github.youndie.haul.feature.catalog.domain.CatalogError
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
+import io.github.youndie.haul.feature.catalog.domain.PhotoStore
+import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.identity.domain.IdentityError
 import io.github.youndie.haul.feature.identity.identityModule
 import io.github.youndie.haul.feature.identity.identityRouting
@@ -46,6 +48,9 @@ internal fun interface StoreClock {
  * more specific than the static one, so a screen route always wins; and there is deliberately no
  * fallback to `index.html` for a missing file — it would answer an unknown `/ui/...` with a page and
  * a 200 instead of the 404 the client draws.
+ *
+ * [photoStore] is the object storage product photos are kept in (B-30); `null` — no storage
+ * configured — serves no photos, and every tile is the placeholder.
  */
 internal fun Application.haulModule(
     dataSource: DataSource,
@@ -53,6 +58,7 @@ internal fun Application.haulModule(
     commit: String,
     observability: ObservabilitySettings = ObservabilitySettings.NONE,
     web: File? = null,
+    photoStore: PhotoStore? = null,
 ) {
     val reportFailure = installObservability(observability)
     val database = Databases.connect(dataSource)
@@ -63,6 +69,7 @@ internal fun Application.haulModule(
                 single { dataSource }
                 single { clock }
                 single { DeliveryCalendar(clock::now) }
+                single { ProductPhotos(photoStore) }
             },
             catalogModule,
             searchModule,

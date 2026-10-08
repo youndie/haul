@@ -28,6 +28,9 @@ viddik = "0.7.0"
 metrikAgent = "0.3.26"
 tracyAgent = "0.2.15"
 katcher = "0.8.51"
+# Product photos in the storefront (B-30): Coil 3 publishes wasmJs, loads over Ktor and caches in memory;
+# built against Kotlin 2.4.10, so the 2.4.20 compiler reads its klibs. Released 2026-09-18.
+coil = "3.6.3"
 
 [libraries]
 ktor-server-core = { module = "io.ktor:ktor-server-core" }
@@ -57,6 +60,12 @@ koin-ktor = { module = "io.insert-koin:koin-ktor" }
 metrik-agent = { module = "io.github.youndie.metrik:agent", version.ref = "metrikAgent" }
 tracy-agent = { module = "io.github.youndie.tracy:agent", version.ref = "tracyAgent" }
 katcher-client = { module = "io.github.youndie.katcher:client", version.ref = "katcher" }
+# Product photos in the storefront (B-30). Coil fetches through a Ktor client the app hands it: the
+# browser's fetch engine in the bundle, a mock engine in the tests; Ktor's versions come from its BOM.
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-networkKtor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
+ktor-client-js = { module = "io.ktor:ktor-client-js" }
+ktor-client-mock = { module = "io.ktor:ktor-client-mock" }
 
 [plugins]
 sborkaJvm = { id = "io.github.youndie.sborka.jvm", version.ref = "sborka" }

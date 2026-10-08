@@ -2,16 +2,18 @@ package io.github.youndie.haul.feature.catalog.screen
 
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.Listed
+import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.discount
 import io.github.youndie.haul.feature.catalog.domain.money
 import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.kompot.standard.NavigateAction
 
-/** A product as a card: the shown SKU's price, the earliest delivery day (feature-browse). */
+/** A product as a card: the shown SKU's price, the earliest delivery day (feature-browse), its photo if stored. */
 internal fun card(
     item: Listed,
     calendar: DeliveryCalendar,
+    photos: ProductPhotos,
     priceCents: Int = item.shown.priceCents,
     oldCents: Int? = item.shown.oldPriceCents,
 ): ProductCard =
@@ -27,6 +29,7 @@ internal fun card(
         delivery = calendar.label(calendar.courier(item)),
         tone = item.product.tone,
         label = item.product.label,
+        image = photos.url(item.product),
         action = productLink(item.product.id),
     )
 

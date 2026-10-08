@@ -7,6 +7,7 @@ import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.Filters
+import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.Sort
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.money
@@ -57,6 +58,7 @@ internal class SearchScreen(
     private val recent: RecentSearches,
     private val browse: Browse,
     private val calendar: DeliveryCalendar,
+    private val photos: ProductPhotos,
     private val clock: StoreClock,
 ) {
     /** The suggest panel: queries, categories with counts, recent searches, top products. */
@@ -141,7 +143,7 @@ internal class SearchScreen(
                                 Chip(leaf.name, request.category == slug, searchLink(query.text, slug), count(n))
                             },
                 ),
-                ProductGrid("grid", page.items.map { card(it, calendar) }, columns = GRID_COLUMNS),
+                ProductGrid("grid", page.items.map { card(it, calendar, photos) }, columns = GRID_COLUMNS),
                 HaulPagination(
                     id = "pagination",
                     current = page.page,

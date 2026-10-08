@@ -12,7 +12,7 @@ internal val catalogModule =
     module {
         single<CatalogRepository> { ExposedCatalogRepository(get()) }
         single { Browse(get()) }
-        single { HomeScreen(get(), get()) }
-        single { CatalogScreen(get(), get(), get()) }
-        single { ProductScreen(get(), get()) }
+        single { HomeScreen(get(), get(), get()) }
+        single { CatalogScreen(get(), get(), get(), get()) }
+        single { ProductScreen(get(), get(), get()) }
     }

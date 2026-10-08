@@ -3,6 +3,7 @@ package io.github.youndie.haul.feature.catalog.screen
 import io.github.youndie.haul.feature.catalog.domain.Campaign
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
+import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.ui.CampaignHero
@@ -26,6 +27,7 @@ import java.util.Locale
 internal class HomeScreen(
     private val catalog: CatalogRepository,
     private val calendar: DeliveryCalendar,
+    private val photos: ProductPhotos,
 ) {
     suspend fun build(viewer: Viewer): KompotComponent {
         val categories = catalog.categories()
@@ -74,7 +76,7 @@ internal class HomeScreen(
                                 ?: return@mapNotNull null
                         val sku = item.skus.first { it.id == deal.skuId }
                         val old = if (deal.priceCents < sku.priceCents) sku.priceCents else sku.oldPriceCents
-                        card(item, calendar, priceCents = deal.priceCents, oldCents = old)
+                        card(item, calendar, photos, priceCents = deal.priceCents, oldCents = old)
                     },
             )
         if (viewer.firstName == null) sections += PLUS_OFFER

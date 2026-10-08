@@ -7,6 +7,7 @@ import io.github.youndie.haul.feature.cart.domain.CartOwner
 import io.github.youndie.haul.feature.cart.screen.CartScreen
 import io.github.youndie.haul.feature.catalog.data.ExposedCatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
+import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.seed.SampleCatalog
 import io.github.youndie.haul.testing.CANVAS_NOW
 import io.github.youndie.haul.testing.SeededDatabase
@@ -26,7 +27,8 @@ class CustomerCartTest {
     private val catalog = ExposedCatalogRepository(database)
     private val carts = ExposedCartRepository(database)
     private val commands = CartCommands(carts, catalog, CANVAS_NOW)
-    private val screen = CartScreen(carts, commands, catalog, DeliveryCalendar(CANVAS_NOW::now), CANVAS_NOW)
+    private val screen =
+        CartScreen(carts, commands, catalog, DeliveryCalendar(CANVAS_NOW::now), CANVAS_NOW, ProductPhotos(null))
 
     private fun summaryOf(plus: Boolean): OrderSummary =
         runBlocking {

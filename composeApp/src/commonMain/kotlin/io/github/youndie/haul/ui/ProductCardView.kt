@@ -92,15 +92,19 @@ private fun PhotoTile(
         modifier
             .fillMaxWidth()
             .aspectRatio(1f)
-            .clip(RoundedCornerShape(18.dp))
-            .background(toneColor(card.tone)),
+            .clip(RoundedCornerShape(18.dp)),
     ) {
-        Hatching(Modifier.fillMaxSize())
-        Text(
-            card.label.uppercase(),
-            HaulType.label(10f, 500, 0.06f).copy(color = HaulColors.tileLabel),
-            Modifier.align(Alignment.BottomStart).padding(start = 12.dp, bottom = 12.dp),
-        )
+        // The stored photo (B-30) over the canvas's placeholder tile, which stays while there is none.
+        PhotoOrPlaceholder(card.image, Modifier.matchParentSize()) {
+            Box(Modifier.fillMaxSize().background(toneColor(card.tone))) {
+                Hatching(Modifier.fillMaxSize())
+                Text(
+                    card.label.uppercase(),
+                    HaulType.label(10f, 500, 0.06f).copy(color = HaulColors.tileLabel),
+                    Modifier.align(Alignment.BottomStart).padding(start = 12.dp, bottom = 12.dp),
+                )
+            }
+        }
         card.badge?.let {
             Text(
                 it,

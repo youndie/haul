@@ -57,6 +57,10 @@ public data class SellerSummary(
  * [gallery] is the thumbnails' tile tones, the first being the photo shown; [morePhotos] is the last
  * thumbnail's «+3»; [photoTotal] is how many photos there are (the phone's dots). [haulPayStrong] is
  * the part of [haulPay] drawn bold.
+ *
+ * [photo] is where the product's stored photo is served (research D8, B-30): drawn as the shown photo
+ * and the first thumbnail, over the placeholder tile of [photoTone], which stays whenever the photo is
+ * absent, loading or failed.
  */
 @Serializable
 @SerialName("haul_product_details")
@@ -92,6 +96,7 @@ public data class ProductDetails(
     val photoTotal: Int = 1,
     val haulPayStrong: String? = null,
     val stockAdvice: Highlight? = null,
+    val photo: String? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
