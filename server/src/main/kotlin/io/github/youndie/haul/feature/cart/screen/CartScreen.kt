@@ -147,15 +147,7 @@ internal class CartScreen(
         owner: CartOwner,
         plus: Boolean,
     ): OrderSummary {
-        val rows =
-            buildList {
-                add(SummaryRow("Items", exact(totals.itemsCents)))
-                add(SummaryRow("Discount", "−" + exact(totals.discountCents)))
-                if (promoCode != null && totals.promoCents > 0) {
-                    add(SummaryRow("Promo $promoCode", "−" + exact(totals.promoCents), detail = true))
-                }
-                add(SummaryRow("Delivery", if (totals.deliveryCents == 0) "Free" else exact(totals.deliveryCents)))
-            }
+        val rows = summaryRows(totals, promoCode)
         val guest = owner is CartOwner.Guest
         return OrderSummary(
             id = "summary",
@@ -200,3 +192,20 @@ internal class CartScreen(
         private fun items(units: Int): String = if (units == 1) "1 item" else "${count(units)} items"
     }
 }
+
+/**
+ * The summary's rows over [totals] — «Items $652.00», «Discount −$140.00», the promo code inside the
+ * discount when it took something off, «Delivery Free» — the same on the cart and at checkout.
+ */
+internal fun summaryRows(
+    totals: Totals,
+    promoCode: String?,
+): List<SummaryRow> =
+    buildList {
+        add(SummaryRow("Items", CartScreen.exact(totals.itemsCents)))
+        add(SummaryRow("Discount", "−" + CartScreen.exact(totals.discountCents)))
+        if (promoCode != null && totals.promoCents > 0) {
+            add(SummaryRow("Promo $promoCode", "−" + CartScreen.exact(totals.promoCents), detail = true))
+        }
+        add(SummaryRow("Delivery", if (totals.deliveryCents == 0) "Free" else CartScreen.exact(totals.deliveryCents)))
+    }

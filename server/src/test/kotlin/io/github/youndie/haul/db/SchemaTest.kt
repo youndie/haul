@@ -2,6 +2,7 @@ package io.github.youndie.haul.db
 
 import io.github.youndie.haul.feature.cart.data.cartTables
 import io.github.youndie.haul.feature.catalog.data.catalogTables
+import io.github.youndie.haul.feature.checkout.data.checkoutTables
 import io.github.youndie.haul.feature.search.data.searchTables
 import io.github.youndie.haul.testing.PostgresHarness
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -59,6 +60,18 @@ class SchemaTest {
             }
         assertEquals(emptyList(), required, "still required:\n" + required.joinToString("\n"))
         assertEquals(5, cartTables.size)
+    }
+
+    /** V9's addresses, pickup points, windows, reservations and checkouts against their Exposed declarations. */
+    @Test
+    fun `the migrated schema needs no further DDL for the checkout tables`() {
+        val database = Databases.connect(PostgresHarness.freshDatabase())
+        val required =
+            transaction(database) {
+                MigrationUtils.statementsRequiredForDatabaseMigration(*checkoutTables.toTypedArray())
+            }
+        assertEquals(emptyList(), required, "still required:\n" + required.joinToString("\n"))
+        assertEquals(5, checkoutTables.size)
     }
 
     /** The guard on the guard: an empty table list also needs no DDL. */

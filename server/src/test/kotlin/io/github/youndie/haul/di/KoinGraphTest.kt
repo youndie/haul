@@ -13,6 +13,11 @@ import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.screen.CatalogScreen
 import io.github.youndie.haul.feature.catalog.screen.HomeScreen
 import io.github.youndie.haul.feature.catalog.screen.ProductScreen
+import io.github.youndie.haul.feature.checkout.checkoutModule
+import io.github.youndie.haul.feature.checkout.domain.CheckoutCommands
+import io.github.youndie.haul.feature.checkout.domain.CheckoutRepository
+import io.github.youndie.haul.feature.checkout.domain.DeliverySlots
+import io.github.youndie.haul.feature.checkout.screen.CheckoutScreen
 import io.github.youndie.haul.feature.identity.Callers
 import io.github.youndie.haul.feature.identity.domain.Customers
 import io.github.youndie.haul.feature.identity.domain.Guests
@@ -56,6 +61,7 @@ class KoinGraphTest {
                     searchModule,
                     identityModule,
                     cartModule,
+                    checkoutModule,
                 )
             }
         try {
@@ -78,5 +84,9 @@ class KoinGraphTest {
         assertNotNull(koin.get<CartRepository>())
         assertNotNull(koin.get<CartCommands>())
         assertNotNull(koin.get<CartScreen>())
+        assertNotNull(koin.get<CheckoutRepository>())
+        assertNotNull(koin.get<DeliverySlots>())
+        assertNotNull(koin.get<CheckoutCommands>())
+        assertNotNull(koin.get<CheckoutScreen>())
     }
 }

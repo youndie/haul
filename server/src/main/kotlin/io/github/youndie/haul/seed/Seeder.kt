@@ -9,6 +9,8 @@ import io.github.youndie.haul.feature.catalog.data.DealsTable
 import io.github.youndie.haul.feature.catalog.data.ProductsTable
 import io.github.youndie.haul.feature.catalog.data.SellersTable
 import io.github.youndie.haul.feature.catalog.data.SkusTable
+import io.github.youndie.haul.feature.checkout.data.AddressesTable
+import io.github.youndie.haul.feature.checkout.data.PickupPointsTable
 import io.github.youndie.haul.feature.identity.data.CustomersTable
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
@@ -129,6 +131,26 @@ internal object Seeder {
                     this[CartLinesTable.position] = index + 1
                 }
             }
+            PickupPointsTable.batchInsert(catalog.pickupPoints) {
+                this[PickupPointsTable.id] = it.id
+                this[PickupPointsTable.kind] = it.kind
+                this[PickupPointsTable.name] = it.name
+                this[PickupPointsTable.distanceMeters] = it.distanceMeters
+                this[PickupPointsTable.hours] = it.hours
+                this[PickupPointsTable.position] = it.position
+            }
+            AddressesTable.batchInsert(catalog.addresses) {
+                this[AddressesTable.id] = it.id
+                this[AddressesTable.customerId] = it.customerId
+                this[AddressesTable.street] = it.street
+                this[AddressesTable.apt] = it.apt
+                this[AddressesTable.city] = it.city
+                this[AddressesTable.zip] = it.zip
+                this[AddressesTable.createdAt] = CatalogSeed.NOW.minusDays(ADDRESS_AGE_DAYS)
+            }
             true
         }
+
+    /** Maya's address was saved long before the canvas's «now». */
+    private const val ADDRESS_AGE_DAYS = 365L
 }

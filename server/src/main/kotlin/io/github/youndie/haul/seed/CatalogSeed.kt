@@ -63,6 +63,8 @@ internal object CatalogSeed {
             SamplePromoCodes.all,
             SampleCustomers.all,
             SampleCustomers.carts,
+            SampleCheckout.pickupPoints,
+            SampleCheckout.addresses,
         )
     }
 

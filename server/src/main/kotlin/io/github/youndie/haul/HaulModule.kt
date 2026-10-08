@@ -11,6 +11,9 @@ import io.github.youndie.haul.feature.catalog.domain.CatalogError
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.PhotoStore
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
+import io.github.youndie.haul.feature.checkout.checkoutModule
+import io.github.youndie.haul.feature.checkout.checkoutRouting
+import io.github.youndie.haul.feature.checkout.domain.CheckoutError
 import io.github.youndie.haul.feature.identity.SignInConfig
 import io.github.youndie.haul.feature.identity.customerIdentityRouting
 import io.github.youndie.haul.feature.identity.domain.IdentityError
@@ -83,6 +86,7 @@ internal fun Application.haulModule(
             searchModule,
             identityModule,
             cartModule,
+            checkoutModule,
         )
     }
     install(StatusPages) {
@@ -97,6 +101,12 @@ internal fun Application.haulModule(
         exception<SearchError> { call, error -> call.respondError(error.code, error.message, error.field) }
         exception<IdentityError> { call, error -> call.respondError(error.code, error.message, error.field) }
         exception<CartError> { call, error -> call.respondError(error.code, error.message, error.field) }
+        exception<CheckoutError> {
+            call,
+            error,
+            ->
+            call.respondError(error.code, error.message, error.field, error.fields)
+        }
         unexpectedFailures(report = reportFailure)
     }
     routing {
@@ -113,6 +123,7 @@ internal fun Application.haulModule(
         authenticate(JWT_AUTH_OIDC) {
             customerIdentityRouting()
             accountRouting()
+            checkoutRouting()
         }
         web?.let { webBundle(it) }
     }
@@ -123,15 +134,20 @@ internal suspend fun ApplicationCall.respondError(
     code: ErrorCode,
     message: String,
     field: String? = null,
+    fields: List<FieldError> = emptyList(),
 ) = respondText(
-    haulWireJson.encodeToString(ErrorBody.serializer(), ErrorBody(code, message, field)),
+    haulWireJson.encodeToString(ErrorBody.serializer(), ErrorBody(code, message, field, fields)),
     ContentType.Application.Json,
     status(code),
 )
 
 internal fun status(code: ErrorCode): HttpStatusCode =
     when (code) {
-        ErrorCode.ValidationFailed, ErrorCode.QueryTooShort -> HttpStatusCode.BadRequest
+        ErrorCode.ValidationFailed,
+        ErrorCode.QueryTooShort,
+        ErrorCode.FieldRequired,
+        ErrorCode.FieldInvalid,
+        -> HttpStatusCode.BadRequest
 
         ErrorCode.Unauthenticated -> HttpStatusCode.Unauthorized
 
@@ -141,11 +157,21 @@ internal fun status(code: ErrorCode): HttpStatusCode =
         ErrorCode.LineNotFound,
         ErrorCode.PromoNotFound,
         ErrorCode.GuestNotFound,
+        ErrorCode.SlotNotFound,
+        ErrorCode.PickupPointNotFound,
+        ErrorCode.AddressNotFound,
         -> HttpStatusCode.NotFound
 
-        ErrorCode.OutOfStock, ErrorCode.PromoAlreadyApplied -> HttpStatusCode.Conflict
+        ErrorCode.OutOfStock,
+        ErrorCode.PromoAlreadyApplied,
+        ErrorCode.CartEmpty,
+        ErrorCode.SlotUnavailable,
+        -> HttpStatusCode.Conflict
 
-        ErrorCode.PromoExpired, ErrorCode.PromoNotApplicable -> HttpStatusCode.UnprocessableEntity
+        ErrorCode.PromoExpired,
+        ErrorCode.PromoNotApplicable,
+        ErrorCode.PaymentMethodNotAllowed,
+        -> HttpStatusCode.UnprocessableEntity
 
         ErrorCode.Unavailable -> HttpStatusCode.ServiceUnavailable
 
