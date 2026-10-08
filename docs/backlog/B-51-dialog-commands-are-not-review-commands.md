@@ -1,7 +1,7 @@
 ---
 id: B-51
 title: "client: dialog commands are not review commands"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-6-account
