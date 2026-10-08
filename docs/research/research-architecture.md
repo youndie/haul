@@ -256,8 +256,8 @@ and on the stand.
   quote does not spend it. The same key with the same quote answers the saga's outcome again; with a
   different quote it is `409 idempotency_key_reused`.
 - **The simulator** (`feature/payment/`) approves every way to pay except the test card ···· 0002;
-  pay on delivery is never sent to it, Haul Pay is authorised like a card (its four payments are
-  B-24's). Its ledger is a table, one row per key, so a replay gets the first answer and a void is
+  pay on delivery is never sent to it, Haul Pay is authorised like a card, its whole total (its four
+  payments are captured out of that, «Decided in B-24»). Its ledger is a table, one row per key, so a replay gets the first answer and a void is
   by the key. The saga's clock is the wall clock, read at the composition root apart from the store's
   «now», because its stamps are compared across processes.
 - **Order numbers** come from a sequence starting at 48302, the checkout fixture's order (§6).
@@ -283,7 +283,7 @@ and on the stand.
   the last rounded down and the last taking the rest, so the parts add up to the total to the cent. The
   capture is named by the shipment id, so a pass re-run after a process died between the capture and the
   move is answered with what was taken. A refused capture holds the shipment `packed`; pay on delivery
-  has nothing to capture; Haul Pay is captured like a card (its four payments are B-24's).
+  has nothing to capture; Haul Pay is not captured by the shipment but by its plan («Decided in B-24»).
 - **The ledger** gains `payment_captures`, one row per key out of one authorisation; the authorisation
   is locked while a capture is taken, captures never add up to more than it holds, and an authorisation
   part of which was captured is no longer voided.
@@ -600,6 +600,37 @@ The canvas contradicted itself in three places and left one promise unbacked; th
 - **Maya's views are seeded** (`seed/SampleViews.kt`): the scenario «From views» as rows — three headphones and her
   cart's duvet cover set and mugs — so the stand draws her home page as `Home_Content` does, «Based on your recent
   views», with two headphones, two duvet covers and two mugs.
+
+**Decided in B-24, Haul Pay's four payments.**
+
+- **The schedule**: the order's total — after the points it was paid with, so points make the plan smaller — in four
+  payments of the amount the checkout promised (`HaulPay.paymentCents`, «4 payments of $121.80»), the last taking what
+  rounding left, so they add up to the total to the cent (`InstalmentSchedule`). The first is due **when the first
+  shipment ships** (feature-checkout's target), the others two weeks apart after it, on the simulator's clock and
+  pace (`FulfilmentPace.instalmentInterval`, sped up by `HAUL_FULFILMENT_SPEED` like every other step: 14 s apart on
+  the e2e's 86,400).
+- **The plan replaces the capture per shipment.** Placement still authorises the whole total; the plan's payments are
+  four captures out of that authorisation, each named `instalment:<order>:<n>`, instead of each shipment's share. A
+  Haul Pay shipment waits for the first payment as a card shipment waits for its capture; after it, the shipments ship
+  with no charge of their own. The simulated merchant side does not change: the authorisation, its limit and its
+  ledger are B-17's.
+- **The plan is stored when it starts** (`instalment_plans`, `instalments`, V21): until the first shipment ships the
+  order's page draws the schedule its total gives, «When it ships», «In 2 weeks»… Each payment is claimed (what it
+  charges frozen), charged, then marked paid, each step conditional, so two passes at once take it once and a pass that
+  died in between is answered by the processor under the same key. The pass (`HaulPayPlans.advance`) runs after the
+  shipments' and the returns' in `FulfilmentRunner`.
+- **A declined payment is tried again a day later, once; declined again, the payment is `overdue`** and the plan stops
+  there — no later payment is asked for, and nothing chases it (no collections in v1). A first payment that never
+  lands holds the shipments `packed`. The simulator itself never declines a payment (the authorisation always covers
+  the plan), so overdue is reached through a refusing processor in the tests only.
+- **A return comes off what is still owed first**, the last payment first (a payment reduced to nothing is `covered`);
+  only what the owed payments cannot absorb is refunded through the processor, out of what was paid. The reduction is
+  made once per plan (one return per order) and stored, so a pass that dies before the refund gives back the same rest.
+  The points part of a refund goes back as points (B-23), not off the plan.
+- **The order's page** draws the schedule under the summary's payment fact (`OrderTotals.plan`): each payment's day,
+  where it stands and what it charges; the fact says how much is paid and what comes next. No artboard draws it — it is
+  built from the summary's rows and facts, with goldens of its own (`Order_HaulPay*`) and no design reference. The
+  account does not show the next payment (no document asks for it).
 
 **How the stand is built (B-27).** One image serves the page and the API: the server's distribution
 carries the browser bundle and serves it at `/`, so the two cannot be deployed at different versions
