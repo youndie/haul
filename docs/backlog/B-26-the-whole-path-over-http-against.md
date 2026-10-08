@@ -1,7 +1,7 @@
 ---
 id: B-26
 title: "e2e: the whole path over HTTP against the composed stack"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-9-ship
