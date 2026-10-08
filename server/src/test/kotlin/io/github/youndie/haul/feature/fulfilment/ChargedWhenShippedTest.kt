@@ -147,18 +147,27 @@ class ChargedWhenShippedTest {
                             capture: Capture,
                         ): CaptureOutcome = CaptureOutcome.NotAuthorised
                     }
-                val held = FulfilmentSimulator(world.shipments, world.koin.get(), refusing, world.clock, FulfilmentPace.STORE)
+                val held =
+                    FulfilmentSimulator(world.shipments, world.koin.get(), refusing, world.clock, FulfilmentPace.STORE)
 
                 world.clock.at(30.hours)
                 assertEquals(0, runBlocking { held.advance() }, "Sony was due at 24 hours")
-                assertEquals(mapOf(sony to PACKED, brooklyn to PACKED), world.statuses(order), "Sony does not ship unpaid")
+                assertEquals(
+                    mapOf(sony to PACKED, brooklyn to PACKED),
+                    world.statuses(order),
+                    "Sony does not ship unpaid",
+                )
                 assertEquals(emptyMap(), world.captures(order))
 
                 world.advance(30.hours)
                 assertEquals(mapOf(sony to IN_TRANSIT, brooklyn to PACKED), world.statuses(order), "paid, it ships")
 
                 world.clock.at(50.hours)
-                assertEquals(1, runBlocking { held.advance() }, "Sony's delivery needs no capture; Brooklyn's road does")
+                assertEquals(
+                    1,
+                    runBlocking { held.advance() },
+                    "Sony's delivery needs no capture; Brooklyn's road does",
+                )
                 assertEquals(mapOf(sony to DELIVERED, brooklyn to PACKED), world.statuses(order))
                 assertEquals(mapOf(sony to 34_900), world.captures(order))
 
