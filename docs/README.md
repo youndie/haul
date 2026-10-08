@@ -63,3 +63,55 @@ The list below is **checked** against the files on disk.
 ### Research (1)
 
 - [x] [research-architecture](research/research-architecture.md) — verified facts about the stack and the canvas, the decisions (JVM server, every screen a kompot tree, the order as a saga), risks, vocabulary, sample data
+
+### Services (3/3)
+
+- [ ] [haul-server](services/haul-server.md) — owns all data; builds every screen as a kompot tree; the order saga and the simulators (draft)
+- [ ] [haul-web](services/haul-web.md) — the browser storefront: renderers, navigation, Loading/Error, sign-in (draft)
+- [ ] [haul-shared](services/haul-shared.md) — the contract: components on the wire, routes, error codes (draft)
+
+### Features (11)
+
+Browsing:
+- [ ] [feature-browse](features/feature-browse.md) — Home and category catalog (draft)
+- [ ] [feature-search](features/feature-search.md) — Search and autocomplete (draft)
+- [ ] [feature-product](features/feature-product.md) — Product page (draft)
+- [ ] [feature-reviews](features/feature-reviews.md) — Reviews and questions (draft)
+- [ ] [feature-recommendations](features/feature-recommendations.md) — Picked for you (draft)
+
+Buying:
+- [ ] [feature-identity](features/feature-identity.md) — Sign-in, guests and the guest cart (draft)
+- [ ] [feature-cart](features/feature-cart.md) — Cart (draft)
+- [ ] [feature-checkout](features/feature-checkout.md) — Checkout (draft)
+- [ ] [feature-orders](features/feature-orders.md) — Order lifecycle, tracking and returns (draft)
+
+Account and loyalty:
+- [ ] [feature-account](features/feature-account.md) — Account overview and the Saved list (draft)
+- [ ] [feature-membership](features/feature-membership.md) — Haul Plus, points and Haul Pay (draft)
+
+### Screens / flows (9)
+
+- [ ] [screen-account](screens/screen-account.md) — Account, 6 states (draft)
+- [ ] [screen-cart](screens/screen-cart.md) — Cart, 8 states (draft)
+- [ ] [screen-catalog](screens/screen-catalog.md) — Category, 5 states (draft)
+- [ ] [screen-checkout](screens/screen-checkout.md) — Checkout, 9 states (draft)
+- [ ] [screen-home](screens/screen-home.md) — Home, 5 states (draft)
+- [ ] [screen-order](screens/screen-order.md) — Order, 10 states (draft)
+- [ ] [screen-product](screens/screen-product.md) — Product, 10 states (draft)
+- [ ] [screen-saved](screens/screen-saved.md) — Saved, 5 states (draft)
+- [ ] [screen-search](screens/screen-search.md) — Search, 5 states (draft)
+
+### API (12)
+
+- [ ] [endpoint-account](api/endpoint-account.md) — Account overview (draft)
+- [ ] [endpoint-cart](api/endpoint-cart.md) — Cart (draft)
+- [ ] [endpoint-catalog](api/endpoint-catalog.md) — Home, category, product (draft)
+- [ ] [endpoint-checkout](api/endpoint-checkout.md) — Checkout and placement (draft)
+- [ ] [endpoint-identity](api/endpoint-identity.md) — Guests, cart merge, addresses (draft)
+- [ ] [endpoint-membership](api/endpoint-membership.md) — Haul Plus (draft)
+- [ ] [endpoint-ops](api/endpoint-ops.md) — Probes (draft)
+- [ ] [endpoint-orders](api/endpoint-orders.md) — Orders and returns (draft)
+- [ ] [endpoint-recommendations](api/endpoint-recommendations.md) — Picked for you (draft)
+- [ ] [endpoint-reviews](api/endpoint-reviews.md) — Reviews and questions (draft)
+- [ ] [endpoint-saved](api/endpoint-saved.md) — Saved list (draft)
+- [ ] [endpoint-search](api/endpoint-search.md) — Search (draft)

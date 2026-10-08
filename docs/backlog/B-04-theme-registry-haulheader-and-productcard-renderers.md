@@ -5,6 +5,7 @@ status: done
 priority: P1
 size: M
 stage: stage-1-skeleton
+epic: feature-browse
 blocked_by: [B-02]
 ---
 
