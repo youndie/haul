@@ -36,6 +36,12 @@ scripts/image-check.sh                                                      # th
 The server's tests and the image check need Docker: PostgreSQL runs in Testcontainers, and the image
 trains its cache against a PostgreSQL of its own (`docker/Dockerfile`).
 
+## Screenshot goldens
+
+Goldens (`composeApp/src/desktopTest/snapshots`) are recorded on Linux, where CI verifies them: the
+bundled variable fonts rasterise a few glyph edges differently on macOS (research, risk 1). Record in a
+Linux checkout and commit the PNGs; `viddikVerify` runs as part of `check`.
+
 ## Rules
 
 - Code, comments, KDoc, test names, exception messages, commits and pull requests in English;

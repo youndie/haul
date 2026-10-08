@@ -6,6 +6,7 @@
 plugins {
     alias(wip.plugins.kotlinMultiplatform)
     alias(wip.plugins.kotlinSerialization)
+    alias(wip.plugins.ksp)
     id("io.github.youndie.sborka.kmp")
     id("io.github.youndie.sborka.lint")
 }
@@ -21,9 +22,30 @@ kotlin {
             // `api`: the components are kompot components, so their supertypes are in the contract's
             // public signatures and every consumer needs the same version.
             api(libs.kompot.core)
+            implementation(libs.kompot.registryAnnotations)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
         }
     }
+}
+
+// kompot's processor writes the polymorphic registration of every `@KompotComponentMarker` class
+// once, over common metadata, so the server and the client decode the same set of types.
+dependencies { add("kspCommonMainMetadata", libs.kompot.registryProcessor) }
+ksp { arg("kompotModuleTag", "HaulContract") }
+kotlin.sourceSets.named("commonMain") {
+    kotlin.srcDir(layout.buildDirectory.dir("generated/ksp/metadata/commonMain/kotlin"))
+}
+tasks
+    .matching {
+        it.name != "kspCommonMainKotlinMetadata" &&
+            (
+                it.name.startsWith(
+                    "compile",
+                ) || it.name.startsWith("ksp") || it.name.contains("ktlint", ignoreCase = true)
+            )
+    }.configureEach { dependsOn("kspCommonMainKotlinMetadata") }
+ktlint {
+    filter { exclude { it.file.path.contains("/generated/") } }
 }
