@@ -40,7 +40,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (7)
+## Open (9)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -51,6 +51,8 @@ A stage is a field on the item, not a directory.
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
 | [B-45](docs/backlog/B-45-a-product-s-listing-name.md) `[ ]` | server: a product's listing name, as cards, cart and orders write it | P3 | S | B-18 |
 | [B-49](docs/backlog/B-49-the-last-drawn-controls-without-actions.md) `[ ]` | server + client: the last drawn controls without actions | P3 | S | B-37 |
+| [B-50](docs/backlog/B-50-the-return-dialog-names-the-points-share.md) `[ ]` | server + client: the return dialog names the points share of a refund | P3 | S | B-21, B-23 |
+| [B-51](docs/backlog/B-51-dialog-commands-are-not-review-commands.md) `[ ]` | client: dialog commands are not review commands | P3 | S | B-21 |
 
 ## Closed (42)
 
