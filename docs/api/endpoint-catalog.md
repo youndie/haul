@@ -24,9 +24,9 @@ parent_feature: feature-browse
 
 | Method and path | Service | Auth tier | In the generated schema? | Purpose |
 |---|---|---|---|---|
-| `GET` `/ui/home` | haul-server | public (none; `X-Haul-Guest` is not read yet, B-11) | yes | request: —; answers tree: Home (with recommendations and the Plus block for a customer — *target*: today every viewer gets the guest's page) |
-| `GET` `/ui/c/{categoryPath}` | haul-server | public (none; `X-Haul-Guest` is not read yet, B-11) | yes | request: filters, sort, page; answers tree: Catalog |
-| `GET` `/ui/p/{productId}` | haul-server | public (none; `X-Haul-Guest` is not read yet, B-11) | yes | request: `sku`, `tab` (description / specifications / reviews / questions); answers tree: Product; records a view for a customer (*target*, see Quirks) |
+| `GET` `/ui/home` | haul-server | public (none; `X-Haul-Guest` is not read here yet, B-12) | yes | request: —; answers tree: Home (with recommendations and the Plus block for a customer — *target*: today every viewer gets the guest's page) |
+| `GET` `/ui/c/{categoryPath}` | haul-server | public (none; `X-Haul-Guest` is not read here yet, B-12) | yes | request: filters, sort, page; answers tree: Catalog |
+| `GET` `/ui/p/{productId}` | haul-server | public (none; `X-Haul-Guest` is not read here yet, B-12) | yes | request: `sku`, `tab` (description / specifications / reviews / questions); answers tree: Product; records a view for a customer (*target*, see Quirks) |
 
 Conventions for every group — trees versus actions, the error body, `404` for «not yours» — are
 in [haul-server](../services/haul-server.md), section 2.
@@ -71,7 +71,10 @@ B-08, and what the server fills:
   `photoTotal`, `haulPayStrong` and, for a SKU out of stock, `stockAdvice` in place of the delivery
   lines; the courier line reads the cut-off while the SKU is in stock. `TabLabel.compactTitle` is
   the phone's «Specs». `ProductReviews` and `ProductQuestions` exist in the contract and no route
-  answers them yet (B-22); `ProductDescription.title` and `accent` exist and the server sets neither.
+  answers them yet (B-22). `ProductDescription` carries the product's headline as `title` and
+  `accent` since B-33 (`products.headline`, `products.headline_accent`,
+  `server/src/main/resources/db/migration/V6__product_headline.sql`); a catalogue seeded before V6
+  has the product's title as its headline and no accent.
 * **`accent`** — on `CampaignHero`, `PromoBanner`, `SectionHeader`, `PlusBlock`, `EmptyState` and
   `ProductDetails`: the words of the title drawn in Bodoni Moda's italic; it occurs in the title.
 * **`Chip.count`** — the count a chip stands for; the search's category chips carry it, the catalog's
@@ -87,6 +90,13 @@ B-08, and what the server fills:
 
 | Route | Status and `code` |
 |---|---|
-| `GET` `/ui/home` | none of its own; any unhandled failure on every route is `500` unavailable |
+| `GET` `/ui/home` | none of its own |
 | `GET` `/ui/c/{categoryPath}` | `400` validation_failed (field named), `404` category_not_found |
 | `GET` `/ui/p/{productId}` | `400` validation_failed (field `tab` or `sku`), `404` product_not_found |
+
+On every route, from the catch-all (`server/src/main/kotlin/io/github/youndie/haul/ErrorAnswers.kt`,
+B-32): a request Ktor itself cannot decode is `400` validation_failed («Malformed request», no field);
+a database that cannot be reached is `503` unavailable; any other unhandled failure is `500` internal
+(«Something went wrong», nothing of the exception in the body), reported to katcher when it is on.
+`ErrorAnswersTest.a database that cannot be reached makes a screen 503 unavailable` runs the `503`
+through `/ui/home`.

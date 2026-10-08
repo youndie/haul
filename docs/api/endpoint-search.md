@@ -23,8 +23,8 @@ parent_feature: feature-search
 
 | Method and path | Service | Auth tier | In the generated schema? | Purpose |
 |---|---|---|---|---|
-| `GET` `/ui/search` | haul-server | public (none; `X-Haul-Guest` is not read yet, B-11) | yes | request: `q`, `category`, `sort`, `page`; answers tree: the results page, or the no-results page |
-| `GET` `/ui/search/suggest` | haul-server | public (none; `X-Haul-Guest` is not read yet, B-11) | yes | request: `q`; answers tree: `SearchSuggestPanel` |
+| `GET` `/ui/search` | haul-server | public (none; `X-Haul-Guest` is not read here yet, B-12) | yes | request: `q`, `category`, `sort`, `page`; answers tree: the results page, or the no-results page |
+| `GET` `/ui/search/suggest` | haul-server | public (none; `X-Haul-Guest` is not read here yet, B-12) | yes | request: `q`; answers tree: `SearchSuggestPanel` |
 | `DELETE` `/api/v1/me/recent-searches` | haul-server | customer (shildik bearer) | yes | *planned, B-12*: request: —; answers action: refresh the panel |
 
 Conventions for every group — trees versus actions, the error body, `404` for «not yours» — are
@@ -86,3 +86,6 @@ the server puts in them (`feature/search/screen/SearchScreen.kt`):
 | `GET` `/ui/search` | `400` query_too_short (field `q`), `400` validation_failed (field `sort` or `page`), `404` category_not_found |
 | `GET` `/ui/search/suggest` | `400` query_too_short (field `q`) |
 | `DELETE` `/api/v1/me/recent-searches` | `401` (planned) |
+
+A request Ktor cannot decode, a database that cannot be reached and any other unhandled failure are
+answered by the catch-all, as on every route: [haul-server](../services/haul-server.md), section 2.
