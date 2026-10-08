@@ -172,7 +172,8 @@ public data class Review(
 
 /**
  * The reviews tab: the rating, its histogram and «Write a review» beside the reviews themselves
- * (feature-reviews, B-22).
+ * (feature-reviews, B-22). [action] is what «Write a review» does: kompot's `present` of a
+ * [ReviewForm] for a customer, the way to sign in for a guest.
  */
 @Serializable
 @SerialName("haul_product_reviews")
@@ -198,7 +199,10 @@ public data class Question(
     val pendingLabel: String? = null,
 )
 
-/** The questions tab: how many there are, who answers, «Ask a question», and the questions. */
+/**
+ * The questions tab: how many there are, who answers, «Ask a question», and the questions. [action] is
+ * what «Ask a question» does: kompot's `present` of a [QuestionForm] for a customer, sign-in for a guest.
+ */
 @Serializable
 @SerialName("haul_product_questions")
 @KompotComponentMarker
@@ -210,5 +214,58 @@ public data class ProductQuestions(
     val actionLabel: String,
     val questions: List<Question>,
     val action: @Polymorphic KompotAction? = null,
+    override val modifiers: List<KompotModifierNode> = emptyList(),
+) : KompotComponent
+
+/** The product a dialog is about: its name, the chosen SKU's options («Midnight Black · Headphones only»), its tile. */
+@Serializable
+public data class FormProduct(
+    val name: String,
+    val detail: String,
+    val tone: String,
+)
+
+/**
+ * «Write a review» (Product_ReviewDialog), presented over the reviews tab: the stars, a title and the
+ * review, posted as a `ReviewEntry` to [url]. The limits are `ReviewRules`, which the client checks
+ * before it sends; [bodyHint] is what is written under the review («At least 20 characters»). [close]
+ * is what «×» and [cancelLabel] do.
+ */
+@Serializable
+@SerialName("haul_review_form")
+@KompotComponentMarker
+public data class ReviewForm(
+    override val id: String,
+    val title: String,
+    val product: FormProduct,
+    val ratingLabel: String,
+    val titleLabel: String,
+    val bodyLabel: String,
+    val bodyHint: String,
+    val submitLabel: String,
+    val cancelLabel: String,
+    val url: String,
+    val close: @Polymorphic KompotAction? = null,
+    override val modifiers: List<KompotModifierNode> = emptyList(),
+) : KompotComponent
+
+/**
+ * «Ask a question» (Product_QuestionDialog), presented over the questions tab: the question, sent as a
+ * `QuestionEntry` to [url]; [hint] is its limits in words, [note] who answers and where.
+ */
+@Serializable
+@SerialName("haul_question_form")
+@KompotComponentMarker
+public data class QuestionForm(
+    override val id: String,
+    val title: String,
+    val product: FormProduct,
+    val label: String,
+    val hint: String,
+    val note: String,
+    val submitLabel: String,
+    val cancelLabel: String,
+    val url: String,
+    val close: @Polymorphic KompotAction? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent

@@ -65,6 +65,9 @@ internal object CatalogSeed {
             SampleCustomers.carts,
             SampleCheckout.pickupPoints,
             SampleCheckout.addresses,
+            SampleReviews.reviews,
+            SampleReviews.ratingCounts,
+            SampleReviews.questions,
         )
     }
 

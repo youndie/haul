@@ -15,6 +15,6 @@ internal val catalogModule =
         single { Browse(get()) }
         single { HomeScreen(get(), get(), get()) }
         single { CatalogScreen(get(), get(), get(), get()) }
-        single { ProductScreen(get(), get(), get()) }
+        single { ProductScreen(get(), get(), get(), get()) }
         single { DealsScreen(get(), get(), get()) }
     }

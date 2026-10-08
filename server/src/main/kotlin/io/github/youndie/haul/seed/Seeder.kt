@@ -12,6 +12,9 @@ import io.github.youndie.haul.feature.catalog.data.SkusTable
 import io.github.youndie.haul.feature.checkout.data.AddressesTable
 import io.github.youndie.haul.feature.checkout.data.PickupPointsTable
 import io.github.youndie.haul.feature.identity.data.CustomersTable
+import io.github.youndie.haul.feature.reviews.data.QuestionsTable
+import io.github.youndie.haul.feature.reviews.data.RatingCountsTable
+import io.github.youndie.haul.feature.reviews.data.ReviewsTable
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -147,6 +150,38 @@ internal object Seeder {
                 this[AddressesTable.city] = it.city
                 this[AddressesTable.zip] = it.zip
                 this[AddressesTable.createdAt] = CatalogSeed.NOW.minusDays(ADDRESS_AGE_DAYS)
+            }
+            ReviewsTable.batchInsert(catalog.reviews) {
+                this[ReviewsTable.id] = it.id
+                this[ReviewsTable.productId] = it.productId
+                this[ReviewsTable.customerId] = it.customerId
+                this[ReviewsTable.author] = it.author
+                this[ReviewsTable.rating] = it.rating
+                this[ReviewsTable.title] = it.title
+                this[ReviewsTable.body] = it.body
+                this[ReviewsTable.verified] = it.verified
+                this[ReviewsTable.helpful] = it.helpful
+                this[ReviewsTable.tone] = it.tone
+                this[ReviewsTable.photos] = JsonArray(it.photos.map(::JsonPrimitive))
+                this[ReviewsTable.createdAt] = it.createdAt
+            }
+            RatingCountsTable.batchInsert(
+                catalog.ratingCounts.flatMap { (product, counts) ->
+                    counts.map { (stars, n) -> Triple(product, stars, n) }
+                },
+            ) { (product, stars, n) ->
+                this[RatingCountsTable.productId] = product
+                this[RatingCountsTable.stars] = stars
+                this[RatingCountsTable.count] = n
+            }
+            QuestionsTable.batchInsert(catalog.questions) {
+                this[QuestionsTable.id] = it.id
+                this[QuestionsTable.productId] = it.productId
+                this[QuestionsTable.customerId] = it.customerId
+                this[QuestionsTable.text] = it.text
+                this[QuestionsTable.askedAt] = it.askedAt
+                this[QuestionsTable.answer] = it.answer
+                this[QuestionsTable.answeredAt] = it.answeredAt
             }
             true
         }

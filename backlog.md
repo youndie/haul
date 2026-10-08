@@ -40,7 +40,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (15)
+## Open (14)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -49,7 +49,6 @@ A stage is a field on the item, not a directory.
 | [B-26](docs/backlog/B-26-the-whole-path-over-http-against.md) `[ ]` | e2e: the whole path over HTTP against the composed stack | P1 | M | B-21, B-22 |
 | [B-20](docs/backlog/B-20-saved-list-save-for-later-price.md) `[ ]` | server + client: Saved list, save for later, price drops | P2 | M | B-01, B-13, B-19 |
 | [B-21](docs/backlog/B-21-returns-and-refunds.md) `[ ]` | server + client: returns and refunds | P2 | M | B-18 |
-| [B-22](docs/backlog/B-22-reviews-and-questions-the-two-dialog.md) `[ ]` | server + client: reviews and questions, the two dialog routes and forms | P2 | L | B-08, B-17 |
 | [B-23](docs/backlog/B-23-haul-plus-trial-and-benefits-points.md) `[ ]` | server + client: Haul Plus trial and benefits, points ledger, redemption at checkout, delivery savings | P2 | M | B-15, B-17, B-19 |
 | [B-24](docs/backlog/B-24-haul-pay-4-payments-two-weeks.md) `[ ]` | server + client: Haul Pay, 4 payments two weeks apart | P2 | M | B-15, B-16 |
 | [B-25](docs/backlog/B-25-recommendations-from-views-in-the-home.md) `[ ]` | server: recommendations from views in the Home tree | P2 | M | B-07, B-19 |
@@ -60,7 +59,7 @@ A stage is a field on the item, not a directory.
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
 | [B-40](docs/backlog/B-40-saving-an-address-updates-it-in-place.md) `[ ]` | server: saving the address being delivered to updates it in place | P3 | S | B-15 |
 
-## Closed (27)
+## Closed (28)
 
 **Skeleton**
 
@@ -100,6 +99,10 @@ A stage is a field on the item, not a directory.
 - [B-16](docs/backlog/B-16-placement-with-an-idempotency-key-the.md) `[x]` - server: placement with an idempotency key; the petich saga — reserve, authorise, confirm, compensate; the payment simulator
 - [B-17](docs/backlog/B-17-fulfilment-simulator-capture-per-shipment-pickup.md) `[x]` - server: fulfilment simulator, capture per shipment, pickup codes
 - [B-39](docs/backlog/B-39-placement-refuses-a-quote-checkout-holds.md) `[x]` - server: placement refuses a quote the checkout is holding
+
+**Reviews**
+
+- [B-22](docs/backlog/B-22-reviews-and-questions-the-two-dialog.md) `[x]` - server + client: reviews and questions, the two dialog routes and forms
 
 **Ship**
 

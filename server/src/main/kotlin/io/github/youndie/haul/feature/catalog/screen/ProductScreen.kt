@@ -12,6 +12,7 @@ import io.github.youndie.haul.feature.catalog.domain.Sku
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.discount
 import io.github.youndie.haul.feature.catalog.domain.money
+import io.github.youndie.haul.feature.reviews.screen.ReviewTabs
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.ui.Breadcrumbs
@@ -29,7 +30,7 @@ import io.github.youndie.haul.ui.VariantOption
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.NavigateAction
 
-/** The tabs the product page has; reviews and questions arrive with feature-reviews (B-22). */
+/** The tabs the product page has; reviews and questions are feature-reviews' (B-22). */
 internal enum class ProductTab(
     val key: String,
     val title: String,
@@ -37,6 +38,8 @@ internal enum class ProductTab(
 ) {
     Description("description", "Description"),
     Specifications("specifications", "Specifications", "Specs"),
+    Reviews("reviews", "Reviews"),
+    Questions("questions", "Questions"),
     ;
 
     companion object {
@@ -53,6 +56,7 @@ internal class ProductScreen(
     private val catalog: CatalogRepository,
     private val calendar: DeliveryCalendar,
     private val photos: ProductPhotos,
+    private val reviewTabs: ReviewTabs,
 ) {
     suspend fun build(
         productId: String,
@@ -81,6 +85,12 @@ internal class ProductScreen(
                             TabLabel(
                                 it.key,
                                 it.title,
+                                count =
+                                    when (it) {
+                                        ProductTab.Reviews -> count(item.product.reviewsCount)
+                                        ProductTab.Questions -> count(item.product.questionsCount)
+                                        else -> null
+                                    },
                                 selected = it == tab,
                                 action = NavigateAction("/p/${item.product.id}?sku=${sku.id}&tab=${it.key}"),
                                 compactTitle = it.compactTitle,
@@ -105,6 +115,14 @@ internal class ProductScreen(
                                 Highlight(k, v)
                             },
                         )
+                    }
+
+                    ProductTab.Reviews -> {
+                        reviewTabs.reviews(item, sku, viewer)
+                    }
+
+                    ProductTab.Questions -> {
+                        reviewTabs.questions(item, sku, seller, viewer)
                     }
                 },
             )

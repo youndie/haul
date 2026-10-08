@@ -167,25 +167,41 @@
     {
      "key": "description",
      "title": "Description",
-     "selected": false
+     "selected": false,
+     "action": {
+      "type": "navigate",
+      "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=description"
+     }
     },
     {
      "key": "specifications",
      "title": "Specifications",
-     "compactTitle": "Specs",
-     "selected": false
+     "selected": false,
+     "action": {
+      "type": "navigate",
+      "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=specifications"
+     },
+     "compactTitle": "Specs"
     },
     {
      "key": "reviews",
      "title": "Reviews",
      "count": "2,341",
-     "selected": false
+     "selected": false,
+     "action": {
+      "type": "navigate",
+      "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=reviews"
+     }
     },
     {
      "key": "questions",
      "title": "Questions",
      "count": "86",
-     "selected": true
+     "selected": true,
+     "action": {
+      "type": "navigate",
+      "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=questions"
+     }
     }
    ]
   },
@@ -214,7 +230,30 @@
      "asked": "Asked Oct 6",
      "pendingLabel": "Not answered yet"
     }
-   ]
+   ],
+   "action": {
+    "type": "present",
+    "content": {
+     "type": "haul_question_form",
+     "id": "question-form",
+     "title": "Ask a question",
+     "product": {
+      "name": "Sony WH-1000XM6 Wireless Noise Cancelling Headphones",
+      "detail": "Midnight Black · Headphones only",
+      "tone": "#E6E4FF"
+     },
+     "label": "Your question",
+     "hint": "10 – 1,000 characters",
+     "note": "Sony Official Store answers questions. You'll see the answer on this page.",
+     "submitLabel": "Send",
+     "cancelLabel": "Cancel",
+     "url": "/api/v1/products/p-sony-wh-1000xm6/questions",
+     "close": {
+      "type": "close"
+     }
+    },
+    "kind": "dialog"
+   }
   }
  ]
 }

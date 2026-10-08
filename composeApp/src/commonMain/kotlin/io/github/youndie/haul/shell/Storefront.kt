@@ -26,7 +26,10 @@ import io.github.youndie.haul.feature.cart.LocalCartCommands
 import io.github.youndie.haul.feature.checkout.CheckoutCommands
 import io.github.youndie.haul.feature.checkout.LocalCheckoutCommands
 import io.github.youndie.haul.feature.identity.SignInActions
+import io.github.youndie.haul.feature.product.DialogOverlay
+import io.github.youndie.haul.feature.product.LocalReviewCommands
 import io.github.youndie.haul.feature.product.ProductNotFound
+import io.github.youndie.haul.feature.product.ReviewCommands
 import io.github.youndie.haul.feature.search.SearchSuggestOverlay
 import io.github.youndie.haul.registry.haulRegistry
 import io.github.youndie.haul.ui.HaulHeader
@@ -45,8 +48,11 @@ import io.github.youndie.kompot.KompotScreen
 import io.github.youndie.kompot.KompotScreenLoader
 import io.github.youndie.kompot.form.FormController
 import io.github.youndie.kompot.form.FormSchema
+import io.github.youndie.kompot.standard.CloseAction
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
+import io.github.youndie.kompot.standard.PresentAction
+import io.github.youndie.kompot.standard.SequenceAction
 import io.github.youndie.kompot.withRefresh
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -85,7 +91,9 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * cart's presses — the cart's own and a card's «+» — go to [cartCommands] (B-13, B-37), whose answer,
  * `refresh`, draws the screen again. «Clear» on recent searches goes through [commands] (B-37), and
  * the suggest panel is asked for again once the server has answered. The checkout's go to
- * [checkoutCommands] (B-15), whose `refresh` draws it again the same way.
+ * [checkoutCommands] (B-15), whose `refresh` draws it again the same way. A tree's `present` draws its
+ * component over the page — the product page's review and question dialogs (B-22), whose commands go to
+ * [reviewCommands] — until a `close`, a new page or the scrim takes it away.
  */
 @Composable
 public fun Storefront(
@@ -96,6 +104,7 @@ public fun Storefront(
     cartCommands: CartCommands? = null,
     commands: HaulCommands? = null,
     checkoutCommands: CheckoutCommands? = null,
+    reviewCommands: ReviewCommands? = null,
 ) {
     val navigator = remember(history) { Navigator(history) }
     DisposableEffect(navigator) {
@@ -159,18 +168,32 @@ public fun Storefront(
         LocalHaulActions provides panelActions,
         LocalCartCommands provides cartCommands,
         LocalCheckoutCommands provides checkoutCommands,
+        LocalReviewCommands provides reviewCommands,
     ) {
         SearchSuggestOverlay(panel, highlighted = -1, field = field, onDismiss = dismiss, onClear = clearRecent) {
             val address = navigator.address
             key(address) {
-                Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                    KompotScreenLoader(
-                        key = address,
-                        load = { transport.tree(address.screen) },
-                        loading = { Box(Modifier.testTag(LOADING_TAG)) { Loading(address) } },
-                        failed = { cause, retry -> Failed(address, cause, header ?: SHELL_HEADER, retry, home) },
-                    ) { tree ->
-                        Shown(tree, address, transport, navigator, registry, signIn) { header = it }
+                // What a `present` put over the page; a new page starts without one.
+                var presented by remember { mutableStateOf<Presented?>(null) }
+                Box(Modifier.fillMaxSize()) {
+                    Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                        KompotScreenLoader(
+                            key = address,
+                            load = { transport.tree(address.screen) },
+                            loading = { Box(Modifier.testTag(LOADING_TAG)) { Loading(address) } },
+                            failed = { cause, retry -> Failed(address, cause, header ?: SHELL_HEADER, retry, home) },
+                        ) { tree ->
+                            Shown(tree, address, transport, navigator, registry, signIn, { header = it }) {
+                                presented =
+                                    it
+                            }
+                        }
+                    }
+                    presented?.let { shown ->
+                        val forms = remember { FormController(FormSchema(formId = "none", fields = emptyList())) }
+                        DialogOverlay(onDismiss = { presented = null }) {
+                            KompotScreen(shown.content, registry, forms, shown.actions)
+                        }
                     }
                 }
             }
@@ -178,9 +201,16 @@ public fun Storefront(
     }
 }
 
+/** A component a tree's `present` shows over the page, and the screen's handler its actions go to. */
+internal class Presented(
+    val content: KompotComponent,
+    val actions: KompotActionHandler,
+)
+
 /**
  * A screen's tree, following its actions: `/sign-in` is sign-in's, any other `navigate` opens its
  * deeplink, and `refresh` — kompot's action, or [LocalScreenRefresh] — draws the screen again in place.
+ * `present` and `close` are [onPresent]'s, and a `sequence` is each of its actions in turn.
  */
 @Composable
 private fun Shown(
@@ -191,6 +221,7 @@ private fun Shown(
     registry: KompotRegistry,
     signIn: suspend () -> Unit,
     onHeader: (HaulHeader) -> Unit,
+    onPresent: (Presented?) -> Unit,
 ) {
     var tree by remember(loaded) { mutableStateOf(loaded) }
     LaunchedEffect(tree) { tree.header()?.let(onHeader) }
@@ -203,9 +234,12 @@ private fun Shown(
         remember(address) {
             val signInActions = SignInActions(signIn = signIn, redraw = refresh::refresh)
             val navigate = navigating(navigator)
-            KompotActionHandler { action ->
-                scope.launch { if (!signInActions.handle(action)) navigate.handle(action) }
-            }.withRefresh(scope) { refresh.refresh() }
+            presenting(
+                KompotActionHandler { action ->
+                    scope.launch { if (!signInActions.handle(action)) navigate.handle(action) }
+                }.withRefresh(scope) { refresh.refresh() },
+                onPresent,
+            )
         }
     val forms = remember { FormController(FormSchema(formId = "none", fields = emptyList())) }
     CompositionLocalProvider(LocalScreenRefresh provides refresh) { KompotScreen(tree, registry, forms, actions) }
@@ -229,6 +263,28 @@ private suspend fun HaulCommands.answered(send: suspend HaulCommands.() -> HaulR
         // Throwable: in the browser a failed fetch is a JavaScript error, which is no `Exception` on Wasm.
         false
     }
+
+/**
+ * kompot's `present`, `close` and `sequence` (B-22): a `present` shows its component over the page with
+ * this handler for its actions, a `close` takes it away, a `sequence` is each of its actions in order —
+ * a dialog's answer is `close`, then `refresh`. Anything else is [next]'s.
+ */
+internal fun presenting(
+    next: KompotActionHandler,
+    show: (Presented?) -> Unit,
+): KompotActionHandler {
+    lateinit var self: KompotActionHandler
+    self =
+        KompotActionHandler { action ->
+            when (action) {
+                is SequenceAction -> action.actions.forEach(self::handle)
+                is PresentAction -> show(Presented(action.content, self))
+                CloseAction -> show(null)
+                else -> next.handle(action)
+            }
+        }
+    return self
+}
 
 /** Follows `navigate` to its deeplink; anything else is somebody else's to handle. */
 private fun navigating(navigator: Navigator): KompotActionHandler =

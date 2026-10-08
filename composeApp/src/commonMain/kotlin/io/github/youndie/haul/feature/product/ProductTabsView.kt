@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -44,6 +45,7 @@ import io.github.youndie.haul.ui.Review
 import io.github.youndie.haul.ui.SpecificationList
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.accented
+import io.github.youndie.haul.ui.following
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.toneColor
@@ -113,6 +115,12 @@ public fun ProductTabsView(tabs: ProductTabs) {
         }
     }
 }
+
+/** «Write a review», which presents the review dialog (a customer) or signs in (a guest). */
+internal const val WRITE_REVIEW_TAG: String = "write-review"
+
+/** «Ask a question», likewise. */
+internal const val ASK_TAG: String = "ask-question"
 
 /** The bottom of the page under the tab's content. */
 @Composable
@@ -317,11 +325,12 @@ private fun RatingSummary(
         }
         HaulButton(
             reviews.actionLabel,
-            Modifier.padding(top = 28.dp).fillMaxWidth(),
+            Modifier.padding(top = 28.dp).fillMaxWidth().testTag(WRITE_REVIEW_TAG),
             height = 56.dp,
             radius = 18.dp,
             border = HaulColors.onSurface,
             textSize = 16f,
+            onClick = following(reviews.action),
         )
     }
 }
@@ -391,11 +400,12 @@ public fun ProductQuestionsView(questions: ProductQuestions) {
                 Text(questions.text, HaulType.text(15f, lineHeight = 1.5f).copy(color = HaulColors.onSurfaceVariant))
                 HaulButton(
                     questions.actionLabel,
-                    Modifier.fillMaxWidth(),
+                    Modifier.fillMaxWidth().testTag(ASK_TAG),
                     height = 56.dp,
                     radius = 18.dp,
                     border = HaulColors.onSurface,
                     textSize = 16f,
+                    onClick = following(questions.action),
                 )
             }
         }
