@@ -389,6 +389,11 @@ the account need a shildik token; signing in merges the guest cart.
   the courier, D7), the summary names the delivery day, and the button says why it is held («Pick a
   delivery window», «Fill in the street address and ZIP»). Points stay B-23's: the toggle the canvas
   draws is sent by no server yet.
+- **The form edits the address it holds (B-40).** A save rewrites the address delivered to — the chosen one,
+  else the newest — in place, keeping its id; the server's state names it and `AddressEntry` carries no id. A
+  form equal to an address the customer already has chooses that one and stores nothing. An order copies the
+  address it is placed to (`orders.address`, `V14__order_address.sql`) rather than naming the row, which is
+  now edited; and the quote's fingerprint names the address's fields as well as its id.
 
 ### D6. Product decisions taken by the owner on the brief (2026-10-08)
 
@@ -793,7 +798,7 @@ The names go into the code unchanged.
 | `PromoCode` | code | — | one per order |
 | `SavedItem` | (`Customer`, `Product`) | `Customer` | the price at saving time |
 | `ProductView`, `RecentSearch` | (`Customer`, …) | `Customer` | last 20 views, last 10 searches |
-| `Order` | `HL-<5 digits>` | `Customer` | status derived from its shipments |
+| `Order` | `HL-<5 digits>` | `Customer` | status derived from its shipments; a copy of the address it was placed to |
 | `Shipment` | server id | `Order` | one per seller: `placed`, `packed`, `in_transit`, `ready_for_pickup`, `delivered`, `picked_up`, `cancelled` |
 | `DeliveryMethod` | closed set | — | `courier`, `pickup_point`, `parcel_locker` |
 | `PickupPoint`, `DeliverySlot` | server id; (date, window) | — | slots: next 5 days × 4 windows, with capacity |

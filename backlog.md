@@ -40,7 +40,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (14)
+## Open (13)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -56,10 +56,9 @@ A stage is a field on the item, not a directory.
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 | [B-44](docs/backlog/B-44-a-guest-on-a-customer-page-is-sent-to-sign-in.md) `[ ]` | client: a guest on a customer page is sent to sign-in | P2 | S | B-41 |
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
-| [B-40](docs/backlog/B-40-saving-an-address-updates-it-in-place.md) `[~]` | server: saving the address being delivered to updates it in place | P3 | S | B-15 |
 | [B-43](docs/backlog/B-43-helpful-votes-on-reviews.md) `[ ]` | server + client: «Helpful» votes on reviews | P3 | S | B-22 |
 
-## Closed (30)
+## Closed (31)
 
 **Skeleton**
 
@@ -99,6 +98,7 @@ A stage is a field on the item, not a directory.
 - [B-16](docs/backlog/B-16-placement-with-an-idempotency-key-the.md) `[x]` - server: placement with an idempotency key; the petich saga — reserve, authorise, confirm, compensate; the payment simulator
 - [B-17](docs/backlog/B-17-fulfilment-simulator-capture-per-shipment-pickup.md) `[x]` - server: fulfilment simulator, capture per shipment, pickup codes
 - [B-39](docs/backlog/B-39-placement-refuses-a-quote-checkout-holds.md) `[x]` - server: placement refuses a quote the checkout is holding
+- [B-40](docs/backlog/B-40-saving-an-address-updates-it-in-place.md) `[x]` - server: saving the address being delivered to updates it in place
 - [B-41](docs/backlog/B-41-sign-in-returns-to-where-it-was-asked.md) `[x]` - client: sign-in returns to where it was asked for
 - [B-42](docs/backlog/B-42-a-refused-address-form-holds-pickup-orders.md) `[x]` - server: a refused address form does not hold a pickup or locker order
 
