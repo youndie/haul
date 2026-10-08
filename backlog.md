@@ -44,7 +44,7 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-18](docs/backlog/B-18-order-tree-and-renderers-reorder.md) `[ ]` | server + client: Order tree and renderers, reorder | P1 | M | B-01, B-15, B-17 |
+| [B-18](docs/backlog/B-18-order-tree-and-renderers-reorder.md) `[~]` | server + client: Order tree and renderers, reorder | P1 | M | B-01, B-15, B-17 |
 | [B-19](docs/backlog/B-19-account-overview-and-orders-history.md) `[ ]` | server + client: Account overview and orders history | P1 | M | B-01, B-18 |
 | [B-26](docs/backlog/B-26-the-whole-path-over-http-against.md) `[ ]` | e2e: the whole path over HTTP against the composed stack | P1 | M | B-21, B-22 |
 | [B-20](docs/backlog/B-20-saved-list-save-for-later-price.md) `[ ]` | server + client: Saved list, save for later, price drops | P2 | M | B-01, B-13, B-19 |

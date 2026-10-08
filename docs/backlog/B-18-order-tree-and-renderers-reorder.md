@@ -1,7 +1,7 @@
 ---
 id: B-18
 title: "server + client: Order tree and renderers, reorder"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-5-order
