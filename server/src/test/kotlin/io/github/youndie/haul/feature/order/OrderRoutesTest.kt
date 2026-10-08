@@ -2,7 +2,9 @@ package io.github.youndie.haul.feature.order
 
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.feature.cart.CartPaths
+import io.github.youndie.haul.feature.checkout.AddressEntry
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
+import io.github.youndie.haul.feature.checkout.CheckoutPaths
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.shell.Frame
@@ -18,6 +20,7 @@ import io.github.youndie.haul.ui.CartLine
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.OrderBody
+import io.github.youndie.haul.ui.OrderFactKind
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.decodeKompotAction
 import io.github.youndie.kompot.decodeKompotComponent
@@ -27,9 +30,12 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
 import javax.sql.DataSource
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -113,6 +119,31 @@ class OrderRoutesTest {
             assertEquals(0, body.steps?.current)
             assertEquals(NavigateAction(Frame.ORDERS), tree.only<HaulHeader>().orders)
             assertNull(body.summary.reorderUrl, "an order on its way is not reordered from its page")
+        }
+
+    /**
+     * The address a past order went to is the order's own (B-40): Maya editing her saved address after
+     * placing — the checkout's form edits it in place — leaves the order's page where the order was sent.
+     */
+    @Test
+    fun `an address edited after placement does not move a past order`() =
+        placed { orderId, _ ->
+            val edit =
+                post(CheckoutPaths.ADDRESSES) {
+                    bearerAuth(maya)
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        haulWireJson.encodeToString(
+                            AddressEntry.serializer(),
+                            AddressEntry(street = "1 Bedford Avenue", city = "Brooklyn, NY", zip = "11249"),
+                        ),
+                    )
+                }
+            assertEquals(HttpStatusCode.OK, edit.status, edit.bodyAsText())
+            val body = tree(maya, "/ui" + OrderPaths.page(orderId)).only<OrderBody>()
+            val place = body.summary.facts.single { it.kind == OrderFactKind.Place }
+            assertEquals("148 Wythe Avenue, Apt 4F", place.title)
+            assertEquals("Brooklyn, NY 11211 · courier", place.detail)
         }
 
     /**

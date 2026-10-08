@@ -8,8 +8,8 @@ import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.money
 import io.github.youndie.haul.feature.catalog.screen.navigation
 import io.github.youndie.haul.feature.catalog.screen.productLink
+import io.github.youndie.haul.feature.checkout.AddressEntry
 import io.github.youndie.haul.feature.checkout.DeliveryMethod
-import io.github.youndie.haul.feature.checkout.domain.Address
 import io.github.youndie.haul.feature.checkout.domain.CheckoutRepository
 import io.github.youndie.haul.feature.checkout.domain.PaymentMethod
 import io.github.youndie.haul.feature.checkout.domain.PickupPoint
@@ -112,7 +112,8 @@ internal class OrderScreen(
                     .map { it.sellerId }
                     .distinct()
                     .associateWith { catalog.seller(it)?.name ?: it },
-            address = placed.addressId?.let { id -> checkout.addresses(customerId).firstOrNull { it.id == id } },
+            // The order's own copy (B-40): the saved address is edited in place, and a past order keeps where it went.
+            address = placed.address,
             point = placed.pointId?.let { id -> checkout.pickupPoints().firstOrNull { it.id == id } },
             now = clock.now(),
         )
@@ -127,7 +128,8 @@ internal class OrderScreen(
 /**
  * What the order's page is drawn from: where the order is, and what it names — each SKU's product as the
  * catalog has it now ([products], by SKU id; a SKU gone from the catalog is drawn from the order alone),
- * the [sellers]' names by id, the [address] a courier brings it to or the [point] it is collected at, the
+ * the [sellers]' names by id, the [address] a courier brings it to (the order's copy, as it was placed) or the
+ * [point] it is collected at, the
  * customer's [firstName], and the store's [now], which «tomorrow» is counted from.
  */
 internal data class OrderView(
@@ -135,7 +137,7 @@ internal data class OrderView(
     val firstName: String?,
     val products: Map<String, Bought>,
     val sellers: Map<String, String>,
-    val address: Address?,
+    val address: AddressEntry?,
     val point: PickupPoint?,
     val now: ZonedDateTime,
 )
@@ -523,13 +525,12 @@ private class OrderPage(
         return OrderFact(OrderFactKind.Points, "${count(placed.points)} points", "Credited when $delivered")
     }
 
-    private fun street(address: Address): String =
-        address.street + (
+    private fun street(address: AddressEntry): String =
+        address.street +
             address.apt
-                ?.ifBlank { null }
+                .ifBlank { null }
                 ?.let { ", Apt $it" }
                 .orEmpty()
-        )
 
     private fun toCart() = NavigateAction(Frame.CART)
 

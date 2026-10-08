@@ -214,6 +214,7 @@ class OrderFixturesTest {
                     customerId = SampleCustomers.MAYA,
                     method = DeliveryMethod.PickupPoint,
                     addressId = null,
+                    address = null,
                     pointId = SampleCheckout.BEDFORD,
                     slotId = null,
                     payment = "card-4821",
