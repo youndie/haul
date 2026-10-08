@@ -10,8 +10,14 @@ import kotlinx.serialization.Serializable
 
 // The pieces of the Home and Category screens (feature-browse). Copy arrives formatted; a link is a
 // kompot action the client follows, never a URL it builds.
+//
+// An `accent` is the words of a title the canvas draws in Bodoni Moda's italic («Shop by *category*»);
+// it must occur in the title, and a title without one is drawn upright throughout.
 
-/** The campaign that opens the home page. */
+/**
+ * The campaign that opens the home page. When [title] starts with [accent], the accent is the italic
+ * lead line («Up to») and the rest is the figure («−70%»).
+ */
 @Serializable
 @SerialName("haul_campaign_hero")
 @KompotComponentMarker
@@ -24,6 +30,7 @@ public data class CampaignHero(
     val tone: String,
     val label: String,
     val action: @Polymorphic KompotAction? = null,
+    val accent: String? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
@@ -40,6 +47,21 @@ public data class PromoBanner(
     val tone: String,
     val label: String? = null,
     val action: @Polymorphic KompotAction? = null,
+    val accent: String? = null,
+    override val modifiers: List<KompotModifierNode> = emptyList(),
+) : KompotComponent
+
+/**
+ * The top of the home page: the campaign, and the banners beside it on a wide page or under it in a
+ * row on a phone. One component because the two widths arrange the same three blocks differently.
+ */
+@Serializable
+@SerialName("haul_campaign_row")
+@KompotComponentMarker
+public data class CampaignRow(
+    override val id: String,
+    val hero: CampaignHero,
+    val banners: List<PromoBanner>,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
@@ -58,6 +80,9 @@ public data class SectionHeader(
     val linkLabel: String? = null,
     val countdownEndsAt: String? = null,
     val action: @Polymorphic KompotAction? = null,
+    val accent: String? = null,
+    /** What the link reads on a phone («All 32»); `null` leaves the link out there. */
+    val compactLinkLabel: String? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
@@ -73,7 +98,20 @@ public data class CategoryTile(
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
-/** A row or a grid of product cards; [columns] is the desktop count, the phone draws two. */
+/** The category tiles of the home page: one row of eight on a wide page, rows of four on a phone. */
+@Serializable
+@SerialName("haul_category_grid")
+@KompotComponentMarker
+public data class CategoryGrid(
+    override val id: String,
+    val tiles: List<CategoryTile>,
+    override val modifiers: List<KompotModifierNode> = emptyList(),
+) : KompotComponent
+
+/**
+ * A row or a grid of product cards; [columns] is the desktop count, the phone draws two — or, when
+ * [scroll] is set, one row that scrolls sideways.
+ */
 @Serializable
 @SerialName("haul_product_grid")
 @KompotComponentMarker
@@ -81,6 +119,7 @@ public data class ProductGrid(
     override val id: String,
     val cards: List<ProductCard>,
     val columns: Int,
+    val scroll: Boolean = false,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
@@ -101,6 +140,7 @@ public data class PlusBlock(
     val savings: String? = null,
     val renewal: String? = null,
     val action: @Polymorphic KompotAction? = null,
+    val accent: String? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
@@ -188,6 +228,9 @@ public data class Facet(
     val min: String? = null,
     val max: String? = null,
     val moreLabel: String? = null,
+    /** Where the price range's selection starts and ends on the slider, as fractions of its track. */
+    val rangeStart: Float? = null,
+    val rangeEnd: Float? = null,
 )
 
 @Serializable
@@ -209,6 +252,25 @@ public data class AppliedFilters(
     val clearLabel: String,
     val sortLabel: String,
     val filterCount: Int,
+    override val modifiers: List<KompotModifierNode> = emptyList(),
+) : KompotComponent
+
+/**
+ * A category's results with the filters that made them: on a wide page the facet column beside the
+ * applied chips and the results; on a phone «Filters» and the sort above the chips, and the facets in
+ * a sheet whose button reads [showLabel] («Show 48 items»). Either [grid] or [empty] is set.
+ */
+@Serializable
+@SerialName("haul_filtered_results")
+@KompotComponentMarker
+public data class FilteredResults(
+    override val id: String,
+    val facets: FacetPanel,
+    val applied: AppliedFilters,
+    val showLabel: String,
+    val grid: ProductGrid? = null,
+    val pagination: HaulPagination? = null,
+    val empty: EmptyState? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
@@ -234,5 +296,6 @@ public data class EmptyState(
     val text: String,
     val actionLabel: String? = null,
     val action: @Polymorphic KompotAction? = null,
+    val accent: String? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
