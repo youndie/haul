@@ -1,7 +1,7 @@
 ---
 id: B-03
 title: "server: schema migrations, seed generator and sample-data fixtures, probes, the image with a zavarnik cache"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-1-skeleton
