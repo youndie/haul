@@ -66,6 +66,9 @@ internal object SampleCatalog {
                 createdAt = created,
                 features = listOf("Noise cancelling", "Wireless", "Microphone"),
                 kind = "Over-ear",
+                // Product_Description's headline, the accent in Bodoni italic.
+                headline = "Silence, tuned to you",
+                headlineAccent = "to you",
             ),
             SeedProduct(
                 id = DUVET_COVER,
@@ -82,6 +85,8 @@ internal object SampleCatalog {
                 label = "bedding",
                 createdAt = created,
                 dispatchDays = 1,
+                headline = "Linen that softens with every wash",
+                headlineAccent = "every wash",
             ),
             SeedProduct(
                 id = STONEWARE_MUG,
@@ -98,6 +103,8 @@ internal object SampleCatalog {
                 label = "mug",
                 createdAt = created,
                 dispatchDays = 1,
+                headline = "Glazed by hand, one at a time",
+                headlineAccent = "by hand",
             ),
         ) + SampleHeadphones.products
 

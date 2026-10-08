@@ -88,9 +88,11 @@ internal class ProductScreen(
                 when (tab) {
                     ProductTab.Description -> {
                         ProductDescription(
-                            "description",
-                            item.product.description,
-                            highlights(item),
+                            id = "description",
+                            text = item.product.description,
+                            facts = highlights(item),
+                            title = item.product.headline,
+                            accent = item.product.headlineAccent,
                         )
                     }
 

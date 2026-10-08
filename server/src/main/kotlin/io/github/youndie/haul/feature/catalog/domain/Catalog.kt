@@ -39,6 +39,9 @@ internal data class Product(
     val kind: String?,
     val dispatchDays: Int,
     val createdAt: OffsetDateTime,
+    /** Over the description tab («Silence, tuned to you»); [headlineAccent] is a piece of it, or none. */
+    val headline: String,
+    val headlineAccent: String?,
 )
 
 internal data class Sku(

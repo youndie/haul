@@ -50,7 +50,17 @@ internal data class SeedProduct(
     val features: List<String> = emptyList(),
     val kind: String? = null,
     val dispatchDays: Int = 0,
-)
+    val headline: String,
+    val headlineAccent: String? = null,
+) {
+    init {
+        // The same rule V6 checks, failing at generation instead of at the insert.
+        require(headline.isNotBlank()) { "$id has a blank headline" }
+        require(headlineAccent == null || headlineAccent in headline) {
+            "$id: the accent «$headlineAccent» is not in the headline «$headline»"
+        }
+    }
+}
 
 internal data class SeedSku(
     val id: String,

@@ -71,6 +71,14 @@ distributions {
     }
 }
 
+// The client's wire bodies (`composeApp/src/desktopTest/resources/bodies`), which carry the canvas's
+// copy: a route test compares what the server sends against them (B-33), so they are the test's input.
+tasks.test {
+    val bodies = layout.projectDirectory.dir("../composeApp/src/desktopTest/resources/bodies")
+    inputs.dir(bodies).withPropertyName("clientBodies").withPathSensitivity(PathSensitivity.RELATIVE)
+    systemProperty("haul.clientBodies", bodies.asFile.absolutePath)
+}
+
 // **The cache is trained in the image, not here.** The JVM accepts a cache only from the build that
 // wrote it, down to the size of `lib/modules`, so a cache trained by this machine's JDK is refused by
 // the image's JRE. And training starts the server, which will not start without PostgreSQL. So the

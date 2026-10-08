@@ -3,7 +3,12 @@ package io.github.youndie.haul.feature.catalog.data
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
+import org.jetbrains.exposed.v1.core.CustomFunction
+import org.jetbrains.exposed.v1.core.IntegerColumnType
 import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.greater
+import org.jetbrains.exposed.v1.core.isNull
+import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.javatime.timestampWithTimeZone
 import org.jetbrains.exposed.v1.json.jsonb
 
@@ -49,10 +54,19 @@ internal object ProductsTable : Table("products") {
     val features = jsonb<JsonArray>("features", Json).default(JsonArray(emptyList()))
     val kind = text("kind").nullable()
     val dispatchDays = integer("dispatch_days").default(0)
+
+    // The description tab's headline and the part of it in the accent face (V6, which also checks that
+    // the accent occurs in the headline).
+    val headline = text("headline")
+    val headlineAccent = text("headline_accent").nullable()
     override val primaryKey = PrimaryKey(id)
 
     init {
         index("products_category", false, categorySlug)
+        check("products_headline_accent_in_headline") {
+            headlineAccent.isNull() or
+                (CustomFunction("strpos", IntegerColumnType(), headline, headlineAccent) greater 0)
+        }
     }
 }
 

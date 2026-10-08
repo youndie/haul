@@ -107,6 +107,7 @@ internal object CatalogSeed {
     ): Pair<SeedProduct, List<SeedSku>> {
         val brand = BRANDS[random.nextInt(BRANDS.size)]
         val adjective = ADJECTIVES[random.nextInt(ADJECTIVES.size)]
+        val (headline, accent) = HEADLINES.getValue(adjective)
         val product =
             SeedProduct(
                 id = id,
@@ -122,6 +123,8 @@ internal object CatalogSeed {
                 tone = TONES[random.nextInt(TONES.size)],
                 label = leaf.label,
                 createdAt = NOW.minusDays(random.nextLong(1, 720)),
+                headline = headline,
+                headlineAccent = accent,
             )
         val price = random.nextInt(5, 500) * 100 + if (random.nextBoolean()) 99 else 0
         val discounted = random.nextInt(100) < DISCOUNTED_PERCENT
@@ -229,6 +232,25 @@ internal object CatalogSeed {
         )
     private val ADJECTIVES =
         listOf("Everyday", "Compact", "Classic", "Pro", "Lightweight", "Essential", "Deluxe", "Travel", "Studio", "Eco")
+
+    /**
+     * A generated product's description headline and its accent, by the adjective the [Random] drew for
+     * it: deterministic like the rest of the product, and drawn from nothing new, so adding headlines
+     * (B-33) moved no value the seed drew before them.
+     */
+    private val HEADLINES =
+        mapOf(
+            "Everyday" to ("Made for every day" to "every day"),
+            "Compact" to ("Small enough to take along" to "take along"),
+            "Classic" to ("A classic, done right" to "done right"),
+            "Pro" to ("Works as hard as you do" to "as you do"),
+            "Lightweight" to ("Light enough to forget" to "to forget"),
+            "Essential" to ("The one you reach for first" to "reach for first"),
+            "Deluxe" to ("A little more of everything" to "of everything"),
+            "Travel" to ("Packed for the road" to "the road"),
+            "Studio" to ("Tuned in the studio" to "the studio"),
+            "Eco" to ("Kind to the planet, too" to "the planet"),
+        )
     private val COLOURS = listOf("Graphite", "Oat", "Sage", "Midnight", "Sand", "Cobalt")
     private val SELLER_WORDS = listOf("Hudson", "Bedford", "Wythe", "Kent", "Grand", "Union", "Bushwick", "Greenpoint")
     private val SELLER_NOUNS = listOf("Goods", "Supply", "Trading", "Outfitters", "Market", "House", "Works")

@@ -6,10 +6,13 @@ import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.testing.haulTest
 import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.tree
+import io.github.youndie.haul.ui.ProductDescription
 import io.github.youndie.haul.ui.ProductDetails
+import io.github.youndie.kompot.decodeKompotComponent
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -63,6 +66,27 @@ class ProductRoutesTest {
             assertEquals("Silver is out of stock.", details.stockAdvice?.title)
             val colour = details.variants.single { it.name == "Colour" }
             assertFalse(colour.options.single { it.label == "Silver" }.available, "Silver offered as available")
+        }
+
+    /**
+     * B-33: the description tab opens on the headline the seed gives the headphones, its accent the part
+     * `Product_Description` sets in italic — and it is the headline the client's parity fixture draws, so
+     * the screenshot that passed B-08 is what the running app shows. The fixture's body text and facts
+     * are the canvas's long copy, which the seed does not carry; only those two fields are set aside.
+     */
+    @Test
+    fun `the description tab carries the headline the canvas draws`() =
+        haulTest {
+            val description = tree("/ui/p/$sony?tab=description").only<ProductDescription>()
+            assertEquals("Silence, tuned to you", description.title)
+            assertEquals("to you", description.accent)
+
+            val bodies = File(System.getProperty("haul.clientBodies") ?: error("haul.clientBodies is not set"))
+            val drawn =
+                haulWireJson
+                    .decodeKompotComponent(File(bodies, "product_description.json").readText())
+                    .only<ProductDescription>()
+            assertEquals(drawn.copy(text = description.text, facts = description.facts), description)
         }
 
     /** Scenario «Unknown product». */

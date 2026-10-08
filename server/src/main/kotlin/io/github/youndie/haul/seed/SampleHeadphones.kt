@@ -228,6 +228,8 @@ internal object SampleHeadphones {
                 features = row.features,
                 kind = row.kind,
                 dispatchDays = row.dispatchDays,
+                headline = "${row.kind} sound, the ${brandOf(row.title)} way",
+                headlineAccent = "the ${brandOf(row.title)} way",
             )
         }
 
