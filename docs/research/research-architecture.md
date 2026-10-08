@@ -285,6 +285,12 @@ channel, past the ±16). The client's `Text` now places the first line box where
 `(line height + ascent − descent) / 2` above the baseline, and takes the box's height as lines × line
 height. This took the product phone artboards from 5.6–7.5 % to 2.0–4.1 %.
 
+**Found in B-10: `text-wrap: balance` is a width, not a break rule.** The canvas balances its big
+titles; Compose breaks greedily, which put «Search didn’t / *respond*» where the canvas has «Search /
+didn’t *respond*», and a no-break space that keeps two words together at 1440 splits a word on a
+phone where they do not fit one line. `BalancedText` does what Chrome does: it keeps the number of
+lines the text takes at the full width and bisects for the narrowest width that still holds it.
+
 **Risk 1. The canvas and the code drift apart without anyone seeing it.** A renderer changed for one
 screen changes every screen that uses the component. Mitigation: one reference PNG per artboard
 (125), exported from the canvas into the client's snapshot directory, and `viddikDesignParity` in
