@@ -1,7 +1,7 @@
 ---
 id: B-41
 title: "client: sign-in returns to where it was asked for"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-5-order
