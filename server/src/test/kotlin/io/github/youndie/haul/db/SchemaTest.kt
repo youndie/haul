@@ -82,7 +82,8 @@ class SchemaTest {
     /**
      * V10's tables against their Exposed declarations: petich's three, which petich declares and V10
      * writes by hand (petich ships no DDL), and placement's own — with V11's additions: the shipments'
-     * pickup code, their history, and the payment simulator's captures.
+     * pickup code, their history, and the payment simulator's captures — and V14's address an order was
+     * placed to.
      */
     @Test
     fun `the migrated schema needs no further DDL for the order and payment tables`() {

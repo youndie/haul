@@ -1,6 +1,7 @@
 package io.github.youndie.haul.feature.order.domain
 
 import io.github.youndie.haul.ErrorCode
+import io.github.youndie.haul.feature.checkout.AddressEntry
 import io.github.youndie.haul.feature.checkout.DeliveryMethod
 import java.time.OffsetDateTime
 
@@ -70,7 +71,8 @@ internal data class Shipment(
 
 /**
  * What an order was placed for: the quote at placement, copied (the checkout and the cart move on, the
- * order does not). [id] is `HL-` and five digits (research §5).
+ * order does not). [id] is `HL-` and five digits (research §5). [address] is the address delivered to as
+ * it was then, [addressId] the saved address it was: the address form edits that one in place (B-40).
  */
 internal data class NewOrder(
     val id: String,
@@ -78,6 +80,7 @@ internal data class NewOrder(
     val customerId: String,
     val method: DeliveryMethod,
     val addressId: String?,
+    val address: AddressEntry?,
     val pointId: String?,
     val slotId: String?,
     val payment: String,

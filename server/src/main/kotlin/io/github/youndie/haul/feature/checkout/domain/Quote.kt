@@ -16,8 +16,9 @@ import java.time.LocalDate
  * and the way to pay.
  *
  * [complete] is whether it can be placed: courier needs an address and a window, a pickup point or a
- * locker needs the point. [fingerprint] names every value above; the tree hands it to the client, and
- * placement places only a quote whose fingerprint is still the one the shopper saw.
+ * locker needs the point. [fingerprint] names every value above — the address by its id and its
+ * fields; the tree hands it to the client, and placement places only a quote whose fingerprint is still
+ * the one the shopper saw.
  */
 internal data class Quote(
     val lines: List<PricedLine>,
@@ -44,7 +45,9 @@ internal data class Quote(
                     lines.forEach { append("line ${it.sku.id} ${it.stored.quantity} ${it.sku.priceCents}\n") }
                     append("promo ${promo?.code}\n")
                     append("method $method\n")
-                    append("address ${address?.id}\n")
+                    // The address's fields as well as its id: the form edits an address in place (B-40),
+                    // so «4F» changed to «5B» in another tab keeps the id and must still change the quote.
+                    append("address ${address?.let { "${it.id} ${it.entry()}" }}\n")
                     append("point ${point?.id}\n")
                     append("slot ${slot?.id}\n")
                     append("payment ${payment.id}\n")

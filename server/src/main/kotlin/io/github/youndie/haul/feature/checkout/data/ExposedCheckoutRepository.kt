@@ -10,11 +10,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.upsert
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -49,33 +52,43 @@ internal class ExposedCheckoutRepository(
         tx { write(customerId, checkout) }
     }
 
-    override suspend fun addresses(customerId: String): List<Address> =
-        tx {
-            AddressesTable
-                .selectAll()
-                .where { AddressesTable.customerId eq customerId }
-                .orderBy(AddressesTable.createdAt to SortOrder.DESC, AddressesTable.id to SortOrder.DESC)
-                .map(::address)
-        }
+    override suspend fun addresses(customerId: String): List<Address> = tx { ownAddresses(customerId) }
 
-    override suspend fun addAddress(
+    override suspend fun saveAddress(
         customerId: String,
         entry: AddressEntry,
+        editing: String?,
         at: OffsetDateTime,
     ): Address =
         tx {
-            val id = "address-${UUID.randomUUID()}"
-            AddressesTable.insert {
-                it[AddressesTable.id] = id
-                it[AddressesTable.customerId] = customerId
-                it[street] = entry.street
-                it[apt] = entry.apt.ifEmpty { null }
-                it[city] = entry.city
-                it[zip] = entry.zip
-                it[doorCode] = entry.doorCode.ifEmpty { null }
-                it[courierNote] = entry.courierNote.ifEmpty { null }
-                it[createdAt] = at
-            }
+            val own = ownAddresses(customerId)
+            val same = own.firstOrNull { it.entry() == entry }
+            // Only ever one of the customer's own, and the customer is in the update's filter as well.
+            val edited = editing?.takeIf { id -> own.any { it.id == id } }
+            val id =
+                when {
+                    same != null -> {
+                        same.id
+                    }
+
+                    edited != null -> {
+                        AddressesTable.update({
+                            (AddressesTable.id eq edited) and (AddressesTable.customerId eq customerId)
+                        }) { it.fields(entry) }
+                        edited
+                    }
+
+                    else -> {
+                        val added = "address-${UUID.randomUUID()}"
+                        AddressesTable.insert {
+                            it[AddressesTable.id] = added
+                            it[AddressesTable.customerId] = customerId
+                            it.fields(entry)
+                            it[createdAt] = at
+                        }
+                        added
+                    }
+                }
             val current =
                 CheckoutsTable.selectAll().where { CheckoutsTable.customerId eq customerId }.singleOrNull()
             write(
@@ -89,11 +102,7 @@ internal class ExposedCheckoutRepository(
                     draft = null,
                 ),
             )
-            AddressesTable
-                .selectAll()
-                .where { AddressesTable.id eq id }
-                .single()
-                .let(::address)
+            ownAddresses(customerId).single { it.id == id }
         }
 
     override suspend fun pickupPoints(): List<PickupPoint> =
@@ -123,6 +132,23 @@ internal class ExposedCheckoutRepository(
             it[payment] = checkout.payment
             it[addressDraft] = checkout.draft
         }
+    }
+
+    private fun ownAddresses(customerId: String): List<Address> =
+        AddressesTable
+            .selectAll()
+            .where { AddressesTable.customerId eq customerId }
+            .orderBy(AddressesTable.createdAt to SortOrder.DESC, AddressesTable.id to SortOrder.DESC)
+            .map(::address)
+
+    /** The form's fields as the table stores them: an empty optional field is absent. */
+    private fun UpdateBuilder<*>.fields(entry: AddressEntry) {
+        this[AddressesTable.street] = entry.street
+        this[AddressesTable.apt] = entry.apt.ifEmpty { null }
+        this[AddressesTable.city] = entry.city
+        this[AddressesTable.zip] = entry.zip
+        this[AddressesTable.doorCode] = entry.doorCode.ifEmpty { null }
+        this[AddressesTable.courierNote] = entry.courierNote.ifEmpty { null }
     }
 
     private fun address(row: ResultRow): Address =

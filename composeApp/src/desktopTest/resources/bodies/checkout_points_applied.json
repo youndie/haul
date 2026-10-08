@@ -332,7 +332,7 @@
                 "placingLabel": "Placing order…",
                 "placeEnabled": true,
                 "placeUrl": "/api/v1/orders",
-                "quote": "4954531b567f0f2529f09367c6fb0351"
+                "quote": "7bb3ef377d025c0546130a22f068f3a1"
             }
         }
     ]

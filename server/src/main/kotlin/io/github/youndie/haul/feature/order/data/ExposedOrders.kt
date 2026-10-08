@@ -46,6 +46,7 @@ internal class ExposedOrders(
                         it[status] = OrderStatus.Placing.id
                         it[method] = ExposedCheckoutRepository.column(order.method)
                         it[addressId] = order.addressId
+                        it[address] = order.address
                         it[pointId] = order.pointId
                         it[slot] = order.slotId
                         it[payment] = order.payment
@@ -140,6 +141,7 @@ internal class ExposedOrders(
                         customerId = row[OrdersTable.customerId],
                         method = ExposedCheckoutRepository.method(row[OrdersTable.method]),
                         addressId = row[OrdersTable.addressId],
+                        address = row[OrdersTable.address],
                         pointId = row[OrdersTable.pointId],
                         slotId = row[OrdersTable.slot],
                         payment = row[OrdersTable.payment],

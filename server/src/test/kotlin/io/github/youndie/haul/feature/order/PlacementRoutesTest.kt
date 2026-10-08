@@ -273,6 +273,75 @@ class PlacementRoutesTest {
             )
         }.assertError(HttpStatusCode.BadRequest, ErrorCode.ValidationFailed)
 
+    /** The address form saved with Maya's address at [apt]. */
+    private suspend fun HttpClient.saveMayasAddress(
+        token: String,
+        apt: String,
+    ) = post(CheckoutPaths.ADDRESSES) {
+        bearerAuth(token)
+        contentType(ContentType.Application.Json)
+        setBody(
+            haulWireJson.encodeToString(
+                AddressEntry.serializer(),
+                AddressEntry("148 Wythe Avenue", apt, "Brooklyn, NY", "11211"),
+            ),
+        )
+    }.assertRefresh()
+
+    /**
+     * B-40: the address form edits the address delivered to in place, keeping its id, so a fingerprint
+     * that named the address by its id alone stayed the same when «4F» became «5B» in another tab — and
+     * the page that still said «4F» placed the order to «5B». The fingerprint names the address's fields
+     * too: the stale page is `409 cart_changed`, and the page drawn after the edit places to «5B».
+     */
+    @Test
+    fun `a quote whose address was edited since the page was drawn is refused`() =
+        asMaya { token, database ->
+            val ledger = Ledger(database)
+            val stale = checkout(token).only<CheckoutSummary>()
+
+            saveMayasAddress(token, "5B")
+
+            place(token, "maya-edited", stale).assertError(HttpStatusCode.Conflict, ErrorCode.CartChanged)
+            assertEquals(0, ledger.orders(), "the page that showed 4F placed an order")
+
+            val orderId = place(token, "maya-edited", checkout(token).only<CheckoutSummary>()).assertPlaced()
+            assertEquals(
+                "5B",
+                database
+                    .order(orderId)
+                    .placed.address
+                    ?.apt,
+            )
+        }
+
+    /**
+     * B-40: an order keeps the address it was placed to. The order named the saved address by its id, and
+     * the address form now edits that address in place: Maya's order to «4F» would have read «5B» once
+     * she changed the form for her next one. The order holds a copy; the saved address is the one edited,
+     * still one row under the same id.
+     */
+    @Test
+    fun `an order keeps the address it was placed to when the saved address is edited`() =
+        asMaya { token, database ->
+            val orderId = place(token, "maya-before-edit", checkout(token).only<CheckoutSummary>()).assertPlaced()
+
+            saveMayasAddress(token, "5B")
+
+            val placed = database.order(orderId).placed
+            assertEquals(SampleCheckout.MAYA_ADDRESS, placed.addressId)
+            assertEquals(
+                AddressEntry("148 Wythe Avenue", "4F", "Brooklyn, NY", "11211"),
+                placed.address,
+                "the order's address followed the saved one",
+            )
+            assertEquals(
+                listOf(SampleCheckout.MAYA_ADDRESS to "5B"),
+                Ledger(database).addresses(SampleCustomers.MAYA),
+                "the form did not edit Maya's address in place",
+            )
+        }
+
     /**
      * B-39: the checkout holds «Place order» while a refused address form is on record, and placement
      * holds it too. The refused form leaves the quote complete with Maya's saved address — the same

@@ -335,7 +335,7 @@
                 "placeEnabled": false,
                 "placeHint": "Pick a delivery window",
                 "placeUrl": "/api/v1/orders",
-                "quote": "fcbc2ea24b1afd80d269358ef5403707"
+                "quote": "ef4cdacf941d9ac30ccfca11c3c003b7"
             }
         }
     ]

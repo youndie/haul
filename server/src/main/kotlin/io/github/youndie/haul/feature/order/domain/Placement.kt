@@ -144,6 +144,7 @@ internal class Placement(
             plus = owner.plus,
             method = quote.method,
             addressId = quote.address?.id,
+            address = quote.address?.entry(),
             pointId = quote.point?.id,
             slotId = quote.slot?.id,
             payment = quote.payment.id,

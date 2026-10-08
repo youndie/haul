@@ -5,15 +5,18 @@ import io.github.youndie.haul.FieldError
 import io.github.youndie.haul.db.Databases
 import io.github.youndie.haul.feature.cart.CartPaths
 import io.github.youndie.haul.feature.cart.LineChange
+import io.github.youndie.haul.feature.checkout.data.AddressesTable
 import io.github.youndie.haul.feature.checkout.data.DeliverySlotsTable
 import io.github.youndie.haul.feature.checkout.domain.CheckoutError
 import io.github.youndie.haul.feature.identity.GUEST_HEADER
 import io.github.youndie.haul.haulWireJson
+import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
 import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
 import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
 import io.github.youndie.haul.seed.SampleCheckout
 import io.github.youndie.haul.seed.SampleCustomers
+import io.github.youndie.haul.testing.Ledger
 import io.github.youndie.haul.testing.SeededDatabase
 import io.github.youndie.haul.testing.ShildikHarness
 import io.github.youndie.haul.testing.all
@@ -47,6 +50,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.upsert
 import java.time.LocalDate
@@ -130,6 +134,28 @@ class CheckoutRoutesTest {
                 it[taken] = 20
             }
         }
+    }
+
+    private val ledger = Ledger(SeededDatabase.dataSource)
+
+    /** An address of [customerId]'s saved a day before any the test saves, as a save before B-40 left it; its id. */
+    private fun DataSource.olderAddress(
+        customerId: String,
+        entry: AddressEntry,
+    ): String {
+        val id = "address-older-$customerId"
+        transaction(Databases.connect(this)) {
+            AddressesTable.insert {
+                it[AddressesTable.id] = id
+                it[AddressesTable.customerId] = customerId
+                it[street] = entry.street
+                it[apt] = entry.apt.ifEmpty { null }
+                it[city] = entry.city
+                it[zip] = entry.zip
+                it[createdAt] = CatalogSeed.NOW.minusDays(1)
+            }
+        }
+        return id
     }
 
     /**
@@ -528,6 +554,78 @@ class CheckoutRoutesTest {
             assertTrue(saved.only<CheckoutSummary>().placeEnabled)
             assertEquals(null, saved.only<CheckoutSummary>().placeHint)
         }
+
+    /**
+     * B-40, scenario «Editing the address»: the form holds the address delivered to, and a save edits
+     * that one in place. Every save used to add a row, so «4F» changed to «5B» left «4F» stored and never
+     * shown again. The customer's addresses are read from the table after both saves: one, under the id
+     * the first save gave it, at «5B». Its id stays, so the quote's fingerprint must change with its
+     * fields — a page still drawn with «4F» is not the quote placement would place.
+     */
+    @Test
+    fun `saving the address form twice edits the one address in place`() {
+        val customer = ShildikHarness.person("Lena Novak")
+        signedIn("Lena Novak", id = customer) { token ->
+            mayasLines(token)
+            saveAddress(token, AddressEntry("148 Wythe Avenue", "4F", "Brooklyn, NY", "11211")).assertRefresh()
+            val first = ledger.addresses(customer)
+            assertEquals(listOf("4F"), first.map { it.second })
+            val before = checkout(token).only<CheckoutSummary>().quote
+
+            saveAddress(token, AddressEntry("148 Wythe Avenue", "5B", "Brooklyn, NY", "11211")).assertRefresh()
+
+            assertEquals(
+                listOf(first.single().first to "5B"),
+                ledger.addresses(customer),
+                "the second save did not edit the first address in place",
+            )
+            val after = checkout(token)
+            assertEquals(
+                listOf("148 Wythe Avenue", "5B", "Brooklyn, NY", "11211", "", ""),
+                after.only<CheckoutAddress>().form.map { it.value },
+            )
+            assertNotEquals(
+                before,
+                after.only<CheckoutSummary>().quote,
+                "the address was edited and the quote's fingerprint stayed the same",
+            )
+        }
+    }
+
+    /**
+     * B-40: an address equal to one the customer already has is not stored twice — saving it chooses
+     * that one and writes no address. A customer who used the form before B-40 has a row per save; edited
+     * in place, the chosen row would have become a second copy of the older one. Leading and trailing
+     * blanks do not count, as everywhere in the form.
+     */
+    @Test
+    fun `an address equal to a saved one is chosen and not stored again`() {
+        val customer = ShildikHarness.person("Omar Haddad")
+        signedIn("Omar Haddad", id = customer) { token ->
+            mayasLines(token)
+            saveAddress(token, AddressEntry("148 Wythe Avenue", "4F", "Brooklyn, NY", "11211")).assertRefresh()
+            val wythe = ledger.addresses(customer).single().first
+            val bond =
+                SeededDatabase.dataSource.olderAddress(
+                    customer,
+                    AddressEntry("31 Bond Street", "", "New York, NY", "10012"),
+                )
+
+            saveAddress(token, AddressEntry(" 31 Bond Street ", "", "New York, NY", "10012")).assertRefresh()
+            saveAddress(token, AddressEntry("31 Bond Street", "", "New York, NY", "10012")).assertRefresh()
+
+            assertEquals(
+                listOf(wythe to "4F", bond to null),
+                ledger.addresses(customer),
+                "an address equal to a saved one was stored again or written over another",
+            )
+            assertEquals(
+                listOf("31 Bond Street", "", "New York, NY", "10012", "", ""),
+                checkout(token).only<CheckoutAddress>().form.map { it.value },
+                "the saved address equal to the form is not the one delivered to",
+            )
+        }
+    }
 
     /** «Not yours» is «does not exist» (research §5): Maya's seeded address is no one else's to choose. */
     @Test

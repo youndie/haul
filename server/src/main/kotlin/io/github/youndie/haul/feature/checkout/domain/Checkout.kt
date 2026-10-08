@@ -62,7 +62,14 @@ internal data class Address(
     val doorCode: String?,
     val courierNote: String?,
     val createdAt: OffsetDateTime,
-)
+) {
+    /**
+     * The address as the form holds it, and as an order keeps it (B-40): what is absent is empty. Two
+     * addresses with the same entry are the same address — a save never stores it twice.
+     */
+    fun entry(): AddressEntry =
+        AddressEntry(street, apt.orEmpty(), city, zip, doorCode.orEmpty(), courierNote.orEmpty())
+}
 
 /**
  * A pickup point or a parcel locker (research §6): [method] says which; [distanceMeters] is how far it
@@ -104,12 +111,17 @@ internal interface CheckoutRepository {
     suspend fun addresses(customerId: String): List<Address>
 
     /**
-     * In one transaction: saves [entry] as a new address of the customer, makes it the checkout's
-     * address with the courier as the method, and forgets a refused form.
+     * In one transaction, the address form saved (B-40): an address of the customer's equal to [entry]
+     * becomes the checkout's as it is; otherwise the address [editing] — the one the form held — is
+     * rewritten with [entry] in place, keeping its id; with no such address of the customer's, [entry] is
+     * added. Whichever it is becomes the checkout's address, with the courier as the method, and a
+     * refused form is forgotten. An order is not affected: it keeps a copy of the address it was placed
+     * to (`NewOrder.address`).
      */
-    suspend fun addAddress(
+    suspend fun saveAddress(
         customerId: String,
         entry: AddressEntry,
+        editing: String?,
         at: OffsetDateTime,
     ): Address
 

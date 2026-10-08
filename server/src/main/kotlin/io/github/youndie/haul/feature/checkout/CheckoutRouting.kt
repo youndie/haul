@@ -72,7 +72,7 @@ internal fun Route.checkoutRouting() {
 
     post(CheckoutPaths.ADDRESSES) {
         val customer = call.customer()
-        commands.addAddress(customer, call.body(AddressEntry.serializer()))
+        commands.saveAddress(customer, call.body(AddressEntry.serializer()))
         call.respondKompotAction(haulWireJson, RefreshAction)
     }
 }

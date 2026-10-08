@@ -130,7 +130,7 @@ class CheckoutFixturesTest {
 
                 commands.choose(maya, CheckoutChoice(method = DeliveryMethod.Courier))
                 assertFailsWith<CheckoutError.AddressRefused> {
-                    commands.addAddress(maya, AddressEntry(street = "", apt = "4F", city = "Brooklyn, NY", zip = ""))
+                    commands.saveAddress(maya, AddressEntry(street = "", apt = "4F", city = "Brooklyn, NY", zip = ""))
                 }
                 check(VALIDATION, withCanvasToggle(VALIDATION, built()))
 
