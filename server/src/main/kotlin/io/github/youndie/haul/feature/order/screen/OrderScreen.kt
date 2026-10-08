@@ -60,8 +60,8 @@ import io.github.youndie.haul.ui.ReturnReason as ReasonOption
  * `GET /ui/account/orders/{id}` (screen-order, feature-orders): the frame and one [OrderBody], drawn from
  * where the order is ([OrderTracking.track], B-17). One tree covers every state the server has: Placed,
  * InTransit, ReadyForPickup, Delivered, Cancelled and Returned are what the order is; a delivered order's
- * «Return items» presents the [ReturnForm] (B-21). The copy is the canvas's (`Order_*`). Another customer's order and one that does not exist are both `null` — the route answers
- * them alike.
+ * «Return items» presents the [ReturnForm] (B-21). The copy is the canvas's (`Order_*`). Another customer's
+ * order and one that does not exist are both `null` — the route answers them alike.
  */
 internal class OrderScreen(
     private val tracking: OrderTracking,
