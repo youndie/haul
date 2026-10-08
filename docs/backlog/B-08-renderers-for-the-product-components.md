@@ -1,7 +1,7 @@
 ---
 id: B-08
 title: "client: renderers for the Product components (without the dialogs)"
-status: open
+status: wip
 priority: P1
 size: L
 stage: stage-2-browse
