@@ -49,6 +49,11 @@ dependencies {
 // distribution carries, against a throw-away PostgreSQL inside the build, on the JRE that runs it
 // (research risk 4). The block below is what that runner reads.
 zavarnik {
+    // `check` would otherwise train through `aotVerify`, on a runner with no database; the image's own
+    // verification (`scripts/image-check.sh`, the `image` job) is the one that counts.
+    verify {
+        onCheck = false
+    }
     training {
         onAssemble = false
         readyWhen.url("http://127.0.0.1:8080/readyz")
