@@ -73,6 +73,15 @@ server does with them:
   followed by `SectionHeader` «Picked for you» and a `ProductGrid` of the day's deals. A refused
   code is drawn in the `PromoField` (the code as typed and the reason) until the next command.
 
+## Quirks
+
+* A code applied while it was valid and expired since stops counting in the totals, but the
+  `PromoField` still shows it applied and nothing tells the shopper (`Totals.of` drops a code that
+  is not `activeAt` now; the tree draws `cart.promoCode` as it is). Checkout's quote must refuse it
+  (B-14).
+* No command takes an `Idempotency-Key`: each is idempotent as written — set a quantity, delete
+  lines, acknowledge, apply the code already applied.
+
 ## Errors
 
 Every refusal is an `ErrorBody`; a body that does not parse as the command's JSON is
