@@ -29,7 +29,7 @@ parent_feature: feature-browse
 | `GET` `/ui/deals` | haul-server | public (optional bearer; `X-Haul-Guest`) | yes | request: `page`; answers tree: Deals ([screen-deals](../screens/screen-deals.md)) |
 | `GET` `/ui/c/{categoryPath}` | haul-server | public (optional bearer; `X-Haul-Guest`) | yes | request: filters, sort, page; answers tree: Catalog |
 | `GET` `/ui/p/{productId}` | haul-server | public (optional bearer; `X-Haul-Guest`) | yes | request: `sku`, `tab` (description / specifications / reviews / questions); answers tree: Product; records a view for a customer, beside the page's reads (B-25, [endpoint-recommendations](endpoint-recommendations.md)) |
-| `GET` `/images/{key...}` | haul-server | public (optional bearer, as every catalog route) | no — bytes, not a tree | request: —; answers the stored photo under `products/` with its image media type, `Cache-Control: public, max-age=31536000, immutable` and `X-Content-Type-Options: nosniff` |
+| `GET` `/images/{key...}` | haul-server | public (optional bearer, as every catalog route) | no — bytes, not a tree | request: —; answers the stored photo under the `products/<key>` prefix with its image media type, `Cache-Control: public, max-age=31536000, immutable` and `X-Content-Type-Options: nosniff` |
 
 The screen routes read the caller (`Viewers` in `server/src/main/kotlin/io/github/youndie/haul/shell/Viewers.kt`)
 for the header — the first name, the cart's count, `/sign-in` or `/account` — and for each card's «+»,
@@ -59,7 +59,7 @@ in [haul-server](../services/haul-server.md), section 2.
   `price-desc`, `rating`, `newest`); `page` from 1 (`catalogRequest` in `CatalogRouting.kt`).
 * `/ui/p/{productId}` — `sku` (one of this product's; the cheapest in stock when absent), `tab`.
 * `/ui/deals` — `page` from 1; below 1 or not a number is `400 validation_failed` (field `page`).
-* `/images/{key...}` — the object's key: under `products/`, lower-case segments, no `..`
+* `/images/{key...}` — the object's key: under the `products/<key>` prefix, lower-case segments, no `..`
   (`ProductPhotos.servable`).
 
 ## Request and response bodies
@@ -139,7 +139,7 @@ B-08, and what the server fills:
 | `GET` `/ui/deals` | `400` validation_failed (field `page`) |
 | `GET` `/ui/c/{categoryPath}` | `400` validation_failed (field named), `404` category_not_found |
 | `GET` `/ui/p/{productId}` | `400` validation_failed (field `tab` or `sku`), `404` product_not_found |
-| `GET` `/images/{key...}` | `404` with no body — no store, a key outside `products/`, or no such object |
+| `GET` `/images/{key...}` | `404` with no body — no store, a key outside the `products/<key>` prefix, or no such object |
 
 On every route, from the catch-all (`server/src/main/kotlin/io/github/youndie/haul/ErrorAnswers.kt`,
 B-32): a request Ktor itself cannot decode is `400` validation_failed («Malformed request», no field);

@@ -152,7 +152,7 @@ data); send e-mail or push notifications.
   elsewhere (`ops/Observability.kt`).
 * **Product photos** (`feature/catalog/domain/Photos.kt`, `data/S3PhotoStore.kt`, B-30): a
   `PhotoStore` port over the JDK's `HttpClient` with its own SigV4 (no AWS SDK); keys under
-  `products/`; served at `GET /images/{key...}` from the server's origin, so the bucket stays
+  `products/<key>`; served at `GET /images/{key...}` from the server's origin, so the bucket stays
   private. No store configured, no photos, and every tile is the placeholder. On a seeded start the
   sample products of research §6 get a drawn photo each (`seed/SeedPhotos.kt`, idempotent); the
   generated catalog keeps its placeholder tiles.
