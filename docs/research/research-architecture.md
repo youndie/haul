@@ -306,6 +306,8 @@ and on the stand.
   nothing. A SKU gone or out of stock is left out. It answers `navigate` to the cart.
 - **«Orders» in the header** goes to `/account` until the history has its own address (B-19), and a
   guest's to sign-in, as the account shortcut does.
+- **The address drawn is the order's** (`NewOrder.address`, B-40's copy), never the saved address it came from,
+  which the checkout edits in place.
 - **«Write a review»** on a delivered line is the product page's own: B-22's review dialog, presented over the
   order (`ReviewTabs.writeReview`). «Return items» is drawn and waits for B-21.
 

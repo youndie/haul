@@ -37,7 +37,8 @@ Feature: `feature-orders` — its scenarios are this item's acceptance where it 
 - **The server** (`feature/order/screen/OrderScreen.kt`): one builder over `OrderTracking.track` (B-17) for Placed,
   InTransit, ReadyForPickup, Delivered and Cancelled — the copy the canvas's; each shipment's day the courier's for
   the order's placing time plus its seller's dispatch days (a point a day later), or the chosen window when that is
-  later, the window named on its own day; the card's line by how much has been captured. Another customer's order
+  later, the window named on its own day; the card's line by how much has been captured; the courier's address
+  the order's own copy (`NewOrder.address`, B-40), so editing the saved address later does not move a past order. Another customer's order
   and a missing one are both `404 order_not_found`. **Reorder** (`feature/order/domain/Reorder.kt`, `POST
   /api/v1/me/orders/{id}/reorder`) sets each of the order's SKUs in the cart through `CartCommands.changeLine`,
   selected, at the order's quantity within ten and the stock — a line already holding as many is only selected, so
@@ -50,15 +51,22 @@ Feature: `feature-orders` — its scenarios are this item's acceptance where it 
   header. `BalancedText` no longer narrows a title below its widest word (a phone title was broken inside
   «tomorrow,»).
 - **Parity** (`viddikDesignParity --component "Order*"`, references rendered on Linux with grayscale text, tolerance
-  untouched): all eight 1440 artboards within 5 % (0.50–3.34 %); the phones read 0.42–3.18 % for Loading, NotFound and
-  Error and 5.55–7.22 % for the five order states, over by glyph rasterisation, a 1 px drift from fractional line
-  boxes, and the data differences below. Goldens recorded for `Order*` only.
+  untouched): fifteen of sixteen within 5 % — the 1440 artboards 1.42–2.45 %, the phones 0.42–4.12 % — and
+  `Order_Placed_Phone` at 5.11 % (36,152 px against the 35,373 allowed). Of its red, 3,082 px are the Sony line's
+  name (data, below) and 10,457 px the title, which the browser breaks «order #HL- / 48302 / is placed» and the
+  client «order / #HL-48302 / is placed»: Chrome measures both lines as the client does (290.5 and 284.7 px) and
+  still chooses the wider break, so its `text-wrap: balance` is not the narrowest width that keeps the line count,
+  which is what `BalancedText` finds; a scoring breaker (least squared slack) chose a third break and was dropped.
+  The page lays out on fractional line boxes (`CssColumn` in `OrderViews.kt`: the crumbs' 16.8 px, the lead's 23.8,
+  the facts' 21.75 and 20.3, the pickup code's 64.8 summed unrounded and rounded only where a block is placed), which
+  took the phones from 5.55–7.22 % to this. Goldens recorded for `Order*` only.
 
 - **Tests written**: `OrderRoutesTest` (the page placement lands on; another customer's order and a missing one
   answer alike, `401` without a token, Sam cannot reorder Maya's; a delivered line's review is the dialog and reorder
   twice is once; a declined order's page),
   `OrderFixturesTest` (the five client bodies are the server's trees), `StorefrontPageTest`, `WebBundleTest`,
-  `DrawnActionsTest` (server: a guest's «Orders» is sign-in), `KoinGraphTest`; in the client `OrderWiringTest`
+  `DrawnActionsTest` (server: a guest's «Orders» is sign-in), an address edited after placement leaving the page as
+  it was (mutation: the page reading the saved row — failed, restored), `KoinGraphTest`; in the client `OrderWiringTest`
   (Reorder sends the tree's reorder and follows the cart; a refusal redraws; «Write a review» presents the dialog;
   «Back to cart»; «Return items» sends nothing), `StorefrontTest` (an order not there leads to the orders; one that did not load retries),
   `DrawnActionsTest` («Orders»), `AddressTest`, `CartCommandsTest`, and sixteen `Order_*` goldens.
@@ -69,13 +77,11 @@ Feature: `feature-orders` — its scenarios are this item's acceptance where it 
   (`StorefrontTest`), `BalancedText` without its lower bound (two phone goldens). Not run: the owner check in
   `Reorder` removed — the session's safety check refused that edit; the «not yours» test covers it by its assertions
   (`404` for Sam, Sam's cart empty).
-- **Where it ran**: the Linux build machine (WSL), on the branch rebased onto `762ce3b` (B-22; it now sits on `3c67667`, which adds a backlog item and nothing else): `./gradlew check
-  :server:installDist` green (`:server:test` 193 tests, `:composeApp` 245 tests including `viddikVerify`, 0 failed;
-  PostgreSQL and shildik in containers) — run with one worker in a 5 GB scope, where the wasm bundle's optimiser
-  inside `check` was killed for memory once the tests had passed, so `:composeApp:wasmJsBrowserDistribution` was
-  built alone (green) and `check :server:installDist` run again, up to date; `viddikDesignParity` as above. `make
-  check` and `make docs-against BASE=origin/main` on the Mac. No migration, so `scripts/image-check.sh` was not run;
-  the chart is unchanged.
+- **Where it ran**: the Linux build machine (WSL), on the branch rebased onto `df3a1d2` (B-40):
+  `:composeApp:wasmJsBrowserDistribution` alone, then `./gradlew check :server:installDist`, one worker in a 5 GB
+  scope, green (`:server:test` 202 tests, `:composeApp:desktopTest` 108 and `viddikVerify` 106, 0 failed; PostgreSQL
+  and shildik in containers); `viddikDesignParity` as above. `make check` and `make docs-against BASE=origin/main` on
+  the Mac. No migration, so `scripts/image-check.sh` was not run; the chart is unchanged.
 
 ## Findings (2026-10-08)
 
@@ -97,3 +103,9 @@ Feature: `feature-orders` — its scenarios are this item's acceptance where it 
   index the reference script reads sizes from; the sizes were copied from `pages` into the (ignored) `.canvas` copy.
 - **Test isolation**: a route test that fails inside `haulTest` after a `FulfilmentWorld` can leave the next test's
   cart repository on a closed pool (`HikariPool-n has been closed`); seen only under a mutation.
+- **`Order_Placed_Phone` stays over the tolerance** (5.11 %), for a person to decide: without the listing name's 3,082
+  px it reads 4.68 %. What else is left is the title's break (above), JetBrains Mono's crumbs and meta line drawn 2 px
+  lower than Chrome draws them (1,761 px; the catalog's crumbs share the style), and glyph rasterisation.
+- **`text-wrap: balance` is not reproduced by `BalancedText`** in general: Chrome keeps a wider break than the
+  narrowest that holds the line count (measured on the Placed title in Chrome itself). Every other balanced title on
+  the canvas happens to agree; a fix belongs to `BalancedText` and every screen that uses it, not to this item.
