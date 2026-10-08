@@ -22,24 +22,24 @@ Feature: `feature-cart` — its scenarios are this item's acceptance where it na
 ## Done (2026-10-08)
 
 `viddikDesignParity` (default tolerance, 5 % of pixels at ±16 per channel, untouched; references
-untouched), after three rounds:
+not edited), against the references re-rendered with grayscale text (Findings):
 
 | Artboard | Mismatch | | Artboard | Mismatch |
 |---|---|---|---|---|
-| Cart_Loading | 0.85 % | | Cart_Loading_Phone | 0.94 % |
-| Cart_Content | 2.47 % | | Cart_Content_Phone | 4.90 % |
-| Cart_Empty | 2.64 % | | Cart_Empty_Phone | **5.06 %** |
-| Cart_PromoApplied | 2.57 % | | Cart_PromoApplied_Phone | **5.10 %** |
-| Cart_PromoError | 2.53 % | | Cart_PromoError_Phone | 4.99 % |
-| Cart_ItemChanged | 2.42 % | | Cart_ItemChanged_Phone | 4.90 % |
-| Cart_Guest | 2.42 % | | Cart_Guest_Phone | 4.99 % |
-| Cart_Error | 1.75 % | | Cart_Error_Phone | 4.18 % |
+| Cart_Loading | 0.58 % | | Cart_Loading_Phone | 0.44 % |
+| Cart_Content | 1.69 % | | Cart_Content_Phone | 3.17 % |
+| Cart_Empty | 1.90 % | | Cart_Empty_Phone | 3.16 % |
+| Cart_PromoApplied | 1.75 % | | Cart_PromoApplied_Phone | 3.32 % |
+| Cart_PromoError | 1.72 % | | Cart_PromoError_Phone | 3.22 % |
+| Cart_ItemChanged | 1.66 % | | Cart_ItemChanged_Phone | 3.11 % |
+| Cart_Guest | 1.64 % | | Cart_Guest_Phone | 3.19 % |
+| Cart_Error | 1.33 % | | Cart_Error_Phone | 2.63 % |
 
-Two phone artboards are over by a tenth of a point; what is left on every phone artboard is the text
-residual (Findings). Goldens recorded on Linux.
+All sixteen within tolerance; what is left is glyph edges and the three disagreements in Findings.
+Goldens recorded on Linux.
 
 - References: the sixteen `Cart_*` artboards rendered into `composeApp/src/desktopTest/snapshots/design/`
-  (their sizes added to `.canvas/canvas.json`'s `artboards`, which listed them only under `pages`);
+  with grayscale text (below; their sizes added to `.canvas/canvas.json`'s `artboards`, which listed them only under `pages`);
   `manifest.json` lists all 65.
 - Contract (`shared/.../ui/CartComponents.kt`, `BrowseComponents.kt`): `CartBody` (`haul_cart_body`) — the
   selection, the groups and the summary as one component, because the canvas lays the lines and the
@@ -57,7 +57,9 @@ residual (Findings). Goldens recorded on Linux.
   trees the server builds for each artboard's cart (below).
   Rebased over B-14: `summaryRows` is shared with the checkout tree, so its rows read the same there
   («Items (3)», the savings marked) — the Checkout artboards write «Items (3)» too — and
-  `CheckoutRoutesTest` says so; the checkout's total still writes cents (B-15's to draw).
+  `CheckoutRoutesTest` says so. B-14 holds the checkout's total equal to the cart's, so it is a price
+  tag too («$512», «$487.20»), as the Checkout artboards write it; the button keeps its cents («Place
+  order · $512.00»).
 - Client: `feature/cart/CartViews.kt` (the body at both widths: selection with its partial state, seller
   cards, lines, stepper, the change notice, the summary with the promo field in its three forms,
   checkout, points), `feature/cart/CartCommands.kt` (the seam, below), `CartBodyRenderer` in
@@ -88,12 +90,17 @@ residual (Findings). Goldens recorded on Linux.
 
 ## Findings (2026-10-08)
 
-- **The phone artboards sit at the text residual, about 5 %.** Chrome rendered the references with LCD
-  subpixel antialiasing — every glyph has colour fringes — and the fixtures draw grayscale, so every
-  glyph edge counts; glyph positions match to the pixel (checked at 4× on the rows, the notice, the
-  promo field). The cart's phone artboards are the most text-dense yet. Empty_Phone and
-  PromoApplied_Phone are over by 0.06 and 0.10 points. With the canvas's data swapped into the bodies
-  (the three disagreements below) 15 of 16 pass and Empty_Phone reads 5.02 %: the floor, not a value.
+- **The references were first rendered with LCD text.** Chrome on the Linux build box draws text with
+  subpixel (LCD) antialiasing by default, so the first Cart references had colour fringes on every
+  glyph; the fixtures draw grayscale, and every glyph edge counted — the phones read 4.9–5.1 %, two over.
+  B-06's Home, Catalog and Product references are grayscale (no fringed pixel on the category row's
+  text; their manifest names the Mac checkout, whose Chrome draws grayscale). The Cart references were
+  rendered again with the same `canvas-references.mjs` and Chrome
+  (`~/.cache/shashki/chrome/152.0.7977.75`), adding `--disable-lcd-text` to its flags in a copy of the
+  script; the artboards, sizes and manifest did not change. Two B-06 artboards rendered the same way
+  differ from their committed references by 1.37 % and 0.78 % (4.66 % and 2.02 % with LCD text): the
+  rest is the Mac's rasterisation against Linux's. **B-10's Search references have the same LCD defect**
+  (90 % of the category row's text pixels fringed); not re-rendered here.
 - **Design or data, for a person:**
   - the listing name: the canvas writes «Sony WH-1000XM6 Wireless Noise Cancelling Headphones» in the
     cart and on cards; the seed's title has no brand («WH-1000XM6 …», the product page's title), and the
