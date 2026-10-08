@@ -14,10 +14,12 @@ publishes:
 
 # Haul web storefront
 
-> Describes the module as it stands after B-10 and B-27: the renderers of the browse, product and
-> search screens exist and are checked against the canvas, and the server serves the bundle. The
-> root does not draw screens yet — `App.kt` lays out the theme around an empty body and calls no
-> server — so navigation, sign-in and the guest id are *target*.
+> Describes the module as it stands after B-37: the app loads its screens from the server and
+> navigates between them (B-35), signs in through shildik and keeps the guest id (B-12), draws product
+> photos (B-30) and the cart with its commands (B-13), and follows the controls' actions (B-37); the
+> renderers of the browse, product, search and cart screens are checked against the canvas. The
+> checkout's renderers (B-15), the order page (B-18), the account (B-19) and saved lists (B-20) are
+> *target*.
 
 ## 1. Responsibility
 
@@ -31,17 +33,32 @@ fee or a delivery date, or keep any state the server owns.
 ## 2. API contracts
 
 * **Contracts:** [haul-shared](haul-shared.md); every call is listed in the screen documents.
+* **Wire:** trees and error bodies are decoded with `haulJson`
+  (`composeApp/src/commonMain/kotlin/io/github/youndie/haul/registry/HaulRegistry.kt`), kompot's
+  engine settings with the server's `explicitNulls = false`, so a nullable field the server leaves
+  out cannot blank a screen (`WireDecodeTest`).
+* **Every request goes through `Identity.send`**: the bearer token when signed in, `X-Haul-Guest`
+  otherwise — never both — and once more after a `401` that a renewed token or a new guest can
+  answer.
 
 ## 2a. Code anchors
 
 | File | What is there |
 |---|---|
-| `composeApp/src/wasmJsMain/kotlin/io/github/youndie/haul/Main.kt`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/App.kt` | the bundle's entry point and the root (the theme at the page's width; no screen yet) |
+| `composeApp/src/wasmJsMain/kotlin/io/github/youndie/haul/Main.kt` | the bundle's entry point: one Ktor `HttpClient(Js)` to this origin, the photo loader, `Identity`, the screen transport and the two command seams |
+| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/App.kt` | the root: the theme at the page's width around `Storefront` |
+| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Storefront.kt` | the shell: the address, history, each page's Loading and failure, the search field and its suggest panel, the one ticking clock, `LocalScreenRefresh` |
+| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Navigation.kt` | `Address` (the address ↔ the tree under `/ui`), `PageKind` read off `StorefrontPage`, `BrowserHistory` |
+| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Transport.kt` | `HaulTransport` (trees, suggest) and `HaulCommands` («Clear» on recent searches) over Ktor |
+| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Shell.kt` | the Loading, Error and NotFound pages a screen shows before or instead of its tree |
+| `composeApp/src/wasmJsMain/kotlin/io/github/youndie/haul/shell/WindowHistory.kt` | `history.pushState` / `popstate` |
 | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/theme/` | colour roles and the four bundled fonts (`composeApp/src/commonMain/composeResources/font/`) |
-| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/registry/` | the renderer registry (`haulRegistry()`) |
-| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/` | the renderers of `catalog/`, `home/`, `product/`, `search/`; the cart's are B-13 |
-| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` | the Loading, Error and NotFound pages a screen shows before or instead of its tree; navigation is *planned* |
-| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/` | sign-in and the guest id (*planned*, B-12) |
+| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/registry/` | the renderer registry (`haulRegistry()`, which also provides `LocalHaulActions` around every Haul renderer) |
+| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/` | the renderers of `catalog/`, `home/`, `product/`, `search/`, `cart/` (with `CartCommands`); `identity/` |
+| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/ui/` | shared views: the header, cards, `Links.kt` (following an action), `LinkMenu.kt` (the sort and «Catalog» menus), `ProductPhoto.kt` (the photo over the placeholder tile) |
+| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/` | `Identity`, `IdentityApi`, `SignInActions`, `Session` |
+| `composeApp/src/wasmJsMain/kotlin/io/github/youndie/haul/feature/identity/` | `OidcSignInFlow` (kotlin-multiplatform-oidc, the popup) and `BrowserSessionStore` (guest id in `localStorage`, tokens in `sessionStorage`) |
+| `composeApp/src/wasmJsMain/resources/signed-in.html` | where shildik returns the popup: it posts its address to the opener (its own origin) and closes |
 | `composeApp/src/desktopTest/snapshots/design/` | one reference PNG per artboard, exported from the canvas |
 
 ## 3. How it is built
@@ -49,26 +66,57 @@ fee or a delivery date, or keep any state the server owns.
 * **wasmJs ships, `jvm("desktop")` tests.** The same renderers run on both; the desktop target
   draws the screenshots that `viddikDesignParity` compares with the references.
 * **A fixture is a recorded server body** for the sample data (*hypothesis*, research risk 3), so a
-  screenshot tests the tree and the renderer together.
+  screenshot tests the tree and the renderer together; the cart's six bodies are held equal to what
+  the server builds (`CartFixturesTest`).
 * **The theme is written from the canvas's roles**, not from the pictures (research §1.6).
+* **The shell is kompot's runtime** (B-35): `KompotScreenLoader` loads each address (Loading, Failed
+  with retry), `KompotScreen` draws it, `withRefresh` answers kompot's `refresh`. The browser's
+  address is the navigation state and is what a `NavigateAction` carries (`/`, `/c/…`, `/p/…`,
+  `/search?q=…`, `/cart`, `/deals`); the tree is the same address under `/ui` (`/` is `/ui/home`).
+  The one URL the client builds is its own search submit, `/search?q=`. `navigate` pushes a history
+  entry; back and forward load that address again and open it at the top.
+* **Links**: a component's action reaches the views inside its renderer through `LocalHaulActions`;
+  with no handler — every screenshot — nothing is added, so the pixels do not change.
+* **`LocalScreenRefresh`** fetches the screen being shown again and draws it in place (no loading
+  page, scroll kept): what kompot's `refresh` runs and what a cart command's answer triggers.
+* **Failures**: no answer at all is «We couldn’t reach Haul» (on wasm a failed fetch is a JavaScript
+  error, caught as such); any other non-tree answer is the server's error with Retry; a `404` draws
+  `ProductNotFound` or `NotFoundShell` under the header last drawn.
+* **The search field** asks for `/ui/search/suggest` after a 250 ms pause; Enter or the button opens
+  the results.
+* **Sign-in** (feature-identity): a `navigate` to `/sign-in` is claimed by `SignInActions` before
+  navigation; `Identity.signIn` reads `GET /api/v1/sign-in`, runs the code flow with PKCE in a popup
+  that returns to `signed-in.html`, keeps the tokens, merges the guest cart and the screen is drawn
+  again in place.
+* **Commands**: the cart's presses are `CartCommand`s (`feature/cart/CartCommands.kt`), and a card's
+  «+» is one too; «Clear» on recent searches is `HaulCommands`. Both go through `Identity.send`, and
+  the answer (`refresh`) redraws the screen.
+* **Photos**: a `PhotoLoader` composition local draws the stored photo over the placeholder tile on
+  cards, the product photo and the first gallery thumbnail; the app's loader is Coil 3 over the same
+  Ktor client (its own fetcher and disk cache off); the default loads nothing, so every fixture draws
+  placeholders (`PhotoFallbackTest`).
 
 ## 4. Dependencies
 
 | Kind | Name | What for |
 |---|---|---|
-| Module | [haul-shared](haul-shared.md) | the components on the wire |
-| Service | [haul-server](haul-server.md) | every tree and every command |
-| External | shildik | the browser's sign-in |
+| Module | [haul-shared](haul-shared.md) | the components on the wire, `StorefrontPage` |
+| Service | [haul-server](haul-server.md) | every tree, every command, the photos |
+| External | shildik | the browser's sign-in (discovery, JWKS and the token endpoint, read cross-origin) |
+| Library | kotlin-multiplatform-oidc 0.18.4, Coil 3.6.3, Ktor client (Js) | the sign-in flow, photos, every request (`gradle/libs.versions.toml`) |
 
 ## 5. Infrastructure and deploy
 
 * Served as static files by [haul-server](haul-server.md): `:composeApp:wasmJsBrowserDistribution`
-  is copied into the server's distribution, in its `web` directory (`server/build.gradle.kts`), and
-  the server serves `HAUL_WEB_DIR` at `/` with no fallback to `index.html`. One image and one
-  origin, so the client needs no base URL. Today the files go out uncompressed (B-34).
-* **First load**, measured in B-28: the bytes and the time to the first frame, per file and per
-  network profile, are in [research-architecture](../research/research-architecture.md) D9,
-  «Measured in B-28». Skiko's wasm dominates them; what Haul's own screens add is about a tenth.
+  is copied into the server's distribution, in its `web` directory, without source maps
+  (`server/build.gradle.kts`), and the server serves `HAUL_WEB_DIR` at `/`, precompressed (brotli or
+  gzip, written at image build), the content-hashed `.wasm` cached for a year and the rest
+  `no-cache`, and the page at the storefront's addresses — a reloaded or shared `/p/…` opens. One
+  image and one origin, so the client needs no base URL.
+* **First load**, measured in B-28 and again in B-34: the bytes and the time to the first frame, per
+  file and per network profile, are in [research-architecture](../research/research-architecture.md)
+  D9 («Measured in B-28», «Measured in B-34»). Skiko's wasm dominates them; what Haul's own screens add
+  grows with each item (B-35's and B-30's findings give the deltas).
 
 ## 6. Local setup
 
@@ -76,6 +124,20 @@ fee or a delivery date, or keep any state the server owns.
 ./gradlew :composeApp:wasmJsBrowserDevelopmentRun
 ```
 
-Until the root draws screens (see the note at the top) the page is the theme's background and calls
-no server. The screens are seen in the screenshot tests instead: `viddikVerify` and
+The page calls the server at its own origin, and the development server has no API behind it, so
+it draws no screen; to see screens, serve the distribution from a running server (`HAUL_WEB_DIR`, see
+[haul-server](haul-server.md)), or look at the screenshot tests: `viddikVerify` and
 `viddikDesignParity` on the desktop target.
+
+## 7. Quirks
+
+* Between 768 and about 1,150 px the wide header's search field is narrower than the suggest panel's
+  products column, and the panel's suggestions column collapses (B-35's findings); the canvas draws
+  1440 and 390 only.
+* Several drawn controls carry no action yet: the product page's «Add to cart» and «Buy now», home's
+  «All N categories», the brand facet's «Show N more», the filter sheet's ×, a recent search's own
+  row, the header strip's links, the footer, the heart (B-20), «Orders» (B-18) — B-37's findings.
+* `/checkout`, `/account` and `/deals` are `PageKind.Other`: a pending header while loading, the
+  generic error page on failure.
+* The desktop app's own browser pane opens the sign-in popup in the same tab, so the flow cannot
+  finish there.

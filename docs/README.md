@@ -67,7 +67,7 @@ The list below is **checked** against the files on disk.
 ### Services (3/3)
 
 - [ ] [haul-server](services/haul-server.md) — owns all data; builds every screen as a kompot tree; the order saga and the simulators (draft)
-- [ ] [haul-web](services/haul-web.md) — the browser storefront: renderers, navigation, Loading/Error, sign-in (draft)
+- [ ] [haul-web](services/haul-web.md) — the browser storefront: renderers, navigation, Loading/Error, sign-in, cart commands (draft)
 - [ ] [haul-shared](services/haul-shared.md) — the contract: components on the wire, command bodies, error codes (draft)
 
 ### Features (11)
