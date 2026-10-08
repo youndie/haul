@@ -2,17 +2,29 @@ package io.github.youndie.haul
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import io.github.youndie.haul.feature.product.DialogOverlay
 import io.github.youndie.haul.feature.product.ProductNotFound
+import io.github.youndie.haul.feature.product.QuestionFormView
+import io.github.youndie.haul.feature.product.ReviewFormView
+import io.github.youndie.haul.feature.reviews.QuestionEntry
+import io.github.youndie.haul.feature.reviews.ReviewEntry
 import io.github.youndie.haul.shell.ErrorShell
 import io.github.youndie.haul.shell.ProductLoading
 import io.github.youndie.haul.shell.ShellFailure
 import io.github.youndie.haul.ui.HaulHeader
+import io.github.youndie.haul.ui.QuestionForm
+import io.github.youndie.haul.ui.ReviewForm
+import io.github.youndie.kompot.KompotAction
+import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.ColumnComponent
+import io.github.youndie.kompot.standard.PresentAction
 import io.github.youndie.viddik.annotations.ViddikScreenshot
 
-// One fixture per artboard of the Product screen (B-08) but the two dialogs (B-22), at the artboard's
+// One fixture per artboard of the Product screen (B-08, and the two dialogs B-22), at the artboard's
 // size. The tabs are wire bodies with the canvas's copy (`resources/bodies/product_*.json`) drawn
-// through the app's registry; Loading, Error and NotFound are the client's own.
+// through the app's registry — the reviews and questions tabs and the dialogs in them held equal to the
+// server's trees by `ReviewFixturesTest` — Loading, Error and NotFound are the client's own. A dialog is
+// its tab's page with the form its `present` carries drawn over it, holding what the canvas has typed.
 
 @ViddikScreenshot(name = "Loading", group = "Product", width = 1440, height = 835)
 @Composable
@@ -54,6 +66,22 @@ internal fun ProductQuestions() = Fixture(compact = false) { Page { Body("produc
 @Composable
 internal fun ProductQuestionsPhone() = Fixture(compact = true) { Page { Body("product_questions.json") } }
 
+@ViddikScreenshot(name = "ReviewDialog", group = "Product", width = 1440, height = 1572)
+@Composable
+internal fun ProductReviewDialog() = Fixture(compact = false) { ReviewDialog() }
+
+@ViddikScreenshot(name = "ReviewDialog_Phone", group = "Product", width = 390, height = 3067)
+@Composable
+internal fun ProductReviewDialogPhone() = Fixture(compact = true) { ReviewDialog() }
+
+@ViddikScreenshot(name = "QuestionDialog", group = "Product", width = 1440, height = 1723)
+@Composable
+internal fun ProductQuestionDialog() = Fixture(compact = false) { QuestionDialog() }
+
+@ViddikScreenshot(name = "QuestionDialog_Phone", group = "Product", width = 390, height = 2930)
+@Composable
+internal fun ProductQuestionDialogPhone() = Fixture(compact = true) { QuestionDialog() }
+
 @ViddikScreenshot(name = "OutOfStock", group = "Product", width = 1440, height = 1494)
 @Composable
 internal fun ProductOutOfStock() = Fixture(compact = false) { Page { Body("product_out_of_stock.json") } }
@@ -87,3 +115,48 @@ private fun NotFound() {
         }
     ProductNotFound(header)
 }
+
+/** Product_ReviewDialog: five stars, «Worth it for the commute» and the canvas's review, over the reviews tab. */
+@Composable
+private fun ReviewDialog() {
+    val form =
+        remember {
+            presented<io.github.youndie.haul.ui.ProductReviews, ReviewForm>(
+                "product_reviews.json",
+            ) { it.action }
+        }
+    Page { Body("product_reviews.json") }
+    DialogOverlay(onDismiss = null) {
+        ReviewFormView(
+            form,
+            ReviewEntry(
+                rating = 5,
+                title = "Worth it for the commute",
+                body =
+                    "Noise cancelling handles the subway and the open office. Comfortable for a full workday, " +
+                        "and the battery lasts all week.",
+            ),
+        )
+    }
+}
+
+/** Product_QuestionDialog: the canvas's question, over the questions tab. */
+@Composable
+private fun QuestionDialog() {
+    val form =
+        remember {
+            presented<io.github.youndie.haul.ui.ProductQuestions, QuestionForm>(
+                "product_questions.json",
+            ) { it.action }
+        }
+    Page { Body("product_questions.json") }
+    DialogOverlay(onDismiss = null) {
+        QuestionFormView(form, QuestionEntry("Do the ear cushions come off for cleaning?"))
+    }
+}
+
+/** The [F] that the [T] section of [body] presents. */
+private inline fun <reified T : KompotComponent, reified F : KompotComponent> presented(
+    body: String,
+    action: (T) -> KompotAction?,
+): F = (action((decode(body) as ColumnComponent).children.filterIsInstance<T>().single()) as PresentAction).content as F

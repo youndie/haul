@@ -167,25 +167,41 @@
     {
      "key": "description",
      "title": "Description",
-     "selected": false
+     "selected": false,
+     "action": {
+      "type": "navigate",
+      "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=description"
+     }
     },
     {
      "key": "specifications",
      "title": "Specifications",
-     "compactTitle": "Specs",
-     "selected": false
+     "selected": false,
+     "action": {
+      "type": "navigate",
+      "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=specifications"
+     },
+     "compactTitle": "Specs"
     },
     {
      "key": "reviews",
      "title": "Reviews",
      "count": "2,341",
-     "selected": true
+     "selected": true,
+     "action": {
+      "type": "navigate",
+      "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=reviews"
+     }
     },
     {
      "key": "questions",
      "title": "Questions",
      "count": "86",
-     "selected": false
+     "selected": false,
+     "action": {
+      "type": "navigate",
+      "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=questions"
+     }
     }
    ]
   },
@@ -241,7 +257,31 @@
      "text": "Clear, balanced sound and the app EQ is easy to use. The headband felt tight for the first few days, then loosened up. Calls sound good even outside.",
      "helpful": "48 people found this helpful"
     }
-   ]
+   ],
+   "action": {
+    "type": "present",
+    "content": {
+     "type": "haul_review_form",
+     "id": "review-form",
+     "title": "Write a review",
+     "product": {
+      "name": "Sony WH-1000XM6 Wireless Noise Cancelling Headphones",
+      "detail": "Midnight Black · Headphones only",
+      "tone": "#E6E4FF"
+     },
+     "ratingLabel": "Your rating",
+     "titleLabel": "Title",
+     "bodyLabel": "Review",
+     "bodyHint": "At least 20 characters",
+     "submitLabel": "Post",
+     "cancelLabel": "Cancel",
+     "url": "/api/v1/products/p-sony-wh-1000xm6/reviews",
+     "close": {
+      "type": "close"
+     }
+    },
+    "kind": "dialog"
+   }
   }
  ]
 }

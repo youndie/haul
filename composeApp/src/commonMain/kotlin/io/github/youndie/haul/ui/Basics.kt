@@ -464,3 +464,21 @@ internal fun BalancedText(
         style = style,
     )
 }
+
+/**
+ * Archivo at [size] on a line as tall as Chrome's `line-height: normal` draws it: the font's ascent and
+ * descent (878 and 210 per 1,000) each rounded to a whole pixel — 19 px at 17, 15 at 14. Compose's own
+ * line is a pixel shorter at most sizes, and a form that stacks enough lines on a phone (the checkout,
+ * the review dialog) moves by tens of pixels for it.
+ */
+@Composable
+internal fun normal(
+    size: Float,
+    weight: Int = 400,
+): TextStyle {
+    val line = (size * ARCHIVO_ASCENT).roundToInt() + (size * ARCHIVO_DESCENT).roundToInt()
+    return HaulType.text(size, weight, lineHeight = line / size)
+}
+
+private const val ARCHIVO_ASCENT = 0.878f
+private const val ARCHIVO_DESCENT = 0.21f

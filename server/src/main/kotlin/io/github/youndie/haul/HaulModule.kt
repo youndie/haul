@@ -26,6 +26,9 @@ import io.github.youndie.haul.feature.identity.installSignIn
 import io.github.youndie.haul.feature.order.domain.OrderError
 import io.github.youndie.haul.feature.order.orderModule
 import io.github.youndie.haul.feature.payment.paymentModule
+import io.github.youndie.haul.feature.reviews.domain.ReviewError
+import io.github.youndie.haul.feature.reviews.reviewsModule
+import io.github.youndie.haul.feature.reviews.reviewsRouting
 import io.github.youndie.haul.feature.search.customerSearchRouting
 import io.github.youndie.haul.feature.search.domain.SearchError
 import io.github.youndie.haul.feature.search.searchModule
@@ -113,6 +116,7 @@ internal fun Application.haulModule(
             paymentModule,
             orderModule,
             fulfilmentModule,
+            reviewsModule,
         )
     }
     // Carries on what a process that died left mid-saga, from the first moment this one serves; it
@@ -133,6 +137,9 @@ internal fun Application.haulModule(
         exception<IdentityError> { call, error -> call.respondError(error.code, error.message, error.field) }
         exception<CartError> { call, error -> call.respondError(error.code, error.message, error.field) }
         exception<OrderError> { call, error -> call.respondError(error.code, error.message, error.field) }
+        exception<ReviewError> { call, error ->
+            call.respondError(error.code, error.message, error.field, error.fields)
+        }
         exception<CheckoutError> {
             call,
             error,
@@ -157,6 +164,7 @@ internal fun Application.haulModule(
             customerSearchRouting()
             accountRouting()
             checkoutRouting()
+            reviewsRouting()
         }
         web?.let { webBundle(it) }
     }
@@ -203,6 +211,7 @@ internal fun status(code: ErrorCode): HttpStatusCode =
         ErrorCode.IdempotencyKeyReused,
         ErrorCode.CartChanged,
         ErrorCode.CheckoutHeld,
+        ErrorCode.ReviewExists,
         -> HttpStatusCode.Conflict
 
         ErrorCode.PromoExpired,

@@ -1,5 +1,7 @@
 package io.github.youndie.haul.seed
 
+import io.github.youndie.haul.feature.reviews.domain.StoredQuestion
+import io.github.youndie.haul.feature.reviews.domain.StoredReview
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import java.math.BigDecimal
@@ -18,6 +20,10 @@ internal data class SeedCatalog(
     val carts: List<SeedCart> = emptyList(),
     val pickupPoints: List<SeedPickupPoint> = emptyList(),
     val addresses: List<SeedAddress> = emptyList(),
+    val reviews: List<StoredReview> = emptyList(),
+    /** Per product, stars to how many reviews gave them: the histogram (feature-reviews). */
+    val ratingCounts: Map<String, Map<Int, Int>> = emptyMap(),
+    val questions: List<StoredQuestion> = emptyList(),
 )
 
 internal data class SeedCategory(

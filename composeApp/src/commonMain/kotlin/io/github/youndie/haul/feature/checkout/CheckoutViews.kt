@@ -36,7 +36,6 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
@@ -65,9 +64,9 @@ import io.github.youndie.haul.ui.PointsToggle
 import io.github.youndie.haul.ui.SummaryRow
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.gutter
+import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.toneColor
-import kotlin.math.roundToInt
 
 // The Checkout screen (screen-checkout): the checkout's own header, then the numbered sections in one
 // column with the order beside them at 1440 and under them on a phone. The numbers are the artboards'
@@ -907,21 +906,3 @@ internal fun paymentTag(id: String): String = "checkout-payment:$id"
 
 internal const val PLACE_TAG: String = "checkout-place"
 internal const val POINTS_TAG: String = "checkout-points"
-
-/**
- * Archivo at [size] on a line as tall as Chrome's `line-height: normal` draws it: the font's ascent and
- * descent (878 and 210 per 1,000) each rounded to a whole pixel — 19 px at 17, 15 at 14. Compose's own
- * line is a pixel shorter at most sizes, and the checkout stacks enough lines on a phone for that to
- * move the page by tens of pixels.
- */
-@Composable
-private fun normal(
-    size: Float,
-    weight: Int = 400,
-): TextStyle {
-    val line = (size * ARCHIVO_ASCENT).roundToInt() + (size * ARCHIVO_DESCENT).roundToInt()
-    return HaulType.text(size, weight, lineHeight = line / size)
-}
-
-private const val ARCHIVO_ASCENT = 0.878f
-private const val ARCHIVO_DESCENT = 0.21f

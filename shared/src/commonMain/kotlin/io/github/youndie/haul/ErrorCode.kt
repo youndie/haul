@@ -108,6 +108,10 @@ public enum class ErrorCode {
     @SerialName("checkout_held")
     CheckoutHeld,
 
+    /** One review per customer per product: this customer has already reviewed it (feature-reviews). */
+    @SerialName("review_exists")
+    ReviewExists,
+
     /** In [ErrorBody.fields] only: a form field that must be filled was left empty. */
     @SerialName("field_required")
     FieldRequired,

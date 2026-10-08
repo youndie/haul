@@ -35,6 +35,8 @@ import io.github.youndie.haul.feature.product.ProductDetailsView
 import io.github.youndie.haul.feature.product.ProductQuestionsView
 import io.github.youndie.haul.feature.product.ProductReviewsView
 import io.github.youndie.haul.feature.product.ProductTabsView
+import io.github.youndie.haul.feature.product.QuestionDialog
+import io.github.youndie.haul.feature.product.ReviewDialog
 import io.github.youndie.haul.feature.product.SpecificationListView
 import io.github.youndie.haul.feature.search.SearchNoResultsView
 import io.github.youndie.haul.theme.LocalHaulCompact
@@ -64,6 +66,8 @@ import io.github.youndie.haul.ui.ProductGridView
 import io.github.youndie.haul.ui.ProductQuestions
 import io.github.youndie.haul.ui.ProductReviews
 import io.github.youndie.haul.ui.ProductTabs
+import io.github.youndie.haul.ui.QuestionForm
+import io.github.youndie.haul.ui.ReviewForm
 import io.github.youndie.haul.ui.SearchNoResults
 import io.github.youndie.haul.ui.SectionHeader
 import io.github.youndie.haul.ui.SpecificationList
@@ -345,6 +349,33 @@ public class ProductQuestionsRenderer : KompotComponentRenderer<ProductQuestions
         formController: FormController,
     ) {
         ProductQuestionsView(component)
+    }
+}
+
+// The two dialogs a product tab presents (feature-reviews): the draft is the client's until it is sent;
+// the command goes through `LocalReviewCommands`, and its answer — close, then refresh — to the handler.
+
+@KompotComponentMarker
+public class ReviewFormRenderer : KompotComponentRenderer<ReviewForm> {
+    @Composable
+    override fun Render(
+        component: ReviewForm,
+        actionHandler: KompotActionHandler,
+        formController: FormController,
+    ) {
+        ReviewDialog(component, actionHandler::handle)
+    }
+}
+
+@KompotComponentMarker
+public class QuestionFormRenderer : KompotComponentRenderer<QuestionForm> {
+    @Composable
+    override fun Render(
+        component: QuestionForm,
+        actionHandler: KompotActionHandler,
+        formController: FormController,
+    ) {
+        QuestionDialog(component, actionHandler::handle)
     }
 }
 
