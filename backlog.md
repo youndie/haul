@@ -40,11 +40,10 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (23)
+## Open (22)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-11](docs/backlog/B-11-guests-cart-promo-codes-changed-lines.md) `[~]` | server: guests, cart, promo codes, changed lines, the Cart tree | P1 | M | B-05 |
 | [B-12](docs/backlog/B-12-shildik-sign-in-in-the-browser.md) `[ ]` | server + client: shildik sign-in in the browser, customer creation, cart merge, header states | P1 | L | B-04, B-11 |
 | [B-13](docs/backlog/B-13-cart-renderers.md) `[ ]` | design refs + client: Cart renderers | P1 | M | B-01, B-11, B-12 |
 | [B-14](docs/backlog/B-14-checkout-tree-slots-with-capacity-pickup.md) `[ ]` | server: checkout tree, slots with capacity, pickup points, quote, the address form | P1 | M | B-12 |
@@ -68,7 +67,7 @@ A stage is a field on the item, not a directory.
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
 | [B-30](docs/backlog/B-30-product-images-through-object-storage.md) `[ ]` | product images through object storage | P3 | M | B-08 |
 
-## Closed (10)
+## Closed (11)
 
 **Skeleton**
 
@@ -88,6 +87,10 @@ A stage is a field on the item, not a directory.
 
 - [B-09](docs/backlog/B-09-search-suggest-recent-searches-suggest-latency.md) `[x]` - server: search, suggest, recent searches; suggest latency measured on the seed
 - [B-10](docs/backlog/B-10-search-screen-and-searchsuggestpanel.md) `[x]` - design refs + client: Search screen and `SearchSuggestPanel`
+
+**Cart and sign-in**
+
+- [B-11](docs/backlog/B-11-guests-cart-promo-codes-changed-lines.md) `[x]` - server: guests, cart, promo codes, changed lines, the Cart tree
 
 <!-- END INDEX -->
 

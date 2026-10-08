@@ -198,6 +198,25 @@ and on the stand.
 Decision: a guest has a server-issued id (`X-Haul-Guest`) and a cart; checkout, saving, reviews and
 the account need a shildik token; signing in merges the guest cart.
 
+**Decided in B-11, the guest and the cart.**
+
+- A guest id is `g-` and a random UUID from `POST /api/v1/guests` (`201`), stored in `guests`; it is
+  the guest's only credential, so it is unguessable. A cart route with no `X-Haul-Guest`, or one the
+  server never issued, answers `401 unauthenticated`: the client creates a new guest rather than the
+  server inventing one.
+- The cart's commands keep the methods and JSON bodies of endpoint-cart (`PUT`/`DELETE` with
+  `LineChange`, `LinesRemoval`, `PromoEntry` from `shared/.../feature/cart/`) and answer kompot's
+  `refresh`. The tree's components carry what a command needs (the SKU id, the quantity bounds), not
+  the command. kompot's own `perform` action was the alternative and was not taken: it carries a URL
+  and a fixed payload, so it names no method and cannot carry the code a shopper types into the promo
+  field; how the client sends a command is B-13's to settle.
+- A line remembers the price and the stock the shopper saw (`seen_price_cents`, `seen_in_stock`); it
+  is changed when either moved, and acknowledging makes the current ones the seen ones. A refused
+  promo code is stored with its reason until the next command, which is what makes `Cart_PromoError`
+  a tree the server returns rather than a client-side state.
+- Delivery is free from $35 of the selected items at their price, before the promo, and is one fee per
+  cart, not per seller group; research D7's «over $35» is read as «$35 or more».
+
 ### D6. Product decisions taken by the owner on the brief (2026-10-08)
 
 The canvas contradicted itself in three places and left one promise unbacked; the owner decided:
