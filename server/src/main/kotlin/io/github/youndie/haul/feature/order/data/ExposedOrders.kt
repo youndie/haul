@@ -29,10 +29,8 @@ internal class ExposedOrders(
 
     override suspend fun nextId(): String =
         tx {
-            exec(
-                "SELECT nextval('order_numbers')",
-            ) { result -> result.next().also { check(it) }.let { result.getLong(1) } }
-                .let { "HL-$it" }
+            val number = exec("SELECT nextval('order_numbers')") { if (it.next()) it.getLong(1) else null }
+            "HL-${checkNotNull(number) { "the order_numbers sequence answered nothing" }}"
         }
 
     override suspend fun open(order: NewOrder) {
