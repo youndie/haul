@@ -1,7 +1,7 @@
 ---
 id: B-32
 title: "server: the catch-all answers 500 with the `unavailable` code"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-3-search
