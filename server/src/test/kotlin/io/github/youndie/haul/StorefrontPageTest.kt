@@ -13,6 +13,7 @@ class StorefrontPageTest {
     @Test
     fun `each storefront address is its page`() {
         assertEquals(StorefrontPage.Home, StorefrontPage.of("/"))
+        assertEquals(StorefrontPage.Categories, StorefrontPage.of("/c"))
         assertEquals(StorefrontPage.Catalog, StorefrontPage.of("/c/headphones"))
         assertEquals(StorefrontPage.Catalog, StorefrontPage.of("/c/electronics/audio/headphones"))
         assertEquals(StorefrontPage.Product, StorefrontPage.of("/p/p-sony-wh-1000xm6"))
@@ -40,7 +41,6 @@ class StorefrontPageTest {
             "/api/v1/guests",
             "/images/a.webp",
             "/index.html",
-            "/c",
             "/c/",
             "/c/headphones/",
             "/c//headphones",

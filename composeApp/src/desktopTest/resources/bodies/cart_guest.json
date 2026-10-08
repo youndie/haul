@@ -266,6 +266,10 @@
             "saved": {
                 "type": "navigate",
                 "deeplink": "/sign-in"
+            },
+            "plus": {
+                "type": "navigate",
+                "deeplink": "/sign-in"
             }
         },
         {

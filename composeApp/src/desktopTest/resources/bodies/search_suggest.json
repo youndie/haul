@@ -32,8 +32,20 @@
   }
  ],
  "recent": [
-  "wireless earbuds",
-  "standing desk"
+  {
+   "label": "wireless earbuds",
+   "action": {
+    "type": "navigate",
+    "deeplink": "/search?q=wireless%20earbuds"
+   }
+  },
+  {
+   "label": "standing desk",
+   "action": {
+    "type": "navigate",
+    "deeplink": "/search?q=standing%20desk"
+   }
+  }
  ],
  "products": [
   {

@@ -10,6 +10,7 @@ import io.github.youndie.haul.feature.catalog.data.ExposedCatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.identity.data.ExposedGuests
+import io.github.youndie.haul.feature.identity.domain.Customer
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
@@ -61,7 +62,12 @@ class CartFixturesTest {
     private val screen =
         CartScreen(carts, commands, catalog, DeliveryCalendar(CANVAS_NOW::now), CANVAS_NOW, ProductPhotos(null))
     private val maya = CartOwner.Customer(SampleCustomers.MAYA, plus = true)
-    private val mayaLooking = Viewer(firstName = "Maya", customerId = SampleCustomers.MAYA)
+    private val mayaLooking =
+        Viewer(
+            firstName = "Maya",
+            customerId = SampleCustomers.MAYA,
+            customer = Customer(SampleCustomers.MAYA, "Maya Kowalski", plus = true, joined = CatalogSeed.NOW),
+        )
     private val bodies = File(System.getProperty("haul.clientBodies") ?: error("haul.clientBodies is not set"))
     private val pretty = Json(haulWireJson) { prettyPrint = true }
 

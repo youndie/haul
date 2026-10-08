@@ -106,7 +106,8 @@ class AccountFixturesTest {
                         mayasView.orders.none { it.card == null && it.state.active },
                         "every active order is drawn as a card",
                     )
-                    val mayaLooking = Viewer(firstName = "Maya", cartCount = 3, customerId = SampleCustomers.MAYA)
+                    val mayaLooking =
+                        Viewer(firstName = "Maya", cartCount = 3, customerId = SampleCustomers.MAYA, customer = maya)
 
                     check(CONTENT, screen.page(AccountPage.Overview, mayasView, mayaLooking))
                     check(ORDERS, screen.page(AccountPage.Orders(), mayasView, mayaLooking))
@@ -115,7 +116,7 @@ class AccountFixturesTest {
                         screen.page(
                             AccountPage.Overview,
                             view(sam, SampleOrders.samsHistory(mayas)),
-                            Viewer(firstName = "Sam", customerId = SampleCustomers.SAM),
+                            Viewer(firstName = "Sam", customerId = SampleCustomers.SAM, customer = sam),
                         ),
                     )
                     check(
@@ -123,7 +124,7 @@ class AccountFixturesTest {
                         screen.page(
                             AccountPage.Orders(),
                             view(jordan, emptyList()),
-                            Viewer(firstName = "Jordan", customerId = JORDAN),
+                            Viewer(firstName = "Jordan", customerId = JORDAN, customer = jordan),
                         ),
                     )
 

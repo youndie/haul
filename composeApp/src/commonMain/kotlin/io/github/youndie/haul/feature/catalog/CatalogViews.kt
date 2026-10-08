@@ -53,6 +53,7 @@ import io.github.youndie.haul.ui.appendLink
 import io.github.youndie.haul.ui.following
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
+import io.github.youndie.haul.ui.pressable
 import io.github.youndie.kompot.KompotAction
 
 // The category page's components (screen-catalog), each with the margin the page gives it; the
@@ -285,12 +286,13 @@ private fun KindChip(
 /**
  * The results and their filters. At 1440 the 280-wide facet column stands beside the applied chips,
  * the grid and the pagination; on a phone «Filters» and the sort lead, the chips scroll, and the
- * facets live in [FiltersSheet].
+ * facets live in [FiltersSheet], which «Filters» opens ([onOpenFilters]; `null` — a screenshot — leaves
+ * it unpressable).
  */
 @Composable
 public fun FilteredResultsView(
     results: FilteredResults,
-    onOpenFilters: () -> Unit = {},
+    onOpenFilters: (() -> Unit)? = null,
 ) {
     val compact = LocalHaulCompact.current
     val gutter = gutter()
@@ -343,17 +345,20 @@ private fun WideApplied(applied: AppliedFilters) {
 private fun CompactApplied(
     applied: AppliedFilters,
     gutter: androidx.compose.ui.unit.Dp,
-    onOpenFilters: () -> Unit,
+    onOpenFilters: (() -> Unit)?,
 ) {
     FlexPair(
         10.dp,
         secondFrame = SORT_FRAME,
         modifier = Modifier.fillMaxWidth().padding(start = gutter, end = gutter, bottom = 14.dp),
     ) {
+        // «Filters» opens the sheet: B-07 drew it and passed the opener here, but nothing pressed it, so the
+        // sheet — and its «×» (B-49) — could not be reached.
         Row(
             Modifier
                 .height(48.dp)
-                .background(HaulColors.inverseSurface, RoundedCornerShape(12.dp)),
+                .background(HaulColors.inverseSurface, RoundedCornerShape(12.dp))
+                .pressable(onOpenFilters),
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
         ) {

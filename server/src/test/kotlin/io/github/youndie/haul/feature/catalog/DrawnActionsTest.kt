@@ -1,5 +1,6 @@
 package io.github.youndie.haul.feature.catalog
 
+import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.feature.cart.CartPaths
 import io.github.youndie.haul.feature.cart.LineChange
 import io.github.youndie.haul.feature.identity.GUEST_HEADER
@@ -7,6 +8,7 @@ import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog
 import io.github.youndie.haul.testing.all
+import io.github.youndie.haul.testing.assertError
 import io.github.youndie.haul.testing.assertRefresh
 import io.github.youndie.haul.testing.guest
 import io.github.youndie.haul.testing.haulTest
@@ -15,6 +17,9 @@ import io.github.youndie.haul.testing.putLine
 import io.github.youndie.haul.testing.tree
 import io.github.youndie.haul.ui.AppliedFilters
 import io.github.youndie.haul.ui.CampaignHero
+import io.github.youndie.haul.ui.CategoryGrid
+import io.github.youndie.haul.ui.Facet
+import io.github.youndie.haul.ui.FacetPanel
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HaulPagination
 import io.github.youndie.haul.ui.PageTitle
@@ -38,9 +43,10 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * B-37: the controls the screens drew without anything to follow now carry an action in the tree — a
- * `navigate` to an address the client maps to a screen route, or a cart command — and following it
- * answers the page the control promises.
+ * B-37 and B-49: the controls the screens drew without anything to follow now carry an action in the
+ * tree — a `navigate` to an address the client maps to a screen route, or a cart command — and following
+ * it answers the page the control promises. A recent search's row is `RecentSearchesRoutesTest`'s and
+ * the «HAUL PLUS» pill of a customer `MembershipRoutesTest`'s, both against a running shildik.
  */
 class DrawnActionsTest {
     private val seed = CatalogSeed.generate()
@@ -221,6 +227,75 @@ class DrawnActionsTest {
         haulTest {
             assertEquals(HttpStatusCode.BadRequest, get("/ui/deals?page=0").status)
         }
+
+    /**
+     * B-49: home's «All N categories» carried nothing, and no page listed every category — the home page
+     * shows eight of them and the header's row ten. It now opens the catalog's root, `/c`, whose tiles are
+     * every top-level category in the header's order, each to its own page.
+     */
+    @Test
+    fun `all categories on the home page opens the catalog root`() =
+        haulTest {
+            val topLevel = seed.categories.filter { it.parentSlug == null }.sortedBy { it.position }
+            val link = tree("/ui/home").all().filterIsInstance<SectionHeader>().single { it.id == "categories-title" }
+            assertEquals("All ${topLevel.size} categories", link.linkLabel)
+            assertEquals(NavigateAction("/c"), link.action)
+
+            val root = follow(link.action)
+            assertEquals("Catalog", root.only<PageTitle>().title)
+            assertEquals("${topLevel.size} categories", root.only<PageTitle>().count)
+            val tiles = root.only<CategoryGrid>().tiles
+            assertEquals(topLevel.map { it.name }, tiles.map { it.name }, "the root does not list every category")
+            assertEquals(topLevel.map { NavigateAction("/c/${it.slug}") }, tiles.map { it.action })
+            assertEquals("Books", follow(tiles.single { it.name == "Books" }.action).only<PageTitle>().title)
+        }
+
+    /**
+     * B-49: the brand facet's «Show N more» carried nothing. It opens the same page — the filters, the sort
+     * and the page kept — with every brand listed and no «Show more» left; a brand ticked there keeps the
+     * facet expanded, so the list does not fold back under the shopper's finger.
+     */
+    @Test
+    fun `show more lists every brand with the filters the sort and the page kept`() =
+        haulTest {
+            val shown = brands(tree("/ui/c/electronics?rating=4.0&sort=price-asc&page=2"))
+            val more = assertNotNull(shown.moreLabel, "electronics shows every brand — nothing to expand")
+            val hidden = more.removePrefix("Show ").removeSuffix(" more").toInt()
+            assertEquals(
+                NavigateAction("/c/electronics?rating=4.0&expand=brand&sort=price-asc&page=2"),
+                shown.moreAction,
+            )
+
+            val expandedPage = follow(shown.moreAction)
+            val expanded = brands(expandedPage)
+            assertEquals(shown.options.size + hidden, expanded.options.size, "the facet did not list every brand")
+            assertEquals(shown.options.map { it.label }, expanded.options.take(shown.options.size).map { it.label })
+            assertNull(expanded.moreLabel)
+            assertNull(expanded.moreAction)
+            assertEquals(1, expandedPage.only<AppliedFilters>().filterCount, "the rating was lost on the way")
+            assertEquals("Price: low to high", expandedPage.only<AppliedFilters>().sortLabel)
+            assertEquals(2, expandedPage.only<HaulPagination>().current)
+
+            val ticked = follow(expanded.options.last().action)
+            assertEquals(expanded.options.size, brands(ticked).options.size, "ticking a brand folded the facet")
+        }
+
+    @Test
+    fun `a facet other than the brand's does not expand`() =
+        haulTest {
+            get("/ui/c/electronics?expand=colour").assertError(HttpStatusCode.BadRequest, ErrorCode.ValidationFailed)
+        }
+
+    /** A guest's «HAUL PLUS» pill asks for a sign-in, as the Plus block's «Try 30 days free» does (B-49). */
+    @Test
+    fun `the plus pill asks a guest to sign in`() =
+        haulTest {
+            listOf("/ui/home", "/ui/c", "/ui/c/headphones", "/ui/deals").forEach { path ->
+                assertEquals(NavigateAction("/sign-in"), tree(path).only<HaulHeader>().plus, path)
+            }
+        }
+
+    private fun brands(page: KompotComponent): Facet = page.only<FacetPanel>().facets.single { it.key == "brand" }
 
     /**
      * How far a product's shown SKU — the cheapest in stock, else the cheapest, as the cards price it —

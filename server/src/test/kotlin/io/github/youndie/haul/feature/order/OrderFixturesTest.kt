@@ -9,6 +9,7 @@ import io.github.youndie.haul.feature.fulfilment.domain.OrderProgress
 import io.github.youndie.haul.feature.fulfilment.domain.ShipmentShares
 import io.github.youndie.haul.feature.fulfilment.domain.TrackedOrder
 import io.github.youndie.haul.feature.fulfilment.domain.TrackedShipment
+import io.github.youndie.haul.feature.identity.domain.Customer
 import io.github.youndie.haul.feature.order.domain.CancelReason
 import io.github.youndie.haul.feature.order.domain.NewOrder
 import io.github.youndie.haul.feature.order.domain.Order
@@ -20,6 +21,7 @@ import io.github.youndie.haul.feature.order.screen.Bought
 import io.github.youndie.haul.feature.order.screen.OrderScreen
 import io.github.youndie.haul.feature.reviews.screen.ReviewTabs
 import io.github.youndie.haul.haulWireJson
+import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog
 import io.github.youndie.haul.seed.SampleCheckout
 import io.github.youndie.haul.seed.SampleCustomers
@@ -59,7 +61,13 @@ import kotlin.time.toJavaDuration
 class OrderFixturesTest {
     private val bodies = File(System.getProperty("haul.clientBodies") ?: error("haul.clientBodies is not set"))
     private val pretty = Json(haulWireJson) { prettyPrint = true }
-    private val canvasViewer = Viewer(firstName = "Maya", cartCount = 3, customerId = SampleCustomers.MAYA)
+    private val canvasViewer =
+        Viewer(
+            firstName = "Maya",
+            cartCount = 3,
+            customerId = SampleCustomers.MAYA,
+            customer = Customer(SampleCustomers.MAYA, "Maya Kowalski", plus = true, joined = CatalogSeed.NOW),
+        )
 
     @Test
     fun `the client's order bodies are the trees the server builds`() =

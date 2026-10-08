@@ -274,10 +274,11 @@ private fun Suggestions(
         if (panel.recent.isNotEmpty()) {
             // «Clear» empties them: a `DELETE` to `clearUrl`, the customer tier's, which the shell sends.
             Heading("Recent", side, compact, action = "Clear", onAction = onClear)
-            panel.recent.forEach { query ->
-                Line(side, rowHeight) {
+            // A row runs that search again, where the tree says (B-49); the client builds no address.
+            panel.recent.forEach { recent ->
+                Line(side, rowHeight, modifier = Modifier.follows(recent.action)) {
                     Icon(HaulIcons.clock, 18.dp, HaulColors.outline)
-                    Text(query, HaulType.text(16f), softWrap = false)
+                    Text(recent.label, HaulType.text(16f), softWrap = false)
                 }
             }
         }

@@ -26,6 +26,7 @@ import io.github.youndie.haul.ui.CategorySuggestion
 import io.github.youndie.haul.ui.CategoryTile
 import io.github.youndie.haul.ui.Chip
 import io.github.youndie.haul.ui.FilterChips
+import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.ProductSuggestion
@@ -97,7 +98,8 @@ internal class SearchScreen(
                     )
                 },
             allResultsLabel = "All ${count(matches.size)} results",
-            recent = recentSearches,
+            // Each recent search runs again from its row (B-49): the tree carries the address.
+            recent = recentSearches.map { Link(it, searchLink(it)) },
             allResultsAction = searchLink(query.text),
             clearUrl = if (recentSearches.isEmpty()) null else RECENT_SEARCHES,
         )

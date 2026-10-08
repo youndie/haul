@@ -214,6 +214,7 @@ class WebBundleTest {
         /** Every shape of `StorefrontPage`, as the server's `NavigateAction`s write them. */
         val STOREFRONT =
             listOf(
+                "/c",
                 "/c/headphones",
                 "/c/electronics/audio/headphones?brand=Sony&feature=Noise%20cancelling",
                 "/p/p-001-05",
