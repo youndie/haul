@@ -16,7 +16,7 @@ screen, petich for the order, shildik for sign-in, Compose Multiplatform in the 
 
 | Module | What it is | Targets |
 |---|---|---|
-| `:shared` | the contract: Haul components on the wire, routes, `ErrorCode`, money and time | jvm, wasmJs |
+| `:shared` | the contract: Haul components on the wire, `ErrorCode`, money and time — paths are the server's strings, the client follows actions | jvm, wasmJs |
 | `:server` | every screen as a kompot tree, every command, the order saga, the simulators; an `application` | JVM |
 | `:composeApp` | the storefront; `jvm("desktop")` only draws the screenshots | wasmJs, desktop |
 | `:e2e` | the whole path over HTTP against a composed stack | JVM |
