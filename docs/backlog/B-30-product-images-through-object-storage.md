@@ -1,7 +1,7 @@
 ---
 id: B-30
 title: "product images through object storage"
-status: open
+status: wip
 priority: P3
 size: M
 stage: stage-9-ship
