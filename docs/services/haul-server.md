@@ -191,8 +191,8 @@ is off; without `HAUL_S3_ENDPOINT` there are no photos. There is no compose file
 shildik (`ghcr.io/youndie/shildik-sqlite:0.4.1`) and SeaweedFS in Testcontainers
 (`server/src/test/kotlin/io/github/youndie/haul/testing/ShildikHarness.kt`,
 `server/src/test/kotlin/io/github/youndie/haul/testing/SeaweedHarness.kt`). The seed adds Maya (Plus)
-and Sam as customers with ids `maya` and `sam`, Maya's cart and address, two pickup points and a
-locker; a realm for a local shildik imports them by those ids.
+and Sam as customers with ids `maya` and `sam`, Maya's cart and address, three pickup points and
+two lockers (B-15); a realm for a local shildik imports them by those ids.
 
 ## 7. Configuration
 

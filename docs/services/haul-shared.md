@@ -12,7 +12,7 @@ publishes:
 
 # Haul shared contract
 
-> Describes the module as it is after B-37: browse, product, search, cart, checkout, sign-in,
+> Describes the module as it is after B-39: browse, product, search, cart, checkout, sign-in,
 > placement, and the storefront's address list. The components of screens not built yet (orders,
 > account, saved, reviews' answers, membership) arrive with their items and are not listed here.
 
@@ -43,17 +43,16 @@ reads.
 | product | `ProductDetails` (with `photo`), `ProductTabs`, `ProductDescription`, `SpecificationList`, `ProductReviews`, `ProductQuestions` (`ProductComponents.kt`) | — |
 | search | `SearchSuggestPanel` (with `clearUrl`, which replaced `clearAction`), `SearchNoResults` (`SearchComponents.kt`) | — |
 | cart | `CartBody`, `CartLine` (with `changeDetail`), `CartGroup`, `CartSelection`, `PromoField` (with `terms`), `SummaryRow` (with `saving`, which replaced `detail`), `OrderSummary` (with `title`, `promo`, `pointsAccent`) — wire types `haul_cart_body`, `haul_cart_line`, `haul_cart_group`, `haul_cart_selection`, `haul_promo_field`, `haul_order_summary` (`CartComponents.kt`, B-11, B-13) | `LineChange`, `LinesRemoval`, `PromoEntry`, `LineCommand` (a URL and a `LineChange`: a card's «+», B-37) (`feature/cart/CartCommands.kt`) |
-| checkout | `CheckoutHeader`, `CheckoutNotice`, `DeliveryMethods`, `CheckoutAddress`, `DeliverySlots`, `PickupPoints`, `PaymentMethods`, `CheckoutSummary` — wire types `haul_checkout_header`, `haul_checkout_notice`, `haul_delivery_methods`, `haul_checkout_address`, `haul_delivery_slots`, `haul_pickup_points`, `haul_payment_methods`, `haul_checkout_summary` — and their parts (`MethodOption`, `AddressOption`, `FormField`, `SlotDay`, `SlotOption`, `PickupPointOption`, `PaymentOption`, `SummaryItem`, `PointsToggle`) (`CheckoutComponents.kt`, B-14) | `DeliveryMethod`, `CheckoutChoice`, `AddressEntry`, `PlaceOrderRequest`, `IDEMPOTENCY_KEY_HEADER` = `Idempotency-Key` (`feature/checkout/CheckoutCommands.kt`, B-14, B-16) |
+| checkout | `CheckoutHeader` and `CheckoutBody` (the title, the notices, the sections in order, the summary — B-15), whose parts are the components `CheckoutNotice`, `DeliveryMethods`, `CheckoutAddress` (the inline form: `form`, `url`), `DeliverySlots` (with `notice`), `PickupPoints`, `PaymentMethods` (with the `points` toggle), `CheckoutSummary` (with `title`, `placeHint`, `placingLabel`) — wire types `haul_checkout_header`, `haul_checkout_body`, `haul_checkout_notice`, `haul_delivery_methods`, `haul_checkout_address`, `haul_delivery_slots`, `haul_pickup_points`, `haul_payment_methods`, `haul_checkout_summary` — and their parts (`MethodOption` with `price`, `FormField` with `placeholder`, `SlotDay` with `weekday`, `date`, `selected`, `SlotOption`, `PickupPointOption` with `detail`, `PaymentOption`, `SummaryItem`, `PointsToggle` with `detail` and a nullable `url`) (`CheckoutComponents.kt`, B-14, B-15) | `DeliveryMethod`, `CheckoutChoice`, `AddressEntry`, `PlaceOrderRequest`, `IDEMPOTENCY_KEY_HEADER` = `Idempotency-Key` (`feature/checkout/CheckoutCommands.kt`, B-14, B-16) |
 | identity | — | `GuestDto`, `GUEST_HEADER` = `X-Haul-Guest` (`feature/identity/Guests.kt`); `SignInSettings` (`feature/identity/SignInSettings.kt`, B-12) |
 | addresses | — | `StorefrontPage` (`StorefrontPage.kt`, B-36): `/`, `/c/{path...}`, `/p/{productId}`, `/search`, `/cart`, `/deals`, `/checkout`, `/account`, `/sign-in`, matched exactly by `StorefrontPage.of` |
 | every refusal | — | `ErrorCode`, `ErrorBody` (with `fields`), `FieldError` (`ErrorCode.kt`) |
 
 Each command-carrying component holds the URL its commands go to — `CartLine.url` and
 `acknowledgeUrl`, `CartSelection.linesUrl`, `PromoField.url`, `ProductCard.add`,
-`SearchSuggestPanel.clearUrl`, the checkout components' `url` (and `CheckoutAddress.choiceUrl`),
-`CheckoutSummary.placeUrl` — and the method and body are written on the component
-([endpoint-cart](../api/endpoint-cart.md), [endpoint-checkout](../api/endpoint-checkout.md)). The
-checkout's components have no renderers yet (B-15).
+`SearchSuggestPanel.clearUrl`, the checkout components' `url`, `CheckoutSummary.placeUrl` — and the
+method and body are written on the component ([endpoint-cart](../api/endpoint-cart.md),
+[endpoint-checkout](../api/endpoint-checkout.md)).
 
 **`ErrorCode`**, all of them: `validation_failed`, `category_not_found`, `product_not_found`,
 `unavailable`, `internal`, `query_too_short`, `unauthenticated`, `guest_not_found` (B-12),
@@ -61,7 +60,8 @@ checkout's components have no renderers yet (B-15).
 `promo_expired`, `promo_not_applicable`, `cart_empty`, `slot_unavailable`, `slot_not_found`,
 `pickup_point_not_found`, `address_not_found`, `payment_method_not_allowed`, `field_required`,
 `field_invalid` (B-14; the last two only inside `ErrorBody.fields`), `idempotency_key_missing`,
-`idempotency_key_reused`, `cart_changed` (B-16). Their statuses are the server's (`status` in
+`idempotency_key_reused`, `cart_changed` (B-16), `checkout_held` (`409`, B-39: placement of a
+checkout that holds «Place order» for a refused address form while the method is courier). Their statuses are the server's (`status` in
 `server/src/main/kotlin/io/github/youndie/haul/HaulModule.kt`).
 
 ## 2a. Code anchors

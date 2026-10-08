@@ -22,15 +22,17 @@ tags: []
 
 One page: how to receive, the address or the point, the delivery window, the payment method, the summary, «Place order».
 
-> The server half is built: the quote, windows with capacity, points and lockers, ways to pay and the
-> address form (B-14), placement through the order saga (B-16). Still *target*, which keeps this
-> document a draft: the client's renderers and its key per quote (B-15), points (B-23), Haul Pay's
-> schedule (B-24), capture at ship time (B-17).
+> Built: the quote, windows with capacity, points and lockers, ways to pay and the address form
+> (B-14), placement through the order saga (B-16), the client's renderers, commands and key per quote
+> (B-15), placement held with the button (B-39, B-42), capture per shipment at ship time (B-17).
+> Still *target*, which keeps this document a draft: points (B-23) and Haul Pay's schedule (B-24).
 
 ## 2. Business rules
 
 * the quote is the cart's selected, counted lines priced by the cart's own rules (`CartCommands.priced`, `Totals.of`): checkout total and cart total are the same number; nothing selected → `409 cart_empty`;
-* courier needs an address and a slot; pickup point and locker need a point, no slot — until then «Place order» is disabled (`CheckoutSummary.placeEnabled`);
+* courier needs an address and a slot; pickup point and locker need a point, no slot — until then «Place order» is disabled (`CheckoutSummary.placeEnabled`) and its hint says what is missing (`placeHint`);
+* an address form the server refused is kept as the checkout's draft and, **while the method is courier**, holds «Place order» even though the quote still names the previous address (`CheckoutState.holdingProblems`, `placeable` in `server/src/main/kotlin/io/github/youndie/haul/feature/checkout/domain/Quote.kt`); a pickup point or a locker is not held by it, and switching back to courier draws the draft with its errors and holds the button again (B-42);
+* placement follows the button's rule: a checkout that holds «Place order» for a refused form is `409 checkout_held` (B-39), checked after `cart_changed` and before an incomplete quote's `400 validation_failed` (field `quote`);
 * slots: the next 5 days from tomorrow, 4 windows a day (09, 12, 15, 18; three hours), 20 orders each; a slot at capacity is shown and not selectable (`409 slot_unavailable`); the default is the first with room;
 * a window's place is taken at placement, not held by the quote (research D5, «Decided in B-14»): a chosen window that filled since is cleared, the page says so, and placing it is refused (`409 slot_unavailable`);
 * pay on delivery is not offered for parcel lockers (`422 payment_method_not_allowed`); a method that no longer allows the chosen way to pay falls back to the card;
@@ -38,10 +40,10 @@ One page: how to receive, the address or the point, the delivery window, the pay
 * every customer is offered the simulator's two cards, ···· 4821 (approved) and the test card ···· 0002 (declined); there is no card form;
 * a promo code that expired after it was applied is not in the quote, and a notice says so;
 * *target* (B-23): «Use N points» redeems the whole balance, capped at the items total after discounts; 100 points = $1; redeemed points come back if the order is cancelled, and come back pro rata as points on a return;
-* placing is idempotent by an `Idempotency-Key` the client generates **once per quote it places** — the same key with another quote is `409 idempotency_key_reused` — and a placement refused before the saga (`cart_changed`, `slot_unavailable`) does not spend the key;
+* placing is idempotent by an `Idempotency-Key` the client generates **once per quote it places** — the same key with another quote is `409 idempotency_key_reused` — and a placement refused before the saga (`slot_unavailable`, `cart_changed`, `checkout_held`, an incomplete quote) does not spend the key, so the same request under the same key places once the reason is gone; a key whose order was placed answers that order, whatever the checkout holds now;
 * placement places only the quote the shopper saw: a fingerprint that is no longer the checkout's is `409 cart_changed`;
 * placement answers `202` with kompot's `navigate` to `/orders/{id}`, the order `placed` — or `cancelled` with `payment_declined` when the card was declined; the rest happens in the saga (feature-orders);
-* «Your card is charged when the order ships» — authorisation at placement (built); capture per shipment at ship time is *target* (B-17).
+* «Your card is charged when the order ships» — the total is authorised at placement; each shipment's share is captured when it ships (B-17, feature-orders).
 
 Numbers in these rules are decisions of the brief, recorded in
 [research-architecture](../research/research-architecture.md) D5–D7, and checked against the code
@@ -52,8 +54,10 @@ Numbers in these rules are decisions of the brief, recorded in
 1. `GET /ui/checkout` (customer tier) → the tree, with `CheckoutSummary.quote` (the fingerprint).
 2. Each choice: `PUT /api/v1/me/checkout` with `CheckoutChoice`, or `POST /api/v1/me/addresses` with
    `AddressEntry` → `refresh`, and the page is drawn again with a new quote.
+   The client sends the address form when the shopper leaves it, only when it changed.
 3. «Place order»: `POST /api/v1/orders` with `PlaceOrderRequest(quote)` and an `Idempotency-Key`
-   (customer tier, end-user credential) → the saga runs in the request → `202` and `navigate`.
+   (customer tier, end-user credential) → the saga runs in the request → `202` and `navigate`; a
+   refusal redraws the checkout.
 
 ## 4. Code anchors
 
@@ -61,7 +65,7 @@ Numbers in these rules are decisions of the brief, recorded in
 |---|---|
 | haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/checkout/CheckoutCommands.kt` — the command bodies and the key's header; `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/CheckoutComponents.kt` — the eight components |
 | haul-server | `server/src/main/kotlin/io/github/youndie/haul/feature/checkout/` — the quote, windows, points, ways to pay, the address form, the tree; placement in `server/src/main/kotlin/io/github/youndie/haul/feature/order/domain/Placement.kt` |
-| haul-web | *planned* (B-15): `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/checkout/` |
+| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/checkout/` — the renderers (`CheckoutViews.kt`) and the commands (`CheckoutCommandsClient.kt`) |
 
 ## 5. Scenarios (BDD / test cases)
 
@@ -123,7 +127,25 @@ Numbers in these rules are decisions of the brief, recorded in
 ### Scenario: Same key twice
 * **When:** the client repeats the placement with the same `Idempotency-Key`
 * **Then:** the server returns the same order and no second order exists; the same key with another quote is `409` with `idempotency_key_reused`, and no key is `400` with `idempotency_key_missing`.
-* **Automated:** `PlacementRoutesTest.the same key places once and a different request under it is refused`
+* **Automated:** `PlacementRoutesTest.the same key places once and a different request under it is refused`; with a refused address form on record since, `PlacementRoutesTest.a retry of a placed key answers its order with a refused address form on record`
+
+### Scenario: A refused address form holds placement
+* **Given:** Maya's checkout by courier, then an address form the server refused (the quote still names 148 Wythe Avenue)
+* **When:** a client that ignores the held button places the quote she saw
+* **Then:** the server returns `409` with `checkout_held`; no order, no saga, no stock, no window and nothing authorised; once she chooses the saved address again the same request under the same key places, to it.
+* **Automated:** `PlacementRoutesTest.a refused address form holds placement and the same key places once the hold is lifted`
+
+### Scenario: A refused address form does not hold a pickup
+* **Given:** an address form the server refused
+* **When:** Maya chooses a pickup point, or a parcel locker
+* **Then:** the checkout draws no form and no hint, «Place order» is enabled, and the order is placed to the point with no address and no window taken.
+* **Automated:** `PlacementRoutesTest.a refused address form does not hold an order to a pickup point`, `PlacementRoutesTest.a refused address form does not hold an order to a parcel locker`
+
+### Scenario: Back to the courier, the form is held again
+* **Given:** a refused address form, then a pickup point chosen
+* **When:** Maya switches back to the courier
+* **Then:** the form shows what she typed with its error («Enter a 5-digit ZIP»), the hint is «Fill in the ZIP», and placing is `409` with `checkout_held`.
+* **Automated:** `PlacementRoutesTest.switching back to the courier after a pickup draws the refused form and holds placement again`
 
 ### Scenario: Points redeemed
 * **Given:** Maya with 2,480 points and the same cart
@@ -151,6 +173,12 @@ Numbers in these rules are decisions of the brief, recorded in
 ## 7. Quirks
 
 * The windows start tomorrow whatever the items' dispatch days: the canvas offers Maya Wed 8 for a
-  cart whose duvet and mugs arrive Thu 9 (B-14's findings; B-17 or the owner reconciles).
+  cart whose duvet and mugs arrive Thu 9 (B-14's findings; B-15 kept it as a rule). The fulfilment
+  simulator does not aim at the chosen window either (B-17's findings, feature-orders).
 * The checkout's delivery fee is the cart's (`Totals.deliveryCents`), drawn as every method's detail
   («Free» for a Plus member or at the free-delivery threshold, `Totals.FREE_DELIVERY_FROM_CENTS`); no method has a fee of its own.
+* The held button answers in two codes: a quote held by a refused address form is `409
+  checkout_held`, an incomplete one (no address, window or point) `400 validation_failed` with field
+  `quote` (B-39's findings; one code for both is the owner's call). The client redraws on either.
+* Every address saved is a new row: editing «4F» to «5B» leaves the old one stored and unlisted
+  (B-15's findings, B-40).

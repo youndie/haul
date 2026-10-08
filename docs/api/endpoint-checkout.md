@@ -15,10 +15,10 @@ parent_feature: feature-checkout
 
 # API: Checkout and placement
 
-> The checkout routes exist since B-14, placement since B-16; both are described as the code has
-> them. There are no route classes in `shared`: the paths are the server's strings (`CheckoutPaths`
+> The checkout routes exist since B-14, placement since B-16 (held with the button since B-39 and
+> B-42); the client's commands since B-15. All are described as the code has them. There are no route classes in `shared`: the paths are the server's strings (`CheckoutPaths`
 > in `CheckoutRouting.kt`), handed to the client inside the tree — `DeliveryMethods.url`,
-> `CheckoutAddress.url` and `choiceUrl`, `DeliverySlots.url`, `PickupPoints.url`,
+> `CheckoutAddress.url`, `DeliverySlots.url`, `PickupPoints.url`,
 > `PaymentMethods.url`, `CheckoutSummary.placeUrl` — and the contract is the command bodies
 > (`shared/src/commonMain/kotlin/io/github/youndie/haul/feature/checkout/CheckoutCommands.kt`), the
 > components (`shared/src/commonMain/kotlin/io/github/youndie/haul/ui/CheckoutComponents.kt`) and
@@ -70,18 +70,32 @@ Not copied here; what the server does with them:
 * **Ways to pay** — `card-4821` (approved by the simulator), `card-0002` («Test card: always
   declined»), `haul_pay` (totals from $50 to $2,000, «4 payments of …»), `pay_on_delivery` (not for a
   parcel locker). There is no card form.
-* **`PlaceOrderRequest`** and **`Idempotency-Key`** — checked in this order: no key, or a blank one,
-  is `400 idempotency_key_missing`; one over 128 characters `400 validation_failed`. A key whose saga
-  exists answers that saga — the same order for the same request (whatever the cart holds now),
-  `409 idempotency_key_reused` for a different one. Otherwise checkout computes the quote again: a
-  chosen window that filled is `409 slot_unavailable`, a fingerprint that is no longer the quote's
-  `409 cart_changed`, an incomplete quote `400 validation_failed` (field `quote`). Only then is the
-  key claimed, so a refused placement does not spend it. **The key is per quote**: a new quote under
+* **`PlaceOrderRequest`** and **`Idempotency-Key`** — checked in this order (`Placement.place`): no
+  key, or a blank one, is `400 idempotency_key_missing`; one over 128 characters `400
+  validation_failed`. A key whose saga exists answers that saga — the same order for the same request
+  (whatever the cart or the checkout holds now, a refused address form included), `409
+  idempotency_key_reused` for a different one. Otherwise checkout computes the quote again: nothing
+  selected is `409 cart_empty`, a chosen window that filled `409 slot_unavailable`, a fingerprint that
+  is no longer the quote's `409 cart_changed`; then the button's own rule (`CheckoutState.placeable`):
+  a complete quote held by a refused address form while the method is courier is `409
+  checkout_held` (no `field`: nothing in the request is at fault), an incomplete quote `400
+  validation_failed` (field `quote`). Only then is the key claimed, so a refused placement does not
+  spend it: the same request under the same key places once the hold is lifted. **The key is per quote**: a new quote under
   an old key is refused, so the client generates one per quote it places.
 * **The answer** — `202` with `NavigateAction("/orders/{id}")` (`HL-` and a number from 48302) for a
   placed order **and** for one the saga cancelled because the card was declined; the order's status
   says which. Stock that ran out inside the saga is `409 out_of_stock`, a window that filled inside the
   saga `409 slot_unavailable`; both take nothing.
+
+## The client
+
+Every press on the page is a `CheckoutCommand`
+(`composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/checkout/CheckoutCommandsClient.kt`):
+`Choose` (`PUT` a `CheckoutChoice` to the component's `url`), `SaveAddress` (`POST` an `AddressEntry`
+to `CheckoutAddress.url`, sent when the shopper leaves the form and only when it changed), `Place`
+(`POST` a `PlaceOrderRequest` to `CheckoutSummary.placeUrl` under `Idempotency-Key`, one key per
+quote, remembered per fingerprint). They go through `Identity.send`; a `refresh` fetches the tree
+again, a refusal of any code — an unknown one too — redraws the checkout, a `navigate` is followed.
 
 ## Quirks
 
@@ -90,8 +104,8 @@ Not copied here; what the server does with them:
   see [endpoint-orders](endpoint-orders.md).
 * Placement runs the saga inside the request; a saga that failed and was undone (not a refusal) is
   answered `500 internal`.
-* Points (`CheckoutSummary.redeem`, «Use N points») are not in the quote and nothing answers
-  `points_balance_changed` (B-23).
+* Points («Use N points», `PaymentMethods.points`) are not in the quote, the server sends no toggle,
+  and nothing answers `points_balance_changed` (B-23).
 * `GET /ui/checkout` with no selected line is `409 cart_empty`, not an empty checkout.
 
 ## Errors
@@ -103,7 +117,7 @@ Every refusal is an `ErrorBody`; a body that does not parse as the command's JSO
 |---|---|
 | `GET` `/ui/checkout` | `401` unauthenticated, `409` cart_empty |
 | `PUT` `/api/v1/me/checkout` | `400` validation_failed (no field given; a point not of the method given; an unknown way to pay; `body`), `401` unauthenticated, `404` slot_not_found / pickup_point_not_found / address_not_found (another customer's included), `409` slot_unavailable / cart_empty, `422` payment_method_not_allowed |
-| `POST` `/api/v1/orders` | `400` idempotency_key_missing, `400` validation_failed (field `Idempotency-Key`, `quote` or `body`), `401` unauthenticated, `409` idempotency_key_reused / cart_changed / slot_unavailable / out_of_stock / cart_empty, `500` internal (a saga that failed and was undone). A declined card is not an error: `202` to the cancelled order |
+| `POST` `/api/v1/orders` | `400` idempotency_key_missing, `400` validation_failed (field `Idempotency-Key`, `quote` or `body`), `401` unauthenticated, `409` idempotency_key_reused / cart_changed / slot_unavailable / out_of_stock / cart_empty, `409` checkout_held (a refused address form while the method is courier), `500` internal (a saga that failed and was undone). A declined card is not an error: `202` to the cancelled order |
 
 Tests: `server/src/test/kotlin/io/github/youndie/haul/feature/checkout/CheckoutRoutesTest.kt`,
 `server/src/test/kotlin/io/github/youndie/haul/feature/checkout/CheckoutQuoteTest.kt`,

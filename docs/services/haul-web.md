@@ -14,12 +14,11 @@ publishes:
 
 # Haul web storefront
 
-> Describes the module as it stands after B-37: the app loads its screens from the server and
+> Describes the module as it stands after B-15: the app loads its screens from the server and
 > navigates between them (B-35), signs in through shildik and keeps the guest id (B-12), draws product
-> photos (B-30) and the cart with its commands (B-13), and follows the controls' actions (B-37); the
-> renderers of the browse, product, search and cart screens are checked against the canvas. The
-> checkout's renderers (B-15), the order page (B-18), the account (B-19) and saved lists (B-20) are
-> *target*.
+> photos (B-30), the cart (B-13) and the checkout (B-15) with their commands, and follows the controls'
+> actions (B-37); the renderers of the browse, product, search, cart and checkout screens are checked
+> against the canvas. The order page (B-18), the account (B-19) and saved lists (B-20) are *target*.
 
 ## 1. Responsibility
 
@@ -45,7 +44,7 @@ fee or a delivery date, or keep any state the server owns.
 
 | File | What is there |
 |---|---|
-| `composeApp/src/wasmJsMain/kotlin/io/github/youndie/haul/Main.kt` | the bundle's entry point: one Ktor `HttpClient(Js)` to this origin, the photo loader, `Identity`, the screen transport and the two command seams |
+| `composeApp/src/wasmJsMain/kotlin/io/github/youndie/haul/Main.kt` | the bundle's entry point: one Ktor `HttpClient(Js)` to this origin, the photo loader, `Identity`, the screen transport and the command seams (`ktorCartCommands`, `ktorCommands`, `ktorCheckoutCommands`) |
 | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/App.kt` | the root: the theme at the page's width around `Storefront` |
 | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Storefront.kt` | the shell: the address, history, each page's Loading and failure, the search field and its suggest panel, the one ticking clock, `LocalScreenRefresh` |
 | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Navigation.kt` | `Address` (the address ↔ the tree under `/ui`), `PageKind` read off `StorefrontPage`, `BrowserHistory` |
@@ -54,7 +53,7 @@ fee or a delivery date, or keep any state the server owns.
 | `composeApp/src/wasmJsMain/kotlin/io/github/youndie/haul/shell/WindowHistory.kt` | `history.pushState` / `popstate` |
 | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/theme/` | colour roles and the four bundled fonts (`composeApp/src/commonMain/composeResources/font/`) |
 | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/registry/` | the renderer registry (`haulRegistry()`, which also provides `LocalHaulActions` around every Haul renderer) |
-| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/` | the renderers of `catalog/`, `home/`, `product/`, `search/`, `cart/` (with `CartCommands`); `identity/` |
+| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/` | the renderers of `catalog/`, `home/`, `product/`, `search/`, `cart/` (with `CartCommands`), `checkout/` (`CheckoutViews.kt`, with `CheckoutCommandsClient.kt`); `identity/` |
 | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/ui/` | shared views: the header, cards, `Links.kt` (following an action), `LinkMenu.kt` (the sort and «Catalog» menus), `ProductPhoto.kt` (the photo over the placeholder tile) |
 | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/` | `Identity`, `IdentityApi`, `SignInActions`, `Session` |
 | `composeApp/src/wasmJsMain/kotlin/io/github/youndie/haul/feature/identity/` | `OidcSignInFlow` (kotlin-multiplatform-oidc, the popup) and `BrowserSessionStore` (guest id in `localStorage`, tokens in `sessionStorage`) |
@@ -66,8 +65,8 @@ fee or a delivery date, or keep any state the server owns.
 * **wasmJs ships, `jvm("desktop")` tests.** The same renderers run on both; the desktop target
   draws the screenshots that `viddikDesignParity` compares with the references.
 * **A fixture is a recorded server body** for the sample data (*hypothesis*, research risk 3), so a
-  screenshot tests the tree and the renderer together; the cart's six bodies are held equal to what
-  the server builds (`CartFixturesTest`).
+  screenshot tests the tree and the renderer together; the cart's six bodies and the checkout's are held
+  equal to what the server builds (`CartFixturesTest`, `CheckoutFixturesTest`).
 * **The theme is written from the canvas's roles**, not from the pictures (research §1.6).
 * **The shell is kompot's runtime** (B-35): `KompotScreenLoader` loads each address (Loading, Failed
   with retry), `KompotScreen` draws it, `withRefresh` answers kompot's `refresh`. The browser's
@@ -89,8 +88,10 @@ fee or a delivery date, or keep any state the server owns.
   that returns to `signed-in.html`, keeps the tokens, merges the guest cart and the screen is drawn
   again in place.
 * **Commands**: the cart's presses are `CartCommand`s (`feature/cart/CartCommands.kt`), and a card's
-  «+» is one too; «Clear» on recent searches is `HaulCommands`. Both go through `Identity.send`, and
-  the answer (`refresh`) redraws the screen.
+  «+» is one too; the checkout's are `CheckoutCommand`s (`feature/checkout/CheckoutCommandsClient.kt`:
+  `Choose`, `SaveAddress`, `Place` under one idempotency key per quote); «Clear» on recent searches is
+  `HaulCommands`. All go through `Identity.send`, and the answer (`refresh`, a refusal included)
+  redraws the screen; placement's `navigate` is followed.
 * **Photos**: a `PhotoLoader` composition local draws the stored photo over the placeholder tile on
   cards, the product photo and the first gallery thumbnail; the app's loader is Coil 3 over the same
   Ktor client (its own fetcher and disk cache off); the default loads nothing, so every fixture draws
@@ -137,7 +138,8 @@ it draws no screen; to see screens, serve the distribution from a running server
 * Several drawn controls carry no action yet: the product page's «Add to cart» and «Buy now», home's
   «All N categories», the brand facet's «Show N more», the filter sheet's ×, a recent search's own
   row, the header strip's links, the footer, the heart (B-20), «Orders» (B-18) — B-37's findings.
-* `/checkout`, `/account` and `/deals` are `PageKind.Other`: a pending header while loading, the
-  generic error page on failure.
+* `/account` and `/deals` are `PageKind.Other`: a pending header while loading, the generic error
+  page on failure. `/checkout` has its own (`CheckoutLoading`, `CheckoutError`), and a guest's `401`
+  there is drawn as that error, not as a sign-in.
 * The desktop app's own browser pane opens the sign-in popup in the same tab, so the flow cannot
   finish there.
