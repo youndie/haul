@@ -3,6 +3,7 @@ package io.github.youndie.haul
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
 import io.github.youndie.haul.feature.cart.ktorCartCommands
+import io.github.youndie.haul.feature.checkout.ktorCheckoutCommands
 import io.github.youndie.haul.feature.identity.BrowserSessionStore
 import io.github.youndie.haul.feature.identity.Identity
 import io.github.youndie.haul.feature.identity.IdentityApi
@@ -18,8 +19,8 @@ import kotlinx.browser.window
 
 /**
  * The bundle's entry point: the whole page is the storefront. The server serves the page, so every
- * request — the photos, the screens' trees, the cart's commands, sign-in's merge — goes over one
- * client, the browser's fetch, to this origin; the screens' and the cart's through [Identity.send],
+ * request — the photos, the screens' trees, the cart's and the checkout's commands, sign-in's merge —
+ * goes over one client, the browser's fetch, to this origin; the screens' and the commands' through [Identity.send],
  * which adds the bearer token or the guest id. The sign-in returns to `signed-in.html` beside the bundle, the address the realm's client
  * registers.
  */
@@ -37,7 +38,16 @@ public fun main() {
     val transport = ktorTransport(http, origin, identity::send)
     val cartCommands = ktorCartCommands(http, origin, identity::send)
     val commands = ktorCommands(http, origin, identity::send)
+    val checkoutCommands = ktorCheckoutCommands(http, origin, identity::send)
     ComposeViewport(document.body!!) {
-        App(photos, transport, WindowHistory, identity, cartCommands = cartCommands, commands = commands)
+        App(
+            photos,
+            transport,
+            WindowHistory,
+            identity,
+            cartCommands = cartCommands,
+            commands = commands,
+            checkoutCommands = checkoutCommands,
+        )
     }
 }

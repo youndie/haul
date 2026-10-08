@@ -51,15 +51,18 @@ class AddressTest {
         assertEquals(PageKind.Other, Address("/p/p-1/reviews").kind)
         assertEquals(PageKind.Other, Address("/c/").kind)
         assertEquals(PageKind.Other, Address("/search/extra").kind)
-        // The cart draws its own placeholders and failure (B-13); checkout and the account do not yet.
+        // The cart and the checkout draw their own placeholders and failure (B-13, B-15); the account not yet.
         assertEquals(PageKind.Cart, Address("/cart").kind)
         assertEquals(PageKind.Other, Address("/cart/x").kind)
+        assertEquals(PageKind.Checkout, Address("/checkout").kind)
+        assertEquals(PageKind.Other, Address("/checkout/x").kind)
         assertEquals(PageKind.Other, Address("/account").kind)
         // The deals page (B-37) is a page a reload opens, drawn with the shell's own placeholders.
         assertEquals("/ui/deals?page=2", Address("/deals?page=2").screen)
         assertEquals(PageKind.Other, Address("/deals").kind)
         assertEquals(PageKind.Other, Address("/deals/today").kind)
         assertEquals("/ui/cart", Address("/cart").screen)
+        assertEquals("/ui/checkout", Address("/checkout").screen)
     }
 
     @Test

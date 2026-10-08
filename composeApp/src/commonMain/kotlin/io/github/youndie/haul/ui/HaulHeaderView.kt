@@ -402,7 +402,7 @@ private fun DeliverTo(
 }
 
 @Composable
-private fun Logo(
+internal fun Logo(
     size: Float,
     dot: Dp,
     dotMargin: Dp,

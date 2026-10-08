@@ -28,6 +28,12 @@ public object HaulIcons {
     public val retry: ImageVector = stroked("retry", 2.4f, "M20 11a8 8 0 1 0-2.3 5.7", "M20 4v7h-7")
     public val clock: ImageVector = stroked("clock", 2.2f, circle(12f, 12f, 8f), "M12 8v4l3 2")
     public val alert: ImageVector = stroked("alert", 2.4f, circle(12f, 12f, 9f), "M12 7.5v5.5M12 16.5v.2")
+    public val lock: ImageVector =
+        stroked("lock", 2.2f, roundedRect(5f, 11f, 14f, 10f, 2f), "M8 11V8a4 4 0 0 1 8 0v3")
+
+    /** The spinner's track and its arc, drawn apart because the canvas strokes them in two colours. */
+    public val spinnerTrack: ImageVector = stroked("spinner-track", 3f, circle(12f, 12f, 9f))
+    public val spinnerArc: ImageVector = stroked("spinner-arc", 3f, "M12 3a9 9 0 0 1 9 9")
     public val filters: ImageVector = stroked("filters", 2.4f, "M4 6h16M7 12h10M10 18h4")
     public val share: ImageVector = stroked("share", 2f, "M12 15V3M7 8l5-5 5 5M5 14v6h14v-6")
     public val chevronRight: ImageVector = stroked("chevron-right", 2.4f, "M9 6l6 6-6 6")
