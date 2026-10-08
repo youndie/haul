@@ -1,7 +1,7 @@
 ---
 id: B-21
 title: "server + client: returns and refunds"
-status: open
+status: wip
 priority: P2
 size: M
 stage: stage-6-account
