@@ -52,11 +52,11 @@ internal class DealsScreen(
                     accent = "day",
                 )
             sections +=
-                ProductGrid("deals", dealCards(catalog, calendar, photos, viewer.inCart), columns = DEAL_COLUMNS)
+                ProductGrid("deals", dealCards(catalog, calendar, photos, viewer), columns = DEAL_COLUMNS)
         }
         sections += SectionHeader("sale-title", "On sale", accent = "sale")
         sections +=
-            ProductGrid("grid", shown.items.map { card(it, calendar, photos, viewer.inCart) }, columns = GRID_COLUMNS)
+            ProductGrid("grid", shown.items.map { card(it, calendar, photos, viewer) }, columns = GRID_COLUMNS)
         sections += pagination(shown) { if (it > 1) "${Frame.DEALS}?page=$it" else Frame.DEALS }
         return Frame.page("deals", viewer, navigation(categories), sections, footer = true)
     }

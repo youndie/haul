@@ -8,6 +8,7 @@ import io.github.youndie.haul.feature.order.data.orderTables
 import io.github.youndie.haul.feature.payment.data.paymentTables
 import io.github.youndie.haul.feature.returns.data.returnTables
 import io.github.youndie.haul.feature.reviews.data.reviewTables
+import io.github.youndie.haul.feature.saved.data.savedTables
 import io.github.youndie.haul.feature.search.data.searchTables
 import io.github.youndie.haul.testing.PostgresHarness
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -110,6 +111,19 @@ class SchemaTest {
             }
         assertEquals(emptyList(), required, "still required:\n" + required.joinToString("\n"))
         assertEquals(4, reviewTables.size)
+    }
+
+    /** V18's Saved list against its Exposed declaration. */
+    @Test
+    fun `the migrated schema needs no further DDL for the saved tables`() {
+        val required =
+            PostgresHarness.freshDatabase().use {
+                transaction(Databases.connect(it)) {
+                    MigrationUtils.statementsRequiredForDatabaseMigration(*savedTables.toTypedArray())
+                }
+            }
+        assertEquals(emptyList(), required, "still required:\n" + required.joinToString("\n"))
+        assertEquals(1, savedTables.size)
     }
 
     /** The guard on the guard: an empty table list also needs no DDL. */

@@ -20,9 +20,10 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlin.coroutines.cancellation.CancellationException
 
-// The cart's commands as the client sends them (endpoint-cart): each goes where the tree's component
-// says — `CartLine.url`, `CartSelection.linesUrl`, `PromoField.url` — with a body from the contract, and
-// the server answers kompot's `refresh`, which the renderer hands to the screen's action handler.
+// The cart's commands as the client sends them (endpoint-cart) — and the Saved list's (endpoint-saved,
+// B-20), which go through the same seam: each goes where the tree's component says — `CartLine.url`,
+// `CartSelection.linesUrl`, `PromoField.url`, a card's heart — with a body from the contract, and the
+// server answers kompot's `refresh`, which the renderer hands to the screen's action handler.
 
 /** One command, with the URL the tree gave it and its body. */
 public sealed interface CartCommand {
@@ -61,6 +62,20 @@ public sealed interface CartCommand {
      * the cart, answered with `navigate` to it rather than `refresh`.
      */
     public data class Reorder(
+        override val url: String,
+    ) : CartCommand
+
+    /**
+     * The heart (B-20), as the tree fixed it (`SaveCommand`): `PUT` to the product's address in the Saved
+     * list when [save], `DELETE` otherwise; answered `refresh`, which draws the heart as it now is.
+     */
+    public data class Heart(
+        override val url: String,
+        val save: Boolean,
+    ) : CartCommand
+
+    /** «Save for later» on a line (B-20), `POST` to `CartLine.saveUrl`: the line moves to the Saved list. */
+    public data class SaveForLater(
         override val url: String,
     ) : CartCommand
 }
@@ -156,6 +171,8 @@ private fun CartCommand.request(): Pair<HttpMethod, String?> =
         is CartCommand.ApplyPromo -> HttpMethod.Put to haulJson.encodeToString(PromoEntry.serializer(), entry)
         is CartCommand.RemovePromo -> HttpMethod.Delete to null
         is CartCommand.Reorder -> HttpMethod.Post to null
+        is CartCommand.Heart -> (if (save) HttpMethod.Put else HttpMethod.Delete) to null
+        is CartCommand.SaveForLater -> HttpMethod.Post to null
     }
 
 @Suppress(

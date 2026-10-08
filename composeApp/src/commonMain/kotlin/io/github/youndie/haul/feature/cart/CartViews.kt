@@ -349,7 +349,10 @@ private fun Tile(
     Box(Modifier.size(size).background(toneColor(line.tone), RoundedCornerShape(radius)).follows(line.action))
 }
 
-/** «Save for later» (B-20: drawn, no command yet) and «Remove». */
+/**
+ * «Save for later» — a customer's moves the line to the Saved list (`CartLine.saveUrl`, B-20), a guest's
+ * is the way to sign in (`CartLine.saveAction`) — and «Remove».
+ */
 @Composable
 private fun LineActions(
     line: CartLine,
@@ -359,7 +362,17 @@ private fun LineActions(
 ) {
     val style = HaulType.text(14f, 500).copy(color = HaulColors.outline)
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text(line.saveLabel, style, softWrap = false)
+        val save = line.saveUrl
+        Text(
+            line.saveLabel,
+            style,
+            if (save != null) {
+                Modifier.testTag(lineTag("save", line)).pressable { onCommand(listOf(CartCommand.SaveForLater(save))) }
+            } else {
+                Modifier.testTag(lineTag("save", line)).follows(line.saveAction)
+            },
+            softWrap = false,
+        )
         Text(
             line.removeLabel,
             style,

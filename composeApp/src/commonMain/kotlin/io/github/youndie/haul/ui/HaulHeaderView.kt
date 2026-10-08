@@ -235,7 +235,8 @@ private fun WideHeader(
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
             // «Orders» goes where the tree says (`HaulHeader.orders`): a customer's orders, a guest's sign-in.
             Shortcut(HaulIcons.box, "Orders", modifier = Modifier.follows(header.orders))
-            Shortcut(HaulIcons.heart, "Saved")
+            // «Saved» likewise (`HaulHeader.saved`, B-20): a customer's Saved list, a guest's sign-in.
+            Shortcut(HaulIcons.heart, "Saved", modifier = Modifier.follows(header.saved))
             when {
                 pending -> Shortcut(HaulIcons.person) { Skeleton(Modifier.width(40.dp).height(10.dp), 5.dp) }
                 header.customerName == null -> Shortcut(HaulIcons.person, "Sign in", weight = 700, modifier = account)
@@ -290,7 +291,7 @@ private fun CompactHeader(
         Logo(size = 34f, dot = 9.dp, dotMargin = 2.dp, modifier = Modifier.pressable(LocalLogoAction.current))
         Spacer(Modifier.weight(1f))
         Box(
-            Modifier.size(44.dp),
+            Modifier.follows(header.saved).size(44.dp),
             contentAlignment = Alignment.Center,
         ) { Icon(HaulIcons.heart, 24.dp, HaulColors.onSurface) }
         when {

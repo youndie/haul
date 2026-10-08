@@ -262,6 +262,10 @@
             "orders": {
                 "type": "navigate",
                 "deeplink": "/sign-in"
+            },
+            "saved": {
+                "type": "navigate",
+                "deeplink": "/sign-in"
             }
         },
         {
@@ -304,6 +308,10 @@
                             "action": {
                                 "type": "navigate",
                                 "deeplink": "/p/p-sony-wh-1000xm6"
+                            },
+                            "saveAction": {
+                                "type": "navigate",
+                                "deeplink": "/sign-in"
                             }
                         }
                     ]
@@ -331,6 +339,10 @@
                             "action": {
                                 "type": "navigate",
                                 "deeplink": "/p/p-linen-duvet-cover-set"
+                            },
+                            "saveAction": {
+                                "type": "navigate",
+                                "deeplink": "/sign-in"
                             }
                         },
                         {
@@ -350,6 +362,10 @@
                             "action": {
                                 "type": "navigate",
                                 "deeplink": "/p/p-stoneware-mug"
+                            },
+                            "saveAction": {
+                                "type": "navigate",
+                                "deeplink": "/sign-in"
                             }
                         }
                     ]

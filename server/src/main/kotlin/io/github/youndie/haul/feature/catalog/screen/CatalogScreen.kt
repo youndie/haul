@@ -109,7 +109,7 @@ internal class CatalogScreen(
                     grid =
                         ProductGrid(
                             "grid",
-                            page.items.map { card(it, calendar, photos, viewer.inCart) },
+                            page.items.map { card(it, calendar, photos, viewer) },
                             columns = GRID_COLUMNS,
                         ),
                     pagination = pagination(page, url::page),

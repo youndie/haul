@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import io.github.youndie.haul.feature.order.StepColumns
+import io.github.youndie.haul.feature.saved.SavedListView
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
@@ -71,9 +72,10 @@ import kotlin.math.roundToInt
 // The Account screen (screen-account): the frame's header, then the profile and the menu in a column of
 // their own at 1440 — a profile row and three tabs on a phone — beside the page: the overview's tiles,
 // active orders and recent history, or the whole history under its filter. The numbers are the artboards'
-// (Account_Content, _NotMember, _Orders, _NoOrders and their _Phone twins). Links follow the tree's
-// actions; «Reorder» on a row is a command for the renderer to send. The page lays out on the browser's
-// fractional line boxes ([CssColumn]), as the order page does: a phone column is long enough to drift.
+// (Account_Content, _NotMember, _Orders, _NoOrders and their _Phone twins; the Saved list's, B-20, are
+// `feature/saved/SavedViews.kt`'s). Links follow the tree's actions; «Reorder» on a row is a command for
+// the renderer to send. The page lays out on the browser's fractional line boxes ([CssColumn]), as the
+// order page does: a phone column is long enough to drift.
 
 /** The account under the header. [onReorder] sends a row's «Reorder» (`HistoryRow.reorderUrl`). */
 @Composable
@@ -116,18 +118,39 @@ private fun Main(
     val title = remember { CssBox() }
     val size = if (compact) 56f else 112f
     CssColumn(modifier, gap = if (compact) 32.dp else 40.dp, box = box) {
-        Text(
-            accented(body.title, body.accent),
-            Modifier.cssLines(title, (size * TITLE_LEADING).dp),
-            style =
-                HaulType.display(
-                    size,
-                    800,
-                    letterSpacing = if (compact) -0.01f else -0.03f,
-                    lineHeight = TITLE_LEADING,
-                ),
-            softWrap = false,
-        )
+        val heading =
+            @Composable { textModifier: Modifier ->
+                Text(
+                    accented(body.title, body.accent),
+                    textModifier.cssLines(title, (size * TITLE_LEADING).dp),
+                    style =
+                        HaulType.display(
+                            size,
+                            800,
+                            letterSpacing = if (compact) -0.01f else -0.03f,
+                            lineHeight = TITLE_LEADING,
+                        ),
+                    softWrap = false,
+                )
+            }
+        val count = body.count
+        if (count == null) {
+            heading(Modifier)
+        } else {
+            // «Saved 48»: the count in an Acid pill at the title's top, `margin-top: 10px` (6 on a phone).
+            Row(Modifier.css(title), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                heading(Modifier)
+                Text(
+                    count,
+                    HaulType.label(14f, 600, 0f),
+                    Modifier
+                        .padding(top = if (compact) 6.dp else 10.dp)
+                        .background(HaulColors.secondaryContainer, CircleShape)
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    softWrap = false,
+                )
+            }
+        }
         if (body.tiles.isNotEmpty()) Tiles(body.tiles)
         body.active?.let { Active(it) }
         body.history?.let { history ->
@@ -140,6 +163,7 @@ private fun Main(
                 history.none?.let { Note(it) }
             }
         }
+        body.saved?.let { SavedListView(it) }
     }
 }
 
@@ -436,7 +460,7 @@ private fun Active(active: ActiveOrders) {
 
 /** A sentence on a white card: «No active orders right now.» */
 @Composable
-private fun Note(
+internal fun Note(
     text: String,
     modifier: Modifier = Modifier,
 ) {
@@ -627,10 +651,15 @@ private fun Filters(filters: List<HistoryFilter>) {
 /**
  * A chip: the label and its count in mono; the one shown on Ink with an Acid count, the others outlined.
  * The flex row stretches the one without a border to its neighbours' height: its text keeps its padding
- * at the top, and the two pixels the borders add go under it.
+ * at the top, and the two pixels the borders add go under it. The history's chips are smaller on a phone
+ * ([horizontal], [vertical]); the Saved list's keep the desktop's padding.
  */
 @Composable
-private fun Chip(filter: HistoryFilter) {
+internal fun Chip(
+    filter: HistoryFilter,
+    horizontal: Dp = if (LocalHaulCompact.current) 16.dp else 18.dp,
+    vertical: Dp = if (LocalHaulCompact.current) 10.dp else 11.dp,
+) {
     val compact = LocalHaulCompact.current
     val shape = CircleShape
     val size = if (compact) 14f else 15f
@@ -661,10 +690,10 @@ private fun Chip(filter: HistoryFilter) {
                 },
             ).follows(filter.action)
             .padding(
-                start = if (compact) 16.dp else 18.dp,
-                end = if (compact) 16.dp else 18.dp,
-                top = if (compact) 10.dp else 11.dp,
-                bottom = (if (compact) 10.dp else 11.dp) + (if (filter.selected) 2.dp else 0.dp),
+                start = horizontal,
+                end = horizontal,
+                top = vertical,
+                bottom = vertical + (if (filter.selected) 2.dp else 0.dp),
             ),
         style =
             normal(size, if (filter.selected) 600 else 500)

@@ -904,26 +904,70 @@ public fun AccountError(onRetry: () -> Unit = {}) {
 @Composable
 public fun AccountLoading() {
     val compact = LocalHaulCompact.current
-    Column(Modifier.fillMaxWidth()) {
-        HaulHeaderView(SHELL_HEADER, pending = true)
-        val main: @Composable (Modifier) -> Unit = { modifier ->
-            Column(modifier, verticalArrangement = Arrangement.spacedBy(if (compact) 32.dp else 40.dp)) {
-                Skeleton(Modifier.size(if (compact) 200.dp else 420.dp, if (compact) 50.dp else 96.dp), 12.dp)
-                if (compact) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) { repeat(3) { AccountTileSkeleton(Modifier.fillMaxWidth()) } }
-                } else {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    ) { repeat(3) { AccountTileSkeleton(Modifier.weight(1f)) } }
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Skeleton(Modifier.size(240.dp, 36.dp), 8.dp)
-                    repeat(2) { AccountOrderSkeleton() }
-                }
+    AccountPageLoading { modifier ->
+        Column(modifier, verticalArrangement = Arrangement.spacedBy(if (compact) 32.dp else 40.dp)) {
+            Skeleton(Modifier.size(if (compact) 200.dp else 420.dp, if (compact) 50.dp else 96.dp), 12.dp)
+            if (compact) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) { repeat(3) { AccountTileSkeleton(Modifier.fillMaxWidth()) } }
+            } else {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) { repeat(3) { AccountTileSkeleton(Modifier.weight(1f)) } }
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Skeleton(Modifier.size(240.dp, 36.dp), 8.dp)
+                repeat(2) { AccountOrderSkeleton() }
             }
         }
+    }
+}
+
+/**
+ * The Saved list before its tree (Saved_Loading, B-20): the account's profile and menu, the title, the two
+ * chips and twelve cards as placeholders — four to a row at 1440, two on a phone.
+ */
+@Composable
+public fun SavedLoading() {
+    val compact = LocalHaulCompact.current
+    AccountPageLoading { modifier ->
+        Column(modifier, verticalArrangement = Arrangement.spacedBy(if (compact) 32.dp else 40.dp)) {
+            Skeleton(Modifier.size(if (compact) 180.dp else 320.dp, if (compact) 50.dp else 96.dp), 12.dp)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(90, 170).forEach { Skeleton(Modifier.size(it.dp, 44.dp), 22.dp) }
+            }
+            if (compact) {
+                Grid(columns = 2, count = 12, columnGap = 12.dp, rowGap = 28.dp) { CardSkeleton(it) }
+            } else {
+                Grid(columns = 4, count = 12, columnGap = 24.dp, rowGap = 40.dp) { CardSkeleton(it) }
+            }
+        }
+    }
+}
+
+/** A failed Saved list (Saved_Error): «Saved didn’t *load*», and Retry. */
+@Composable
+public fun SavedError(onRetry: () -> Unit = {}) {
+    ErrorPage(
+        { HaulHeaderView(SHELL_HEADER, pending = true) },
+        accented("Saved didn’t load", "load"),
+        ShellFailure.Server.message,
+        // `text-wrap: balance`: one line at 1440, «Saved / didn’t load» on a phone.
+        balanced = true,
+        onRetry = onRetry,
+    )
+}
+
+/**
+ * An account page before its tree: the pending header, the profile and the menu — on a phone the profile
+ * row and three tabs above the page — and the page's own placeholders, [main].
+ */
+@Composable
+private fun AccountPageLoading(main: @Composable (Modifier) -> Unit) {
+    val compact = LocalHaulCompact.current
+    Column(Modifier.fillMaxWidth()) {
+        HaulHeaderView(SHELL_HEADER, pending = true)
         if (compact) {
             Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 64.dp)) {
                 Column(Modifier.padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {

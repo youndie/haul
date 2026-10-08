@@ -12,5 +12,5 @@ internal val identityModule =
         single<Guests> { ExposedGuests(get()) }
         single<Customers> { ExposedCustomers(get()) }
         single { Callers(get(), get(), get()) }
-        single { Viewers(get(), get()) }
+        single { Viewers(get(), get(), get()) }
     }

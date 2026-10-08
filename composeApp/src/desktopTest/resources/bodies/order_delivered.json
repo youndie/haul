@@ -263,6 +263,10 @@
             "orders": {
                 "type": "navigate",
                 "deeplink": "/account/orders"
+            },
+            "saved": {
+                "type": "navigate",
+                "deeplink": "/account/saved"
             }
         },
         {

@@ -4,16 +4,18 @@ import io.github.youndie.haul.feature.cart.domain.CartOwner
 import io.github.youndie.haul.feature.cart.domain.CartRepository
 import io.github.youndie.haul.feature.identity.Caller
 import io.github.youndie.haul.feature.identity.Callers
+import io.github.youndie.haul.feature.saved.domain.SavedRepository
 import io.ktor.server.application.ApplicationCall
 
 /**
- * The [Viewer] of a request: a customer's first name and cart, a guest's cart, or nobody's. Every
+ * The [Viewer] of a request: a customer's first name, cart and Saved list, a guest's cart, or nobody's. Every
  * screen's header is drawn from this, so the cart's count is the same on the home page as on the cart
  * (feature-identity: the header's states).
  */
 internal class Viewers(
     private val callers: Callers,
     private val carts: CartRepository,
+    private val saved: SavedRepository,
 ) {
     suspend fun of(call: ApplicationCall): Viewer = of(callers.of(call))
 
@@ -30,7 +32,11 @@ internal class Viewers(
             is Caller.Customer -> {
                 val customer = caller.customer
                 withCart(
-                    Viewer(firstName = customer.firstName, customerId = customer.id),
+                    Viewer(
+                        firstName = customer.firstName,
+                        customerId = customer.id,
+                        saved = saved.productIds(customer.id),
+                    ),
                     CartOwner.Customer(customer.id, customer.plus),
                 )
             }

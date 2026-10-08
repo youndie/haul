@@ -1,6 +1,7 @@
 package io.github.youndie.haul.ui
 
 import io.github.youndie.haul.feature.cart.LineCommand
+import io.github.youndie.haul.feature.saved.SaveCommand
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.KompotModifierNode
@@ -26,7 +27,8 @@ import kotlinx.serialization.Serializable
  * [catalog] is every top-level category with where it goes: «Catalog» opens it as a menu, and each
  * word of the category row ([categories], the first of them) follows the entry of the same name.
  * [deals] is where «Deals» goes, [cart] where the cart button goes, [orders] where «Orders» goes — a
- * customer's orders, a guest's sign-in.
+ * customer's orders, a guest's sign-in — and [saved] where «Saved» goes: a customer's Saved list
+ * (`/account/saved`, B-20), a guest's sign-in.
  */
 @Serializable
 @SerialName("haul_header")
@@ -45,6 +47,7 @@ public data class HaulHeader(
     val deals: @Polymorphic KompotAction? = null,
     val cart: @Polymorphic KompotAction? = null,
     val orders: @Polymorphic KompotAction? = null,
+    val saved: @Polymorphic KompotAction? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
@@ -67,6 +70,11 @@ public data class Link(
  * [add] is what «+» sends: the line change that puts one more of the SKU whose price the card shows
  * into the cart (`PUT`, endpoint-cart). It is absent when the cart already holds as many as can be
  * bought, or the SKU is out of stock.
+ *
+ * The heart (B-20) is drawn filled when the product is in the viewer's Saved list ([saved]). For a
+ * customer it is [heartCommand], the state a press leaves (`PUT` or `DELETE`, endpoint-saved); for a
+ * guest it is [heartAction], the way to sign in. [drop] is the Saved list's mark on a product that got
+ * cheaper since it was saved («Price dropped −$200»), on the Saved list's own cards only.
  */
 @Serializable
 @SerialName("haul_product_card")
@@ -88,5 +96,8 @@ public data class ProductCard(
     /** Where a tap on the card goes: the product page. */
     val action: @Polymorphic KompotAction? = null,
     val add: LineCommand? = null,
+    val heartCommand: SaveCommand? = null,
+    val heartAction: @Polymorphic KompotAction? = null,
+    val drop: String? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent

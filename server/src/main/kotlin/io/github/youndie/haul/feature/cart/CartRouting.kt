@@ -93,6 +93,11 @@ internal object CartPaths {
     fun line(skuId: String): String = "$LINES/$skuId"
 
     fun acknowledge(skuId: String): String = "$LINES/$skuId/acknowledge"
+
+    /** «Save for later» on a line (B-20): the line moves to the customer's Saved list (endpoint-saved). */
+    const val SAVE_FOR_LATER = "$LINES/{skuId}/save-for-later"
+
+    fun saveForLater(skuId: String): String = "$LINES/$skuId/save-for-later"
 }
 
 /** The cart a caller owns: a customer's, a guest's, or none. */

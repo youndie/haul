@@ -14,8 +14,21 @@ import androidx.compose.ui.unit.dp
  */
 public object HaulIcons {
     public val bag: ImageVector = stroked("bag", 2f, "M5 8h14l-1 12H6L5 8z", "M9 8V6a3 3 0 0 1 6 0v2")
-    public val heart: ImageVector =
-        stroked("heart", 2f, "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z")
+    public val heart: ImageVector = stroked("heart", 2f, HEART)
+
+    /** The heart of a saved product: filled and stroked in one colour, as the canvas draws it (`Saved_*`). */
+    public val heartFilled: ImageVector =
+        builder("heart-filled")
+            .apply {
+                addPath(
+                    pathData = addPathNodes(HEART),
+                    fill = SolidColor(Color.Black),
+                    stroke = SolidColor(Color.Black),
+                    strokeLineWidth = 2f,
+                    strokeLineJoin = StrokeJoin.Round,
+                )
+            }.build()
+
     public val person: ImageVector = stroked("person", 2f, circle(12f, 8f, 4f), "M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6")
     public val box: ImageVector = stroked("box", 2f, "M3 7l9-4 9 4v10l-9 4-9-4V7z", "M3 7l9 4 9-4M12 11v10")
     public val search: ImageVector = stroked("search", 2.4f, circle(11f, 11f, 7f), "M20 20l-3.5-3.5")
@@ -78,6 +91,8 @@ public object HaulIcons {
         ).apply { paths.forEach { addPath(pathData = addPathNodes(it), fill = SolidColor(Color.Black)) } }.build()
 
     private fun builder(name: String) = ImageVector.Builder(name, 24.dp, 24.dp, 24f, 24f)
+
+    private const val HEART = "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"
 
     private fun circle(
         cx: Float,

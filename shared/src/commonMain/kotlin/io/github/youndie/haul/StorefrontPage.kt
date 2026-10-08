@@ -43,6 +43,12 @@ public enum class StorefrontPage {
     Orders,
 
     /**
+     * `/account/saved`, the customer's Saved list (B-20), newest first, 24 to a page — the filter and the
+     * page in the query string: `?filter=price-dropped`, `?page=2`.
+     */
+    Saved,
+
+    /**
      * `/account/orders/{orderId}`, one of a customer's orders (B-18): where placement lands and the
      * account's orders lead — under the account, as the page's crumbs say («Account / Orders / #HL-48302»).
      */
@@ -90,6 +96,7 @@ public enum class StorefrontPage {
                     when {
                         rest == 0 -> Account
                         rest == 1 && segments[1] == "orders" -> Orders
+                        rest == 1 && segments[1] == "saved" -> Saved
                         rest == 2 && segments[1] == "orders" -> Order
                         else -> null
                     }

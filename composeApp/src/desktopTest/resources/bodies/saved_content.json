@@ -1,0 +1,674 @@
+{
+    "type": "column",
+    "id": "account",
+    "children": [
+        {
+            "type": "haul_header",
+            "id": "header",
+            "deliverTo": "Brooklyn, NY 11211",
+            "deliveryPromise": "Free delivery over $35",
+            "customerName": "Maya",
+            "cartCount": 3,
+            "searchPlaceholder": "Search 2.4 million products",
+            "categories": [
+                "Electronics",
+                "Home & Kitchen",
+                "Fashion",
+                "Beauty",
+                "Kids & Toys",
+                "Sports",
+                "Grocery",
+                "Auto",
+                "Books",
+                "Pets"
+            ],
+            "account": {
+                "type": "navigate",
+                "deeplink": "/account"
+            },
+            "catalog": [
+                {
+                    "label": "Electronics",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/electronics"
+                    }
+                },
+                {
+                    "label": "Home & Kitchen",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/home-kitchen"
+                    }
+                },
+                {
+                    "label": "Fashion",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/fashion"
+                    }
+                },
+                {
+                    "label": "Beauty",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/beauty"
+                    }
+                },
+                {
+                    "label": "Kids & Toys",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/kids-toys"
+                    }
+                },
+                {
+                    "label": "Sports",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/sports"
+                    }
+                },
+                {
+                    "label": "Grocery",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/grocery"
+                    }
+                },
+                {
+                    "label": "Auto",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/auto"
+                    }
+                },
+                {
+                    "label": "Books",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/books"
+                    }
+                },
+                {
+                    "label": "Pets",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/pets"
+                    }
+                },
+                {
+                    "label": "Garden",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/garden"
+                    }
+                },
+                {
+                    "label": "Office",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/office"
+                    }
+                },
+                {
+                    "label": "Health",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/health"
+                    }
+                },
+                {
+                    "label": "Music",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/music"
+                    }
+                },
+                {
+                    "label": "Movies",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/movies"
+                    }
+                },
+                {
+                    "label": "Games",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/games"
+                    }
+                },
+                {
+                    "label": "Tools",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/tools"
+                    }
+                },
+                {
+                    "label": "Baby",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/baby"
+                    }
+                },
+                {
+                    "label": "Jewelry",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/jewelry"
+                    }
+                },
+                {
+                    "label": "Shoes",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/shoes"
+                    }
+                },
+                {
+                    "label": "Luggage",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/luggage"
+                    }
+                },
+                {
+                    "label": "Crafts",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/crafts"
+                    }
+                },
+                {
+                    "label": "Outdoors",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/outdoors"
+                    }
+                },
+                {
+                    "label": "Party",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/party"
+                    }
+                },
+                {
+                    "label": "Furniture",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/furniture"
+                    }
+                },
+                {
+                    "label": "Lighting",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/lighting"
+                    }
+                },
+                {
+                    "label": "Appliances",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/appliances"
+                    }
+                },
+                {
+                    "label": "Computers",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/computers"
+                    }
+                },
+                {
+                    "label": "Phones",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/phones"
+                    }
+                },
+                {
+                    "label": "Cameras",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/cameras"
+                    }
+                },
+                {
+                    "label": "Watches",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/watches"
+                    }
+                },
+                {
+                    "label": "Bags",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/bags"
+                    }
+                }
+            ],
+            "deals": {
+                "type": "navigate",
+                "deeplink": "/deals"
+            },
+            "cart": {
+                "type": "navigate",
+                "deeplink": "/cart"
+            },
+            "orders": {
+                "type": "navigate",
+                "deeplink": "/account/orders"
+            },
+            "saved": {
+                "type": "navigate",
+                "deeplink": "/account/saved"
+            }
+        },
+        {
+            "type": "haul_account_body",
+            "id": "account",
+            "profile": {
+                "initials": "MK",
+                "tone": "#DFFF3A",
+                "name": "Maya Kowalski",
+                "subtitle": "Plus member since 2023"
+            },
+            "menu": [
+                {
+                    "label": "Overview",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/account"
+                    }
+                },
+                {
+                    "label": "Orders",
+                    "count": "2",
+                    "badge": true,
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/account/orders"
+                    }
+                },
+                {
+                    "label": "Saved",
+                    "count": "48",
+                    "selected": true,
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/account/saved"
+                    }
+                }
+            ],
+            "title": "Saved",
+            "count": "48",
+            "saved": {
+                "filters": [
+                    {
+                        "label": "All",
+                        "count": "48",
+                        "selected": true,
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/account/saved"
+                        }
+                    },
+                    {
+                        "label": "Price dropped",
+                        "count": "6",
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/account/saved?filter=price-dropped"
+                        }
+                    }
+                ],
+                "cards": [
+                    {
+                        "id": "card-p-robot-vacuum-s8",
+                        "productId": "p-robot-vacuum-s8",
+                        "title": "Robot Vacuum S8 with Self-Empty Dock",
+                        "price": "$299",
+                        "oldPrice": "$499",
+                        "badge": "−40%",
+                        "rating": "4.5",
+                        "reviews": "3,377",
+                        "delivery": "Tomorrow",
+                        "tone": "#E0EEF7",
+                        "label": "vacuum",
+                        "saved": true,
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-robot-vacuum-s8"
+                        },
+                        "add": {
+                            "url": "/api/v1/cart/lines/p-robot-vacuum-s8-0",
+                            "change": {
+                                "quantity": 1
+                            }
+                        },
+                        "heartCommand": {
+                            "url": "/api/v1/me/saved/p-robot-vacuum-s8",
+                            "save": false
+                        },
+                        "drop": "Price dropped −$200"
+                    },
+                    {
+                        "id": "card-p-sony-wh-1000xm6",
+                        "productId": "p-sony-wh-1000xm6",
+                        "title": "Sony WH-1000XM6 Wireless Noise Cancelling Headphones",
+                        "price": "$349",
+                        "oldPrice": "$449",
+                        "badge": "−22%",
+                        "rating": "4.8",
+                        "reviews": "2,341",
+                        "delivery": "Tomorrow",
+                        "tone": "#E6E4FF",
+                        "label": "headphones",
+                        "saved": true,
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-sony-wh-1000xm6"
+                        },
+                        "add": {
+                            "url": "/api/v1/cart/lines/p-sony-wh-1000xm6-0",
+                            "change": {
+                                "quantity": 1
+                            }
+                        },
+                        "heartCommand": {
+                            "url": "/api/v1/me/saved/p-sony-wh-1000xm6",
+                            "save": false
+                        },
+                        "drop": "Price dropped −$100"
+                    },
+                    {
+                        "id": "card-p-saved-3",
+                        "productId": "p-saved-3",
+                        "title": "Mechanical Keyboard 75%, Hot-Swappable",
+                        "price": "$119",
+                        "rating": "4.8",
+                        "reviews": "940",
+                        "delivery": "Tomorrow",
+                        "tone": "#ECE9E2",
+                        "label": "keyboard",
+                        "saved": true,
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-saved-3"
+                        },
+                        "add": {
+                            "url": "/api/v1/cart/lines/p-saved-3-0",
+                            "change": {
+                                "quantity": 1
+                            }
+                        },
+                        "heartCommand": {
+                            "url": "/api/v1/me/saved/p-saved-3",
+                            "save": false
+                        }
+                    },
+                    {
+                        "id": "card-p-saved-4",
+                        "productId": "p-saved-4",
+                        "title": "Ceramic Pour-Over Coffee Set",
+                        "price": "$42",
+                        "rating": "4.9",
+                        "reviews": "611",
+                        "delivery": "Thu, Oct 9",
+                        "tone": "#F1EBDD",
+                        "label": "coffee set",
+                        "saved": true,
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-saved-4"
+                        },
+                        "add": {
+                            "url": "/api/v1/cart/lines/p-saved-4-0",
+                            "change": {
+                                "quantity": 1
+                            }
+                        },
+                        "heartCommand": {
+                            "url": "/api/v1/me/saved/p-saved-4",
+                            "save": false
+                        }
+                    },
+                    {
+                        "id": "card-p-saved-5",
+                        "productId": "p-saved-5",
+                        "title": "Smart Watch Series 4, 44 mm, Graphite",
+                        "price": "$229",
+                        "rating": "4.6",
+                        "reviews": "5,410",
+                        "delivery": "Tomorrow",
+                        "tone": "#E6E4FF",
+                        "label": "watch",
+                        "saved": true,
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-saved-5"
+                        },
+                        "add": {
+                            "url": "/api/v1/cart/lines/p-saved-5-0",
+                            "change": {
+                                "quantity": 1
+                            }
+                        },
+                        "heartCommand": {
+                            "url": "/api/v1/me/saved/p-saved-5",
+                            "save": false
+                        }
+                    },
+                    {
+                        "id": "card-p-saved-6",
+                        "productId": "p-saved-6",
+                        "title": "Building Blocks Space Station, 1,200 pcs",
+                        "price": "$35",
+                        "rating": "4.8",
+                        "reviews": "2,702",
+                        "delivery": "Tomorrow",
+                        "tone": "#FFF1C9",
+                        "label": "toy",
+                        "saved": true,
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-saved-6"
+                        },
+                        "add": {
+                            "url": "/api/v1/cart/lines/p-saved-6-0",
+                            "change": {
+                                "quantity": 1
+                            }
+                        },
+                        "heartCommand": {
+                            "url": "/api/v1/me/saved/p-saved-6",
+                            "save": false
+                        }
+                    },
+                    {
+                        "id": "card-p-saved-7",
+                        "productId": "p-saved-7",
+                        "title": "Natural Rubber Yoga Mat, 6 mm",
+                        "price": "$58",
+                        "rating": "4.8",
+                        "reviews": "3,019",
+                        "delivery": "Fri, Oct 10",
+                        "tone": "#E3F5D8",
+                        "label": "yoga mat",
+                        "saved": true,
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-saved-7"
+                        },
+                        "add": {
+                            "url": "/api/v1/cart/lines/p-saved-7-0",
+                            "change": {
+                                "quantity": 1
+                            }
+                        },
+                        "heartCommand": {
+                            "url": "/api/v1/me/saved/p-saved-7",
+                            "save": false
+                        }
+                    },
+                    {
+                        "id": "card-p-bose-qc-ultra",
+                        "productId": "p-bose-qc-ultra",
+                        "title": "Bose QuietComfort Ultra Headphones",
+                        "price": "$379",
+                        "oldPrice": "$429",
+                        "badge": "−12%",
+                        "rating": "4.7",
+                        "reviews": "4,108",
+                        "delivery": "Tomorrow",
+                        "tone": "#ECE9E2",
+                        "label": "headphones",
+                        "saved": true,
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-bose-qc-ultra"
+                        },
+                        "add": {
+                            "url": "/api/v1/cart/lines/p-bose-qc-ultra-0",
+                            "change": {
+                                "quantity": 1
+                            }
+                        },
+                        "heartCommand": {
+                            "url": "/api/v1/me/saved/p-bose-qc-ultra",
+                            "save": false
+                        }
+                    },
+                    {
+                        "id": "card-p-saved-9",
+                        "productId": "p-saved-9",
+                        "title": "Cloudline Daily Trainer, Women's",
+                        "price": "$112",
+                        "rating": "4.8",
+                        "reviews": "2,140",
+                        "delivery": "Tomorrow",
+                        "tone": "#E0EEF7",
+                        "label": "shoes",
+                        "saved": true,
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-saved-9"
+                        },
+                        "add": {
+                            "url": "/api/v1/cart/lines/p-saved-9-0",
+                            "change": {
+                                "quantity": 1
+                            }
+                        },
+                        "heartCommand": {
+                            "url": "/api/v1/me/saved/p-saved-9",
+                            "save": false
+                        }
+                    },
+                    {
+                        "id": "card-p-saved-10",
+                        "productId": "p-saved-10",
+                        "title": "Pace Runner 3 Road Running Shoes, Women's",
+                        "price": "$89",
+                        "oldPrice": "$120",
+                        "badge": "−26%",
+                        "rating": "4.7",
+                        "reviews": "3,514",
+                        "delivery": "Tomorrow",
+                        "tone": "#E0EEF7",
+                        "label": "shoes",
+                        "saved": true,
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-saved-10"
+                        },
+                        "add": {
+                            "url": "/api/v1/cart/lines/p-saved-10-0",
+                            "change": {
+                                "quantity": 1
+                            }
+                        },
+                        "heartCommand": {
+                            "url": "/api/v1/me/saved/p-saved-10",
+                            "save": false
+                        }
+                    },
+                    {
+                        "id": "card-p-saved-11",
+                        "productId": "p-saved-11",
+                        "title": "Tempo Carbon Racing Shoes, Unisex",
+                        "price": "$189",
+                        "rating": "4.6",
+                        "reviews": "702",
+                        "delivery": "Thu, Oct 9",
+                        "tone": "#FFE5DD",
+                        "label": "shoes",
+                        "saved": true,
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-saved-11"
+                        },
+                        "add": {
+                            "url": "/api/v1/cart/lines/p-saved-11-0",
+                            "change": {
+                                "quantity": 1
+                            }
+                        },
+                        "heartCommand": {
+                            "url": "/api/v1/me/saved/p-saved-11",
+                            "save": false
+                        }
+                    },
+                    {
+                        "id": "card-p-sony-mdr-7506",
+                        "productId": "p-sony-mdr-7506",
+                        "title": "Sony MDR-7506 Professional Studio Headphones",
+                        "price": "$99",
+                        "rating": "4.8",
+                        "reviews": "9,215",
+                        "delivery": "Tomorrow",
+                        "tone": "#ECE9E2",
+                        "label": "studio",
+                        "saved": true,
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-sony-mdr-7506"
+                        },
+                        "add": {
+                            "url": "/api/v1/cart/lines/p-sony-mdr-7506-0",
+                            "change": {
+                                "quantity": 1
+                            }
+                        },
+                        "heartCommand": {
+                            "url": "/api/v1/me/saved/p-sony-mdr-7506",
+                            "save": false
+                        }
+                    }
+                ],
+                "pagination": {
+                    "id": "pagination",
+                    "current": 1,
+                    "pages": [
+                        "1",
+                        "2"
+                    ],
+                    "links": [
+                        {
+                            "label": "2",
+                            "action": {
+                                "type": "navigate",
+                                "deeplink": "/account/saved?page=2"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

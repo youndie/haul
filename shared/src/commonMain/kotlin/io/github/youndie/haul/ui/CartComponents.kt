@@ -40,7 +40,9 @@ public data class CartBody(
  * [acknowledgeLabel] the button that accepts it («OK») — `null` on all three when nothing changed.
  *
  * The stepper and the box send a `LineChange` with `PUT` to [url]; «OK» is a `POST` to [acknowledgeUrl];
- * «Remove» is `CartSelection.linesUrl` with this [skuId].
+ * «Remove» is `CartSelection.linesUrl` with this [skuId]. «Save for later» (B-20) moves the line to the
+ * customer's Saved list — a `POST` to [saveUrl], answered `refresh` — and is a guest's way to sign in
+ * ([saveAction]), the Saved list being a customer's.
  */
 @Serializable
 @SerialName("haul_cart_line")
@@ -69,6 +71,8 @@ public data class CartLine(
     val acknowledgeUrl: String? = null,
     /** Where a tap on the tile or the title goes: the product page. */
     val action: @Polymorphic KompotAction? = null,
+    val saveUrl: String? = null,
+    val saveAction: @Polymorphic KompotAction? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 

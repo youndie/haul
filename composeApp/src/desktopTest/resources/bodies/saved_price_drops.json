@@ -1,0 +1,509 @@
+{
+    "type": "column",
+    "id": "account",
+    "children": [
+        {
+            "type": "haul_header",
+            "id": "header",
+            "deliverTo": "Brooklyn, NY 11211",
+            "deliveryPromise": "Free delivery over $35",
+            "customerName": "Maya",
+            "cartCount": 3,
+            "searchPlaceholder": "Search 2.4 million products",
+            "categories": [
+                "Electronics",
+                "Home & Kitchen",
+                "Fashion",
+                "Beauty",
+                "Kids & Toys",
+                "Sports",
+                "Grocery",
+                "Auto",
+                "Books",
+                "Pets"
+            ],
+            "account": {
+                "type": "navigate",
+                "deeplink": "/account"
+            },
+            "catalog": [
+                {
+                    "label": "Electronics",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/electronics"
+                    }
+                },
+                {
+                    "label": "Home & Kitchen",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/home-kitchen"
+                    }
+                },
+                {
+                    "label": "Fashion",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/fashion"
+                    }
+                },
+                {
+                    "label": "Beauty",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/beauty"
+                    }
+                },
+                {
+                    "label": "Kids & Toys",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/kids-toys"
+                    }
+                },
+                {
+                    "label": "Sports",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/sports"
+                    }
+                },
+                {
+                    "label": "Grocery",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/grocery"
+                    }
+                },
+                {
+                    "label": "Auto",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/auto"
+                    }
+                },
+                {
+                    "label": "Books",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/books"
+                    }
+                },
+                {
+                    "label": "Pets",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/pets"
+                    }
+                },
+                {
+                    "label": "Garden",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/garden"
+                    }
+                },
+                {
+                    "label": "Office",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/office"
+                    }
+                },
+                {
+                    "label": "Health",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/health"
+                    }
+                },
+                {
+                    "label": "Music",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/music"
+                    }
+                },
+                {
+                    "label": "Movies",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/movies"
+                    }
+                },
+                {
+                    "label": "Games",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/games"
+                    }
+                },
+                {
+                    "label": "Tools",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/tools"
+                    }
+                },
+                {
+                    "label": "Baby",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/baby"
+                    }
+                },
+                {
+                    "label": "Jewelry",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/jewelry"
+                    }
+                },
+                {
+                    "label": "Shoes",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/shoes"
+                    }
+                },
+                {
+                    "label": "Luggage",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/luggage"
+                    }
+                },
+                {
+                    "label": "Crafts",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/crafts"
+                    }
+                },
+                {
+                    "label": "Outdoors",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/outdoors"
+                    }
+                },
+                {
+                    "label": "Party",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/party"
+                    }
+                },
+                {
+                    "label": "Furniture",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/furniture"
+                    }
+                },
+                {
+                    "label": "Lighting",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/lighting"
+                    }
+                },
+                {
+                    "label": "Appliances",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/appliances"
+                    }
+                },
+                {
+                    "label": "Computers",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/computers"
+                    }
+                },
+                {
+                    "label": "Phones",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/phones"
+                    }
+                },
+                {
+                    "label": "Cameras",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/cameras"
+                    }
+                },
+                {
+                    "label": "Watches",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/watches"
+                    }
+                },
+                {
+                    "label": "Bags",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/bags"
+                    }
+                }
+            ],
+            "deals": {
+                "type": "navigate",
+                "deeplink": "/deals"
+            },
+            "cart": {
+                "type": "navigate",
+                "deeplink": "/cart"
+            },
+            "orders": {
+                "type": "navigate",
+                "deeplink": "/account/orders"
+            },
+            "saved": {
+                "type": "navigate",
+                "deeplink": "/account/saved"
+            }
+        },
+        {
+            "type": "haul_account_body",
+            "id": "account",
+            "profile": {
+                "initials": "MK",
+                "tone": "#DFFF3A",
+                "name": "Maya Kowalski",
+                "subtitle": "Plus member since 2023"
+            },
+            "menu": [
+                {
+                    "label": "Overview",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/account"
+                    }
+                },
+                {
+                    "label": "Orders",
+                    "count": "2",
+                    "badge": true,
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/account/orders"
+                    }
+                },
+                {
+                    "label": "Saved",
+                    "count": "48",
+                    "selected": true,
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/account/saved"
+                    }
+                }
+            ],
+            "title": "Saved",
+            "count": "48",
+            "saved": {
+                "filters": [
+                    {
+                        "label": "All",
+                        "count": "48",
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/account/saved"
+                        }
+                    },
+                    {
+                        "label": "Price dropped",
+                        "count": "6",
+                        "selected": true,
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/account/saved?filter=price-dropped"
+                        }
+                    }
+                ],
+                "cards": [
+                    {
+                        "id": "card-p-robot-vacuum-s8",
+                        "productId": "p-robot-vacuum-s8",
+                        "title": "Robot Vacuum S8 with Self-Empty Dock",
+                        "price": "$299",
+                        "oldPrice": "$499",
+                        "badge": "−40%",
+                        "rating": "4.5",
+                        "reviews": "3,377",
+                        "delivery": "Tomorrow",
+                        "tone": "#E0EEF7",
+                        "label": "vacuum",
+                        "saved": true,
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-robot-vacuum-s8"
+                        },
+                        "add": {
+                            "url": "/api/v1/cart/lines/p-robot-vacuum-s8-0",
+                            "change": {
+                                "quantity": 1
+                            }
+                        },
+                        "heartCommand": {
+                            "url": "/api/v1/me/saved/p-robot-vacuum-s8",
+                            "save": false
+                        },
+                        "drop": "Price dropped −$200"
+                    },
+                    {
+                        "id": "card-p-sony-wh-1000xm6",
+                        "productId": "p-sony-wh-1000xm6",
+                        "title": "Sony WH-1000XM6 Wireless Noise Cancelling Headphones",
+                        "price": "$349",
+                        "oldPrice": "$449",
+                        "badge": "−22%",
+                        "rating": "4.8",
+                        "reviews": "2,341",
+                        "delivery": "Tomorrow",
+                        "tone": "#E6E4FF",
+                        "label": "headphones",
+                        "saved": true,
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-sony-wh-1000xm6"
+                        },
+                        "add": {
+                            "url": "/api/v1/cart/lines/p-sony-wh-1000xm6-0",
+                            "change": {
+                                "quantity": 1
+                            }
+                        },
+                        "heartCommand": {
+                            "url": "/api/v1/me/saved/p-sony-wh-1000xm6",
+                            "save": false
+                        },
+                        "drop": "Price dropped −$100"
+                    },
+                    {
+                        "id": "card-p-saved-15",
+                        "productId": "p-saved-15",
+                        "title": "6-in-1 Air Fryer, 5.5 qt, Stainless Steel",
+                        "price": "$89",
+                        "oldPrice": "$139",
+                        "badge": "−36%",
+                        "rating": "4.7",
+                        "reviews": "8,102",
+                        "delivery": "Tomorrow",
+                        "tone": "#FFE5DD",
+                        "label": "air fryer",
+                        "saved": true,
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-saved-15"
+                        },
+                        "add": {
+                            "url": "/api/v1/cart/lines/p-saved-15-0",
+                            "change": {
+                                "quantity": 1
+                            }
+                        },
+                        "heartCommand": {
+                            "url": "/api/v1/me/saved/p-saved-15",
+                            "save": false
+                        },
+                        "drop": "Price dropped −$50"
+                    },
+                    {
+                        "id": "card-p-saved-16",
+                        "productId": "p-saved-16",
+                        "title": "Merino Wool Crewneck Sweater, Unisex",
+                        "price": "$48",
+                        "oldPrice": "$80",
+                        "badge": "−40%",
+                        "rating": "4.6",
+                        "reviews": "1,204",
+                        "delivery": "Thu, Oct 9",
+                        "tone": "#E3F5D8",
+                        "label": "sweater",
+                        "saved": true,
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-saved-16"
+                        },
+                        "add": {
+                            "url": "/api/v1/cart/lines/p-saved-16-0",
+                            "change": {
+                                "quantity": 1
+                            }
+                        },
+                        "heartCommand": {
+                            "url": "/api/v1/me/saved/p-saved-16",
+                            "save": false
+                        },
+                        "drop": "Price dropped −$32"
+                    },
+                    {
+                        "id": "card-p-saved-17",
+                        "productId": "p-saved-17",
+                        "title": "Ridge Trail GTX Running Shoes, Waterproof",
+                        "price": "$72",
+                        "oldPrice": "$120",
+                        "badge": "−40%",
+                        "rating": "4.7",
+                        "reviews": "2,018",
+                        "delivery": "Fri, Oct 10",
+                        "tone": "#FFF1C9",
+                        "label": "shoes",
+                        "saved": true,
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-saved-17"
+                        },
+                        "add": {
+                            "url": "/api/v1/cart/lines/p-saved-17-0",
+                            "change": {
+                                "quantity": 1
+                            }
+                        },
+                        "heartCommand": {
+                            "url": "/api/v1/me/saved/p-saved-17",
+                            "save": false
+                        },
+                        "drop": "Price dropped −$48"
+                    },
+                    {
+                        "id": "card-p-linen-duvet-cover-set",
+                        "productId": "p-linen-duvet-cover-set",
+                        "title": "Linen Duvet Cover Set, Queen, Oat",
+                        "price": "$139",
+                        "oldPrice": "$179",
+                        "badge": "−22%",
+                        "rating": "4.7",
+                        "reviews": "1,388",
+                        "delivery": "Thu, Oct 9",
+                        "tone": "#FFE5DD",
+                        "label": "bedding",
+                        "saved": true,
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-linen-duvet-cover-set"
+                        },
+                        "add": {
+                            "url": "/api/v1/cart/lines/p-linen-duvet-cover-set-0",
+                            "change": {
+                                "quantity": 1
+                            }
+                        },
+                        "heartCommand": {
+                            "url": "/api/v1/me/saved/p-linen-duvet-cover-set",
+                            "save": false
+                        },
+                        "drop": "Price dropped −$40"
+                    }
+                ]
+            }
+        }
+    ]
+}

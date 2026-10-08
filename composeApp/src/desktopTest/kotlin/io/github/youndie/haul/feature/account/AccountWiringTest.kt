@@ -40,8 +40,8 @@ import kotlin.test.assertEquals
  * app's registry (B-19): a delivered row's «Reorder» is the order page's cart command, whose answer —
  * `navigate` to the cart — goes to the screen's handler; everything else follows its tree's `navigate`:
  * «Details» and «Track» to the order's page, «All orders» and the menu to the account's pages, a chip to
- * its filter's address, «See today's deals» to the deals. «Saved» and «Try 30 days free» are drawn and go
- * nowhere until B-20 and B-23.
+ * its filter's address, «See today's deals» to the deals, «Saved» to the Saved list (B-20). «Try 30 days
+ * free» is drawn and goes nowhere until B-23.
  */
 @OptIn(ExperimentalTestApi::class)
 class AccountWiringTest {
@@ -94,7 +94,7 @@ class AccountWiringTest {
 
     /**
      * The overview's ways on: each card's «Details» to its order's page, «All orders» and the menu's
-     * «Orders» to the history; a returned row's «Details» to its page. «Saved» goes nowhere yet (B-20).
+     * «Orders» to the history; a returned row's «Details» to its page; the menu's «Saved» to the Saved list.
      */
     @Test
     fun `the overview's links open the order pages and the history`() =
@@ -115,6 +115,7 @@ class AccountWiringTest {
                     NavigateAction("/account/orders/HL-44019"),
                     NavigateAction("/account/orders"),
                     NavigateAction("/account/orders"),
+                    NavigateAction("/account/saved"),
                 ),
                 followed.toList(),
             )

@@ -356,6 +356,7 @@ private fun Loading(address: Address) {
         PageKind.Cart -> CartLoading()
         PageKind.Checkout -> CheckoutLoading()
         PageKind.Account -> AccountLoading()
+        PageKind.Saved -> SavedLoading()
         PageKind.Order -> OrderLoading()
         PageKind.Other -> HaulHeaderView(SHELL_HEADER, pending = true)
     }
@@ -411,6 +412,10 @@ private fun Failed(
             AccountError(retry)
         }
 
+        address.kind == PageKind.Saved -> {
+            SavedError(retry)
+        }
+
         else -> {
             val failure = if (cause is ScreenFailed.Unreachable) ShellFailure.Unreachable else ShellFailure.Server
             ErrorShell(address.kind.subject, failure, retry)
@@ -422,10 +427,20 @@ private val PageKind.subject: String
     get() =
         when (this) {
             PageKind.Home -> "The home page"
+
             PageKind.Catalog -> "This category"
+
             PageKind.Product -> "This product"
+
             PageKind.Order -> "This order"
-            PageKind.Search, PageKind.Cart, PageKind.Checkout, PageKind.Account, PageKind.Other -> "This page"
+
+            PageKind.Search,
+            PageKind.Cart,
+            PageKind.Checkout,
+            PageKind.Account,
+            PageKind.Saved,
+            PageKind.Other,
+            -> "This page"
         }
 
 /** «Now», read from [clock] on each whole second: one ticking value every countdown on the page reads. */

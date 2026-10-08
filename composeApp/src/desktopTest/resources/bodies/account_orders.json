@@ -263,6 +263,10 @@
             "orders": {
                 "type": "navigate",
                 "deeplink": "/account/orders"
+            },
+            "saved": {
+                "type": "navigate",
+                "deeplink": "/account/saved"
             }
         },
         {
@@ -294,7 +298,11 @@
                 },
                 {
                     "label": "Saved",
-                    "count": "48"
+                    "count": "48",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/account/saved"
+                    }
                 }
             ],
             "title": "Orders",

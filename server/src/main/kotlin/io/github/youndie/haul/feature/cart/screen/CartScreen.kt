@@ -57,7 +57,7 @@ internal class CartScreen(
         val categories = catalog.categories()
         val units = lines.sumOf { it.stored.quantity }
         val frame = viewer.copy(cartCount = units)
-        if (lines.isEmpty()) return Frame.page("cart", frame, navigation(categories), empty())
+        if (lines.isEmpty()) return Frame.page("cart", frame, navigation(categories), empty(frame))
 
         val plus = (owner as? CartOwner.Customer)?.plus ?: false
         val promo = cart.promoCode?.let { carts.promo(it) }
@@ -73,7 +73,7 @@ internal class CartScreen(
                         selectedCount = totals.counted,
                         linesUrl = CartPaths.LINES,
                     ),
-                groups = groups(lines),
+                groups = groups(lines, owner),
                 summary =
                     summary(
                         totals,
@@ -87,7 +87,10 @@ internal class CartScreen(
         return Frame.page("cart", frame, navigation(categories), listOf(title(items(units)), body))
     }
 
-    private suspend fun groups(lines: List<PricedLine>): List<CartGroup> =
+    private suspend fun groups(
+        lines: List<PricedLine>,
+        owner: CartOwner,
+    ): List<CartGroup> =
         lines.groupBy { it.item.product.sellerId }.map { (sellerId, sellerLines) ->
             val seller = catalog.seller(sellerId)
             val day = sellerLines.maxOf { calendar.courier(it.item) }
@@ -95,11 +98,18 @@ internal class CartScreen(
                 id = "group-$sellerId",
                 seller = seller?.name ?: sellerId,
                 delivery = "Courier · " + calendar.label(day),
-                lines = sellerLines.map(::line),
+                lines = sellerLines.map { line(it, owner) },
             )
         }
 
-    private fun line(line: PricedLine): CartLine {
+    /**
+     * A line as the cart draws it. «Save for later» moves a customer's line to their Saved list (B-20); a
+     * guest's is the way to sign in, which draws the cart again once it has gone through.
+     */
+    private fun line(
+        line: PricedLine,
+        owner: CartOwner,
+    ): CartLine {
         val change = CartCommands.changeLabel(line)
         return CartLine(
             id = "line-${line.sku.id}",
@@ -126,6 +136,8 @@ internal class CartScreen(
             url = CartPaths.line(line.sku.id),
             acknowledgeUrl = if (line.changed) CartPaths.acknowledge(line.sku.id) else null,
             action = productLink(line.item.product.id),
+            saveUrl = if (owner is CartOwner.Customer) CartPaths.saveForLater(line.sku.id) else null,
+            saveAction = if (owner is CartOwner.Guest) NavigateAction(Frame.SIGN_IN) else null,
         )
     }
 
@@ -180,7 +192,7 @@ internal class CartScreen(
         )
     }
 
-    private suspend fun empty(): List<KompotComponent> {
+    private suspend fun empty(viewer: Viewer): List<KompotComponent> {
         val deals = catalog.deals()
         val picks = catalog.listed(deals.map { it.skuId.substringBeforeLast('-') }.distinct())
         return listOf(
@@ -199,7 +211,7 @@ internal class CartScreen(
             SectionHeader("picked-title", "Picked for you", subtitle = "From today’s deals", accent = "you"),
             ProductGrid(
                 "picked",
-                picks.take(PICKS).map { card(it, calendar, photos, inCart = emptyMap()) },
+                picks.take(PICKS).map { card(it, calendar, photos, viewer) },
                 columns = PICKS,
             ),
         )

@@ -12,14 +12,16 @@ import kotlinx.serialization.Serializable
 // one [AccountBody]: the profile and the menu in a column of their own at the desktop width, a row and
 // three tabs above the page on a phone, then the page's title and what the page is — the overview's
 // tiles, active orders and the last of the history (`/account`), or the whole history with its filter
-// (`/account/orders`). One body covers Content, NotMember, Orders and NoOrders: they are what the
-// customer has, not separate builders. Reorder on a delivered row is the order page's own command, a
+// (`/account/orders`), or the Saved list (`/account/saved`, B-20). One body covers Content, NotMember,
+// Orders and NoOrders — and Saved's Content, PriceDrops and Empty: they are what the customer has, not
+// separate builders. Reorder on a delivered row is the order page's own command, a
 // `POST` to [HistoryRow.reorderUrl] answered with `navigate` to the cart.
 
 /**
  * Everything under the header: who is signed in ([profile]), the [menu] — Overview, Orders, Saved; the
  * other sections are hidden in v1 (research D6) — and the page: the [title] with its [accent] in italics
- * («Hi, *Maya*», «Orders»), the overview's [tiles] and [active] orders, and the [history].
+ * («Hi, *Maya*», «Orders») and the [count] in an Acid pill at its top right («Saved 48»), the overview's
+ * [tiles] and [active] orders, the [history], or the [saved] list.
  */
 @Serializable
 @SerialName("haul_account_body")
@@ -33,6 +35,8 @@ public data class AccountBody(
     val tiles: List<AccountTile> = emptyList(),
     val active: ActiveOrders? = null,
     val history: OrderHistory? = null,
+    val count: String? = null,
+    val saved: SavedList? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
@@ -150,7 +154,10 @@ public data class OrderHistory(
     val none: String? = null,
 )
 
-/** A filter chip: «All 6», «Active 2»; the [selected] one is drawn in Ink, and each goes to its own address. */
+/**
+ * A filter chip: «All 6», «Active 2» on the history, «Price dropped 6» on the Saved list; the [selected]
+ * one is drawn in Ink, and each goes to its own address.
+ */
 @Serializable
 public data class HistoryFilter(
     val label: String,

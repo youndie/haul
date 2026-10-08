@@ -11,13 +11,15 @@ import io.github.youndie.kompot.standard.NavigateAction
 /**
  * Who is looking: what the header shows and which blocks a screen offers. [customerId] is a signed-in
  * customer's id, `null` for a guest; [inCart] is how many of each SKU their cart holds, by SKU id;
- * [Viewers] tells both from a request.
+ * [saved] the products in their Saved list, whose hearts are drawn filled (B-20); [Viewers] tells them
+ * from a request.
  */
 internal data class Viewer(
     val firstName: String? = null,
     val cartCount: Int = 0,
     val customerId: String? = null,
     val inCart: Map<String, Int> = emptyMap(),
+    val saved: Set<String> = emptySet(),
 )
 
 /**
@@ -58,6 +60,7 @@ internal object Frame {
         deals = NavigateAction(DEALS),
         cart = NavigateAction(CART),
         orders = NavigateAction(if (viewer.customerId == null) SIGN_IN else ORDERS),
+        saved = NavigateAction(if (viewer.customerId == null) SIGN_IN else SAVED),
     )
 
     /** How many categories the header's row names. */
@@ -81,6 +84,12 @@ internal object Frame {
      * «Orders» is sign-in, as the account shortcut is.
      */
     const val ORDERS = "$ACCOUNT/orders"
+
+    /**
+     * Where «Saved» takes a customer — the header's shortcut and the account's menu: the Saved list
+     * (B-20), a page of the account. A guest's «Saved» is sign-in, as «Orders» is.
+     */
+    const val SAVED = "$ACCOUNT/saved"
 
     /** The store's default place, until a customer's address says otherwise (feature-browse). */
     private const val DEFAULT_PLACE = "Brooklyn, NY 11211"
