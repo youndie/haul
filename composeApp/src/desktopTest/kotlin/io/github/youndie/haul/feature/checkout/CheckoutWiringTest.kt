@@ -56,7 +56,12 @@ class CheckoutWiringTest {
     private val followed = CopyOnWriteArrayList<KompotAction>()
 
     /** Placement's answer: held until the test lets it go, so the page can be looked at in between. */
-    private var placed = CompletableDeferred<KompotAction>().apply { complete(NavigateAction("/orders/HL-48302")) }
+    private var placed =
+        CompletableDeferred<KompotAction>().apply {
+            complete(
+                NavigateAction("/account/orders/HL-48302"),
+            )
+        }
 
     private val commands =
         CheckoutCommands { command ->
@@ -244,9 +249,9 @@ class CheckoutWiringTest {
             assertEquals(tree.body().summary.quote, place.quote)
             assertTrue(place.idempotencyKey.isNotBlank())
 
-            placed.complete(NavigateAction("/orders/HL-48302"))
+            placed.complete(NavigateAction("/account/orders/HL-48302"))
             waitUntil(timeoutMillis = 5_000) { followed.isNotEmpty() }
-            assertEquals(listOf<KompotAction>(NavigateAction("/orders/HL-48302")), followed.toList())
+            assertEquals(listOf<KompotAction>(NavigateAction("/account/orders/HL-48302")), followed.toList())
         }
 
     /** A refusal (`409 slot_unavailable`) redraws the checkout, and pressing again is the same order: the same key. */

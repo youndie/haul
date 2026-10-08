@@ -25,6 +25,7 @@ import io.github.youndie.haul.feature.identity.identityRouting
 import io.github.youndie.haul.feature.identity.installSignIn
 import io.github.youndie.haul.feature.order.domain.OrderError
 import io.github.youndie.haul.feature.order.orderModule
+import io.github.youndie.haul.feature.order.orderRouting
 import io.github.youndie.haul.feature.payment.paymentModule
 import io.github.youndie.haul.feature.reviews.domain.ReviewError
 import io.github.youndie.haul.feature.reviews.reviewsModule
@@ -165,6 +166,7 @@ internal fun Application.haulModule(
             accountRouting()
             checkoutRouting()
             reviewsRouting()
+            orderRouting()
         }
         web?.let { webBundle(it) }
     }
@@ -195,6 +197,7 @@ internal fun status(code: ErrorCode): HttpStatusCode =
 
         ErrorCode.CategoryNotFound,
         ErrorCode.ProductNotFound,
+        ErrorCode.OrderNotFound,
         ErrorCode.SkuNotFound,
         ErrorCode.LineNotFound,
         ErrorCode.PromoNotFound,

@@ -7,6 +7,7 @@ import io.github.youndie.haul.feature.checkout.screen.CheckoutScreen
 import io.github.youndie.haul.feature.identity.Caller
 import io.github.youndie.haul.feature.identity.Callers
 import io.github.youndie.haul.feature.identity.domain.IdentityError
+import io.github.youndie.haul.feature.order.OrderPaths
 import io.github.youndie.haul.feature.order.domain.OrderError
 import io.github.youndie.haul.feature.order.domain.Placement
 import io.github.youndie.haul.haulWireJson
@@ -64,7 +65,7 @@ internal fun Route.checkoutRouting() {
         val request = call.body(PlaceOrderRequest.serializer())
         val orderId = placement.place(customer, call.request.headers[IDEMPOTENCY_KEY_HEADER], request)
         call.respondText(
-            haulWireJson.encodeKompotAction(NavigateAction(CheckoutPaths.order(orderId))),
+            haulWireJson.encodeKompotAction(NavigateAction(OrderPaths.page(orderId))),
             ContentType.Application.Json,
             HttpStatusCode.Accepted,
         )
@@ -86,14 +87,8 @@ internal object CheckoutPaths {
     const val CHOICE = "/api/v1/me/checkout"
     const val ADDRESSES = "/api/v1/me/addresses"
 
-    /** Placement (endpoint-checkout): `CheckoutSummary.placeUrl`. */
+    /** Placement (endpoint-checkout): `CheckoutSummary.placeUrl`; it answers `navigate` to [OrderPaths.page]. */
     const val PLACE = "/api/v1/orders"
-
-    /**
-     * Where placement sends the shopper: the order's page, whose tree is the same address under `/ui`
-     * (`GET /ui/orders/{id}`, endpoint-orders; built by B-18).
-     */
-    fun order(orderId: String): String = "/orders/$orderId"
 }
 
 /** A command's JSON body; one that does not parse is `400 validation_failed`, with no detail of why. */

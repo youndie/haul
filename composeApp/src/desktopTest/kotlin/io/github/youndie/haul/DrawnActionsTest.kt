@@ -186,6 +186,19 @@ class DrawnActionsTest {
             assertEquals(listOf("/ui/home", "/ui/deals", "/ui/home", "/ui/cart"), requests)
         }
 
+    /** «Orders» in the header (B-18) opens where its tree says: a customer's orders. */
+    @Test
+    fun `orders in the header opens the customer's orders`() =
+        runDesktopComposeUiTest(WIDTH, 1_000) {
+            answer("/ui/home", page(header))
+            destinations("/account")
+            storefront()
+            onNodeWithText("Orders").performClick()
+            onNodeWithText(NEXT).assertExists()
+            assertEquals(listOf("/", "/account"), history.entries)
+            assertEquals(listOf("/ui/home", "/ui/account"), requests)
+        }
+
     @Test
     fun `view all deals opens the deals page`() =
         runDesktopComposeUiTest(WIDTH, 1_000) {
@@ -261,6 +274,7 @@ class DrawnActionsTest {
                     ),
                 deals = NavigateAction("/deals"),
                 cart = NavigateAction("/cart"),
+                orders = NavigateAction("/account"),
             )
 
         val mug =

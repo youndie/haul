@@ -25,7 +25,8 @@ import kotlinx.serialization.Serializable
  *
  * [catalog] is every top-level category with where it goes: «Catalog» opens it as a menu, and each
  * word of the category row ([categories], the first of them) follows the entry of the same name.
- * [deals] is where «Deals» goes, [cart] where the cart button goes.
+ * [deals] is where «Deals» goes, [cart] where the cart button goes, [orders] where «Orders» goes — a
+ * customer's orders, a guest's sign-in.
  */
 @Serializable
 @SerialName("haul_header")
@@ -43,6 +44,7 @@ public data class HaulHeader(
     val catalog: List<Link> = emptyList(),
     val deals: @Polymorphic KompotAction? = null,
     val cart: @Polymorphic KompotAction? = null,
+    val orders: @Polymorphic KompotAction? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 

@@ -91,9 +91,9 @@ class CheckoutCommandsTest {
      */
     @Test
     fun `placing sends the quote under its key`() {
-        answer = HttpStatusCode.Accepted to """{"type":"navigate","deeplink":"/orders/HL-48302"}"""
+        answer = HttpStatusCode.Accepted to """{"type":"navigate","deeplink":"/account/orders/HL-48302"}"""
         val (action, request) = sent(CheckoutCommand.Place("/api/v1/orders", "q-1", "k-1"))
-        assertEquals(NavigateAction("/orders/HL-48302"), action)
+        assertEquals(NavigateAction("/account/orders/HL-48302"), action)
         assertEquals(HttpMethod.Post, request.method)
         assertEquals("http://haul.test/api/v1/orders", request.url.toString())
         assertEquals("""{"quote":"q-1"}""", request.text())

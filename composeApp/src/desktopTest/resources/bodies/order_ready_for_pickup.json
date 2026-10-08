@@ -1,0 +1,357 @@
+{
+    "type": "column",
+    "id": "order",
+    "children": [
+        {
+            "type": "haul_header",
+            "id": "header",
+            "deliverTo": "Brooklyn, NY 11211",
+            "deliveryPromise": "Free delivery over $35",
+            "customerName": "Maya",
+            "cartCount": 3,
+            "searchPlaceholder": "Search 2.4 million products",
+            "categories": [
+                "Electronics",
+                "Home & Kitchen",
+                "Fashion",
+                "Beauty",
+                "Kids & Toys",
+                "Sports",
+                "Grocery",
+                "Auto",
+                "Books",
+                "Pets"
+            ],
+            "account": {
+                "type": "navigate",
+                "deeplink": "/account"
+            },
+            "catalog": [
+                {
+                    "label": "Electronics",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/electronics"
+                    }
+                },
+                {
+                    "label": "Home & Kitchen",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/home-kitchen"
+                    }
+                },
+                {
+                    "label": "Fashion",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/fashion"
+                    }
+                },
+                {
+                    "label": "Beauty",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/beauty"
+                    }
+                },
+                {
+                    "label": "Kids & Toys",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/kids-toys"
+                    }
+                },
+                {
+                    "label": "Sports",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/sports"
+                    }
+                },
+                {
+                    "label": "Grocery",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/grocery"
+                    }
+                },
+                {
+                    "label": "Auto",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/auto"
+                    }
+                },
+                {
+                    "label": "Books",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/books"
+                    }
+                },
+                {
+                    "label": "Pets",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/pets"
+                    }
+                },
+                {
+                    "label": "Garden",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/garden"
+                    }
+                },
+                {
+                    "label": "Office",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/office"
+                    }
+                },
+                {
+                    "label": "Health",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/health"
+                    }
+                },
+                {
+                    "label": "Music",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/music"
+                    }
+                },
+                {
+                    "label": "Movies",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/movies"
+                    }
+                },
+                {
+                    "label": "Games",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/games"
+                    }
+                },
+                {
+                    "label": "Tools",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/tools"
+                    }
+                },
+                {
+                    "label": "Baby",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/baby"
+                    }
+                },
+                {
+                    "label": "Jewelry",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/jewelry"
+                    }
+                },
+                {
+                    "label": "Shoes",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/shoes"
+                    }
+                },
+                {
+                    "label": "Luggage",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/luggage"
+                    }
+                },
+                {
+                    "label": "Crafts",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/crafts"
+                    }
+                },
+                {
+                    "label": "Outdoors",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/outdoors"
+                    }
+                },
+                {
+                    "label": "Party",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/party"
+                    }
+                },
+                {
+                    "label": "Furniture",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/furniture"
+                    }
+                },
+                {
+                    "label": "Lighting",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/lighting"
+                    }
+                },
+                {
+                    "label": "Appliances",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/appliances"
+                    }
+                },
+                {
+                    "label": "Computers",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/computers"
+                    }
+                },
+                {
+                    "label": "Phones",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/phones"
+                    }
+                },
+                {
+                    "label": "Cameras",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/cameras"
+                    }
+                },
+                {
+                    "label": "Watches",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/watches"
+                    }
+                },
+                {
+                    "label": "Bags",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/bags"
+                    }
+                }
+            ],
+            "deals": {
+                "type": "navigate",
+                "deeplink": "/deals"
+            },
+            "cart": {
+                "type": "navigate",
+                "deeplink": "/cart"
+            },
+            "orders": {
+                "type": "navigate",
+                "deeplink": "/account"
+            }
+        },
+        {
+            "type": "haul_order_body",
+            "id": "order",
+            "crumbs": [
+                {
+                    "label": "Account",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/account"
+                    }
+                },
+                {
+                    "label": "Orders",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/account"
+                    }
+                },
+                {
+                    "label": "#HL-47960"
+                }
+            ],
+            "meta": "#HL-47960 · Placed Oct 3 · $58.00",
+            "title": "Ready for pickup",
+            "accent": "pickup",
+            "lead": "214 Bedford Ave · open until 21:00 · kept until Oct 10",
+            "steps": {
+                "labels": [
+                    "Placed",
+                    "Packed",
+                    "Ready for pickup",
+                    "Picked up"
+                ],
+                "current": 2
+            },
+            "pickup": {
+                "label": "Pickup code",
+                "code": "4821",
+                "text": "Show the code at the counter. The point keeps the parcel until Oct 10, then it goes back to the seller and you’re refunded.",
+                "highlight": "Oct 10"
+            },
+            "shipments": [
+                {
+                    "id": "HL-47960-1",
+                    "seller": "FlowFit Studio",
+                    "status": "Ready for pickup",
+                    "eta": "Pickup point · 214 Bedford Ave",
+                    "items": [
+                        {
+                            "title": "Natural Rubber Yoga Mat, 6 mm",
+                            "details": "Black · 1 × $58",
+                            "tone": "#E3F5D8",
+                            "action": {
+                                "type": "navigate",
+                                "deeplink": "/p/p-yoga-mat"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "summary": {
+                "title": "Summary",
+                "rows": [
+                    {
+                        "label": "Items (1)",
+                        "value": "$58.00"
+                    },
+                    {
+                        "label": "Delivery",
+                        "value": "Free"
+                    }
+                ],
+                "totalLabel": "Total",
+                "total": "$58.00",
+                "facts": [
+                    {
+                        "kind": "card",
+                        "title": "Card ···· 4821",
+                        "detail": "$58.00 charged when it shipped"
+                    },
+                    {
+                        "kind": "place",
+                        "title": "214 Bedford Ave",
+                        "detail": "Pickup point · 240 m · open until 21:00"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -64,6 +64,7 @@ class CartCommandsTest {
                 CartCommand.ApplyPromo("/api/v1/cart/promo", PromoEntry("autumn10")) to
                     (HttpMethod.Put to """{"code":"autumn10"}"""),
                 CartCommand.RemovePromo("/api/v1/cart/promo") to (HttpMethod.Delete to null),
+                CartCommand.Reorder("/api/v1/me/orders/HL-46102/reorder") to (HttpMethod.Post to null),
             )
         cases.forEach { (command, expected) ->
             val (action, request) = sent(command)

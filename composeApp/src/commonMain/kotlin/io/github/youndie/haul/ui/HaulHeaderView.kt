@@ -233,7 +233,8 @@ private fun WideHeader(
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-            Shortcut(HaulIcons.box, "Orders")
+            // «Orders» goes where the tree says (`HaulHeader.orders`): a customer's orders, a guest's sign-in.
+            Shortcut(HaulIcons.box, "Orders", modifier = Modifier.follows(header.orders))
             Shortcut(HaulIcons.heart, "Saved")
             when {
                 pending -> Shortcut(HaulIcons.person) { Skeleton(Modifier.width(40.dp).height(10.dp), 5.dp) }

@@ -35,6 +35,12 @@ public enum class StorefrontPage {
     /** `/account`, a customer's. */
     Account,
 
+    /**
+     * `/account/orders/{orderId}`, one of a customer's orders (B-18): where placement lands and the
+     * account's orders lead — under the account, as the page's crumbs say («Account / Orders / #HL-48302»).
+     */
+    Order,
+
     /** `/sign-in`, where the header sends a guest; the client claims it before it is followed. */
     SignIn,
     ;
@@ -49,15 +55,45 @@ public enum class StorefrontPage {
             if (segments.any { it.isEmpty() }) return null
             val rest = segments.size - 1
             return when (segments.first()) {
-                "c" -> Catalog.takeIf { rest >= 1 }
-                "p" -> Product.takeIf { rest == 1 }
-                "search" -> Search.takeIf { rest == 0 }
-                "cart" -> Cart.takeIf { rest == 0 }
-                "deals" -> Deals.takeIf { rest == 0 }
-                "checkout" -> Checkout.takeIf { rest == 0 }
-                "account" -> Account.takeIf { rest == 0 }
-                "sign-in" -> SignIn.takeIf { rest == 0 }
-                else -> null
+                "c" -> {
+                    Catalog.takeIf { rest >= 1 }
+                }
+
+                "p" -> {
+                    Product.takeIf { rest == 1 }
+                }
+
+                "search" -> {
+                    Search.takeIf { rest == 0 }
+                }
+
+                "cart" -> {
+                    Cart.takeIf { rest == 0 }
+                }
+
+                "deals" -> {
+                    Deals.takeIf { rest == 0 }
+                }
+
+                "checkout" -> {
+                    Checkout.takeIf { rest == 0 }
+                }
+
+                "account" -> {
+                    when {
+                        rest == 0 -> Account
+                        rest == 2 && segments[1] == "orders" -> Order
+                        else -> null
+                    }
+                }
+
+                "sign-in" -> {
+                    SignIn.takeIf { rest == 0 }
+                }
+
+                else -> {
+                    null
+                }
             }
         }
     }

@@ -241,8 +241,8 @@ and on the stand.
   and a compensation releases by that same name, whether or not its step landed (petich's member rules).
 - **The saga runs inside the request.** Every member is in-process, so placement can say what happened:
   a window that filled or stock that ran out is a `409` the checkout is drawn again for; anything else
-  answers `202` with kompot's `navigate` to `/orders/{id}` — placed, or cancelled because the card was
-  declined. A saga whose process died is carried on by the application's sweeper once its row has been
+  answers `202` with kompot's `navigate` to `/account/orders/{id}` (the order's page, B-18) — placed, or
+  cancelled because the card was declined. A saga whose process died is carried on by the application's sweeper once its row has been
   untouched for 60 s (`STUCK_AFTER`: twice petich's largest phase timeout, AUTHORIZATION's 30 s).
 - **The key is the customer's own**: the saga's id is a hash of the customer and the `Idempotency-Key`,
   and a key is claimed (petich-idempotency) only by a placement that passed the quote checks — a stale
@@ -286,6 +286,26 @@ and on the stand.
   `ready_for_pickup` and shown only while it waits, only to the order's customer.
 - **The order's progress** (`OrderTracking`, `OrderProgress`) is the saga's while `placing` or
   `cancelled`, then the least advanced shipment's — B-18 draws the order page from it.
+
+**Decided in B-18, the order's page and reorder.**
+
+- **The page's address is `/account/orders/{id}`**, its tree `GET /ui/account/orders/{id}`
+  (`feature/order/OrderRouting.kt`, `StorefrontPage.Order`): the canvas's crumbs are «Account / Orders /
+  #HL-48302», screen-order's entry is that address, and the orders' history (B-19) is the account's
+  `/account/orders`, which the page then sits under. Placement's `navigate` lands there. `/orders/{id}`,
+  which endpoint-orders' draft wrote, is no address.
+- **One builder for every state** (`feature/order/screen/OrderScreen.kt`): Placed, InTransit,
+  ReadyForPickup, Delivered and Cancelled are what `OrderTracking.track` says the order is. A shipment's
+  day is the courier's for an order placed when it was (the day after, the seller's dispatch days, the
+  23:30 cut-off; a point a day later) or the chosen window's when that is later; the window is named on
+  the day it was chosen for. Another customer's order and a missing one are `404 order_not_found`, which
+  the client draws as Order_NotFound under the header it last drew.
+- **Reorder** (`POST /api/v1/me/orders/{id}/reorder`, `feature/order/domain/Reorder.kt`) puts each SKU
+  of the order into the cart through the cart's own `changeLine`, selected, at the order's quantity — at
+  most ten and the stock; a line already holding as many is only selected, so a second press adds
+  nothing. A SKU gone or out of stock is left out. It answers `navigate` to the cart.
+- **«Orders» in the header** goes to `/account` until the history has its own address (B-19), and a
+  guest's to sign-in, as the account shortcut does.
 
 ### D5. Sign-in through shildik; guests can browse and fill a cart
 

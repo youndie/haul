@@ -14,7 +14,7 @@ import io.ktor.http.parseQueryString
 // maps one to the other and builds no other URL.
 
 /** Which page an address is, for what the shell draws before its tree arrives and when it does not. */
-public enum class PageKind { Home, Catalog, Product, Search, Cart, Checkout, Other }
+public enum class PageKind { Home, Catalog, Product, Search, Cart, Checkout, Order, Other }
 
 /** An address in the storefront: a path and its query, as a `NavigateAction` carries it. */
 public data class Address(
@@ -40,6 +40,8 @@ public data class Address(
             StorefrontPage.Cart -> PageKind.Cart
 
             StorefrontPage.Checkout -> PageKind.Checkout
+
+            StorefrontPage.Order -> PageKind.Order
 
             StorefrontPage.Deals,
             StorefrontPage.Account,

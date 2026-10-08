@@ -29,6 +29,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -434,6 +435,9 @@ private const val GAP = "gap"
  * CSS's `text-wrap: balance`: the text keeps the number of lines it breaks into at the full width, at
  * the narrowest width that still holds it in that many — «Search / didn’t respond» rather than
  * «Search didn’t / respond». Chrome finds that width by bisection too.
+ *
+ * Never narrower than its widest word, though: below that the line breaker splits a word to keep the
+ * count — «tomorrow / ,» — which Chrome never does (an order's «Arriving tomorrow, 15:00 – 18:00»).
  */
 @Composable
 internal fun BalancedText(
@@ -450,7 +454,7 @@ internal fun BalancedText(
             val count = lines(full)
             var width = full
             if (count > 1) {
-                var low = 0
+                var low = minOf(widestWord(measurer, text, style), full)
                 var high = full
                 while (low < high) {
                     val mid = (low + high) / 2
@@ -482,3 +486,33 @@ internal fun normal(
 
 private const val ARCHIVO_ASCENT = 0.878f
 private const val ARCHIVO_DESCENT = 0.21f
+
+/** The widest run of [text] no line can break inside: words split at spaces and after hyphens and dashes. */
+private fun widestWord(
+    measurer: TextMeasurer,
+    text: AnnotatedString,
+    style: TextStyle,
+): Int {
+    var widest = 0
+    var start = 0
+
+    fun word(end: Int) {
+        if (end > start) {
+            widest = maxOf(widest, measurer.measure(text.subSequence(start, end), style, softWrap = false).size.width)
+        }
+    }
+    text.text.forEachIndexed { index, char ->
+        if (char == ' ') {
+            word(index)
+            start = index + 1
+        } else if (char in BREAKS_AFTER) {
+            word(index + 1)
+            start = index + 1
+        }
+    }
+    word(text.length)
+    return widest
+}
+
+/** The characters a line may break after inside a word: the hyphen and the dashes. */
+private const val BREAKS_AFTER = "-–—"
