@@ -40,11 +40,10 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (27)
+## Open (26)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-05](docs/backlog/B-05-catalog-use-cases-and-the-home.md) `[~]` | server: catalog use cases (home, facets, product, delivery estimate) and the Home / Catalog / Product trees | P1 | L | B-03, B-04 |
 | [B-06](docs/backlog/B-06-home-catalog-product-pngs.md) `[ ]` | design refs: `Home_*`, `Catalog_*`, `Product_*` PNGs | P1 | S | B-01 |
 | [B-07](docs/backlog/B-07-renderers-for-the-home-and-catalog.md) `[ ]` | client: renderers for the Home and Catalog components; Loading / Error shells | P1 | L | B-05, B-06 |
 | [B-08](docs/backlog/B-08-renderers-for-the-product-components.md) `[ ]` | client: renderers for the Product components (without the dialogs) | P1 | L | B-05, B-06 |
@@ -72,7 +71,7 @@ A stage is a field on the item, not a directory.
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
 | [B-30](docs/backlog/B-30-product-images-through-object-storage.md) `[ ]` | product images through object storage | P3 | M | B-08 |
 
-## Closed (4)
+## Closed (5)
 
 **Skeleton**
 
@@ -80,6 +79,10 @@ A stage is a field on the item, not a directory.
 - [B-02](docs/backlog/B-02-settings-plugin-modules-shared-server-composeapp.md) `[x]` - scaffold: settings plugin, modules `shared` / `server` / `composeApp` / `e2e`, CI, `CLAUDE.md`, docs check
 - [B-03](docs/backlog/B-03-schema-migrations-seed-generator-and-sample.md) `[x]` - server: schema migrations, seed generator and sample-data fixtures, probes, the image with a zavarnik cache
 - [B-04](docs/backlog/B-04-theme-registry-haulheader-and-productcard-renderers.md) `[x]` - contract + client: theme (colour roles, three bundled fonts), registry, `HaulHeader` and `ProductCard` renderers
+
+**Browse**
+
+- [B-05](docs/backlog/B-05-catalog-use-cases-and-the-home.md) `[x]` - server: catalog use cases (home, facets, product, delivery estimate) and the Home / Catalog / Product trees
 
 <!-- END INDEX -->
 

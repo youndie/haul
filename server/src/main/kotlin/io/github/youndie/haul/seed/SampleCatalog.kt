@@ -20,7 +20,7 @@ internal object SampleCatalog {
         listOf(
             SeedSeller(SONY_STORE, "Sony Official Store", BigDecimal("4.9"), 98, 6),
             SeedSeller(BROOKLYN_HOME, "Brooklyn Home Co.", BigDecimal("4.8"), 97, 3),
-        )
+        ) + SampleHeadphones.sellers
 
     /** The categories the sample products live in; every other top-level category gets generic ones. */
     val subcategories: Map<String, List<Pair<String, List<String>>>> =
@@ -58,6 +58,8 @@ internal object SampleCatalog {
                 tone = "#E6E4FF",
                 label = "headphones",
                 createdAt = created,
+                features = listOf("Noise cancelling", "Wireless", "Microphone"),
+                kind = "Over-ear",
             ),
             SeedProduct(
                 id = DUVET_COVER,
@@ -73,6 +75,7 @@ internal object SampleCatalog {
                 tone = "#F1EBDD",
                 label = "bedding",
                 createdAt = created,
+                dispatchDays = 1,
             ),
             SeedProduct(
                 id = STONEWARE_MUG,
@@ -88,15 +91,16 @@ internal object SampleCatalog {
                 tone = "#E3F5D8",
                 label = "mug",
                 createdAt = created,
+                dispatchDays = 1,
             ),
-        )
+        ) + SampleHeadphones.products
 
     val skus: List<SeedSku> =
         sonySkus() +
             listOf(
                 SeedSku("$DUVET_COVER-0", DUVET_COVER, 0, options("Oat", "3 pieces"), 13_900, 17_900, 40),
                 SeedSku("$STONEWARE_MUG-0", STONEWARE_MUG, 0, options("Sage", "Set of 2"), 2_400, null, 120),
-            )
+            ) + SampleHeadphones.skus
 
     /** Midnight Black in three bundles, and Silver — out of stock in all three (`Product_OutOfStock`). */
     private fun sonySkus(): List<SeedSku> {

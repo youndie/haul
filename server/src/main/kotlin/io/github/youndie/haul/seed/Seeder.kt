@@ -6,6 +6,8 @@ import io.github.youndie.haul.feature.catalog.data.DealsTable
 import io.github.youndie.haul.feature.catalog.data.ProductsTable
 import io.github.youndie.haul.feature.catalog.data.SellersTable
 import io.github.youndie.haul.feature.catalog.data.SkusTable
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -60,6 +62,9 @@ internal object Seeder {
                 this[ProductsTable.tone] = it.tone
                 this[ProductsTable.label] = it.label
                 this[ProductsTable.createdAt] = it.createdAt
+                this[ProductsTable.features] = JsonArray(it.features.map(::JsonPrimitive))
+                this[ProductsTable.kind] = it.kind
+                this[ProductsTable.dispatchDays] = it.dispatchDays
             }
             SkusTable.batchInsert(catalog.skus) {
                 this[SkusTable.id] = it.id

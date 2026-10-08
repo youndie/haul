@@ -46,6 +46,9 @@ internal object ProductsTable : Table("products") {
     val tone = text("tone")
     val label = text("label")
     val createdAt = timestampWithTimeZone("created_at")
+    val features = jsonb<JsonArray>("features", Json).default(JsonArray(emptyList()))
+    val kind = text("kind").nullable()
+    val dispatchDays = integer("dispatch_days").default(0)
     override val primaryKey = PrimaryKey(id)
 
     init {

@@ -24,7 +24,12 @@ dependencies {
     // through `Dispatchers.IO` — 64 workers — is the slack a blocking handler needs; Netty's call
     // group defaults to the processor count, which is the worst choice for that shape.
     implementation(libs.ktor.server.cio)
+    implementation(libs.ktor.server.statusPages)
+    implementation(libs.kompot.ktor)
     implementation(wip.kotlinx.serialization.json)
+    implementation(platform(wip.koin.bom))
+    implementation(wip.koin.core)
+    implementation(libs.koin.ktor)
     runtimeOnly(libs.logback.classic)
 
     implementation(libs.exposed.core)
@@ -40,6 +45,7 @@ dependencies {
     testImplementation(libs.ktor.server.testHost)
     testImplementation(libs.exposed.migrationJdbc)
     testImplementation(libs.testcontainers.postgresql)
+    testImplementation(wip.koin.test)
 }
 
 // **The cache is trained in the image, not here.** The JVM accepts a cache only from the build that
@@ -62,6 +68,9 @@ zavarnik {
         workload {
             get("http://127.0.0.1:8080/readyz")
             get("http://127.0.0.1:8080/version")
+            get("http://127.0.0.1:8080/ui/home")
+            get("http://127.0.0.1:8080/ui/c/headphones?brand=Sony&feature=Noise%20cancelling")
+            get("http://127.0.0.1:8080/ui/p/p-sony-wh-1000xm6")
         }
     }
 }
