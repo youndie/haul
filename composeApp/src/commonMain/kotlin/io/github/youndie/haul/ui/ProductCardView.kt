@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.feature.cart.CartCommand
 import io.github.youndie.haul.feature.cart.LocalCartCommands
+import io.github.youndie.haul.feature.cart.linePress
 import io.github.youndie.haul.feature.cart.run
 import io.github.youndie.haul.feature.saved.SaveCommand
 import io.github.youndie.haul.theme.HaulColors
@@ -78,21 +79,8 @@ public fun ProductCardView(
             val button = if (compact) 36.dp else 38.dp
             // «+» sends the card's line change as a cart command (B-37) and follows the answer, `refresh`;
             // the card's own press, under it, opens the product.
-            val cart = LocalCartCommands.current
-            val actions = LocalHaulActions.current
-            val scope = rememberCoroutineScope()
             val add = card.add
-            val press =
-                if (cart == null || actions == null || add == null) {
-                    null
-                } else {
-                    {
-                        scope.launch {
-                            cart.run(listOf(CartCommand.ChangeLine(add.url, add.change)))?.let(actions::handle)
-                        }
-                        Unit
-                    }
-                }
+            val press = linePress(add)
             Box(
                 Modifier
                     .pressable(press)
