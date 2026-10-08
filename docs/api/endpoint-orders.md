@@ -2,42 +2,36 @@
 id: endpoint-orders
 title: Orders and returns
 type: api_endpoints
-status: draft
+status: active
 services:
   - haul-server
 contract_source:
-  - haul:shared OrderRoutes
+  - haul:shared OrderBody
+  - haul:shared ReturnForm
+  - haul:shared ReturnEntry
+  - haul:shared ErrorCode
 parent_feature: feature-orders
 ---
 
 # API: Orders and returns
 
-> Drafted from the product brief. None of the four routes below exists yet (B-18, B-19, B-21);
-> what exists since B-16 is the order they will show — placed through `POST /api/v1/orders`
-> ([endpoint-checkout](endpoint-checkout.md)) and stored in `orders`, `order_lines` and `shipments`
-> (`server/src/main/resources/db/migration/V10__orders.sql`). There will be no route classes in
-> `shared` (the paths are the server's strings), so `OrderRoutes` in the frontmatter names the planned
-> contract, not a class.
-
-## The order page's address — not decided (for B-18)
-
-Placement answers `navigate` to **`/orders/{id}`** (`CheckoutPaths.order` in
-`server/src/main/kotlin/io/github/youndie/haul/feature/checkout/CheckoutRouting.kt`): the storefront's
-address convention puts this document's `GET /ui/orders/{id}` at `/orders/{id}`. [screen-order](../screens/screen-order.md)
-names **`/account/orders/{orderId}`** instead. B-16 followed this document; neither address is in
-`StorefrontPage` (`shared/src/commonMain/kotlin/io/github/youndie/haul/StorefrontPage.kt`), so today a
-reload of either is `404`, and the client loads `/ui/orders/{id}`, which answers `404` too. B-18 — or
-the owner — picks one, changes the other document, `CheckoutPaths.order` if needed, and adds the
-address to `StorefrontPage`.
+> The order page and reorder exist since B-18, returns since B-21; all are described as the code has
+> them. There are no route classes in `shared`: the paths are the server's strings (`OrderPaths` in
+> `server/src/main/kotlin/io/github/youndie/haul/feature/order/OrderRouting.kt`, `ReturnPaths` in
+> `server/src/main/kotlin/io/github/youndie/haul/feature/returns/ReturnsRouting.kt`), handed to the
+> client inside the tree — `OrderTotals.reorderUrl`, `ReturnForm.url` — and the contract is the
+> components (`shared/src/commonMain/kotlin/io/github/youndie/haul/ui/OrderComponents.kt`), the return's
+> body (`shared/src/commonMain/kotlin/io/github/youndie/haul/feature/returns/ReturnCommands.kt`) and
+> `ErrorCode`. The orders' history, `GET /ui/account/orders`, is the account's
+> ([endpoint-account](endpoint-account.md)).
 
 ## Routes — all of them, no exceptions
 
 | Method and path | Service | Auth tier | In the generated schema? | Purpose |
 |---|---|---|---|---|
-| `GET` `/ui/orders/{id}` | haul-server | customer (shildik bearer) | yes | *planned, B-18*: request: —; answers tree: Order (per status) |
-| `GET` `/ui/account/orders` | haul-server | customer (shildik bearer) | yes | *planned, B-19*: request: status filter, page; answers tree: Account with Orders selected |
-| `POST` `/api/v1/me/orders/{id}/reorder` | haul-server | customer (shildik bearer) | yes | *planned, B-18*: request: —; answers action: navigate to the cart, with the unavailable lines named |
-| `POST` `/api/v1/me/orders/{id}/returns` | haul-server | customer (shildik bearer) | yes | *planned, B-21*: request: the return form; answers action: close the route, refresh |
+| `GET` `/ui/account/orders/{id}` | haul-server | customer (shildik bearer) | yes | request: —; answers tree: Order — Placed, InTransit, ReadyForPickup, Delivered, Returned and Cancelled are this one tree, drawn from the order's progress; the storefront's address is `/account/orders/{id}` (`StorefrontPage.Order`) |
+| `POST` `/api/v1/me/orders/{id}/reorder` | haul-server | customer (shildik bearer) | yes | request: —; puts the order's SKUs back into the cart, selected; answers kompot's `navigate` to `/cart` |
+| `POST` `/api/v1/me/orders/{id}/returns` | haul-server | customer (shildik bearer) | yes | request: `ReturnEntry` (`lines` by their position in the order, `reason` by its id); answers `201` with kompot's `sequence` of `close` and `refresh` |
 
 Conventions for every group — trees versus actions, the error body, `404` for «not yours» — are
 in [haul-server](../services/haul-server.md), section 2.
@@ -46,32 +40,38 @@ in [haul-server](../services/haul-server.md), section 2.
 
 | Route | Handler |
 |---|---|
-| `GET` `/ui/orders/{id}` | planned in `server/src/main/kotlin/io/github/youndie/haul/feature/order/` |
-| `GET` `/ui/account/orders` | planned in `server/src/main/kotlin/io/github/youndie/haul/feature/order/` |
-| `POST` `/api/v1/me/orders/{id}/reorder` | planned in `server/src/main/kotlin/io/github/youndie/haul/feature/order/` |
-| `POST` `/api/v1/me/orders/{id}/returns` | planned in `server/src/main/kotlin/io/github/youndie/haul/feature/order/` |
-| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/order/` — the Order tree's components (planned) |
-| the order today | `server/src/main/kotlin/io/github/youndie/haul/feature/order/domain/Order.kt` (`OrderStatus`, `CancelReason`, `ShipmentStatus`), `server/src/main/kotlin/io/github/youndie/haul/feature/order/data/ExposedOrders.kt` |
-| what the order page reads | `server/src/main/kotlin/io/github/youndie/haul/feature/fulfilment/domain/OrderTracking.kt` (`OrderTracking.track`, `OrderProgress`, `TrackedShipment`), B-17 |
+| `GET` `/ui/account/orders/{id}` | `server/src/main/kotlin/io/github/youndie/haul/feature/order/OrderRouting.kt` → `server/src/main/kotlin/io/github/youndie/haul/feature/order/screen/OrderScreen.kt` over `OrderTracking.track` (`server/src/main/kotlin/io/github/youndie/haul/feature/fulfilment/domain/OrderTracking.kt`) |
+| `POST` `/api/v1/me/orders/{id}/reorder` | `server/src/main/kotlin/io/github/youndie/haul/feature/order/OrderRouting.kt` → `server/src/main/kotlin/io/github/youndie/haul/feature/order/domain/Reorder.kt` |
+| `POST` `/api/v1/me/orders/{id}/returns` | `server/src/main/kotlin/io/github/youndie/haul/feature/returns/ReturnsRouting.kt` → `server/src/main/kotlin/io/github/youndie/haul/feature/returns/domain/RequestReturn.kt`; collected and refunded by `server/src/main/kotlin/io/github/youndie/haul/feature/returns/domain/ReturnSimulator.kt` |
+| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/OrderComponents.kt` (`OrderBody`, `OrderTotals`, `ReturnForm`), `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/returns/ReturnCommands.kt` (`ReturnEntry`, `returnProblems`), `shared/src/commonMain/kotlin/io/github/youndie/haul/ErrorCode.kt` |
+| storage | `server/src/main/kotlin/io/github/youndie/haul/feature/order/data/ExposedOrders.kt`, `server/src/main/kotlin/io/github/youndie/haul/feature/returns/data/ExposedReturns.kt`; `server/src/main/resources/db/migration/V14__order_address.sql`, `server/src/main/resources/db/migration/V17__returns.sql` |
 
 ## Request and response bodies
 
-In `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/order/` once it exists; not copied here.
-What the tree will draw from: an order's status is `placing`, `placed` or `cancelled` with a
-`cancel_reason` (`payment_declined`, `failed`); its lines as bought; one shipment per seller, written
-`placed` (or `cancelled`) by placement and moved on by the fulfilment simulator (B-17) through
-`packed`, `in_transit`, then `delivered` or `ready_for_pickup` and `picked_up`, each step stamped in
-`shipment_events` (`server/src/main/resources/db/migration/V11__fulfilment.sql`). `GET /ui/orders/{id}`
-is to be built on `OrderTracking.track(customer, order)`, which answers the order's progress (the
-saga's `placing` / `cancelled`, else the least advanced shipment's) and per shipment its history, its
-share, what was captured and — only while it waits at a point — the pickup code and the day it is
-held until; for any customer but the order's own it answers nothing, which the route answers `404`.
+Not copied here; what the server does with them:
+
+* **The order's tree** — one `OrderBody`: crumbs, the meta line, the title with its accent and lead,
+  `OrderSteps`, a cancelled order's `OrderNotice`, the `PickupCode` while a shipment waits at a point,
+  the `OrderShipment`s with their `OrderItem`s (and a «Returned items» card once a return is asked for),
+  and `OrderTotals` with its facts and its ways on: «Reorder» (`reorderUrl`), «Return items»
+  (`returnAction`, kompot's `present` of a `ReturnForm`, offered while some line is inside its window).
+  A courier order's address is the order's own copy (`orders.address`, B-40), not the saved address.
+* **Reorder** — each SKU of the order set in the cart through the cart's own command
+  (`CartCommands.changeLine`), selected, at the order's quantity capped at ten and at the stock; a line
+  already holding that many is only selected, so a second press adds nothing; a SKU gone or out of
+  stock is left out and the answer does not name it (no artboard draws a message — decided as product
+  owner, B-18).
+* **`ReturnEntry`** — the lines to return, whole, by `ReturnLine.position`, and a reason id
+  (`doesnt_fit`, `not_as_described`, `damaged`, `changed_mind`). `returnProblems` is the rule both sides
+  hold the form to: the client checks it before sending, the server refuses by it. One return per order;
+  each line within 30 store days of its own shipment's arrival; the refund is each line's share of the
+  items as paid, without delivery, and is paid when the parcel is back
+  ([feature-orders](../features/feature-orders.md)).
 
 ## Errors
 
 | Route | Status and `code` |
 |---|---|
-| `GET` `/ui/orders/{id}` | `401`, `404` order_not_found (planned: `ErrorCode` has no `order_not_found` yet) |
-| `GET` `/ui/account/orders` | `401` |
-| `POST` `/api/v1/me/orders/{id}/reorder` | `401`, `404` |
-| `POST` `/api/v1/me/orders/{id}/returns` | `400` validation_failed, `401`, `404`, `422` return_window_closed / not_delivered |
+| `GET` `/ui/account/orders/{id}` | `401` unauthenticated; `404` order_not_found — another customer's order and a missing one alike (`OrderRoutesTest.another customer's order and a missing one get the same answer`) |
+| `POST` `/api/v1/me/orders/{id}/reorder` | `401` unauthenticated; `404` order_not_found, for another customer's order too |
+| `POST` `/api/v1/me/orders/{id}/returns` | `400` validation_failed — every field at fault (`lines`, `reason`, or `request` for a body that is not JSON); `401` unauthenticated; `404` order_not_found (not yours, or none); `409` already_returned; `422` not_delivered; `422` return_window_closed (`ReturnRoutesTest.late return`) |
