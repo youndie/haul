@@ -2,6 +2,7 @@ package io.github.youndie.haul
 
 import io.github.youndie.haul.db.DatabaseConfig
 import io.github.youndie.haul.feature.catalog.data.S3Config
+import io.github.youndie.haul.feature.fulfilment.FulfilmentSettings
 import io.github.youndie.haul.feature.identity.SignInConfig
 import io.github.youndie.haul.ops.AgentEndpoint
 import io.github.youndie.haul.ops.ObservabilitySettings
@@ -47,6 +48,22 @@ internal class ServerConfig(
                     region = env("HAUL_S3_REGION") ?: S3Config.DEFAULT_REGION,
                 )
             }
+
+    /**
+     * How fast the simulated world moves shipments (B-17, research D4): `HAUL_FULFILMENT_SPEED` times the
+     * store's own pace — `1`, the default, delivers a courier order in about two days; a stand that wants
+     * an order delivered in minutes says `1440` (a day a minute). Anything but a positive number refuses
+     * the start: a typo that froze every order would look like a store whose couriers never come.
+     */
+    val fulfilment: FulfilmentSettings
+        get() {
+            val speed =
+                env("HAUL_FULFILMENT_SPEED")?.let { raw ->
+                    raw.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0 }
+                        ?: error("HAUL_FULFILMENT_SPEED=$raw is not a positive number")
+                } ?: 1.0
+            return FulfilmentSettings.running(speed)
+        }
 
     /** The commit the image was built from, for `/version`; `dev` when nobody said. */
     val commit: String get() = env("HAUL_COMMIT") ?: "dev"

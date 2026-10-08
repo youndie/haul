@@ -58,6 +58,9 @@ internal object ShipmentsTable : Table("shipments") {
     val sellerId = text("seller_id").references(SellersTable.id, onDelete = ReferenceOption.RESTRICT)
     val position = integer("position")
     val status = text("status").check("shipments_status_check") { it inList ShipmentStatus.ALL }
+
+    // V11: written by the fulfilment simulator when a pickup shipment is ready to collect (B-17).
+    val pickupCode = text("pickup_code").nullable()
     override val primaryKey = PrimaryKey(id)
 
     init {

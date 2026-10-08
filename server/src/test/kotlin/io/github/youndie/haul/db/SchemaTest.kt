@@ -3,6 +3,7 @@ package io.github.youndie.haul.db
 import io.github.youndie.haul.feature.cart.data.cartTables
 import io.github.youndie.haul.feature.catalog.data.catalogTables
 import io.github.youndie.haul.feature.checkout.data.checkoutTables
+import io.github.youndie.haul.feature.fulfilment.data.fulfilmentTables
 import io.github.youndie.haul.feature.order.data.orderTables
 import io.github.youndie.haul.feature.payment.data.paymentTables
 import io.github.youndie.haul.feature.search.data.searchTables
@@ -79,11 +80,12 @@ class SchemaTest {
 
     /**
      * V10's tables against their Exposed declarations: petich's three, which petich declares and V10
-     * writes by hand (petich ships no DDL), and placement's own.
+     * writes by hand (petich ships no DDL), and placement's own — with V11's additions: the shipments'
+     * pickup code, their history, and the payment simulator's captures.
      */
     @Test
     fun `the migrated schema needs no further DDL for the order and payment tables`() {
-        val tables = orderTables + paymentTables
+        val tables = orderTables + paymentTables + fulfilmentTables
         val required =
             PostgresHarness.freshDatabase().use {
                 transaction(Databases.connect(it)) {
@@ -91,7 +93,7 @@ class SchemaTest {
                 }
             }
         assertEquals(emptyList(), required, "still required:\n" + required.joinToString("\n"))
-        assertEquals(8, tables.size)
+        assertEquals(10, tables.size)
     }
 
     /** The guard on the guard: an empty table list also needs no DDL. */

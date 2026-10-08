@@ -28,7 +28,10 @@ internal object CancelReason {
     const val FAILED = "failed"
 }
 
-/** A shipment's statuses (research §5, `Shipment`); placement writes [PLACED] and [CANCELLED], B-17 the rest. */
+/**
+ * A shipment's statuses (research §5, `Shipment`); placement writes [PLACED] and [CANCELLED], the
+ * fulfilment simulator the rest (`feature/fulfilment/`).
+ */
 internal object ShipmentStatus {
     const val PLACED = "placed"
     const val PACKED = "packed"
@@ -38,7 +41,10 @@ internal object ShipmentStatus {
     const val PICKED_UP = "picked_up"
     const val CANCELLED = "cancelled"
 
-    val ALL: List<String> = listOf(PLACED, PACKED, IN_TRANSIT, READY_FOR_PICKUP, DELIVERED, PICKED_UP, CANCELLED)
+    /** The way a shipment travels, in its order: a courier's ends at [DELIVERED], a pickup's at [PICKED_UP]. */
+    val LIFECYCLE: List<String> = listOf(PLACED, PACKED, IN_TRANSIT, READY_FOR_PICKUP, DELIVERED, PICKED_UP)
+
+    val ALL: List<String> = LIFECYCLE + CANCELLED
 }
 
 /** A line as bought: the SKU, its seller, its title, and the price it was bought at. */
@@ -51,11 +57,15 @@ internal data class OrderLine(
     val listCents: Int,
 )
 
-/** One seller's part of an order (research §5: «one per seller»). */
+/**
+ * One seller's part of an order (research §5: «one per seller»). [pickupCode] is a pickup shipment's,
+ * written once it is ready to collect (B-17); `null` before that and always for a courier.
+ */
 internal data class Shipment(
     val id: String,
     val sellerId: String,
     val status: String,
+    val pickupCode: String? = null,
 )
 
 /**

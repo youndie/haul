@@ -1,11 +1,13 @@
 package io.github.youndie.haul.feature.payment.data
 
+import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.javatime.timestampWithTimeZone
 
-// The Exposed side of V10's `payment_authorisations`. `SchemaTest` holds the two together, CHECK
-// constraints included: declared here under the names PostgreSQL gave them there.
+// The Exposed side of V10's `payment_authorisations` and V11's `payment_captures`. `SchemaTest` holds the
+// two together, CHECK constraints included: declared here under the names PostgreSQL gave them there.
 
 internal object PaymentAuthorisationsTable : Table("payment_authorisations") {
     val key = text("key")
@@ -22,4 +24,19 @@ internal object PaymentAuthorisationsTable : Table("payment_authorisations") {
     const val VOIDED = "voided"
 }
 
-internal val paymentTables: List<Table> = listOf(PaymentAuthorisationsTable)
+/** One capture per key, out of one authorisation (B-17): what the shopper has actually been charged. */
+internal object PaymentCapturesTable : Table("payment_captures") {
+    val key = text("key")
+    val authorisationKey =
+        text("authorisation_key").references(PaymentAuthorisationsTable.key, onDelete = ReferenceOption.RESTRICT)
+    val orderId = text("order_id")
+    val amountCents = integer("amount_cents").check("payment_captures_amount_cents_check") { it greater 0 }
+    val capturedAt = timestampWithTimeZone("captured_at")
+    override val primaryKey = PrimaryKey(key)
+
+    init {
+        index("payment_captures_authorisation_key", false, authorisationKey)
+    }
+}
+
+internal val paymentTables: List<Table> = listOf(PaymentAuthorisationsTable, PaymentCapturesTable)

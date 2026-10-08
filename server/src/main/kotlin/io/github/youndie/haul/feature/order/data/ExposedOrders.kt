@@ -124,7 +124,14 @@ internal class ExposedOrders(
                     .selectAll()
                     .where { ShipmentsTable.orderId eq orderId }
                     .orderBy(ShipmentsTable.position, SortOrder.ASC)
-                    .map { Shipment(it[ShipmentsTable.id], it[ShipmentsTable.sellerId], it[ShipmentsTable.status]) }
+                    .map {
+                        Shipment(
+                            it[ShipmentsTable.id],
+                            it[ShipmentsTable.sellerId],
+                            it[ShipmentsTable.status],
+                            it[ShipmentsTable.pickupCode],
+                        )
+                    }
             Order(
                 placed =
                     NewOrder(

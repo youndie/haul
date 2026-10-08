@@ -245,6 +245,38 @@ and on the stand.
   «now», because its stamps are compared across processes.
 - **Order numbers** come from a sequence starting at 48302, the checkout fixture's order (§6).
 
+**Decided in B-17, fulfilment and the capture.**
+
+- **The simulator is one pass** (`feature/fulfilment/domain/FulfilmentSimulator.kt`): it reads the
+  shipments of `placed` orders still on their way and moves each through every step that has come due,
+  each stamped at the moment it came due (`shipment_events`, `V11__fulfilment.sql`) — so a pass after a
+  pause catches up and writes the history an unbroken run would. A shipment the seller has not seen yet
+  is stamped `placed` by the first pass that finds it. The application runs the pass in its own scope
+  (`FulfilmentRunner`); a test calls it on a clock it holds.
+- **Its clock is the saga's** (`PetichClock`, the wall clock read in `Application.kt`): its stamps are
+  compared across processes, which is the saga clock's reason for being, and the store's «now» is not it.
+- **The pace is a decision** (`FulfilmentPace.STORE`): packed 4 h after the seller sees the order, on the
+  road 20 h later plus a day per dispatch day (the most of the shipment's products'), delivered or ready
+  to collect a day after that, collected two days later — inside the five days a point holds it. So Sony
+  ships a day before Brooklyn Home Co., as the canvas promises. `HAUL_FULFILMENT_SPEED` runs the same
+  schedule that many times quicker (default 1; 1440 is a day a minute), polled every tenth of the
+  shortest step, between 1 s and 1 min. The pace does not follow the window the shopper chose.
+- **The capture is per shipment, at `in_transit`, before the move**: the shipment's share of the
+  authorised total — in proportion to what each seller's lines cost at the price paid, every share but
+  the last rounded down and the last taking the rest, so the parts add up to the total to the cent. The
+  capture is named by the shipment id, so a pass re-run after a process died between the capture and the
+  move is answered with what was taken. A refused capture holds the shipment `packed`; pay on delivery
+  has nothing to capture; Haul Pay is captured like a card (its four payments are B-24's).
+- **The ledger** gains `payment_captures`, one row per key out of one authorisation; the authorisation
+  is locked while a capture is taken, captures never add up to more than it holds, and an authorisation
+  part of which was captured is no longer voided.
+- **A pickup code** is four digits of an HMAC of the shipment id keyed by the order's saga id (a hash of
+  the customer and their key, never on the wire): deterministic, so a re-run writes the same code, and
+  not derivable from the shipment id the page shows. It is stored when the shipment becomes
+  `ready_for_pickup` and shown only while it waits, only to the order's customer.
+- **The order's progress** (`OrderTracking`, `OrderProgress`) is the saga's while `placing` or
+  `cancelled`, then the least advanced shipment's — B-18 draws the order page from it.
+
 ### D5. Sign-in through shildik; guests can browse and fill a cart
 
 Decision: a guest has a server-issued id (`X-Haul-Guest`) and a cart; checkout, saving, reviews and

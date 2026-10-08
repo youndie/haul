@@ -5,10 +5,13 @@ import io.github.youndie.haul.feature.cart.data.CartLinesTable
 import io.github.youndie.haul.feature.cart.data.CartsTable
 import io.github.youndie.haul.feature.catalog.data.SkusTable
 import io.github.youndie.haul.feature.checkout.data.DeliverySlotsTable
+import io.github.youndie.haul.feature.fulfilment.data.ShipmentEventsTable
 import io.github.youndie.haul.feature.order.data.OrdersTable
 import io.github.youndie.haul.feature.order.data.SagaTables
+import io.github.youndie.haul.feature.order.data.ShipmentsTable
 import io.github.youndie.haul.feature.order.data.StockReservationsTable
 import io.github.youndie.haul.feature.payment.data.PaymentAuthorisationsTable
+import io.github.youndie.haul.feature.payment.data.PaymentCapturesTable
 import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
 import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
 import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
@@ -105,4 +108,34 @@ internal class Ledger(
                 .single()[SagaTables.petiches.status]
                 .name
         }
+
+    /** Each shipment of [orderId]'s status, by id. */
+    fun shipmentStatuses(orderId: String): Map<String, String> =
+        transaction(database) {
+            ShipmentsTable
+                .selectAll()
+                .where { ShipmentsTable.orderId eq orderId }
+                .associate { it[ShipmentsTable.id] to it[ShipmentsTable.status] }
+        }
+
+    /** Each shipment of [orderId]'s pickup code as stored, by id. */
+    fun pickupCodes(orderId: String): Map<String, String?> =
+        transaction(database) {
+            ShipmentsTable
+                .selectAll()
+                .where { ShipmentsTable.orderId eq orderId }
+                .associate { it[ShipmentsTable.id] to it[ShipmentsTable.pickupCode] }
+        }
+
+    /** The payment simulator's captures of [orderId], by key. */
+    fun captures(orderId: String): Map<String, Int> =
+        transaction(database) {
+            PaymentCapturesTable
+                .selectAll()
+                .where { PaymentCapturesTable.orderId eq orderId }
+                .associate { it[PaymentCapturesTable.key] to it[PaymentCapturesTable.amountCents] }
+        }
+
+    /** How many steps of shipment history there are, every shipment's. */
+    fun historyRows(): Int = transaction(database) { ShipmentEventsTable.selectAll().count().toInt() }
 }
