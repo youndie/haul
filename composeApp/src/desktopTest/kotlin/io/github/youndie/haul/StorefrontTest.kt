@@ -201,6 +201,35 @@ class StorefrontTest {
             assertEquals(listOf("/"), history.entries, "sign-in is not a page")
         }
 
+    /**
+     * B-41: a sign-in whose `next` is the page already shown draws it again in place — opening the
+     * address being shown does nothing, and the header would keep saying «Sign in».
+     */
+    @Test
+    fun `a sign-in that returns to the page shown draws it again in place`() =
+        runDesktopComposeUiTest(CANVAS_WIDTH, 1_000) {
+            answer("/ui/home", ok(signInHere("/sign-in?next=%2F")), ok(home))
+            storefront()
+            onNodeWithText(SIGN_IN_HERE).performClick()
+            onNodeWithText(CARD_TITLE).assertExists()
+            assertEquals(1, signIns)
+            assertEquals(listOf("/ui/home", "/ui/home"), requests)
+            assertEquals(listOf("/"), history.entries)
+        }
+
+    /** The open-redirect guard in the storefront: a `next` naming another site is not followed. */
+    @Test
+    fun `a sign-in whose next is another site stays on the page`() =
+        runDesktopComposeUiTest(CANVAS_WIDTH, 1_000) {
+            answer("/ui/home", ok(signInHere("/sign-in?next=%2F%2Fevil.example%2Fcheckout")), ok(home))
+            storefront()
+            onNodeWithText(SIGN_IN_HERE).performClick()
+            onNodeWithText(CARD_TITLE).assertExists()
+            assertEquals(1, signIns)
+            assertEquals(listOf("/ui/home", "/ui/home"), requests)
+            assertEquals(listOf("/"), history.entries, "the next was followed")
+        }
+
     @Test
     fun `typing asks for suggestions once the shopper pauses and Enter opens the results`() =
         runDesktopComposeUiTest(CANVAS_WIDTH, 1_000) {
@@ -268,6 +297,7 @@ class StorefrontTest {
         const val CARD_TITLE = "Sony WH-1000XM6"
         const val PRODUCT_TEXT = "The next page"
         const val CUSTOMER = "Maya"
+        const val SIGN_IN_HERE = "Sign in here"
 
         /** The canvas's deals end at local midnight: 04:12:37 from its «now». */
         const val MIDNIGHT = "2025-10-08T00:00-04:00"
@@ -316,6 +346,9 @@ class StorefrontTest {
                 products = emptyList(),
                 allResultsLabel = "All 3 results",
             )
+
+        fun signInHere(deeplink: String) =
+            page(header, ButtonComponent(id = "sign-in", text = SIGN_IN_HERE, action = NavigateAction(deeplink)))
 
         fun refreshable(version: Int) =
             page(
