@@ -76,43 +76,43 @@ Browsing:
 - [ ] [feature-browse](features/feature-browse.md) — Home and category catalog (draft)
 - [x] [feature-search](features/feature-search.md) — Search and autocomplete
 - [ ] [feature-product](features/feature-product.md) — Product page (draft)
-- [ ] [feature-reviews](features/feature-reviews.md) — Reviews and questions (draft)
-- [ ] [feature-recommendations](features/feature-recommendations.md) — Picked for you (draft)
+- [x] [feature-reviews](features/feature-reviews.md) — Reviews and questions
+- [x] [feature-recommendations](features/feature-recommendations.md) — Picked for you
 
 Buying:
 - [x] [feature-identity](features/feature-identity.md) — Sign-in, guests and the guest cart
-- [ ] [feature-cart](features/feature-cart.md) — Cart (draft)
+- [x] [feature-cart](features/feature-cart.md) — Cart
 - [ ] [feature-checkout](features/feature-checkout.md) — Checkout (draft)
-- [ ] [feature-orders](features/feature-orders.md) — Order lifecycle, tracking and returns (draft)
+- [x] [feature-orders](features/feature-orders.md) — Order lifecycle, tracking and returns
 
 Account and loyalty:
-- [ ] [feature-account](features/feature-account.md) — Account overview and the Saved list (draft)
+- [x] [feature-account](features/feature-account.md) — Account overview and the Saved list
 - [ ] [feature-membership](features/feature-membership.md) — Haul Plus, points and Haul Pay (draft)
 
 ### Screens / flows (10)
 
-- [ ] [screen-account](screens/screen-account.md) — Account, 6 states (draft)
-- [ ] [screen-cart](screens/screen-cart.md) — Cart, 8 states (draft)
-- [ ] [screen-catalog](screens/screen-catalog.md) — Category, 5 states (draft)
-- [ ] [screen-checkout](screens/screen-checkout.md) — Checkout, 9 states (draft)
+- [x] [screen-account](screens/screen-account.md) — Account, 6 states
+- [x] [screen-cart](screens/screen-cart.md) — Cart, 8 states
+- [x] [screen-catalog](screens/screen-catalog.md) — Category, 5 states
+- [x] [screen-checkout](screens/screen-checkout.md) — Checkout, 9 states
 - [ ] [screen-deals](screens/screen-deals.md) — Deals, no artboard (draft)
-- [ ] [screen-home](screens/screen-home.md) — Home, 5 states (draft)
-- [ ] [screen-order](screens/screen-order.md) — Order, 10 states (draft)
-- [ ] [screen-product](screens/screen-product.md) — Product, 10 states (draft)
-- [ ] [screen-saved](screens/screen-saved.md) — Saved, 5 states (draft)
+- [x] [screen-home](screens/screen-home.md) — Home, 5 states
+- [x] [screen-order](screens/screen-order.md) — Order, 10 states
+- [x] [screen-product](screens/screen-product.md) — Product, 10 states
+- [x] [screen-saved](screens/screen-saved.md) — Saved, 5 states
 - [x] [screen-search](screens/screen-search.md) — Search, 5 states
 
 ### API (12)
 
-- [ ] [endpoint-account](api/endpoint-account.md) — Account overview (draft)
+- [x] [endpoint-account](api/endpoint-account.md) — Account overview
 - [x] [endpoint-cart](api/endpoint-cart.md) — Cart
-- [ ] [endpoint-catalog](api/endpoint-catalog.md) — Home, deals, category, product, photos (draft)
+- [x] [endpoint-catalog](api/endpoint-catalog.md) — Home, deals, category, product, photos
 - [x] [endpoint-checkout](api/endpoint-checkout.md) — Checkout and placement
 - [x] [endpoint-identity](api/endpoint-identity.md) — Guests, sign-in, cart merge, addresses
-- [ ] [endpoint-membership](api/endpoint-membership.md) — Haul Plus (draft)
+- [x] [endpoint-membership](api/endpoint-membership.md) — Haul Plus
 - [x] [endpoint-ops](api/endpoint-ops.md) — Probes
-- [ ] [endpoint-orders](api/endpoint-orders.md) — Orders and returns (draft)
-- [ ] [endpoint-recommendations](api/endpoint-recommendations.md) — Picked for you (draft)
-- [ ] [endpoint-reviews](api/endpoint-reviews.md) — Reviews and questions (draft)
-- [ ] [endpoint-saved](api/endpoint-saved.md) — Saved list (draft)
+- [x] [endpoint-orders](api/endpoint-orders.md) — Orders and returns
+- [x] [endpoint-recommendations](api/endpoint-recommendations.md) — Picked for you
+- [x] [endpoint-reviews](api/endpoint-reviews.md) — Reviews and questions
+- [x] [endpoint-saved](api/endpoint-saved.md) — Saved list
 - [x] [endpoint-search](api/endpoint-search.md) — Search
