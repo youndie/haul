@@ -179,6 +179,16 @@ internal sealed class OrderError(
             "quote",
         )
 
+    /**
+     * The checkout holds «Place order» (`CheckoutState.placeable`) for a refused address form: the quote
+     * still names the previous address, and placing it would deliver to the one the shopper is changing.
+     */
+    class CheckoutHeld :
+        OrderError(
+            ErrorCode.CheckoutHeld,
+            "Your delivery address has errors — fix it or choose a saved address, then place the order",
+        )
+
     class OutOfStock :
         OrderError(ErrorCode.OutOfStock, "An item in your order is no longer in stock — check your cart", "quote")
 }

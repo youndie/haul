@@ -99,6 +99,15 @@ public enum class ErrorCode {
     @SerialName("cart_changed")
     CartChanged,
 
+    /**
+     * Placement of a checkout that holds «Place order» (`CheckoutSummary.placeEnabled = false`): an address
+     * form the server refused is on record, so the address the quote still names is not the one the shopper
+     * is entering. A `409`, not `validation_failed`: the request is well-formed, the conflict is with what
+     * the checkout holds, and the same request under the same key places once a saved address is chosen.
+     */
+    @SerialName("checkout_held")
+    CheckoutHeld,
+
     /** In [ErrorBody.fields] only: a form field that must be filled was left empty. */
     @SerialName("field_required")
     FieldRequired,

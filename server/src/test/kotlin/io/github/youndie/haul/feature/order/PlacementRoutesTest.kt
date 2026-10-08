@@ -4,6 +4,7 @@ import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.db.Databases
 import io.github.youndie.haul.feature.cart.CartPaths
 import io.github.youndie.haul.feature.cart.LineChange
+import io.github.youndie.haul.feature.checkout.AddressEntry
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.checkout.CheckoutPaths
 import io.github.youndie.haul.feature.checkout.IDEMPOTENCY_KEY_HEADER
@@ -17,6 +18,7 @@ import io.github.youndie.haul.feature.order.domain.ShipmentStatus
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.SampleCatalog.BROOKLYN_HOME
 import io.github.youndie.haul.seed.SampleCatalog.SONY_STORE
+import io.github.youndie.haul.seed.SampleCheckout
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.testing.Ledger
 import io.github.youndie.haul.testing.MAYAS_SKUS
@@ -50,6 +52,7 @@ import kotlinx.coroutines.runBlocking
 import javax.sql.DataSource
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -253,6 +256,79 @@ class PlacementRoutesTest {
                     .last()
                     .quantity,
             )
+        }
+
+    private suspend fun HttpClient.refuseAddress(token: String) =
+        post(CheckoutPaths.ADDRESSES) {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody(
+                haulWireJson.encodeToString(
+                    AddressEntry.serializer(),
+                    AddressEntry("1 Kent Avenue", "", "Brooklyn, NY", "112ll"),
+                ),
+            )
+        }.assertError(HttpStatusCode.BadRequest, ErrorCode.ValidationFailed)
+
+    /**
+     * B-39: the checkout holds «Place order» while a refused address form is on record, and placement
+     * holds it too. The refused form leaves the quote complete with Maya's saved address — the same
+     * fingerprint the page carried — so before B-39 a client that ignored the held button, or a second
+     * tab, placed the order to 148 Wythe Avenue while she was changing it. The refusal is `409
+     * checkout_held` and takes nothing: no order, no saga, no stock, no window, no authorisation. It
+     * spends no key either: once she chooses the saved address again the same request under the same
+     * key places, to that address.
+     */
+    @Test
+    fun `a refused address form holds placement and the same key places once the hold is lifted`() =
+        asMaya { token, database ->
+            val ledger = Ledger(database)
+            val stockBefore = ledger.stock()
+            choose(token, CheckoutChoice(slotId = wednesday3pm))
+            val summary = checkout(token).only<CheckoutSummary>()
+            assertTrue(summary.placeEnabled, "the quote cannot be placed before the form was refused")
+
+            refuseAddress(token)
+            val held = checkout(token).only<CheckoutSummary>()
+            assertFalse(held.placeEnabled, "the checkout does not hold the button for a refused form")
+            assertEquals(
+                summary.quote,
+                held.quote,
+                "the refused form changed the quote: the old one would be cart_changed",
+            )
+
+            place(token, "maya-held", summary).assertError(HttpStatusCode.Conflict, ErrorCode.CheckoutHeld)
+
+            assertEquals(0, ledger.orders(), "an order was placed past the held button")
+            assertEquals(0, ledger.sagas(), "a saga was started")
+            assertEquals(stockBefore, ledger.stock(), "stock was taken")
+            assertEquals(0, ledger.reservedStock())
+            assertEquals(0, ledger.taken(wednesday3pm), "the window's place was taken")
+            assertEquals(emptyList(), ledger.authorisations())
+
+            choose(token, CheckoutChoice(addressId = SampleCheckout.MAYA_ADDRESS))
+            assertTrue(checkout(token).only<CheckoutSummary>().placeEnabled, "choosing a saved address kept the hold")
+            val orderId = place(token, "maya-held", summary).assertPlaced()
+            assertEquals(SampleCheckout.MAYA_ADDRESS, database.order(orderId).placed.addressId)
+            assertEquals(1, ledger.taken(wednesday3pm))
+        }
+
+    /**
+     * B-39 and «Same key twice»: a key whose order was placed is answered from its saga before checkout is
+     * read, so a retry that arrives after the shopper started a new address — and was refused — still
+     * gets the order it placed, not `checkout_held` for a checkout the order already left.
+     */
+    @Test
+    fun `a retry of a placed key answers its order with a refused address form on record`() =
+        asMaya { token, database ->
+            val ledger = Ledger(database)
+            val summary = checkout(token).only<CheckoutSummary>()
+            val first = place(token, "maya-retry", summary).assertPlaced()
+
+            refuseAddress(token)
+
+            assertEquals(first, place(token, "maya-retry", summary).assertPlaced())
+            assertEquals(1, ledger.orders(), "the retry placed a second order")
         }
 
     /** «Shown when: signed in» (screen-checkout): placement is in the customer tier. */

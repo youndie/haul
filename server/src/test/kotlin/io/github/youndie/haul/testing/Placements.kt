@@ -100,6 +100,15 @@ internal class Ledger(
                 .map { it[CartLinesTable.skuId] }
         }
 
+    /** How many sagas were stored: a placement refused before the saga stores none. */
+    fun sagas(): Int =
+        transaction(database) {
+            SagaTables.petiches
+                .selectAll()
+                .count()
+                .toInt()
+        }
+
     /** The status of the one saga in the database. */
     fun sagaStatus(): String =
         transaction(database) {

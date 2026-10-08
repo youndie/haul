@@ -27,7 +27,10 @@ import java.security.MessageDigest
  * customer's key never names another's order. A key whose saga exists is answered from that saga — the
  * same order, whatever the cart holds now — after petich-idempotency checks that it arrives with the
  * request it was first sent with; a new key places the quote, computed again by checkout
- * (`CheckoutCommands.quote`), only when its fingerprint is the one the shopper saw.
+ * (`CheckoutCommands.quote`), only when its fingerprint is the one the shopper saw and the checkout does
+ * not hold «Place order» (`CheckoutState.placeable`: `409 checkout_held` for a refused address form). A
+ * refusal before the saga spends no key, so the same request under the same key places once the hold is
+ * lifted.
  *
  * The saga runs inside the request: every member is in-process, so the answer can say what happened —
  * a window that filled or stock that ran out is the shopper's to fix on the checkout (`409`), anything
@@ -68,7 +71,16 @@ internal class Placement(
         if (state.slotFilled) throw CheckoutError.SlotUnavailable()
         val quote = state.quote
         if (quote.fingerprint != request.quote) throw OrderError.QuoteChanged()
-        if (!quote.complete) throw OrderError.Invalid("quote", "Choose where and when to receive the order first")
+        // The button's own rule (B-39): a refused address form leaves the quote complete with the address
+        // before it — same fingerprint — so a client that ignores the held button, or a second tab, would
+        // otherwise place to the address the shopper is changing.
+        if (!state.placeable) {
+            throw if (quote.complete) {
+                OrderError.CheckoutHeld()
+            } else {
+                OrderError.Invalid("quote", "Choose where and when to receive the order first")
+            }
+        }
 
         // Claimed only by a placement that got this far: a key refused above was never used for an order.
         guard(sagaId, fingerprint)
