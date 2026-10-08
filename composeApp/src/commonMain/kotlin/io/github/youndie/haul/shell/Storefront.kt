@@ -21,6 +21,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
+import io.github.youndie.haul.feature.cart.CartCommands
+import io.github.youndie.haul.feature.cart.LocalCartCommands
 import io.github.youndie.haul.feature.identity.SignInActions
 import io.github.youndie.haul.feature.product.ProductNotFound
 import io.github.youndie.haul.feature.search.SearchSuggestOverlay
@@ -77,7 +79,8 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
 /**
  * The storefront at the address [history] is at: every page from [transport], «now» from [clock] — one
  * clock, ticking each second, that every countdown reads. A tree's `navigate` to `/sign-in` is
- * sign-in's ([SignInActions]): [signIn] runs, then the screen is drawn again, signed in or not.
+ * sign-in's ([SignInActions]): [signIn] runs, then the screen is drawn again, signed in or not. The
+ * cart's presses go to [cartCommands] (B-13), whose answer, `refresh`, draws the cart again.
  */
 @Composable
 public fun Storefront(
@@ -85,6 +88,7 @@ public fun Storefront(
     history: BrowserHistory,
     signIn: suspend () -> Unit,
     clock: Clock = Clock.System,
+    cartCommands: CartCommands? = null,
 ) {
     val navigator = remember(history) { Navigator(history) }
     DisposableEffect(navigator) {
@@ -132,6 +136,7 @@ public fun Storefront(
         LocalSearchInput provides search,
         LocalLogoAction provides home,
         LocalHaulActions provides panelActions,
+        LocalCartCommands provides cartCommands,
     ) {
         SearchSuggestOverlay(panel, highlighted = -1, field = field, onDismiss = dismiss) {
             val address = navigator.address
@@ -212,6 +217,7 @@ private fun Loading(address: Address) {
         PageKind.Catalog -> CatalogLoading()
         PageKind.Product -> ProductLoading()
         PageKind.Search -> SearchLoading(address.query.orEmpty())
+        PageKind.Cart -> CartLoading()
         PageKind.Other -> HaulHeaderView(SHELL_HEADER, pending = true)
     }
 }
@@ -250,6 +256,10 @@ private fun Failed(
             SearchError(address.query.orEmpty(), retry)
         }
 
+        address.kind == PageKind.Cart -> {
+            CartError(retry)
+        }
+
         else -> {
             val failure = if (cause is ScreenFailed.Unreachable) ShellFailure.Unreachable else ShellFailure.Server
             ErrorShell(address.kind.subject, failure, retry)
@@ -263,7 +273,7 @@ private val PageKind.subject: String
             PageKind.Home -> "The home page"
             PageKind.Catalog -> "This category"
             PageKind.Product -> "This product"
-            PageKind.Search, PageKind.Other -> "This page"
+            PageKind.Search, PageKind.Cart, PageKind.Other -> "This page"
         }
 
 /** «Now», read from [clock] on each whole second: one ticking value every countdown on the page reads. */

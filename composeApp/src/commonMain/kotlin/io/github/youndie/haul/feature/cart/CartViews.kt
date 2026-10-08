@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.feature.identity.SignInActions
 import io.github.youndie.haul.theme.HaulColors
@@ -43,8 +44,8 @@ import io.github.youndie.haul.ui.OrderSummary
 import io.github.youndie.haul.ui.PromoField
 import io.github.youndie.haul.ui.SummaryRow
 import io.github.youndie.haul.ui.Text
-import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.following
+import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.toneColor
@@ -133,7 +134,16 @@ private fun SelectionRow(
                 if (selectedLines.isEmpty()) {
                     null
                 } else {
-                    { onCommand(listOf(CartCommand.RemoveLines(selection.linesUrl, LinesRemoval(selectedLines.map { it.skuId })))) }
+                    {
+                        onCommand(
+                            listOf(
+                                CartCommand.RemoveLines(
+                                    selection.linesUrl,
+                                    LinesRemoval(selectedLines.map { it.skuId }),
+                                ),
+                            ),
+                        )
+                    }
                 },
             ),
             softWrap = false,
@@ -193,8 +203,7 @@ private fun GroupCard(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(group.seller, HaulType.text(15f, 700), Modifier.weight(1f, fill = false), softWrap = false)
-            Spacer(Modifier.weight(1f))
+            Text(group.seller, HaulType.text(15f, 700), Modifier.weight(1f), softWrap = false)
             Text(
                 group.delivery.uppercase(),
                 HaulType.label(11f, 600, 0.05f).copy(color = HaulColors.primary),
@@ -236,12 +245,21 @@ private fun WideLine(
                 line.oldPrice?.let {
                     Text(
                         it,
-                        HaulType.text(14f).copy(color = HaulColors.outlineMuted, textDecoration = TextDecoration.LineThrough),
+                        HaulType
+                            .text(
+                                14f,
+                            ).copy(color = HaulColors.outlineMuted, textDecoration = TextDecoration.LineThrough),
                         Modifier.padding(top = 6.dp),
                         softWrap = false,
                     )
                 }
-                line.each?.let { Text(it, HaulType.text(13f).copy(color = HaulColors.outlineMuted), Modifier.padding(top = 6.dp)) }
+                line.each?.let {
+                    Text(
+                        it,
+                        HaulType.text(13f).copy(color = HaulColors.outlineMuted),
+                        Modifier.padding(top = 6.dp),
+                    )
+                }
             }
         }
         // The notice spans the grid from the tile's column: the box and its gap stay clear.
@@ -273,13 +291,21 @@ private fun PhoneLine(
                     line.oldPrice?.let {
                         Text(
                             it,
-                            HaulType.text(13f).copy(color = HaulColors.outlineMuted, textDecoration = TextDecoration.LineThrough),
+                            HaulType
+                                .text(
+                                    13f,
+                                ).copy(color = HaulColors.outlineMuted, textDecoration = TextDecoration.LineThrough),
                             Modifier.alignByBaseline(),
                             softWrap = false,
                         )
                     }
                     line.each?.let {
-                        Text(it, HaulType.text(13f).copy(color = HaulColors.outlineMuted), Modifier.alignByBaseline(), softWrap = false)
+                        Text(
+                            it,
+                            HaulType.text(13f).copy(color = HaulColors.outlineMuted),
+                            Modifier.alignByBaseline(),
+                            softWrap = false,
+                        )
                     }
                 }
             }
@@ -473,11 +499,17 @@ private fun SummaryCard(
         Row(Modifier.fillMaxWidth()) {
             Text(summary.totalLabel, HaulType.text(17f, 700), Modifier.alignByBaseline(), softWrap = false)
             Spacer(Modifier.weight(1f))
-            Text(summary.total, HaulType.display(56f, 800, letterSpacing = -0.01f), Modifier.alignByBaseline(), softWrap = false)
+            Text(
+                summary.total,
+                HaulType.display(56f, 800, letterSpacing = -0.01f),
+                Modifier.alignByBaseline(),
+                softWrap = false,
+            )
         }
         summary.promo?.let { PromoFieldView(it, onCommand) }
         // A button that opens sign-in has no arrow: it does not go on to checkout (Cart_Guest).
-        val signIn = (summary.checkoutAction as? NavigateAction)?.deeplink?.substringBefore('?') == SignInActions.SIGN_IN
+        val signIn =
+            (summary.checkoutAction as? NavigateAction)?.deeplink?.substringBefore('?') == SignInActions.SIGN_IN
         HaulButton(
             summary.checkoutLabel,
             Modifier.fillMaxWidth().testTag(CHECKOUT_TAG),
@@ -525,9 +557,18 @@ private fun Points(
         if (at < 0) {
             Text(sentence, style)
         } else {
-            sentence.substring(0, at).trim().takeIf { it.isNotEmpty() }?.let { Text(it, style, softWrap = false) }
+            sentence
+                .substring(0, at)
+                .trim()
+                .takeIf { it.isNotEmpty() }
+                ?.let { Text(it, style, softWrap = false) }
             Text(accent.orEmpty(), HaulType.text(14f, 800), softWrap = false)
-            sentence.substring(at + accent.orEmpty().length).trim().takeIf { it.isNotEmpty() }?.let { Text(it, style, softWrap = false) }
+            sentence
+                .substring(at + accent.orEmpty().length)
+                .trim()
+                .takeIf {
+                    it.isNotEmpty()
+                }?.let { Text(it, style, softWrap = false) }
         }
     }
 }
@@ -556,8 +597,11 @@ private fun PromoFieldView(
                 Modifier
                     .weight(1f)
                     .height(if (refused) 52.dp else 54.dp)
-                    .border(if (refused) 2.dp else 1.dp, if (refused) HaulColors.error else HaulColors.outlineVariant, shape)
-                    .padding(horizontal = if (refused) 18.dp else 17.dp),
+                    .border(
+                        if (refused) 2.dp else 1.dp,
+                        if (refused) HaulColors.error else HaulColors.outlineVariant,
+                        shape,
+                    ).padding(horizontal = if (refused) 18.dp else 17.dp),
                 contentAlignment = Alignment.CenterStart,
             ) {
                 if (typed.isEmpty()) {
@@ -567,24 +611,26 @@ private fun PromoFieldView(
                     typed,
                     { typed = it },
                     Modifier.fillMaxWidth().testTag(PROMO_INPUT_TAG),
-                    textStyle = HaulType.label(15f, 600, 0f),
+                    // The field's own line, centred in the box: CSS's `line-height: 1` sits the code a pixel
+                    // higher than a 15 px line box does here.
+                    textStyle = HaulType.label(15f, 600, 0f).copy(lineHeight = TextUnit.Unspecified),
                     singleLine = true,
                 )
             }
-            HaulButton(
-                field.applyLabel,
-                Modifier.testTag(PROMO_APPLY_TAG),
-                height = 52.dp,
-                radius = 14.dp,
-                horizontal = 20.dp,
-                fill = HaulColors.inverseSurface,
-                content = HaulColors.onPrimary,
-                textSize = 15f,
-                onClick = {
-                    val code = typed.trim()
-                    if (code.isNotEmpty()) onCommand(listOf(CartCommand.ApplyPromo(field.url, PromoEntry(code))))
-                },
-            )
+            // Not a `HaulButton`: «Apply» is set in 600, the canvas's buttons in 700.
+            Box(
+                Modifier
+                    .testTag(PROMO_APPLY_TAG)
+                    .pressable {
+                        val code = typed.trim()
+                        if (code.isNotEmpty()) onCommand(listOf(CartCommand.ApplyPromo(field.url, PromoEntry(code))))
+                    }.height(52.dp)
+                    .background(HaulColors.inverseSurface, shape)
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(field.applyLabel, HaulType.text(15f, 600).copy(color = HaulColors.onPrimary), softWrap = false)
+            }
         }
         field.error?.let { error ->
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {

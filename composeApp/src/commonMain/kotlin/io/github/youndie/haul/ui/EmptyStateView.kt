@@ -11,7 +11,11 @@ import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.HaulType.browserLeading
 import io.github.youndie.haul.theme.LocalHaulCompact
 
-/** An empty or no-results state (`EmptyState` on the wire): the title, the sentence, the outlined way out. */
+/**
+ * An empty or no-results state (`EmptyState` on the wire): the title, balanced as the canvas balances
+ * it (`text-wrap: balance`), the sentence, and the way out — outlined, or filled in Cobalt when it is
+ * the page's [EmptyState.primary] one.
+ */
 @Composable
 public fun EmptyStateView(
     empty: EmptyState,
@@ -19,9 +23,9 @@ public fun EmptyStateView(
 ) {
     val compact = LocalHaulCompact.current
     Column(modifier, verticalArrangement = Arrangement.spacedBy(if (compact) 18.dp else 24.dp)) {
-        Text(
+        BalancedText(
             accented(empty.title, empty.accent),
-            Modifier.widthIn(max = 900.dp),
+            modifier = Modifier.widthIn(max = 900.dp),
             style =
                 HaulType.display(
                     if (compact) 44f else 84f,
@@ -45,7 +49,9 @@ public fun EmptyStateView(
                 it,
                 height = if (compact) 56.dp else 64.dp,
                 radius = 18.dp,
-                border = HaulColors.onSurface,
+                fill = if (empty.primary) HaulColors.primary else null,
+                content = if (empty.primary) HaulColors.onPrimary else HaulColors.onSurface,
+                border = if (empty.primary) null else HaulColors.onSurface,
                 icon = HaulIcons.arrowRight,
                 onClick = following(empty.action),
             )

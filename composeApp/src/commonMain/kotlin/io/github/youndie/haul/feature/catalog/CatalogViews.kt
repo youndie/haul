@@ -90,11 +90,18 @@ public fun BreadcrumbsView(breadcrumbs: Breadcrumbs) {
 
 private const val COMPACT_CRUMBS = 4
 
-/** The page's title with the count beside it, on one baseline; a search's ([PageTitle.quoted]) has it above. */
+/**
+ * The page's title with the count beside it, on one baseline; a search's ([PageTitle.quoted]) has it
+ * above, the cart's ([PageTitle.badge]) in a pill at its top.
+ */
 @Composable
 public fun PageTitleView(title: PageTitle) {
     if (title.quoted) {
         QueryTitle(title)
+        return
+    }
+    if (title.badge) {
+        BadgeTitle(title)
         return
     }
     val compact = LocalHaulCompact.current
@@ -157,6 +164,55 @@ private fun QueryTitle(title: PageTitle) {
                     lineHeight = 0.9f,
                 ),
         )
+    }
+}
+
+/**
+ * The cart's title (Cart_Content): «Cart» with the count in an Acid pill level with its top, 14 px
+ * apart. The page has no crumbs, so the title carries the page's top padding; an empty cart's has no
+ * count and leaves the gap under it to what follows (Cart_Empty).
+ */
+@Composable
+private fun BadgeTitle(title: PageTitle) {
+    val compact = LocalHaulCompact.current
+    val gutter = gutter()
+    Row(
+        Modifier.fillMaxWidth().padding(
+            start = gutter,
+            end = gutter,
+            top = if (compact) 24.dp else 40.dp,
+            bottom =
+                if (title.count == null) {
+                    0.dp
+                } else if (compact) {
+                    24.dp
+                } else {
+                    36.dp
+                },
+        ),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        Text(
+            title.title,
+            HaulType.display(
+                if (compact) 56f else 112f,
+                800,
+                letterSpacing = if (compact) -0.01f else -0.03f,
+                lineHeight = 0.9f,
+            ),
+            softWrap = false,
+        )
+        title.count?.let {
+            Text(
+                it,
+                HaulType.label(14f, 600, 0f),
+                Modifier
+                    .padding(top = if (compact) 6.dp else 10.dp)
+                    .background(HaulColors.secondaryContainer, RoundedCornerShape(999.dp))
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                softWrap = false,
+            )
+        }
     }
 }
 

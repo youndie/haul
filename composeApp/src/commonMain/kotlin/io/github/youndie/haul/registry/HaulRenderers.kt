@@ -255,7 +255,13 @@ public class EmptyStateRenderer : KompotComponentRenderer<EmptyState> {
         actionHandler: KompotActionHandler,
         formController: FormController,
     ) {
-        EmptyStateView(component)
+        // Standing on the page itself, it is the empty cart's (Cart_Empty): under the page's title,
+        // in the page's gutter. The category page draws its own inside `FilteredResults`.
+        val compact = LocalHaulCompact.current
+        EmptyStateView(
+            component,
+            Modifier.padding(start = gutter(), end = gutter(), top = if (compact) 24.dp else 40.dp),
+        )
     }
 }
 
