@@ -69,32 +69,42 @@ class PickedSectionTest {
         }
 
     /**
-     * The canvas's `Home_Content` body draws the block the server builds: its header is the server's,
-     * field for field, and its grid has the server's id and columns. The cards stay the canvas's — it draws
-     * products the seed does not sell, as the empty cart's picks do (`CartFixturesTest`).
+     * The home bodies draw the block the server builds: `Home_Content` (Maya, who has viewed) and
+     * `Home_PlusTrialDialog` (Sam, who has viewed nothing) carry the server's header field for field, and a grid
+     * with the server's id, columns and number of cards. The cards stay the canvas's — it draws products the seed
+     * does not sell, as the empty cart's picks do (`CartFixturesTest`).
      */
     @Test
-    fun `the home body draws the block the server builds`() =
+    fun `the home bodies draw the block the server builds`() =
         runBlocking {
-            val (header, grid) = section(CountingViews(headphones)).build(customer)
-            val bodies = File(System.getProperty("haul.clientBodies") ?: error("haul.clientBodies is not set"))
-            val drawn =
-                Json
-                    .parseToJsonElement(File(bodies, "home_content.json").readText())
-                    .jsonObject
-                    .getValue("children")
-                    .jsonArray
-                    .map { it.jsonObject }
-
-            fun drawn(id: String): JsonObject = drawn.single { it["id"] == JsonPrimitive(id) }
-            assertEquals(
-                drawn(PickedSection.TITLE_ID),
-                Json.parseToJsonElement(haulWireJson.encodeKompotComponent(header as SectionHeader)),
-            )
-            val built = grid as ProductGrid
-            assertEquals(JsonPrimitive(built.columns), drawn(PickedSection.GRID_ID)["columns"])
-            assertEquals(built.cards.size, drawn(PickedSection.GRID_ID).getValue("cards").jsonArray.size)
+            assertBodyDraws("home_content.json", CountingViews(headphones))
+            assertBodyDraws("home_plus_trial.json", CountingViews(emptyList()))
         }
+
+    private suspend fun assertBodyDraws(
+        body: String,
+        views: ProductViews,
+    ) {
+        val (header, grid) = section(views).build(customer)
+        val bodies = File(System.getProperty("haul.clientBodies") ?: error("haul.clientBodies is not set"))
+        val drawn =
+            Json
+                .parseToJsonElement(File(bodies, body).readText())
+                .jsonObject
+                .getValue("children")
+                .jsonArray
+                .map { it.jsonObject }
+
+        fun drawn(id: String): JsonObject = drawn.single { it["id"] == JsonPrimitive(id) }
+        assertEquals(
+            drawn(PickedSection.TITLE_ID),
+            Json.parseToJsonElement(haulWireJson.encodeKompotComponent(header as SectionHeader)),
+            "$body: the header is not the server's",
+        )
+        val built = grid as ProductGrid
+        assertEquals(JsonPrimitive(built.columns), drawn(PickedSection.GRID_ID)["columns"], body)
+        assertEquals(built.cards.size, drawn(PickedSection.GRID_ID).getValue("cards").jsonArray.size, body)
+    }
 
     /** The product page's write: a customer's view is stored, a guest's is not, and a failed write throws nothing. */
     @Test
