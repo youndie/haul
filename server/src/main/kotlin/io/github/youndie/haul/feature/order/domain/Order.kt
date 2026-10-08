@@ -180,8 +180,9 @@ internal sealed class OrderError(
         )
 
     /**
-     * The checkout holds «Place order» (`CheckoutState.placeable`) for a refused address form: the quote
-     * still names the previous address, and placing it would deliver to the one the shopper is changing.
+     * The checkout holds «Place order» (`CheckoutState.placeable`) for a refused address form while the
+     * courier is the method: the quote still names the previous address, and placing it would deliver to
+     * the one the shopper is changing. A pickup point or a locker is not held by it (B-42).
      */
     class CheckoutHeld :
         OrderError(
