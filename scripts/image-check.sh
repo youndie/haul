@@ -5,6 +5,8 @@
 # client that accepts only gzip — still labelled `application/wasm`, with `Vary: Accept-Encoding` and a
 # year's `immutable` (its name is its content hash), while the page is `no-cache`; and the source map is
 # neither in the distribution nor served.
+# And B-36's: a storefront address — a product link reloaded or shared — answers the page, `no-cache`
+# and precompressed like `/`, while a path that is no storefront address stays a 404.
 #
 # `-XX:AOTMode=on` makes the JVM refuse to start when it cannot use the cache, so «ready» already
 # means «accepted»; the class-load log then shows the server's own classes coming from the cache, which
@@ -48,14 +50,22 @@ br_cache=$(header "$h" cache-control)
 gz_enc=$(header "$(headers "$module" gzip)" content-encoding)
 page_cache=$(header "$(headers "" "$BROWSER")" cache-control)
 map=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/composeApp.js.map")
+ADDRESS=p/p-sony-wh-1000xm6
+addr_status=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/$ADDRESS")
+h=$(headers "$ADDRESS" "$BROWSER")
+addr_type=$(header "$h" content-type); addr_cache=$(header "$h" cache-control); addr_enc=$(header "$h" content-encoding)
+unknown=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/nowhere")
 shipped_maps=$(find server/build/install/server/web -name '*.map' | wc -l | tr -d ' ')
 echo "module $module to a browser: encoding=$br_enc type=$br_type vary=$br_vary cache=$br_cache;" \
-  "to gzip only: encoding=$gz_enc; page cache=$page_cache; map=$map, maps in the distribution: $shipped_maps"
+  "to gzip only: encoding=$gz_enc; page cache=$page_cache; map=$map, maps in the distribution: $shipped_maps;" \
+  "/$ADDRESS: $addr_status type=$addr_type cache=$addr_cache encoding=$addr_enc; /nowhere: $unknown"
 bundle_ok=yes
 [ "$br_enc" = br ] && [ "$gz_enc" = gzip ] && [ "${br_type%%;*}" = application/wasm ] \
   && printf '%s' "$br_vary" | grep -q accept-encoding \
   && [ "$br_cache" = "public, max-age=31536000, immutable" ] && [ "$page_cache" = no-cache ] \
-  && [ "$map" = 404 ] && [ "$shipped_maps" = 0 ] || bundle_ok=no
+  && [ "$map" = 404 ] && [ "$shipped_maps" = 0 ] \
+  && [ "$addr_status" = 200 ] && [ "${addr_type%%;*}" = text/html ] && [ "$addr_cache" = no-cache ] \
+  && [ "$addr_enc" = br ] && [ "$unknown" = 404 ] || bundle_ok=no
 
 LOG=$(docker logs "$CID" 2>&1)
 ours=$(printf '%s\n' "$LOG" | grep -E '\] io\.github\.youndie\.haul\.' | grep -c 'source:')

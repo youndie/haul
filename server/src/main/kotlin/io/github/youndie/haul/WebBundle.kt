@@ -2,12 +2,14 @@ package io.github.youndie.haul
 
 import io.ktor.http.CacheControl
 import io.ktor.http.HttpHeaders
+import io.ktor.http.decodeURLPart
 import io.ktor.server.http.content.CompressedFileType
 import io.ktor.server.http.content.isCompressionSuppressed
 import io.ktor.server.http.content.staticFiles
 import io.ktor.server.request.path
 import io.ktor.server.response.header
 import io.ktor.server.routing.Route
+import io.ktor.util.combineSafe
 import java.io.File
 
 /**
@@ -27,14 +29,21 @@ import java.io.File
  *   their names across releases and are `no-cache`, so a deploy reaches the next visit.
  * - **No source map**, even if a bundle carries one: the distribution already leaves it out
  *   (`server/build.gradle.kts`); this keeps a hand-built `web/` from publishing it.
+ * - **The page at the storefront's own addresses** (B-36): `/c/headphones` or `/p/p-001-05` reloaded,
+ *   pasted or shared answers `index.html` — the same answer `/` gets, precompressed, `no-cache`, varying
+ *   — and the client draws the page, its own not-found included. Only the shapes in [StorefrontPage],
+ *   the list the client's navigation reads too; there is still no catch-all fallback (B-27): an unknown
+ *   path, `/ui/...` or `/api/...` stays the 404 the client draws, not a 200 page.
  *
- * And still no fallback to `index.html` for a missing file (B-27): an unknown `/ui/...` stays the 404
- * the client draws.
+ * Ktor answers [default][io.ktor.server.http.content.StaticContentConfig.default] for every path that
+ * is not a file, so the `filter` — which runs before any file is looked for — turns away whatever is neither a file nor a
+ * storefront address, and those fall through to the 404.
  */
 internal fun Route.webBundle(dir: File) {
     staticFiles("/", dir) {
         preCompressed(*ENCODINGS)
-        filter { call -> call.request.path().endsWith(".map") }
+        default(PAGE)
+        filter { call -> !dir.answers(call.request.path()) }
         cacheControl { file -> if (file.isContentHashed()) listOf(IMMUTABLE) else listOf(NO_CACHE) }
         modify { file, call ->
             // A compressed answer has suppressed further compression and carries Ktor's own Vary.
@@ -44,6 +53,23 @@ internal fun Route.webBundle(dir: File) {
         }
     }
 }
+
+/** The bundle's page, which every storefront address answers. */
+private const val PAGE = "index.html"
+
+/**
+ * Whether the bundle answers [path] (as the request has it, encoded): a file in it, or the page at a
+ * storefront address. A source map is never answered.
+ */
+private fun File.answers(path: String): Boolean =
+    when {
+        path.endsWith(".map") -> false
+
+        StorefrontPage.of(path) != null -> true
+
+        // Resolved the way Ktor resolves the file it would send, so the two cannot disagree on «a file».
+        else -> runCatching { combineSafe(path.removePrefix("/").decodeURLPart()) }.getOrNull()?.isFile == true
+    }
 
 /** In the order the server prefers them; the image writes both (`docker/Dockerfile`). */
 private val ENCODINGS = arrayOf(CompressedFileType.BROTLI, CompressedFileType.GZIP)

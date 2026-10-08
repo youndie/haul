@@ -21,13 +21,16 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/** The browser bundle served beside the API by the one process (haul-web, B-27; compressed, B-34). */
+/**
+ * The browser bundle served beside the API by the one process (haul-web, B-27; compressed, B-34; the
+ * page at the storefront's addresses, B-36).
+ */
 class WebBundleTest {
     /** What the distribution looks like once the image has precompressed it (`docker/Dockerfile`). */
     private val bundle: File =
         Files.createTempDirectory("haul-web").toFile().apply {
             resolve("index.html").writeText("""<script src="composeApp.js"></script>""")
-            resolve("index.html.br").writeBytes(byteArrayOf(1))
+            resolve("index.html.br").writeBytes(PAGE_BR)
             resolve(MODULE).writeBytes(WASM)
             resolve("$MODULE.br").writeBytes(WASM_BR)
             resolve("$MODULE.gz").writeBytes(WASM_GZ)
@@ -144,13 +147,93 @@ class WebBundleTest {
             assertEquals(HttpStatusCode.NotFound, get("/no-such-file.js").status)
         }
 
+    /** A reloaded, pasted or shared storefront address opens the page, which then draws it (B-36). */
+    @Test
+    fun `a storefront address answers the page, not cached blindly and varying on the encoding`() =
+        withBundle {
+            STOREFRONT.forEach { address ->
+                val response = get(address)
+
+                assertEquals(HttpStatusCode.OK, response.status, address)
+                assertEquals(ContentType.Text.Html, response.contentType()?.withoutParameters(), address)
+                assertTrue("composeApp.js" in response.bodyAsText(), address)
+                assertEquals("no-cache", response.headers[HttpHeaders.CacheControl], address)
+                assertTrue(response.varies(), "$address: Vary ${response.headers.getAll(HttpHeaders.Vary)}")
+            }
+        }
+
+    @Test
+    fun `a browser gets the page at a storefront address precompressed, as at the root`() =
+        withBundle {
+            listOf("/", "/p/p-001-05", "/c/electronics/audio/headphones").forEach { address ->
+                val response = get(address) { header(HttpHeaders.AcceptEncoding, BROWSER) }
+
+                assertEquals(HttpStatusCode.OK, response.status, address)
+                assertEquals("br", response.headers[HttpHeaders.ContentEncoding], address)
+                assertContentEquals(PAGE_BR, response.bodyAsBytes(), address)
+                assertEquals(ContentType.Text.Html, response.contentType()?.withoutParameters(), address)
+                assertEquals("no-cache", response.headers[HttpHeaders.CacheControl], address)
+            }
+        }
+
+    /** An allow-list, not a catch-all (B-27): anything that is neither a file nor a storefront address. */
+    @Test
+    fun `a path that is no storefront address stays a 404`() =
+        withBundle {
+            NOT_STOREFRONT.forEach { path ->
+                assertEquals(
+                    HttpStatusCode.NotFound,
+                    get(path) { header(HttpHeaders.AcceptEncoding, BROWSER) }.status,
+                    path,
+                )
+            }
+        }
+
+    @Test
+    fun `the bundle's own files are still the files`() =
+        withBundle {
+            assertEquals("// the loader", get("/composeApp.js").bodyAsText())
+            assertContentEquals(WASM, module(acceptEncoding = null).bodyAsBytes())
+        }
+
     private companion object {
         /** webpack's name for an emitted wasm: twenty hex digits of its content hash. */
         const val MODULE = "bfa5198fb2fe683c613a.wasm"
         const val BROWSER = "gzip, deflate, br, zstd"
         const val IMMUTABLE = "public, max-age=31536000, immutable"
+
+        /** Every shape of `StorefrontPage`, as the server's `NavigateAction`s write them. */
+        val STOREFRONT =
+            listOf(
+                "/c/headphones",
+                "/c/electronics/audio/headphones?brand=Sony&feature=Noise%20cancelling",
+                "/p/p-001-05",
+                "/p/p-001-05?sku=s-1&tab=specifications",
+                "/search?q=running%20shoes",
+                "/cart",
+                "/checkout",
+                "/account",
+                "/sign-in",
+            )
+
+        val NOT_STOREFRONT =
+            listOf(
+                "/nowhere",
+                "/ui/nowhere",
+                "/api/nowhere",
+                "/images/nowhere.webp",
+                "/deals",
+                "/c/",
+                "/c/headphones/",
+                "/p/",
+                "/p/p-001-05/reviews",
+                "/search/extra",
+                "/cart/1",
+                "/p/p-001-05.map",
+            )
         val WASM = byteArrayOf(0, 0x61, 0x73, 0x6d, 1, 0, 0, 0)
         val WASM_BR = byteArrayOf(0x0b, 0x03, 0x80.toByte())
         val WASM_GZ = byteArrayOf(0x1f, 0x8b.toByte(), 8, 0)
+        val PAGE_BR = byteArrayOf(0x1b, 0x27, 0x00)
     }
 }

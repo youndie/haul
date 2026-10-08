@@ -55,7 +55,8 @@ internal fun interface StoreClock {
  *
  * [web] is the browser bundle's directory, served at `/` beside the API when given ([webBundle]: its
  * precompressed files, its cache headers). Every API route is more specific than the static one, so a
- * screen route always wins; and there is deliberately no fallback to `index.html` for a missing file —
+ * screen route always wins. The page answers the storefront's own addresses ([StorefrontPage], B-36),
+ * so a reloaded or shared `/p/...` opens; there is deliberately no catch-all fallback to `index.html` —
  * it would answer an unknown `/ui/...` with a page and a 200 instead of the 404 the client draws.
  *
  * [photoStore] is the object storage product photos are kept in (B-30); `null` — no storage
