@@ -181,7 +181,9 @@ internal class ExposedInstalments(
                 val take = minOf(left, row[InstalmentsTable.amountCents] - reduced)
                 if (take == 0) continue
                 left -= take
-                InstalmentsTable.update({ (InstalmentsTable.orderId eq orderId) and (InstalmentsTable.number eq number) }) {
+                InstalmentsTable.update(
+                    { (InstalmentsTable.orderId eq orderId) and (InstalmentsTable.number eq number) },
+                ) {
                     it[reducedCents] = reduced + take
                     if (reduced + take == row[InstalmentsTable.amountCents]) it[status] = InstalmentStatus.COVERED
                 }

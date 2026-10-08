@@ -95,4 +95,10 @@ internal object InstalmentsTable : Table("instalments") {
 }
 
 internal val paymentTables: List<Table> =
-    listOf(PaymentAuthorisationsTable, PaymentCapturesTable, PaymentRefundsTable, InstalmentPlansTable, InstalmentsTable)
+    listOf(
+        PaymentAuthorisationsTable,
+        PaymentCapturesTable,
+        PaymentRefundsTable,
+        InstalmentPlansTable,
+        InstalmentsTable,
+    )

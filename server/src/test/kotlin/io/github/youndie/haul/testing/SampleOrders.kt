@@ -81,7 +81,13 @@ internal object SampleOrders {
         val started = Instant.parse("2025-10-06T15:00:00Z")
         val instalments =
             InstalmentSchedule.of(order.placed.totalCents, started, FulfilmentPace.STORE.instalmentInterval).map {
-                if (it.number == 1) it.copy(status = InstalmentStatus.PAID, chargeCents = it.amountCents, paidAt = started) else it
+                if (it.number ==
+                    1
+                ) {
+                    it.copy(status = InstalmentStatus.PAID, chargeCents = it.amountCents, paidAt = started)
+                } else {
+                    it
+                }
             }
         return tracked(order, captured = false).copy(
             plan = InstalmentPlan(order.id, order.placed.totalCents, started, instalments),

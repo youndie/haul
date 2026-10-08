@@ -11,8 +11,8 @@ import io.github.youndie.haul.feature.order.data.OrdersTable
 import io.github.youndie.haul.feature.order.data.SagaTables
 import io.github.youndie.haul.feature.order.data.ShipmentsTable
 import io.github.youndie.haul.feature.order.data.StockReservationsTable
-import io.github.youndie.haul.feature.payment.data.PaymentAuthorisationsTable
 import io.github.youndie.haul.feature.payment.data.InstalmentsTable
+import io.github.youndie.haul.feature.payment.data.PaymentAuthorisationsTable
 import io.github.youndie.haul.feature.payment.data.PaymentCapturesTable
 import io.github.youndie.haul.feature.payment.data.PaymentRefundsTable
 import io.github.youndie.haul.feature.returns.data.ReturnsTable

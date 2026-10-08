@@ -123,7 +123,13 @@ internal class FulfilmentSimulator(
         if (!method.card) return true
         if (method == PaymentMethod.HaulPayPlan) {
             return plans.ship(order, at, now).also { paid ->
-                if (!paid) log.error("shipment {} is held: the first Haul Pay payment of {} is not taken", shipment.id, order.id)
+                if (!paid) {
+                    log.error(
+                        "shipment {} is held: the first Haul Pay payment of {} is not taken",
+                        shipment.id,
+                        order.id,
+                    )
+                }
             }
         }
         val share = ShipmentShares.of(order).getValue(shipment.id)

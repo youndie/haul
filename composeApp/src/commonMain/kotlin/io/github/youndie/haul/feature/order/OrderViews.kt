@@ -584,7 +584,14 @@ private fun Plan(plan: PaymentPlan) {
                     Text(
                         payment.detail,
                         HaulType.text(14f, lineHeight = FACT_LEADING).copy(
-                            color = if (payment.state == PlanPaymentState.Declined) HaulColors.error else HaulColors.outline,
+                            color =
+                                if (payment.state ==
+                                    PlanPaymentState.Declined
+                                ) {
+                                    HaulColors.error
+                                } else {
+                                    HaulColors.outline
+                                },
                         ),
                     )
                 }
@@ -592,9 +599,20 @@ private fun Plan(plan: PaymentPlan) {
                     payment.amount,
                     normal(15f, 600).let {
                         when (payment.state) {
-                            PlanPaymentState.Paid -> it.copy(color = HaulColors.outline)
-                            PlanPaymentState.Covered -> it.copy(color = HaulColors.outline, textDecoration = TextDecoration.LineThrough)
-                            else -> it
+                            PlanPaymentState.Paid -> {
+                                it.copy(color = HaulColors.outline)
+                            }
+
+                            PlanPaymentState.Covered -> {
+                                it.copy(
+                                    color = HaulColors.outline,
+                                    textDecoration = TextDecoration.LineThrough,
+                                )
+                            }
+
+                            else -> {
+                                it
+                            }
                         }
                     },
                     softWrap = false,

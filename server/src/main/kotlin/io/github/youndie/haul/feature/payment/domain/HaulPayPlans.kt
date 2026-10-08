@@ -40,7 +40,9 @@ internal class HaulPayPlans(
     private val retry: Duration,
 ) {
     init {
-        require(interval.isPositive() && retry.isPositive()) { "a plan's payments are some time apart: $interval, $retry" }
+        require(
+            interval.isPositive() && retry.isPositive(),
+        ) { "a plan's payments are some time apart: $interval, $retry" }
     }
 
     /** One pass over the plans with a payment due by now; the number of payments it took or gave up on. */
@@ -98,7 +100,8 @@ internal class HaulPayPlans(
                     }
 
                     InstalmentStatus.COLLECTING -> {
-                        instalment.chargeCents ?: error("payment ${instalment.number} of $orderId is claimed with no charge")
+                        instalment.chargeCents
+                            ?: error("payment ${instalment.number} of $orderId is claimed with no charge")
                     }
 
                     else -> {

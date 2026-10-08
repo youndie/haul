@@ -684,17 +684,21 @@ private class OrderPage(
                                     instalment.owedCents
                                 },
                             ),
-                        state =
-                            when {
-                                instalment.status == InstalmentStatus.PAID -> PlanPaymentState.Paid
-                                instalment.status == InstalmentStatus.COVERED -> PlanPaymentState.Covered
-                                instalment.status == InstalmentStatus.OVERDUE || instalment.declined > 0 -> PlanPaymentState.Declined
-                                else -> PlanPaymentState.Upcoming
-                            },
+                        state = state(instalment),
                     )
                 },
         )
     }
+
+    /** How one payment is drawn: paid, covered, declined — once or for good — or still to come. */
+    private fun state(instalment: Instalment): PlanPaymentState =
+        when {
+            instalment.status == InstalmentStatus.PAID -> PlanPaymentState.Paid
+            instalment.status == InstalmentStatus.COVERED -> PlanPaymentState.Covered
+            instalment.status == InstalmentStatus.OVERDUE -> PlanPaymentState.Declined
+            instalment.declined > 0 -> PlanPaymentState.Declined
+            else -> PlanPaymentState.Upcoming
+        }
 
     /** Where one payment stands, in words: «Paid», «Upcoming», «Declined, tried again Oct 23», «Covered by your return». */
     private fun standing(instalment: Instalment): String {
@@ -718,7 +722,12 @@ private class OrderPage(
             }
 
             else -> {
-                val retry = instalment.nextAttemptAt?.takeIf { instalment.declined > 0 }?.let { MONTH_DAY.format(day(it)) }
+                val retry =
+                    instalment.nextAttemptAt?.takeIf { instalment.declined > 0 }?.let {
+                        MONTH_DAY.format(
+                            day(it),
+                        )
+                    }
                 when {
                     retry != null -> "Declined, tried again $retry"
                     reduced -> "Upcoming · reduced by your return"
@@ -735,7 +744,9 @@ private class OrderPage(
         val overdue = plan.instalments.firstOrNull { it.status == InstalmentStatus.OVERDUE }
         return when {
             !plan.started -> {
-                "$payments interest-free payments of ${exact(plan.instalments.first().amountCents)}, the first when it ships"
+                "$payments interest-free payments of ${exact(
+                    plan.instalments.first().amountCents,
+                )}, the first when it ships"
             }
 
             overdue != null -> {

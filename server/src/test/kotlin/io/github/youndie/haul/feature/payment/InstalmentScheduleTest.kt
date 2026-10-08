@@ -20,7 +20,11 @@ class InstalmentScheduleTest {
             val amounts = InstalmentSchedule.amounts(total)
             assertEquals(4, amounts.size)
             assertEquals(total, amounts.sum(), "the payments of $total add up to it")
-            assertEquals(List(3) { HaulPay.paymentCents(total) }, amounts.dropLast(1), "the checkout's amount for $total")
+            assertEquals(
+                List(3) { HaulPay.paymentCents(total) },
+                amounts.dropLast(1),
+                "the checkout's amount for $total",
+            )
         }
         assertEquals(listOf(2_501, 2_501, 2_501, 2_500), InstalmentSchedule.amounts(10_003))
         assertEquals(listOf(2_500, 2_500, 2_500, 2_501), InstalmentSchedule.amounts(10_001))

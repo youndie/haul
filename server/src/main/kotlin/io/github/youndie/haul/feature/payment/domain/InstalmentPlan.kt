@@ -109,7 +109,13 @@ internal object InstalmentSchedule {
             orderId = orderId,
             totalCents = totalCents,
             startedAt = null,
-            instalments = amounts(totalCents).mapIndexed { index, amount -> Instalment(index + 1, amount, dueAt = null) },
+            instalments =
+                amounts(totalCents).mapIndexed {
+                    index,
+                    amount,
+                    ->
+                    Instalment(index + 1, amount, dueAt = null)
+                },
         )
 
     /** The processor's key of [orderId]'s payment [number]: a payment is charged once, however often it is asked. */

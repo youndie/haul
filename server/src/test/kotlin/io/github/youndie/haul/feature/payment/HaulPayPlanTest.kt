@@ -144,7 +144,11 @@ class HaulPayPlanTest {
 
                 world.advance(first)
                 assertEquals(mapOf(sony to IN_TRANSIT, brooklyn to PACKED), world.statuses(order))
-                assertEquals(mapOf(key(order, 1) to 12_800), world.captures(order), "the first payment, not Sony's share")
+                assertEquals(
+                    mapOf(key(order, 1) to 12_800),
+                    world.captures(order),
+                    "the first payment, not Sony's share",
+                )
 
                 world.advance(first * 2)
                 assertEquals(mapOf(sony to DELIVERED, brooklyn to IN_TRANSIT), world.statuses(order))
@@ -163,7 +167,14 @@ class HaulPayPlanTest {
                     (1..4).associateWith { Triple(PAID, 12_800, 0) },
                     world.ledger.instalments(order),
                 )
-                assertEquals("$512.00 paid in 4 payments", world.summary(order).facts.first().detail)
+                assertEquals(
+                    "$512.00 paid in 4 payments",
+                    world
+                        .summary(order)
+                        .facts
+                        .first()
+                        .detail,
+                )
             }
         }
 
@@ -251,7 +262,11 @@ class HaulPayPlanTest {
                 val plans = HaulPayPlans(dying, world.payments, world.clock, twoWeeks, 1.days)
                 assertFailsWith<IllegalStateException> { runBlocking { plans.advance() } }
                 assertEquals(mapOf(key(order, 1) to 12_800, key(order, 2) to 12_800), world.captures(order))
-                assertEquals("collecting", world.ledger.instalments(order)[2]?.first, "the charge landed, the mark did not")
+                assertEquals(
+                    "collecting",
+                    world.ledger.instalments(order)[2]?.first,
+                    "the charge landed, the mark did not",
+                )
 
                 assertEquals(1, world.advancePlans(first + twoWeeks))
                 assertEquals(PAID, world.ledger.instalments(order)[2]?.first)
@@ -289,7 +304,11 @@ class HaulPayPlanTest {
                 assertEquals(Triple(SCHEDULED, 12_800, 1), world.ledger.instalments(order)[2])
                 assertEquals(
                     PlanPayment("Oct 22", "Declined, tried again Oct 23", "$128.00", PlanPaymentState.Declined),
-                    world.summary(order).plan?.payments?.get(1),
+                    world
+                        .summary(order)
+                        .plan
+                        ?.payments
+                        ?.get(1),
                 )
 
                 world.clock.at(first + twoWeeks + 1.days - 1.milliseconds)
@@ -303,7 +322,10 @@ class HaulPayPlanTest {
                 assertEquals(0, world.advancePlans(first + twoWeeks * 10), "with any processor")
                 assertEquals(listOf(key(order, 2), key(order, 2)), asked, "tried twice, the rest never")
                 assertEquals(mapOf(key(order, 1) to 12_800), world.captures(order))
-                assertEquals(listOf(SCHEDULED, SCHEDULED), listOf(3, 4).map { world.ledger.instalments(order)[it]?.first })
+                assertEquals(
+                    listOf(SCHEDULED, SCHEDULED),
+                    listOf(3, 4).map { world.ledger.instalments(order)[it]?.first },
+                )
                 val summary = world.summary(order)
                 assertEquals("Payment 2 was declined twice — the plan is overdue", summary.facts.first().detail)
                 assertEquals(
@@ -380,7 +402,11 @@ class HaulPayPlanTest {
                 assertEquals(mapOf(key(order, 1) to 12_800), world.captures(order))
                 val plan = assertNotNull(world.track(order)?.plan)
                 assertEquals(world.clock.at(first * 2).now, plan.instalments[0].paidAt, "taken on the retry")
-                assertEquals(world.clock.at(first + twoWeeks).now, plan.instalments[1].dueAt, "the schedule kept its days")
+                assertEquals(
+                    world.clock.at(first + twoWeeks).now,
+                    plan.instalments[1].dueAt,
+                    "the schedule kept its days",
+                )
             }
         }
 
@@ -395,7 +421,11 @@ class HaulPayPlanTest {
                 val order = world.placeOnHaulPay(CheckoutChoice(usePoints = true))
                 assertEquals(
                     List(4) { "$121.80" },
-                    world.summary(order).plan?.payments?.map { it.amount },
+                    world
+                        .summary(order)
+                        .plan
+                        ?.payments
+                        ?.map { it.amount },
                 )
                 world.advance(Duration.ZERO)
                 world.advance(first * 3)
@@ -437,9 +467,21 @@ class HaulPayPlanTest {
                         PlanPaymentState.Covered,
                         PlanPaymentState.Covered,
                     ),
-                    world.summary(order).plan?.payments?.map { it.state },
+                    world
+                        .summary(order)
+                        .plan
+                        ?.payments
+                        ?.map { it.state },
                 )
-                assertEquals("Upcoming · reduced by your return", world.summary(order).plan?.payments?.get(1)?.detail)
+                assertEquals(
+                    "Upcoming · reduced by your return",
+                    world
+                        .summary(order)
+                        .plan
+                        ?.payments
+                        ?.get(1)
+                        ?.detail,
+                )
 
                 world.advancePlans(first + twoWeeks * 4)
                 assertEquals(mapOf(key(order, 1) to 12_800, key(order, 2) to 3_500), world.captures(order))
@@ -466,7 +508,14 @@ class HaulPayPlanTest {
                 assertEquals(mapOf("refund:$order" to 22_100), world.ledger.refunds(order))
                 assertEquals(Triple(COVERED, 0, 0), world.ledger.instalments(order)[4])
                 assertEquals(0, world.advancePlans(first + twoWeeks * 5), "nothing is owed any more")
-                assertEquals(38_400 - 22_100, world.captures(order).values.sum() - world.ledger.refunds(order).values.sum())
+                assertEquals(
+                    38_400 - 22_100,
+                    world.captures(order).values.sum() -
+                        world.ledger
+                            .refunds(order)
+                            .values
+                            .sum(),
+                )
             }
         }
 
@@ -485,10 +534,19 @@ class HaulPayPlanTest {
                 assertEquals(split, runBlocking { world.plans.refund(order, 34_900, at) })
                 assertEquals(
                     12_800 + 3_500,
-                    world.ledger.instalments(order).values.sumOf { it.second },
+                    world.ledger
+                        .instalments(order)
+                        .values
+                        .sumOf { it.second },
                     "owed once the return took $349.00 off once",
                 )
-                assertEquals(2, world.ledger.instalments(order).values.count { it.first == COVERED })
+                assertEquals(
+                    2,
+                    world.ledger
+                        .instalments(order)
+                        .values
+                        .count { it.first == COVERED },
+                )
             }
         }
 
