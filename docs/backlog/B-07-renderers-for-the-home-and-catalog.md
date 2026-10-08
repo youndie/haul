@@ -1,7 +1,7 @@
 ---
 id: B-07
 title: "client: renderers for the Home and Catalog components; Loading / Error shells"
-status: open
+status: wip
 priority: P1
 size: L
 stage: stage-2-browse
