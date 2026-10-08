@@ -44,7 +44,6 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-13](docs/backlog/B-13-cart-renderers.md) `[~]` | design refs + client: Cart renderers | P1 | M | B-01, B-11, B-12 |
 | [B-15](docs/backlog/B-15-checkout-renderers-and-the-address-form.md) `[ ]` | design refs + client: Checkout renderers and the address form | P1 | L | B-01, B-13, B-14 |
 | [B-16](docs/backlog/B-16-placement-with-an-idempotency-key-the.md) `[ ]` | server: placement with an idempotency key; the petich saga — reserve, authorise, confirm, compensate; the payment simulator | P1 | L | B-14 |
 | [B-17](docs/backlog/B-17-fulfilment-simulator-capture-per-shipment-pickup.md) `[ ]` | server: fulfilment simulator, capture per shipment, pickup codes | P1 | M | B-16 |
@@ -91,6 +90,7 @@ A stage is a field on the item, not a directory.
 
 - [B-11](docs/backlog/B-11-guests-cart-promo-codes-changed-lines.md) `[x]` - server: guests, cart, promo codes, changed lines, the Cart tree
 - [B-12](docs/backlog/B-12-shildik-sign-in-in-the-browser.md) `[x]` - server + client: shildik sign-in in the browser, customer creation, cart merge, header states
+- [B-13](docs/backlog/B-13-cart-renderers.md) `[x]` - design refs + client: Cart renderers
 
 **Checkout and orders**
 
