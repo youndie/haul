@@ -88,7 +88,8 @@ Feature: `feature-membership` — its scenarios are this item's acceptance where
 - **Where it ran**: everything on the Linux box (WSL, 16 GB, shared): `:composeApp:wasmJsBrowserDistribution`, then
   `check :server:installDist` green — 251 server tests (PostgreSQL and shildik in Testcontainers), 139 desktop tests,
   124 `viddikVerify` — and `scripts/image-check.sh` (tag `haul/server:b23`, port 18123): ready, 923 of 923 classes
-  from the AOT cache, page 200.
+  from the AOT cache, page 200 — and, after rebasing onto B-26, `:e2e:test` against that image (`WholePathTest`,
+  green); the gate again after the rebase, its tests up to date.
 - **Findings**: a saga in flight across the deploy meets the definition with one more step (`redeem-points`); petich's
   chain fingerprint is what decides its fate, as for any change to the saga. Flyway runs V19 after V17 and before a
   later V18 (B-20) only with out-of-order migrations on a database that already has V19 — fresh databases are fine.
