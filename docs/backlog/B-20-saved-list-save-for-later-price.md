@@ -1,7 +1,7 @@
 ---
 id: B-20
 title: "server + client: Saved list, save for later, price drops"
-status: wip
+status: done
 priority: P2
 size: M
 stage: stage-6-account
@@ -83,11 +83,12 @@ Feature: `feature-account` — its scenarios are this item's acceptance where it
   always saving (`Saved twice`, the hearts and the paging tests); the list read without its customer filter (`a
   customer sees only their own list`); the client heart sending the opposite state and a guest's «Save for later»
   following nothing (three `SavedWiringTest`s).
-- **Where it ran**: the Linux build machine (WSL), two workers in a 5 GB scope: `:composeApp:wasmJsBrowserDistribution`
-  alone, then `./gradlew check :server:installDist` green (`:server:test` 224 tests, `:composeApp:desktopTest` 136
-  with `viddikVerify`, 0 failed; PostgreSQL and shildik in containers); `scripts/image-check.sh haul/server:b20` on
-  port 18120 green (seeded with V18, 875 of 875 classes from the AOT cache). `make check` and `make docs-against
-  BASE=origin/main` on the Mac.
+- **Where it ran**: the Linux build machine (WSL), on the branch rebased onto `6120263` (B-21's returns), two workers
+  in a 5 GB scope: `:composeApp:wasmJsBrowserDistribution` alone, then `./gradlew check :server:installDist` green
+  (`:server:test` 247 tests, `:composeApp:desktopTest` 141, `viddikVerify` 132 goldens, 0 failed; PostgreSQL and
+  shildik in containers); `scripts/image-check.sh haul/server:b20` on port 18120 green (V17 and V18 migrated and
+  seeded, 912 of 912 classes from the AOT cache). `make check` and `make docs-against BASE=origin/main` on the Mac.
+  The chart is unchanged.
 
 ## Findings (2026-10-08)
 
@@ -103,9 +104,9 @@ Feature: `feature-account` — its scenarios are this item's acceptance where it
   page») all name `/account/saved`, and the page is drawn as an account page; `/account/saved` was taken.
 - **Saves in one instant tie**: the store's clock is the canvas's «now» in the tests, so two saves in one test have
   one `saved_at` and are ordered by product id; on the stand the clock moves. No sequence column was added for it.
-- **The migration's number**: `V18__saved.sql` as assigned (V17 for B-21, V19 for B-23); main has V15 as its last,
-  and Flyway runs without `outOfOrder`, so a database that has applied V18 refuses a V16 or V17 merged after it. The
-  order the three items merge in decides whether a deployed database needs `outOfOrder` or a renumber.
+- **The migration's number**: `V18__saved.sql` as assigned, after B-21's `V17__returns.sql`, which merged first — in
+  order (there is no V13 or V16 file; Flyway runs without `outOfOrder`, so the order the numbers merge in matters, and
+  B-23's V19 comes after this one).
 - **Not covered**: price-drop notifications outside the app (the item's own exclusion); a guest's hearts are kept
   nowhere — after sign-in the page is drawn again and the heart has to be pressed again.
 
