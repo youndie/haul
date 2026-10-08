@@ -16,9 +16,11 @@ import io.github.youndie.kompot.form.FormSchema
 import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.RefreshAction
 import io.ktor.http.encodeURLParameter
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -109,6 +111,30 @@ class SignInTapTest {
 
             assertEquals(emptyList(), opened)
             assertEquals(1, redraws)
+        }
+
+    /**
+     * B-47 widened the catch to every `Throwable`, which takes in `CancellationException` too: a press
+     * whose page went away must still end as cancelled coroutines do, not as a sign-in that did not go
+     * through — that would draw, or send home, a screen nobody is looking at.
+     */
+    @Test
+    fun `a sign-in whose press is cancelled is rethrown and ends nothing`() =
+        runBlocking {
+            var redraws = 0
+            var cancelled = 0
+            val opened = mutableListOf<String>()
+            val actions =
+                SignInActions(
+                    signIn = { throw CancellationException("the page went away") },
+                    redraw = { redraws++ },
+                    cancelled = { cancelled++ },
+                    open = { opened += it },
+                )
+
+            assertFailsWith<CancellationException> { actions.handle(NavigateAction("/sign-in?next=%2Fcheckout")) }
+
+            assertEquals(0, redraws + cancelled + opened.size, "a cancelled press ended the sign-in")
         }
 
     @Test

@@ -10,6 +10,7 @@ import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.yield
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -159,6 +160,33 @@ class PopupSignInFlowTest {
             assertEquals(0, cancelled, "the return page's own close was read as the shopper's")
         }
 
+    /**
+     * B-47: in the browser a fetch that fails during the token exchange reaches Kotlin as a JavaScript
+     * error, which on Wasm is a `Throwable` and no `Exception`. Caught as an `Exception` only, it escaped
+     * the press: nothing was cancelled, B-44's prompt never went home, and the shopper was left on it with
+     * nothing happening. [BrowserError] stands in for it on the desktop, where no such error exists.
+     */
+    @Test
+    fun `a token exchange that fails with a browser error ends the sign-in as cancelled`() =
+        walk {
+            val actions = actions(flow())
+            val press = press(actions)
+            awaitStarted(1)
+
+            library.fail(BrowserError())
+            withTimeout(1.seconds) { press.join() }
+
+            assertEquals(1, cancelled, "the browser's error escaped the press")
+            assertEquals(0, redraws)
+            assertEquals(emptyList(), opened)
+            assertTrue(popups.single().closed, "the popup was left open")
+
+            // Settled: the next press opens a popup of its own.
+            press(actions)
+            awaitStarted(2)
+            assertEquals(2, popups.size)
+        }
+
     /** A press that goes away mid-sign-in (the page left) closes its popup and leaves none pending. */
     @Test
     fun `a sign-in whose press is gone closes its popup`() =
@@ -207,9 +235,16 @@ class PopupSignInFlowTest {
             checkNotNull(waiting) { "nothing is waiting for an answer" }.resume(tokens)
         }
 
+        fun fail(error: Throwable) {
+            checkNotNull(waiting) { "nothing is waiting for an answer" }.resumeWithException(error)
+        }
+
         override suspend fun refresh(
             settings: SignInSettings,
             refreshToken: String,
         ): Tokens = error("refresh is not part of a sign-in")
     }
+
+    /** What a failed `fetch` is to Kotlin/Wasm: a `Throwable` that is no `Exception`. */
+    private class BrowserError : Throwable("TypeError: Failed to fetch")
 }
