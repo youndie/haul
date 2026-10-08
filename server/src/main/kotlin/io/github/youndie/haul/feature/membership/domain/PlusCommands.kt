@@ -28,10 +28,10 @@ internal class PlusCommands(
     /**
      * Starts [customer]'s 30-day trial today: free delivery and double points from the next quote on, then
      * «renewing» at $4.99 a month with nothing charged. A member — on a trial or paying — is refused
-     * ([MembershipError.AlreadyMember]), whoever started first when two requests race.
+     * ([MembershipError.AlreadyMember]) by the store itself (`Memberships.start`), whoever started first when two
+     * requests race.
      */
     suspend fun startTrial(customer: Customer): PlusMembership {
-        if (customer.plus) throw MembershipError.AlreadyMember()
         val now = clock.now()
         val trial = PlusMembership.trial(customer.id, now.toOffsetDateTime(), today())
         if (!memberships.start(trial)) throw MembershipError.AlreadyMember()
