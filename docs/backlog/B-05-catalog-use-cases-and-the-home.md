@@ -1,7 +1,7 @@
 ---
 id: B-05
 title: "server: catalog use cases (home, facets, product, delivery estimate) and the Home / Catalog / Product trees"
-status: open
+status: wip
 priority: P1
 size: L
 stage: stage-2-browse
