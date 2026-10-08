@@ -1,7 +1,7 @@
 ---
 id: B-28
 title: "measure: first-load size and time of the wasm bundle"
-status: wip
+status: done
 priority: P2
 size: S
 stage: stage-9-ship
