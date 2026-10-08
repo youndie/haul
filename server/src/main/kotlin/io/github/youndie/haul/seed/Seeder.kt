@@ -66,6 +66,8 @@ internal object Seeder {
                 this[ProductsTable.features] = JsonArray(it.features.map(::JsonPrimitive))
                 this[ProductsTable.kind] = it.kind
                 this[ProductsTable.dispatchDays] = it.dispatchDays
+                this[ProductsTable.headline] = it.headline
+                this[ProductsTable.headlineAccent] = it.headlineAccent
             }
             SkusTable.batchInsert(catalog.skus) {
                 this[SkusTable.id] = it.id

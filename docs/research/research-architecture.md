@@ -450,7 +450,7 @@ for fixtures, not a target for the database.
 | `PaymentMethod` | Card ···· 4821, expires 08/28 (approves); test card ···· 0002 (declines) |
 | `PickupPoint` | 214 Bedford Ave, 240 m, until 21:00; 96 N 6th St, 650 m, until 22:00; locker «Wythe & N 7th», 24/7 |
 | `Seller` | Sony Official Store — 4.9, 98 %, 6 yrs; Brooklyn Home Co. — 4.8, 97 %, 3 yrs |
-| `Product` | Sony WH-1000XM6 — $349, was $449, −22 %, 4.8, 2,341 reviews, 86 questions; Midnight Black, Silver (out of stock); bundles Headphones only / + Travel case / + 2-year care |
+| `Product` | Sony WH-1000XM6 — $349, was $449, −22 %, 4.8, 2,341 reviews, 86 questions; Midnight Black, Silver (out of stock); bundles Headphones only / + Travel case / + 2-year care; description headline «Silence, tuned to you», accent «to you» |
 | `Cart` (Maya) | the headphones $349, Linen Duvet Cover Set Queen Oat $139 (was $179), Stoneware Mug 12 oz Sage set of 2 $24; Items $652.00, Discount −$140.00, Delivery Free, Total $512, 1,024 points; with points −$24.80 → $487.20 |
 | `PromoCode` | `AUTUMN10` — 10 % off items up to $50, 2025-10-07…14; `SUMMER5` — expired 2025-08-31 |
 | `Order` | #HL-48211 (Oct 5, $512.00, in transit); #HL-47960 (Oct 3, $58.00, ready for pickup, code 4821, held until Oct 10); #HL-46102, #HL-45277, #HL-42860 delivered; #HL-44019 returned; #HL-48302 placed from the checkout fixture; #HL-48303 cancelled, card ···· 0002 |
