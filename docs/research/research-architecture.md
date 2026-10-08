@@ -491,17 +491,50 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   history is the last four of the rest, with «All orders» whenever that leaves one out. A row's way on is «Track»
   (on its way), «Details» (waiting, returned, cancelled) or «Reorder» (delivered or picked up) — B-18's reorder.
 - **What the account cannot store yet is read through ports** with the canvas's numbers behind them: the points and
-  the membership (`Loyalty`, B-23's) and the Saved list's counts (`SavedLists`, B-20's), bound to
-  `seed/SampleLoyalty.kt` — Maya's 2,480 points, Plus since 2023 renewing Nov 2 with $186 saved, 48 saved and 6
-  price drops; nobody else has any. The tree carries the tiles either way, so B-23 and B-20 change the source, not the
-  account. «Try 30 days free» has no action until B-23's trial, as the home page's offer has none; «Saved» has none
-  until `/saved` is a page.
+  the membership (`Loyalty`, B-23's), bound to `seed/SampleLoyalty.kt` — Maya's 2,480 points, Plus since 2023
+  renewing Nov 2 with $186 saved; nobody else has any. The Saved list's counts (`SavedLists`) were bound there too
+  until B-20 read them from the list itself (below). The tree carries the tiles either way, so B-23 changes the
+  source, not the account. «Try 30 days free» has no action until B-23's trial, as the home page's offer has none.
 - **Returned** is a state of the history (the chip, the filter), derived since B-21 from the order's return: a
   refunded one reads «Returned», one asked for and not refunded yet «Returning» — Blush like it, under the same
   «Returned» filter, with «Details» rather than «Reorder».
 - **The profile line** is «Plus member since <year>» for a member, «Joined <month year>» (the customer row's
   `created_at`) for somebody who has never ordered, «No membership» otherwise; a non-member's avatar is the tile tone
   their reviews are signed with (`ReviewCommands.avatarTone`), a member's Acid.
+
+**Decided in B-20, the Saved list.**
+
+- **One list per customer**, of products (`saved_items`, `V18__saved.sql`: customer, product, the price at saving
+  and when): what was hearted on a card or on the product page, and what was saved for later from the cart. A
+  product is in it once; a second save — a heart sent twice, or a cart line of a product already saved — changes
+  nothing, the first price and day included («Saved twice»). Letting a product go deletes its row, and saving it again
+  starts over at that day's price. A guest has no list: their hearts and «Save for later» are the way to sign in
+  (`navigate /sign-in`, which draws the same page again once it has gone through, B-41).
+- **«Save for later» moves the line**: the product goes into the Saved list and the line leaves the cart
+  (`POST /api/v1/cart/lines/{skuId}/save-for-later`), as the phrase means in a shop. The save comes first, so a
+  failure between the two leaves the line in the cart with the product saved, and the same press finishes the move;
+  a second press after a finished move finds no line (`404 line_not_found`).
+- **The price at saving is the product's**, not a SKU's: the cheapest SKU in stock then — the price its card shows —
+  or the cheapest at all when none is. A product has **dropped** when its cheapest SKU in stock now is below that
+  price; the mark is the difference («Price dropped −$200»), and a product with nothing in stock has not dropped,
+  whatever its price. Deals of the day do not count: a card shows the SKU's own price everywhere but the deals.
+- **The page is an account page**, `/account/saved` (`StorefrontPage.Saved`, tree `GET /ui/account/saved`), the
+  account's `AccountBody` with «Saved» and the count in its pill, selected in the menu — the address the screen
+  document and the canvas's `Saved_Error` name, beside `/account/orders`. Newest first, 24 to a page; the filter and
+  the page are the query string, `?filter=price-dropped` and `?page=2` (both: `?filter=price-dropped&page=2`), each
+  chip and page number a `navigate` to its own address. A filter the list does not have is all of them, as the
+  history's status is; a page past the last is the last (a link left over after letting products go still lands on
+  products); a page that is not a number from 1 is `400 validation_failed`, as the deals' is. Only the page numbers
+  are drawn, no «Show 24 more».
+- **The heart is a command fixed in the tree**, as «+» is (B-37): `ProductCard.heartCommand` and
+  `ProductDetails.heartCommand` (`SaveCommand`: the URL and the state the press leaves — `PUT` keeps the product,
+  `DELETE` lets it go — answered `refresh`), drawn filled in Hot when the product is in the viewer's list
+  (`Viewer.saved`). The header's «Saved» and the account menu's go to the list.
+- **Maya's 48 and 6 are seeded rows** (`seed/SampleSaved.kt`): the canvas's Saved pages draw products the seed does
+  not sell, so her list is the headphones saved at their old $449 (−$100) and the duvet cover set at its old $179
+  (−$40), the Bose and the Sony studio headphones at their price, and generated products picked by a fixed stride —
+  four discounted ones saved at their old price. The fixtures keep the canvas's cards (`SavedFixturesTest` holds the
+  rest of each body to the server's tree, and each card to the shape of a server card).
 
 **How the stand is built (B-27).** One image serves the page and the API: the server's distribution
 carries the browser bundle and serves it at `/`, so the two cannot be deployed at different versions
