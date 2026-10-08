@@ -118,6 +118,7 @@ class ChargedWhenShippedTest {
                         world.koin.get(),
                         world.payments,
                         world.koin.get(),
+                        world.koin.get(),
                         world.clock,
                         FulfilmentPace.STORE,
                     )
@@ -159,6 +160,7 @@ class ChargedWhenShippedTest {
                         world.shipments,
                         world.koin.get(),
                         refusing,
+                        world.koin.get(),
                         world.koin.get(),
                         world.clock,
                         FulfilmentPace.STORE,

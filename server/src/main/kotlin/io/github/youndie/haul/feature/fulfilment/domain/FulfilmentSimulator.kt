@@ -7,6 +7,7 @@ import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus
 import io.github.youndie.haul.feature.payment.domain.Capture
 import io.github.youndie.haul.feature.payment.domain.CaptureOutcome
+import io.github.youndie.haul.feature.payment.domain.HaulPayPlans
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
 import io.github.youndie.petich.PetichClock
 import org.slf4j.LoggerFactory
@@ -31,6 +32,9 @@ private val log = LoggerFactory.getLogger("io.github.youndie.haul.fulfilment")
  * between the two leaves a shipment still `packed` with its capture taken; the next pass asks again, is
  * answered with what was taken, and moves it. A capture the processor refuses holds the shipment where it
  * is, said at `error` — a shipment is never on the road unpaid. Pay on delivery has nothing to capture.
+ * Haul Pay is not charged by the shipment (B-24): the first shipment to leave starts the order's plan
+ * ([HaulPayPlans.ship]) and takes its first payment, and every Haul Pay shipment ships once that payment is
+ * taken.
  *
  * **Points are credited before the move to `delivered` or `picked_up`** (B-23): the shipment's share of
  * what its order earns, written once by the shipment's key, so a pass that died between the two credits
@@ -46,6 +50,7 @@ internal class FulfilmentSimulator(
     private val shipments: FulfilmentRepository,
     private val orders: OrderRepository,
     private val payments: PaymentProcessor,
+    private val plans: HaulPayPlans,
     private val points: PointsLedger,
     private val clock: PetichClock,
     private val pace: FulfilmentPace,
@@ -71,7 +76,7 @@ internal class FulfilmentSimulator(
             val step = pace.next(status, shipment.pickup, shipment.dispatchDays) ?: break
             val due = since + step.after.toJavaDuration()
             if (due.isAfter(now)) break
-            if (step.to == ShipmentStatus.IN_TRANSIT && !charged(shipment, due)) break
+            if (step.to == ShipmentStatus.IN_TRANSIT && !charged(shipment, due, now)) break
             if (step.to in ARRIVED) credit(shipment, due)
             val code =
                 if (step.to ==
@@ -102,16 +107,25 @@ internal class FulfilmentSimulator(
         )
     }
 
-    /** Whether [shipment]'s share of its order is captured — now, or by an earlier pass — or has nothing to capture. */
+    /**
+     * Whether [shipment]'s share of its order is captured — now, or by an earlier pass — or has nothing to capture;
+     * for Haul Pay, whether its order's plan has taken its first payment, the plan started at [at] if it has not.
+     */
     private suspend fun charged(
         shipment: ActiveShipment,
         at: Instant,
+        now: Instant,
     ): Boolean {
         val order = orders.order(shipment.orderId) ?: error("the shipment ${shipment.id} has no order")
         val method =
             PaymentMethod.byId(order.placed.payment)
                 ?: error("the order ${order.id} pays with «${order.placed.payment}»")
         if (!method.card) return true
+        if (method == PaymentMethod.HaulPayPlan) {
+            return plans.ship(order, at, now).also { paid ->
+                if (!paid) log.error("shipment {} is held: the first Haul Pay payment of {} is not taken", shipment.id, order.id)
+            }
+        }
         val share = ShipmentShares.of(order).getValue(shipment.id)
         if (share == 0) return true
         return when (val outcome = payments.capture(shipment.id, Capture(order.id, share, at))) {

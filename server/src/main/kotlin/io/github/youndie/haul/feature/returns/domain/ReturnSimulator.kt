@@ -5,6 +5,7 @@ import io.github.youndie.haul.feature.fulfilment.domain.FulfilmentPace
 import io.github.youndie.haul.feature.membership.domain.PointsLedger
 import io.github.youndie.haul.feature.membership.domain.PointsMovement
 import io.github.youndie.haul.feature.order.domain.OrderRepository
+import io.github.youndie.haul.feature.payment.domain.HaulPayPlans
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
 import io.github.youndie.haul.feature.payment.domain.Refund
 import io.github.youndie.haul.feature.payment.domain.RefundOutcome
@@ -26,7 +27,9 @@ private val log = LoggerFactory.getLogger("io.github.youndie.haul.returns")
  * between the two leaves the return `picked_up` with its money given back; the next pass asks again, is
  * answered with what was given, and moves it. A refund the processor refuses holds the return where it is,
  * said at `error` — a return never reads «refunded» without the money. Pay on delivery was paid to the
- * courier and is paid back by the courier: nothing goes through the processor.
+ * courier and is paid back by the courier: nothing goes through the processor. A Haul Pay order's refund
+ * comes off the payments its plan still owes first (B-24, [HaulPayPlans.refund]), the last one first; only
+ * what is left is given back through the processor, out of the payments taken.
  *
  * **The points move with the refund** (B-23), before the move as well and each once by its key: the points the
  * returned lines earned are taken back (`reversed:<order>`, the return's [OrderReturn.points]), and the points
@@ -40,6 +43,7 @@ internal class ReturnSimulator(
     private val returns: ReturnRepository,
     private val orders: OrderRepository,
     private val payments: PaymentProcessor,
+    private val plans: HaulPayPlans,
     private val points: PointsLedger,
     private val clock: PetichClock,
     private val pace: FulfilmentPace,
@@ -108,8 +112,11 @@ internal class ReturnSimulator(
             PaymentMethod.byId(order.placed.payment)
                 ?: error("the order ${order.id} pays with «${order.placed.payment}»")
         if (!method.card) return true
+        val given =
+            if (method == PaymentMethod.HaulPayPlan) plans.refund(order.id, money, at).refundCents else money
+        if (given <= 0) return true
         val key = refundKey(order.id)
-        return when (val outcome = payments.refund(key, Refund(order.id, money, at))) {
+        return when (val outcome = payments.refund(key, Refund(order.id, given, at))) {
             is RefundOutcome.Refunded -> {
                 true
             }
@@ -118,7 +125,7 @@ internal class ReturnSimulator(
                 log.error(
                     "return of {} is held: refunding {} cents was refused: {}",
                     order.id,
-                    money,
+                    given,
                     outcome,
                 )
                 false

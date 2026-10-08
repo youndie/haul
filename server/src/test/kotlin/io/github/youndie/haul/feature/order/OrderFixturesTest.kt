@@ -48,8 +48,9 @@ import kotlin.time.toJavaDuration
  * `Order_Placed` is Maya's cart placed by courier for Wed 8, 15:00–18:00 — #HL-48302, the first order a
  * fresh store gives — through placement itself, at the canvas's «now». The other orders are research §6's
  * history, which no seed holds: #HL-48211 in transit, #HL-47960 waiting at 214 Bedford Ave, #HL-46102
- * delivered (its «Return items» the return dialog, B-21), #HL-48303 declined, #HL-44019 returned. Each is written as the order it is ([SampleOrders]: its lines, its
- * shipments and where they are) and drawn by the same builder the route uses ([OrderScreen.page]), over the seeded
+ * delivered (its «Return items» the return dialog, B-21), #HL-48303 declined, #HL-44019 returned — and
+ * #HL-48230 on Haul Pay with its schedule (B-24), which no artboard draws. Each is written as the order it is
+ * ([SampleOrders]: its lines, its shipments and where they are) and drawn by the same builder the route uses ([OrderScreen.page]), over the seeded
  * catalog, Maya's address and the points. Three of them bought products the seed does not sell (the yoga
  * mat, the sweater, the serum), so their tiles, options and sellers are given with the order.
  *
@@ -137,6 +138,7 @@ class OrderFixturesTest {
                     val mayas = checkNotNull(world.order(placedId)).placed
 
                     check(IN_TRANSIT, page(SampleOrders.inTransit(mayas)))
+                    check(HAUL_PAY, page(SampleOrders.haulPay(mayas)))
                     val yogaMat =
                         bought(
                             SampleOrders.YOGA_MAT_SKU,
@@ -218,6 +220,7 @@ class OrderFixturesTest {
     private companion object {
         const val PLACED = "order_placed.json"
         const val IN_TRANSIT = "order_in_transit.json"
+        const val HAUL_PAY = "order_haul_pay.json"
         const val READY_FOR_PICKUP = "order_ready_for_pickup.json"
         const val DELIVERED = "order_delivered.json"
         const val CANCELLED = "order_cancelled.json"

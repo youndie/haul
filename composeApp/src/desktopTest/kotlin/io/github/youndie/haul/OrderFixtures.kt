@@ -48,6 +48,16 @@ internal fun OrderInTransitWide() = Fixture(compact = false) { Page { Body("orde
 @Composable
 internal fun OrderInTransitPhone() = Fixture(compact = true) { Page { Body("order_in_transit.json") } }
 
+// No artboard draws Haul Pay's schedule (B-24): these two are goldens without a reference, the server's tree of
+// #HL-48230 — the in-transit page on Haul Pay, its first payment paid — at the in-transit artboard's width.
+@ViddikScreenshot(name = "HaulPay", group = "Order", width = 1440, height = 1445)
+@Composable
+internal fun OrderHaulPayWide() = Fixture(compact = false) { Page { Body("order_haul_pay.json") } }
+
+@ViddikScreenshot(name = "HaulPay_Phone", group = "Order", width = 390, height = 2050)
+@Composable
+internal fun OrderHaulPayPhone() = Fixture(compact = true) { Page { Body("order_haul_pay.json") } }
+
 @ViddikScreenshot(name = "ReadyForPickup", group = "Order", width = 1440, height = 1074)
 @Composable
 internal fun OrderReadyForPickupWide() = Fixture(compact = false) { Page { Body("order_ready_for_pickup.json") } }

@@ -126,6 +126,35 @@ class OrderWiringTest {
             assertEquals(emptyList(), sent.toList())
         }
 
+    /**
+     * A Haul Pay order draws its schedule (B-24) under the summary's payment fact — every payment's day, where it
+     * stands and what it charges, as the tree says — and an order paid by card draws none.
+     */
+    @Test
+    fun `a Haul Pay order draws its schedule under the payment fact`() =
+        runDesktopComposeUiTest(WIDTH, 1_600) {
+            val tree = decode("order_haul_pay.json")
+            order(tree)
+            onNodeWithTag(PLAN_TAG).assertExists()
+            val plan = assertNotNull(body(tree).summary.plan, "the fixture is not a Haul Pay order")
+            assertEquals(4, plan.payments.size)
+            plan.payments.forEach { payment ->
+                onNodeWithText(payment.label).assertExists()
+                onAllNodesWithText(payment.detail).fetchSemanticsNodes().let {
+                    assertTrue(it.isNotEmpty(), "«${payment.detail}» is not drawn")
+                }
+            }
+            onNodeWithText(plan.title).assertExists()
+        }
+
+    /** The schedule is Haul Pay's alone: an order paid by card has none to draw. */
+    @Test
+    fun `an order paid by card draws no schedule`() =
+        runDesktopComposeUiTest(WIDTH, 1_400) {
+            order(decode("order_in_transit.json"))
+            onNodeWithTag(PLAN_TAG).assertDoesNotExist()
+        }
+
     private companion object {
         const val WIDTH = 1440
     }

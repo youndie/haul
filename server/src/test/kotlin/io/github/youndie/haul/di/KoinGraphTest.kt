@@ -40,6 +40,8 @@ import io.github.youndie.haul.feature.order.domain.StockReservations
 import io.github.youndie.haul.feature.order.orderModule
 import io.github.youndie.haul.feature.order.saga.SagaStorage
 import io.github.youndie.haul.feature.order.screen.OrderScreen
+import io.github.youndie.haul.feature.payment.domain.HaulPayPlans
+import io.github.youndie.haul.feature.payment.domain.InstalmentRepository
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
 import io.github.youndie.haul.feature.payment.paymentModule
 import io.github.youndie.haul.feature.recommendations.domain.PickSources
@@ -144,6 +146,8 @@ class KoinGraphTest {
         assertNotNull(koin.get<CheckoutCommands>())
         assertNotNull(koin.get<CheckoutScreen>())
         assertNotNull(koin.get<PaymentProcessor>())
+        assertNotNull(koin.get<InstalmentRepository>())
+        assertNotNull(koin.get<HaulPayPlans>())
         assertNotNull(koin.get<OrderRepository>())
         assertNotNull(koin.get<StockReservations>())
         assertNotNull(koin.get<SagaStorage>())

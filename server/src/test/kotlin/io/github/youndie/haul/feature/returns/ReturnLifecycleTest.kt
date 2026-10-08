@@ -122,6 +122,7 @@ class ReturnLifecycleTest {
                         world.koin.get(),
                         world.payments,
                         world.koin.get(),
+                        world.koin.get(),
                         world.clock,
                         FulfilmentPace.STORE,
                     )
@@ -154,6 +155,7 @@ class ReturnLifecycleTest {
                         world.koin.get(),
                         world.koin.get(),
                         refusing,
+                        world.koin.get(),
                         world.koin.get(),
                         world.clock,
                         FulfilmentPace.STORE,
