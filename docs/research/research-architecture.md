@@ -370,6 +370,13 @@ the account need a shildik token; signing in merges the guest cart.
 - **The browser keeps** the guest id in `localStorage` and the tokens in `sessionStorage` (a
   sign-in lasts the tab). A `401` is answered once: a customer's token renewed through the refresh
   token, or the customer signed out when it cannot be; a guest the server forgot replaced.
+- **A customer's page refused with `401`** after that — a guest on `/checkout`, a sign-in lapsed past
+  renewing — asks for a sign-in instead of drawing an error (B-44): «Sign in to continue», whose
+  press starts the sign-in with `next` set to the page, which is loaded again once it has gone
+  through; a sign-in that does not go through goes home. A press, not the page's arrival: a browser
+  blocks a popup no click asked for, and the library's popup flow would then wait forever. A page
+  still refused after a sign-in from it is an error page, so the prompt cannot loop
+  (`composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/SignInPrompt.kt`).
 
 **Decided in B-14, checkout and the quote.**
 
