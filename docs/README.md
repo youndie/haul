@@ -23,8 +23,8 @@ run top to bottom.
 | API | `api/` | URL, method, auth tier, where the contract lives | the `shared` module |
 | Service | `services/` | who owns the data, dependencies, deploy, local setup | this repository |
 
-Nothing is built yet. The feature, screen, endpoint and service documents are drafted in an open
-pull request and arrive here one by one, `active`, as the code behind each lands.
+The feature, screen, endpoint and service documents are drafted in an open pull request and arrive
+here `active`, once the code behind each has landed.
 
 **Backlog** — [backlog.md](../backlog.md): the index and the decisions; the items themselves are
 one file each in [`backlog/`](backlog/), cited as `[B-12](backlog/B-12-shildik-sign-in-in-the-browser.md)`.
@@ -68,7 +68,7 @@ The list below is **checked** against the files on disk.
 
 - [ ] [haul-server](services/haul-server.md) — owns all data; builds every screen as a kompot tree; the order saga and the simulators (draft)
 - [ ] [haul-web](services/haul-web.md) — the browser storefront: renderers, navigation, Loading/Error, sign-in (draft)
-- [ ] [haul-shared](services/haul-shared.md) — the contract: components on the wire, routes, error codes (draft)
+- [ ] [haul-shared](services/haul-shared.md) — the contract: components on the wire, command bodies, error codes (draft)
 
 ### Features (11)
 
@@ -104,12 +104,12 @@ Account and loyalty:
 ### API (12)
 
 - [ ] [endpoint-account](api/endpoint-account.md) — Account overview (draft)
-- [ ] [endpoint-cart](api/endpoint-cart.md) — Cart (draft)
+- [x] [endpoint-cart](api/endpoint-cart.md) — Cart
 - [ ] [endpoint-catalog](api/endpoint-catalog.md) — Home, category, product (draft)
 - [ ] [endpoint-checkout](api/endpoint-checkout.md) — Checkout and placement (draft)
 - [ ] [endpoint-identity](api/endpoint-identity.md) — Guests, cart merge, addresses (draft)
 - [ ] [endpoint-membership](api/endpoint-membership.md) — Haul Plus (draft)
-- [ ] [endpoint-ops](api/endpoint-ops.md) — Probes (draft)
+- [x] [endpoint-ops](api/endpoint-ops.md) — Probes
 - [ ] [endpoint-orders](api/endpoint-orders.md) — Orders and returns (draft)
 - [ ] [endpoint-recommendations](api/endpoint-recommendations.md) — Picked for you (draft)
 - [ ] [endpoint-reviews](api/endpoint-reviews.md) — Reviews and questions (draft)
