@@ -344,3 +344,139 @@ private val FACET_BLOCKS =
         80 to listOf(240, 240),
         70 to listOf(200, 200),
     )
+
+/**
+ * A page whose subject is not there (`404`): the client draws it with the header it already has —
+ * who is looking is known — an eyebrow, the title with its accent, why, and the way on.
+ */
+@Composable
+public fun NotFoundShell(
+    header: HaulHeader,
+    eyebrow: String,
+    title: String,
+    accent: String,
+    text: String,
+    actionLabel: String,
+    onAction: () -> Unit = {},
+) {
+    val compact = LocalHaulCompact.current
+    Column(Modifier.fillMaxWidth()) {
+        HaulHeaderView(header)
+        Column(
+            Modifier.padding(
+                start = gutter(),
+                end = gutter(),
+                top = if (compact) 56.dp else 120.dp,
+                bottom = if (compact) 96.dp else 160.dp,
+            ),
+            verticalArrangement = Arrangement.spacedBy(if (compact) 18.dp else 24.dp),
+        ) {
+            Text(eyebrow.uppercase(), HaulType.label(11f, 600, 0.08f).copy(color = HaulColors.outline))
+            Text(
+                accented(title, accent),
+                Modifier.widthIn(max = 900.dp),
+                style =
+                    HaulType
+                        .display(
+                            if (compact) 44f else 84f,
+                            800,
+                            letterSpacing = if (compact) -0.01f else -0.03f,
+                            lineHeight = 0.95f,
+                        ).copy(lineBreak = LineBreak.Simple),
+            )
+            Text(
+                text,
+                HaulType.text(if (compact) 16f else 18f, lineHeight = 1.5f).copy(color = HaulColors.onSurfaceVariant),
+                Modifier.widthIn(max = 560.dp),
+            )
+            HaulButton(
+                actionLabel,
+                height = if (compact) 56.dp else 64.dp,
+                radius = 18.dp,
+                fill = HaulColors.primary,
+                content = HaulColors.onPrimary,
+                icon = HaulIcons.arrowRight,
+            )
+        }
+    }
+}
+
+/** A product page before its tree: crumbs, the gallery, the identity and the buy box as placeholders. */
+@Composable
+public fun ProductLoading() {
+    val compact = LocalHaulCompact.current
+    val gutter = gutter()
+    Column(Modifier.fillMaxWidth()) {
+        HaulHeaderView(SHELL_HEADER, pending = true)
+        Column(
+            Modifier.padding(
+                start = gutter,
+                end = gutter,
+                top = if (compact) 20.dp else 28.dp,
+                bottom = if (compact) 64.dp else 80.dp,
+            ),
+        ) {
+            Skeleton(
+                Modifier.padding(bottom = if (compact) 16.dp else 28.dp).size(if (compact) 220.dp else 420.dp, 12.dp),
+                5.dp,
+            )
+            if (compact) {
+                Column(verticalArrangement = Arrangement.spacedBy(22.dp)) {
+                    Skeleton(Modifier.fillMaxWidth().aspectRatio(1f), 24.dp)
+                    IdentitySkeleton(titleHeight = 34.dp)
+                    BuyBoxSkeleton(Modifier.fillMaxWidth())
+                }
+            } else {
+                Row(horizontalArrangement = Arrangement.spacedBy(40.dp)) {
+                    Row(Modifier.weight(1.3f), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Column(Modifier.width(76.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            repeat(5) { Skeleton(Modifier.fillMaxWidth().aspectRatio(1f), 14.dp) }
+                        }
+                        Skeleton(Modifier.weight(1f).aspectRatio(1f), 28.dp)
+                    }
+                    Box(Modifier.weight(1f)) { IdentitySkeleton(titleHeight = 48.dp) }
+                    BuyBoxSkeleton(Modifier.width(384.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun IdentitySkeleton(titleHeight: Dp) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Skeleton(Modifier.size(60.dp, 13.dp), 5.dp)
+        Skeleton(Modifier.fillMaxWidth().height(titleHeight), 10.dp)
+        Skeleton(Modifier.fillMaxWidth(0.7f).height(titleHeight), 10.dp)
+        Skeleton(Modifier.size(220.dp, 16.dp), 6.dp)
+        Skeleton(Modifier.size(160.dp, 12.dp), 5.dp)
+        Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            repeat(2) { Skeleton(Modifier.size(64.dp), 14.dp) }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(150, 120, 120).forEach { Skeleton(Modifier.size(it.dp, 48.dp), 12.dp) }
+        }
+    }
+}
+
+@Composable
+private fun BuyBoxSkeleton(modifier: Modifier) {
+    Column(
+        modifier
+            .background(
+                HaulColors.surfaceContainerLowest,
+                androidx.compose.foundation.shape
+                    .RoundedCornerShape(28.dp),
+            ).padding(28.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp),
+    ) {
+        Skeleton(Modifier.size(180.dp, 64.dp), 10.dp)
+        Skeleton(Modifier.size(240.dp, 14.dp), 5.dp)
+        Skeleton(Modifier.fillMaxWidth().height(64.dp), 18.dp)
+        Skeleton(Modifier.fillMaxWidth().height(56.dp), 18.dp)
+        Skeleton(Modifier.fillMaxWidth().height(14.dp), 5.dp)
+        Skeleton(Modifier.fillMaxWidth(0.8f).height(14.dp), 5.dp)
+        Skeleton(Modifier.fillMaxWidth().height(14.dp), 5.dp)
+        Skeleton(Modifier.fillMaxWidth().height(80.dp), 18.dp)
+    }
+}

@@ -15,7 +15,7 @@ import org.jetbrains.compose.resources.Font
 /** The weights the canvas uses, per family; a variable font is asked for one weight at a time. */
 private val ARCHIVO_WEIGHTS = listOf(400, 500, 600, 700, 800)
 private val MONO_WEIGHTS = listOf(500, 600)
-private val BODONI_WEIGHTS = listOf(800, 900)
+private val BODONI_WEIGHTS = listOf(700, 800, 900)
 
 /** The canvas draws Bodoni's italic only for a title's accent, and only at 500. */
 private val BODONI_ITALIC_WEIGHTS = listOf(500)

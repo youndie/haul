@@ -86,7 +86,7 @@ internal object FixtureFonts {
                 ) {
                     val size = FontVariation.Setting("opsz", opsz)
                     FontFamily(
-                        fonts("bodoni", bodoni, listOf(800, 900), FontStyle.Normal, size) +
+                        fonts("bodoni", bodoni, listOf(700, 800, 900), FontStyle.Normal, size) +
                             fonts("bodoni-italic", bodoniItalic, listOf(500), FontStyle.Italic, size),
                     )
                 }

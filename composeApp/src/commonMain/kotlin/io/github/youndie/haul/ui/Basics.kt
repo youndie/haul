@@ -38,7 +38,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.sp
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
@@ -241,23 +243,40 @@ internal fun Text(
     softWrap: Boolean = true,
     maxLines: Int = Int.MAX_VALUE,
 ) {
-    // Unknown until the first layout (an intrinsic measurement comes before it): no crop then.
-    val lines = remember { intArrayOf(0, -1) }
+    // The line boxes are measured here rather than read back from the text's own layout: an intrinsic
+    // measurement (a row as tall as its tallest cell) comes before any layout, and must crop too.
+    val measurer = rememberTextMeasurer()
+    val overflow = if (maxLines == Int.MAX_VALUE) TextOverflow.Clip else TextOverflow.Ellipsis
+    val crops = style.lineHeight.isSpecified
     BasicText(
         text,
         modifier.layout { measurable, constraints ->
             val placeable = measurable.measure(constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity))
-            val known = lines[1] >= 0
-            val top = if (known) lines[0].coerceIn(0, placeable.height) else 0
-            val bottom = if (known) lines[1].coerceIn(top, placeable.height) else placeable.height
+            var top = 0
+            var bottom = placeable.height
+            if (crops) {
+                val width = Constraints(maxWidth = constraints.maxWidth)
+                val lines = measurer.measure(text, style, overflow, softWrap, maxLines, constraints = width)
+                // Where CSS puts the first line box: the leading (line height minus ascent and descent)
+                // split evenly, so the box's top is (line height + ascent − descent) / 2 above the
+                // baseline. Skia rounds its own line top down, a pixel off at a negative leading.
+                val natural =
+                    measurer.measure(
+                        AnnotatedString("Hg"),
+                        style.copy(lineHeight = TextUnit.Unspecified),
+                        constraints = width,
+                    )
+                val ascent = natural.firstBaseline
+                val descent = natural.getLineBottom(0) - ascent
+                val lineHeight = style.lineHeight.toPx()
+                val cssTop = lines.firstBaseline - (lineHeight + ascent - descent) / 2f
+                top = cssTop.roundToInt().coerceIn(0, placeable.height)
+                bottom = (top + (lineHeight * lines.lineCount).roundToInt()).coerceIn(top, placeable.height)
+            }
             layout(placeable.width, bottom - top) { placeable.place(0, -top) }
         },
         style,
-        onTextLayout = { result ->
-            lines[0] = result.getLineTop(0).roundToInt()
-            lines[1] = result.getLineBottom(result.lineCount - 1).roundToInt()
-        },
-        overflow = if (maxLines == Int.MAX_VALUE) TextOverflow.Clip else TextOverflow.Ellipsis,
+        overflow = overflow,
         softWrap = softWrap,
         maxLines = maxLines,
     )

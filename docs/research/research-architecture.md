@@ -277,6 +277,14 @@ text's width is rounded up — a row of ten separate category names ends visibly
 and a row laid out as one paragraph with placeholder gaps does not. `flex: 1` grows from a basis of
 zero with padding and border on top, which is why two «halves» are not equal on the canvas.
 
+**Found in B-08: Skia rounds a line's top down where the leading is negative.** Probed on the
+fixture fonts: a 13 px mono label at `line-height: 1` has its line top at 1.0 where CSS's is 2.08, a
+34 px Bodoni title at 8.0 where CSS's is 8.93 — the glyphs sat a pixel lower than the canvas's, and a
+pixel's shift of a whole block lights every edge under it (white cards on Paper differ by 17 per
+channel, past the ±16). The client's `Text` now places the first line box where CSS does,
+`(line height + ascent − descent) / 2` above the baseline, and takes the box's height as lines × line
+height. This took the product phone artboards from 5.6–7.5 % to 2.0–4.1 %.
+
 **Risk 1. The canvas and the code drift apart without anyone seeing it.** A renderer changed for one
 screen changes every screen that uses the component. Mitigation: one reference PNG per artboard
 (125), exported from the canvas into the client's snapshot directory, and `viddikDesignParity` in

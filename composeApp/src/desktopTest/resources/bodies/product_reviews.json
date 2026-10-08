@@ -1,0 +1,247 @@
+{
+ "type": "column",
+ "id": "product",
+ "children": [
+  {
+   "type": "haul_header",
+   "id": "header",
+   "customerName": "Maya",
+   "deliverTo": "Brooklyn, NY 11211",
+   "deliveryPromise": "Free delivery over $35",
+   "cartCount": 3,
+   "searchPlaceholder": "Search 2.4 million products",
+   "categories": [
+    "Electronics",
+    "Home & Kitchen",
+    "Fashion",
+    "Beauty",
+    "Kids & Toys",
+    "Sports",
+    "Grocery",
+    "Auto",
+    "Books",
+    "Pets"
+   ]
+  },
+  {
+   "type": "haul_breadcrumbs",
+   "id": "breadcrumbs",
+   "crumbs": [
+    {
+     "label": "Home"
+    },
+    {
+     "label": "Electronics"
+    },
+    {
+     "label": "Audio"
+    },
+    {
+     "label": "Headphones"
+    },
+    {
+     "label": "Sony WH-1000XM6"
+    }
+   ]
+  },
+  {
+   "type": "haul_product_details",
+   "id": "details",
+   "productId": "p-sony-wh-1000xm6",
+   "skuId": "p-sony-wh-1000xm6-0",
+   "photoTone": "#E6E4FF",
+   "photoLabel": "product photo",
+   "photoCount": "1 / 8",
+   "photoTotal": 8,
+   "gallery": [
+    "#E6E4FF",
+    "#DEDCF7",
+    "#E9E6E0",
+    "#E0EEF7"
+   ],
+   "morePhotos": "+3",
+   "badge": "Bestseller",
+   "brand": "Sony",
+   "title": "WH-1000XM6 Wireless Noise Cancelling Headphones",
+   "accent": "Headphones",
+   "rating": "4.8",
+   "reviews": "2,341 reviews",
+   "bought": "12K bought this month",
+   "variants": [
+    {
+     "name": "Color",
+     "selectedLabel": "Midnight Black",
+     "options": [
+      {
+       "label": "Midnight Black",
+       "skuId": "p-sony-wh-1000xm6-0",
+       "selected": true,
+       "available": true,
+       "swatch": "#2A2A2E"
+      },
+      {
+       "label": "Silver",
+       "skuId": "p-sony-wh-1000xm6-3",
+       "selected": false,
+       "available": false,
+       "swatch": "#D9D3C7"
+      }
+     ]
+    },
+    {
+     "name": "Bundle",
+     "selectedLabel": "Headphones only",
+     "options": [
+      {
+       "label": "Headphones only",
+       "skuId": "p-sony-wh-1000xm6-0",
+       "selected": true,
+       "available": true
+      },
+      {
+       "label": "+ Travel case",
+       "skuId": "p-sony-wh-1000xm6-1",
+       "selected": false,
+       "available": true
+      },
+      {
+       "label": "+ 2-year care",
+       "skuId": "p-sony-wh-1000xm6-2",
+       "selected": false,
+       "available": true
+      }
+     ]
+    }
+   ],
+   "highlights": [
+    {
+     "title": "Battery",
+     "text": "Up to 40 hours, 3 min charge = 3 h"
+    },
+    {
+     "title": "Noise cancelling",
+     "text": "Adaptive, 12 microphones"
+    },
+    {
+     "title": "Bluetooth",
+     "text": "5.4 · LDAC · multipoint"
+    },
+    {
+     "title": "Weight",
+     "text": "250 g"
+    }
+   ],
+   "price": "$349",
+   "oldPrice": "$449",
+   "discount": "−22%",
+   "haulPay": "or 4 payments of $87.25 with Haul Pay",
+   "haulPayStrong": "4 payments of $87.25",
+   "inStock": true,
+   "delivery": [
+    {
+     "title": "Courier · Tomorrow, Oct 8",
+     "detail": "Order within 3 h 42 min",
+     "price": "Free"
+    },
+    {
+     "title": "Pickup point · Thu, Oct 9",
+     "detail": "214 Bedford Ave, 240 m",
+     "price": "Free"
+    },
+    {
+     "title": "Returns",
+     "detail": "30 days, free pickup"
+    }
+   ],
+   "cutoff": "Order within 3 h 42 min",
+   "seller": {
+    "name": "Sony Official Store",
+    "initial": "S",
+    "meta": "4.9 · 98% positive · 6 yrs on Haul"
+   }
+  },
+  {
+   "type": "haul_product_tabs",
+   "id": "tabs",
+   "tabs": [
+    {
+     "key": "description",
+     "title": "Description",
+     "selected": false
+    },
+    {
+     "key": "specifications",
+     "title": "Specifications",
+     "compactTitle": "Specs",
+     "selected": false
+    },
+    {
+     "key": "reviews",
+     "title": "Reviews",
+     "count": "2,341",
+     "selected": true
+    },
+    {
+     "key": "questions",
+     "title": "Questions",
+     "count": "86",
+     "selected": false
+    }
+   ]
+  },
+  {
+   "type": "haul_product_reviews",
+   "id": "reviews",
+   "rating": "4.8",
+   "caption": "out of 5 · 2,341 reviews",
+   "histogram": [
+    {
+     "stars": 5,
+     "percent": 78
+    },
+    {
+     "stars": 4,
+     "percent": 14
+    },
+    {
+     "stars": 3,
+     "percent": 4
+    },
+    {
+     "stars": 2,
+     "percent": 2
+    },
+    {
+     "stars": 1,
+     "percent": 2
+    }
+   ],
+   "actionLabel": "Write a review",
+   "reviews": [
+    {
+     "author": "Daniel R.",
+     "initial": "D",
+     "tone": "#E6E4FF",
+     "meta": "Sep 28 · Verified purchase",
+     "score": "5.0",
+     "title": "The quietest flight I've had",
+     "text": "Wore them on a 9-hour flight. Engine noise basically disappears and they stay comfortable the whole way. Battery was at 60% when we landed.",
+     "photos": [
+      "#E9E6E0",
+      "#E6E4FF"
+     ]
+    },
+    {
+     "author": "Aisha K.",
+     "initial": "A",
+     "tone": "#FFE5DD",
+     "meta": "Sep 21 · Verified purchase",
+     "score": "4.0",
+     "title": "Great sound, tight at first",
+     "text": "Clear, balanced sound and the app EQ is easy to use. The headband felt tight for the first few days, then loosened up. Calls sound good even outside.",
+     "helpful": "48 people found this helpful"
+    }
+   ]
+  }
+ ]
+}

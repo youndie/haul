@@ -28,6 +28,8 @@ public object HaulIcons {
     public val retry: ImageVector = stroked("retry", 2.4f, "M20 11a8 8 0 1 0-2.3 5.7", "M20 4v7h-7")
     public val alert: ImageVector = stroked("alert", 2.4f, circle(12f, 12f, 9f), "M12 7.5v5.5M12 16.5v.2")
     public val filters: ImageVector = stroked("filters", 2.4f, "M4 6h16M7 12h10M10 18h4")
+    public val share: ImageVector = stroked("share", 2f, "M12 15V3M7 8l5-5 5 5M5 14v6h14v-6")
+    public val chevronRight: ImageVector = stroked("chevron-right", 2.4f, "M9 6l6 6-6 6")
     public val bolt: ImageVector = filled("bolt", "M13 2L4 14h7l-1 8 9-12h-7l1-8z")
     public val star: ImageVector =
         filled("star", "M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z")

@@ -55,11 +55,15 @@ import io.github.youndie.haul.ui.gutter
 public fun BreadcrumbsView(breadcrumbs: Breadcrumbs) {
     val compact = LocalHaulCompact.current
     val gutter = gutter()
+    // A phone shortens a deep path to its last two crumbs («… / Headphones / Sony WH-1000XM6»,
+    // Product_Description_Phone); a category's four still fit.
     val crumbs = breadcrumbs.crumbs
+    val shown = if (compact && crumbs.size > COMPACT_CRUMBS) crumbs.takeLast(2) else crumbs
     Text(
         buildAnnotatedString {
-            crumbs.dropLast(1).forEach { append(it.label + " / ") }
-            withStyle(SpanStyle(color = HaulColors.onSurface)) { append(crumbs.lastOrNull()?.label.orEmpty()) }
+            if (shown.size < crumbs.size) append("… / ")
+            shown.dropLast(1).forEach { append(it.label + " / ") }
+            withStyle(SpanStyle(color = HaulColors.onSurface)) { append(shown.lastOrNull()?.label.orEmpty()) }
         },
         Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = if (compact) 20.dp else 28.dp),
         style =
@@ -74,6 +78,8 @@ public fun BreadcrumbsView(breadcrumbs: Breadcrumbs) {
         maxLines = 1,
     )
 }
+
+private const val COMPACT_CRUMBS = 4
 
 /** The page's title with the count beside it, on one baseline. */
 @Composable

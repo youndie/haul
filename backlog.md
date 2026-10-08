@@ -40,11 +40,10 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (24)
+## Open (23)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-08](docs/backlog/B-08-renderers-for-the-product-components.md) `[ ]` | client: renderers for the Product components (without the dialogs) | P1 | L | B-05, B-06 |
 | [B-09](docs/backlog/B-09-search-suggest-recent-searches-suggest-latency.md) `[ ]` | server: search, suggest, recent searches; suggest latency measured on the seed | P1 | M | B-05 |
 | [B-10](docs/backlog/B-10-search-screen-and-searchsuggestpanel.md) `[ ]` | design refs + client: Search screen and `SearchSuggestPanel` | P1 | M | B-01, B-07, B-09 |
 | [B-11](docs/backlog/B-11-guests-cart-promo-codes-changed-lines.md) `[ ]` | server: guests, cart, promo codes, changed lines, the Cart tree | P1 | M | B-05 |
@@ -69,7 +68,7 @@ A stage is a field on the item, not a directory.
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
 | [B-30](docs/backlog/B-30-product-images-through-object-storage.md) `[ ]` | product images through object storage | P3 | M | B-08 |
 
-## Closed (7)
+## Closed (8)
 
 **Skeleton**
 
@@ -83,6 +82,7 @@ A stage is a field on the item, not a directory.
 - [B-05](docs/backlog/B-05-catalog-use-cases-and-the-home.md) `[x]` - server: catalog use cases (home, facets, product, delivery estimate) and the Home / Catalog / Product trees
 - [B-06](docs/backlog/B-06-home-catalog-product-pngs.md) `[x]` - design refs: `Home_*`, `Catalog_*`, `Product_*` PNGs
 - [B-07](docs/backlog/B-07-renderers-for-the-home-and-catalog.md) `[x]` - client: renderers for the Home and Catalog components; Loading / Error shells
+- [B-08](docs/backlog/B-08-renderers-for-the-product-components.md) `[x]` - client: renderers for the Product components (without the dialogs)
 
 <!-- END INDEX -->
 
