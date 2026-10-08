@@ -40,7 +40,7 @@ Feature: `feature-membership` — its scenarios are this item's acceptance where
   a database seeded before V19 (`Seeder.seedLoyalty`).
 - **The server** (`feature/membership/`): `PlusCommands` — the trial (`POST /api/v1/me/plus/trial`, customer tier,
   `201` with `sequence[close, refresh]`, `409 already_member`) and the standing, bound as the account's `Loyalty`
-  (`SampleLoyalty` is gone; `SampleSavedLists`, now in a file of its own name, stays B-20's); `PlusOffer` — the trial's dialog and the home page's Plus
+  (`SampleLoyalty` is gone, and B-20 replaced `SampleSavedLists` with the list itself); `PlusOffer` — the trial's dialog and the home page's Plus
   block (the offer with the dialog for a customer and sign-in for a guest, the member's savings and renewal). Checkout
   reads the balance (`CheckoutCommands.ledger`), draws the toggle with its `url`, a «Points» summary row and the
   totals after points; the quote's fingerprint names the points only when some are taken, so every other quote keeps
