@@ -106,7 +106,10 @@ docker compose up -d   # PostgreSQL and a shildik instance (planned)
 
 | Key | Description | Required |
 |---|---|---|
-| `HAUL_DB_URL` | PostgreSQL | yes |
+| `HAUL_DB_URL` | PostgreSQL, a JDBC URL | yes |
+| `HAUL_DB_USER`, `HAUL_DB_PASSWORD` | its credentials | yes |
+| `HAUL_DB_POOL_SIZE` | the Hikari pool, 10 by default | no |
+| `HAUL_COMMIT` | what `/version` names; `dev` when unset | no |
 | `HAUL_OIDC_ISSUER` | the shildik issuer | yes |
 | `HAUL_FULFILMENT_SPEED` | how fast the simulator moves shipments | no |
 | `HAUL_SEED` | seed the database on start | no |

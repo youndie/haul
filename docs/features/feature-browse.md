@@ -55,11 +55,13 @@ status codes and error strings before this document goes `active`.
 * **Given:** the `headphones` category
 * **When:** the client asks for brands Sony and Bose, price 80…400 and feature «noise cancelling»
 * **Then:** every product returned matches all four and the total is the count shown above the grid.
+* **Automated:** `CatalogRoutesTest.facets narrow the list`
 
 ### Scenario: A filter set with no products
 * **Given:** the same category
 * **When:** the client asks for brand Marshall and colour «Pink» together
 * **Then:** the server returns `200` with an empty list and total 0, and the facets still list their values.
+* **Automated:** `CatalogRoutesTest.a filter set with no products answers an empty page with its facets`
 
 ### Scenario: An unknown category
 * **When:** the client opens `/ui/c/no-such-thing`
@@ -68,3 +70,4 @@ status codes and error strings before this document goes `active`.
 ## 6. Out of scope
 
 * What [research-architecture](../research/research-architecture.md) D6 and D8 leave out of v1.
+* **Automated:** `CatalogRoutesTest.an unknown category is 404 category_not_found`

@@ -55,8 +55,10 @@ status codes and error strings before this document goes `active`.
 * **Given:** Sony WH-1000XM6
 * **When:** the shopper picks «+ Travel case»
 * **Then:** the price shown is that `Sku`'s price and «Add to cart» adds that `Sku`.
+* **Automated:** `ProductRoutesTest.a variant changes the price`
 
 ### Scenario: Out of stock
+* The page half — the SKU drawn «Out of stock», no cut-off offered — is `ProductRoutesTest.an out of stock SKU is drawn out of stock`; the `409` is the cart route's (B-11).
 * **Given:** a `Sku` with stock 0
 * **When:** the client adds it to the cart
 * **Then:** the server returns `409` with `out_of_stock`.
@@ -68,3 +70,4 @@ status codes and error strings before this document goes `active`.
 ## 6. Out of scope
 
 * What [research-architecture](../research/research-architecture.md) D6 and D8 leave out of v1.
+* **Automated:** `ProductRoutesTest.an unknown product is 404 product_not_found`

@@ -40,6 +40,10 @@ in [haul-server](../services/haul-server.md), section 2.
 
 In `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/catalog/` once it exists; not copied here.
 
+## Quirks
+
+* `tab` takes `description` and `specifications` only; `reviews` and `questions` answer `400 validation_failed` (field `tab`) until feature-reviews lands (B-22).
+
 ## Errors
 
 | Route | Status and `code` |
