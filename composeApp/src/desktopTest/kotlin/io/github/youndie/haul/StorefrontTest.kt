@@ -214,6 +214,22 @@ class StorefrontTest {
             assertEquals(listOf("/ui$ORDER", "/ui$ORDER"), requests)
         }
 
+    /**
+     * The account's history whose tree did not arrive says so as the account — «Your account didn’t load»
+     * (Account_Error) — and Retry asks for the same address, its filter included (B-19).
+     */
+    @Test
+    fun `an account that did not load says so and Retry loads it again`() =
+        runDesktopComposeUiTest(CANVAS_WIDTH, 1_000) {
+            history.entries[0] = ACCOUNT_ORDERS
+            answer("/ui$ACCOUNT_ORDERS", status(500, """{"code":"internal","message":"boom"}"""), ok(product))
+            storefront()
+            onNodeWithText("Your account didn", substring = true).assertExists()
+            onNodeWithText("Retry").performClick()
+            onNodeWithText(PRODUCT_TEXT).assertExists()
+            assertEquals(listOf("/ui$ACCOUNT_ORDERS", "/ui$ACCOUNT_ORDERS"), requests)
+        }
+
     @Test
     fun `refresh fetches the screen again and draws it in place`() =
         runDesktopComposeUiTest(CANVAS_WIDTH, 1_000) {
@@ -338,7 +354,8 @@ class StorefrontTest {
         const val CUSTOMER = "Maya"
         const val SIGN_IN_HERE = "Sign in here"
         const val ORDER = "/account/orders/HL-99999"
-        const val ORDERS = "/account"
+        const val ORDERS = "/account/orders"
+        const val ACCOUNT_ORDERS = "/account/orders?status=active"
 
         /** The canvas's deals end at local midnight: 04:12:37 from its «now». */
         const val MIDNIGHT = "2025-10-08T00:00-04:00"

@@ -224,6 +224,8 @@ class WebBundleTest {
                 "/deals?page=2",
                 "/checkout",
                 "/account",
+                "/account/orders",
+                "/account/orders?status=active",
                 "/account/orders/HL-48302",
                 "/sign-in",
             )

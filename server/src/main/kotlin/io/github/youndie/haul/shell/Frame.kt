@@ -76,11 +76,11 @@ internal object Frame {
     const val CART = "/cart"
 
     /**
-     * Where «Orders» takes a customer — and an order page that is not there, «Go to your orders»: the
-     * account, until the orders' history has an address of its own (`/account/orders`, B-19). A guest's
+     * Where «Orders» takes a customer — and an order page that is not there, «Go to your orders», and the
+     * order page's «Orders» crumb: the orders' history (B-19), which the order pages sit under. A guest's
      * «Orders» is sign-in, as the account shortcut is.
      */
-    const val ORDERS = ACCOUNT
+    const val ORDERS = "$ACCOUNT/orders"
 
     /** The store's default place, until a customer's address says otherwise (feature-browse). */
     private const val DEFAULT_PLACE = "Brooklyn, NY 11211"

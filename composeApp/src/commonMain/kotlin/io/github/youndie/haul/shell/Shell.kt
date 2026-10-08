@@ -882,3 +882,123 @@ private fun OrderSummarySkeleton(modifier: Modifier) {
         Skeleton(Modifier.fillMaxWidth().height(60.dp), 14.dp)
     }
 }
+
+/** A failed account (Account_Error): «Your account didn’t *load*», and Retry. */
+@Composable
+public fun AccountError(onRetry: () -> Unit = {}) {
+    ErrorPage(
+        { HaulHeaderView(SHELL_HEADER, pending = true) },
+        accented("Your account didn’t load", "load"),
+        ShellFailure.Server.message,
+        // `text-wrap: balance`: «Your account / didn’t load» at both widths.
+        balanced = true,
+        onRetry = onRetry,
+    )
+}
+
+/**
+ * The account before its tree (Account_Loading) — the overview's and the orders' alike: the profile and
+ * the menu (on a phone, the profile row and three tabs), the title, three tiles and two order cards as
+ * placeholders.
+ */
+@Composable
+public fun AccountLoading() {
+    val compact = LocalHaulCompact.current
+    Column(Modifier.fillMaxWidth()) {
+        HaulHeaderView(SHELL_HEADER, pending = true)
+        val main: @Composable (Modifier) -> Unit = { modifier ->
+            Column(modifier, verticalArrangement = Arrangement.spacedBy(if (compact) 32.dp else 40.dp)) {
+                Skeleton(Modifier.size(if (compact) 200.dp else 420.dp, if (compact) 50.dp else 96.dp), 12.dp)
+                if (compact) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) { repeat(3) { AccountTileSkeleton(Modifier.fillMaxWidth()) } }
+                } else {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    ) { repeat(3) { AccountTileSkeleton(Modifier.weight(1f)) } }
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Skeleton(Modifier.size(240.dp, 36.dp), 8.dp)
+                    repeat(2) { AccountOrderSkeleton() }
+                }
+            }
+        }
+        if (compact) {
+            Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 64.dp)) {
+                Column(Modifier.padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    AccountProfileSkeleton(avatar = 48.dp, name = 14.dp, subtitle = 100.dp)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf(100, 80, 80).forEach { Skeleton(Modifier.size(it.dp, 44.dp), 22.dp) }
+                    }
+                }
+                main(Modifier.fillMaxWidth())
+            }
+        } else {
+            Row(Modifier.padding(start = 48.dp, end = 48.dp, top = 40.dp, bottom = 96.dp)) {
+                Column(Modifier.width(280.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                    AccountProfileSkeleton(avatar = 64.dp, name = 16.dp, subtitle = 110.dp)
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Skeleton(Modifier.fillMaxWidth().height(48.dp), 14.dp)
+                        Skeleton(
+                            Modifier.padding(horizontal = 16.dp, vertical = 14.dp).fillMaxWidth(0.7f).height(20.dp),
+                            6.dp,
+                        )
+                        Skeleton(Modifier.padding(horizontal = 16.dp).fillMaxWidth(0.6f).height(20.dp), 6.dp)
+                    }
+                }
+                Spacer(Modifier.width(48.dp))
+                main(Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun AccountProfileSkeleton(
+    avatar: Dp,
+    name: Dp,
+    subtitle: Dp,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(if (avatar < 64.dp) 12.dp else 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Skeleton(Modifier.size(avatar), avatar / 2)
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Skeleton(Modifier.size(140.dp, name), if (name > 14.dp) 6.dp else 5.dp)
+            Skeleton(Modifier.size(subtitle, 12.dp), 5.dp)
+        }
+    }
+}
+
+@Composable
+private fun AccountTileSkeleton(modifier: Modifier) {
+    Column(
+        modifier
+            .background(HaulColors.surfaceContainerLowest, RoundedCornerShape(24.dp))
+            .padding(28.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        Skeleton(Modifier.size(80.dp, 11.dp), 4.dp)
+        Skeleton(Modifier.size(140.dp, 52.dp), 10.dp)
+        Skeleton(Modifier.fillMaxWidth(0.8f).height(14.dp), 5.dp)
+    }
+}
+
+@Composable
+private fun AccountOrderSkeleton() {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .background(HaulColors.surfaceContainerLowest, RoundedCornerShape(24.dp))
+            .padding(horizontal = 32.dp, vertical = 28.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp),
+    ) {
+        Skeleton(Modifier.size(260.dp, 12.dp), 5.dp)
+        Skeleton(Modifier.fillMaxWidth(0.7f).height(32.dp), 8.dp)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            repeat(4) { Skeleton(Modifier.weight(1f).height(8.dp), 4.dp) }
+        }
+    }
+}

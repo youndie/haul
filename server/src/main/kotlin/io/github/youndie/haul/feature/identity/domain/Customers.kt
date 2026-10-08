@@ -4,12 +4,14 @@ import java.time.OffsetDateTime
 
 /**
  * A signed-in shopper (research §5): [id] is the shildik `sub`, [name] what the token named them on
- * their first sign-in, [plus] their Haul Plus membership (which doubles points and frees delivery).
+ * their first sign-in, [plus] their Haul Plus membership (which doubles points and frees delivery),
+ * [joined] when the server first saw them (the account's «Joined Oct 2025»).
  */
 internal data class Customer(
     val id: String,
     val name: String,
     val plus: Boolean,
+    val joined: OffsetDateTime,
 ) {
     /** What the header greets them with: «Maya» for «Maya Kowalski». */
     val firstName: String get() = name.trim().substringBefore(' ')

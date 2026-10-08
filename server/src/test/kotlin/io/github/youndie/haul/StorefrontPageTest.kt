@@ -21,6 +21,7 @@ class StorefrontPageTest {
         assertEquals(StorefrontPage.Deals, StorefrontPage.of("/deals"))
         assertEquals(StorefrontPage.Checkout, StorefrontPage.of("/checkout"))
         assertEquals(StorefrontPage.Account, StorefrontPage.of("/account"))
+        assertEquals(StorefrontPage.Orders, StorefrontPage.of("/account/orders"))
         assertEquals(StorefrontPage.Order, StorefrontPage.of("/account/orders/HL-48302"))
         assertEquals(StorefrontPage.SignIn, StorefrontPage.of("/sign-in"))
     }
@@ -49,8 +50,9 @@ class StorefrontPageTest {
             "/search/extra",
             "/cart/1",
             "/checkout/pay",
-            "/account/orders",
+            "/account/",
             "/account/orders/",
+            "/account/saved",
             "/account/orders/HL-48302/returns",
             "/account/saved/HL-48302",
             "/orders/HL-48302",

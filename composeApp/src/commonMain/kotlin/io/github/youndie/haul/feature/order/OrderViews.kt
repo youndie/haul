@@ -41,6 +41,8 @@ import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.HaulType.browserLeading
 import io.github.youndie.haul.theme.LocalHaulCompact
 import io.github.youndie.haul.ui.BalancedText
+import io.github.youndie.haul.ui.CssBox
+import io.github.youndie.haul.ui.CssColumn
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Icon
@@ -58,9 +60,12 @@ import io.github.youndie.haul.ui.SummaryRow
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.accented
 import io.github.youndie.haul.ui.appendLink
+import io.github.youndie.haul.ui.css
+import io.github.youndie.haul.ui.cssLines
 import io.github.youndie.haul.ui.following
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
+import io.github.youndie.haul.ui.lines
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.toneColor
 import kotlin.math.roundToInt
@@ -166,16 +171,30 @@ private fun Crumbs(
     )
 }
 
-/** Four equal columns, each a dot and the line to the next step, its label under them. */
+/** The steps on a card of their own. */
 @Composable
 private fun Steps(steps: OrderSteps) {
     val compact = LocalHaulCompact.current
-    Row(
+    StepColumns(
+        steps,
         Modifier
             .fillMaxWidth()
             .background(HaulColors.surfaceContainerLowest, RoundedCornerShape(24.dp))
             .padding(horizontal = if (compact) 20.dp else 32.dp, vertical = if (compact) 22.dp else 28.dp),
-    ) {
+    )
+}
+
+/**
+ * Four equal columns, each a dot and the line to the next step, its label under them — the order page's,
+ * and an active order's card on the account (`Account_Content`), whose labels are as large.
+ */
+@Composable
+internal fun StepColumns(
+    steps: OrderSteps,
+    modifier: Modifier,
+) {
+    val compact = LocalHaulCompact.current
+    Row(modifier) {
         steps.labels.forEachIndexed { index, label ->
             val reached = index <= steps.current
             val current = index == steps.current && !steps.arrived
@@ -576,78 +595,6 @@ private fun Fact(fact: OrderFact) {
             iconPlaceable.place(0, (top + 1.dp.toPx()).roundToInt())
             titlePlaceable.place(start, top.roundToInt())
             detailPlaceable.place(start, detailTop.roundToInt())
-        }
-    }
-}
-
-/** A text's height in CSS: its lines, counted off its measured [height], times the [line] in dp, unrounded. */
-private fun Density.lines(
-    height: Int,
-    line: Float,
-): Float {
-    val px = line.dp.toPx()
-    return (height / px).roundToInt() * px
-}
-
-/**
- * A block's height as the browser lays it out, finer than the whole pixel its layout reports — a line
- * box of 23.8 px is 23.8, and a column of them drifts a pixel every few lines when each is rounded.
- * [top] is the block's margin above it in its [CssColumn].
- */
-private class CssBox(
-    val top: Dp = 0.dp,
-) {
-    var height: Float = Float.NaN
-}
-
-/** This block stands in a [CssColumn] with [box]'s margin; its height is what [box] holds once measured, else its own. */
-private fun Modifier.css(box: CssBox): Modifier = layoutId(box)
-
-/** Text on lines of [lineHeight]: its height in CSS is its line count times the line, unrounded. */
-private fun Modifier.cssLines(
-    box: CssBox,
-    lineHeight: Dp,
-): Modifier =
-    layoutId(box).layout { measurable, constraints ->
-        val placeable = measurable.measure(constraints)
-        box.height = lines(placeable.height, lineHeight.value)
-        layout(placeable.width, placeable.height) { placeable.place(0, 0) }
-    }
-
-/**
- * CSS's block flow: its children one under another, [gap] apart and each its own margin ([CssBox.top])
- * further, at positions summed from their CSS heights and rounded only where each is placed — as the
- * browser draws a box whose top falls at 631.2 at 631. [box], when given, receives the column's own CSS
- * height, [top] and [bottom] included, for the column it stands in.
- */
-@Composable
-private fun CssColumn(
-    modifier: Modifier = Modifier,
-    gap: Dp = 0.dp,
-    top: Dp = 0.dp,
-    bottom: Dp = 0.dp,
-    box: CssBox? = null,
-    content: @Composable () -> Unit,
-) {
-    Layout(content, if (box == null) modifier else modifier.css(box)) { measurables, constraints ->
-        val loose = constraints.copy(minWidth = 0, minHeight = 0, maxHeight = Constraints.Infinity)
-        var y = top.toPx()
-        val placed =
-            measurables.mapIndexed { index, measurable ->
-                val child = measurable.layoutId as? CssBox
-                val placeable = measurable.measure(loose)
-                if (index > 0) y += gap.toPx()
-                y += child?.top?.toPx() ?: 0f
-                val at = y.roundToInt()
-                y += child?.height?.takeUnless { it.isNaN() } ?: placeable.height.toFloat()
-                placeable to at
-            }
-        y += bottom.toPx()
-        box?.height = y
-        // As wide as its widest child, as a column is: a child that fills the width makes it fill too.
-        val width = (placed.maxOfOrNull { it.first.width } ?: 0).coerceIn(constraints.minWidth, constraints.maxWidth)
-        layout(width, y.roundToInt().coerceIn(constraints.minHeight, constraints.maxHeight)) {
-            placed.forEach { (placeable, at) -> placeable.place(0, at) }
         }
     }
 }

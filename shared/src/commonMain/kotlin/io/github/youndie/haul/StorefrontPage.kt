@@ -32,8 +32,15 @@ public enum class StorefrontPage {
     /** `/checkout`, where the cart sends a customer (B-14). */
     Checkout,
 
-    /** `/account`, a customer's. */
+    /** `/account`, a customer's: the overview. */
     Account,
+
+    /**
+     * `/account/orders`, the customer's orders, newest first (B-19) — filtered by the query string's
+     * `status` (`active`, `delivered`, `returned`, `cancelled`; none is all of them). The order pages sit
+     * under it.
+     */
+    Orders,
 
     /**
      * `/account/orders/{orderId}`, one of a customer's orders (B-18): where placement lands and the
@@ -82,6 +89,7 @@ public enum class StorefrontPage {
                 "account" -> {
                     when {
                         rest == 0 -> Account
+                        rest == 1 && segments[1] == "orders" -> Orders
                         rest == 2 && segments[1] == "orders" -> Order
                         else -> null
                     }

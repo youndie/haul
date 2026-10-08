@@ -2,6 +2,10 @@ package io.github.youndie.haul.di
 
 import io.github.youndie.haul.StoreClock
 import io.github.youndie.haul.db.Databases
+import io.github.youndie.haul.feature.account.accountModule
+import io.github.youndie.haul.feature.account.domain.Loyalty
+import io.github.youndie.haul.feature.account.domain.SavedLists
+import io.github.youndie.haul.feature.account.screen.AccountScreen
 import io.github.youndie.haul.feature.cart.cartModule
 import io.github.youndie.haul.feature.cart.domain.CartCommands
 import io.github.youndie.haul.feature.cart.domain.CartRepository
@@ -91,6 +95,7 @@ class KoinGraphTest {
                     orderModule,
                     fulfilmentModule,
                     reviewsModule,
+                    accountModule,
                 )
             }
         try {
@@ -134,5 +139,8 @@ class KoinGraphTest {
         assertNotNull(koin.get<ReviewTabs>())
         assertNotNull(koin.get<OrderScreen>())
         assertNotNull(koin.get<Reorder>())
+        assertNotNull(koin.get<Loyalty>())
+        assertNotNull(koin.get<SavedLists>())
+        assertNotNull(koin.get<AccountScreen>())
     }
 }

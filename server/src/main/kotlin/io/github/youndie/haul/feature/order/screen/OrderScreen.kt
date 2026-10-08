@@ -122,6 +122,9 @@ internal class OrderScreen(
     companion object {
         /** The order's page as the server draws it from [view]: everything it needs is in the view. */
         fun body(view: OrderView): OrderBody = OrderPage(view).body()
+
+        /** The order as a card on the account (B-19), drawn from the same [view] as its page. */
+        fun card(view: OrderView): OrderCard = OrderPage(view).card()
     }
 }
 
@@ -140,6 +143,20 @@ internal data class OrderView(
     val address: AddressEntry?,
     val point: PickupPoint?,
     val now: ZonedDateTime,
+)
+
+/**
+ * An order on its way as the account draws it (`Account_Content`): the page's [meta] line, a [title] with
+ * its [accent] and the [lead] under it, and the [steps] — or, while a shipment waits at a point, its
+ * [pickupCode] instead.
+ */
+internal data class OrderCard(
+    val meta: String,
+    val title: String,
+    val accent: String?,
+    val lead: String?,
+    val steps: OrderSteps?,
+    val pickupCode: String?,
 )
 
 /**
@@ -177,9 +194,7 @@ private class OrderPage(
                     Crumb("Orders", NavigateAction(Frame.ORDERS)),
                     Crumb("#${order.id}"),
                 ),
-            meta = "#${order.id} · Placed ${MONTH_DAY.format(
-                day(placed.placedAt.toInstant()),
-            )} · ${exact(placed.totalCents)}",
+            meta = meta(),
             title = title,
             accent = accent,
             lead = lead,
@@ -205,19 +220,8 @@ private class OrderPage(
             }
 
             OrderProgress.Packed, OrderProgress.InTransit -> {
-                val day =
-                    view.tracked.shipments
-                        .mapNotNull(::arrival)
-                        .maxOrNull() ?: today
-                val word = dayWord(day)
-                // «– 18:00» kept together, as the canvas breaks the title on a phone («15:00 / – 18:00»): a
-                // no-break space alone still lets a line end after the dash, a word joiner before it does not.
-                val window =
-                    slot
-                        ?.takeIf { !pickup && it.day == day }
-                        ?.let { ", " + it.label.replace(" – ", " –\u2060\u00A0") }
-                        .orEmpty()
-                Triple("Arriving $word$window", word, if (pickup) pointLine() else courierLead())
+                val (title, word) = arriving()
+                Triple(title, word, if (pickup) pointLine() else courierLead())
             }
 
             OrderProgress.ReadyForPickup -> {
@@ -236,6 +240,65 @@ private class OrderPage(
                 )
             }
         }
+
+    /**
+     * The order as a card on the account's overview (`Account_Content`): the meta line, where it is in a
+     * line — «Arriving *tomorrow*, 15:00 – 18:00» from placement until it arrives, «Ready for *pickup*» with
+     * the point and how long it is kept — and either the steps or, waiting at a point, the pickup code.
+     */
+    fun card(): OrderCard {
+        val code = view.tracked.shipments.firstNotNullOfOrNull { it.pickupCode }
+        val method = METHODS[placed.method]
+        val (title, accent, lead) =
+            when (progress) {
+                OrderProgress.ReadyForPickup -> {
+                    val kept = heldUntil()?.let { "kept until " + MONTH_DAY.format(it) }
+                    Triple("Ready for pickup", "pickup", listOfNotNull(method, pointLine(), kept).joinToString(" · "))
+                }
+
+                OrderProgress.Placing, OrderProgress.Placed, OrderProgress.Packed, OrderProgress.InTransit -> {
+                    val (title, word) = arriving()
+                    val lead = if (pickup) listOfNotNull(method, pointLine()).joinToString(" · ") else null
+                    Triple(title, word, lead)
+                }
+
+                else -> {
+                    heading()
+                }
+            }
+        return OrderCard(
+            meta = meta(),
+            title = title,
+            accent = accent,
+            lead = lead,
+            steps = steps().takeIf { code == null },
+            pickupCode = code,
+        )
+    }
+
+    /** «#HL-48302 · Placed Oct 7 · $512.00». */
+    private fun meta(): String =
+        "#${order.id} · Placed ${MONTH_DAY.format(day(placed.placedAt.toInstant()))} · ${exact(placed.totalCents)}"
+
+    /**
+     * «Arriving tomorrow, 15:00 – 18:00» and the word in it the title accents: the day the last shipment
+     * arrives, said as it is seen from today, and the chosen window when it is that day's.
+     */
+    private fun arriving(): Pair<String, String> {
+        val day =
+            view.tracked.shipments
+                .mapNotNull(::arrival)
+                .maxOrNull() ?: today
+        val word = dayWord(day)
+        // «– 18:00» kept together, as the canvas breaks the title on a phone («15:00 / – 18:00»): a
+        // no-break space alone still lets a line end after the dash, a word joiner before it does not.
+        val window =
+            slot
+                ?.takeIf { !pickup && it.day == day }
+                ?.let { ", " + it.label.replace(" – ", " –\u2060\u00A0") }
+                .orEmpty()
+        return "Arriving $word$window" to word
+    }
 
     /** «Two shipments, one per seller. We’ll update this page as each one moves.» */
     private fun shipmentsLead(): String {

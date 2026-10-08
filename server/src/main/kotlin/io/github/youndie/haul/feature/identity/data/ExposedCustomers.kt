@@ -30,7 +30,12 @@ internal class ExposedCustomers(
                 it[createdAt] = at
             }
             CustomersTable.selectAll().where { CustomersTable.id eq id }.single().let {
-                Customer(it[CustomersTable.id], it[CustomersTable.name], it[CustomersTable.plus])
+                Customer(
+                    it[CustomersTable.id],
+                    it[CustomersTable.name],
+                    it[CustomersTable.plus],
+                    it[CustomersTable.createdAt],
+                )
             }
         }
 }

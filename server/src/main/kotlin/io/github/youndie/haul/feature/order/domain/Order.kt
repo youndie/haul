@@ -128,6 +128,12 @@ internal interface OrderRepository {
     )
 
     suspend fun order(orderId: String): Order?
+
+    /**
+     * [customerId]'s orders, newest first — the account's history (B-19). Only theirs: the customer is the
+     * filter, so another customer's order is never among them.
+     */
+    suspend fun orders(customerId: String): List<Order>
 }
 
 /**
