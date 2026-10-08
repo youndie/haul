@@ -88,7 +88,8 @@ and the footer's links stay inert and are drawn as text, not as links, until a p
   guard; then «×» not pressable alone (the sheet's test) and «Help» made pressable alone (the
   plain-text test). The other client tests passed under each.
 - **Goldens**: none re-recorded and none changed; nothing drawn changed (no indication on any press).
-- **The gate** on the Linux build machine, after the rebase over B-25 and B-52/B-53's filing:
-  `:composeApp:wasmJsBrowserDistribution`, then `check :server:installDist` green — server 294 tests,
-  client 159, `viddikVerify` 134 cases with 0 failing; `scripts/e2e.sh` (the whole path against the
-  image) green; `make check` on the Mac.
+- **The gate** on the Linux build machine, after the rebase over B-25, B-52/B-53's filing and B-24:
+  `:composeApp:wasmJsBrowserDistribution`, then `check :server:installDist` green — server 311 tests,
+  client 161, `viddikVerify` 136 cases with 0 failing (B-24's `Order_HaulPay` and `_Phone` among them,
+  unmoved by the header's `plus`); `scripts/e2e.sh` (the whole path against the image) green; `make
+  check` on the Mac.
