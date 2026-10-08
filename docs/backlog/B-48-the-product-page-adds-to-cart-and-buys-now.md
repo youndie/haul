@@ -1,7 +1,7 @@
 ---
 id: B-48
 title: "server + client: the product page adds to cart and buys now"
-status: open
+status: wip
 priority: P1
 size: S
 stage: stage-4-cart
