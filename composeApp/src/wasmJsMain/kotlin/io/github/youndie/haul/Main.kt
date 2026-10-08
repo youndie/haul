@@ -5,9 +5,12 @@ import androidx.compose.ui.window.ComposeViewport
 import io.github.youndie.haul.feature.cart.ktorCartCommands
 import io.github.youndie.haul.feature.checkout.ktorCheckoutCommands
 import io.github.youndie.haul.feature.identity.BrowserSessionStore
+import io.github.youndie.haul.feature.identity.BrowserSignInPopup
 import io.github.youndie.haul.feature.identity.Identity
 import io.github.youndie.haul.feature.identity.IdentityApi
 import io.github.youndie.haul.feature.identity.OidcSignInFlow
+import io.github.youndie.haul.feature.identity.PopupSignInFlow
+import io.github.youndie.haul.feature.identity.SIGN_IN_WINDOW
 import io.github.youndie.haul.feature.product.ktorReviewCommands
 import io.github.youndie.haul.shell.WindowHistory
 import io.github.youndie.haul.shell.ktorCommands
@@ -23,7 +26,7 @@ import kotlinx.browser.window
  * request — the photos, the screens' trees, the cart's, the checkout's and the dialogs' commands, sign-in's merge —
  * goes over one client, the browser's fetch, to this origin; the screens' and the commands' through [Identity.send],
  * which adds the bearer token or the guest id. The sign-in returns to `signed-in.html` beside the bundle, the address the realm's client
- * registers.
+ * registers, from a popup the storefront watches itself (B-46).
  */
 @OptIn(ExperimentalComposeUiApi::class)
 public fun main() {
@@ -33,7 +36,11 @@ public fun main() {
     val identity =
         Identity(
             api = IdentityApi(http),
-            flow = OidcSignInFlow(redirectUri = "$origin/signed-in.html"),
+            flow =
+                PopupSignInFlow(
+                    open = BrowserSignInPopup::open,
+                    delegate = OidcSignInFlow(redirectUri = "$origin/signed-in.html", windowTarget = SIGN_IN_WINDOW),
+                ),
             store = BrowserSessionStore(),
         )
     val transport = ktorTransport(http, origin, identity::send)

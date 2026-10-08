@@ -374,9 +374,17 @@ the account need a shildik token; signing in merges the guest cart.
   renewing — asks for a sign-in instead of drawing an error (B-44): «Sign in to continue», whose
   press starts the sign-in with `next` set to the page, which is loaded again once it has gone
   through; a sign-in that does not go through goes home. A press, not the page's arrival: a browser
-  blocks a popup no click asked for, and the library's popup flow would then wait forever. A page
+  blocks a popup no click asked for, and the sign-in would end before the shopper saw it. A page
   still refused after a sign-in from it is an error page, so the prompt cannot loop
   (`composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/SignInPrompt.kt`).
+- **A sign-in ends when its popup does** (B-46). kotlin-multiplatform-oidc 0.18.4 waits for the
+  return page's message and nothing else, in a wait that ignores cancellation: walked in Chrome, a
+  closed popup left the sign-in pending for good (a blocked one does throw). So the storefront opens
+  the popup itself, blank, under a name the library is told to reuse, and watches it
+  (`PopupSignInFlow`, `BrowserSignInPopup`): closed without the return page's answer is a sign-in
+  that did not go through, in about half a second; blocked is the same, at once; a press while one is
+  pending focuses its popup and opens none. Opening the popup before the provider's discovery also
+  keeps it inside the click's activation on a slow network.
 
 **Decided in B-14, checkout and the quote.**
 
@@ -732,7 +740,9 @@ Chrome for Testing driven over the DevTools protocol against the bundle `install
 same image and a fresh PostgreSQL: the guest's «Sign in» opened shildik's page in a popup, the popup
 came back through `signed-in.html` and closed, the page exchanged the code (`200` from the token
 endpoint, cross-origin), merged the guest cart, and redrew the header as «Maya» with the merged count.
-No automated test covers that half; shildik's acceptance runs this library on the JVM only.
+No automated test covers that half; shildik's acceptance runs this library on the JVM only. The
+same stand walked the popup's other endings in B-46 (closed, blocked, pressed twice), before and
+after the storefront started watching the popup itself.
 
 **Risk 3. Fixtures and server disagree.** If the parity fixture is a hand-built tree, a screen can
 match the canvas while the server builds something else. Mitigation (*hypothesis*): the fixture for

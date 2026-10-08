@@ -16,9 +16,10 @@ import kotlinx.coroutines.CancellationException
  * storefront has a page for; otherwise — no `next` or a refused one — the screen is drawn again with
  * [redraw]. A sign-in that did not go through — a popup closed, a server without sign-in — is
  * [cancelled]'s, which draws the screen again too unless the caller has somewhere else to be: a page
- * that asked for the sign-in itself (B-44) has nothing to draw for a guest, and goes home. [handle]
- * says whether the action was sign-in's, so the navigation that owns every other `navigate` can hand
- * it the rest.
+ * that asked for the sign-in itself (B-44) has nothing to draw for a guest, and goes home. A press
+ * while a sign-in is already under way ([SignInPending], B-46) does none of these: that sign-in's own
+ * press answers when it ends. [handle] says whether the action was sign-in's, so the navigation that
+ * owns every other `navigate` can hand it the rest.
  */
 public class SignInActions(
     private val signIn: suspend () -> Unit,
@@ -28,29 +29,32 @@ public class SignInActions(
 ) {
     public suspend fun handle(action: KompotAction): Boolean {
         if (action !is NavigateAction || action.deeplink.substringBefore('?') != SIGN_IN) return false
-        if (!attempt()) {
-            cancelled()
-            return true
+        when (attempt()) {
+            Outcome.SignedIn -> next(action.deeplink).let { next -> if (next == null) redraw() else open(next) }
+            Outcome.NotSignedIn -> cancelled()
+            Outcome.AlreadyUnderWay -> Unit // the press that started it answers when it ends
         }
-        val next = next(action.deeplink)
-        if (next == null) redraw() else open(next)
         return true
     }
 
-    /** Whether the shopper came back signed in. */
+    private enum class Outcome { SignedIn, NotSignedIn, AlreadyUnderWay }
+
+    /** How the shopper came back. */
     @Suppress(
         "ktlint:kapkan:swallowed-failure",
-        "A closed popup is the shopper's choice and a server without sign-in is the deployment's; either way the shopper stays the guest they were, which the redrawn header shows.",
+        "A closed or blocked popup is the shopper's or the browser's choice and a server without sign-in is the deployment's; either way the shopper stays the guest they were, which the redrawn header shows.",
     )
-    private suspend fun attempt(): Boolean =
+    private suspend fun attempt(): Outcome =
         try {
             signIn()
-            true
+            Outcome.SignedIn
         } catch (e: CancellationException) {
             throw e
+        } catch (_: SignInPending) {
+            Outcome.AlreadyUnderWay
         } catch (_: Exception) {
             // The shopper is the guest they were (see the suppression above).
-            false
+            Outcome.NotSignedIn
         }
 
     public companion object {

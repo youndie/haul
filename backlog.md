@@ -40,7 +40,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (12)
+## Open (11)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -53,11 +53,10 @@ A stage is a field on the item, not a directory.
 | [B-25](docs/backlog/B-25-recommendations-from-views-in-the-home.md) `[ ]` | server: recommendations from views in the Home tree | P2 | M | B-07, B-19 |
 | [B-27](docs/backlog/B-27-helm-chart-tracy-metrik-katcher-wiring.md) `[?]` | ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand | P2 | M | B-03 |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
-| [B-46](docs/backlog/B-46-a-closed-sign-in-popup-settles.md) `[ ]` | client: a closed sign-in popup settles the sign-in | P2 | S | B-44 |
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
 | [B-45](docs/backlog/B-45-a-product-s-listing-name.md) `[ ]` | server: a product's listing name, as cards, cart and orders write it | P3 | S | B-18 |
 
-## Closed (34)
+## Closed (35)
 
 **Skeleton**
 
@@ -89,6 +88,7 @@ A stage is a field on the item, not a directory.
 - [B-12](docs/backlog/B-12-shildik-sign-in-in-the-browser.md) `[x]` - server + client: shildik sign-in in the browser, customer creation, cart merge, header states
 - [B-13](docs/backlog/B-13-cart-renderers.md) `[x]` - design refs + client: Cart renderers
 - [B-37](docs/backlog/B-37-actions-the-trees-draw-but-do-not-carry.md) `[x]` - server + client: actions the trees draw but do not carry
+- [B-46](docs/backlog/B-46-a-closed-sign-in-popup-settles.md) `[x]` - client: a closed sign-in popup settles the sign-in
 
 **Checkout and orders**
 

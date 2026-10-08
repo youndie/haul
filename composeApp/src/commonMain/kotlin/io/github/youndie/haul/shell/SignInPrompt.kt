@@ -36,8 +36,7 @@ internal val Throwable.asksForSignIn: Boolean
  * guest has something to see.
  *
  * A press, not the page's arrival, starts it: the sign-in is a popup (B-12), and a browser blocks a
- * popup no click asked for — kotlin-multiplatform-oidc's flow would then wait for an answer that never
- * comes, and the page would hang with nothing on it.
+ * popup no click asked for — the sign-in would end before the shopper saw it, and send them home.
  */
 @Composable
 internal fun SignInPrompt(
