@@ -15,6 +15,7 @@ import io.github.youndie.haul.feature.identity.data.CustomersTable
 import io.github.youndie.haul.feature.membership.data.MembershipsTable
 import io.github.youndie.haul.feature.membership.data.PointsEntriesTable
 import io.github.youndie.haul.feature.membership.domain.PointsMovement
+import io.github.youndie.haul.feature.recommendations.data.ProductViewsTable
 import io.github.youndie.haul.feature.reviews.data.QuestionsTable
 import io.github.youndie.haul.feature.reviews.data.RatingCountsTable
 import io.github.youndie.haul.feature.reviews.data.ReviewsTable
@@ -193,6 +194,11 @@ internal object Seeder {
                 this[SavedItemsTable.productId] = it.productId
                 this[SavedItemsTable.savedPriceCents] = it.savedPriceCents
                 this[SavedItemsTable.savedAt] = it.savedAt
+            }
+            ProductViewsTable.batchInsert(catalog.views) {
+                this[ProductViewsTable.customerId] = it.customerId
+                this[ProductViewsTable.productId] = it.productId
+                this[ProductViewsTable.viewedAt] = it.viewedAt
             }
             QuestionsTable.batchInsert(catalog.questions) {
                 this[QuestionsTable.id] = it.id

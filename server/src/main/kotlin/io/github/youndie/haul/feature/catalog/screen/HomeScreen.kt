@@ -7,6 +7,7 @@ import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.membership.screen.PlusOffer
+import io.github.youndie.haul.feature.recommendations.screen.PickedSection
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.ui.CampaignHero
@@ -25,14 +26,15 @@ import java.util.Locale
 /**
  * `/ui/home` (screen-home). Everybody sees the campaign, the banners, the categories, the deals of the
  * day and the Plus block: the offer to a guest and a non-member — whose «Try 30 days free» is sign-in or
- * the trial's dialog — and a member's savings and renewal (feature-membership, [PlusOffer]). «Picked for
- * you» arrives with feature-recommendations.
+ * the trial's dialog — and a member's savings and renewal (feature-membership, [PlusOffer]). A customer
+ * sees «Picked for you» ([PickedSection], feature-recommendations) after it, where the canvas puts it.
  */
 internal class HomeScreen(
     private val catalog: CatalogRepository,
     private val calendar: DeliveryCalendar,
     private val photos: ProductPhotos,
     private val loyalty: Loyalty,
+    private val picked: PickedSection,
 ) {
     suspend fun build(viewer: Viewer): KompotComponent {
         val categories = catalog.categories()
@@ -76,6 +78,7 @@ internal class HomeScreen(
                 cards = dealCards(catalog, calendar, photos, viewer),
             )
         sections += PlusOffer.block(viewer, viewer.customer?.let { loyalty.standing(it) })
+        sections += picked.build(viewer)
         return Frame.page("home", viewer, navigation(categories), sections, footer = true)
     }
 

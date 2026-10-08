@@ -30,6 +30,8 @@ internal data class SeedCatalog(
     val memberships: List<PlusMembership> = emptyList(),
     /** The points the sample customers had before the store kept orders, by customer (B-23). */
     val openingPoints: Map<String, Int> = emptyMap(),
+    /** The sample customers' product views (B-25). */
+    val views: List<SeedView> = emptyList(),
 )
 
 internal data class SeedCategory(
@@ -126,6 +128,13 @@ internal data class SeedSaved(
     val productId: String,
     val savedPriceCents: Int,
     val savedAt: OffsetDateTime,
+)
+
+/** A product a customer opened (B-25), and when. */
+internal data class SeedView(
+    val customerId: String,
+    val productId: String,
+    val viewedAt: OffsetDateTime,
 )
 
 /** A customer's cart: one of each SKU, selected, at the price the catalog has, in the order given. */

@@ -571,6 +571,36 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   dialog (`PlusTrialDialog`), whose «Start trial» is `POST /api/v1/me/plus/trial` answered `201` with `close`,
   `refresh`; a guest is sent to sign in first. A member's home page draws what Plus saved this year and when it renews.
 
+**Decided in B-25, «Picked for you».**
+
+- **A view is a customer opening a product page**: the product tree's `GET /ui/p/{productId}` records it
+  (`feature/recommendations/`, `RecordView`), beside the page's own reads, and a failed write is logged, never
+  answered — the page does not wait for it past its own reads and never fails for it. A `GET` with a side effect,
+  on purpose: the tree is what the browser fetches when the page opens, and a separate command would be a second
+  request on every page and a client change for nothing the server does not already see. A guest's views are not
+  kept: a guest gets no block (feature-recommendations), so they would feed nothing.
+- **One view per product**, the latest time it was opened (`product_views`, `V20__product_views.sql`, one row per
+  customer and product), the newest 20 kept and the rest deleted by the write that pushed them out. A tab, a variant
+  or a refresh fetches the tree again and only moves the same view to now; counted as fetches, one product's
+  category would outvote three others.
+- **The rule** (`PickedForYou`): the viewed products' categories by how many of the views they hold, a tie to the
+  category viewed last, then by slug; from each in turn the top-rated products in stock — rating, then reviews, then
+  id, so fixtures and tests are stable — that are neither viewed nor in one of the customer's orders that was not
+  cancelled, two of a category, six in all. Viewed categories that run out before six are filled from the popular
+  row under the same exclusions and the same two-per-category cap, so the six-column row has no holes; the subtitle
+  stays «Based on your recent views» while one pick came from the views. «Bought» does not include the cart.
+- **Fewer than 3 views** (or views whose categories have nothing left) is the popular row: the catalog's own
+  «Popular» order, most reviews then id, in stock, without what was viewed or bought, two of a category — «Popular
+  right now». A customer who has viewed nothing gets it; a guest gets no block.
+- **A failure inside the block drops the block**, logged, and the home page answers without it
+  (`PickedSection`): the block is the page's extra. A database that cannot be reached still answers `503` through
+  the reads every home page makes (B-32).
+- **The empty cart's picks stay the day's deals** («From today’s deals», B-13): feature-recommendations names only
+  the home page, and the cart is not changed here.
+- **Maya's views are seeded** (`seed/SampleViews.kt`): the scenario «From views» as rows — three headphones and her
+  cart's duvet cover set and mugs — so the stand draws her home page as `Home_Content` does, «Based on your recent
+  views», with two headphones, two duvet covers and two mugs.
+
 **How the stand is built (B-27).** One image serves the page and the API: the server's distribution
 carries the browser bundle and serves it at `/`, so the two cannot be deployed at different versions
 and the client needs no base URL. The chart (`charts/haul/`) holds the server, its PostgreSQL as one

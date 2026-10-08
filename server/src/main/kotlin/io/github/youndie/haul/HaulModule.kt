@@ -31,6 +31,7 @@ import io.github.youndie.haul.feature.order.domain.OrderError
 import io.github.youndie.haul.feature.order.orderModule
 import io.github.youndie.haul.feature.order.orderRouting
 import io.github.youndie.haul.feature.payment.paymentModule
+import io.github.youndie.haul.feature.recommendations.recommendationsModule
 import io.github.youndie.haul.feature.returns.domain.ReturnError
 import io.github.youndie.haul.feature.returns.returnsModule
 import io.github.youndie.haul.feature.returns.returnsRouting
@@ -131,6 +132,7 @@ internal fun Application.haulModule(
             accountModule,
             returnsModule,
             membershipModule,
+            recommendationsModule,
         )
     }
     // Carries on what a process that died left mid-saga, from the first moment this one serves; it

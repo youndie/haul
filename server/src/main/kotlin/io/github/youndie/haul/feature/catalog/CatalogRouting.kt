@@ -10,6 +10,7 @@ import io.github.youndie.haul.feature.catalog.screen.DealsScreen
 import io.github.youndie.haul.feature.catalog.screen.HomeScreen
 import io.github.youndie.haul.feature.catalog.screen.ProductScreen
 import io.github.youndie.haul.feature.catalog.screen.ProductTab
+import io.github.youndie.haul.feature.recommendations.domain.RecordView
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.shell.Viewers
 import io.github.youndie.kompot.ktor.respondKompotComponent
@@ -22,6 +23,8 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import org.koin.ktor.ext.inject
 import java.math.BigDecimal
 
@@ -37,6 +40,7 @@ internal fun Route.catalogRouting() {
     val deals by inject<DealsScreen>()
     val photos by inject<ProductPhotos>()
     val viewers by inject<Viewers>()
+    val recordView by inject<RecordView>()
 
     get("/ui/home") { call.respondKompotComponent(haulWireJson, home.build(viewers.of(call))) }
 
@@ -61,15 +65,23 @@ internal fun Route.catalogRouting() {
         )
     }
 
+    // Opening a product page is the view «Picked for you» is made from (B-25): the tree is what a shopper
+    // fetches when they open the page, so its GET records it, with no command for the client to send. A tab,
+    // a variant or a refresh fetches it again and only moves the same view to now. The write runs beside the
+    // page's reads, and a failed one is logged, never answered.
     get("/ui/p/{productId}") {
         val query = call.request.queryParameters
         val tab =
             query["tab"]?.let { ProductTab.of(it) ?: throw CatalogError.Invalid("tab", "No tab «$it»") }
                 ?: ProductTab.Description
-        call.respondKompotComponent(
-            haulWireJson,
-            product.build(call.parameters["productId"]!!, query["sku"], tab, viewers.of(call)),
-        )
+        val productId = call.parameters["productId"]!!
+        val viewer = viewers.of(call)
+        val tree =
+            coroutineScope {
+                launch { recordView(viewer, productId) }
+                product.build(productId, query["sku"], tab, viewer)
+            }
+        call.respondKompotComponent(haulWireJson, tree)
     }
 
     // A product's photo out of the object storage (B-30), served from the server's own origin so the
