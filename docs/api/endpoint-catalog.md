@@ -29,7 +29,7 @@ parent_feature: feature-browse
 | `GET` `/ui/deals` | haul-server | public (optional bearer; `X-Haul-Guest`) | yes | request: `page`; answers tree: Deals ([screen-deals](../screens/screen-deals.md)) |
 | `GET` `/ui/c/{categoryPath}` | haul-server | public (optional bearer; `X-Haul-Guest`) | yes | request: filters, sort, page; answers tree: Catalog |
 | `GET` `/ui/p/{productId}` | haul-server | public (optional bearer; `X-Haul-Guest`) | yes | request: `sku`, `tab` (description / specifications / reviews / questions); answers tree: Product; records a view for a customer (*target*, see Quirks) |
-| `GET` `/images/{key...}` | haul-server | public (none) | no — bytes, not a tree | request: —; answers the stored photo under `products/` with its image media type, `Cache-Control: public, max-age=31536000, immutable` and `X-Content-Type-Options: nosniff` |
+| `GET` `/images/{key...}` | haul-server | public (optional bearer, as every catalog route) | no — bytes, not a tree | request: —; answers the stored photo under `products/` with its image media type, `Cache-Control: public, max-age=31536000, immutable` and `X-Content-Type-Options: nosniff` |
 
 The screen routes read the caller (`Viewers` in `server/src/main/kotlin/io/github/youndie/haul/shell/Viewers.kt`)
 for the header — the first name, the cart's count, `/sign-in` or `/account` — and for each card's «+»,

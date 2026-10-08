@@ -76,7 +76,7 @@ data); send e-mail or push notifications.
 
   | Tier | Credential | Mounted on |
   |---|---|---|
-  | public | none, or an optional bearer — one that does not verify is `401`, not ignored; `X-Haul-Guest` for the header's cart count | catalog, deals, search, `POST /api/v1/guests`, `GET /api/v1/sign-in`, `GET /images/{key...}` |
+  | public | none, or an optional bearer — one that does not verify is `401`, not ignored; `X-Haul-Guest` for the header's cart count | catalog (photos included), deals, search, `POST /api/v1/guests`, `GET /api/v1/sign-in` |
   | public, cart owner | a customer's bearer or `X-Haul-Guest: <guest id>` the server issued (a token wins), otherwise `401 unauthenticated` | the cart |
   | customer | `Authorization: Bearer <shildik access token>`: signature against the realm's JWKS, lifetime and issuer checked by shildik's `oidc-auth-server` (`configureAuth`), and `azp` must be the storefront's client (`installSignIn` in `feature/identity/SignIn.kt`) | the merge, «Clear» on recent searches, `/ui/account`, checkout and placement; *target*: orders, saved, reviews, membership |
   | infra | none, not in the public schema | `/healthz`, `/readyz`, `/version` ([endpoint-ops](../api/endpoint-ops.md)) |
