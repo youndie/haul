@@ -45,8 +45,29 @@ class PopupSignInFlowTest {
     private fun flow(pollEvery: Duration = PopupSignInFlow.POLL) =
         PopupSignInFlow(open = { FakePopup().also { popups += it } }, delegate = library, pollEvery = pollEvery)
 
-    private fun CoroutineScope.press(actions: SignInActions): Job =
-        launch { assertTrue(actions.handle(NavigateAction("/sign-in?next=%2Fcheckout"))) }
+    private val presses = mutableListOf<Job>()
+
+    /**
+     * A press, detached from the test's own coroutine: the library's wait does not give in to
+     * cancellation, and a press stuck in it — the defect — would otherwise hold `runBlocking` open.
+     */
+    private fun CoroutineScope.press(
+        actions: SignInActions,
+        deeplink: String = "/sign-in?next=%2Fcheckout",
+    ): Job =
+        CoroutineScope(coroutineContext + Job())
+            .launch { actions.handle(NavigateAction(deeplink)) }
+            .also { presses += it }
+
+    /** `runBlocking` that lets go of the presses still running when the body ends. */
+    private fun walk(body: suspend CoroutineScope.() -> Unit) =
+        runBlocking {
+            try {
+                body()
+            } finally {
+                presses.forEach { it.cancel() }
+            }
+        }
 
     /** Lets the presses run until the library has been asked [times] times; bounded, so a miss fails. */
     private suspend fun awaitStarted(times: Int) {
@@ -63,7 +84,7 @@ class PopupSignInFlowTest {
      */
     @Test
     fun `a popup the shopper closes ends the sign-in as cancelled within a second`() =
-        runBlocking {
+        walk {
             val actions = actions(flow())
             val press = press(actions)
             awaitStarted(1)
@@ -76,19 +97,18 @@ class PopupSignInFlowTest {
             assertEquals(emptyList(), opened)
 
             // Settled, not merely abandoned: the next press opens a popup of its own.
-            val again = press(actions)
+            press(actions)
             awaitStarted(2)
             assertEquals(2, popups.size)
-            again.cancel()
         }
 
     /** A browser that blocks the popup ends the sign-in at once, and the provider is never asked. */
     @Test
     fun `a blocked popup ends the sign-in as cancelled without starting the provider`() =
-        runBlocking {
-            val flow = PopupSignInFlow(open = { null }, delegate = library)
+        walk {
+            val press = press(actions(PopupSignInFlow(open = { null }, delegate = library)))
 
-            withTimeout(1.seconds) { actions(flow).handle(NavigateAction("/sign-in?next=%2Fcheckout")) }
+            withTimeout(1.seconds) { press.join() }
 
             assertEquals(1, cancelled)
             assertEquals(0, library.started)
@@ -101,12 +121,13 @@ class PopupSignInFlowTest {
      */
     @Test
     fun `a second press while a sign-in is pending focuses its popup and opens no other`() =
-        runBlocking {
+        walk {
             val actions = actions(flow())
             val first = press(actions)
             awaitStarted(1)
 
-            withTimeout(1.seconds) { assertTrue(actions.handle(NavigateAction("/sign-in"))) }
+            val second = press(actions, deeplink = "/sign-in")
+            withTimeout(1.seconds) { second.join() }
 
             assertEquals(1, popups.size, "a second popup was opened")
             assertEquals(1, popups.single().focused)
@@ -124,7 +145,7 @@ class PopupSignInFlowTest {
      */
     @Test
     fun `a popup that answered and closed still signs the shopper in`() =
-        runBlocking {
+        walk {
             val press = press(actions(flow(pollEvery = 10.milliseconds)))
             awaitStarted(1)
 
@@ -141,7 +162,7 @@ class PopupSignInFlowTest {
     /** A press that goes away mid-sign-in (the page left) closes its popup and leaves none pending. */
     @Test
     fun `a sign-in whose press is gone closes its popup`() =
-        runBlocking {
+        walk {
             val actions = actions(flow())
             val press = press(actions)
             awaitStarted(1)
@@ -150,10 +171,9 @@ class PopupSignInFlowTest {
             withTimeout(1.seconds) { press.join() }
 
             assertTrue(popups.single().closed, "the popup was left open")
-            val again = press(actions)
+            press(actions)
             awaitStarted(2)
             assertEquals(2, popups.size)
-            again.cancel()
         }
 
     private class FakePopup : SignInPopup {
