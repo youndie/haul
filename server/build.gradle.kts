@@ -32,6 +32,17 @@ dependencies {
     implementation(libs.koin.ktor)
     runtimeOnly(libs.logback.classic)
 
+    // Who watches it (B-27). Agents, not servers: where the data lands is a deployment, and each is
+    // off until the environment names an endpoint and a key (`ServerConfig.observability`).
+    //
+    // metrik and tracy both publish a multiplatform `agent` whose JVM jar is `agent-jvm-<version>.jar`.
+    // Two equal versions would be two files with one name in `lib/`, and `installDist` refuses that
+    // rather than dropping one — keep it refusing; a `duplicatesStrategy` here would ship one agent
+    // and silently lose the other.
+    implementation(libs.metrik.agent)
+    implementation(libs.tracy.agent)
+    implementation(libs.katcher.client)
+
     implementation(libs.exposed.core)
     implementation(libs.exposed.jdbc)
     implementation(libs.exposed.json)
@@ -46,6 +57,18 @@ dependencies {
     testImplementation(libs.exposed.migrationJdbc)
     testImplementation(libs.testcontainers.postgresql)
     testImplementation(wip.koin.test)
+}
+
+// **The browser bundle ships inside the server's distribution**, under `web/`, and the image points
+// `HAUL_WEB_DIR` at it (haul-web: «served by haul-server»). One image, one origin: the page and the API
+// it calls cannot be deployed at two different versions, and the client needs no base URL.
+val webBundle = project(":composeApp").tasks.named("wasmJsBrowserDistribution")
+distributions {
+    main {
+        contents {
+            from(webBundle) { into("web") }
+        }
+    }
 }
 
 // **The cache is trained in the image, not here.** The JVM accepts a cache only from the build that
@@ -68,6 +91,7 @@ zavarnik {
         workload {
             get("http://127.0.0.1:8080/readyz")
             get("http://127.0.0.1:8080/version")
+            get("http://127.0.0.1:8080/")
             get("http://127.0.0.1:8080/ui/home")
             get("http://127.0.0.1:8080/ui/c/headphones?brand=Sony&feature=Noise%20cancelling")
             get("http://127.0.0.1:8080/ui/p/p-sony-wh-1000xm6")

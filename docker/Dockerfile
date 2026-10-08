@@ -19,10 +19,14 @@ COPY . /opt/app
 ENV HAUL_DB_URL=jdbc:postgresql://127.0.0.1:5432/haul \
     HAUL_DB_USER=haul \
     HAUL_DB_PASSWORD=haul \
-    HAUL_SEED=true
+    HAUL_SEED=true \
+    HAUL_WEB_DIR=/opt/app/web
 # `train` runs the start script with -XX:AOTCacheOutput, waits for /readyz, runs the workload of
 # server/build.gradle.kts and stops the JVM; `verify` fails the build unless the JVM accepts the cache.
 # The seed is part of what is trained: a start that seeds is a start that loads Exposed and Flyway.
+# The last step makes everything readable by the user the final stage runs as: a distribution copied
+# from a checkout with private file modes (a synced replica has them) is otherwise a page that answers
+# 500 to uid 1000 behind green probes.
 RUN set -eu; \
     PG=$(ls -d /usr/lib/postgresql/*/bin); \
     mkdir -p /tmp/pg && chown postgres /tmp/pg; \
@@ -32,10 +36,13 @@ RUN set -eu; \
     java -cp /opt/app/lib/zavarnik-runner.jar io.github.youndie.zavarnik.runner.Main train /opt/app; \
     java -cp /opt/app/lib/zavarnik-runner.jar io.github.youndie.zavarnik.runner.Main verify /opt/app; \
     su postgres -c "$PG/pg_ctl -D /tmp/pg/data -m fast -w stop >/dev/null"; \
-    rm -f /opt/app/lib/zavarnik-*.log
+    rm -f /opt/app/lib/zavarnik-*.log; \
+    chmod -R a+rX /opt/app
 
 FROM eclipse-temurin:${TEMURIN}-jre
 COPY --from=train /opt/app /opt/app
+# The browser bundle the distribution carries (`server/build.gradle.kts`), served at `/`.
+ENV HAUL_WEB_DIR=/opt/app/web
 EXPOSE 8080
 USER 1000:1000
 ENTRYPOINT ["/opt/app/bin/server"]
