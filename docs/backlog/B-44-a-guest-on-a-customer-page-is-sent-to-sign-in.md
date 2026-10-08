@@ -1,7 +1,7 @@
 ---
 id: B-44
 title: "client: a guest on a customer page is sent to sign-in"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-5-order
