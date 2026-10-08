@@ -40,7 +40,8 @@ One run that browses, buys, receives and returns is the end-to-end proof the nam
 - **The path** (`WholePathTest`), following only what the trees hand it after `/` — every deeplink is read with
   `StorefrontPage`, every command goes to the component's `url` with the contract's body: a guest; the home's
   first category tile, the category's first card that can be added, its product page (same product, same price,
-  in stock); the card's «+» (`refresh`, one line at the card's price, the header counts it); a guest's «Checkout»
+  in stock); the product page's «Add to cart» since B-48, the card's «+» before it (`refresh`, one line at the
+  page's price, the header counts it and the page offers one more); a guest's «Checkout»
   goes to sign-in; the token, the merge (`refresh`), the line now the customer's by the token alone and the header
   greeting her; the customer's «Checkout»; courier, the address form, the last window with room and the card —
   each chosen from the options the tree offers and drawn back as chosen; placement (`202`, `navigate` to the
@@ -63,7 +64,8 @@ One run that browses, buys, receives and returns is the end-to-end proof the nam
   query is cut.
 - **The product page's «Add to cart» carries nothing** — screen-product's draft records it as a *target*, from
   B-37's findings — so the path adds through the category card's «+», which does. A shopper on the product page
-  cannot buy from it yet; that is the storefront's gap, not this test's.
+  cannot buy from it yet; that is the storefront's gap, not this test's. B-48 closed it, and the path adds from
+  the product page since.
 - **Docker on Linux only**: the server's container on the host's network is what makes one issuer reachable by
   all three parties. Docker Desktop has host networking only behind a setting, so on a Mac the e2e runs on the
   build box or in CI, as the native builds of other projects do.

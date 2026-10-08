@@ -38,7 +38,7 @@ import kotlin.time.TimeSource
 
 /**
  * The whole path a shopper takes, over HTTP, against the server's own image with PostgreSQL and shildik
- * beside it ([ComposedStack]): browse from `/` to a product, put it in a guest cart, sign in and take
+ * beside it ([ComposedStack]): browse from `/` to a product, put it in a guest cart from its page, sign in and take
  * the cart along, check out by courier with an address, a window and a card the checkout offers, place
  * the order, wait for the fast clock to deliver it, return it, wait for the refund, and find it in the
  * history as returned.
@@ -63,13 +63,14 @@ class WholePathTest {
             shop.guest = haulWireJson.decodeFromString(GuestDto.serializer(), answer.body).id
         }
 
-        val card =
+        val (card, productAddress) =
             step("browse from the home to a category and a product") {
                 val home = shop.page("/")
                 val tile = home.one(CategoryGrid.serializer()).tiles.first()
                 val category = shop.page(tile.action.deeplink("the home's tile «${tile.name}»"))
                 val grid =
                     assertNotNull(category.one(FilteredResults.serializer()).grid, "«${tile.name}» shows no products")
+                // A card that offers «+» is a product in stock: the one worth opening to buy.
                 val card =
                     assertNotNull(grid.cards.firstOrNull { it.add != null }, "no card in «${tile.name}» can be added")
 
@@ -79,19 +80,31 @@ class WholePathTest {
                 assertEquals(card.productId, product.productId, "the card led to another product")
                 assertTrue(product.inStock, "the product page says «${card.title}» is out of stock")
                 assertEquals(card.price, product.price, "the card and the product page disagree on the price")
-                card
+                card to productAddress
             }
         val price = cents(card.price)
 
-        step("add it to the guest's cart with the card's «+»") {
-            val add = assertNotNull(card.add)
+        step("add it to the guest's cart with the product page's «Add to cart»") {
+            val product = shop.page(productAddress).one(ProductDetails.serializer())
+            val add = assertNotNull(product.add, "the product page offers no «Add to cart» for «${product.title}»")
             val answer = shop.send("PUT", add.url, haulWireJson.encodeToString(LineChange.serializer(), add.change))
             assertEquals(RefreshAction, answer.action())
             val line = cartLines().single()
-            assertEquals(card.productId, line.productId)
+            assertEquals(product.productId, line.productId)
             assertEquals(1, line.quantity)
-            assertEquals(card.price, line.price, "the cart charges another price than the card showed")
-            assertEquals(1, header().cartCount, "the header does not count the line")
+            assertEquals(product.price, line.price, "the cart charges another price than the product page showed")
+            // `refresh` draws the page again: the header counts the line, and «Add to cart» offers one more.
+            val again = shop.page(productAddress)
+            assertEquals(1, again.one(HaulHeader.serializer()).cartCount, "the header does not count the line")
+            assertEquals(
+                2,
+                again
+                    .one(ProductDetails.serializer())
+                    .add
+                    ?.change
+                    ?.quantity,
+                "a second press adds no more",
+            )
         }
 
         val shopper = "e2e-${UUID.randomUUID()}"
