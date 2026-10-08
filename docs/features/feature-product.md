@@ -66,8 +66,8 @@ status codes and error strings before this document goes `active`.
 ### Scenario: Unknown product
 * **When:** the client asks for a product id that does not exist
 * **Then:** the server returns `404` with `product_not_found`.
+* **Automated:** `ProductRoutesTest.an unknown product is 404 product_not_found`
 
 ## 6. Out of scope
 
 * What [research-architecture](../research/research-architecture.md) D6 and D8 leave out of v1.
-* **Automated:** `ProductRoutesTest.an unknown product is 404 product_not_found`

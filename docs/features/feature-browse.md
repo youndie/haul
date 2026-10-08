@@ -66,8 +66,8 @@ status codes and error strings before this document goes `active`.
 ### Scenario: An unknown category
 * **When:** the client opens `/ui/c/no-such-thing`
 * **Then:** the server returns `404` with `category_not_found`.
+* **Automated:** `CatalogRoutesTest.an unknown category is 404 category_not_found`
 
 ## 6. Out of scope
 
 * What [research-architecture](../research/research-architecture.md) D6 and D8 leave out of v1.
-* **Automated:** `CatalogRoutesTest.an unknown category is 404 category_not_found`
