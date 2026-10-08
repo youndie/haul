@@ -1,7 +1,7 @@
 ---
 id: B-12
 title: "server + client: shildik sign-in in the browser, customer creation, cart merge, header states"
-status: open
+status: wip
 priority: P1
 size: L
 stage: stage-4-cart
