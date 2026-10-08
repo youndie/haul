@@ -7,6 +7,7 @@ import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.Seeder
 import io.github.youndie.haul.ui.CampaignRow
+import io.github.youndie.haul.ui.CartGroup
 import io.github.youndie.haul.ui.CategoryGrid
 import io.github.youndie.haul.ui.FilteredResults
 import io.github.youndie.kompot.KompotComponent
@@ -35,11 +36,22 @@ internal object SeededDatabase {
 /** The canvas's «now», so every date in a tree is the one the artboards show. */
 internal val CANVAS_NOW: StoreClock = StoreClock { CatalogSeed.NOW.toZonedDateTime() }
 
-/** The application exactly as `main` assembles it, over the seeded database, at the canvas's «now». */
-internal fun haulTest(block: suspend HttpClient.() -> Unit) =
-    testApplication {
-        application { haulModule(SeededDatabase.dataSource, CANVAS_NOW, commit = "test") }
-        client.block()
+/**
+ * The application exactly as `main` assembles it, at the canvas's «now», over the shared seeded
+ * database — or over [dataSource], for a test that has to change the catalog under the routes.
+ */
+internal fun haulTest(
+    dataSource: DataSource = SeededDatabase.dataSource,
+    block: suspend HttpClient.() -> Unit,
+) = testApplication {
+    application { haulModule(dataSource, CANVAS_NOW, commit = "test") }
+    client.block()
+}
+
+/** A database of its own, migrated and seeded: for a test that writes to the catalog. */
+internal fun seededFreshDatabase(): DataSource =
+    PostgresHarness.freshDatabase().also {
+        check(Seeder.seedIfEmpty(Databases.connect(it), CatalogSeed.generate()))
     }
 
 internal suspend fun HttpClient.tree(path: String): KompotComponent {
@@ -58,6 +70,7 @@ internal fun KompotComponent.all(): List<KompotComponent> =
             is CampaignRow -> listOf(hero).flatMap { it.all() } + banners.flatMap { it.all() }
             is CategoryGrid -> tiles.flatMap { it.all() }
             is FilteredResults -> listOfNotNull(facets, applied, grid, pagination, empty).flatMap { it.all() }
+            is CartGroup -> lines
             else -> emptyList()
         }
 

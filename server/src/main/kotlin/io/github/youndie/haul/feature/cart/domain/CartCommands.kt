@@ -1,0 +1,158 @@
+package io.github.youndie.haul.feature.cart.domain
+
+import io.github.youndie.haul.ErrorCode
+import io.github.youndie.haul.StoreClock
+import io.github.youndie.haul.feature.cart.LineChange
+import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
+import io.github.youndie.haul.feature.catalog.domain.Listed
+import io.github.youndie.haul.feature.catalog.domain.Sku
+import io.github.youndie.haul.feature.catalog.domain.money
+
+/**
+ * The cart's commands (endpoint-cart) and the rules they hold (feature-cart): quantity 1…10 and never
+ * above stock, one promo code per cart, a changed line accepted before it counts again. Each refusal
+ * is a [CartError]; a refused promo code is also remembered, so the next tree draws the field with
+ * the code and the reason (`Cart_PromoError`).
+ */
+internal class CartCommands(
+    private val carts: CartRepository,
+    private val catalog: CatalogRepository,
+    private val clock: StoreClock,
+) {
+    /** Adds the SKU, or changes its line's quantity or selection. */
+    suspend fun changeLine(
+        owner: CartOwner,
+        skuId: String,
+        change: LineChange,
+    ) {
+        if (change.quantity == null && change.selected == null) {
+            throw CartError.Invalid("quantity", "Send a quantity, a selection or both")
+        }
+        change.quantity?.let {
+            if (it !in 1..MAX_QUANTITY) throw CartError.Invalid("quantity", "A quantity is 1 to $MAX_QUANTITY, not $it")
+        }
+        val (_, sku) = sku(skuId)
+        val existing = carts.cart(owner).line(skuId)
+        val quantity = change.quantity ?: existing?.quantity ?: 1
+        if (sku.stock <= 0 && (existing == null || change.quantity != null)) {
+            throw CartError.OutOfStock("This item is out of stock")
+        }
+        if (change.quantity != null && quantity > sku.stock) {
+            throw CartError.OutOfStock("Only ${sku.stock} left in stock")
+        }
+        carts.putLine(
+            owner,
+            existing?.copy(quantity = quantity, selected = change.selected ?: existing.selected)
+                ?: StoredLine(
+                    skuId = skuId,
+                    quantity = quantity,
+                    selected = change.selected ?: true,
+                    seenPriceCents = sku.priceCents,
+                    seenInStock = true,
+                    addedAt = clock.now().toOffsetDateTime(),
+                ),
+        )
+    }
+
+    /** «Remove» and «Delete selected». */
+    suspend fun removeLines(
+        owner: CartOwner,
+        skuIds: List<String>,
+    ) {
+        if (skuIds.isEmpty()) throw CartError.Invalid("skuIds", "Name at least one line to delete")
+        carts.removeLines(owner, skuIds.toSet())
+    }
+
+    /**
+     * «OK» on a changed line: the price and the stock it shows now become the ones the shopper saw,
+     * and the line is selected again if it can be bought.
+     */
+    suspend fun acknowledge(
+        owner: CartOwner,
+        skuId: String,
+    ) {
+        val line = carts.cart(owner).line(skuId) ?: throw CartError.LineNotFound(skuId)
+        val (_, sku) = sku(skuId)
+        val inStock = sku.stock > 0
+        carts.putLine(owner, line.copy(seenPriceCents = sku.priceCents, seenInStock = inStock, selected = inStock))
+    }
+
+    /** Applies a code: one per cart, and only one that is valid now for something selected. */
+    suspend fun applyPromo(
+        owner: CartOwner,
+        raw: String,
+    ) {
+        val code = raw.trim().uppercase()
+        if (code.isEmpty()) throw CartError.Invalid("code", "Type a promo code")
+        val cart = carts.cart(owner)
+        when (cart.promoCode) {
+            code -> return
+
+            null -> Unit
+
+            else -> throw CartError.Promo(
+                ErrorCode.PromoAlreadyApplied,
+                "Only one code per order: remove ${cart.promoCode} first",
+            )
+        }
+        val promo = carts.promo(code) ?: refuse(owner, code, ErrorCode.PromoNotFound)
+        val now = clock.now().toOffsetDateTime()
+        when {
+            !now.isBefore(promo.endsAt) -> refuse(owner, code, ErrorCode.PromoExpired)
+            now.isBefore(promo.startsAt) -> refuse(owner, code, ErrorCode.PromoNotApplicable)
+        }
+        if (priced(cart).none { it.counted }) {
+            refuse(owner, code, ErrorCode.PromoNotApplicable)
+        }
+        carts.setPromo(owner, code)
+    }
+
+    suspend fun removePromo(owner: CartOwner) {
+        carts.setPromo(owner, null)
+    }
+
+    /** The stored lines with their SKUs as the catalog has them now, in the cart's order. */
+    suspend fun priced(cart: StoredCart): List<PricedLine> {
+        val items = catalog.listedBySkus(cart.lines.map { it.skuId }.toSet())
+        return cart.lines
+            .mapNotNull { line ->
+                val item =
+                    items.firstOrNull { listed -> listed.skus.any { it.id == line.skuId } } ?: return@mapNotNull null
+                PricedLine(line, item, item.skus.first { it.id == line.skuId })
+            }
+    }
+
+    private suspend fun sku(skuId: String): Pair<Listed, Sku> {
+        val item = catalog.listedBySkus(setOf(skuId)).singleOrNull() ?: throw CartError.SkuNotFound(skuId)
+        return item to item.skus.first { it.id == skuId }
+    }
+
+    private suspend fun refuse(
+        owner: CartOwner,
+        code: String,
+        error: ErrorCode,
+    ): Nothing {
+        carts.setPromo(owner, null, attempt = code, error = error)
+        throw CartError.Promo(error, promoMessage(error))
+    }
+
+    companion object {
+        const val MAX_QUANTITY = 10
+
+        /** What a refused code is told: the command's error message, and the field's text in the next tree. */
+        fun promoMessage(error: ErrorCode): String =
+            when (error) {
+                ErrorCode.PromoNotFound -> "There is no such code"
+                ErrorCode.PromoExpired -> "This code has expired"
+                else -> "This code does not apply to your cart"
+            }
+
+        /** «Price changed: now $26» or «Out of stock». */
+        fun changeLabel(line: PricedLine): String? =
+            when {
+                line.outOfStock -> "Out of stock"
+                line.changed -> "Price changed: now ${money(line.sku.priceCents)}"
+                else -> null
+            }
+    }
+}

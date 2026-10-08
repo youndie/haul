@@ -16,6 +16,7 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
@@ -57,6 +58,18 @@ internal class ExposedCatalogRepository(
                         }.map(::product),
                 ).associateBy { it.product.id }
             productIds.mapNotNull(byId::get)
+        }
+
+    override suspend fun listedBySkus(skuIds: Set<String>): List<Listed> =
+        read {
+            if (skuIds.isEmpty()) return@read emptyList()
+            val productIds =
+                SkusTable
+                    .select(SkusTable.productId)
+                    .where { SkusTable.id inList skuIds }
+                    .map { it[SkusTable.productId] }
+                    .distinct()
+            withSkus(ProductsTable.selectAll().where { ProductsTable.id inList productIds }.map(::product))
         }
 
     override suspend fun product(id: String): Listed? =

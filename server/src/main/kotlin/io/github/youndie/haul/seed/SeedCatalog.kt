@@ -13,6 +13,7 @@ internal data class SeedCatalog(
     val skus: List<SeedSku>,
     val campaigns: List<SeedCampaign>,
     val deals: List<SeedDeal>,
+    val promoCodes: List<SeedPromoCode>,
 )
 
 internal data class SeedCategory(
@@ -76,5 +77,13 @@ internal data class SeedDeal(
     val id: String,
     val skuId: String,
     val priceCents: Int,
+    val endsAt: OffsetDateTime,
+)
+
+internal data class SeedPromoCode(
+    val code: String,
+    val percentOff: Int,
+    val capCents: Int?,
+    val startsAt: OffsetDateTime,
     val endsAt: OffsetDateTime,
 )

@@ -21,6 +21,36 @@ public enum class ErrorCode {
     /** A search or a suggestion asked for with fewer than two characters (feature-search). */
     @SerialName("query_too_short")
     QueryTooShort,
+
+    /** A cart route called with neither a guest id the server issued nor a customer token. */
+    @SerialName("unauthenticated")
+    Unauthenticated,
+
+    /** A cart line asked for a SKU that does not exist. */
+    @SerialName("sku_not_found")
+    SkuNotFound,
+
+    /** A SKU added with stock 0, or a quantity above its stock (feature-cart, feature-product). */
+    @SerialName("out_of_stock")
+    OutOfStock,
+
+    /** A command named a line that is not in the caller's cart. */
+    @SerialName("line_not_found")
+    LineNotFound,
+
+    @SerialName("promo_not_found")
+    PromoNotFound,
+
+    /** One promo code per cart: another one is already applied (feature-cart). */
+    @SerialName("promo_already_applied")
+    PromoAlreadyApplied,
+
+    @SerialName("promo_expired")
+    PromoExpired,
+
+    /** The code is valid but not for this cart: nothing selected, or its window has not opened. */
+    @SerialName("promo_not_applicable")
+    PromoNotApplicable,
 }
 
 /** The body of every error answer: the code, a sentence for a person, and the field when one is at fault. */

@@ -1,5 +1,6 @@
 package io.github.youndie.haul.seed
 
+import io.github.youndie.haul.feature.cart.data.PromoCodesTable
 import io.github.youndie.haul.feature.catalog.data.CampaignsTable
 import io.github.youndie.haul.feature.catalog.data.CategoriesTable
 import io.github.youndie.haul.feature.catalog.data.DealsTable
@@ -90,6 +91,13 @@ internal object Seeder {
                 this[DealsTable.skuId] = it.skuId
                 this[DealsTable.priceCents] = it.priceCents
                 this[DealsTable.endsAt] = it.endsAt
+            }
+            PromoCodesTable.batchInsert(catalog.promoCodes) {
+                this[PromoCodesTable.code] = it.code
+                this[PromoCodesTable.percentOff] = it.percentOff
+                this[PromoCodesTable.capCents] = it.capCents
+                this[PromoCodesTable.startsAt] = it.startsAt
+                this[PromoCodesTable.endsAt] = it.endsAt
             }
             true
         }
