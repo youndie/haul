@@ -24,7 +24,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
-import io.ktor.server.http.content.staticFiles
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.routing
@@ -44,10 +43,10 @@ internal fun interface StoreClock {
  * answers, and every route under its tier. Nothing here reads the environment or the clock; [clock],
  * [dataSource], [observability] and [web] come in.
  *
- * [web] is the browser bundle's directory, served at `/` beside the API when given. Every API route is
- * more specific than the static one, so a screen route always wins; and there is deliberately no
- * fallback to `index.html` for a missing file — it would answer an unknown `/ui/...` with a page and
- * a 200 instead of the 404 the client draws.
+ * [web] is the browser bundle's directory, served at `/` beside the API when given ([webBundle]: its
+ * precompressed files, its cache headers). Every API route is more specific than the static one, so a
+ * screen route always wins; and there is deliberately no fallback to `index.html` for a missing file —
+ * it would answer an unknown `/ui/...` with a page and a 200 instead of the 404 the client draws.
  *
  * [photoStore] is the object storage product photos are kept in (B-30); `null` — no storage
  * configured — serves no photos, and every tile is the placeholder.
@@ -90,7 +89,7 @@ internal fun Application.haulModule(
         searchRouting()
         identityRouting()
         cartRouting()
-        web?.let { staticFiles("/", it) }
+        web?.let { webBundle(it) }
     }
 }
 
