@@ -1,7 +1,7 @@
 ---
 id: B-04
 title: "contract + client: theme (colour roles, three bundled fonts), registry, `HaulHeader` and `ProductCard` renderers"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-1-skeleton
