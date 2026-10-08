@@ -1,9 +1,11 @@
 package io.github.youndie.haul.feature.cart
 
+import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.seed.SampleCatalog
 import io.github.youndie.haul.testing.acknowledge
 import io.github.youndie.haul.testing.all
 import io.github.youndie.haul.testing.applyPromo
+import io.github.youndie.haul.testing.assertError
 import io.github.youndie.haul.testing.assertRefresh
 import io.github.youndie.haul.testing.cart
 import io.github.youndie.haul.testing.guest
@@ -15,6 +17,7 @@ import io.github.youndie.haul.ui.CartLine
 import io.github.youndie.haul.ui.CartSelection
 import io.github.youndie.haul.ui.OrderSummary
 import io.github.youndie.kompot.KompotComponent
+import io.ktor.http.HttpStatusCode
 import javax.sql.DataSource
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -77,6 +80,20 @@ class ChangedLinesTest {
         }
     }
 
+    /** «Never above stock», where the stock is below the cap of ten. */
+    @Test
+    fun `a quantity above the stock is 409 out_of_stock`() {
+        val db = seededFreshDatabase()
+        haulTest(db) {
+            db.sql("UPDATE skus SET stock = 3 WHERE id = '$mug'")
+            val guest = guest()
+            putLine(guest, mug, LineChange(quantity = 4)).assertError(HttpStatusCode.Conflict, ErrorCode.OutOfStock)
+            putLine(guest, mug, LineChange(quantity = 3)).assertRefresh()
+            assertEquals(3, cart(guest).line(mug).maxQuantity, "«+» does not stop at the stock")
+            putLine(guest, mug, LineChange(quantity = 4)).assertError(HttpStatusCode.Conflict, ErrorCode.OutOfStock)
+        }
+    }
+
     @Test
     fun `a line that went out of stock is marked and stays out of the selection`() {
         val db = seededFreshDatabase()
@@ -98,7 +115,7 @@ class ChangedLinesTest {
             assertFalse(after.line(mug).selected)
             assertFalse(after.only<OrderSummary>().checkoutEnabled)
             // A promo has nothing selected to apply to.
-            applyPromo(guest, "AUTUMN10").let { assertEquals(422, it.status.value) }
+            applyPromo(guest, "AUTUMN10").assertError(HttpStatusCode.UnprocessableEntity, ErrorCode.PromoNotApplicable)
         }
     }
 }
