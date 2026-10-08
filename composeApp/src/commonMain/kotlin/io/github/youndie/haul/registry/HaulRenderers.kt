@@ -362,7 +362,7 @@ public class ProductQuestionsRenderer : KompotComponentRenderer<ProductQuestions
 }
 
 // The two dialogs a product tab presents (feature-reviews): the draft is the client's until it is sent;
-// the command goes through `LocalReviewCommands`, and its answer — close, then refresh — to the handler.
+// the command goes through `LocalTreeCommands`, and its answer — close, then refresh — to the handler.
 
 @KompotComponentMarker
 public class ReviewFormRenderer : KompotComponentRenderer<ReviewForm> {

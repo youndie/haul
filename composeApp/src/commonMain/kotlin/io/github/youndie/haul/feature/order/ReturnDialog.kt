@@ -27,14 +27,14 @@ import io.github.youndie.haul.feature.product.DialogFrame
 import io.github.youndie.haul.feature.product.FieldLabel
 import io.github.youndie.haul.feature.product.FieldProblem
 import io.github.youndie.haul.feature.product.FormProblems
-import io.github.youndie.haul.feature.product.LocalReviewCommands
-import io.github.youndie.haul.feature.product.ReviewCommand
-import io.github.youndie.haul.feature.product.run
 import io.github.youndie.haul.feature.product.settle
 import io.github.youndie.haul.feature.product.without
 import io.github.youndie.haul.feature.returns.ReturnEntry
 import io.github.youndie.haul.feature.returns.exactDollars
 import io.github.youndie.haul.feature.returns.returnProblems
+import io.github.youndie.haul.shell.LocalTreeCommands
+import io.github.youndie.haul.shell.TreeCommand
+import io.github.youndie.haul.shell.run
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
@@ -131,7 +131,7 @@ public fun ReturnFormView(
 
 /**
  * The return dialog as the storefront presents it: the draft kept here, the rules checked before sending
- * (the server's own, `returnProblems`), the command sent through the dialogs' seam ([LocalReviewCommands]),
+ * (the server's own, `returnProblems`), the command sent through the dialogs' seam ([LocalTreeCommands]),
  * and its answer — close, then refresh — handed to [handle]. A refusal (the window closed since the page was
  * drawn: `422 return_window_closed`) is drawn over the buttons; no answer leaves the dialog open.
  */
@@ -140,7 +140,7 @@ internal fun ReturnDialog(
     form: ReturnForm,
     handle: (KompotAction) -> Unit,
 ) {
-    val commands = LocalReviewCommands.current
+    val commands = LocalTreeCommands.current
     val scope = rememberCoroutineScope()
     var draft by remember(form) { mutableStateOf(ReturnEntry()) }
     var problems by remember(form) { mutableStateOf(FormProblems()) }
@@ -168,7 +168,7 @@ internal fun ReturnDialog(
                 commands != null && !sending -> {
                     sending = true
                     scope.launch {
-                        problems = settle(commands.run(ReviewCommand.Return(form.url, draft)), handle)
+                        problems = settle(commands.run(TreeCommand.Return(form.url, draft)), handle)
                         sending = false
                     }
                 }

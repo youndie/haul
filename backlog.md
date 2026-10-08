@@ -40,7 +40,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (9)
+## Open (8)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -50,11 +50,10 @@ A stage is a field on the item, not a directory.
 | [B-45](docs/backlog/B-45-a-product-s-listing-name.md) `[ ]` | server: a product's listing name, as cards, cart and orders write it | P3 | S | B-18 |
 | [B-49](docs/backlog/B-49-the-last-drawn-controls-without-actions.md) `[ ]` | server + client: the last drawn controls without actions | P3 | S | B-37 |
 | [B-50](docs/backlog/B-50-the-return-dialog-names-the-points-share.md) `[ ]` | server + client: the return dialog names the points share of a refund | P3 | S | B-21, B-23 |
-| [B-51](docs/backlog/B-51-dialog-commands-are-not-review-commands.md) `[ ]` | client: dialog commands are not review commands | P3 | S | B-21 |
 | [B-52](docs/backlog/B-52-bought-this-month-on-the-product-page.md) `[ ]` | server: «bought this month» on the product page | P3 | S | B-18 |
 | [B-53](docs/backlog/B-53-plus-members-see-campaign-prices-early.md) `[ ]` | server: Plus members see campaign prices early | P3 | S | B-23 |
 
-## Closed (44)
+## Closed (45)
 
 **Skeleton**
 
@@ -108,6 +107,7 @@ A stage is a field on the item, not a directory.
 - [B-19](docs/backlog/B-19-account-overview-and-orders-history.md) `[x]` - server + client: Account overview and orders history
 - [B-20](docs/backlog/B-20-saved-list-save-for-later-price.md) `[x]` - server + client: Saved list, save for later, price drops
 - [B-21](docs/backlog/B-21-returns-and-refunds.md) `[x]` - server + client: returns and refunds
+- [B-51](docs/backlog/B-51-dialog-commands-are-not-review-commands.md) `[x]` - client: dialog commands are not review commands
 
 **Reviews**
 

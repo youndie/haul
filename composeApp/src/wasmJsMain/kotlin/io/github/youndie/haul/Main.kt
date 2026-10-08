@@ -11,10 +11,10 @@ import io.github.youndie.haul.feature.identity.IdentityApi
 import io.github.youndie.haul.feature.identity.OidcSignInFlow
 import io.github.youndie.haul.feature.identity.PopupSignInFlow
 import io.github.youndie.haul.feature.identity.SIGN_IN_WINDOW
-import io.github.youndie.haul.feature.product.ktorReviewCommands
 import io.github.youndie.haul.shell.WindowHistory
 import io.github.youndie.haul.shell.ktorCommands
 import io.github.youndie.haul.shell.ktorTransport
+import io.github.youndie.haul.shell.ktorTreeCommands
 import io.github.youndie.haul.ui.coilPhotoLoader
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.js.Js
@@ -47,7 +47,7 @@ public fun main() {
     val cartCommands = ktorCartCommands(http, origin, identity::send)
     val commands = ktorCommands(http, origin, identity::send)
     val checkoutCommands = ktorCheckoutCommands(http, origin, identity::send)
-    val reviewCommands = ktorReviewCommands(http, origin, identity::send)
+    val treeCommands = ktorTreeCommands(http, origin, identity::send)
     ComposeViewport(document.body!!) {
         App(
             photos,
@@ -57,7 +57,7 @@ public fun main() {
             cartCommands = cartCommands,
             commands = commands,
             checkoutCommands = checkoutCommands,
-            reviewCommands = reviewCommands,
+            treeCommands = treeCommands,
         )
     }
 }

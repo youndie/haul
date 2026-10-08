@@ -8,16 +8,23 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
+import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.FakeHistory
 import io.github.youndie.haul.FixtureFonts
 import io.github.youndie.haul.decode
 import io.github.youndie.haul.haulWireJson
-import io.github.youndie.haul.shell.HaulCommands
+import io.github.youndie.haul.shell.CommandRefused
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
 import io.github.youndie.haul.shell.Storefront
+import io.github.youndie.haul.shell.TreeCommand
+import io.github.youndie.haul.shell.TreeCommands
 import io.github.youndie.haul.theme.HaulTheme
+import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.standard.CloseAction
+import io.github.youndie.kompot.standard.RefreshAction
+import io.github.youndie.kompot.standard.SequenceAction
 import kotlinx.serialization.PolymorphicSerializer
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
@@ -28,12 +35,13 @@ import kotlin.test.assertEquals
  * «Try 30 days free» presents the dialog its block carries, «Start trial» sends the `POST` the dialog names
  * and follows the answer — the dialog closed, the page fetched again — and «Not now» closes it sending
  * nothing. A refusal (`409 already_member`, a second tab first) closes it and draws the page again as well.
+ * The command goes through the dialogs' seam (B-51); the `POST` it becomes on the wire is `TreeCommandsTest`'s.
  */
 @OptIn(ExperimentalTestApi::class)
 class PlusTrialWiringTest {
     private val requests = CopyOnWriteArrayList<String>()
-    private val sent = CopyOnWriteArrayList<String>()
-    private var answer = HaulResponse(201, CLOSE_AND_REFRESH)
+    private val sent = CopyOnWriteArrayList<TreeCommand>()
+    private var answer: (TreeCommand) -> KompotAction = { CLOSE_AND_REFRESH }
 
     private val home: KompotComponent = decode("home_plus_trial.json")
 
@@ -44,15 +52,15 @@ class PlusTrialWiringTest {
         }
 
     private val commands =
-        HaulCommands { method, path, body ->
-            sent += "$method $path ${body.orEmpty()}".trim()
-            answer
+        TreeCommands { command ->
+            sent += command
+            answer(command)
         }
 
     private fun ComposeUiTest.storefront() =
         setContent {
             HaulTheme(FixtureFonts.fonts, compact = false) {
-                Storefront(transport, FakeHistory(), signIn = {}, commands = commands)
+                Storefront(transport, FakeHistory(), signIn = {}, treeCommands = commands)
             }
         }
 
@@ -74,7 +82,7 @@ class PlusTrialWiringTest {
             onNodeWithTag(PLUS_START_TAG).performClick()
             waitClosed()
             waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
-            assertEquals(listOf("POST $TRIAL"), sent.toList())
+            assertEquals(listOf<TreeCommand>(TreeCommand.StartTrial(TRIAL)), sent.toList())
             assertEquals(listOf("/ui/home", "/ui/home"), requests.toList())
         }
 
@@ -91,18 +99,18 @@ class PlusTrialWiringTest {
     @Test
     fun `a refused trial closes the dialog and draws the page again`() =
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
-            answer = HaulResponse(409, """{"code":"already_member","message":"You are a Haul Plus member already"}""")
+            answer = { throw CommandRefused(409, ErrorCode.AlreadyMember, "You are a Haul Plus member already") }
             openDialog()
             onNodeWithTag(PLUS_START_TAG).performClick()
             waitClosed()
             waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
-            assertEquals(listOf("POST $TRIAL"), sent.toList())
+            assertEquals(listOf<TreeCommand>(TreeCommand.StartTrial(TRIAL)), sent.toList())
         }
 
     private companion object {
         const val WIDTH = 1440
         const val HEIGHT = 3300
         const val TRIAL = "/api/v1/me/plus/trial"
-        const val CLOSE_AND_REFRESH = """{"type":"sequence","actions":[{"type":"close"},{"type":"refresh"}]}"""
+        val CLOSE_AND_REFRESH = SequenceAction(listOf(CloseAction, RefreshAction))
     }
 }

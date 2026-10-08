@@ -29,9 +29,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import io.github.youndie.haul.registry.haulJson
-import io.github.youndie.haul.shell.HaulCommands
-import io.github.youndie.haul.shell.LocalHaulCommands
+import io.github.youndie.haul.shell.CommandRefused
+import io.github.youndie.haul.shell.LocalTreeCommands
+import io.github.youndie.haul.shell.TreeCommand
+import io.github.youndie.haul.shell.TreeCommands
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
@@ -46,7 +47,6 @@ import io.github.youndie.haul.ui.accented
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.kompot.KompotAction
-import io.github.youndie.kompot.decodeKompotAction
 import io.github.youndie.kompot.standard.RefreshAction
 import io.github.youndie.kompot.standard.SequenceAction
 import kotlinx.coroutines.launch
@@ -227,16 +227,16 @@ private fun Buttons(
 
 /**
  * The trial's dialog as the storefront presents it: «Start trial» sends `POST` [PlusTrialDialog.url]
- * through [LocalHaulCommands] and hands the answer — close, then refresh — to [handle]. A refusal
- * (`409 already_member`: a second tab started it first) closes the dialog and draws the page again, which
- * then shows the membership; no answer leaves the dialog open for another press.
+ * through the dialogs' seam ([LocalTreeCommands], B-51) and hands the answer — close, then refresh — to
+ * [handle]. A refusal (`409 already_member`: a second tab started it first) closes the dialog and draws the
+ * page again, which then shows the membership; no answer leaves the dialog open for another press.
  */
 @Composable
 internal fun PlusTrialDialogPresented(
     dialog: PlusTrialDialog,
     handle: (KompotAction) -> Unit,
 ) {
-    val commands = LocalHaulCommands.current
+    val commands = LocalTreeCommands.current
     val scope = rememberCoroutineScope()
     var sending by remember(dialog) { mutableStateOf(false) }
     val close = dialog.close
@@ -263,25 +263,20 @@ internal fun PlusTrialDialogPresented(
     "ktlint:kapkan:swallowed-failure",
     "A trial that got no answer started nothing the shopper can see; the dialog stays and the next press tries again.",
 )
-internal suspend fun HaulCommands.startTrial(
+internal suspend fun TreeCommands.startTrial(
     url: String,
     close: KompotAction?,
 ): KompotAction? =
     try {
-        val answer = send("POST", url, null)
-        if (answer.status in SUCCESS) {
-            haulJson.decodeKompotAction(answer.body)
-        } else {
-            SequenceAction(listOfNotNull(close, RefreshAction))
-        }
+        send(TreeCommand.StartTrial(url))
     } catch (cancelled: CancellationException) {
         throw cancelled
+    } catch (_: CommandRefused) {
+        SequenceAction(listOfNotNull(close, RefreshAction))
     } catch (_: Throwable) {
         // Throwable: in the browser a failed fetch is a JavaScript error, which is no `Exception` on Wasm.
         null
     }
-
-private val SUCCESS = 200..299
 
 /** The card's shadow, black at 50 % (`box-shadow: 0 40px 100px -20px rgba(0,0,0,.5)`), as the review dialogs'. */
 private val CARD_SHADOW = Color(0x80000000)
