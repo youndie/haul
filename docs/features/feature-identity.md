@@ -25,6 +25,7 @@ No screen of its own.
 ## 2. Business rules
 
 * the client gets a guest id from the server on first start and sends it with every request until sign-in;
+* a cart request without a guest id the server issued is `401 unauthenticated`: the client creates a new guest rather than the server inventing one (research D5, «Decided in B-11»; the server half exists since B-11, the client's is B-12);
 * a request with both a valid bearer and a guest id acts as the customer; the guest id is used only by the merge;
 * on sign-in the guest cart is merged into the customer's: same `Sku` → quantities summed and capped at 10 and at stock; the guest cart is then deleted;
 * the first authenticated request of an unknown `sub` creates the `Customer` from the token's name claim.
@@ -35,11 +36,11 @@ code, not observed, until this document goes `active`.
 
 ## 4. Code anchors
 
-| Service | Code (planned) |
+| Service | Code |
 |---|---|
-| haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/` — the contract |
-| haul-server | `server/src/main/kotlin/io/github/youndie/haul/feature/identity/` |
-| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/` |
+| haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/Guests.kt` — the contract (`GuestDto`, `GUEST_HEADER`) |
+| haul-server | `server/src/main/kotlin/io/github/youndie/haul/feature/identity/` — guests since B-11; customers and the merge planned (B-12) |
+| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/` (planned, B-12) |
 
 ## 5. Scenarios (BDD / test cases)
 
