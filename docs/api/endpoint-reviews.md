@@ -2,22 +2,23 @@
 id: endpoint-reviews
 title: Reviews and questions
 type: api_endpoints
-status: draft
+status: active
 services:
   - haul-server
 contract_source:
   - haul:shared ReviewEntry
   - haul:shared QuestionEntry
+  - haul:shared HelpfulVote
   - haul:shared ErrorCode
 parent_feature: feature-reviews
 ---
 
 # API: Reviews and questions
 
-> The two commands exist since B-22 and are described as the code has them; the helpful vote is
-> *planned* (B-43), which keeps this document a draft. There are no route classes in `shared`: the
-> paths are the server's strings (`ReviewPaths` in `ReviewsRouting.kt`), handed to the client inside
-> the dialogs' components (`ReviewForm.url`, `QuestionForm.url`); the contract is the command bodies
+> The two commands exist since B-22, the helpful vote since B-43; all are described as the code has
+> them. There are no route classes in `shared`: the paths are the server's strings (`ReviewPaths` in
+> `ReviewsRouting.kt`), handed to the client inside the dialogs' components (`ReviewForm.url`,
+> `QuestionForm.url`) and each review (`Review.helpfulCommand`); the contract is the command bodies
 > and their rules (`shared/src/commonMain/kotlin/io/github/youndie/haul/feature/reviews/ReviewCommands.kt`)
 > and `ErrorCode`.
 
@@ -30,7 +31,7 @@ or `?tab=questions`, [endpoint-catalog](endpoint-catalog.md)).
 |---|---|---|---|---|
 | `POST` `/api/v1/products/{id}/reviews` | haul-server | customer (shildik bearer) | yes | request: `ReviewEntry` (`rating`, `title`, `body`); answers `201` with kompot's `sequence` of `close` and `refresh` |
 | `POST` `/api/v1/products/{id}/questions` | haul-server | customer (shildik bearer) | yes | request: `QuestionEntry` (`text`); answers `201` with kompot's `sequence` of `close` and `refresh` |
-| `PUT` `/api/v1/reviews/{id}/helpful` | haul-server | customer (shildik bearer) | yes | *planned, B-43*: request: —; answers action: refresh |
+| `PUT` `/api/v1/reviews/{id}/helpful` | haul-server | customer (shildik bearer) | yes | request: `HelpfulVote` (`helpful`: the vote the press leaves); answers `200` with kompot's `refresh` |
 
 Conventions for every group — trees versus actions, the error body, `404` for «not yours» — are
 in [haul-server](../services/haul-server.md), section 2.
@@ -41,9 +42,9 @@ in [haul-server](../services/haul-server.md), section 2.
 |---|---|
 | `POST` `/api/v1/products/{id}/reviews` | `server/src/main/kotlin/io/github/youndie/haul/feature/reviews/ReviewsRouting.kt` → `ReviewCommands.post` (`server/src/main/kotlin/io/github/youndie/haul/feature/reviews/domain/ReviewCommands.kt`) → `ExposedReviews.write` (`server/src/main/kotlin/io/github/youndie/haul/feature/reviews/data/ExposedReviews.kt`) |
 | `POST` `/api/v1/products/{id}/questions` | `server/src/main/kotlin/io/github/youndie/haul/feature/reviews/ReviewsRouting.kt` → `ReviewCommands.ask` |
-| `PUT` `/api/v1/reviews/{id}/helpful` | *planned* (B-43), in `server/src/main/kotlin/io/github/youndie/haul/feature/reviews/` |
+| `PUT` `/api/v1/reviews/{id}/helpful` | `server/src/main/kotlin/io/github/youndie/haul/feature/reviews/ReviewsRouting.kt` → `ReviewCommands.helpful` → `ExposedReviews.vote` (`helpful_votes`, `server/src/main/resources/db/migration/V15__helpful_votes.sql`) |
 | the tabs and the forms | `server/src/main/kotlin/io/github/youndie/haul/feature/reviews/screen/ReviewTabs.kt` |
-| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/reviews/ReviewCommands.kt` (`ReviewEntry`, `QuestionEntry`, `ReviewRules`), `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/ProductComponents.kt` (`ReviewForm`, `QuestionForm`, `FormProduct`), `shared/src/commonMain/kotlin/io/github/youndie/haul/ErrorCode.kt` |
+| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/reviews/ReviewCommands.kt` (`ReviewEntry`, `QuestionEntry`, `ReviewRules`, `HelpfulVote`, `HelpfulCommand`), `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/ProductComponents.kt` (`ReviewForm`, `QuestionForm`, `FormProduct`), `shared/src/commonMain/kotlin/io/github/youndie/haul/ErrorCode.kt` |
 
 ## Request and response bodies
 
@@ -60,8 +61,14 @@ Not copied here; what the server does with them:
   shipment holding the product, and counted into the product in the same transaction (count,
   histogram, average). Two posts at once both pass the check; the unique index lets one in and the
   other is `409 review_exists`.
+* **A helpful vote** — the tree carries the vote a press leaves (`HelpfulCommand`, `HelpfulVote(helpful
+  = !voted)`), so a press sent twice counts once. `true` writes the customer's row with `ON CONFLICT DO
+  NOTHING`, `false` deletes it, and `reviews.helpful` moves by one only when a row went in or out, in
+  one transaction; the primary key `(review_id, customer_id)` is «one vote each». The author's own
+  review carries no command and is refused all the same.
 * **The answer**, `201` with kompot's `SequenceAction` of `CloseAction` and `RefreshAction`
-  (`CLOSE_AND_REFRESH`): the dialog closes and the page is drawn again with what was written.
+  (`CLOSE_AND_REFRESH`): the dialog closes and the page is drawn again with what was written; the
+  vote answers `200` with `refresh`, which the client follows on a refusal too.
 
 ## Errors
 
@@ -69,7 +76,7 @@ Not copied here; what the server does with them:
 |---|---|
 | `POST` `/api/v1/products/{id}/reviews` | `400` validation_failed (with `fields`; `request` for a body that is not JSON), `401` unauthenticated, `404` product_not_found, `409` review_exists |
 | `POST` `/api/v1/products/{id}/questions` | `400` validation_failed (with `fields`; `request` for a body that is not JSON), `401` unauthenticated, `404` product_not_found |
-| `PUT` `/api/v1/reviews/{id}/helpful` | *planned* (B-43): `401`, `404`, `409` own_review (`ErrorCode` has no `own_review` yet) |
+| `PUT` `/api/v1/reviews/{id}/helpful` | `400` validation_failed (`request`, a body that is not JSON), `401` unauthenticated, `404` review_not_found, `409` own_review (`ReviewRoutesTest.a vote on one's own review is refused with own_review`, `ReviewRoutesTest.a vote is a customer's for a review that exists`) |
 
 Tests: `server/src/test/kotlin/io/github/youndie/haul/feature/reviews/ReviewRoutesTest.kt`,
 `server/src/test/kotlin/io/github/youndie/haul/feature/reviews/ReviewFixturesTest.kt`,

@@ -2,7 +2,7 @@
 id: feature-reviews
 title: Reviews and questions
 type: feature
-status: draft
+status: active
 owner: unassigned
 involved_services:
   - haul-shared
@@ -21,9 +21,9 @@ tags: []
 
 Reviews with a rating histogram; questions to the seller. Answers exist only in the seed data — there is no seller side to write new ones.
 
-> Built (B-22): the Reviews and Questions tabs served from storage, «Write a review» and «Ask a
-> question» as dialogs over them, and their two commands. Still *target*, which keeps this document a
-> draft: «Helpful» votes (B-43) — the button is drawn and carries nothing.
+> Built: the Reviews and Questions tabs served from storage, «Write a review» and «Ask a question» as
+> dialogs over them, and their two commands (B-22); «Helpful» votes (B-43); «Write a review» on a
+> delivered order line, the same dialog (B-18).
 
 ## 2. Business rules
 
@@ -33,7 +33,8 @@ Reviews with a rating histogram; questions to the seller. Answers exist only in 
 * writing a review takes the product's row and, in the same transaction, moves its review count, its histogram (`rating_counts`) and its average — the stored average moved by the new review's share, not recomputed from the histogram (`ExposedReviews.average`); asking moves the questions' count;
 * reviews are listed **newest first** (product owner's decision, B-22: the only order the canvas's data agrees with; no sort control is drawn); questions answered first, each group newest first; at most 10 of each are listed, with no paging;
 * a new question shows «Not answered yet»;
-* *target* (B-43): «Helpful» — one vote per customer per review, a second press takes it back, the author cannot vote on their own (`409 own_review`).
+* **«Helpful»** (B-43, decided as product owner): one vote per customer per review — the primary key of `helpful_votes` (`server/src/main/resources/db/migration/V15__helpful_votes.sql`) — and a second press takes it back; the tree carries the next state, not a toggle (`Review.helpfulCommand`: `PUT /api/v1/reviews/{id}/helpful` with `HelpfulVote(helpful = !voted)`), so a press sent twice counts once; the count moves only when a row went in or out, in one transaction; the count on the button is the stored count (the seed's 48 for Aisha K. stand for votes not held one by one, and one vote makes 49); the author's own review carries no command and the route refuses it (`409 own_review`); a guest's press goes to `/sign-in`; the button has no pressed look (the canvas draws none);
+* «Write a review» on a delivered line of the order page presents the same dialog ([feature-orders](feature-orders.md)).
 
 Numbers in these rules (limits, page size) are decisions of the brief, recorded in
 [research-architecture](../research/research-architecture.md) D6–D7, and checked against the code.
@@ -54,7 +55,7 @@ Numbers in these rules (limits, page size) are decisions of the brief, recorded 
 | Service | Code |
 |---|---|
 | haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/reviews/ReviewCommands.kt` — the bodies and the rules; `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/ProductComponents.kt` — `ProductReviews`, `ProductQuestions`, `ReviewForm`, `QuestionForm` |
-| haul-server | `server/src/main/kotlin/io/github/youndie/haul/feature/reviews/` — the commands, storage, the tabs and forms (`screen/ReviewTabs.kt`); `server/src/main/resources/db/migration/V12__reviews.sql`; the seed's rows in `server/src/main/kotlin/io/github/youndie/haul/seed/SampleReviews.kt` |
+| haul-server | `server/src/main/kotlin/io/github/youndie/haul/feature/reviews/` — the commands, storage, the tabs and forms (`screen/ReviewTabs.kt`); `server/src/main/resources/db/migration/V12__reviews.sql`, `server/src/main/resources/db/migration/V15__helpful_votes.sql`; the seed's rows in `server/src/main/kotlin/io/github/youndie/haul/seed/SampleReviews.kt` |
 | haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/product/` — `ReviewDialogs.kt`, `ReviewCommandsClient.kt` |
 
 ## 5. Scenarios (BDD / test cases)
@@ -81,11 +82,22 @@ Numbers in these rules (limits, page size) are decisions of the brief, recorded 
 * **Then:** the questions tab counts 87 and lists it «Asked Oct 7», «Not answered yet».
 * **Automated:** `ReviewRoutesTest.a question asked shows as not answered yet and is counted`; shorter than ten characters, `ReviewRoutesTest.a question shorter than ten characters is refused naming text`
 
+### Scenario: A helpful vote and its taking back
+* **Given:** Maya on the reviews tab, and Aisha K.'s review at 48
+* **When:** she presses «Helpful», then presses it again
+* **Then:** the count is 49, then 48; the same vote sent twice, or four at once, counts once.
+* **Automated:** `ReviewRoutesTest.a vote moves the count by one and the second press moves it back`, `ReviewRoutesTest.one customer's vote sent twice or at once counts once`; the client, `ReviewWiringTest.helpful sends the review's vote and the answer redraws the page`
+
+### Scenario: Not on one's own review
+* **When:** an author votes «Helpful» on their own review
+* **Then:** the server returns `409` with `own_review`; the tree gives that button no command.
+* **Automated:** `ReviewRoutesTest.a vote on one's own review is refused with own_review`
+
 ### Scenario: A guest is sent to sign in
 * **Given:** a guest on the reviews tab
 * **When:** they press «Write a review»
 * **Then:** the button's action is `navigate` to `/sign-in`, and the commands answer a guest `401` with `unauthenticated`.
-* **Automated:** `ReviewRoutesTest.the reviews tab is the server's - the canvas's rating, histogram and two reviews`, `ReviewRoutesTest.the commands are a customer's`, `ReviewWiringTest.a guest is sent to sign in`
+* **Automated:** `ReviewRoutesTest.the reviews tab is the server's - the canvas's rating, histogram and two reviews`, `ReviewRoutesTest.the commands are a customer's`, `ReviewWiringTest.a guest is sent to sign in`; «Helpful», `ReviewRoutesTest.helpful is a customer's vote and a guest's way to sign in`, `ReviewWiringTest.a guest's helpful signs in and sends no vote`
 
 ## 6. Out of scope
 
@@ -106,3 +118,7 @@ Numbers in these rules (limits, page size) are decisions of the brief, recorded 
   questions and an empty histogram. A database seeded before V12 has the tables empty until it is
   seeded again.
 * With more than ten answered questions a new one would not be listed (answered first, no paging).
+* Reviews stay newest first now that votes are counted; sorting by «most helpful» would change which
+  review the artboard draws first and is not built.
+* The return dialog goes through the review dialogs' command seam (`ReviewCommand.Return`); a
+  dialog-wide name is B-51.

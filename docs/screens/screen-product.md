@@ -3,7 +3,7 @@ id: screen-product
 title: Product
 type: client_screen
 platform: [web]
-status: draft
+status: active
 entry:
   web: "/p/{productId}"
 parent_feature: feature-product
@@ -60,7 +60,7 @@ returns. The list is held against the real state when the code exists.
 - [x] **Questions:** Questions tab: two answered questions, one «Not answered yet», «Ask a question». Answered by the server (`?tab=questions`, B-22); `composeApp/src/desktopTest/resources/bodies/product_questions.json`, held the same way
 - [x] **ReviewDialog:** dialog over Reviews: stars, title, body, Post — kompot's `present` of `ReviewForm` carried by «Write a review», drawn over the tab; no address of its own (B-22)
 - [x] **QuestionDialog:** dialog over Questions: text, Send — `present` of `QuestionForm` carried by «Ask a question» (B-22)
-- [x] **OutOfStock:** colour «Silver» chosen: «Out of stock», Add to cart and Buy now disabled, Save kept
+- [x] **OutOfStock:** colour «Silver» chosen: «Out of stock», Add to cart and Buy now greyed and carrying no command, Save kept
 - [x] **NotFound:** «This product is no longer available», link home
 - [x] **Error:** header, message, Retry
 
@@ -82,9 +82,18 @@ Desktop artboards are named as in `design.states`; each has a phone twin with th
 
 - colour / bundle → another `Sku` (the variant's address, followed by the shell since B-35)
 - crumb → that category or home; tabs → the tab's address
-- Add to cart → header count +1 (*target*: drawn and carrying no action, B-37's findings)
-- Buy now → adds and opens screen-checkout (*target*: no action yet)
+- Add to cart → `PUT /api/v1/cart/lines/{skuId}` with one more of the SKU shown (`ProductDetails.add`, the card's «+»), then the page drawn again with the header's count; absent at the line's limit
+- Buy now → the same line selected (`ProductDetails.buy`), then its `next`: `/checkout` (screen-checkout) for a customer, `/sign-in?next=%2Fcheckout` for a guest; a refusal draws the page again and goes nowhere (B-48)
+- the heart, «Save» → `PUT` / `DELETE /api/v1/me/saved/{productId}` (`ProductDetails.heartCommand`), then the page drawn again with the heart filled or not; a guest's → `/sign-in` (B-20)
 - the photo → the stored photo (`ProductDetails.photo`, B-30) over the placeholder tile, which stays without one
 - seller card → nothing in v1
 - «Write a review» / «Ask a question» → the dialog over the tab for a customer, `/sign-in` for a guest; Post / Send → `POST /api/v1/products/{id}/reviews` or `/questions` ([endpoint-reviews](../api/endpoint-reviews.md)), the client checking the rules first; `201` closes the dialog and draws the page again, a refusal is drawn in the dialog; Cancel and «×» close it and send nothing
-- «Helpful» → nothing yet: drawn and inert until B-43
+- «Helpful» → `PUT /api/v1/reviews/{reviewId}/helpful` with the vote the press leaves (`Review.helpfulCommand`: the first press votes, the page drawn again carries the opposite, so the second takes it back), then the page drawn again — a refusal too; a guest's → `/sign-in`; on one's own review it does nothing (B-43)
+
+## 6. Quirks
+
+- «12K bought this month» under the title is drawn from the fixture bodies only: the server does not
+  send `ProductDetails.bought`, so the page on the stand has no such line ([feature-product](../features/feature-product.md)).
+- The client's product fixture bodies carry no `add` or `buy`: the commands draw nothing, and the bodies
+  are held equal to the server only in their tabs and reviews (`ReviewFixturesTest`).
+- «Helpful» has no pressed look — the canvas draws one state; after a vote only the count says so.
