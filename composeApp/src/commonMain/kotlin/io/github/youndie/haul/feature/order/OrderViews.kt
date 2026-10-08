@@ -15,11 +15,14 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -28,6 +31,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -58,6 +63,7 @@ import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.toneColor
+import kotlin.math.roundToInt
 
 // The Order screen (screen-order): the frame's header, then the crumbs and the title, and the order —
 // where it is, its shipments — in one column with the summary beside it at 1440 and under it on a phone.
@@ -71,67 +77,61 @@ public fun OrderBodyView(
     onReorder: () -> Unit = {},
 ) {
     val compact = LocalHaulCompact.current
-    Column(
-        Modifier.fillMaxWidth().padding(
-            start = gutter(),
-            end = gutter(),
-            top = if (compact) 24.dp else 40.dp,
-            bottom = if (compact) 64.dp else 96.dp,
-        ),
+    val crumbs = remember { CssBox() }
+    val meta = remember(compact) { CssBox(if (compact) 14.dp else 20.dp) }
+    val title = remember(compact) { CssBox(if (compact) 12.dp else 14.dp) }
+    val lead = remember(compact) { CssBox(if (compact) 14.dp else 18.dp) }
+    // The title's bottom margin collapses into the grid's top one when no lead stands between them.
+    val grid = remember(compact) { CssBox(if (compact) 28.dp else 40.dp) }
+    val left = remember { CssBox() }
+    val summary = remember { CssBox() }
+    val titleSize = if (compact) 56f else 112f
+    val leadSize = if (compact) 17f else 20f
+    CssColumn(
+        Modifier.fillMaxWidth().padding(horizontal = gutter()),
+        top = if (compact) 24.dp else 40.dp,
+        bottom = if (compact) 64.dp else 96.dp,
     ) {
-        Crumbs(body, Modifier.padding(bottom = if (compact) 14.dp else 20.dp))
-        Text(body.meta, mono().copy(color = HaulColors.outline))
+        Crumbs(body, Modifier.cssLines(crumbs, MONO_LINE))
+        Text(body.meta, mono().copy(color = HaulColors.outline), Modifier.cssLines(meta, MONO_LINE))
         BalancedText(
             accented(body.title.breakableHyphens(), body.accent?.breakableHyphens()),
             HaulType
                 .display(
-                    if (compact) 56f else 112f,
+                    titleSize,
                     800,
                     letterSpacing = if (compact) -0.01f else -0.03f,
-                    lineHeight = 0.9f,
+                    lineHeight = TITLE_LEADING,
                 ).copy(lineBreak = LineBreak.Simple),
-            // The title's bottom margin collapses into the grid's top one when no lead stands between them.
-            Modifier
-                .padding(
-                    top = if (compact) 12.dp else 14.dp,
-                    bottom =
-                        if (body.lead == null) {
-                            0.dp
-                        } else if (compact) {
-                            14.dp
-                        } else {
-                            18.dp
-                        },
-                ).widthIn(max = 1100.dp),
+            Modifier.cssLines(title, (titleSize * TITLE_LEADING).dp).widthIn(max = 1100.dp),
         )
         body.lead?.let {
             Text(
                 it,
                 HaulType
-                    .text(if (compact) 17f else 20f, lineHeight = 1.4f)
+                    .text(leadSize, lineHeight = LEAD_LEADING)
                     .copy(color = HaulColors.onSurfaceVariant),
-                Modifier.widthIn(max = 760.dp),
+                Modifier.cssLines(lead, (leadSize * LEAD_LEADING).dp).widthIn(max = 760.dp),
             )
         }
         val column: @Composable (Modifier) -> Unit = { modifier ->
-            Column(modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            CssColumn(modifier, gap = 16.dp, box = left) {
                 body.steps?.let { Steps(it) }
                 body.notice?.let { Notice(it) }
                 body.pickup?.let { Pickup(it) }
                 body.shipments.forEach { Shipment(it) }
             }
         }
-        val top = if (compact) 28.dp else 40.dp
         if (compact) {
-            Column(Modifier.padding(top = top), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            CssColumn(Modifier.fillMaxWidth(), gap = 16.dp, box = grid) {
                 column(Modifier.fillMaxWidth())
-                Summary(body.summary, onReorder, Modifier.fillMaxWidth())
+                Summary(body.summary, onReorder, Modifier.fillMaxWidth(), summary)
             }
         } else {
-            Row(Modifier.padding(top = top)) {
+            Row(Modifier.css(grid)) {
                 column(Modifier.weight(1f))
                 Spacer(Modifier.width(40.dp))
-                Summary(body.summary, onReorder, Modifier.width(420.dp))
+                Summary(body.summary, onReorder, Modifier.width(420.dp), summary)
             }
         }
     }
@@ -279,12 +279,16 @@ private fun Notice(notice: OrderNotice) {
 @Composable
 private fun Pickup(pickup: PickupCode) {
     val compact = LocalHaulCompact.current
+    val codeSize = if (compact) 72f else 96f
+    val column = remember { CssBox() }
+    val digits = remember { CssBox(8.dp) }
     val code: @Composable () -> Unit = {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        CssColumn(box = column) {
             Text(pickup.label.uppercase(), HaulType.label(11f, 600, 0.08f), softWrap = false)
             Text(
                 pickup.code,
-                HaulType.display(if (compact) 72f else 96f, 800, letterSpacing = 0.06f, lineHeight = 0.9f),
+                HaulType.display(codeSize, 800, letterSpacing = 0.06f, lineHeight = TITLE_LEADING),
+                Modifier.cssLines(digits, (codeSize * TITLE_LEADING).dp),
                 softWrap = false,
             )
         }
@@ -302,7 +306,7 @@ private fun Pickup(pickup: PickupCode) {
                 }
             },
             Modifier.widthIn(max = 380.dp),
-            style = HaulType.text(15f, lineHeight = 1.5f).browserLeading(),
+            style = HaulType.text(15f, lineHeight = PICKUP_LEADING).browserLeading(),
         )
     }
     val box =
@@ -311,9 +315,19 @@ private fun Pickup(pickup: PickupCode) {
             .background(HaulColors.secondaryContainer, RoundedCornerShape(24.dp))
             .padding(horizontal = if (compact) 20.dp else 32.dp, vertical = if (compact) 24.dp else 28.dp)
     if (compact) {
-        Column(box, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        val card = remember { CssBox() }
+        val lines = remember { CssBox(12.dp) }
+        CssColumn(
+            Modifier
+                .fillMaxWidth()
+                .background(HaulColors.secondaryContainer, RoundedCornerShape(24.dp))
+                .padding(horizontal = 20.dp),
+            top = 24.dp,
+            bottom = 24.dp,
+            box = card,
+        ) {
             code()
-            text()
+            Box(Modifier.cssLines(lines, (15f * PICKUP_LEADING).dp)) { text() }
         }
     } else {
         Row(box, horizontalArrangement = Arrangement.spacedBy(40.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -434,13 +448,18 @@ private fun Summary(
     totals: OrderTotals,
     onReorder: () -> Unit,
     modifier: Modifier,
+    box: CssBox,
 ) {
     val compact = LocalHaulCompact.current
-    Column(
+    val padding = if (compact) 24.dp else 32.dp
+    CssColumn(
         modifier
             .background(HaulColors.surfaceContainerLowest, RoundedCornerShape(28.dp))
-            .padding(if (compact) 24.dp else 32.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp),
+            .padding(horizontal = padding),
+        gap = 18.dp,
+        top = padding,
+        bottom = padding,
+        box = box,
     ) {
         Text(totals.title, HaulType.display(32f, 800, letterSpacing = -0.01f), softWrap = false)
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { totals.rows.forEach { SummaryLine(it) } }
@@ -518,27 +537,117 @@ private fun SummaryLine(row: SummaryRow) {
     }
 }
 
-/** A fact under a hairline: its icon, the title in semibold and the detail under it. */
+/**
+ * A fact under a hairline: its icon, the title in semibold and the detail under it, on lines of
+ * `line-height: 1.45` — 21.75 and 20.3 px, which the summary adds up as they are ([CssBox]).
+ */
 @Composable
 private fun Fact(fact: OrderFact) {
-    Column {
-        Hairline()
-        Row(Modifier.padding(top = 16.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            val icon =
-                when (fact.kind) {
-                    OrderFactKind.Card -> HaulIcons.lock
-                    OrderFactKind.Place -> HaulIcons.pin
-                    OrderFactKind.Points -> HaulIcons.star
-                }
-            Icon(icon, 18.dp, HaulColors.outline, Modifier.padding(top = 1.dp))
-            Column {
-                Text(fact.title, HaulType.text(15f, 600, lineHeight = FACT_LEADING))
-                Text(
-                    fact.detail,
-                    HaulType.text(14f, lineHeight = FACT_LEADING).copy(color = HaulColors.outline),
-                    Modifier.padding(top = 2.dp),
-                )
+    val box = remember { CssBox() }
+    val icon =
+        when (fact.kind) {
+            OrderFactKind.Card -> HaulIcons.lock
+            OrderFactKind.Place -> HaulIcons.pin
+            OrderFactKind.Points -> HaulIcons.star
+        }
+    Layout(
+        content = {
+            Hairline()
+            Icon(icon, 18.dp, HaulColors.outline)
+            Text(fact.title, HaulType.text(15f, 600, lineHeight = FACT_LEADING))
+            Text(fact.detail, HaulType.text(14f, lineHeight = FACT_LEADING).copy(color = HaulColors.outline))
+        },
+        modifier = Modifier.fillMaxWidth().css(box),
+    ) { measurables, constraints ->
+        val (line, glyph, title, detail) = measurables
+        val rule = line.measure(constraints.copy(minHeight = 0))
+        val iconPlaceable = glyph.measure(Constraints())
+        val start = iconPlaceable.width + 14.dp.roundToPx()
+        val text = Constraints(maxWidth = (constraints.maxWidth - start).coerceAtLeast(0))
+        val titlePlaceable = title.measure(text)
+        val detailPlaceable = detail.measure(text)
+        // `border-top: 1px; padding-top: 16px`, then the title's lines, `margin-top: 2px` and the detail's.
+        val top = rule.height + 16.dp.toPx()
+        val detailTop = top + lines(titlePlaceable.height, 15f * FACT_LEADING) + 2.dp.toPx()
+        val height = detailTop + lines(detailPlaceable.height, 14f * FACT_LEADING)
+        box.height = height
+        layout(constraints.maxWidth, height.roundToInt()) {
+            rule.place(0, 0)
+            iconPlaceable.place(0, (top + 1.dp.toPx()).roundToInt())
+            titlePlaceable.place(start, top.roundToInt())
+            detailPlaceable.place(start, detailTop.roundToInt())
+        }
+    }
+}
+
+/** A text's height in CSS: its lines, counted off its measured [height], times the [line] in dp, unrounded. */
+private fun Density.lines(
+    height: Int,
+    line: Float,
+): Float {
+    val px = line.dp.toPx()
+    return (height / px).roundToInt() * px
+}
+
+/**
+ * A block's height as the browser lays it out, finer than the whole pixel its layout reports — a line
+ * box of 23.8 px is 23.8, and a column of them drifts a pixel every few lines when each is rounded.
+ * [top] is the block's margin above it in its [CssColumn].
+ */
+private class CssBox(
+    val top: Dp = 0.dp,
+) {
+    var height: Float = Float.NaN
+}
+
+/** This block stands in a [CssColumn] with [box]'s margin; its height is what [box] holds once measured, else its own. */
+private fun Modifier.css(box: CssBox): Modifier = layoutId(box)
+
+/** Text on lines of [lineHeight]: its height in CSS is its line count times the line, unrounded. */
+private fun Modifier.cssLines(
+    box: CssBox,
+    lineHeight: Dp,
+): Modifier =
+    layoutId(box).layout { measurable, constraints ->
+        val placeable = measurable.measure(constraints)
+        box.height = lines(placeable.height, lineHeight.value)
+        layout(placeable.width, placeable.height) { placeable.place(0, 0) }
+    }
+
+/**
+ * CSS's block flow: its children one under another, [gap] apart and each its own margin ([CssBox.top])
+ * further, at positions summed from their CSS heights and rounded only where each is placed — as the
+ * browser draws a box whose top falls at 631.2 at 631. [box], when given, receives the column's own CSS
+ * height, [top] and [bottom] included, for the column it stands in.
+ */
+@Composable
+private fun CssColumn(
+    modifier: Modifier = Modifier,
+    gap: Dp = 0.dp,
+    top: Dp = 0.dp,
+    bottom: Dp = 0.dp,
+    box: CssBox? = null,
+    content: @Composable () -> Unit,
+) {
+    Layout(content, if (box == null) modifier else modifier.css(box)) { measurables, constraints ->
+        val loose = constraints.copy(minWidth = 0, minHeight = 0, maxHeight = Constraints.Infinity)
+        var y = top.toPx()
+        val placed =
+            measurables.mapIndexed { index, measurable ->
+                val child = measurable.layoutId as? CssBox
+                val placeable = measurable.measure(loose)
+                if (index > 0) y += gap.toPx()
+                y += child?.top?.toPx() ?: 0f
+                val at = y.roundToInt()
+                y += child?.height?.takeUnless { it.isNaN() } ?: placeable.height.toFloat()
+                placeable to at
             }
+        y += bottom.toPx()
+        box?.height = y
+        // As wide as its widest child, as a column is: a child that fills the width makes it fill too.
+        val width = (placed.maxOfOrNull { it.first.width } ?: 0).coerceIn(constraints.minWidth, constraints.maxWidth)
+        layout(width, y.roundToInt().coerceIn(constraints.minHeight, constraints.maxHeight)) {
+            placed.forEach { (placeable, at) -> placeable.place(0, at) }
         }
     }
 }
@@ -560,6 +669,18 @@ private fun mono(): TextStyle = HaulType.label(12f, 500, 0.04f).copy(lineHeight 
 
 /** The facts' `line-height: 1.45`, set on their box and inherited as a number by the title and the detail. */
 private const val FACT_LEADING = 1.45f
+
+/** The title's and the pickup code's `line-height: .9`. */
+private const val TITLE_LEADING = 0.9f
+
+/** The lead's `line-height: 1.4`. */
+private const val LEAD_LEADING = 1.4f
+
+/** The pickup card's sentence, `line-height: 1.5`. */
+private const val PICKUP_LEADING = 1.5f
+
+/** The crumbs' and the meta line's line box: JetBrains Mono 12 on 1.4. */
+private val MONO_LINE: Dp = (12f * 1.4f).dp
 
 /** The ring around the current step's dot: `box-shadow: 0 0 0 4px`. */
 private val RING: Dp = 4.dp
