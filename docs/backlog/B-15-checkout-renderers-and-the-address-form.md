@@ -1,7 +1,7 @@
 ---
 id: B-15
 title: "design refs + client: Checkout renderers and the address form"
-status: open
+status: wip
 priority: P1
 size: L
 stage: stage-5-order
