@@ -2,7 +2,7 @@
 id: endpoint-ops
 title: Probes
 type: api_endpoints
-status: draft
+status: active
 services:
   - haul-server
 contract_source:
@@ -12,32 +12,39 @@ parent_feature: feature-browse
 
 # API: Probes
 
-> Drafted from the product brief before any code exists. The routes, tiers and error codes are
-> *target*; the contract classes in `shared` will be the truth, and this document is checked
-> against them before it goes `active`.
+> The orchestrator's three probes, described as the code has them. They answer plain text or a
+> one-field JSON object written in place; nothing of them is in `shared`.
 
 ## Routes — all of them, no exceptions
 
 | Method and path | Service | Auth tier | In the generated schema? | Purpose |
 |---|---|---|---|---|
-| `GET` `/healthz`, `/readyz`, `/version` | haul-server | infra (probes) | no | request: —; answers probe body |
+| `GET` `/healthz` | haul-server | infra (none) | no | liveness: `200` `ok` while the process answers; touches nothing else |
+| `GET` `/readyz` | haul-server | infra (none) | no | readiness: `200` `ready` while the database gives a valid connection within two seconds, otherwise `503` `not ready` |
+| `GET` `/version` | haul-server | infra (none) | no | `200` `{"commit":"<HAUL_COMMIT>"}`, `dev` when the variable is unset |
 
-Conventions for every group — trees versus actions, the error body, `404` for «not yours» — are
-in [haul-server](../services/haul-server.md), section 2.
+Liveness does not look at the database on purpose: a database that is gone makes the pod not ready,
+and restarting the server would not bring it back. The chart points start-up and liveness at
+`/healthz` and readiness at `/readyz` (`charts/haul/templates/server.yaml`).
 
 ## Handlers (code anchors)
 
-| Route | Handler (planned) |
+| Route | Handler |
 |---|---|
-| `GET` `/healthz`, `/readyz`, `/version` | `server/src/main/kotlin/io/github/youndie/haul/feature/ops/` |
-| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/ops/` — `none` |
+| `GET` `/healthz`, `/readyz`, `/version` | `server/src/main/kotlin/io/github/youndie/haul/ops/Probes.kt`, mounted by `server/src/main/kotlin/io/github/youndie/haul/HaulModule.kt` with `databaseAnswers` from `server/src/main/kotlin/io/github/youndie/haul/Application.kt` |
+| contract | none |
 
 ## Request and response bodies
 
-In `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/ops/` once it exists; not copied here.
+None beyond the table above: `text/plain` for `/healthz` and `/readyz`, `application/json` for
+`/version`.
 
 ## Errors
 
 | Route | Status and `code` |
 |---|---|
-| `GET` `/healthz`, `/readyz`, `/version` | `503` not ready |
+| `GET` `/healthz` | none |
+| `GET` `/readyz` | `503` with the text `not ready` — no `ErrorBody`, no `code` |
+| `GET` `/version` | none |
+
+Tests: `server/src/test/kotlin/io/github/youndie/haul/ops/ProbesTest.kt`.
