@@ -55,6 +55,9 @@ residual (Findings). Goldens recorded on Linux.
   button and a two-column grid on a phone. `CartRoutesTest`, `CustomerCartTest`, `ChangedLinesTest`
   assert the new fields; `CartFixturesTest` holds the client's six cart bodies equal, as JSON, to the
   trees the server builds for each artboard's cart (below).
+  Rebased over B-14: `summaryRows` is shared with the checkout tree, so its rows read the same there
+  («Items (3)», the savings marked) — the Checkout artboards write «Items (3)» too — and
+  `CheckoutRoutesTest` says so; the checkout's total still writes cents (B-15's to draw).
 - Client: `feature/cart/CartViews.kt` (the body at both widths: selection with its partial state, seller
   cards, lines, stepper, the change notice, the summary with the promo field in its three forms,
   checkout, points), `feature/cart/CartCommands.kt` (the seam, below), `CartBodyRenderer` in
