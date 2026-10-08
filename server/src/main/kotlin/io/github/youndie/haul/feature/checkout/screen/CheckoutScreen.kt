@@ -264,7 +264,7 @@ internal class CheckoutScreen(
     /** What keeps the order from being placed, as the button's hint says it. */
     private fun hint(state: CheckoutState): String {
         val missing =
-            state.draftProblems
+            state.holdingProblems
                 .map { it.field }
                 .distinct()
                 .mapNotNull { FIELD_NAMES[it] }

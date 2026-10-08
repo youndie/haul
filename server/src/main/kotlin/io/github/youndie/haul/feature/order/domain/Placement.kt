@@ -28,9 +28,9 @@ import java.security.MessageDigest
  * same order, whatever the cart holds now — after petich-idempotency checks that it arrives with the
  * request it was first sent with; a new key places the quote, computed again by checkout
  * (`CheckoutCommands.quote`), only when its fingerprint is the one the shopper saw and the checkout does
- * not hold «Place order» (`CheckoutState.placeable`: `409 checkout_held` for a refused address form). A
- * refusal before the saga spends no key, so the same request under the same key places once the hold is
- * lifted.
+ * not hold «Place order» (`CheckoutState.placeable`: `409 checkout_held` for a refused address form by
+ * courier). A refusal before the saga spends no key, so the same request under the same key places once
+ * the hold is lifted.
  *
  * The saga runs inside the request: every member is in-process, so the answer can say what happened —
  * a window that filled or stock that ran out is the shopper's to fix on the checkout (`409`), anything

@@ -7,6 +7,7 @@ import io.github.youndie.haul.feature.cart.LineChange
 import io.github.youndie.haul.feature.checkout.AddressEntry
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.checkout.CheckoutPaths
+import io.github.youndie.haul.feature.checkout.DeliveryMethod
 import io.github.youndie.haul.feature.checkout.IDEMPOTENCY_KEY_HEADER
 import io.github.youndie.haul.feature.checkout.PlaceOrderRequest
 import io.github.youndie.haul.feature.checkout.domain.CheckoutError
@@ -24,11 +25,13 @@ import io.github.youndie.haul.testing.Ledger
 import io.github.youndie.haul.testing.MAYAS_SKUS
 import io.github.youndie.haul.testing.SeededDatabase
 import io.github.youndie.haul.testing.ShildikHarness
+import io.github.youndie.haul.testing.all
 import io.github.youndie.haul.testing.assertError
 import io.github.youndie.haul.testing.assertRefresh
 import io.github.youndie.haul.testing.haulTest
 import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.seededFreshDatabase
+import io.github.youndie.haul.ui.CheckoutAddress
 import io.github.youndie.haul.ui.CheckoutNotice
 import io.github.youndie.haul.ui.CheckoutSummary
 import io.github.youndie.haul.ui.DeliverySlots
@@ -311,6 +314,82 @@ class PlacementRoutesTest {
             val orderId = place(token, "maya-held", summary).assertPlaced()
             assertEquals(SampleCheckout.MAYA_ADDRESS, database.order(orderId).placed.addressId)
             assertEquals(1, ledger.taken(wednesday3pm))
+        }
+
+    /**
+     * B-42: a refused address form does not hold an order to a pickup point. The form is the courier's
+     * and the screen draws it only for the courier, yet its problems were counted whatever the method:
+     * Maya, refused, switched to 96 N 6th St and saw «Fill in the ZIP» with no form to fill, and
+     * placement answered `409 checkout_held`. Now the pickup tree draws no form and no hint, and the
+     * order is placed to the point — no address, no window taken.
+     */
+    @Test
+    fun `a refused address form does not hold an order to a pickup point`() =
+        asMaya { token, database ->
+            val ledger = Ledger(database)
+            choose(token, CheckoutChoice(slotId = wednesday3pm))
+            refuseAddress(token)
+
+            choose(token, CheckoutChoice(pointId = SampleCheckout.NORTH_6TH))
+            val tree = checkout(token)
+            val summary = tree.only<CheckoutSummary>()
+            assertTrue(summary.placeEnabled, "the refused form held the pickup point's button")
+            assertEquals(null, summary.placeHint, "the pickup tree asks for an address it does not draw")
+            assertTrue(tree.all().none { it is CheckoutAddress }, "a pickup drew the address form")
+
+            val order = database.order(place(token, "maya-pickup", summary).assertPlaced())
+            assertEquals(DeliveryMethod.PickupPoint, order.placed.method)
+            assertEquals(SampleCheckout.NORTH_6TH, order.placed.pointId)
+            assertEquals(null, order.placed.addressId)
+            assertEquals(0, ledger.taken(wednesday3pm), "a pickup took a courier window's place")
+        }
+
+    /**
+     * B-42 for a locker, chosen by the method rather than by a point: the refused form does not hold it
+     * either, and the order goes to the nearest locker.
+     */
+    @Test
+    fun `a refused address form does not hold an order to a parcel locker`() =
+        asMaya { token, database ->
+            refuseAddress(token)
+
+            choose(token, CheckoutChoice(method = DeliveryMethod.ParcelLocker))
+            val summary = checkout(token).only<CheckoutSummary>()
+            assertTrue(summary.placeEnabled, "the refused form held the locker's button")
+            assertEquals(null, summary.placeHint)
+
+            val order = database.order(place(token, "maya-locker", summary).assertPlaced())
+            assertEquals(DeliveryMethod.ParcelLocker, order.placed.method)
+            assertEquals(SampleCheckout.WYTHE_LOCKER, order.placed.pointId)
+        }
+
+    /**
+     * B-42's other half: the refused form is kept through a pickup, not forgotten. Switching back to the
+     * courier draws what Maya was typing, with its error, and holds «Place order» again — on the screen
+     * and at placement (`409 checkout_held`, nothing taken). Forgetting the draft would have placed the
+     * courier order to her saved address while she was changing it, which B-39 closed.
+     */
+    @Test
+    fun `switching back to the courier after a pickup draws the refused form and holds placement again`() =
+        asMaya { token, database ->
+            val ledger = Ledger(database)
+            choose(token, CheckoutChoice(slotId = wednesday3pm))
+            refuseAddress(token)
+            choose(token, CheckoutChoice(pointId = SampleCheckout.NORTH_6TH))
+            assertTrue(checkout(token).only<CheckoutSummary>().placeEnabled, "the pickup point was held")
+
+            choose(token, CheckoutChoice(method = DeliveryMethod.Courier))
+            val tree = checkout(token)
+            val form = tree.only<CheckoutAddress>().form.associate { it.name to (it.value to it.error) }
+            assertEquals("1 Kent Avenue" to null, form["street"], "the refused form was forgotten")
+            assertEquals("112ll" to "Enter a 5-digit ZIP", form["zip"])
+            val summary = tree.only<CheckoutSummary>()
+            assertFalse(summary.placeEnabled, "the courier's button is not held by the refused form")
+            assertEquals("Fill in the ZIP", summary.placeHint)
+
+            place(token, "maya-back", summary).assertError(HttpStatusCode.Conflict, ErrorCode.CheckoutHeld)
+            assertEquals(0, ledger.orders(), "an order was placed past the held button")
+            assertEquals(0, ledger.taken(wednesday3pm), "the window's place was taken")
         }
 
     /**

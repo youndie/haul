@@ -87,6 +87,16 @@ internal data class CheckoutState(
     /** A pickup point's or a locker's day: one after the courier's (research D7). */
     val pickupDay: LocalDate get() = firstDay.plusDays(1)
 
-    /** Whether the order can be placed as it stands: the quote is complete and no address form is at fault. */
-    val placeable: Boolean get() = quote.complete && draftProblems.isEmpty()
+    /**
+     * The refused form's problems that hold «Place order»: the form is the courier's, so only while the
+     * courier is the method. The [draft] itself outlives a switch to a pickup point or a locker, and
+     * switching back draws it again and holds the button again. Counted whatever the method, a refused
+     * form held a pickup order behind a form the screen does not draw, and placement refused it as
+     * `checkout_held` (B-42).
+     */
+    val holdingProblems: List<FieldError>
+        get() = if (quote.method == DeliveryMethod.Courier) draftProblems else emptyList()
+
+    /** Whether the order can be placed as it stands: the quote is complete and no address form holds it. */
+    val placeable: Boolean get() = quote.complete && holdingProblems.isEmpty()
 }
