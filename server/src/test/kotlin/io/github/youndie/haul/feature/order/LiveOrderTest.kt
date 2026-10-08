@@ -180,14 +180,21 @@ class LiveOrderTest {
             .GET()
             .build()
 
-    /** The status and the code a stream that is refused is answered with. */
+    /**
+     * The status and the code a stream that is refused is answered with. Read as a stream, so a stream that was
+     * opened instead — which never ends — fails here rather than hanging the suite.
+     */
     private fun refusal(
         origin: String,
         topic: String,
         token: String?,
     ): Pair<Int, ErrorCode> {
-        val response = http.send(updates(origin, topic, token), HttpResponse.BodyHandlers.ofString())
-        return response.statusCode() to haulWireJson.decodeFromString(ErrorBody.serializer(), response.body()).code
+        val response = http.send(updates(origin, topic, token), HttpResponse.BodyHandlers.ofInputStream())
+        response.body().use { body ->
+            check(response.statusCode() != 200) { "the stream of $topic was opened" }
+            val error = haulWireJson.decodeFromString(ErrorBody.serializer(), body.readAllBytes().decodeToString())
+            return response.statusCode() to error.code
+        }
     }
 
     /** Maya's cart placed in the application's own graph, which the simulator in it then moves. */
