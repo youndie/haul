@@ -14,6 +14,9 @@ import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.checkout.checkoutModule
 import io.github.youndie.haul.feature.checkout.checkoutRouting
 import io.github.youndie.haul.feature.checkout.domain.CheckoutError
+import io.github.youndie.haul.feature.fulfilment.FulfilmentRunner
+import io.github.youndie.haul.feature.fulfilment.FulfilmentSettings
+import io.github.youndie.haul.feature.fulfilment.fulfilmentModule
 import io.github.youndie.haul.feature.identity.SignInConfig
 import io.github.youndie.haul.feature.identity.customerIdentityRouting
 import io.github.youndie.haul.feature.identity.domain.IdentityError
@@ -72,6 +75,10 @@ internal fun interface StoreClock {
  * [sagaClock] is the order saga's clock (B-16): a wall clock, apart from [clock], because what it
  * stamps is compared across processes — the sweeper takes a saga untouched for a minute as abandoned
  * by a process that died — while [clock] is the store's «now», which the tests hold at the canvas's.
+ *
+ * [fulfilment] is the simulated world's pace and whether it runs here (B-17): `main` runs it at
+ * `HAUL_FULFILMENT_SPEED`; a test gets [FulfilmentSettings.MANUAL] and moves shipments by calling the
+ * simulator itself. Its clock is [sagaClock], for the same reason: its stamps outlive the process.
  */
 internal fun Application.haulModule(
     dataSource: DataSource,
@@ -82,6 +89,7 @@ internal fun Application.haulModule(
     photoStore: PhotoStore? = null,
     signIn: SignInConfig? = null,
     sagaClock: PetichClock,
+    fulfilment: FulfilmentSettings = FulfilmentSettings.MANUAL,
 ) {
     val reportFailure = installObservability(observability)
     installSignIn(signIn)
@@ -93,6 +101,7 @@ internal fun Application.haulModule(
                 single { dataSource }
                 single { clock }
                 single { sagaClock }
+                single { fulfilment.pace }
                 single { DeliveryCalendar(clock::now) }
                 single { ProductPhotos(photoStore) }
             },
@@ -103,11 +112,14 @@ internal fun Application.haulModule(
             checkoutModule,
             paymentModule,
             orderModule,
+            fulfilmentModule,
         )
     }
     // Carries on what a process that died left mid-saga, from the first moment this one serves; it
     // stops with the application, whose scope it runs in.
     get<SuspendedPetichSweeper>().start(this)
+    // The simulated world after placement, in the same scope: shipments move and are charged as they ship.
+    fulfilment.interval?.let { FulfilmentRunner(get(), it).start(this) }
     install(StatusPages) {
         // A bearer token that did not verify, or none where the customer tier needs one: the
         // authentication challenge answers with an empty body, and every refusal here has one.

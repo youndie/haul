@@ -17,6 +17,8 @@ import io.github.youndie.haul.feature.order.domain.OrderStatus
 import io.github.youndie.haul.feature.order.domain.Placement
 import io.github.youndie.haul.feature.payment.domain.Authorisation
 import io.github.youndie.haul.feature.payment.domain.AuthorisationOutcome
+import io.github.youndie.haul.feature.payment.domain.Capture
+import io.github.youndie.haul.feature.payment.domain.CaptureOutcome
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
 import io.github.youndie.haul.feature.payment.paymentModule
 import io.github.youndie.haul.feature.search.searchModule
@@ -75,6 +77,13 @@ class PlacementRestartTest {
         }
 
         override suspend fun void(key: String): Boolean = error("nothing is voided by a process that died")
+
+        override suspend fun capture(
+            key: String,
+            capture: Capture,
+        ): CaptureOutcome = error("nothing ships from a process that died")
+
+        override suspend fun captured(orderId: String): Map<String, Int> = emptyMap()
     }
 
     /** The first process: the production graph over [dataSource], its card processor [payments]. */

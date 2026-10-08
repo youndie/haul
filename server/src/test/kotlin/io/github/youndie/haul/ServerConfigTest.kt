@@ -1,11 +1,14 @@
 package io.github.youndie.haul
 
+import io.github.youndie.haul.feature.fulfilment.domain.FulfilmentPace
 import java.nio.file.Files
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 class ServerConfigTest {
     private fun config(vararg pairs: Pair<String, String>) = ServerConfig(mapOf(*pairs)::get)
@@ -141,6 +144,33 @@ class ServerConfigTest {
         assertFailsWith<IllegalStateException> { config("HAUL_OIDC_CLIENT_ID" to "haul-web").signIn }
         assertFailsWith<IllegalArgumentException> {
             config("HAUL_OIDC_ISSUER" to "http://h/haul", "HAUL_OIDC_CLIENT_ID" to "haul-web").signIn
+        }
+    }
+
+    /** Unset is the store's own pace, running: a deployment that forgot the variable still delivers its orders. */
+    @Test
+    fun `no fulfilment speed runs the store's own pace`() {
+        val fulfilment = config().fulfilment
+
+        assertEquals(FulfilmentPace.STORE, fulfilment.pace)
+        assertEquals(1.minutes, fulfilment.interval)
+    }
+
+    /** The stand's fast clock: a day a minute, looked at every second. */
+    @Test
+    fun `a fulfilment speed runs the same schedule that many times quicker`() {
+        val fulfilment = config("HAUL_FULFILMENT_SPEED" to "1440").fulfilment
+
+        assertEquals(10.seconds, fulfilment.pace.packing, "four hours at a day a minute")
+        assertEquals(1.minutes, fulfilment.pace.transit)
+        assertEquals(1.seconds, fulfilment.interval)
+    }
+
+    /** A speed that would freeze every order, or one that is not a number, is a typo refused at start. */
+    @Test
+    fun `a fulfilment speed that is not a positive number refuses the start`() {
+        listOf("0", "-2", "fast", "NaN", "Infinity").forEach { raw ->
+            assertFailsWith<IllegalStateException>(raw) { config("HAUL_FULFILMENT_SPEED" to raw).fulfilment }
         }
     }
 }

@@ -49,6 +49,7 @@ public fun main() {
             photoStore,
             config.signIn,
             sagaClock = sagaClock(),
+            fulfilment = config.fulfilment,
         )
     }.start(wait = true)
 }

@@ -19,6 +19,11 @@ import io.github.youndie.haul.feature.checkout.domain.CheckoutCommands
 import io.github.youndie.haul.feature.checkout.domain.CheckoutRepository
 import io.github.youndie.haul.feature.checkout.domain.DeliverySlots
 import io.github.youndie.haul.feature.checkout.screen.CheckoutScreen
+import io.github.youndie.haul.feature.fulfilment.domain.FulfilmentPace
+import io.github.youndie.haul.feature.fulfilment.domain.FulfilmentRepository
+import io.github.youndie.haul.feature.fulfilment.domain.FulfilmentSimulator
+import io.github.youndie.haul.feature.fulfilment.domain.OrderTracking
+import io.github.youndie.haul.feature.fulfilment.fulfilmentModule
 import io.github.youndie.haul.feature.identity.Callers
 import io.github.youndie.haul.feature.identity.domain.Customers
 import io.github.youndie.haul.feature.identity.domain.Guests
@@ -69,6 +74,7 @@ class KoinGraphTest {
                         single { DeliveryCalendar { CatalogSeed.NOW.toZonedDateTime() } }
                         single { ProductPhotos(null) }
                         single { SAGA_CLOCK }
+                        single { FulfilmentPace.STORE }
                     },
                     catalogModule,
                     searchModule,
@@ -77,6 +83,7 @@ class KoinGraphTest {
                     checkoutModule,
                     paymentModule,
                     orderModule,
+                    fulfilmentModule,
                 )
             }
         try {
@@ -112,5 +119,8 @@ class KoinGraphTest {
         assertNotNull(koin.get<PetichEngine>())
         assertNotNull(koin.get<SuspendedPetichSweeper>())
         assertNotNull(koin.get<Placement>())
+        assertNotNull(koin.get<FulfilmentRepository>())
+        assertNotNull(koin.get<FulfilmentSimulator>())
+        assertNotNull(koin.get<OrderTracking>())
     }
 }
