@@ -1,7 +1,7 @@
 ---
 id: B-07
 title: "client: renderers for the Home and Catalog components; Loading / Error shells"
-status: wip
+status: done
 priority: P1
 size: L
 stage: stage-2-browse
@@ -55,7 +55,39 @@ filter sheet, and one parity fixture per artboard (17). `viddikDesignParity` aft
 - Home_*_Phone also: the page runs 2–6 px short above the footer (deals row), and the footer
   wordmark is cut at a slightly different height.
 
-## Done so far (2026-10-08)
+## Iteration 2 (2026-10-08)
+
+The owner allowed the italic cut; five more rounds. All 17 artboards are within tolerance:
+
+| Artboard | Mismatch | | Artboard | Mismatch |
+|---|---|---|---|---|
+| Home_Loading | 0.28 % | | Catalog_Loading | 0.34 % |
+| Home_Loading_Phone | 0.27 % | | Catalog_Loading_Phone | 0.23 % |
+| Home_Content | 1.84 % | | Catalog_Content | 3.34 % |
+| Home_Content_Phone | 3.50 % | | Catalog_Content_Phone | 3.41 % |
+| Home_Guest | 2.01 % | | Catalog_Empty | 2.89 % |
+| Home_Guest_Phone | 3.69 % | | Catalog_Empty_Phone | 4.83 % |
+| Home_Error | 1.47 % | | Catalog_Error | 1.48 % |
+| Home_Error_Phone | 3.54 % | | Catalog_Error_Phone | 3.68 % |
+| | | | Catalog_FiltersSheet_Phone | 4.66 % |
+
+One cause per round:
+
+1. Bodoni Moda's italic cut (`bodoni_moda_italic.ttf`, `google/fonts@5e8a3ba`, the same OFL file)
+   in the app's and the fixtures' Bodoni families, at 500 — the only weight the canvas sets in italic.
+2. `flex: 1` shares free space from a basis of zero with padding and border on top, so the phone's
+   sort control is 34 px wider than «Filters» (`FlexPair`); a card title is clamped as
+   `-webkit-line-clamp` does, «…» after the last kept word (`ClampedText`); the phone header's
+   category row is 46 px plus its 1 px border, as in the canvas.
+3. An outlined button's 2 px border takes room outside its padding.
+4. The search field's 2 px border sits inside its size but outside its padding.
+5. The category row is one paragraph with placeholder gaps (`SpacedWords`): separate texts each round
+   their width up to a pixel and drift right of the canvas across ten names.
+
+What is left is text residual: glyph edges, and 1 px vertical offsets of text that Chrome positions
+at fractions of a pixel and Compose on whole ones.
+
+## Done (2026-10-08)
 
 - Contract (`shared/.../ui/BrowseComponents.kt`), because one tree has to lay out at both widths:
   `CampaignRow` (the campaign with its banners: side by side at 1440, stacked over a pair at 390),
@@ -83,6 +115,8 @@ filter sheet, and one parity fixture per artboard (17). `viddikDesignParity` aft
 - Token mapping: every colour is a `HaulColors` role; the only literals are the canvas's alpha tints
   of roles (white 9 % / 65 % over Cobalt, Ink 8 % / 55 % on a banner tile), kept as named constants
   in `HomeViews.kt`; sizes and weights come from the artboards through `HaulType`.
+- AC «`viddikDesignParity` within tolerance for every `Home_*` and `Catalog_*` artboard»: all 17
+  (Iteration 2), the Plus trial dialog excepted.
 - Not done here: the Plus trial dialog (B-23); wiring the screen loader, navigation and a ticking
   «now» into `App` (the shells and renderers are ready for it).
 - Anchors: `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/home/`,
