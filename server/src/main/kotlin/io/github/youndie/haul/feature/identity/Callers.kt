@@ -42,7 +42,10 @@ internal class Callers(
     }
 
     /** The guest id the request names, as sent; whether the server issued it is [Guests.exists]. */
-    fun guestId(call: ApplicationCall): String? = call.request.headers[GUEST_HEADER]?.trim()?.takeIf { it.isNotEmpty() }
+    fun guestId(call: ApplicationCall): String? =
+        call.request.headers[GUEST_HEADER]
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
 
     private suspend fun customer(principal: OidcPrincipal): Customer {
         // A person's token always has a subject; one without is a service's, and is not a shopper.

@@ -77,8 +77,6 @@ ktor-client-mock = { module = "io.ktor:ktor-client-mock" }
 shildik-oidcAuthServer = { module = "io.github.youndie.shildik:oidc-auth-server", version.ref = "shildik" }
 oidc-appsupport = { module = "io.github.kalinjul.kotlin.multiplatform:oidc-appsupport", version.ref = "oidc" }
 ktor-client-core = { module = "io.ktor:ktor-client-core" }
-ktor-client-js = { module = "io.ktor:ktor-client-js" }
-ktor-client-mock = { module = "io.ktor:ktor-client-mock" }
 
 [plugins]
 sborkaJvm = { id = "io.github.youndie.sborka.jvm", version.ref = "sborka" }

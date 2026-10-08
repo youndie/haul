@@ -49,7 +49,7 @@ class SchemaTest {
         assertEquals(1, searchTables.size)
     }
 
-    /** V4's guests, promo codes, carts and lines, and V7's customers, against their Exposed declarations. */
+    /** V4's guests, promo codes, carts and lines, and V8's customers, against their Exposed declarations. */
     @Test
     fun `the migrated schema needs no further DDL for the cart tables`() {
         val database = Databases.connect(PostgresHarness.freshDatabase())

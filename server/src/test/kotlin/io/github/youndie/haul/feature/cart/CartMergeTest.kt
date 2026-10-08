@@ -33,11 +33,18 @@ class CartMergeTest {
     private fun parties(): Pair<CartOwner.Guest, CartOwner.Customer> =
         runBlocking {
             val guest = ExposedGuests(database).create(CatalogSeed.NOW)
-            val customer = ExposedCustomers(database).signedIn("c-${UUID.randomUUID()}", "Test Customer", CatalogSeed.NOW)
+            val customer =
+                ExposedCustomers(
+                    database,
+                ).signedIn("c-${UUID.randomUUID()}", "Test Customer", CatalogSeed.NOW)
             CartOwner.Guest(guest) to CartOwner.Customer(customer.id, plus = false)
         }
 
-    private suspend fun quantities(owner: CartOwner): List<Pair<String, Int>> = carts.cart(owner).lines.map { it.skuId to it.quantity }
+    private suspend fun quantities(owner: CartOwner): List<Pair<String, Int>> =
+        carts.cart(owner).lines.map {
+            it.skuId to
+                it.quantity
+        }
 
     @Test
     fun `the same SKU sums and stops at ten`() =

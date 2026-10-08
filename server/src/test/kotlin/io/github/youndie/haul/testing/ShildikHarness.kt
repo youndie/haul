@@ -169,7 +169,9 @@ internal object ShildikHarness {
                         ),
                     ).build(),
             )
-        check(tokens.statusCode() == 200) { "the token endpoint answered ${tokens.statusCode()}: ${tokens.body().take(300)}" }
+        check(
+            tokens.statusCode() == 200,
+        ) { "the token endpoint answered ${tokens.statusCode()}: ${tokens.body().take(300)}" }
         return json(tokens.body()).text("access_token")
     }
 
@@ -187,19 +189,26 @@ internal object ShildikHarness {
                     .method(method, HttpRequest.BodyPublishers.ofString(body))
                     .build(),
             )
-        check(response.statusCode() in 200..299) { "$method $path answered ${response.statusCode()}: ${response.body()}" }
+        check(
+            response.statusCode() in 200..299,
+        ) { "$method $path answered ${response.statusCode()}: ${response.body()}" }
     }
 
     private fun get(url: String): String =
-        send(HttpRequest.newBuilder(URI(url)).GET().build()).also {
-            check(it.statusCode() == 200) { "$url answered ${it.statusCode()}" }
-        }.body()
+        send(HttpRequest.newBuilder(URI(url)).GET().build())
+            .also {
+                check(it.statusCode() == 200) { "$url answered ${it.statusCode()}" }
+            }.body()
 
-    private fun send(request: HttpRequest): HttpResponse<String> = http.send(request, HttpResponse.BodyHandlers.ofString())
+    private fun send(request: HttpRequest): HttpResponse<String> =
+        http.send(request, HttpResponse.BodyHandlers.ofString())
 
     private fun json(text: String): JsonObject = Json.parseToJsonElement(text).jsonObject
 
-    private fun JsonObject.text(name: String): String = checkNotNull(this[name]) { "no $name in $this" }.jsonPrimitive.content
+    private fun JsonObject.text(name: String): String =
+        checkNotNull(this[name]) {
+            "no $name in $this"
+        }.jsonPrimitive.content
 
     private fun form(vararg pairs: Pair<String, String>): String =
         pairs.joinToString("&") { (k, v) -> "$k=" + URLEncoder.encode(v, Charsets.UTF_8) }

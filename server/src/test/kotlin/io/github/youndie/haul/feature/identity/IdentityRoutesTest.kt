@@ -178,17 +178,30 @@ class IdentityRoutesTest {
             val guest = guest()
             putLine(guest, mug, LineChange(quantity = 2)).assertRefresh()
             putLine(token, duvet, 1).assertRefresh()
-            val screens = listOf("/ui/home", "/ui/c/headphones", "/ui/p/${SampleCatalog.SONY_HEADPHONES}", "/ui/search?q=mug")
+            val screens =
+                listOf("/ui/home", "/ui/c/headphones", "/ui/p/${SampleCatalog.SONY_HEADPHONES}", "/ui/search?q=mug")
 
             for (screen in screens) {
                 val nobody = tree(screen) {}.only<HaulHeader>()
-                assertEquals(Triple(null, 0, NavigateAction("/sign-in")), Triple(nobody.customerName, nobody.cartCount, nobody.account), screen)
+                assertEquals(
+                    Triple(null, 0, NavigateAction("/sign-in")),
+                    Triple(nobody.customerName, nobody.cartCount, nobody.account),
+                    screen,
+                )
 
                 val asGuest = tree(screen) { header(GUEST_HEADER, guest) }.only<HaulHeader>()
-                assertEquals(Triple(null, 2, NavigateAction("/sign-in")), Triple(asGuest.customerName, asGuest.cartCount, asGuest.account), screen)
+                assertEquals(
+                    Triple(null, 2, NavigateAction("/sign-in")),
+                    Triple(asGuest.customerName, asGuest.cartCount, asGuest.account),
+                    screen,
+                )
 
                 val asCustomer = tree(screen) { bearerAuth(token) }.only<HaulHeader>()
-                assertEquals(Triple("Maya", 1, NavigateAction("/account")), Triple(asCustomer.customerName, asCustomer.cartCount, asCustomer.account), screen)
+                assertEquals(
+                    Triple("Maya", 1, NavigateAction("/account")),
+                    Triple(asCustomer.customerName, asCustomer.cartCount, asCustomer.account),
+                    screen,
+                )
             }
         }
 
@@ -196,7 +209,9 @@ class IdentityRoutesTest {
     @Test
     fun `a token that does not verify is 401 unauthenticated`() =
         signedIn("Sam Ortiz") { _, sub ->
-            get("/ui/home") { bearerAuth("not-a-token") }.assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
+            get(
+                "/ui/home",
+            ) { bearerAuth("not-a-token") }.assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
 
             // Issued by the same realm, to another of its clients: its `azp` is not the storefront.
             val foreign = ShildikHarness.accessToken(sub, client = ShildikHarness.OTHER_CLIENT)
@@ -230,7 +245,9 @@ class IdentityRoutesTest {
         haulTest {
             get(SIGN_IN_SETTINGS).assertError(HttpStatusCode.ServiceUnavailable, ErrorCode.Unavailable)
             // Off, every token is refused rather than ignored.
-            get("/ui/home") { bearerAuth("anything") }.assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
+            get(
+                "/ui/home",
+            ) { bearerAuth("anything") }.assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
             assertNull(tree("/ui/home") {}.only<HaulHeader>().customerName)
         }
     }

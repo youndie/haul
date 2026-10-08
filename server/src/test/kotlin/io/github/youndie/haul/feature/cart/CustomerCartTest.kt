@@ -15,9 +15,9 @@ import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
 import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
 import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
 import io.github.youndie.haul.seed.SampleCustomers
-import io.github.youndie.haul.testing.all
 import io.github.youndie.haul.testing.CANVAS_NOW
 import io.github.youndie.haul.testing.SeededDatabase
+import io.github.youndie.haul.testing.all
 import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.ui.CartLine
 import io.github.youndie.haul.ui.OrderSummary

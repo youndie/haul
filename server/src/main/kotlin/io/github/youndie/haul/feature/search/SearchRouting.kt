@@ -23,7 +23,10 @@ internal fun Route.searchRouting() {
     val viewers by inject<Viewers>()
 
     get("/ui/search") {
-        call.respondKompotComponent(haulWireJson, screen.results(searchRequest(call.request.queryParameters), viewers.of(call)))
+        call.respondKompotComponent(
+            haulWireJson,
+            screen.results(searchRequest(call.request.queryParameters), viewers.of(call)),
+        )
     }
 
     get("/ui/search/suggest") {

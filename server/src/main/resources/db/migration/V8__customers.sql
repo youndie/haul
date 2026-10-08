@@ -2,8 +2,6 @@
 -- in; the row is created by the first request their token makes, named by the token's `name` claim.
 -- `plus` is the Haul Plus membership the cart's points and delivery read; its trial, renewal and
 -- points ledger are feature-membership's (B-23).
---
--- V5 and V6 are taken by items on parallel branches; Flyway allows the gap.
 
 CREATE TABLE customers (
     id         TEXT PRIMARY KEY,

@@ -12,7 +12,7 @@ import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.javatime.timestampWithTimeZone
 
-// The Exposed side of V4__cart.sql (and of V7's key from a cart to its customer). `SchemaTest` holds the two together, CHECK constraints included:
+// The Exposed side of V4__cart.sql (and of V8's key from a cart to its customer). `SchemaTest` holds the two together, CHECK constraints included:
 // they are declared here under the names PostgreSQL gave them there.
 
 internal object PromoCodesTable : Table("promo_codes") {
