@@ -116,7 +116,15 @@ class ReturnLifecycleTest {
                             }
                     }
                 world.clock.at(asked + 2.days)
-                val first = ReturnSimulator(dying, world.koin.get(), world.payments, world.clock, FulfilmentPace.STORE)
+                val first =
+                    ReturnSimulator(
+                        dying,
+                        world.koin.get(),
+                        world.payments,
+                        world.koin.get(),
+                        world.clock,
+                        FulfilmentPace.STORE,
+                    )
                 assertFailsWith<IllegalStateException> { runBlocking { first.advance() } }
                 assertEquals(PICKED_UP, world.status(order), "the move never landed")
                 assertEquals(mapOf("refund:$order" to 34_900), world.ledger.refunds(order), "the refund did")
@@ -142,7 +150,14 @@ class ReturnLifecycleTest {
                         ): RefundOutcome = RefundOutcome.NotCaptured
                     }
                 val held =
-                    ReturnSimulator(world.koin.get(), world.koin.get(), refusing, world.clock, FulfilmentPace.STORE)
+                    ReturnSimulator(
+                        world.koin.get(),
+                        world.koin.get(),
+                        refusing,
+                        world.koin.get(),
+                        world.clock,
+                        FulfilmentPace.STORE,
+                    )
 
                 world.clock.at(asked + 5.days)
                 assertEquals(1, runBlocking { held.advance() }, "collected, and held there")

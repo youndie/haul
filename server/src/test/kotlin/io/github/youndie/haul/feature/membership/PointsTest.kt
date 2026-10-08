@@ -11,6 +11,8 @@ import io.github.youndie.haul.feature.order.domain.CancelReason
 import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.domain.OrderStatus
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus
+import io.github.youndie.haul.feature.returns.ReturnEntry
+import io.github.youndie.haul.feature.returns.domain.RequestReturn
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.testing.FulfilmentWorld
@@ -179,6 +181,50 @@ class PointsTest {
                     assertFalse(ledger.giveBack("HL-1", CatalogSeed.NOW), "given back once")
                     assertEquals(2_480, ledger.balance(SampleCustomers.MAYA))
                 }
+            }
+        }
+
+    /**
+     * A return settles the points as the money (feature-checkout: «come back pro rata as points on a return»):
+     * Maya pays her $512 cart with her 2,480 points, it is delivered and earns 974, and she returns Sony's $349
+     * headphones. When the refund is made the 697 points that line earned are taken back, the 1,690 points of the
+     * line's share of what she paid in points come back, and only the rest — $332.10 — is refunded to the card.
+     */
+    @Test
+    fun `a return takes back the points its line earned and gives back the points it was paid with`() =
+        seededFreshDatabase().use { dataSource ->
+            FulfilmentWorld(dataSource).use { world ->
+                val orderId = world.place(CheckoutChoice(usePoints = true))
+                world.advance(Duration.ZERO)
+                world.advance(3.days)
+                assertEquals(974, world.balance())
+                runBlocking {
+                    world.koin.get<RequestReturn>().request(
+                        SampleCustomers.MAYA,
+                        orderId,
+                        ReturnEntry(listOf(0), "doesnt_fit"),
+                    )
+                }
+                world.advanceReturns(6.days)
+
+                assertEquals(mapOf("refund:$orderId" to 33_210), world.ledger.refunds(orderId))
+                val settled =
+                    runBlocking { world.ledger().movements(SampleCustomers.MAYA) }.filter {
+                        it.kind ==
+                            PointsKind.Reversed ||
+                            it.key.startsWith("returned:return-")
+                    }
+                assertEquals(
+                    listOf(PointsKind.Reversed to -697, PointsKind.Returned to 1_690),
+                    settled
+                        .map {
+                            it.kind to
+                                it.points
+                        }.sortedBy { it.second },
+                )
+                assertEquals(1_967, world.balance())
+                world.advanceReturns(9.days)
+                assertEquals(1_967, world.balance(), "a refunded return settles its points once")
             }
         }
 

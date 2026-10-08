@@ -14,5 +14,14 @@ internal val returnsModule =
     module {
         single<ReturnRepository> { ExposedReturns(get()) }
         single { RequestReturn(orders = get(), shipments = get(), returns = get(), clock = get()) }
-        single { ReturnSimulator(returns = get(), orders = get(), payments = get(), clock = get(), pace = get()) }
+        single {
+            ReturnSimulator(
+                returns = get(),
+                orders = get(),
+                payments = get(),
+                points = get(),
+                clock = get(),
+                pace = get(),
+            )
+        }
     }

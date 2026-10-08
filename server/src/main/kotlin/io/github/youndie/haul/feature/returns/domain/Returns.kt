@@ -131,6 +131,21 @@ internal object ReturnRefunds {
         return (shares + (paid - shares.sumOf { it.toLong() }).toInt()).withIndex().associate { it.index to it.value }
     }
 
+    /**
+     * The part of [refundCents] that [order] paid in points and that comes back as points (B-23): its redeemed
+     * points in proportion to the refund against what was paid for the items, rounded down — all of them when
+     * every line goes back. A point is a cent, so the rest of the refund is the money.
+     */
+    fun pointsBack(
+        order: Order,
+        refundCents: Int,
+    ): Int {
+        val redeemed = order.placed.pointsRedeemed
+        val paid = order.placed.itemsCents.toLong() - order.placed.discountCents
+        if (redeemed <= 0 || paid <= 0) return 0
+        return (redeemed.toLong() * refundCents / paid).toInt().coerceIn(0, redeemed)
+    }
+
     /** The points [refundCents] of [order] takes back. */
     fun points(
         order: Order,
