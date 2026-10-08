@@ -40,7 +40,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (20)
+## Open (19)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -62,10 +62,9 @@ A stage is a field on the item, not a directory.
 | [B-25](docs/backlog/B-25-recommendations-from-views-in-the-home.md) `[ ]` | server: recommendations from views in the Home tree | P2 | M | B-07, B-19 |
 | [B-27](docs/backlog/B-27-helm-chart-tracy-metrik-katcher-wiring.md) `[?]` | ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand | P2 | M | B-03 |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
-| [B-34](docs/backlog/B-34-the-stand-serves-the-bundle-uncompressed.md) `[~]` | ops: the stand serves the wasm bundle uncompressed | P2 | S | B-27 |
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
 
-## Closed (15)
+## Closed (16)
 
 **Skeleton**
 
@@ -96,6 +95,7 @@ A stage is a field on the item, not a directory.
 
 - [B-28](docs/backlog/B-28-first-load-size-and-time-of.md) `[x]` - measure: first-load size and time of the wasm bundle
 - [B-30](docs/backlog/B-30-product-images-through-object-storage.md) `[x]` - product images through object storage
+- [B-34](docs/backlog/B-34-the-stand-serves-the-bundle-uncompressed.md) `[x]` - ops: the stand serves the wasm bundle uncompressed
 
 <!-- END INDEX -->
 

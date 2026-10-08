@@ -19,7 +19,7 @@ COPY . /opt/app
 # **The browser bundle, precompressed once here rather than on every request** (B-34): a `.br`
 # (quality 11) and a `.gz` (-9) beside each file the page loads, which the server picks by the
 # browser's Accept-Encoding (`WebBundle.kt`). Here and not in Gradle because this is where an encoder
-# is: brotli has no pure-JVM encoder, and the build machines have no `brotli`; the train stage is
+# is: brotli has no pure-JVM encoder, and a build machine cannot be counted on for `brotli`; this stage is
 # thrown away, so the encoder never reaches the image. About half a minute, mostly skiko's 8 MB wasm.
 RUN find /opt/app/web -type f \( -name '*.wasm' -o -name '*.js' -o -name '*.mjs' -o -name '*.html' \
       -o -name '*.css' -o -name '*.json' -o -name '*.ttf' -o -name '*.otf' -o -name '*.svg' \) -print0 \
