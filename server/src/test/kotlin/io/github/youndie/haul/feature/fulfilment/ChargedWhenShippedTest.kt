@@ -8,6 +8,9 @@ import io.github.youndie.haul.feature.fulfilment.domain.FulfilmentSimulator
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus.DELIVERED
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus.IN_TRANSIT
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus.PACKED
+import io.github.youndie.haul.feature.payment.domain.Capture
+import io.github.youndie.haul.feature.payment.domain.CaptureOutcome
+import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
 import io.github.youndie.haul.testing.FulfilmentWorld
 import io.github.youndie.haul.testing.Ledger
 import io.github.youndie.haul.testing.seededFreshDatabase
@@ -121,6 +124,40 @@ class ChargedWhenShippedTest {
 
                 world.advance(72.hours)
                 assertEquals(mapOf(sony to DELIVERED, brooklyn to DELIVERED), world.statuses(order))
+                assertEquals(51_200, world.captures(order).values.sum())
+            }
+        }
+
+    /**
+     * A shipment is never on the road unpaid: a capture the processor refuses holds it `packed`, pass after
+     * pass, and it ships once the capture is taken.
+     */
+    @Test
+    fun `a shipment whose capture is refused stays packed`() =
+        seededFreshDatabase().use { dataSource ->
+            FulfilmentWorld(dataSource).use { world ->
+                val order = world.place()
+                world.advance(Duration.ZERO)
+                world.advance(4.hours)
+                val real = world.payments
+                val refusing =
+                    object : PaymentProcessor by real {
+                        override suspend fun capture(
+                            key: String,
+                            capture: Capture,
+                        ): CaptureOutcome = CaptureOutcome.NotAuthorised
+                    }
+                val held = FulfilmentSimulator(world.shipments, world.koin.get(), refusing, world.clock, FulfilmentPace.STORE)
+
+                world.clock.at(30.hours)
+                assertEquals(0, runBlocking { held.advance() }, "Sony was due at 24 hours")
+                world.clock.at(50.hours)
+                assertEquals(0, runBlocking { held.advance() }, "and Brooklyn Home Co. at 48")
+                assertEquals(mapOf(sony to PACKED, brooklyn to PACKED), world.statuses(order), "neither ships unpaid")
+                assertEquals(emptyMap(), world.captures(order))
+
+                world.advance(50.hours)
+                assertEquals(mapOf(sony to IN_TRANSIT, brooklyn to IN_TRANSIT), world.statuses(order))
                 assertEquals(51_200, world.captures(order).values.sum())
             }
         }
