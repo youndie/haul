@@ -24,12 +24,12 @@ import io.github.youndie.haul.testing.haulTest
 import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.ui.CheckoutAddress
+import io.github.youndie.haul.ui.CheckoutBody
 import io.github.youndie.haul.ui.CheckoutNotice
 import io.github.youndie.haul.ui.CheckoutSummary
 import io.github.youndie.haul.ui.DeliveryMethods
 import io.github.youndie.haul.ui.DeliverySlots
 import io.github.youndie.haul.ui.OrderSummary
-import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.PaymentMethods
 import io.github.youndie.haul.ui.PickupPoints
 import io.github.youndie.haul.ui.SummaryRow
@@ -157,7 +157,7 @@ class CheckoutRoutesTest {
             signedIn("Maya Kowalski", id = SampleCustomers.MAYA, dataSource = database) { token ->
                 val before = checkout(token)
                 assertEquals(
-                    "09:00–12:00",
+                    "9:00 – 12:00",
                     before
                         .only<DeliverySlots>()
                         .days
@@ -170,25 +170,28 @@ class CheckoutRoutesTest {
                 choose(token, CheckoutChoice(slotId = "2025-10-08T15")).assertRefresh()
 
                 val tree = checkout(token)
-                assertEquals("3 items", tree.only<PageTitle>().count)
+                assertEquals("Checkout", tree.only<CheckoutBody>().title)
                 assertEquals(
-                    DeliveryMethod.Courier,
-                    tree
-                        .only<DeliveryMethods>()
-                        .options
-                        .single { it.selected }
-                        .method,
+                    listOf(
+                        listOf(DeliveryMethod.Courier, "Tomorrow, Oct 8", "Free", true),
+                        listOf(DeliveryMethod.PickupPoint, "Thu, Oct 9 · 240 m away", "Free", false),
+                        listOf(DeliveryMethod.ParcelLocker, "Thu, Oct 9 · 24/7 access", "Free", false),
+                    ),
+                    tree.only<DeliveryMethods>().options.map { listOf(it.method, it.detail, it.price, it.selected) },
                 )
                 val address = tree.only<CheckoutAddress>()
                 assertEquals(
-                    listOf("148 Wythe Avenue, Apt 4F" to "Brooklyn, NY 11211"),
-                    address.addresses.filter { it.selected }.map { it.line to it.detail },
+                    listOf("148 Wythe Avenue", "4F", "Brooklyn, NY", "11211", "", ""),
+                    address.form.map { it.value },
+                    "the form holds the address the checkout delivers to",
                 )
-                assertFalse(address.formOpen, "the form is open for a customer with an address")
+                assertTrue(address.form.all { it.error == null })
                 val slots = tree.only<DeliverySlots>()
-                assertEquals(listOf("Wed 8", "Thu 9", "Fri 10", "Sat 11", "Sun 12"), slots.days.map { it.label })
+                assertEquals(listOf("Wed", "Thu", "Fri", "Sat", "Sun"), slots.days.map { it.weekday })
+                assertEquals(listOf("8", "9", "10", "11", "12"), slots.days.map { it.date })
+                assertEquals(listOf(true, false, false, false, false), slots.days.map { it.selected })
                 assertEquals(
-                    listOf("09:00–12:00", "12:00–15:00", "15:00–18:00", "18:00–21:00"),
+                    listOf("9:00 – 12:00", "12:00 – 15:00", "15:00 – 18:00", "18:00 – 21:00"),
                     slots.days
                         .first()
                         .slots
@@ -197,27 +200,32 @@ class CheckoutRoutesTest {
                 assertEquals("2025-10-08T15", tree.selectedSlot())
                 val payment = tree.only<PaymentMethods>()
                 assertEquals(
-                    listOf("card-4821", "card-0002", "haul_pay", "pay_on_delivery"),
+                    listOf("card-4821", "haul_pay", "pay_on_delivery"),
                     payment.options.map { it.id },
+                    "the test card ···· 0002 is not listed",
                 )
                 assertEquals("card-4821", payment.options.single { it.selected }.id)
                 assertEquals("4 payments of $128", payment.options.single { it.id == "haul_pay" }.detail)
+                assertEquals(null, payment.points, "points are B-23's: no balance is stored")
 
                 val summary = tree.only<CheckoutSummary>()
                 assertEquals(
                     listOf(
                         SummaryRow("Items (3)", "$652.00"),
                         SummaryRow("Discount", "−$140.00", saving = true),
-                        SummaryRow("Delivery", "Free"),
+                        SummaryRow("Delivery · Wed, Oct 8", "Free"),
                     ),
                     summary.rows,
                 )
                 assertEquals("$512", summary.total)
                 assertEquals("Place order · $512.00", summary.placeLabel)
-                assertEquals("You'll earn 1,024 points", summary.points)
-                assertEquals("Your card is charged when the order ships", summary.note)
+                assertEquals(
+                    "By placing the order you agree to the Terms of Sale. Your card is charged when the order ships.",
+                    summary.note,
+                )
                 assertEquals(3, summary.items.size)
                 assertTrue(summary.placeEnabled, "a complete quote cannot be placed")
+                assertEquals(null, summary.placeHint)
                 assertNotEquals(
                     before.only<CheckoutSummary>().quote,
                     summary.quote,
@@ -321,7 +329,20 @@ class CheckoutRoutesTest {
                 val tree = checkout(token)
                 assertEquals(CheckoutError.SLOT_FILLED, tree.only<CheckoutNotice>().text)
                 assertEquals(null, tree.selectedSlot())
-                assertFalse(tree.only<CheckoutSummary>().placeEnabled, "a quote with no window can be placed")
+                val slots = tree.only<DeliverySlots>()
+                assertEquals("Pick another window for Thu, Oct 9", slots.notice)
+                assertEquals("Thu", slots.days.single { it.selected }.weekday, "the day shown is the one that filled")
+                assertEquals(
+                    "12:00 – 15:00 · Full",
+                    slots.days
+                        .flatMap { it.slots }
+                        .single { it.id == "2025-10-09T12" }
+                        .label,
+                )
+                val summary = tree.only<CheckoutSummary>()
+                assertFalse(summary.placeEnabled, "a quote with no window can be placed")
+                assertEquals("Pick a delivery window", summary.placeHint)
+                assertEquals("Delivery · Thu, Oct 9", summary.rows.last().label)
 
                 choose(token, CheckoutChoice(slotId = "2025-10-09T15")).assertRefresh()
                 val again = checkout(token)
@@ -331,7 +352,7 @@ class CheckoutRoutesTest {
         }
 
     /**
-     * `Checkout_PickupPoint`: the two points near Wythe Avenue with distance and hours, the nearest
+     * `Checkout_PickupPoint`: the three points near Wythe Avenue with distance, hours and day, the nearest
      * chosen, no address and no window — a pickup needs neither — and pay on delivery still offered.
      */
     @Test
@@ -344,11 +365,14 @@ class CheckoutRoutesTest {
             val points = tree.only<PickupPoints>().points
             assertEquals(
                 listOf(
-                    listOf("214 Bedford Ave", "240 m", "until 21:00", true),
-                    listOf("96 N 6th St", "650 m", "until 22:00", false),
+                    listOf("214 Bedford Ave", "240 m", "Pickup point · open until 21:00 · Thu, Oct 9", true),
+                    listOf("96 N 6th St", "650 m", "Pickup point · open until 22:00 · Thu, Oct 9", false),
+                    listOf("315 Grand St", "900 m", "Pickup point · open until 20:00 · Thu, Oct 9", false),
                 ),
-                points.map { listOf(it.name, it.distance, it.hours, it.selected) },
+                points.map { listOf(it.name, it.distance, it.detail, it.selected) },
             )
+            assertEquals("Pickup point", tree.only<PickupPoints>().title)
+            assertEquals("Delivery · Thu, Oct 9", tree.only<CheckoutSummary>().rows.last().label)
             assertTrue(
                 tree.all().none { it is DeliverySlots || it is CheckoutAddress },
                 "a pickup drew courier sections",
@@ -370,7 +394,7 @@ class CheckoutRoutesTest {
         }
 
     /**
-     * `Checkout_ParcelLocker` and «pay on delivery is not offered for parcel lockers»: the locker is
+     * `Checkout_ParcelLocker` and «pay on delivery is not offered for parcel lockers»: the lockers are
      * listed, pay on delivery is not, choosing it is `422 payment_method_not_allowed`, and a shopper
      * who had chosen it by courier is moved back to the card.
      */
@@ -392,11 +416,14 @@ class CheckoutRoutesTest {
 
             val tree = checkout(token)
             assertEquals(
-                listOf("Wythe & N 7th" to "24/7"),
-                tree.only<PickupPoints>().points.map { it.name to it.hours },
+                listOf(
+                    listOf("Wythe & N 7th", "180 m", "Parcel locker · 24/7 · Thu, Oct 9", true),
+                    listOf("Bedford Ave station", "700 m", "Parcel locker · 24/7 · Thu, Oct 9", false),
+                ),
+                tree.only<PickupPoints>().points.map { listOf(it.name, it.distance, it.detail, it.selected) },
             )
             val payment = tree.only<PaymentMethods>()
-            assertEquals(listOf("card-4821", "card-0002", "haul_pay"), payment.options.map { it.id })
+            assertEquals(listOf("card-4821", "haul_pay"), payment.options.map { it.id })
             assertEquals("card-4821", payment.options.single { it.selected }.id)
             choose(token, CheckoutChoice(payment = "pay_on_delivery"))
                 .assertError(HttpStatusCode.UnprocessableEntity, ErrorCode.PaymentMethodNotAllowed)
@@ -416,63 +443,69 @@ class CheckoutRoutesTest {
         }
 
     /**
-     * `Checkout_Validation`: a customer with no address sees the form open; one sent with the street and
+     * `Checkout_Validation`: a customer with no address sees the form empty; one sent with the street and
      * the ZIP empty is `400 validation_failed` naming both fields, and the tree draws it again with what
-     * was typed and an error under each; the quote cannot be placed until an address is saved.
+     * was typed, an error under each, and the button held with what to fill in; once an address is saved
+     * the form holds it and the quote can be placed.
      */
     @Test
     fun `the address form is refused field by field and drawn again`() =
         signedIn("Sam Ortiz") { token ->
             mayasLines(token)
             val empty = checkout(token)
-            assertTrue(empty.only<CheckoutAddress>().formOpen, "a customer without an address sees no form")
-            assertFalse(empty.only<CheckoutSummary>().placeEnabled, "a courier quote with no address can be placed")
+            assertTrue(empty.only<CheckoutAddress>().form.all { it.value.isEmpty() }, "a form without an address")
+            val unplaced = empty.only<CheckoutSummary>()
+            assertFalse(unplaced.placeEnabled, "a courier quote with no address can be placed")
+            assertEquals("Fill in the delivery address", unplaced.placeHint)
 
             val refused =
-                saveAddress(token, AddressEntry(street = " ", city = "Brooklyn, NY"))
+                saveAddress(token, AddressEntry(street = " ", apt = "4F", city = "Brooklyn, NY"))
                     .assertError(HttpStatusCode.BadRequest, ErrorCode.ValidationFailed)
             assertEquals(
                 listOf(
-                    FieldError("street", ErrorCode.FieldRequired, "Enter the street and house number"),
-                    FieldError("zip", ErrorCode.FieldRequired, "Enter the ZIP code"),
+                    FieldError("street", ErrorCode.FieldRequired, "Enter the street address"),
+                    FieldError("zip", ErrorCode.FieldRequired, "Enter a 5-digit ZIP"),
                 ),
                 refused.fields,
             )
             assertEquals("street", refused.field)
 
-            val form = checkout(token).only<CheckoutAddress>()
-            assertTrue(form.formOpen)
+            val drawn = checkout(token)
             assertEquals(
                 mapOf(
-                    "street" to ("" to "Enter the street and house number"),
+                    "street" to ("" to "Enter the street address"),
+                    "apt" to ("4F" to null),
                     "city" to ("Brooklyn, NY" to null),
-                    "zip" to ("" to "Enter the ZIP code"),
+                    "zip" to ("" to "Enter a 5-digit ZIP"),
                 ),
-                form.form.filter { it.name in setOf("street", "city", "zip") }.associate {
+                drawn.only<CheckoutAddress>().form.filter { it.name in setOf("street", "apt", "city", "zip") }.associate {
                     it.name to (it.value.trim() to it.error)
                 },
             )
+            assertEquals("Fill in the street address and ZIP", drawn.only<CheckoutSummary>().placeHint)
 
             saveAddress(token, AddressEntry("148 Wythe Avenue", "4F", "Brooklyn, NY", "112ll"))
                 .assertError(HttpStatusCode.BadRequest, ErrorCode.ValidationFailed)
                 .also {
                     assertEquals(
-                        listOf(FieldError("zip", ErrorCode.FieldInvalid, "A ZIP code is five digits")),
+                        listOf(FieldError("zip", ErrorCode.FieldInvalid, "Enter a 5-digit ZIP")),
                         it.fields,
                     )
                 }
+            assertEquals("Fill in the ZIP", checkout(token).only<CheckoutSummary>().placeHint)
 
             saveAddress(token, AddressEntry(" 148 Wythe Avenue ", "4F", "Brooklyn, NY", "11211")).assertRefresh()
 
             val saved = checkout(token)
             val address = saved.only<CheckoutAddress>()
-            assertFalse(address.formOpen, "the form stayed open after the address was saved")
-            assertTrue(
-                address.form.all { it.error == null && it.value.isEmpty() },
-                "the refused form outlived the save",
+            assertEquals(
+                listOf("148 Wythe Avenue", "4F", "Brooklyn, NY", "11211", "", ""),
+                address.form.map { it.value },
+                "the form does not hold the address saved",
             )
-            assertEquals(listOf("148 Wythe Avenue, Apt 4F"), address.addresses.filter { it.selected }.map { it.line })
+            assertTrue(address.form.all { it.error == null }, "the refused form outlived the save")
             assertTrue(saved.only<CheckoutSummary>().placeEnabled)
+            assertEquals(null, saved.only<CheckoutSummary>().placeHint)
         }
 
     /** «Not yours» is «does not exist» (research §5): Maya's seeded address is no one else's to choose. */

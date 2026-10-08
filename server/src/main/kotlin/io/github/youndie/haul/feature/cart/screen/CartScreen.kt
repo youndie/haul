@@ -232,11 +232,13 @@ internal class CartScreen(
  * The summary's rows over [totals] — «Items (3) $652.00» for the [units] counted, «Discount −$140.00»,
  * the promo code inside the discount when it took something off («Promo · AUTUMN10 −$50.00»), «Delivery
  * Free» — the same on the cart and at checkout; the savings are marked to be drawn in the sale red.
+ * Checkout names the day in the delivery row ([delivery] «Delivery · Wed, Oct 8»).
  */
 internal fun summaryRows(
     totals: Totals,
     promoCode: String?,
     units: Int,
+    delivery: String = "Delivery",
 ): List<SummaryRow> =
     buildList {
         add(SummaryRow("Items ($units)", CartScreen.exact(totals.itemsCents)))
@@ -244,5 +246,5 @@ internal fun summaryRows(
         if (promoCode != null && totals.promoCents > 0) {
             add(SummaryRow("Promo · $promoCode", "−" + CartScreen.exact(totals.promoCents), saving = true))
         }
-        add(SummaryRow("Delivery", if (totals.deliveryCents == 0) "Free" else CartScreen.exact(totals.deliveryCents)))
+        add(SummaryRow(delivery, if (totals.deliveryCents == 0) "Free" else CartScreen.exact(totals.deliveryCents)))
     }

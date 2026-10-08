@@ -5,21 +5,26 @@ import io.github.youndie.haul.feature.checkout.data.PickupPointsTable.PICKUP_POI
 import io.github.youndie.haul.seed.SampleCustomers.MAYA
 
 /**
- * What checkout offers on the sample data (research §6): the pickup points and the locker near
- * Wythe Avenue, and Maya's address.
+ * What checkout offers on the sample data: the pickup points and the lockers near Wythe Avenue
+ * (research §6, with the canvas's third point and second locker and the lockers' distances:
+ * `Checkout_PickupPoint`, `Checkout_ParcelLocker`), and Maya's address. A point's hours are written as
+ * its row says them («open until 21:00»), a locker's as «24/7».
  */
 internal object SampleCheckout {
     const val BEDFORD = "point-214-bedford"
     const val NORTH_6TH = "point-96-n6th"
+    const val GRAND = "point-315-grand"
     const val WYTHE_LOCKER = "locker-wythe-n7th"
+    const val BEDFORD_LOCKER = "locker-bedford-station"
     const val MAYA_ADDRESS = "address-maya"
 
     val pickupPoints: List<SeedPickupPoint> =
         listOf(
-            SeedPickupPoint(BEDFORD, PICKUP_POINT, "214 Bedford Ave", 240, "until 21:00", 1),
-            SeedPickupPoint(NORTH_6TH, PICKUP_POINT, "96 N 6th St", 650, "until 22:00", 2),
-            // Research §6 gives the locker no distance.
-            SeedPickupPoint(WYTHE_LOCKER, PARCEL_LOCKER, "Wythe & N 7th", null, "24/7", 3),
+            SeedPickupPoint(BEDFORD, PICKUP_POINT, "214 Bedford Ave", 240, "open until 21:00", 1),
+            SeedPickupPoint(NORTH_6TH, PICKUP_POINT, "96 N 6th St", 650, "open until 22:00", 2),
+            SeedPickupPoint(GRAND, PICKUP_POINT, "315 Grand St", 900, "open until 20:00", 3),
+            SeedPickupPoint(WYTHE_LOCKER, PARCEL_LOCKER, "Wythe & N 7th", 180, "24/7", 4),
+            SeedPickupPoint(BEDFORD_LOCKER, PARCEL_LOCKER, "Bedford Ave station", 700, "24/7", 5),
         )
 
     /**
