@@ -144,7 +144,8 @@ class SignInPromptTest {
             val identity = server.identity(signedInAs = "access-old")
             identityStorefront(server, identity)
 
-            onNodeWithTag(SIGN_IN_PROMPT_TAG).assertExists()
+            // The mock engine answers off the composition's clock, so the test waits for it, not for idle.
+            waitUntil(timeoutMillis = 5_000) { exists(hasTestTag(SIGN_IN_PROMPT_TAG)) }
             assertFalse(identity.session.value.signedIn, "the lapsed customer is a guest now")
 
             server.accepted += "access-new"
@@ -168,7 +169,7 @@ class SignInPromptTest {
             val server = Server(accepted = mutableSetOf("access-old"), pages = mapOf("/ui/account" to ACCOUNT))
             val identity = server.identity(signedInAs = "access-old")
             identityStorefront(server, identity)
-            onNodeWithText(ACCOUNT_TEXT).assertExists()
+            waitUntil(timeoutMillis = 5_000) { exists(hasText(ACCOUNT_TEXT)) }
 
             server.accepted -= "access-old"
             onNodeWithText("Reload").performClick()
