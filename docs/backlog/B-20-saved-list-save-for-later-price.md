@@ -1,7 +1,7 @@
 ---
 id: B-20
 title: "server + client: Saved list, save for later, price drops"
-status: open
+status: wip
 priority: P2
 size: M
 stage: stage-6-account
