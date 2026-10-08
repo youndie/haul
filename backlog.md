@@ -44,7 +44,7 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-23](docs/backlog/B-23-haul-plus-trial-and-benefits-points.md) `[ ]` | server + client: Haul Plus trial and benefits, points ledger, redemption at checkout, delivery savings | P2 | M | B-15, B-17, B-19 |
+| [B-23](docs/backlog/B-23-haul-plus-trial-and-benefits-points.md) `[~]` | server + client: Haul Plus trial and benefits, points ledger, redemption at checkout, delivery savings | P2 | M | B-15, B-17, B-19 |
 | [B-24](docs/backlog/B-24-haul-pay-4-payments-two-weeks.md) `[ ]` | server + client: Haul Pay, 4 payments two weeks apart | P2 | M | B-15, B-16 |
 | [B-25](docs/backlog/B-25-recommendations-from-views-in-the-home.md) `[ ]` | server: recommendations from views in the Home tree | P2 | M | B-07, B-19 |
 | [B-27](docs/backlog/B-27-helm-chart-tracy-metrik-katcher-wiring.md) `[?]` | ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand | P2 | M | B-03 |

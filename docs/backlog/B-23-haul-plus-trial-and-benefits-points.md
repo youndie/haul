@@ -1,7 +1,7 @@
 ---
 id: B-23
 title: "server + client: Haul Plus trial and benefits, points ledger, redemption at checkout, delivery savings"
-status: open
+status: wip
 priority: P2
 size: M
 stage: stage-8-loyalty
