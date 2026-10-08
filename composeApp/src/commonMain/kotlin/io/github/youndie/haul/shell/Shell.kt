@@ -96,7 +96,9 @@ public fun ErrorShell(
     failure: ShellFailure,
     onRetry: () -> Unit = {},
 ) {
-    ErrorPage({ HaulHeaderView(SHELL_HEADER, pending = true) }, accented("$subject didn’t\u00A0load", "load"), failure.message, balanced = false, onRetry)
+    ErrorPage({
+        HaulHeaderView(SHELL_HEADER, pending = true)
+    }, accented("$subject didn’t\u00A0load", "load"), failure.message, balanced = false, onRetry)
 }
 
 /** A failed search (Search_Error): the query stays in the field, and the shopper is told so. */

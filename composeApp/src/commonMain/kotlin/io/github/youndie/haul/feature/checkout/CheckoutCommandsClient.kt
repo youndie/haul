@@ -139,10 +139,17 @@ public fun ktorCheckoutCommands(
 /** The method and the JSON body each command is sent with (endpoint-checkout). */
 private fun CheckoutCommand.request(): Pair<HttpMethod, String> =
     when (this) {
-        is CheckoutCommand.Choose -> HttpMethod.Put to haulJson.encodeToString(CheckoutChoice.serializer(), choice)
-        is CheckoutCommand.SaveAddress -> HttpMethod.Post to haulJson.encodeToString(AddressEntry.serializer(), entry)
-        is CheckoutCommand.Place ->
+        is CheckoutCommand.Choose -> {
+            HttpMethod.Put to haulJson.encodeToString(CheckoutChoice.serializer(), choice)
+        }
+
+        is CheckoutCommand.SaveAddress -> {
+            HttpMethod.Post to haulJson.encodeToString(AddressEntry.serializer(), entry)
+        }
+
+        is CheckoutCommand.Place -> {
             HttpMethod.Post to haulJson.encodeToString(PlaceOrderRequest.serializer(), PlaceOrderRequest(quote))
+        }
     }
 
 @Suppress(

@@ -78,7 +78,11 @@ class CheckoutFixturesTest {
                     name: String,
                     tree: JsonElement,
                 ) {
-                    val drawn = File(bodies, name).takeIf { it.exists() }?.let { Json.parseToJsonElement(it.readText()) }
+                    val drawn =
+                        File(
+                            bodies,
+                            name,
+                        ).takeIf { it.exists() }?.let { Json.parseToJsonElement(it.readText()) }
                     if (drawn != tree) {
                         File("build/checkout-fixtures").apply { mkdirs() }.resolve(name).writeText(
                             pretty.encodeToString(JsonElement.serializer(), tree) + "\n",
@@ -94,9 +98,23 @@ class CheckoutFixturesTest {
                     name: String,
                     tree: JsonElement,
                 ): JsonElement {
-                    val toggle = File(bodies, name).takeIf { it.exists() }?.let { body(Json.parseToJsonElement(it.readText())) }
-                    toggle?.let { assertEquals(CANVAS_TOGGLE, it.payment()["points"], "$name: not the canvas's toggle") }
-                    return tree.withBody { it.withPayment { payment -> JsonObject(payment + ("points" to CANVAS_TOGGLE)) } }
+                    val toggle =
+                        File(
+                            bodies,
+                            name,
+                        ).takeIf { it.exists() }?.let { body(Json.parseToJsonElement(it.readText())) }
+                    toggle?.let {
+                        assertEquals(
+                            CANVAS_TOGGLE,
+                            it.payment()["points"],
+                            "$name: not the canvas's toggle",
+                        )
+                    }
+                    return tree.withBody {
+                        it.withPayment { payment ->
+                            JsonObject(payment + ("points" to CANVAS_TOGGLE))
+                        }
+                    }
                 }
 
                 commands.choose(maya, CheckoutChoice(slotId = "2025-10-08T15"))
@@ -127,11 +145,16 @@ class CheckoutFixturesTest {
                 }
                 check(PLACE_ERROR, withCanvasToggle(PLACE_ERROR, built()))
 
-                assertEquals(emptyList(), mismatches, "bodies that are not the server's trees (see build/checkout-fixtures)")
+                assertEquals(
+                    emptyList(),
+                    mismatches,
+                    "bodies that are not the server's trees (see build/checkout-fixtures)",
+                )
             }
         }
 
-    private fun parse(tree: KompotComponent): JsonElement = Json.parseToJsonElement(haulWireJson.encodeKompotComponent(tree))
+    private fun parse(tree: KompotComponent): JsonElement =
+        Json.parseToJsonElement(haulWireJson.encodeKompotComponent(tree))
 
     private fun body(tree: JsonElement): JsonObject =
         tree.jsonObject

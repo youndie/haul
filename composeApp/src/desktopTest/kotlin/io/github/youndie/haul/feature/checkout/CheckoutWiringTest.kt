@@ -98,7 +98,9 @@ class CheckoutWiringTest {
             checkout(CONTENT)
             press(methodTag(DeliveryMethod.PickupPoint))
             assertEquals(
-                listOf<CheckoutCommand>(CheckoutCommand.Choose(CHOICE, CheckoutChoice(method = DeliveryMethod.PickupPoint))),
+                listOf<CheckoutCommand>(
+                    CheckoutCommand.Choose(CHOICE, CheckoutChoice(method = DeliveryMethod.PickupPoint)),
+                ),
                 sent.toList(),
             )
             assertEquals(listOf<KompotAction>(RefreshAction), followed.toList())
@@ -116,7 +118,10 @@ class CheckoutWiringTest {
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
             checkout(CONTENT)
             press(slotTag("2025-10-08T09"))
-            assertEquals(listOf<CheckoutCommand>(CheckoutCommand.Choose(CHOICE, CheckoutChoice(slotId = "2025-10-08T09"))), sent.toList())
+            assertEquals(
+                listOf<CheckoutCommand>(CheckoutCommand.Choose(CHOICE, CheckoutChoice(slotId = "2025-10-08T09"))),
+                sent.toList(),
+            )
         }
 
     /** Another day's tile shows that day's windows; choosing one of them is the command, not the tile. */
@@ -126,7 +131,10 @@ class CheckoutWiringTest {
             checkout(CONTENT)
             pressInert(dayTag(1))
             press(slotTag("2025-10-09T18"))
-            assertEquals(listOf<CheckoutCommand>(CheckoutCommand.Choose(CHOICE, CheckoutChoice(slotId = "2025-10-09T18"))), sent.toList())
+            assertEquals(
+                listOf<CheckoutCommand>(CheckoutCommand.Choose(CHOICE, CheckoutChoice(slotId = "2025-10-09T18"))),
+                sent.toList(),
+            )
         }
 
     /** Checkout_PlaceError: the window that filled up is drawn and cannot be chosen, and the order cannot be placed. */
@@ -143,7 +151,10 @@ class CheckoutWiringTest {
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
             checkout(PICKUP_POINT)
             press(pointTag("point-96-n6th"))
-            assertEquals(listOf<CheckoutCommand>(CheckoutCommand.Choose(CHOICE, CheckoutChoice(pointId = "point-96-n6th"))), sent.toList())
+            assertEquals(
+                listOf<CheckoutCommand>(CheckoutCommand.Choose(CHOICE, CheckoutChoice(pointId = "point-96-n6th"))),
+                sent.toList(),
+            )
         }
 
     @Test
@@ -151,7 +162,10 @@ class CheckoutWiringTest {
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
             checkout(CONTENT)
             press(paymentTag("haul_pay"))
-            assertEquals(listOf<CheckoutCommand>(CheckoutCommand.Choose(CHOICE, CheckoutChoice(payment = "haul_pay"))), sent.toList())
+            assertEquals(
+                listOf<CheckoutCommand>(CheckoutCommand.Choose(CHOICE, CheckoutChoice(payment = "haul_pay"))),
+                sent.toList(),
+            )
         }
 
     /** Redeeming points is B-23's: the toggle carries no command yet. */
@@ -177,7 +191,10 @@ class CheckoutWiringTest {
             waitUntil(timeoutMillis = 5_000) { followed.isNotEmpty() }
             assertEquals(
                 listOf<CheckoutCommand>(
-                    CheckoutCommand.SaveAddress(ADDRESSES, AddressEntry("148 Wythe Avenue", "5B", "Brooklyn, NY", "11211", doorCode = "1234")),
+                    CheckoutCommand.SaveAddress(
+                        ADDRESSES,
+                        AddressEntry("148 Wythe Avenue", "5B", "Brooklyn, NY", "11211", doorCode = "1234"),
+                    ),
                 ),
                 sent.toList(),
             )
@@ -263,13 +280,22 @@ class CheckoutWiringTest {
                 }
             setContent {
                 HaulTheme(FixtureFonts.fonts, compact = false) {
-                    Storefront(transport, FakeHistory("/checkout"), signIn = {}, clock = FixedClock, checkoutCommands = commands)
+                    Storefront(
+                        transport,
+                        FakeHistory("/checkout"),
+                        signIn = {},
+                        clock = FixedClock,
+                        checkoutCommands = commands,
+                    )
                 }
             }
             onNodeWithTag(paymentTag("haul_pay")).performClick()
             waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
             assertEquals(listOf("/ui/checkout", "/ui/checkout"), requests.toList())
-            assertEquals(listOf<CheckoutCommand>(CheckoutCommand.Choose(CHOICE, CheckoutChoice(payment = "haul_pay"))), sent.toList())
+            assertEquals(
+                listOf<CheckoutCommand>(CheckoutCommand.Choose(CHOICE, CheckoutChoice(payment = "haul_pay"))),
+                sent.toList(),
+            )
         }
 
     @Test
@@ -278,13 +304,20 @@ class CheckoutWiringTest {
             val transport = HaulTransport { HaulResponse(500, """{"code":"internal","message":"boom"}""") }
             setContent {
                 HaulTheme(FixtureFonts.fonts, compact = false) {
-                    Storefront(transport, FakeHistory("/checkout"), signIn = {}, clock = FixedClock, checkoutCommands = commands)
+                    Storefront(
+                        transport,
+                        FakeHistory("/checkout"),
+                        signIn = {},
+                        clock = FixedClock,
+                        checkoutCommands = commands,
+                    )
                 }
             }
             onNodeWithText("Your cart is unchanged. Try again in a moment.").assertExists()
         }
 
-    private fun KompotComponent.body(): CheckoutBody = (this as ColumnComponent).children.filterIsInstance<CheckoutBody>().single()
+    private fun KompotComponent.body(): CheckoutBody =
+        (this as ColumnComponent).children.filterIsInstance<CheckoutBody>().single()
 
     private object FixedClock : Clock {
         override fun now(): Instant = CANVAS_NOW

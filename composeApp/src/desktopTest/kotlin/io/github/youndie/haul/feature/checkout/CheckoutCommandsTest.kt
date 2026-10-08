@@ -44,7 +44,11 @@ class CheckoutCommandsTest {
 
     /** As `Identity.send` does for a customer: the request built with the bearer token. */
     private val commands =
-        ktorCheckoutCommands(http, "http://haul.test/") { request -> request(mapOf(HttpHeaders.Authorization to "Bearer t-1")) }
+        ktorCheckoutCommands(http, "http://haul.test/") { request ->
+            request(
+                mapOf(HttpHeaders.Authorization to "Bearer t-1"),
+            )
+        }
 
     private fun HttpRequestData.text(): String? = (body as? OutgoingContent.ByteArrayContent)?.bytes()?.decodeToString()
 
@@ -60,7 +64,10 @@ class CheckoutCommandsTest {
                     (HttpMethod.Put to """{"method":"pickup_point"}"""),
                 CheckoutCommand.Choose(CHOICE, CheckoutChoice(slotId = "2025-10-08T15")) to
                     (HttpMethod.Put to """{"slotId":"2025-10-08T15"}"""),
-                CheckoutCommand.SaveAddress(ADDRESSES, AddressEntry("148 Wythe Avenue", "4F", "Brooklyn, NY", "11211")) to
+                CheckoutCommand.SaveAddress(
+                    ADDRESSES,
+                    AddressEntry("148 Wythe Avenue", "4F", "Brooklyn, NY", "11211"),
+                ) to
                     (
                         HttpMethod.Post to
                             """{"street":"148 Wythe Avenue","apt":"4F","city":"Brooklyn, NY","zip":"11211"}"""
@@ -103,7 +110,11 @@ class CheckoutCommandsTest {
             """"fields":[{"field":"street","code":"field_required","message":"Enter the street address"}]}"""
         val refused =
             assertFailsWith<CheckoutRefused> {
-                runBlocking { commands.send(CheckoutCommand.SaveAddress(ADDRESSES, AddressEntry(city = "Brooklyn, NY"))) }
+                runBlocking {
+                    commands.send(
+                        CheckoutCommand.SaveAddress(ADDRESSES, AddressEntry(city = "Brooklyn, NY")),
+                    )
+                }
             }
         assertEquals(400, refused.status)
         assertEquals(ErrorCode.ValidationFailed, refused.code)
@@ -118,7 +129,9 @@ class CheckoutCommandsTest {
     fun `a refusal still redraws and no answer leaves the page`() {
         val choose = CheckoutCommand.Choose(CHOICE, CheckoutChoice(slotId = "2025-10-08T15"))
         assertEquals(RefreshAction, runBlocking { commands.run(choose) })
-        answer = HttpStatusCode.Conflict to """{"code":"slot_unavailable","message":"That delivery window just filled up — pick another"}"""
+        answer =
+            HttpStatusCode.Conflict to
+            """{"code":"slot_unavailable","message":"That delivery window just filled up — pick another"}"""
         assertEquals(RefreshAction, runBlocking { commands.run(choose) })
         unreachable = true
         assertNull(runBlocking { commands.run(choose) })

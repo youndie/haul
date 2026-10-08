@@ -9,10 +9,10 @@ import io.github.youndie.haul.feature.checkout.AddressEntry
 import io.github.youndie.haul.feature.checkout.CheckoutPaths
 import io.github.youndie.haul.feature.checkout.DeliveryMethod
 import io.github.youndie.haul.feature.checkout.domain.Address
-import io.github.youndie.haul.feature.checkout.domain.PickupPoint
 import io.github.youndie.haul.feature.checkout.domain.CheckoutCommands
 import io.github.youndie.haul.feature.checkout.domain.CheckoutError
 import io.github.youndie.haul.feature.checkout.domain.CheckoutState
+import io.github.youndie.haul.feature.checkout.domain.PickupPoint
 import io.github.youndie.haul.feature.checkout.domain.Slot
 import io.github.youndie.haul.ui.CheckoutAddress
 import io.github.youndie.haul.ui.CheckoutBody
@@ -150,7 +150,11 @@ internal class CheckoutScreen(
      * first; a full window says so in its label.
      */
     private fun slots(state: CheckoutState): DeliverySlots {
-        val shownDay = (state.quote.slot ?: state.filledSlot)?.day ?: state.slots.firstOrNull()?.slot?.day
+        val shownDay =
+            (state.quote.slot ?: state.filledSlot)?.day ?: state.slots
+                .firstOrNull()
+                ?.slot
+                ?.day
         return DeliverySlots(
             id = "slots",
             title = "Delivery time",
@@ -259,7 +263,11 @@ internal class CheckoutScreen(
 
     /** What keeps the order from being placed, as the button's hint says it. */
     private fun hint(state: CheckoutState): String {
-        val missing = state.draftProblems.map { it.field }.distinct().mapNotNull { FIELD_NAMES[it] }
+        val missing =
+            state.draftProblems
+                .map { it.field }
+                .distinct()
+                .mapNotNull { FIELD_NAMES[it] }
         return when {
             missing.isNotEmpty() -> "Fill in the " + missing.joinedWithAnd()
             state.quote.method != DeliveryMethod.Courier -> "Pick a place to collect the order"

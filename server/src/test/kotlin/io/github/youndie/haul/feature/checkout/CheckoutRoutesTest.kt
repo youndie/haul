@@ -251,7 +251,10 @@ class CheckoutRoutesTest {
             assertEquals(2, summary.items.size)
             assertTrue(summary.items.none { it.title.startsWith("Linen") }, "the unticked duvet was quoted")
             assertEquals(cartSummary.total, summary.total)
-            assertEquals(cartSummary.rows, summary.rows)
+            // The same rows; checkout names the delivery day in its delivery row (Checkout_Content).
+            assertEquals(cartSummary.rows.dropLast(1), summary.rows.dropLast(1))
+            assertEquals(cartSummary.rows.last().value, summary.rows.last().value)
+            assertEquals("Delivery · Wed, Oct 8", summary.rows.last().label)
 
             listOf(headphones, mug).forEach { putLine(token, it, LineChange(selected = false)) }
             get(CheckoutPaths.SCREEN) { bearerAuth(token) }.assertError(HttpStatusCode.Conflict, ErrorCode.CartEmpty)
@@ -372,7 +375,14 @@ class CheckoutRoutesTest {
                 points.map { listOf(it.name, it.distance, it.detail, it.selected) },
             )
             assertEquals("Pickup point", tree.only<PickupPoints>().title)
-            assertEquals("Delivery · Thu, Oct 9", tree.only<CheckoutSummary>().rows.last().label)
+            assertEquals(
+                "Delivery · Thu, Oct 9",
+                tree
+                    .only<CheckoutSummary>()
+                    .rows
+                    .last()
+                    .label,
+            )
             assertTrue(
                 tree.all().none { it is DeliverySlots || it is CheckoutAddress },
                 "a pickup drew courier sections",
@@ -478,9 +488,20 @@ class CheckoutRoutesTest {
                     "city" to ("Brooklyn, NY" to null),
                     "zip" to ("" to "Enter a 5-digit ZIP"),
                 ),
-                drawn.only<CheckoutAddress>().form.filter { it.name in setOf("street", "apt", "city", "zip") }.associate {
-                    it.name to (it.value.trim() to it.error)
-                },
+                drawn
+                    .only<CheckoutAddress>()
+                    .form
+                    .filter {
+                        it.name in
+                            setOf(
+                                "street",
+                                "apt",
+                                "city",
+                                "zip",
+                            )
+                    }.associate {
+                        it.name to (it.value.trim() to it.error)
+                    },
             )
             assertEquals("Fill in the street address and ZIP", drawn.only<CheckoutSummary>().placeHint)
 

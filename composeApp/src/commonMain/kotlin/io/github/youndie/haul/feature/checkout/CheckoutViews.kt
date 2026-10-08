@@ -4,11 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -95,7 +95,10 @@ public fun CheckoutHeaderView(
             }
             Hairline()
             // `height: 52px` and a top border outside it: the hairline above, then 52 px of steps.
-            Row(Modifier.fillMaxWidth().height(52.dp).padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                Modifier.fillMaxWidth().height(52.dp).padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Steps(header)
             }
         } else {
@@ -295,7 +298,17 @@ private fun Methods(
                 option.price,
                 option.selected,
                 Modifier.testTag(methodTag(option.method)).pressable(
-                    if (option.selected) null else ({ send(CheckoutCommand.Choose(methods.url, CheckoutChoice(method = option.method))) }),
+                    if (option.selected) {
+                        null
+                    } else {
+                        (
+                            {
+                                send(
+                                    CheckoutCommand.Choose(methods.url, CheckoutChoice(method = option.method)),
+                                )
+                            }
+                        )
+                    },
                 ),
             )
         }
@@ -418,7 +431,11 @@ private fun FieldCell(
         }
     val shape = RoundedCornerShape(14.dp)
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(field.label.uppercase(), HaulType.label(11f, 600, 0.08f).copy(color = HaulColors.outline), softWrap = false)
+        Text(
+            field.label.uppercase(),
+            HaulType.label(11f, 600, 0.08f).copy(color = HaulColors.outline),
+            softWrap = false,
+        )
         Box(
             Modifier
                 .fillMaxWidth()
@@ -481,7 +498,12 @@ private fun Slots(
             Text(notice, normal(14f, 600).copy(color = HaulColors.error))
         }
     }
-    SpanGrid(columns = 5, gap = if (compact) 6.dp else 10.dp, rowGap = 0.dp, modifier = Modifier.padding(bottom = 14.dp)) {
+    SpanGrid(
+        columns = 5,
+        gap = if (compact) 6.dp else 10.dp,
+        rowGap = 0.dp,
+        modifier = Modifier.padding(bottom = 14.dp),
+    ) {
         slots.days.forEachIndexed { index, day ->
             val selected = index == shown
             val shape = RoundedCornerShape(16.dp)
@@ -516,22 +538,39 @@ private fun Slots(
             }
         }
     }
-    val windows = slots.days.getOrNull(shown)?.slots.orEmpty()
+    val windows =
+        slots.days
+            .getOrNull(shown)
+            ?.slots
+            .orEmpty()
     val pill: @Composable (Int, Modifier) -> Unit = { index, modifier ->
         val slot = windows[index]
         val shape = RoundedCornerShape(999.dp)
         val style =
             when {
-                slot.selected -> normal(15f, 700)
-                !slot.available ->
+                slot.selected -> {
+                    normal(15f, 700)
+                }
+
+                !slot.available -> {
                     normal(15f, 500).copy(color = HaulColors.outlineMuted, textDecoration = TextDecoration.LineThrough)
-                else -> normal(15f, 500)
+                }
+
+                else -> {
+                    normal(15f, 500)
+                }
             }
         Box(
             modifier
                 .testTag(slotTag(slot.id))
                 .pressable(
-                    if (slot.available && !slot.selected) ({ send(CheckoutCommand.Choose(slots.url, CheckoutChoice(slotId = slot.id))) }) else null,
+                    if (slot.available &&
+                        !slot.selected
+                    ) {
+                        ({ send(CheckoutCommand.Choose(slots.url, CheckoutChoice(slotId = slot.id))) })
+                    } else {
+                        null
+                    },
                 ).then(
                     when {
                         slot.selected -> Modifier.background(HaulColors.secondaryContainer, shape)
@@ -562,7 +601,13 @@ private fun Points(
 ) {
     val compact = LocalHaulCompact.current
     val shape = RoundedCornerShape(18.dp)
-    Column(Modifier.fillMaxWidth().border(1.dp, HaulColors.outlineVariant, shape).padding(1.dp).clip(shape)) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .border(1.dp, HaulColors.outlineVariant, shape)
+            .padding(1.dp)
+            .clip(shape),
+    ) {
         points.points.forEachIndexed { index, point ->
             if (index > 0) Hairline()
             Row(
@@ -570,7 +615,17 @@ private fun Points(
                     .fillMaxWidth()
                     .testTag(pointTag(point.id))
                     .pressable(
-                        if (point.selected) null else ({ send(CheckoutCommand.Choose(points.url, CheckoutChoice(pointId = point.id))) }),
+                        if (point.selected) {
+                            null
+                        } else {
+                            (
+                                {
+                                    send(
+                                        CheckoutCommand.Choose(points.url, CheckoutChoice(pointId = point.id)),
+                                    )
+                                }
+                            )
+                        },
                     ).then(if (point.selected) Modifier.background(HaulColors.background) else Modifier)
                     .padding(horizontal = if (compact) 16.dp else 20.dp, vertical = if (compact) 16.dp else 18.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -618,7 +673,17 @@ private fun Payment(
                 null,
                 option.selected,
                 Modifier.testTag(paymentTag(option.id)).pressable(
-                    if (option.selected) null else ({ send(CheckoutCommand.Choose(payment.url, CheckoutChoice(payment = option.id))) }),
+                    if (option.selected) {
+                        null
+                    } else {
+                        (
+                            {
+                                send(
+                                    CheckoutCommand.Choose(payment.url, CheckoutChoice(payment = option.id)),
+                                )
+                            }
+                        )
+                    },
                 ),
             )
         }
@@ -639,16 +704,20 @@ private fun PointsSwitch(toggle: PointsToggle) {
             .padding(top = 16.dp)
             .fillMaxWidth()
             .testTag(POINTS_TAG)
-            .background(if (toggle.on) HaulColors.secondaryContainer else HaulColors.background, RoundedCornerShape(18.dp))
-            .padding(horizontal = if (compact) 16.dp else 20.dp, vertical = if (compact) 16.dp else 18.dp),
+            .background(
+                if (toggle.on) HaulColors.secondaryContainer else HaulColors.background,
+                RoundedCornerShape(18.dp),
+            ).padding(horizontal = if (compact) 16.dp else 20.dp, vertical = if (compact) 16.dp else 18.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
             Modifier
                 .size(44.dp, 26.dp)
-                .background(if (toggle.on) HaulColors.primary else HaulColors.surfaceContainerHighest, RoundedCornerShape(13.dp))
-                .padding(3.dp),
+                .background(
+                    if (toggle.on) HaulColors.primary else HaulColors.surfaceContainerHighest,
+                    RoundedCornerShape(13.dp),
+                ).padding(3.dp),
             contentAlignment = if (toggle.on) Alignment.CenterEnd else Alignment.CenterStart,
         ) {
             Box(Modifier.size(20.dp).background(HaulColors.surfaceContainerLowest, CircleShape))
@@ -681,7 +750,11 @@ private fun Summary(
     ) {
         Text(summary.title, HaulType.display(32f, 800, letterSpacing = -0.01f), softWrap = false)
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            summary.items.forEach { Box(Modifier.size(72.dp).background(toneColor(it.tone), RoundedCornerShape(14.dp))) }
+            summary.items.forEach {
+                Box(
+                    Modifier.size(72.dp).background(toneColor(it.tone), RoundedCornerShape(14.dp)),
+                )
+            }
         }
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { summary.rows.forEach { SummaryLine(it) } }
         Hairline()
@@ -802,7 +875,11 @@ internal fun SpanGrid(
                 val height = row.maxOf { (index, _) -> measurables[index].minIntrinsicHeight(cellWidth(index)) }
                 row.map { (index, start) ->
                     val w = cellWidth(index)
-                    Triple(measurables[index].measure(Constraints.fixed(w, height)), (track * start + gapPx * start).toInt(), height)
+                    Triple(
+                        measurables[index].measure(Constraints.fixed(w, height)),
+                        (track * start + gapPx * start).toInt(),
+                        height,
+                    )
                 }
             }
         val total = placed.sumOf { it.first().third } + rowGapPx * (placed.size - 1).coerceAtLeast(0)

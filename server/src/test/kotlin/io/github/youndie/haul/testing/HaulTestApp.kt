@@ -11,9 +11,9 @@ import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.Seeder
 import io.github.youndie.haul.ui.CampaignRow
 import io.github.youndie.haul.ui.CartBody
-import io.github.youndie.haul.ui.CheckoutBody
 import io.github.youndie.haul.ui.CartGroup
 import io.github.youndie.haul.ui.CategoryGrid
+import io.github.youndie.haul.ui.CheckoutBody
 import io.github.youndie.haul.ui.FilteredResults
 import io.github.youndie.haul.ui.OrderSummary
 import io.github.youndie.kompot.KompotComponent
