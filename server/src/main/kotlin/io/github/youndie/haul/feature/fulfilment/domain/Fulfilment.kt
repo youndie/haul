@@ -19,6 +19,9 @@ import kotlin.time.Duration.Companion.seconds
  * products' (`products.dispatch_days`) — so of Maya's two shipments Sony's ships a day before Brooklyn
  * Home Co.'s, as the canvas promises them (research §6).
  *
+ * A return goes the other way (B-21): the courier collects it [returnPickup] after it is asked for, and it
+ * is refunded [returnRefund] after that, when the seller has it back.
+ *
  * [STORE] is the store's own pace, a decision rather than an observation (research D4, «Decided in
  * B-17»); [faster] is the same schedule run [faster]'s times quicker — the fast clock of a stand or a test.
  */
@@ -28,9 +31,15 @@ internal data class FulfilmentPace(
     val dispatchDay: Duration,
     val transit: Duration,
     val collection: Duration,
+    val returnPickup: Duration = 1.days,
+    val returnRefund: Duration = 1.days,
 ) {
     init {
-        require(listOf(packing, dispatch, dispatchDay, transit, collection).all { it.isPositive() }) {
+        require(
+            listOf(packing, dispatch, dispatchDay, transit, collection, returnPickup, returnRefund).all {
+                it.isPositive()
+            },
+        ) {
             "every step of the fulfilment takes some time: $this"
         }
     }
@@ -75,6 +84,8 @@ internal data class FulfilmentPace(
             dispatchDay / speed,
             transit / speed,
             collection / speed,
+            returnPickup / speed,
+            returnRefund / speed,
         )
     }
 
@@ -97,7 +108,8 @@ internal data class FulfilmentPace(
         /**
          * The store's pace: packed four hours after the seller sees the order, on the road twenty hours
          * later plus a day per dispatch day, delivered or ready to collect a day after that, collected two
-         * days later — inside the five days a point holds it ([HELD_FOR]).
+         * days later — inside the five days a point holds it ([HELD_FOR]). A return is collected a day after it
+         * is asked for and refunded a day after that.
          */
         val STORE: FulfilmentPace =
             FulfilmentPace(

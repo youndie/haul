@@ -309,7 +309,33 @@ and on the stand.
 - **The address drawn is the order's** (`NewOrder.address`, B-40's copy), never the saved address it came from,
   which the checkout edits in place.
 - **«Write a review»** on a delivered line is the product page's own: B-22's review dialog, presented over the
-  order (`ReviewTabs.writeReview`). «Return items» is drawn and waits for B-21.
+  order (`ReviewTabs.writeReview`). «Return items» is B-21's return dialog (below).
+
+**Decided in B-21, returns and refunds.**
+
+- **One return per order, of whole lines**, as the dialog's checkboxes take them: `POST
+  /api/v1/me/orders/{id}/returns` with the ticked lines' positions and a reason (`feature/returns/`,
+  `RequestReturn`), answered like a dialog's command — `201`, kompot's `close` then `refresh`. Refused, in this
+  order: a form at fault (`400 validation_failed`, every field named), not the caller's order or none
+  (`404 order_not_found`, as the order's page), a second return (`409 already_returned`), a line not arrived
+  (`422 not_delivered`), a line past its window (`422 return_window_closed` — «Late return»; a `422` as an
+  expired promo code is, the request is well-formed and its moment has passed).
+- **The window is 30 store days from each line's own arrival** (`ReturnWindow`): delivered on Sep 26, returnable
+  all of Oct 26. It is counted against the saga's clock, the one that stamped the arrival (`shipment_events`).
+- **The refund comes when the parcel is back, not when it is asked for**: the canvas draws «Requested · Picked
+  up · Refunded» and «$87.50 refunded Sep 19». The returns' simulator (`ReturnSimulator`, run with the
+  fulfilment pass) collects a return a day after it is asked for and refunds it a day later
+  (`FulfilmentPace.returnPickup`, `returnRefund`, sped up with the rest), the refund before the move, keyed
+  `refund:<order>`. The ledger gains `payment_refunds`: a key refunded once answers what it gave, and the
+  refunds of an order never add up to more than its captures. Pay on delivery is paid back by the courier,
+  outside the processor.
+- **What a line gives back** is its share of the items as paid — the order's items are at list price and its
+  discount holds the sale and the code, so the code is shared over the lines in proportion to their price paid;
+  the delivery is kept. The points taken back are the order's in proportion to the refund (the canvas's 87 × 2 =
+  174); there is no points ledger yet (B-23), so they are the return's own number, drawn once refunded.
+- **The order's progress** is `returning` while its return is requested or picked up and `returned` once it is
+  refunded (`OrderProgress.of`, reading `Order.returnStatus`): the order page draws the return's three steps,
+  the lines kept in their shipments and the returned ones in a card of their own, «Paid» net of the refund.
 
 ### D5. Sign-in through shildik; guests can browse and fill a cart
 
@@ -470,7 +496,9 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   price drops; nobody else has any. The tree carries the tiles either way, so B-23 and B-20 change the source, not the
   account. «Try 30 days free» has no action until B-23's trial, as the home page's offer has none; «Saved» has none
   until `/saved` is a page.
-- **Returned** is a state of the history (the chip, the filter) that nothing derives until B-21's returns exist.
+- **Returned** is a state of the history (the chip, the filter), derived since B-21 from the order's return: a
+  refunded one reads «Returned», one asked for and not refunded yet «Returning» — Blush like it, under the same
+  «Returned» filter, with «Details» rather than «Reorder».
 - **The profile line** is «Plus member since <year>» for a member, «Joined <month year>» (the customer row's
   `created_at`) for somebody who has never ordered, «No membership» otherwise; a non-member's avatar is the tile tone
   their reviews are signed with (`ReviewCommands.avatarTone`), a member's Acid.

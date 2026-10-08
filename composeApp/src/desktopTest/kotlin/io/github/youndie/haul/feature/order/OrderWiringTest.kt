@@ -24,6 +24,7 @@ import io.github.youndie.haul.registry.haulRegistry
 import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.ui.LocalHaulNow
 import io.github.youndie.haul.ui.OrderBody
+import io.github.youndie.haul.ui.ReturnForm
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotActionHandler
 import io.github.youndie.kompot.KompotComponent
@@ -44,7 +45,7 @@ import kotlin.test.assertTrue
  * The order page's presses, drawn from the server's own trees (`resources/bodies/order_*.json`) through the
  * app's registry (B-18): «Reorder» is the cart command the tree's url names, and the server's answer —
  * `navigate` to the cart — goes to the screen's handler; «Write a review» follows its tree's `present` of the
- * review dialog (B-22); «Return items» is drawn and sends nothing (B-21).
+ * review dialog (B-22); «Return items» follows its tree's `present` of the return dialog (B-21).
  */
 @OptIn(ExperimentalTestApi::class)
 class OrderWiringTest {
@@ -85,7 +86,13 @@ class OrderWiringTest {
             assertEquals(listOf(CartCommand.Reorder(assertNotNull(body(tree).summary.reorderUrl))), sent.toList())
             assertEquals(listOf<KompotAction>(NavigateAction("/cart")), followed.toList())
 
-            onNodeWithText("Return items").performClick()
+            onNodeWithTag(RETURN_TAG).performClick()
+            waitForIdle()
+            assertEquals(
+                ReturnForm::class,
+                ((followed.last() as? PresentAction)?.content ?: followed.last())::class,
+                "«Return items» presents the return dialog",
+            )
             onAllNodesWithText("Write a review")[0].performClick()
             waitForIdle()
             assertEquals(1, sent.size, "«Return items» or a review link sent a command")

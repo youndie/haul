@@ -43,6 +43,33 @@ internal sealed interface CaptureOutcome {
     ) : CaptureOutcome
 }
 
+/** What a return asks to be given back: [amountCents] of what [orderId] was charged, at [at] (B-21). */
+internal data class Refund(
+    val orderId: String,
+    val amountCents: Int,
+    val at: Instant,
+) {
+    init {
+        require(amountCents > 0) { "a refund gives back a positive amount, not $amountCents cents" }
+    }
+}
+
+/** What the card processor answered a refund. */
+internal sealed interface RefundOutcome {
+    /** [amountCents] were given back — now, or by the first call under the same key. */
+    data class Refunded(
+        val amountCents: Int,
+    ) : RefundOutcome
+
+    /** Nothing of the order was ever charged: there is nothing to give back. */
+    data object NotCaptured : RefundOutcome
+
+    /** The refund would give back more than was charged and not yet refunded, [remainingCents]. */
+    data class Exceeds(
+        val remainingCents: Int,
+    ) : RefundOutcome
+}
+
 /**
  * The card processor (research D4: «authorise at placement, capture per shipment at ship time»), as the
  * order saga and the fulfilment simulator call it. Every call is named by the caller's [key] — the saga member's idempotency key —
@@ -53,6 +80,9 @@ internal sealed interface CaptureOutcome {
  * A capture takes part of the order's authorisation (B-17): one per shipment, when it ships, named by the
  * caller's key like everything else, so a shipment whose capture is asked twice — a pass re-run after a
  * restart — is charged once, and the captures of an authorisation never add up to more than it holds.
+ *
+ * A refund gives back part of what was captured (B-21): one per return, named by the caller's key, so a
+ * refund asked twice gives back once, and the refunds of an order never add up to more than its captures.
  *
  * v1 has no real processor: [PaymentSimulator] is the one implementation.
  */
@@ -79,6 +109,18 @@ internal interface PaymentProcessor {
 
     /** What has been captured of [orderId], by the key each capture was taken under. */
     suspend fun captured(orderId: String): Map<String, Int>
+
+    /**
+     * Gives [refund] back out of what its order was charged, under [key]. A key refunded before answers what
+     * it gave back then and gives nothing more, whatever this call asks for.
+     */
+    suspend fun refund(
+        key: String,
+        refund: Refund,
+    ): RefundOutcome
+
+    /** What has been given back of [orderId], by the key each refund was made under. */
+    suspend fun refunded(orderId: String): Map<String, Int>
 }
 
 /**

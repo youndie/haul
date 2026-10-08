@@ -3,11 +3,14 @@ package io.github.youndie.haul.feature.account
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.order.OrderPaths
+import io.github.youndie.haul.feature.returns.ReturnEntry
+import io.github.youndie.haul.feature.returns.domain.RequestReturn
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.testing.FulfilmentWorld
 import io.github.youndie.haul.testing.ShildikHarness
+import io.github.youndie.haul.testing.TestClock
 import io.github.youndie.haul.testing.assertError
 import io.github.youndie.haul.testing.haulTest
 import io.github.youndie.haul.testing.only
@@ -15,6 +18,7 @@ import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.ui.AccountBody
 import io.github.youndie.haul.ui.AccountTileKind
 import io.github.youndie.haul.ui.HaulHeader
+import io.github.youndie.haul.ui.HistoryRow
 import io.github.youndie.haul.ui.HistoryStatusKind
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.decodeKompotComponent
@@ -24,11 +28,13 @@ import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
 
 /**
  * The account's overview and its orders' history over HTTP (feature-account, screen-account,
@@ -177,6 +183,60 @@ class AccountRoutesTest {
             assertEquals(listOf("All"), unknown.filters.filter { it.selected }.map { it.label })
 
             assertEquals(emptyList(), checkNotNull(account(sam, AccountPaths.ORDERS).only<AccountBody>().history).rows)
+        }
+
+    /**
+     * A return in the history (B-21): Maya's delivered order, its first line sent back, reads «Returning» in
+     * Blush while the courier has it and «Returned» once refunded — under the «Returned» chip, which counts
+     * it, and out of «Delivered»; it leads to its page («Details»), not to a reorder, as its page has none.
+     */
+    @Test
+    fun `a returned order is returned in the history and under its filter`() =
+        seededFreshDatabase().use { database ->
+            val clock = TestClock()
+            val orderId =
+                FulfilmentWorld(database, clock).use { world ->
+                    world.place(CheckoutChoice(slotId = "2025-10-08T15")).also { order ->
+                        world.advance(Duration.ZERO)
+                        world.advance(72.hours)
+                        runBlocking {
+                            world.koin
+                                .get<RequestReturn>()
+                                .request(SampleCustomers.MAYA, order, ReturnEntry(listOf(0), "doesnt_fit"))
+                        }
+                        world.advanceReturns(96.hours)
+                    }
+                }
+
+            suspend fun HttpClient.returnedRows(): Pair<List<Pair<String, String?>>, List<HistoryRow>> {
+                val all = checkNotNull(account(maya, AccountPaths.ORDERS).only<AccountBody>().history)
+                val returned =
+                    checkNotNull(account(maya, "${AccountPaths.ORDERS}?status=returned").only<AccountBody>().history)
+                return all.filters.map { it.label to it.count } to returned.rows
+            }
+
+            haulTest(database, signIn = ShildikHarness.signIn) {
+                val (counts, rows) = returnedRows()
+                assertEquals("1", counts.toMap()["Returned"])
+                assertEquals("0", counts.toMap()["Delivered"])
+                assertEquals(
+                    Triple("Returning", HistoryStatusKind.Returned, "Details"),
+                    rows.single().let { Triple(it.status, it.statusKind, it.actionLabel) },
+                )
+            }
+            FulfilmentWorld(database, clock).use { it.advanceReturns(120.hours) }
+            haulTest(database, signIn = ShildikHarness.signIn) {
+                val (counts, rows) = returnedRows()
+                assertEquals("1", counts.toMap()["Returned"])
+                val row = rows.single()
+                assertEquals(orderId, row.id)
+                assertEquals(
+                    Triple("Returned", HistoryStatusKind.Returned, "Details"),
+                    Triple(row.status, row.statusKind, row.actionLabel),
+                )
+                assertEquals(NavigateAction(OrderPaths.page(orderId)), row.action)
+                assertNull(row.reorderUrl)
+            }
         }
 
     /**

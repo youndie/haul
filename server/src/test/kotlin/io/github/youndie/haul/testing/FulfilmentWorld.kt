@@ -24,6 +24,8 @@ import io.github.youndie.haul.feature.order.domain.Placement
 import io.github.youndie.haul.feature.order.orderModule
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
 import io.github.youndie.haul.feature.payment.paymentModule
+import io.github.youndie.haul.feature.returns.domain.ReturnSimulator
+import io.github.youndie.haul.feature.returns.returnsModule
 import io.github.youndie.haul.feature.reviews.reviewsModule
 import io.github.youndie.haul.feature.search.searchModule
 import io.github.youndie.haul.seed.CatalogSeed
@@ -88,12 +90,14 @@ internal class FulfilmentWorld(
                 fulfilmentModule,
                 reviewsModule,
                 accountModule,
+                returnsModule,
             )
         }
     val koin: Koin get() = application.koin
     val simulator: FulfilmentSimulator get() = koin.get()
     val shipments: FulfilmentRepository get() = koin.get()
     val payments: PaymentProcessor get() = koin.get()
+    val returns: ReturnSimulator get() = koin.get()
 
     /** Maya's cart placed, after [choice] when there is one; the order's id. */
     fun place(
@@ -110,6 +114,12 @@ internal class FulfilmentWorld(
     fun advance(offset: Duration): Int {
         clock.at(offset)
         return runBlocking { simulator.advance() }
+    }
+
+    /** One pass of the returns' simulator (B-21) at [offset] from the start of the world. */
+    fun advanceReturns(offset: Duration): Int {
+        clock.at(offset)
+        return runBlocking { returns.advance() }
     }
 
     fun track(

@@ -34,10 +34,10 @@ import kotlin.test.assertTrue
  * The orders are research §6's history, which no seed holds ([SampleOrders]): written as tracking reads
  * them and drawn by the builder the route uses ([AccountScreen.view], [AccountScreen.page]), over the seeded
  * catalog and Maya's checkout; the points, the membership and the Saved list's counts are the account's
- * placeholders for B-23 and B-20 (`SampleLoyalty`, `SampleSavedLists`), which the route reads too. Two parts
- * are the canvas's and not the server's, and each is checked to be only that:
- * - the tiles of lines whose products the seed does not sell, given by the canvas ([SampleOrders.TONES]);
- * - #HL-44019 drawn returned: the returns are B-21's, and no order is returned until they exist.
+ * placeholders for B-23 and B-20 (`SampleLoyalty`, `SampleSavedLists`), which the route reads too. One part
+ * is the canvas's and not the server's, and is checked to be only that: the tiles of lines whose products the
+ * seed does not sell, given by the canvas ([SampleOrders.TONES]). #HL-44019 is returned by its own refunded
+ * return (B-21), as tracking reads it.
  *
  * The headers are the artboards': Maya with three in the cart, Sam and Jordan with none.
  */
@@ -68,7 +68,7 @@ class AccountFixturesTest {
                         }
                     }
 
-                    /** [customer]'s account over [orders], with the canvas's tiles and #HL-44019 returned. */
+                    /** [customer]'s account over [orders], with the canvas's tiles. */
                     suspend fun view(
                         customer: Customer,
                         orders: List<TrackedOrder>,
@@ -87,18 +87,7 @@ class AccountFixturesTest {
                                                 ) { "$sku: neither seeded nor the canvas's" }
                                             }
                                         }
-                                    val state =
-                                        if (order.id == SampleOrders.RETURNED) {
-                                            assertEquals(
-                                                OrderState.Delivered,
-                                                order.state,
-                                                "#HL-44019 is delivered until B-21",
-                                            )
-                                            OrderState.Returned
-                                        } else {
-                                            order.state
-                                        }
-                                    order.copy(tones = tones, state = state)
+                                    order.copy(tones = tones)
                                 },
                         )
                     }
@@ -108,6 +97,11 @@ class AccountFixturesTest {
                     val sam = Customer(SampleCustomers.SAM, "Sam Ortiz", plus = false, joined = CatalogSeed.NOW)
                     val jordan = Customer(JORDAN, "Jordan Lee", plus = false, joined = CatalogSeed.NOW)
                     val mayasView = view(maya, SampleOrders.mayasHistory(mayas))
+                    assertEquals(
+                        OrderState.Returned,
+                        mayasView.orders.single { it.id == SampleOrders.RETURNED }.state,
+                        "#HL-44019 is returned by its own refunded return (B-21)",
+                    )
                     assertTrue(
                         mayasView.orders.none { it.card == null && it.state.active },
                         "every active order is drawn as a card",

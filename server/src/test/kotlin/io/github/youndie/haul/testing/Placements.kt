@@ -13,6 +13,8 @@ import io.github.youndie.haul.feature.order.data.ShipmentsTable
 import io.github.youndie.haul.feature.order.data.StockReservationsTable
 import io.github.youndie.haul.feature.payment.data.PaymentAuthorisationsTable
 import io.github.youndie.haul.feature.payment.data.PaymentCapturesTable
+import io.github.youndie.haul.feature.payment.data.PaymentRefundsTable
+import io.github.youndie.haul.feature.returns.data.ReturnsTable
 import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
 import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
 import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
@@ -159,4 +161,26 @@ internal class Ledger(
 
     /** How many steps of shipment history there are, every shipment's. */
     fun historyRows(): Int = transaction(database) { ShipmentEventsTable.selectAll().count().toInt() }
+
+    /** The payment simulator's refunds of [orderId], by key (B-21). */
+    fun refunds(orderId: String): Map<String, Int> =
+        transaction(database) {
+            PaymentRefundsTable
+                .selectAll()
+                .where { PaymentRefundsTable.orderId eq orderId }
+                .associate { it[PaymentRefundsTable.key] to it[PaymentRefundsTable.amountCents] }
+        }
+
+    /** [orderId]'s return as stored — its status, refund and points — or `null` when none was written. */
+    fun storedReturn(orderId: String): Triple<String, Int, Int>? =
+        transaction(database) {
+            ReturnsTable
+                .selectAll()
+                .where { ReturnsTable.orderId eq orderId }
+                .singleOrNull()
+                ?.let { Triple(it[ReturnsTable.status], it[ReturnsTable.refundCents], it[ReturnsTable.points]) }
+        }
+
+    /** How many returns there are, everybody's. */
+    fun returns(): Int = transaction(database) { ReturnsTable.selectAll().count().toInt() }
 }

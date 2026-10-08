@@ -15,5 +15,5 @@ internal val fulfilmentModule =
     module {
         single<FulfilmentRepository> { ExposedFulfilment(get()) }
         single { FulfilmentSimulator(shipments = get(), orders = get(), payments = get(), clock = get(), pace = get()) }
-        single { OrderTracking(orders = get(), shipments = get(), payments = get()) }
+        single { OrderTracking(orders = get(), shipments = get(), payments = get(), returns = get()) }
     }

@@ -124,6 +124,21 @@ public enum class ErrorCode {
     @SerialName("own_review")
     OwnReview,
 
+    /**
+     * A return asked for after its window: a line delivered more than 30 days ago (feature-orders, «Late
+     * return»). A `422`, as an expired promo code is: the request is well-formed and its moment has passed.
+     */
+    @SerialName("return_window_closed")
+    ReturnWindowClosed,
+
+    /** A return of a line whose shipment has not arrived — not delivered, nor picked up (feature-orders). */
+    @SerialName("not_delivered")
+    NotDelivered,
+
+    /** One return per order: this order's return was already requested (feature-orders). */
+    @SerialName("already_returned")
+    AlreadyReturned,
+
     /** In [ErrorBody.fields] only: a form field that must be filled was left empty. */
     @SerialName("field_required")
     FieldRequired,

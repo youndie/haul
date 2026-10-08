@@ -8,6 +8,7 @@ import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.domain.OrderStatus
 import io.github.youndie.haul.feature.order.domain.Shipment
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus
+import io.github.youndie.haul.feature.returns.data.ReturnsTable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -19,6 +20,7 @@ import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
@@ -118,7 +120,10 @@ internal class ExposedOrders(
             )
         }
 
-    /** The orders of [rows], in their order, each with its lines and its shipments: three queries, whatever the count. */
+    /**
+     * The orders of [rows], in their order, each with its lines, its shipments and its return's status: four
+     * queries, whatever the count.
+     */
     private fun read(rows: List<ResultRow>): List<Order> {
         if (rows.isEmpty()) return emptyList()
         val ids = rows.map { it[OrdersTable.id] }
@@ -150,6 +155,12 @@ internal class ExposedOrders(
                         it[ShipmentsTable.pickupCode],
                     )
                 }
+        // Each order's return (B-21), so the order's progress — the page's and the history's — reads «returned».
+        val returns =
+            ReturnsTable
+                .select(ReturnsTable.orderId, ReturnsTable.status)
+                .where { ReturnsTable.orderId inList ids }
+                .associate { it[ReturnsTable.orderId] to it[ReturnsTable.status] }
         return rows.map { row ->
             val id = row[OrdersTable.id]
             Order(
@@ -176,6 +187,7 @@ internal class ExposedOrders(
                 status = OrderStatus.of(row[OrdersTable.status]),
                 cancelReason = row[OrdersTable.cancelReason],
                 shipments = shipments[id].orEmpty(),
+                returnStatus = returns[id],
             )
         }
     }

@@ -11,8 +11,9 @@ import kotlinx.serialization.Serializable
 // The pieces of the Order screen (feature-orders, screen-order). The page is the frame's header and one
 // [OrderBody]: the crumbs, the title and the shipments in one column with the summary beside them at the
 // desktop width, under them on a phone — one layout, as the cart's and the checkout's are. One tree covers
-// Placed, InTransit, ReadyForPickup, Delivered and Cancelled: they are what the order is, not separate
-// builders. Reorder is a `POST` to [OrderTotals.reorderUrl], answered with `navigate` to the cart.
+// Placed, InTransit, ReadyForPickup, Delivered, Cancelled and Returned: they are what the order is, not
+// separate builders. Reorder is a `POST` to [OrderTotals.reorderUrl], answered with `navigate` to the cart;
+// «Return items» is kompot's `present` of a [ReturnForm] (B-21).
 
 /**
  * Everything under the header: the [crumbs] («Account / Orders / #HL-48302», the last the order), the
@@ -77,7 +78,9 @@ public data class PickupCode(
 /**
  * One seller's shipment: the [seller], its [status] in a chip («In transit»), [eta] — when or where it
  * arrives, or that it did («Tomorrow, Oct 8 · 15:00 – 18:00», «Pickup point · 214 Bedford Ave»,
- * «Delivered Sep 26», «Not shipped») — and its [items], drawn faded when it was [cancelled].
+ * «Delivered Sep 26», «Not shipped») — and its [items], drawn faded when it was [cancelled]. The lines of a
+ * return are one more such card (`Order_Returned`: «Returned items», «Refunded»), its chip in Blush when it is
+ * [returned].
  */
 @Serializable
 public data class OrderShipment(
@@ -86,6 +89,7 @@ public data class OrderShipment(
     val status: String,
     val eta: String,
     val cancelled: Boolean = false,
+    val returned: Boolean = false,
     val items: List<OrderItem>,
 )
 
@@ -131,8 +135,8 @@ public data class OrderFact(
  * «Summary»: the [rows] («Items (3) $652.00», «Discount −$140.00», «Delivery Free»), the total — struck
  * through once it is [voided], a cancelled order's — the [facts], and the ways on: [reorderLabel] puts the
  * order's lines back into the cart (`POST` to [reorderUrl], answered `navigate` to the cart);
- * [returnLabel] is «Return items», drawn and not yet followed (its dialog is the returns'); [back] is a
- * cancelled order's «Back to cart».
+ * [returnLabel] is «Return items», and [returnAction] what it does — kompot's `present` of the [ReturnForm]
+ * (B-21); [back] is a cancelled order's «Back to cart».
  */
 @Serializable
 public data class OrderTotals(
@@ -145,5 +149,56 @@ public data class OrderTotals(
     val reorderLabel: String? = null,
     val reorderUrl: String? = null,
     val returnLabel: String? = null,
+    val returnAction: @Polymorphic KompotAction? = null,
     val back: Link? = null,
+)
+
+/**
+ * «Return items» (`Order_ReturnDialog`), presented over a delivered order: the [title], the [meta] line
+ * («#HL-46102 · delivered Sep 26 · returns until Oct 26»), the [lines] that can go back with a checkbox
+ * each, the [reasons] under [reasonLabel] ([reasonHint] until one is chosen), and the refund the ticked lines
+ * come to — [refund] with `{amount}` standing for their sum («Refund {amount} to card ···· 4821»), then
+ * [note] and, when the order earned points, [pointsOne] or [pointsMany] by how many lines are ticked. Sent
+ * as a `ReturnEntry` to [url]; [close] is what «×» and [cancelLabel] do.
+ */
+@Serializable
+@SerialName("haul_return_form")
+@KompotComponentMarker
+public data class ReturnForm(
+    override val id: String,
+    val title: String,
+    val meta: String,
+    val lines: List<ReturnLine>,
+    val reasonLabel: String,
+    val reasonHint: String,
+    val reasons: List<ReturnReason>,
+    val refund: String,
+    val note: String,
+    val pointsOne: String? = null,
+    val pointsMany: String? = null,
+    val submitLabel: String,
+    val cancelLabel: String,
+    val url: String,
+    val close: @Polymorphic KompotAction? = null,
+    override val modifiers: List<KompotModifierNode> = emptyList(),
+) : KompotComponent
+
+/**
+ * A line the shopper may return, whole: its [position] in the order (what `ReturnEntry.lines` names), its
+ * tile, [title] and [details] as the order draws them, and [refundCents] — what returning it gives back.
+ */
+@Serializable
+public data class ReturnLine(
+    val position: Int,
+    val title: String,
+    val details: String,
+    val tone: String,
+    val refundCents: Int,
+)
+
+/** A reason to return, by its [id] (what `ReturnEntry.reason` names) and its [label] («Doesn’t fit»). */
+@Serializable
+public data class ReturnReason(
+    val id: String,
+    val label: String,
 )

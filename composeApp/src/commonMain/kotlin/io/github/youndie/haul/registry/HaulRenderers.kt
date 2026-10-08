@@ -33,6 +33,7 @@ import io.github.youndie.haul.feature.home.CategoryGridView
 import io.github.youndie.haul.feature.home.PlusBlockView
 import io.github.youndie.haul.feature.home.SectionHeaderView
 import io.github.youndie.haul.feature.order.OrderBodyView
+import io.github.youndie.haul.feature.order.ReturnDialog
 import io.github.youndie.haul.feature.product.ProductDescriptionView
 import io.github.youndie.haul.feature.product.ProductDetailsView
 import io.github.youndie.haul.feature.product.ProductQuestionsView
@@ -72,6 +73,7 @@ import io.github.youndie.haul.ui.ProductQuestions
 import io.github.youndie.haul.ui.ProductReviews
 import io.github.youndie.haul.ui.ProductTabs
 import io.github.youndie.haul.ui.QuestionForm
+import io.github.youndie.haul.ui.ReturnForm
 import io.github.youndie.haul.ui.ReviewForm
 import io.github.youndie.haul.ui.SearchNoResults
 import io.github.youndie.haul.ui.SectionHeader
@@ -369,6 +371,19 @@ public class ReviewFormRenderer : KompotComponentRenderer<ReviewForm> {
         formController: FormController,
     ) {
         ReviewDialog(component, actionHandler::handle)
+    }
+}
+
+/** «Return items» over a delivered order (B-21): the same seam as the review dialogs. */
+@KompotComponentMarker
+public class ReturnFormRenderer : KompotComponentRenderer<ReturnForm> {
+    @Composable
+    override fun Render(
+        component: ReturnForm,
+        actionHandler: KompotActionHandler,
+        formController: FormController,
+    ) {
+        ReturnDialog(component, actionHandler::handle)
     }
 }
 

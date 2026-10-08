@@ -22,6 +22,11 @@ import io.github.youndie.haul.feature.order.OrderPaths
 import io.github.youndie.haul.feature.order.domain.CancelReason
 import io.github.youndie.haul.feature.order.domain.OrderLine
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus
+import io.github.youndie.haul.feature.returns.ReturnPaths
+import io.github.youndie.haul.feature.returns.domain.ReturnReason
+import io.github.youndie.haul.feature.returns.domain.ReturnRefunds
+import io.github.youndie.haul.feature.returns.domain.ReturnStatus
+import io.github.youndie.haul.feature.returns.domain.ReturnWindow
 import io.github.youndie.haul.feature.reviews.screen.ReviewTabs
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.shell.Viewer
@@ -36,22 +41,27 @@ import io.github.youndie.haul.ui.OrderShipment
 import io.github.youndie.haul.ui.OrderSteps
 import io.github.youndie.haul.ui.OrderTotals
 import io.github.youndie.haul.ui.PickupCode
+import io.github.youndie.haul.ui.ReturnForm
+import io.github.youndie.haul.ui.ReturnLine
 import io.github.youndie.haul.ui.SummaryRow
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.standard.CloseAction
 import io.github.youndie.kompot.standard.NavigateAction
+import io.github.youndie.kompot.standard.PresentAction
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import io.github.youndie.haul.ui.ReturnReason as ReasonOption
 
 /**
  * `GET /ui/account/orders/{id}` (screen-order, feature-orders): the frame and one [OrderBody], drawn from
  * where the order is ([OrderTracking.track], B-17). One tree covers every state the server has: Placed,
- * InTransit, ReadyForPickup, Delivered and Cancelled are what the order is. The copy is the canvas's
- * (`Order_*`). Another customer's order and one that does not exist are both `null` — the route answers
- * them alike.
+ * InTransit, ReadyForPickup, Delivered, Cancelled and Returned are what the order is; a delivered order's
+ * «Return items» presents the [ReturnForm] (B-21). The copy is the canvas's (`Order_*`). Another customer's
+ * order and one that does not exist are both `null` — the route answers them alike.
  */
 internal class OrderScreen(
     private val tracking: OrderTracking,
@@ -183,6 +193,8 @@ private class OrderPage(
     private val slot = placed.slotId?.let(Slot::parse)
     private val payment = PaymentMethod.byId(placed.payment)
     private val arrived = progress == OrderProgress.Delivered || progress == OrderProgress.PickedUp
+    private val returned = view.tracked.returned
+    private val refunded = returned?.status == ReturnStatus.REFUNDED
 
     fun body(): OrderBody {
         val (title, accent, lead) = heading()
@@ -201,7 +213,7 @@ private class OrderPage(
             steps = steps(),
             notice = notice(),
             pickup = pickupCode(),
-            shipments = view.tracked.shipments.map(::shipment),
+            shipments = shipments(),
             summary = summary(),
         )
     }
@@ -233,12 +245,72 @@ private class OrderPage(
                 val day = arrivedOn()
                 val verb = if (progress == OrderProgress.PickedUp) "Picked up" else "Delivered"
                 val shown = day?.let(MONTH_DAY::format)
+                val last = day?.let(ReturnWindow::lastDay)
                 Triple(
                     listOfNotNull(verb, shown).joinToString(" "),
                     shown,
-                    day?.let { "Returns are open until ${MONTH_DAY.format(it.plusDays(RETURN_DAYS))}." },
+                    last?.let {
+                        if (today.isAfter(it)) {
+                            "Returns closed on ${MONTH_DAY.format(it)}."
+                        } else {
+                            "Returns are open until ${MONTH_DAY.format(it)}."
+                        }
+                    },
                 )
             }
+
+            OrderProgress.Returning, OrderProgress.Returned -> {
+                returnHeading()
+            }
+        }
+
+    /**
+     * A return's title, by where it is, and where the money goes: «Return refunded», «$87.50 is back on your
+     * card ···· 4821.» (`Order_Returned`); before that, when it will be.
+     */
+    private fun returnHeading(): Triple<String, String?, String?> {
+        val amount = exact(returned?.refundCents ?: 0)
+        return when (returned?.status) {
+            ReturnStatus.REFUNDED -> {
+                Triple("Return refunded", "refunded", "$amount is back ${refundedTo()}.")
+            }
+
+            ReturnStatus.PICKED_UP -> {
+                Triple("Return picked up", "picked up", "$amount goes back ${refundTo()} once the seller has it.")
+            }
+
+            else -> {
+                Triple(
+                    "Return requested",
+                    "requested",
+                    "${collection()} $amount goes back ${refundTo()} once the seller has it.",
+                )
+            }
+        }
+    }
+
+    /** How the parcel goes back: the courier collects a courier's order; a point's goes back to the point. */
+    private fun collection(): String =
+        if (pickup) {
+            "Bring it back to ${view.point?.name ?: "the pickup point"} for free."
+        } else {
+            "A courier picks it up for free."
+        }
+
+    /** Where a refund goes, before it went. */
+    private fun refundTo(): String =
+        when (payment) {
+            PaymentMethod.OnDelivery -> "in cash, from the courier"
+            PaymentMethod.HaulPayPlan -> "to your Haul Pay plan"
+            else -> "to your ${paymentName()}"
+        }
+
+    /** Where a refund went. */
+    private fun refundedTo(): String =
+        when (payment) {
+            PaymentMethod.OnDelivery -> "with you, in cash"
+            PaymentMethod.HaulPayPlan -> "on your Haul Pay plan"
+            else -> "on your ${paymentName()}"
         }
 
     /**
@@ -317,6 +389,10 @@ private class OrderPage(
     private fun pointLine(): String? = view.point?.let { "${it.name} · ${it.hours}" }
 
     private fun steps(): OrderSteps? {
+        returned?.let {
+            val at = ReturnStatus.ALL.indexOf(it.status)
+            return OrderSteps(RETURN_STEPS, at, arrived = it.status == ReturnStatus.REFUNDED)
+        }
         val labels =
             if (pickup) {
                 listOf(
@@ -342,6 +418,9 @@ private class OrderPage(
                 OrderProgress.ReadyForPickup -> 2
 
                 OrderProgress.Delivered, OrderProgress.PickedUp -> 3
+
+                // Drawn from the return above.
+                OrderProgress.Returning, OrderProgress.Returned -> return null
             }
         return OrderSteps(labels, current, arrived)
     }
@@ -391,15 +470,51 @@ private class OrderPage(
         return PickupCode("Pickup code", code, action + kept.orEmpty(), until)
     }
 
-    private fun shipment(shipment: TrackedShipment): OrderShipment {
+    /**
+     * Each seller's shipment with what it still holds, then — once something went back — the returned lines
+     * as one card of their own («Returned items», `Order_Returned`). A shipment all of whose lines went back
+     * is drawn only there.
+     */
+    private fun shipments(): List<OrderShipment> {
+        val back =
+            returned
+                ?.lines
+                ?.map { it.position }
+                ?.toSet()
+                .orEmpty()
+        val kept = view.tracked.shipments.mapNotNull { shipment(it, back) }
+        val ret = returned ?: return kept
+        val status = RETURN_STATUSES.getValue(ret.status)
+        val day = ret.history[ret.status]?.let { MONTH_DAY.format(day(it)) }
+        return kept +
+            OrderShipment(
+                id = "return",
+                seller = "Returned items",
+                status = status,
+                eta = listOfNotNull(status, day).joinToString(" "),
+                returned = true,
+                items =
+                    placed.lines
+                        .withIndex()
+                        .filter { it.index in back }
+                        .map { item(it.value, received = false) },
+            )
+    }
+
+    private fun shipment(
+        shipment: TrackedShipment,
+        back: Set<Int>,
+    ): OrderShipment? {
         val received = shipment.status == ShipmentStatus.DELIVERED || shipment.status == ShipmentStatus.PICKED_UP
+        val lines = placed.lines.withIndex().filter { it.value.sellerId == shipment.sellerId && it.index !in back }
+        if (lines.isEmpty() && back.isNotEmpty()) return null
         return OrderShipment(
             id = shipment.id,
             seller = view.sellers[shipment.sellerId] ?: shipment.sellerId,
             status = STATUSES[shipment.status] ?: shipment.status,
             eta = eta(shipment),
             cancelled = shipment.status == ShipmentStatus.CANCELLED,
-            items = placed.lines.filter { it.sellerId == shipment.sellerId }.map { item(it, received) },
+            items = lines.map { item(it.value, received) },
         )
     }
 
@@ -410,18 +525,19 @@ private class OrderPage(
         val bought = view.products[line.skuId]
         return OrderItem(
             title = line.title,
-            details =
-                listOfNotNull(
-                    bought?.options?.ifEmpty {
-                        null
-                    },
-                    "${line.quantity} × ${money(line.priceCents)}",
-                ).joinToString(" · "),
+            details = details(line),
             tone = bought?.tone.orEmpty(),
             action = bought?.let { productLink(it.productId) },
             review = bought?.review?.takeIf { received }?.let { Link("Write a review", it) },
         )
     }
+
+    /** «Moss · M · 1 × $80»: the options, the quantity and the price paid. */
+    private fun details(line: OrderLine): String =
+        listOfNotNull(
+            view.products[line.skuId]?.options?.ifEmpty { null },
+            "${line.quantity} × ${money(line.priceCents)}",
+        ).joinToString(" · ")
 
     /** When or where a shipment arrives, or that it did: the mono line at the right of its seller. */
     private fun eta(shipment: TrackedShipment): String =
@@ -506,24 +622,97 @@ private class OrderPage(
                     add(SummaryRow("Discount", "−" + exact(placed.discountCents), saving = true))
                 }
                 add(SummaryRow("Delivery", if (placed.deliveryCents == 0) "Free" else exact(placed.deliveryCents)))
+                returned?.takeIf { refunded }?.let {
+                    add(
+                        SummaryRow("Refunded", "−" + exact(it.refundCents), saving = true),
+                    )
+                }
             }
         val cancelled = progress == OrderProgress.Cancelled
+        val form = returnForm()
         return OrderTotals(
             title = "Summary",
             rows = rows,
-            totalLabel = "Total",
-            total = exact(placed.totalCents),
+            totalLabel = if (refunded) "Paid" else "Total",
+            total = exact(placed.totalCents - if (refunded) returned?.refundCents ?: 0 else 0),
             voided = cancelled,
-            facts = listOfNotNull(paid(), place().takeUnless { cancelled }, points()),
+            facts =
+                listOfNotNull(
+                    paid(),
+                    place().takeUnless { cancelled || returned != null },
+                    points(),
+                    reversed(),
+                ),
             reorderLabel = "Reorder".takeIf { arrived },
             reorderUrl = OrderPaths.reorder(order.id).takeIf { arrived },
-            returnLabel = "Return items".takeIf { arrived },
+            returnLabel = "Return items".takeIf { form != null },
+            returnAction = form?.let { PresentAction(it, ReviewTabs.DIALOG) },
             back = Link("Back to cart", toCart()).takeIf { cancelled },
         )
     }
 
-    /** How it was paid, and how much of it has been charged so far. */
+    /**
+     * «Return items» (`Order_ReturnDialog`): the lines of an order that has arrived, each still inside its 30
+     * days, with what returning it gives back; `null` — no button — once nothing can go back any more. One
+     * return per order, so an order with a return has none.
+     */
+    private fun returnForm(): ReturnForm? {
+        if (!arrived || returned != null) return null
+        val now = view.now.toInstant()
+        val refunds = ReturnRefunds.of(order)
+        val lines =
+            placed.lines.withIndex().mapNotNull { (position, line) ->
+                val shipment = view.tracked.shipments.firstOrNull { it.sellerId == line.sellerId }
+                val at = shipment?.let { it.history[ShipmentStatus.DELIVERED] ?: it.history[ShipmentStatus.PICKED_UP] }
+                if (at == null || !ReturnWindow.open(at, now)) return@mapNotNull null
+                ReturnLine(
+                    position,
+                    line.title,
+                    details(line),
+                    view.products[line.skuId]?.tone.orEmpty(),
+                    refunds.getValue(position),
+                )
+            }
+        if (lines.isEmpty()) return null
+        val day = arrivedOn() ?: return null
+        val verb = if (progress == OrderProgress.PickedUp) "picked up" else "delivered"
+        val points = placed.points > 0
+        return ReturnForm(
+            id = "return-form",
+            title = "Return items",
+            meta =
+                "#${order.id} · $verb ${MONTH_DAY.format(day)} · returns until " +
+                    MONTH_DAY.format(ReturnWindow.lastDay(day)),
+            lines = lines,
+            reasonLabel = "Reason",
+            reasonHint = "Choose a reason",
+            reasons = ReturnReason.entries.map { ReasonOption(it.id, it.label) },
+            refund =
+                when (payment) {
+                    PaymentMethod.OnDelivery -> "Refund {amount} in cash, from the courier"
+                    PaymentMethod.HaulPayPlan -> "Refund {amount} to your Haul Pay plan"
+                    else -> "Refund {amount} to ${paymentName()}"
+                },
+            note = collection(),
+            pointsOne = "Points earned on this line are reversed.".takeIf { points },
+            pointsMany = "Points earned on these lines are reversed.".takeIf { points },
+            submitLabel = "Request return",
+            cancelLabel = "Cancel",
+            url = ReturnPaths.returns(order.id),
+            close = CloseAction,
+        )
+    }
+
+    /** How it was paid, and how much of it has been charged so far — or, once a return is refunded, given back. */
     private fun paid(): OrderFact {
+        returned?.takeIf { refunded }?.let { ret ->
+            val on = ret.history[ReturnStatus.REFUNDED]?.let { " " + MONTH_DAY.format(day(it)) }.orEmpty()
+            return OrderFact(
+                OrderFactKind.Card,
+                payment?.label ?: placed.payment,
+                "${exact(ret.refundCents)} refunded$on",
+            )
+        }
         val total = placed.totalCents
         val captured = view.tracked.shipments.sumOf { it.capturedCents }
         val several = view.tracked.shipments.size > 1
@@ -588,6 +777,16 @@ private class OrderPage(
         return OrderFact(OrderFactKind.Points, "${count(placed.points)} points", "Credited when $delivered")
     }
 
+    /** The points a refunded return took back (`Order_Returned`: «−174 points»). */
+    private fun reversed(): OrderFact? {
+        val ret = returned?.takeIf { refunded && it.points > 0 } ?: return null
+        return OrderFact(
+            OrderFactKind.Points,
+            "−${count(ret.points)} points",
+            "Points earned on the returned lines were reversed",
+        )
+    }
+
     private fun street(address: AddressEntry): String =
         address.street +
             address.apt
@@ -604,9 +803,6 @@ private class OrderPage(
     private companion object {
         val STORE = DeliveryCalendar.STORE
 
-        /** Feature-orders: a return can be requested within 30 days of delivery. */
-        const val RETURN_DAYS = 30L
-
         val MONTH_DAY: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM d", Locale.US)
         val DAY: DateTimeFormatter = DateTimeFormatter.ofPattern("EEE, MMM d", Locale.US)
 
@@ -620,6 +816,16 @@ private class OrderPage(
                 ShipmentStatus.PICKED_UP to "Picked up",
                 ShipmentStatus.CANCELLED to "Cancelled",
             )
+
+        val RETURN_STATUSES =
+            mapOf(
+                ReturnStatus.REQUESTED to "Requested",
+                ReturnStatus.PICKED_UP to "Picked up",
+                ReturnStatus.REFUNDED to "Refunded",
+            )
+
+        /** A return's steps (`Order_Returned`: «Requested · Picked up · Refunded»), in [ReturnStatus.ALL]'s order. */
+        val RETURN_STEPS = ReturnStatus.ALL.map { RETURN_STATUSES.getValue(it) }
 
         val METHODS =
             mapOf(

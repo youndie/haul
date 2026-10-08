@@ -20,6 +20,8 @@ import io.github.youndie.haul.feature.payment.domain.AuthorisationOutcome
 import io.github.youndie.haul.feature.payment.domain.Capture
 import io.github.youndie.haul.feature.payment.domain.CaptureOutcome
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
+import io.github.youndie.haul.feature.payment.domain.Refund
+import io.github.youndie.haul.feature.payment.domain.RefundOutcome
 import io.github.youndie.haul.feature.payment.paymentModule
 import io.github.youndie.haul.feature.search.searchModule
 import io.github.youndie.haul.seed.SampleCustomers
@@ -84,6 +86,13 @@ class PlacementRestartTest {
         ): CaptureOutcome = error("nothing ships from a process that died")
 
         override suspend fun captured(orderId: String): Map<String, Int> = emptyMap()
+
+        override suspend fun refund(
+            key: String,
+            refund: Refund,
+        ): RefundOutcome = error("nothing is refunded by a process that died")
+
+        override suspend fun refunded(orderId: String): Map<String, Int> = emptyMap()
     }
 
     /** The first process: the production graph over [dataSource], its card processor [payments]. */
