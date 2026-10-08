@@ -400,7 +400,8 @@ and sending `Vary: Accept-Encoding`; the two hash-named `.wasm` are `public, max
 immutable`, everything else `no-cache`; `composeApp.js.map` is gone from the distribution. No
 compression per request, no Traefik middleware.
 
-**How.** On 2026-10-08, the image of `f685a2c` (`haul/server:b34`, `sha256:5b2b3a6a…`, built by
+**How.** On 2026-10-08, the image of this item's branch on `4e4d27c`, before its rebase onto B-30
+(`haul/server:b34`, `sha256:5b2b3a6a…`, built by
 `scripts/image-check.sh`, which also asserts the headers), measured by B-28's script with two new arms:
 `ARMS="image image-identity" IMAGE=haul/server:b34 OUT=/tmp/b34-first-load
 scripts/measure-first-load.sh 7`. **image** starts the image beside a PostgreSQL and points the
