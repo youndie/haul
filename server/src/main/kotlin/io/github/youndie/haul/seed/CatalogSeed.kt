@@ -71,6 +71,7 @@ internal object CatalogSeed {
             SampleSaved.mayas(products, skus, deals),
             memberships = SampleCustomers.memberships,
             openingPoints = SampleCustomers.openingPoints,
+            views = SampleViews.mayas,
         )
     }
 

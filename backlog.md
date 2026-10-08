@@ -40,12 +40,11 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (9)
+## Open (8)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-24](docs/backlog/B-24-haul-pay-4-payments-two-weeks.md) `[ ]` | server + client: Haul Pay, 4 payments two weeks apart | P2 | M | B-15, B-16 |
-| [B-25](docs/backlog/B-25-recommendations-from-views-in-the-home.md) `[ ]` | server: recommendations from views in the Home tree | P2 | M | B-07, B-19 |
 | [B-27](docs/backlog/B-27-helm-chart-tracy-metrik-katcher-wiring.md) `[?]` | ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand | P2 | M | B-03 |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
@@ -54,7 +53,7 @@ A stage is a field on the item, not a directory.
 | [B-50](docs/backlog/B-50-the-return-dialog-names-the-points-share.md) `[ ]` | server + client: the return dialog names the points share of a refund | P3 | S | B-21, B-23 |
 | [B-51](docs/backlog/B-51-dialog-commands-are-not-review-commands.md) `[ ]` | client: dialog commands are not review commands | P3 | S | B-21 |
 
-## Closed (42)
+## Closed (43)
 
 **Skeleton**
 
@@ -117,6 +116,7 @@ A stage is a field on the item, not a directory.
 **Loyalty**
 
 - [B-23](docs/backlog/B-23-haul-plus-trial-and-benefits-points.md) `[x]` - server + client: Haul Plus trial and benefits, points ledger, redemption at checkout, delivery savings
+- [B-25](docs/backlog/B-25-recommendations-from-views-in-the-home.md) `[x]` - server: recommendations from views in the Home tree
 
 **Ship**
 

@@ -42,6 +42,12 @@ import io.github.youndie.haul.feature.order.saga.SagaStorage
 import io.github.youndie.haul.feature.order.screen.OrderScreen
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
 import io.github.youndie.haul.feature.payment.paymentModule
+import io.github.youndie.haul.feature.recommendations.domain.PickSources
+import io.github.youndie.haul.feature.recommendations.domain.PickedForYou
+import io.github.youndie.haul.feature.recommendations.domain.ProductViews
+import io.github.youndie.haul.feature.recommendations.domain.RecordView
+import io.github.youndie.haul.feature.recommendations.recommendationsModule
+import io.github.youndie.haul.feature.recommendations.screen.PickedSection
 import io.github.youndie.haul.feature.returns.domain.RequestReturn
 import io.github.youndie.haul.feature.returns.domain.ReturnRepository
 import io.github.youndie.haul.feature.returns.domain.ReturnSimulator
@@ -108,6 +114,7 @@ class KoinGraphTest {
                     accountModule,
                     returnsModule,
                     membershipModule,
+                    recommendationsModule,
                 )
             }
         try {
@@ -160,5 +167,10 @@ class KoinGraphTest {
         assertNotNull(koin.get<ReturnRepository>())
         assertNotNull(koin.get<RequestReturn>())
         assertNotNull(koin.get<ReturnSimulator>())
+        assertNotNull(koin.get<ProductViews>())
+        assertNotNull(koin.get<PickSources>())
+        assertNotNull(koin.get<PickedForYou>())
+        assertNotNull(koin.get<RecordView>())
+        assertNotNull(koin.get<PickedSection>())
     }
 }

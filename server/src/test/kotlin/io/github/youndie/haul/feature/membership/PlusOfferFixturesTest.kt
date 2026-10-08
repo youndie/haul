@@ -18,9 +18,9 @@ import kotlin.test.assertEquals
 /**
  * `Home_PlusTrialDialog` is drawn from a wire body (`composeApp/src/desktopTest/resources/bodies/
  * home_plus_trial.json`): the home page as Sam sees it, the dialog presented from its Plus block. The page
- * around the block is the Content body's — the home's «Picked for you» is not the server's yet (B-25) — but
- * the block and the dialog it presents are this item's, and this holds them equal to what the server sends
- * a customer who is not a member.
+ * around the block is the Content body's — «Picked for you» is held to the server's by `PickedSectionTest`
+ * (B-25), its cards the canvas's — and the block and the dialog it presents are this item's, and this holds
+ * them equal to what the server sends a customer who is not a member.
  */
 class PlusOfferFixturesTest {
     private val bodies = File(System.getProperty("haul.clientBodies") ?: error("haul.clientBodies is not set"))
