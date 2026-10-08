@@ -1,7 +1,7 @@
 ---
 id: B-46
 title: "client: a closed sign-in popup settles the sign-in"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-4-cart
