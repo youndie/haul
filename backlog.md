@@ -40,7 +40,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (14)
+## Open (15)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -58,6 +58,7 @@ A stage is a field on the item, not a directory.
 | [B-42](docs/backlog/B-42-a-refused-address-form-holds-pickup-orders.md) `[ ]` | server: a refused address form does not hold a pickup or locker order | P2 | S | B-39 |
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
 | [B-40](docs/backlog/B-40-saving-an-address-updates-it-in-place.md) `[ ]` | server: saving the address being delivered to updates it in place | P3 | S | B-15 |
+| [B-43](docs/backlog/B-43-helpful-votes-on-reviews.md) `[ ]` | server + client: «Helpful» votes on reviews | P3 | S | B-22 |
 
 ## Closed (28)
 
