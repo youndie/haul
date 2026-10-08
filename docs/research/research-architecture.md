@@ -213,6 +213,14 @@ The canvas contradicted itself in three places and left one promise unbacked; th
 - A public demo stand on the owner's domain, with synthetic shoppers walking the path continuously
   (B-31), so the stand has traffic to measure.
 
+**How the stand is built (B-27).** One image serves the page and the API: the server's distribution
+carries the browser bundle and serves it at `/`, so the two cannot be deployed at different versions
+and the client needs no base URL. The chart (`charts/haul/`) holds the server, its PostgreSQL as one
+pod with one volume, and Traefik IngressRoutes for the host, the shape the sibling reference services
+are deployed in; metrik, tracy and katcher are wired in the server and each switched on by an endpoint
+and a key. The host, `haul.kotlin.website`, is the siblings' convention and an assumption until the
+first deploy.
+
 ### D7. Numbers the canvas implies, fixed here
 
 Delivery is free over $35 or for Plus, otherwise $5.99; 1 point per whole dollar, ×2 for Plus,
