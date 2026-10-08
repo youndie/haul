@@ -30,7 +30,7 @@ design:
 | What | File |
 |---|---|
 | Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/catalog/` |
-| Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` |
+| Client shell: Loading and Error, navigation | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` (`Storefront.kt`, `Shell.kt`); the sort menu in `composeApp/src/commonMain/kotlin/io/github/youndie/haul/ui/LinkMenu.kt` |
 | The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/` |
 | Reference PNGs, one per artboard | `composeApp/src/desktopTest/snapshots/design/` |
 | Parity fixtures, one per artboard | `composeApp/src/desktopTest/kotlin/io/github/youndie/haul/ScreenFixtures.kt` |
@@ -67,8 +67,16 @@ Desktop artboards are named as in `design.states`; each has a phone twin with th
 
 ## 5. Navigation (summary)
 
-- facet tick → reload
-- chip × → remove
-- sort → reload
-- page → reload
-- card → screen-product
+Every control below is an action the server puts in the tree; the shell follows it to a new address
+(B-35, B-37) and loads that page — nothing is filtered in the client.
+
+- facet tick → the same category with the filter added or removed (`/c/{slug}?…`)
+- chip × → the same category without that filter
+- sort → a menu of the five orders (`AppliedFilters.sorts`); the one picked opens with the filters kept and the page reset
+- «Clear all» → the category without filters, the sort kept (wide, phone and the filter sheet)
+- page number → that page; «Show 24 more» → the next page (an address of its own, not appended in place)
+- card → screen-product (`/p/{productId}`)
+- «+» on a card → `PUT /api/v1/cart/lines/{skuId}` with the line's next quantity; absent at ten, at the stock limit and out of stock; the page is drawn again in place
+- crumb → that category or home
+- heart → save (*target*, B-20: no action yet)
+- the brand facet's «Show N more», the filter sheet's × → nothing yet (B-37's findings)

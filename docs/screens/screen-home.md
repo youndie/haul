@@ -32,7 +32,7 @@ design:
 | What | File |
 |---|---|
 | Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/home/` |
-| Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` |
+| Client shell: Loading and Error, navigation | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` (`Storefront.kt`, `Shell.kt`) |
 | The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/` |
 | Reference PNGs, one per artboard | `composeApp/src/desktopTest/snapshots/design/` |
 | Parity fixtures, one per artboard | `composeApp/src/desktopTest/kotlin/io/github/youndie/haul/ScreenFixtures.kt` |
@@ -49,7 +49,7 @@ client while it has no tree or after a failed request; every other state is a tr
 returns. The list is held against the real state when the code exists.
 
 - [x] **Loading:** header, placeholder blocks for hero, categories and two product rows
-- [x] **Content:** Maya signed in: campaign «Autumn mega sale», «Tech week», «Free delivery» banners, 8 categories, 6 deals with the countdown, the Plus block **in its member form** («You saved $186 on delivery this year · renews Nov 2»), «Picked for you» 6 products, footer. Drawn from a wire body (`composeApp/src/desktopTest/resources/bodies/home_content.json`); the server does not build the member form or «Picked for you» yet, so `/ui/home` answers every viewer the Guest state
+- [x] **Content:** Maya signed in: campaign «Autumn mega sale», «Tech week», «Free delivery» banners, 8 categories, 6 deals with the countdown, the Plus block **in its member form** («You saved $186 on delivery this year · renews Nov 2»), «Picked for you» 6 products, footer. Drawn from a wire body (`composeApp/src/desktopTest/resources/bodies/home_content.json`); the server does not build the member form or «Picked for you» yet, so `/ui/home` answers a customer the Guest state with their name in the header and no Plus block at all
 - [x] **Guest:** header «Sign in»; Plus block offers the trial; no «Picked for you»
 - [ ] **PlusTrialDialog:** Sam signed in, dialog over Content: the benefits, «30 days free, then $4.99/month», Start trial / Not now (B-23)
 - [x] **Error:** header, message that the page could not load, Retry
@@ -71,9 +71,14 @@ Desktop artboards are named as in `design.states`; each has a phone twin with th
 
 ## 5. Navigation (summary)
 
-- category tile → screen-catalog
-- card → screen-product
-- «+» on a card → adds the cheapest `Sku`
-- heart → save
-- «Try 30 days free» → PlusTrialDialog (guest → sign-in)
+The server builds each target as an action in the tree and the shell follows it (B-35, B-37).
+
+- category tile → screen-catalog (`/c/{slug}`)
+- card → screen-product (`/p/{productId}`)
+- «+» on a card → `PUT /api/v1/cart/lines/{skuId}` with the line's next quantity for the card's SKU — on a deal card the deal's SKU, otherwise the cheapest in stock; absent at ten, at the stock limit and out of stock; the page is drawn again in place
+- «Shop the sale», «View all deals», the header's «Deals» → [screen-deals](screen-deals.md) (`/deals`)
+- the header's «Catalog» and category row → screen-catalog; the cart button → screen-cart (`/cart`); «Sign in» → sign-in (feature-identity), a customer's name → `/account`
+- heart → save (*target*, B-20: no action yet)
+- «Try 30 days free» → PlusTrialDialog (*target*, B-23: no action yet)
+- «All N categories», the promo banners, the footer → nothing yet (B-37's findings)
 - search field → screen-search

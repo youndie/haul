@@ -32,6 +32,9 @@ The home page sells: a campaign, two side banners, categories, deals of the day 
 * facet counts are computed over the current filter set minus the facet itself (the usual «what you would get if you ticked this»);
 * 24 products per page; sort: popular (default), price ascending, price descending, rating, newest;
 * a product card shows the cheapest in-stock `Sku`'s price, its old price and discount, rating, reviews count and the earliest delivery day to the customer's default address (guest: the store's default ZIP).
+* a card's «+» puts one more of the card's `Sku` into the cart — the line's next quantity, so a press sent twice adds one — and is not offered at ten, at the stock or out of stock (B-37; `Cards.kt`);
+* a product with a stored photo shows it on its card and its page; without one, or while it loads or after it fails, the placeholder tile stays (B-30, research D8);
+* `/deals` lists the day's deals (on its first page) and then every product whose shown price is under its old one, the deepest discount first, 24 a page (B-37, research D2).
 
 Numbers in these rules (fees, thresholds, limits) are decisions of the brief, recorded in
 [research-architecture](../research/research-architecture.md) D6–D7; they are verified against the
@@ -45,6 +48,7 @@ code, not observed, until this document goes `active`.
 | haul-server | `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/` |
 | haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/home/` |
 | haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/catalog/` |
+| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/ui/ProductPhoto.kt` — the photo over the placeholder tile |
 
 ## 5. Scenarios (BDD / test cases)
 
@@ -67,6 +71,11 @@ status codes and error strings before this document goes `active`.
 * **When:** the client opens `/ui/c/no-such-thing`
 * **Then:** the server returns `404` with `category_not_found`.
 * **Automated:** `CatalogRoutesTest.an unknown category is 404 category_not_found`
+
+The controls' actions are covered by `server/src/test/kotlin/io/github/youndie/haul/feature/catalog/DrawnActionsTest.kt`
+and `composeApp/src/desktopTest/kotlin/io/github/youndie/haul/DrawnActionsTest.kt`; photos and their
+fallback by `server/src/test/kotlin/io/github/youndie/haul/feature/catalog/PhotoRoutesTest.kt` and
+`composeApp/src/desktopTest/kotlin/io/github/youndie/haul/PhotoFallbackTest.kt`.
 
 ## 6. Out of scope
 

@@ -89,12 +89,13 @@ Account and loyalty:
 - [ ] [feature-account](features/feature-account.md) — Account overview and the Saved list (draft)
 - [ ] [feature-membership](features/feature-membership.md) — Haul Plus, points and Haul Pay (draft)
 
-### Screens / flows (9)
+### Screens / flows (10)
 
 - [ ] [screen-account](screens/screen-account.md) — Account, 6 states (draft)
 - [ ] [screen-cart](screens/screen-cart.md) — Cart, 8 states (draft)
 - [ ] [screen-catalog](screens/screen-catalog.md) — Category, 5 states (draft)
 - [ ] [screen-checkout](screens/screen-checkout.md) — Checkout, 9 states (draft)
+- [ ] [screen-deals](screens/screen-deals.md) — Deals, no artboard (draft)
 - [ ] [screen-home](screens/screen-home.md) — Home, 5 states (draft)
 - [ ] [screen-order](screens/screen-order.md) — Order, 10 states (draft)
 - [ ] [screen-product](screens/screen-product.md) — Product, 10 states (draft)
@@ -105,7 +106,7 @@ Account and loyalty:
 
 - [ ] [endpoint-account](api/endpoint-account.md) — Account overview (draft)
 - [x] [endpoint-cart](api/endpoint-cart.md) — Cart
-- [ ] [endpoint-catalog](api/endpoint-catalog.md) — Home, category, product (draft)
+- [ ] [endpoint-catalog](api/endpoint-catalog.md) — Home, deals, category, product, photos (draft)
 - [ ] [endpoint-checkout](api/endpoint-checkout.md) — Checkout and placement (draft)
 - [x] [endpoint-identity](api/endpoint-identity.md) — Guests, sign-in, cart merge, addresses
 - [ ] [endpoint-membership](api/endpoint-membership.md) — Haul Plus (draft)
