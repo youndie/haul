@@ -257,7 +257,104 @@ Images through object storage are B-30.
 ### D9. No server rendering, no SEO
 
 A Compose canvas page is not indexable and its first load is dominated by the runtime. Accepted for
-a reference; the first-load size is measured (B-28), not assumed.
+a reference; the first-load size is measured (B-28), not assumed. *Confirmed in B-28* (below): skiko's
+wasm alone is two thirds of the bytes and, on a throttled link, most of the wait; what Haul itself adds
+is about a tenth, and the fonts another tenth.
+
+#### Measured in B-28
+
+**How.** `scripts/measure-first-load.sh` (it builds the arms and calls `scripts/measure-first-load.py`)
+on 2026-10-08, scripts at `68a95b9` on top of `cfb9e1f`. The production bundle
+(`:composeApp:wasmJsBrowserDistribution`, Compose Multiplatform and Kotlin from the sborka 0.5.0.113
+`wip` catalog), served as static files by the script over loopback, each response compressed with
+what the browser asked for — it asked for `gzip, deflate, br, zstd` and got brotli (quality 11) on
+every file. Two arms:
+
+- **main** — the bundle `main` ships. Its root draws the theme with an empty body and calls no server,
+  so no server and no PostgreSQL were needed, and its first frame is the page's background colour.
+  Nothing reaches the renderers from `main()`, and dead-code elimination leaves them out.
+- **wired** — a throwaway copy of the tree whose root renders the Home body of the screenshot fixtures
+  (`home_content.json`) through `haulRegistry()`: every renderer reachable, the Home page drawn. It is
+  the bundle the storefront will ship once it draws screens, minus the HTTP client; nothing of it is
+  committed. Its skiko `.wasm` is byte-identical to main's (sha256 `089052ba…`).
+
+Time in headless Chromium (Chrome for Testing 149.0.7827.55, `--headless=new`, WebGL 2 through
+SwiftShader, 1440×900 at 1×), a fresh browser and profile per run, cache disabled, three network
+profiles through CDP `Network.emulateNetworkConditions` with DevTools' own numbers: **none**
+(loopback), **Fast 4G** (165 ms, 1,012,500 B/s down), **Slow 4G** (562.5 ms, 180,000 B/s down). Seven
+rounds per profile, profiles interleaved, round 1 discarded; median (min–max) of six. The probe
+wraps WebGL's `clear` and `draw*` before any page script runs: **first frame** is the first
+`requestAnimationFrame` after Compose's first GL call (the frame that carries it to the screen),
+**settled** the same for the last GL frame before the page has been quiet for 3 s. Controls in the same
+log: with every `.wasm` blocked the probe saw no GL call and no frame (both arms); the profiles came
+out in their known order; Slow 4G's first frame lies above the time its non-font bytes take at its
+bandwidth. The stand: the shared Linux build machine (WSL2 on an Intel Core Ultra 7 255HX, 20
+threads, 16 GB, kernel 6.6.87.2), **busy with other agents' Gradle builds** — 1-minute load average
+3.7–11.0 during the runs, MemAvailable never under 7.6 GB. The throttled profiles are bounded by the
+link and barely move with load; the unthrottled one is bounded by the CPU and its spread is the load's.
+
+**Sizes**, KiB, per bucket of the files the page requested (the source map and the licence texts are
+in the distribution but never requested):
+
+| Bucket | main raw | gzip -9 | brotli 11 | wired raw | gzip -9 | brotli 11 | share of wired brotli |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| skiko `.wasm` (Skia) | 8,438 | 3,247 | 2,561 | 8,438 | 3,247 | 2,561 | 65.8 % |
+| app `.wasm` (Kotlin: Compose, kotlinx, kompot, Haul) | 1,597 | 529 | 418 | 3,348 | 1,078 | 819 | 21.0 % |
+| fonts, four variable TTFs | 1,156 | 522 | 432 | 1,156 | 522 | 432 | 11.1 % |
+| `composeApp.js` (the loaders of both) | 513 | 96 | 78 | 515 | 96 | 79 | 2.0 % |
+| `index.html` | 0.5 | 0.3 | 0.2 | 0.5 | 0.3 | 0.2 | — |
+| **total** | **11,705** | **4,394** | **3,490** | **13,458** | **4,944** | **3,891** | |
+
+The fonts one by one (raw / gzip / brotli): `archivo.ttf` 643 / 248 / 192, `jetbrains_mono.ttf`
+183 / 88 / 77, `bodoni_moda_italic.ttf` 172 / 100 / 87, `bodoni_moda.ttf` 158 / 86 / 76. Main's app
+`.wasm` is Compose's runtime, UI, foundation and resources with an empty screen — framework, not Haul;
+wired minus main (+1,751 KiB raw, +401 KiB brotli) is what drawing the screens brings: kompot,
+kotlinx.serialization, Haul's renderers and the parts of Compose they use.
+
+**Time**, ms since navigation start, median (min–max) of six rounds; «skiko» is when its last byte
+arrived:
+
+| Arm | Profile | skiko's last byte | First frame | Settled |
+|---|---|---:|---:|---:|
+| main | none | 269 | 588 (407–764) | 836 (567–1,089) |
+| main | Fast 4G | 3,797 | 3,916 (3,806–4,551) | 4,624 (4,474–5,285) |
+| main | Slow 4G | 19,298 | 19,506 (19,428–19,690) | 22,625 (22,551–22,811) |
+| wired | none | 284 | 989 (663–1,719) | 1,711 (1,084–4,030) |
+| wired | Fast 4G | 4,225 | 4,952 (4,575–5,128) | 6,595 (5,888–7,344) |
+| wired | Slow 4G | 21,594 | 22,261 (21,968–22,606) | 26,074 (25,302–26,816) |
+
+The raw values, rounds 1–7 in order (round 1 discarded), first frame / settled:
+
+| Arm | Profile | First frame | Settled | 1-min load |
+|---|---|---|---|---|
+| main | none | 894 629 407 619 764 554 558 | 1448 935 567 875 1089 791 798 | 10.8 9.4 7.7 7.4 7.2 7.2 3.7 |
+| main | Fast 4G | 4037 3806 3832 3983 4551 3907 3926 | 4879 4474 4539 4761 5285 4654 4593 | 10.0 8.8 7.0 7.8 7.6 7.2 5.8 |
+| main | Slow 4G | 19584 19575 19527 19428 19690 19484 19428 | 22725 22692 22658 22576 22811 22591 22551 | 11.0 10.3 9.1 8.5 8.1 6.7 5.3 |
+| wired | none | 954 663 692 927 1051 1309 1719 | 1555 1084 1150 1402 2021 3119 4030 | 7.2 5.1 4.0 4.1 5.7 6.7 9.6 |
+| wired | Fast 4G | 4720 4575 4657 5060 5005 4899 5128 | 6402 5888 6289 6459 6992 6731 7344 | 5.3 4.7 5.6 4.5 7.1 6.6 6.7 |
+| wired | Slow 4G | 22048 22063 21968 22192 22330 22414 22606 | 25705 25415 25302 25640 26508 26816 26780 | 6.6 7.1 6.4 4.4 4.0 6.3 9.8 |
+
+**What it says about D9.**
+
+- *Bytes: confirmed.* Skiko's wasm is 65.8 % of the wired first load; with the Compose framework in
+  the Kotlin wasm (main's 418 KiB) and the loaders, the runtime is at least 78 % (3,058 of 3,891 KiB
+  brotli). Haul's screens add 401 KiB (10 %), its fonts 432 KiB (11 %).
+- *Time on a throttled link: confirmed, and it is transfer.* The first frame comes 0.1–0.7 s after
+  skiko's last byte, so the wait is the bundle crossing the link: about 5 s on Fast 4G and 22 s on
+  Slow 4G, of which skiko's 2,561 KiB alone are 14.6 s at Slow 4G's bandwidth.
+- *Time on loopback: the CPU,* compiling and instantiating the wasm and composing the first frame:
+  0.6 s for main and 1.0 s for wired, with a spread the shared machine's load explains; these two
+  numbers are not a property of the bundle to better than a factor of two.
+- *The first frame is the page, in a fallback face.* The fonts are fetched only once the wasm runs
+  (so they never compete with it on the link), and Compose draws before they arrive: with every font
+  blocked, the wired arm still drew the whole Home page in a fallback face carried by the bundle (no
+  other font was requested), and the canvas faces swap in when they land — settled minus first
+  frame is 0.7 s on loopback, 1.6 s on Fast 4G and 3.8 s on Slow 4G. Main's first frame is only the
+  background, the same colour the HTML paints before any script runs.
+- *A control that failed as pre-registered.* The item fixed «Slow 4G first frame ≥ all its
+  compressed bytes ÷ bandwidth» before the first run; on main it fails (19,506 < 19,862 ms), because
+  the first frame does not wait for the fonts — the finding above. The floor over the bytes the frame
+  can have waited for (everything but the fonts) passes in both arms (17,404 and 19,686 ms).
 
 ### D10. Documentation in English
 
