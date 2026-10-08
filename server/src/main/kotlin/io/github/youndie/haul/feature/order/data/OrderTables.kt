@@ -5,19 +5,6 @@ import io.github.youndie.haul.feature.catalog.data.SkusTable
 import io.github.youndie.haul.feature.identity.data.CustomersTable
 import io.github.youndie.haul.feature.order.domain.OrderStatus
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus
-import io.github.youndie.haul.feature.order.saga.OrderPayload
-import io.github.youndie.haul.feature.order.saga.Refused
-import io.github.youndie.petich.EnrichedPayload
-import io.github.youndie.petich.PetichPayload
-import io.github.youndie.petich.PetichStepRecord
-import io.github.youndie.petich.SimpleEnrichedPayload
-import io.github.youndie.petich.postgres.IdempotencyKeysTable
-import io.github.youndie.petich.postgres.OutboxEventsTable
-import io.github.youndie.petich.postgres.PetichTable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.polymorphic
-import kotlinx.serialization.modules.subclass
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.greater
@@ -84,29 +71,6 @@ internal object StockReservationsTable : Table("stock_reservations") {
     val quantity = integer("quantity").check("stock_reservations_quantity_check") { it greater 0 }
     val reservedAt = timestampWithTimeZone("reserved_at")
     override val primaryKey = PrimaryKey(holder, skuId, name = "pk_stock_reservations")
-}
-
-/**
- * The `Json` the saga's rows are written with, and the one place its polymorphism is registered: a
- * class written into a row and not named here cannot be read back, and the saga holding it cannot be
- * carried on after a restart.
- */
-internal fun sagaJson(): Json =
-    Json {
-        ignoreUnknownKeys = true
-        serializersModule =
-            SerializersModule {
-                polymorphic(PetichPayload::class) { subclass(OrderPayload::class) }
-                polymorphic(EnrichedPayload::class) { subclass(SimpleEnrichedPayload::class) }
-                polymorphic(PetichStepRecord::class) { subclass(Refused::class) }
-            }
-    }
-
-/** petich's three tables, declared by petich and created by V10. */
-internal object SagaTables {
-    val petiches: PetichTable = PetichTable(sagaJson())
-    val outbox: OutboxEventsTable = OutboxEventsTable()
-    val idempotencyKeys: IdempotencyKeysTable = IdempotencyKeysTable()
 }
 
 /** Every table placement writes, parents before children. */
