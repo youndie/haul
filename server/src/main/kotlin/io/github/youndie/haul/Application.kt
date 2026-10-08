@@ -1,12 +1,16 @@
 package io.github.youndie.haul
 
 import io.github.youndie.haul.db.Databases
+import io.github.youndie.haul.feature.catalog.data.PhotoStoreException
+import io.github.youndie.haul.feature.catalog.data.S3PhotoStore
 import io.github.youndie.haul.seed.CatalogSeed
+import io.github.youndie.haul.seed.SeedPhotos
 import io.github.youndie.haul.seed.Seeder
 import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import java.sql.SQLException
@@ -20,18 +24,39 @@ private val log = LoggerFactory.getLogger("io.github.youndie.haul.Application")
  */
 public fun main() {
     val config = ServerConfig()
+    val clock = systemClock()
     val dataSource = Databases.dataSource(config.database)
     val applied = Databases.migrate(dataSource)
     log.info("migrations applied: {}", applied)
+    val photoStore = config.photos?.let { S3PhotoStore(it, now = { clock.now().toInstant() }) }
+    log.info(if (photoStore == null) "no object storage: placeholder tiles only" else "photos in {}", config.photos)
     if (config.seed) {
-        val seeded = Seeder.seedIfEmpty(Databases.connect(dataSource), CatalogSeed.generate())
+        val database = Databases.connect(dataSource)
+        val seeded = Seeder.seedIfEmpty(database, CatalogSeed.generate())
         log.info(if (seeded) "catalog seeded" else "catalog already present, not seeded")
+        photoStore?.let { seedPhotos(database, it) }
     }
 
     embeddedServer(CIO, port = config.port) {
         monitor.subscribe(ApplicationStopped) { dataSource.close() }
-        haulModule(dataSource, systemClock(), config.commit, config.observability, config.webDir)
+        haulModule(dataSource, clock, config.commit, config.observability, config.webDir, photoStore)
     }.start(wait = true)
+}
+
+/**
+ * The sample products' photos, stored once. A store that refuses or cannot be reached does not stop
+ * the start: photos are decoration over the placeholder tiles, and the server serves without them.
+ */
+private fun seedPhotos(
+    database: org.jetbrains.exposed.v1.jdbc.Database,
+    store: S3PhotoStore,
+) {
+    try {
+        val stored = runBlocking { SeedPhotos.attach(database, store) }
+        log.info("sample photos stored: {}", stored)
+    } catch (e: PhotoStoreException) {
+        log.warn("sample photos not stored, the tiles stay placeholders: {}", e.message)
+    }
 }
 
 private const val VALIDATION_TIMEOUT_SECONDS = 2

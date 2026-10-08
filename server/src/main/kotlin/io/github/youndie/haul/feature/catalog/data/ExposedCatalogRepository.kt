@@ -147,6 +147,7 @@ internal class ExposedCatalogRepository(
             createdAt = row[ProductsTable.createdAt],
             headline = row[ProductsTable.headline],
             headlineAccent = row[ProductsTable.headlineAccent],
+            imageKey = row[ProductsTable.imageKey],
         )
 
     private fun sku(row: ResultRow): Sku =

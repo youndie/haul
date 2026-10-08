@@ -5,6 +5,7 @@ import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.Listed
+import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.Seller
 import io.github.youndie.haul.feature.catalog.domain.Sku
 import io.github.youndie.haul.feature.catalog.domain.count
@@ -51,6 +52,7 @@ internal enum class ProductTab(
 internal class ProductScreen(
     private val catalog: CatalogRepository,
     private val calendar: DeliveryCalendar,
+    private val photos: ProductPhotos,
 ) {
     suspend fun build(
         productId: String,
@@ -123,6 +125,7 @@ internal class ProductScreen(
             productId = item.product.id,
             skuId = sku.id,
             photoTone = item.product.tone,
+            photo = photos.url(item.product),
             photoLabel = "product photo",
             photoCount = "1 / $PHOTOS",
             photoTotal = PHOTOS,

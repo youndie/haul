@@ -42,6 +42,8 @@ internal data class Product(
     /** Over the description tab («Silence, tuned to you»); [headlineAccent] is a piece of it, or none. */
     val headline: String,
     val headlineAccent: String?,
+    /** The key of the product's photo in the object storage (B-30); `null` is the placeholder tile. */
+    val imageKey: String? = null,
 )
 
 internal data class Sku(

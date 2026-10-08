@@ -1,6 +1,7 @@
 package io.github.youndie.haul
 
 import io.github.youndie.haul.db.DatabaseConfig
+import io.github.youndie.haul.feature.catalog.data.S3Config
 import io.github.youndie.haul.ops.AgentEndpoint
 import io.github.youndie.haul.ops.ObservabilitySettings
 import java.io.File
@@ -27,6 +28,24 @@ internal class ServerConfig(
 
     /** Seed the catalog on start when it is empty. Off by default: a production database is not a demo. */
     val seed: Boolean get() = env("HAUL_SEED")?.toBooleanStrict() ?: false
+
+    /**
+     * The bucket product photos live in (B-30, research D8), or `null` when `HAUL_S3_ENDPOINT` is not
+     * set: object storage is optional, and without it every tile is the placeholder. Once the endpoint
+     * is named, the bucket and both keys are required — a half-configured store is refused at start-up,
+     * not discovered as a broken photo.
+     */
+    val photos: S3Config?
+        get() =
+            env("HAUL_S3_ENDPOINT")?.let {
+                S3Config(
+                    endpoint = it,
+                    bucket = required("HAUL_S3_BUCKET"),
+                    accessKey = required("HAUL_S3_ACCESS_KEY"),
+                    secretKey = required("HAUL_S3_SECRET_KEY"),
+                    region = env("HAUL_S3_REGION") ?: S3Config.DEFAULT_REGION,
+                )
+            }
 
     /** The commit the image was built from, for `/version`; `dev` when nobody said. */
     val commit: String get() = env("HAUL_COMMIT") ?: "dev"

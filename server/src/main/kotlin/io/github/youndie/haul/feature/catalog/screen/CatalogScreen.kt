@@ -8,6 +8,7 @@ import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.FacetKey
 import io.github.youndie.haul.feature.catalog.domain.Filters
 import io.github.youndie.haul.feature.catalog.domain.Listed
+import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.Sort
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.shell.Frame
@@ -46,6 +47,7 @@ internal class CatalogScreen(
     private val catalog: CatalogRepository,
     private val browse: Browse,
     private val calendar: DeliveryCalendar,
+    private val photos: ProductPhotos,
 ) {
     suspend fun build(
         request: CatalogRequest,
@@ -102,7 +104,7 @@ internal class CatalogScreen(
                     facets = facets(all, request.filters, url),
                     applied = applied,
                     showLabel = "Show ${count(page.total)} items",
-                    grid = ProductGrid("grid", page.items.map { card(it, calendar) }, columns = GRID_COLUMNS),
+                    grid = ProductGrid("grid", page.items.map { card(it, calendar, photos) }, columns = GRID_COLUMNS),
                     pagination =
                         HaulPagination(
                             id = "pagination",

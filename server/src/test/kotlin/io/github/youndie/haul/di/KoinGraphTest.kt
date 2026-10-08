@@ -9,6 +9,7 @@ import io.github.youndie.haul.feature.cart.screen.CartScreen
 import io.github.youndie.haul.feature.catalog.catalogModule
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
+import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.screen.CatalogScreen
 import io.github.youndie.haul.feature.catalog.screen.HomeScreen
 import io.github.youndie.haul.feature.catalog.screen.ProductScreen
@@ -46,6 +47,7 @@ class KoinGraphTest {
                         single<DataSource> { SeededDatabase.dataSource }
                         single { StoreClock { CatalogSeed.NOW.toZonedDateTime() } }
                         single { DeliveryCalendar { CatalogSeed.NOW.toZonedDateTime() } }
+                        single { ProductPhotos(null) }
                     },
                     catalogModule,
                     searchModule,
