@@ -28,9 +28,11 @@ internal class ExposedOrders(
     private suspend fun <T> tx(block: () -> T): T = withContext(Dispatchers.IO) { transaction(database) { block() } }
 
     override suspend fun nextId(): String =
-        tx {
-            val number = exec("SELECT nextval('order_numbers')") { if (it.next()) it.getLong(1) else null }
-            "HL-${checkNotNull(number) { "the order_numbers sequence answered nothing" }}"
+        withContext(Dispatchers.IO) {
+            transaction(database) {
+                val number = exec("SELECT nextval('order_numbers')") { if (it.next()) it.getLong(1) else null }
+                "HL-${checkNotNull(number) { "the order_numbers sequence answered nothing" }}"
+            }
         }
 
     override suspend fun open(order: NewOrder) {
