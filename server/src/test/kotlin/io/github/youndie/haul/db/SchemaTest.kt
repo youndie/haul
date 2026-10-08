@@ -65,10 +65,11 @@ class SchemaTest {
     /** V9's addresses, pickup points, windows, reservations and checkouts against their Exposed declarations. */
     @Test
     fun `the migrated schema needs no further DDL for the checkout tables`() {
-        val database = Databases.connect(PostgresHarness.freshDatabase())
         val required =
-            transaction(database) {
-                MigrationUtils.statementsRequiredForDatabaseMigration(*checkoutTables.toTypedArray())
+            PostgresHarness.freshDatabase().use {
+                transaction(Databases.connect(it)) {
+                    MigrationUtils.statementsRequiredForDatabaseMigration(*checkoutTables.toTypedArray())
+                }
             }
         assertEquals(emptyList(), required, "still required:\n" + required.joinToString("\n"))
         assertEquals(5, checkoutTables.size)

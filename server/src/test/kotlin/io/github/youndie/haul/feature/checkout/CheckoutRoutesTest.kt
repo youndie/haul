@@ -132,6 +132,12 @@ class CheckoutRoutesTest {
         }
     }
 
+    /**
+     * A seeded database of the test's own, its pool closed afterwards: every pool holds its connections,
+     * and the suite's PostgreSQL ran out of them («too many clients») while these were left open.
+     */
+    private fun ownDatabase(block: (DataSource) -> Unit) = seededFreshDatabase().use(block)
+
     private fun KompotComponent.selectedSlot(): String? =
         only<DeliverySlots>()
             .days
@@ -147,75 +153,77 @@ class CheckoutRoutesTest {
      */
     @Test
     fun `Maya's quote is the cart's totals by courier to her address`() =
-        signedIn("Maya Kowalski", id = SampleCustomers.MAYA, dataSource = seededFreshDatabase()) { token ->
-            val before = checkout(token)
-            assertEquals(
-                "09:00–12:00",
-                before
-                    .only<DeliverySlots>()
-                    .days
-                    .first()
-                    .slots
-                    .first { it.selected }
-                    .label,
-            )
+        ownDatabase { database ->
+            signedIn("Maya Kowalski", id = SampleCustomers.MAYA, dataSource = database) { token ->
+                val before = checkout(token)
+                assertEquals(
+                    "09:00–12:00",
+                    before
+                        .only<DeliverySlots>()
+                        .days
+                        .first()
+                        .slots
+                        .first { it.selected }
+                        .label,
+                )
 
-            choose(token, CheckoutChoice(slotId = "2025-10-08T15")).assertRefresh()
+                choose(token, CheckoutChoice(slotId = "2025-10-08T15")).assertRefresh()
 
-            val tree = checkout(token)
-            assertEquals("3 items", tree.only<PageTitle>().count)
-            assertEquals(
-                DeliveryMethod.Courier,
-                tree
-                    .only<DeliveryMethods>()
-                    .options
-                    .single { it.selected }
-                    .method,
-            )
-            val address = tree.only<CheckoutAddress>()
-            assertEquals(
-                listOf("148 Wythe Avenue, Apt 4F" to "Brooklyn, NY 11211"),
-                address.addresses.filter { it.selected }.map { it.line to it.detail },
-            )
-            assertFalse(address.formOpen, "the form is open for a customer with an address")
-            val slots = tree.only<DeliverySlots>()
-            assertEquals(listOf("Wed 8", "Thu 9", "Fri 10", "Sat 11", "Sun 12"), slots.days.map { it.label })
-            assertEquals(
-                listOf("09:00–12:00", "12:00–15:00", "15:00–18:00", "18:00–21:00"),
-                slots.days
-                    .first()
-                    .slots
-                    .map { it.label },
-            )
-            assertEquals("2025-10-08T15", tree.selectedSlot())
-            val payment = tree.only<PaymentMethods>()
-            assertEquals(
-                listOf("card-4821", "card-0002", "haul_pay", "pay_on_delivery"),
-                payment.options.map { it.id },
-            )
-            assertEquals("card-4821", payment.options.single { it.selected }.id)
-            assertEquals("4 payments of $128", payment.options.single { it.id == "haul_pay" }.detail)
+                val tree = checkout(token)
+                assertEquals("3 items", tree.only<PageTitle>().count)
+                assertEquals(
+                    DeliveryMethod.Courier,
+                    tree
+                        .only<DeliveryMethods>()
+                        .options
+                        .single { it.selected }
+                        .method,
+                )
+                val address = tree.only<CheckoutAddress>()
+                assertEquals(
+                    listOf("148 Wythe Avenue, Apt 4F" to "Brooklyn, NY 11211"),
+                    address.addresses.filter { it.selected }.map { it.line to it.detail },
+                )
+                assertFalse(address.formOpen, "the form is open for a customer with an address")
+                val slots = tree.only<DeliverySlots>()
+                assertEquals(listOf("Wed 8", "Thu 9", "Fri 10", "Sat 11", "Sun 12"), slots.days.map { it.label })
+                assertEquals(
+                    listOf("09:00–12:00", "12:00–15:00", "15:00–18:00", "18:00–21:00"),
+                    slots.days
+                        .first()
+                        .slots
+                        .map { it.label },
+                )
+                assertEquals("2025-10-08T15", tree.selectedSlot())
+                val payment = tree.only<PaymentMethods>()
+                assertEquals(
+                    listOf("card-4821", "card-0002", "haul_pay", "pay_on_delivery"),
+                    payment.options.map { it.id },
+                )
+                assertEquals("card-4821", payment.options.single { it.selected }.id)
+                assertEquals("4 payments of $128", payment.options.single { it.id == "haul_pay" }.detail)
 
-            val summary = tree.only<CheckoutSummary>()
-            assertEquals(
-                listOf(
-                    SummaryRow("Items", "$652.00"),
-                    SummaryRow("Discount", "−$140.00"),
-                    SummaryRow("Delivery", "Free"),
-                ),
-                summary.rows,
-            )
-            assertEquals("$512.00", summary.total)
-            assertEquals("Place order · $512.00", summary.placeLabel)
-            assertEquals("You'll earn 1,024 points", summary.points)
-            assertEquals("Your card is charged when the order ships", summary.note)
-            assertEquals(3, summary.items.size)
-            assertTrue(summary.placeEnabled, "a complete quote cannot be placed")
-            assertNotEquals(
-                before.only<CheckoutSummary>().quote,
-                summary.quote,
-                "the quote's fingerprint did not change with the window",
-            )
+                val summary = tree.only<CheckoutSummary>()
+                assertEquals(
+                    listOf(
+                        SummaryRow("Items", "$652.00"),
+                        SummaryRow("Discount", "−$140.00"),
+                        SummaryRow("Delivery", "Free"),
+                    ),
+                    summary.rows,
+                )
+                assertEquals("$512.00", summary.total)
+                assertEquals("Place order · $512.00", summary.placeLabel)
+                assertEquals("You'll earn 1,024 points", summary.points)
+                assertEquals("Your card is charged when the order ships", summary.note)
+                assertEquals(3, summary.items.size)
+                assertTrue(summary.placeEnabled, "a complete quote cannot be placed")
+                assertNotEquals(
+                    before.only<CheckoutSummary>().quote,
+                    summary.quote,
+                    "the quote's fingerprint did not change with the window",
+                )
+            }
         }
 
     /**
@@ -263,36 +271,36 @@ class CheckoutRoutesTest {
      * checkout does not offer is `404 slot_not_found`.
      */
     @Test
-    fun `a full window is drawn unavailable and refused`() {
-        val database = seededFreshDatabase()
-        database.fill("2025-10-08T09")
-        database.fill("2025-10-08T15")
-        signedIn("Sam Ortiz", dataSource = database) { token ->
-            mayasLines(token)
-            val tree = checkout(token)
-            val wednesday =
-                tree
-                    .only<DeliverySlots>()
-                    .days
-                    .first()
-                    .slots
-            assertEquals(listOf(false, true, false, true), wednesday.map { it.available })
-            assertEquals("2025-10-08T12", tree.selectedSlot(), "the default is the first window with room")
+    fun `a full window is drawn unavailable and refused`() =
+        ownDatabase { database ->
+            database.fill("2025-10-08T09")
+            database.fill("2025-10-08T15")
+            signedIn("Sam Ortiz", dataSource = database) { token ->
+                mayasLines(token)
+                val tree = checkout(token)
+                val wednesday =
+                    tree
+                        .only<DeliverySlots>()
+                        .days
+                        .first()
+                        .slots
+                assertEquals(listOf(false, true, false, true), wednesday.map { it.available })
+                assertEquals("2025-10-08T12", tree.selectedSlot(), "the default is the first window with room")
 
-            choose(token, CheckoutChoice(slotId = "2025-10-08T15"))
-                .assertError(HttpStatusCode.Conflict, ErrorCode.SlotUnavailable)
-            assertEquals("2025-10-08T12", checkout(token).selectedSlot(), "a refused window was stored")
+                choose(token, CheckoutChoice(slotId = "2025-10-08T15"))
+                    .assertError(HttpStatusCode.Conflict, ErrorCode.SlotUnavailable)
+                assertEquals("2025-10-08T12", checkout(token).selectedSlot(), "a refused window was stored")
 
-            choose(token, CheckoutChoice(slotId = "2025-10-13T09"))
-                .assertError(HttpStatusCode.NotFound, ErrorCode.SlotNotFound)
-            choose(token, CheckoutChoice(slotId = "2025-10-07T18"))
-                .assertError(HttpStatusCode.NotFound, ErrorCode.SlotNotFound)
-            choose(token, CheckoutChoice(slotId = "2025-10-08T10"))
-                .assertError(HttpStatusCode.NotFound, ErrorCode.SlotNotFound)
-            choose(token, CheckoutChoice(slotId = "2025-10-09T12")).assertRefresh()
-            assertEquals("2025-10-09T12", checkout(token).selectedSlot())
+                choose(token, CheckoutChoice(slotId = "2025-10-13T09"))
+                    .assertError(HttpStatusCode.NotFound, ErrorCode.SlotNotFound)
+                choose(token, CheckoutChoice(slotId = "2025-10-07T18"))
+                    .assertError(HttpStatusCode.NotFound, ErrorCode.SlotNotFound)
+                choose(token, CheckoutChoice(slotId = "2025-10-08T10"))
+                    .assertError(HttpStatusCode.NotFound, ErrorCode.SlotNotFound)
+                choose(token, CheckoutChoice(slotId = "2025-10-09T12")).assertRefresh()
+                assertEquals("2025-10-09T12", checkout(token).selectedSlot())
+            }
         }
-    }
 
     /**
      * The quote's half of «Slot filled meanwhile» (`Checkout_PlaceError`): a window that fills after it
@@ -300,27 +308,27 @@ class CheckoutRoutesTest {
      * and the quote cannot be placed until they pick another.
      */
     @Test
-    fun `a window that filled after it was chosen is cleared and the shopper told`() {
-        val database = seededFreshDatabase()
-        signedIn("Sam Ortiz", dataSource = database) { token ->
-            mayasLines(token)
-            saveAddress(token, AddressEntry("148 Wythe Avenue", "4F", "Brooklyn, NY", "11211")).assertRefresh()
-            choose(token, CheckoutChoice(slotId = "2025-10-09T12")).assertRefresh()
-            assertTrue(checkout(token).only<CheckoutSummary>().placeEnabled)
+    fun `a window that filled after it was chosen is cleared and the shopper told`() =
+        ownDatabase { database ->
+            signedIn("Sam Ortiz", dataSource = database) { token ->
+                mayasLines(token)
+                saveAddress(token, AddressEntry("148 Wythe Avenue", "4F", "Brooklyn, NY", "11211")).assertRefresh()
+                choose(token, CheckoutChoice(slotId = "2025-10-09T12")).assertRefresh()
+                assertTrue(checkout(token).only<CheckoutSummary>().placeEnabled)
 
-            database.fill("2025-10-09T12")
+                database.fill("2025-10-09T12")
 
-            val tree = checkout(token)
-            assertEquals(CheckoutError.SLOT_FILLED, tree.only<CheckoutNotice>().text)
-            assertEquals(null, tree.selectedSlot())
-            assertFalse(tree.only<CheckoutSummary>().placeEnabled, "a quote with no window can be placed")
+                val tree = checkout(token)
+                assertEquals(CheckoutError.SLOT_FILLED, tree.only<CheckoutNotice>().text)
+                assertEquals(null, tree.selectedSlot())
+                assertFalse(tree.only<CheckoutSummary>().placeEnabled, "a quote with no window can be placed")
 
-            choose(token, CheckoutChoice(slotId = "2025-10-09T15")).assertRefresh()
-            val again = checkout(token)
-            assertTrue(again.all().none { it is CheckoutNotice }, "the notice outlived the new window")
-            assertTrue(again.only<CheckoutSummary>().placeEnabled)
+                choose(token, CheckoutChoice(slotId = "2025-10-09T15")).assertRefresh()
+                val again = checkout(token)
+                assertTrue(again.all().none { it is CheckoutNotice }, "the notice outlived the new window")
+                assertTrue(again.only<CheckoutSummary>().placeEnabled)
+            }
         }
-    }
 
     /**
      * `Checkout_PickupPoint`: the two points near Wythe Avenue with distance and hours, the nearest

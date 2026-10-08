@@ -27,8 +27,7 @@ import kotlin.test.assertTrue
  * once, exactly as many win as there were places, and no window ever holds more than it takes.
  */
 class DeliverySlotsTest {
-    private val dataSource = PostgresHarness.freshDatabase()
-    private val database = Databases.connect(dataSource)
+    private val database = Companion.database
     private val wednesday = LocalDate.parse("2025-10-08")
     private val at = CatalogSeed.NOW
 
@@ -113,5 +112,8 @@ class DeliverySlotsTest {
 
     private companion object {
         const val ROUNDS = 20
+
+        /** One database for the class — every test uses windows of its own — rather than a pool per test. */
+        val database by lazy { Databases.connect(PostgresHarness.freshDatabase()) }
     }
 }
