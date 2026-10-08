@@ -17,6 +17,12 @@ import io.github.youndie.haul.feature.home.CampaignRowView
 import io.github.youndie.haul.feature.home.CategoryGridView
 import io.github.youndie.haul.feature.home.PlusBlockView
 import io.github.youndie.haul.feature.home.SectionHeaderView
+import io.github.youndie.haul.feature.product.ProductDescriptionView
+import io.github.youndie.haul.feature.product.ProductDetailsView
+import io.github.youndie.haul.feature.product.ProductQuestionsView
+import io.github.youndie.haul.feature.product.ProductReviewsView
+import io.github.youndie.haul.feature.product.ProductTabsView
+import io.github.youndie.haul.feature.product.SpecificationListView
 import io.github.youndie.haul.ui.Breadcrumbs
 import io.github.youndie.haul.ui.CampaignRow
 import io.github.youndie.haul.ui.CategoryGrid
@@ -33,9 +39,15 @@ import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.PlusBlock
 import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductCardView
+import io.github.youndie.haul.ui.ProductDescription
+import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.ProductGridView
+import io.github.youndie.haul.ui.ProductQuestions
+import io.github.youndie.haul.ui.ProductReviews
+import io.github.youndie.haul.ui.ProductTabs
 import io.github.youndie.haul.ui.SectionHeader
+import io.github.youndie.haul.ui.SpecificationList
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.kompot.KompotActionHandler
 import io.github.youndie.kompot.KompotComponentRenderer
@@ -224,5 +236,79 @@ public class EmptyStateRenderer : KompotComponentRenderer<EmptyState> {
         formController: FormController,
     ) {
         EmptyStateView(component)
+    }
+}
+
+// The product page (screen-product).
+
+@KompotComponentMarker
+public class ProductDetailsRenderer : KompotComponentRenderer<ProductDetails> {
+    @Composable
+    override fun Render(
+        component: ProductDetails,
+        actionHandler: KompotActionHandler,
+        formController: FormController,
+    ) {
+        ProductDetailsView(component)
+    }
+}
+
+@KompotComponentMarker
+public class ProductTabsRenderer : KompotComponentRenderer<ProductTabs> {
+    @Composable
+    override fun Render(
+        component: ProductTabs,
+        actionHandler: KompotActionHandler,
+        formController: FormController,
+    ) {
+        ProductTabsView(component)
+    }
+}
+
+@KompotComponentMarker
+public class ProductDescriptionRenderer : KompotComponentRenderer<ProductDescription> {
+    @Composable
+    override fun Render(
+        component: ProductDescription,
+        actionHandler: KompotActionHandler,
+        formController: FormController,
+    ) {
+        ProductDescriptionView(component)
+    }
+}
+
+@KompotComponentMarker
+public class SpecificationListRenderer : KompotComponentRenderer<SpecificationList> {
+    @Composable
+    override fun Render(
+        component: SpecificationList,
+        actionHandler: KompotActionHandler,
+        formController: FormController,
+    ) {
+        SpecificationListView(component)
+    }
+}
+
+@KompotComponentMarker
+public class ProductReviewsRenderer : KompotComponentRenderer<ProductReviews> {
+    @Composable
+    override fun Render(
+        component: ProductReviews,
+        actionHandler: KompotActionHandler,
+        formController: FormController,
+    ) {
+        ProductReviewsView(component)
+    }
+}
+
+@KompotComponentMarker
+public class ProductQuestionsRenderer : KompotComponentRenderer<ProductQuestions> {
+    @Composable
+    override fun Render(
+        component: ProductQuestions,
+        actionHandler: KompotActionHandler,
+        formController: FormController,
+    ) {
+        ProductQuestionsView(component)
     }
 }

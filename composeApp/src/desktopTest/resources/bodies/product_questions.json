@@ -1,0 +1,220 @@
+{
+ "type": "column",
+ "id": "product",
+ "children": [
+  {
+   "type": "haul_header",
+   "id": "header",
+   "customerName": "Maya",
+   "deliverTo": "Brooklyn, NY 11211",
+   "deliveryPromise": "Free delivery over $35",
+   "cartCount": 3,
+   "searchPlaceholder": "Search 2.4 million products",
+   "categories": [
+    "Electronics",
+    "Home & Kitchen",
+    "Fashion",
+    "Beauty",
+    "Kids & Toys",
+    "Sports",
+    "Grocery",
+    "Auto",
+    "Books",
+    "Pets"
+   ]
+  },
+  {
+   "type": "haul_breadcrumbs",
+   "id": "breadcrumbs",
+   "crumbs": [
+    {
+     "label": "Home"
+    },
+    {
+     "label": "Electronics"
+    },
+    {
+     "label": "Audio"
+    },
+    {
+     "label": "Headphones"
+    },
+    {
+     "label": "Sony WH-1000XM6"
+    }
+   ]
+  },
+  {
+   "type": "haul_product_details",
+   "id": "details",
+   "productId": "p-sony-wh-1000xm6",
+   "skuId": "p-sony-wh-1000xm6-0",
+   "photoTone": "#E6E4FF",
+   "photoLabel": "product photo",
+   "photoCount": "1 / 8",
+   "photoTotal": 8,
+   "gallery": [
+    "#E6E4FF",
+    "#DEDCF7",
+    "#E9E6E0",
+    "#E0EEF7"
+   ],
+   "morePhotos": "+3",
+   "badge": "Bestseller",
+   "brand": "Sony",
+   "title": "WH-1000XM6 Wireless Noise Cancelling Headphones",
+   "accent": "Headphones",
+   "rating": "4.8",
+   "reviews": "2,341 reviews",
+   "bought": "12K bought this month",
+   "variants": [
+    {
+     "name": "Color",
+     "selectedLabel": "Midnight Black",
+     "options": [
+      {
+       "label": "Midnight Black",
+       "skuId": "p-sony-wh-1000xm6-0",
+       "selected": true,
+       "available": true,
+       "swatch": "#2A2A2E"
+      },
+      {
+       "label": "Silver",
+       "skuId": "p-sony-wh-1000xm6-3",
+       "selected": false,
+       "available": false,
+       "swatch": "#D9D3C7"
+      }
+     ]
+    },
+    {
+     "name": "Bundle",
+     "selectedLabel": "Headphones only",
+     "options": [
+      {
+       "label": "Headphones only",
+       "skuId": "p-sony-wh-1000xm6-0",
+       "selected": true,
+       "available": true
+      },
+      {
+       "label": "+ Travel case",
+       "skuId": "p-sony-wh-1000xm6-1",
+       "selected": false,
+       "available": true
+      },
+      {
+       "label": "+ 2-year care",
+       "skuId": "p-sony-wh-1000xm6-2",
+       "selected": false,
+       "available": true
+      }
+     ]
+    }
+   ],
+   "highlights": [
+    {
+     "title": "Battery",
+     "text": "Up to 40 hours, 3 min charge = 3 h"
+    },
+    {
+     "title": "Noise cancelling",
+     "text": "Adaptive, 12 microphones"
+    },
+    {
+     "title": "Bluetooth",
+     "text": "5.4 · LDAC · multipoint"
+    },
+    {
+     "title": "Weight",
+     "text": "250 g"
+    }
+   ],
+   "price": "$349",
+   "oldPrice": "$449",
+   "discount": "−22%",
+   "haulPay": "or 4 payments of $87.25 with Haul Pay",
+   "haulPayStrong": "4 payments of $87.25",
+   "inStock": true,
+   "delivery": [
+    {
+     "title": "Courier · Tomorrow, Oct 8",
+     "detail": "Order within 3 h 42 min",
+     "price": "Free"
+    },
+    {
+     "title": "Pickup point · Thu, Oct 9",
+     "detail": "214 Bedford Ave, 240 m",
+     "price": "Free"
+    },
+    {
+     "title": "Returns",
+     "detail": "30 days, free pickup"
+    }
+   ],
+   "cutoff": "Order within 3 h 42 min",
+   "seller": {
+    "name": "Sony Official Store",
+    "initial": "S",
+    "meta": "4.9 · 98% positive · 6 yrs on Haul"
+   }
+  },
+  {
+   "type": "haul_product_tabs",
+   "id": "tabs",
+   "tabs": [
+    {
+     "key": "description",
+     "title": "Description",
+     "selected": false
+    },
+    {
+     "key": "specifications",
+     "title": "Specifications",
+     "compactTitle": "Specs",
+     "selected": false
+    },
+    {
+     "key": "reviews",
+     "title": "Reviews",
+     "count": "2,341",
+     "selected": false
+    },
+    {
+     "key": "questions",
+     "title": "Questions",
+     "count": "86",
+     "selected": true
+    }
+   ]
+  },
+  {
+   "type": "haul_product_questions",
+   "id": "questions",
+   "count": "86",
+   "caption": "questions",
+   "text": "Answers come from Sony Official Store.",
+   "actionLabel": "Ask a question",
+   "questions": [
+    {
+     "question": "Can I use them with a cable on a plane?",
+     "asked": "Asked Sep 29",
+     "answer": "Yes. The 3.5 mm audio cable is in the box, and noise cancelling keeps working when wired.",
+     "answeredBy": "Sony Official Store · Sep 30"
+    },
+    {
+     "question": "Do they connect to a laptop and a phone at the same time?",
+     "asked": "Asked Sep 14",
+     "answer": "Yes. Multipoint keeps two devices paired and switches to the phone when a call comes in.",
+     "answeredBy": "Sony Official Store · Sep 15"
+    },
+    {
+     "question": "Is the headband adjustable enough for a small head?",
+     "asked": "Asked Oct 6",
+     "pendingLabel": "Not answered yet"
+    }
+   ]
+  }
+ ]
+}

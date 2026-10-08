@@ -32,6 +32,9 @@ class ProductRoutesTest {
             assertEquals("or 4 payments of $87.25 with Haul Pay", details.haulPay)
             assertEquals("Order within 3 h 42 min", details.cutoff)
             assertEquals("Courier · Tomorrow", details.delivery.first().title)
+            // The courier line reads the cut-off, as Product_Description draws it.
+            assertEquals("Order within 3 h 42 min", details.delivery.first().detail)
+            assertEquals("4 payments of $87.25", details.haulPayStrong)
         }
 
     /** Scenario «Variant changes the price»: «+ Travel case» is another SKU with its own price. */
@@ -57,6 +60,7 @@ class ProductRoutesTest {
             assertFalse(details.inStock)
             assertEquals("Out of stock", details.stockNote)
             assertNull(details.cutoff)
+            assertEquals("Silver is out of stock.", details.stockAdvice?.title)
             val colour = details.variants.single { it.name == "Colour" }
             assertFalse(colour.options.single { it.label == "Silver" }.available, "Silver offered as available")
         }

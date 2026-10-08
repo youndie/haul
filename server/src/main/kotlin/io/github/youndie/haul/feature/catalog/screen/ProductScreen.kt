@@ -32,9 +32,10 @@ import kotlin.math.roundToInt
 internal enum class ProductTab(
     val key: String,
     val title: String,
+    val compactTitle: String? = null,
 ) {
     Description("description", "Description"),
-    Specifications("specifications", "Specifications"),
+    Specifications("specifications", "Specifications", "Specs"),
     ;
 
     companion object {
@@ -80,6 +81,7 @@ internal class ProductScreen(
                                 it.title,
                                 selected = it == tab,
                                 action = NavigateAction("/p/${item.product.id}?sku=${sku.id}&tab=${it.key}"),
+                                compactTitle = it.compactTitle,
                             )
                         },
                 ),
@@ -113,6 +115,7 @@ internal class ProductScreen(
         val inStock = sku.stock > 0
         val courier = calendar.courier(item)
         val freeDelivery = sku.priceCents >= FREE_DELIVERY_CENTS
+        val cutoff = if (inStock) calendar.cutoffLabel() else null
         return ProductDetails(
             id = "details",
             productId = item.product.id,
@@ -120,6 +123,10 @@ internal class ProductScreen(
             photoTone = item.product.tone,
             photoLabel = "product photo",
             photoCount = "1 / $PHOTOS",
+            photoTotal = PHOTOS,
+            gallery = listOf(item.product.tone) + GALLERY_TONES,
+            morePhotos = "+${PHOTOS - GALLERY_TONES.size - 2}",
+            accent = item.product.title.substringAfterLast(' '),
             badge = if (item.product.reviewsCount >= BESTSELLER_REVIEWS) "Bestseller" else null,
             brand = item.product.brand,
             title = item.product.title,
@@ -131,13 +138,19 @@ internal class ProductScreen(
             oldPrice = sku.oldPriceCents?.takeIf { it > sku.priceCents }?.let(::money),
             discount = discount(sku.priceCents, sku.oldPriceCents),
             haulPay = haulPay(sku.priceCents),
+            haulPayStrong =
+                haulPay(
+                    sku.priceCents,
+                )?.let { "4 payments of ${money((sku.priceCents / 4.0).roundToInt())}" },
+            stockAdvice = if (inStock) null else stockAdvice(item, sku, courier),
             inStock = inStock,
             stockNote = if (inStock) null else "Out of stock",
             delivery =
                 listOf(
+                    // The courier line reads the cut-off when there is one to race (Product_Description).
                     DeliveryLine(
                         "Courier · ${calendar.label(courier)}",
-                        "To ${"Brooklyn, NY 11211"}",
+                        cutoff ?: "To Brooklyn, NY 11211",
                         if (freeDelivery) "Free" else money(DELIVERY_FEE_CENTS),
                     ),
                     DeliveryLine(
@@ -147,7 +160,7 @@ internal class ProductScreen(
                     ),
                     DeliveryLine("Returns", "30 days, free pickup"),
                 ),
-            cutoff = if (inStock) calendar.cutoffLabel() else null,
+            cutoff = cutoff,
             seller =
                 SellerSummary(
                     seller.name,
@@ -191,6 +204,28 @@ internal class ProductScreen(
         }
     }
 
+    /**
+     * «Silver is out of stock.» and, when another colour of the same bundle is in stock, where to turn
+     * (Product_OutOfStock).
+     */
+    private fun stockAdvice(
+        item: Listed,
+        sku: Sku,
+        courier: java.time.LocalDate,
+    ): Highlight {
+        val name = sku.options["colour"] ?: item.product.title
+        val other =
+            item.skus.firstOrNull {
+                it.stock > 0 && it.options["bundle"] == sku.options["bundle"] &&
+                    it.options["colour"] != sku.options["colour"]
+            }
+        val text =
+            other?.options?.get("colour")?.let {
+                "$it is in stock and arrives ${calendar.label(courier).replaceFirstChar { c -> c.lowercase() }}."
+            } ?: ""
+        return Highlight("$name is out of stock.", text)
+    }
+
     private fun highlights(item: Listed): List<Highlight> =
         item.product.specifications
             .take(HIGHLIGHTS)
@@ -221,6 +256,9 @@ internal class ProductScreen(
 
     companion object {
         private const val PHOTOS = 8
+
+        /** The placeholder tones of the thumbnails after the first (research D8). */
+        private val GALLERY_TONES = listOf("#DEDCF7", "#E9E6E0", "#E0EEF7")
         private const val HIGHLIGHTS = 4
         private const val BESTSELLER_REVIEWS = 2_000
         private const val FREE_DELIVERY_CENTS = 3_500
