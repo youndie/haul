@@ -193,6 +193,38 @@ Why: «your card is charged when the order ships» (the canvas) is exactly an au
 saga across shipments; simulating the outside world is what lets the whole path run on one machine
 and on the stand.
 
+**Decided in B-16, placement and the saga.**
+
+- **petich 0.4.0.112** (§1.1's build, the sibling's), `petich-postgres` over the application's Exposed
+  database and `petich-idempotency`; petich's three tables are written by hand in `V10__orders.sql`
+  (petich ships no DDL) and held to petich's declarations by `SchemaTest`.
+- **The members, in their order** (`feature/order/saga/OrderSaga.kt`): `reserve-stock` → `reserve-slot`
+  → `open-order` → `authorise-payment` → `confirm`, then the announcement `clear-cart`. Stock and the
+  window come first because a refusal there sends the shopper back to checkout and no order should
+  exist for it; the order opens before the payment because a declined card is an order that exists,
+  cancelled (§6, #HL-48303). A refusal or a failure undoes the members before it in reverse: void the
+  authorisation, cancel the order and its shipments, release the window, release the stock. Clearing the
+  bought lines is an announcement, not a step: the order is placed by then, and a cart that could not be
+  cleared is no reason to take it back.
+- **Everything is named by the order**: stock and the window are held by the order's id, the
+  authorisation by the member's idempotency key, so a member re-run after a restart takes nothing twice
+  and a compensation releases by that same name, whether or not its step landed (petich's member rules).
+- **The saga runs inside the request.** Every member is in-process, so placement can say what happened:
+  a window that filled or stock that ran out is a `409` the checkout is drawn again for; anything else
+  answers `202` with kompot's `navigate` to `/orders/{id}` — placed, or cancelled because the card was
+  declined. A saga whose process died is carried on by the application's sweeper once its row has been
+  untouched for 60 s (`STUCK_AFTER`: twice petich's largest phase timeout, AUTHORIZATION's 30 s).
+- **The key is the customer's own**: the saga's id is a hash of the customer and the `Idempotency-Key`,
+  and a key is claimed (petich-idempotency) only by a placement that passed the quote checks — a stale
+  quote does not spend it. The same key with the same quote answers the saga's outcome again; with a
+  different quote it is `409 idempotency_key_reused`.
+- **The simulator** (`feature/payment/`) approves every way to pay except the test card ···· 0002;
+  pay on delivery is never sent to it, Haul Pay is authorised like a card (its four payments are
+  B-24's). Its ledger is a table, one row per key, so a replay gets the first answer and a void is
+  by the key. The saga's clock is the wall clock, read at the composition root apart from the store's
+  «now», because its stamps are compared across processes.
+- **Order numbers** come from a sequence starting at 48302, the checkout fixture's order (§6).
+
 ### D5. Sign-in through shildik; guests can browse and fill a cart
 
 Decision: a guest has a server-issued id (`X-Haul-Guest`) and a cart; checkout, saving, reviews and
