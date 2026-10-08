@@ -12,9 +12,9 @@ publishes:
 
 # Haul shared contract
 
-> Describes the module as it is after B-39: browse, product, search, cart, checkout, sign-in,
-> placement, and the storefront's address list. The components of screens not built yet (orders,
-> account, saved, reviews' answers, membership) arrive with their items and are not listed here.
+> Describes the module as it is after B-42: browse, product with its reviews and questions, search,
+> cart, checkout, sign-in, placement, and the storefront's address list. The components of screens not
+> built yet (orders, account, saved, membership) arrive with their items and are not listed here.
 
 ## 1. Responsibility
 
@@ -40,7 +40,7 @@ reads.
 |---|---|---|
 | frame | `HaulHeader` (with `account`, `catalog` — a list of `Link` —, `deals`, `cart`, and `customerName` defaulting to `null`), `Link`, `ProductCard` (with `image` and `add`) (`HaulComponents.kt`) | — |
 | browse, home, deals | `CampaignHero`, `PromoBanner`, `CampaignRow`, `SectionHeader`, `CategoryGrid`, `ProductGrid`, `PlusBlock`, `HaulFooter`, `Breadcrumbs`, `PageTitle` (with `badge`), `FilterChips`, `FacetPanel`, `AppliedFilters` (with `clearAction`, `sorts`), `FilteredResults`, `HaulPagination` (with `moreAction`, `links`), `EmptyState` (with `primary`) (`BrowseComponents.kt`) | — |
-| product | `ProductDetails` (with `photo`), `ProductTabs`, `ProductDescription`, `SpecificationList`, `ProductReviews`, `ProductQuestions` (`ProductComponents.kt`) | — |
+| product | `ProductDetails` (with `photo`), `ProductTabs`, `ProductDescription`, `SpecificationList`, `ProductReviews` and `ProductQuestions` (each with `action`: the dialog's `present` for a customer, sign-in for a guest), `ReviewForm` (`haul_review_form`) and `QuestionForm` (`haul_question_form`) with their `FormProduct` (`ProductComponents.kt`, B-22) | `ReviewEntry`, `QuestionEntry`, `ReviewRules`, `reviewProblems`, `questionProblems` — the one copy of the rules, which the server refuses by and the client checks before sending (`feature/reviews/ReviewCommands.kt`, B-22) |
 | search | `SearchSuggestPanel` (with `clearUrl`, which replaced `clearAction`), `SearchNoResults` (`SearchComponents.kt`) | — |
 | cart | `CartBody`, `CartLine` (with `changeDetail`), `CartGroup`, `CartSelection`, `PromoField` (with `terms`), `SummaryRow` (with `saving`, which replaced `detail`), `OrderSummary` (with `title`, `promo`, `pointsAccent`) — wire types `haul_cart_body`, `haul_cart_line`, `haul_cart_group`, `haul_cart_selection`, `haul_promo_field`, `haul_order_summary` (`CartComponents.kt`, B-11, B-13) | `LineChange`, `LinesRemoval`, `PromoEntry`, `LineCommand` (a URL and a `LineChange`: a card's «+», B-37) (`feature/cart/CartCommands.kt`) |
 | checkout | `CheckoutHeader` and `CheckoutBody` (the title, the notices, the sections in order, the summary — B-15), whose parts are the components `CheckoutNotice`, `DeliveryMethods`, `CheckoutAddress` (the inline form: `form`, `url`), `DeliverySlots` (with `notice`), `PickupPoints`, `PaymentMethods` (with the `points` toggle), `CheckoutSummary` (with `title`, `placeHint`, `placingLabel`) — wire types `haul_checkout_header`, `haul_checkout_body`, `haul_checkout_notice`, `haul_delivery_methods`, `haul_checkout_address`, `haul_delivery_slots`, `haul_pickup_points`, `haul_payment_methods`, `haul_checkout_summary` — and their parts (`MethodOption` with `price`, `FormField` with `placeholder`, `SlotDay` with `weekday`, `date`, `selected`, `SlotOption`, `PickupPointOption` with `detail`, `PaymentOption`, `SummaryItem`, `PointsToggle` with `detail` and a nullable `url`) (`CheckoutComponents.kt`, B-14, B-15) | `DeliveryMethod`, `CheckoutChoice`, `AddressEntry`, `PlaceOrderRequest`, `IDEMPOTENCY_KEY_HEADER` = `Idempotency-Key` (`feature/checkout/CheckoutCommands.kt`, B-14, B-16) |
@@ -50,9 +50,10 @@ reads.
 
 Each command-carrying component holds the URL its commands go to — `CartLine.url` and
 `acknowledgeUrl`, `CartSelection.linesUrl`, `PromoField.url`, `ProductCard.add`,
-`SearchSuggestPanel.clearUrl`, the checkout components' `url`, `CheckoutSummary.placeUrl` — and the
-method and body are written on the component ([endpoint-cart](../api/endpoint-cart.md),
-[endpoint-checkout](../api/endpoint-checkout.md)).
+`SearchSuggestPanel.clearUrl`, the checkout components' `url`, `CheckoutSummary.placeUrl`,
+`ReviewForm.url`, `QuestionForm.url` — and the method and body are written on the component
+([endpoint-cart](../api/endpoint-cart.md), [endpoint-checkout](../api/endpoint-checkout.md),
+[endpoint-reviews](../api/endpoint-reviews.md)).
 
 **`ErrorCode`**, all of them: `validation_failed`, `category_not_found`, `product_not_found`,
 `unavailable`, `internal`, `query_too_short`, `unauthenticated`, `guest_not_found` (B-12),
@@ -61,8 +62,9 @@ method and body are written on the component ([endpoint-cart](../api/endpoint-ca
 `pickup_point_not_found`, `address_not_found`, `payment_method_not_allowed`, `field_required`,
 `field_invalid` (B-14; the last two only inside `ErrorBody.fields`), `idempotency_key_missing`,
 `idempotency_key_reused`, `cart_changed` (B-16), `checkout_held` (`409`, B-39: placement of a
-checkout that holds «Place order» for a refused address form while the method is courier). Their statuses are the server's (`status` in
-`server/src/main/kotlin/io/github/youndie/haul/HaulModule.kt`).
+checkout that holds «Place order» for a refused address form while the method is courier),
+`review_exists` (`409`, B-22: one review per customer per product). Their statuses are the
+server's (`status` in `server/src/main/kotlin/io/github/youndie/haul/HaulModule.kt`).
 
 ## 2a. Code anchors
 
@@ -71,6 +73,7 @@ checkout that holds «Place order» for a refused address form while the method 
 | `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/` | the Haul components |
 | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/cart/CartCommands.kt` | the cart's command bodies and `LineCommand` |
 | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/checkout/CheckoutCommands.kt` | checkout's command bodies, placement's request and its header |
+| `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/reviews/ReviewCommands.kt` | the review's and the question's bodies and their rules |
 | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/Guests.kt` | `GuestDto` and the guest header |
 | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/SignInSettings.kt` | what the browser reads before it signs in |
 | `shared/src/commonMain/kotlin/io/github/youndie/haul/StorefrontPage.kt` | the storefront's addresses |

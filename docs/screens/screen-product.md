@@ -37,7 +37,8 @@ design:
 |---|---|
 | Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/product/` |
 | Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` |
-| The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/` |
+| The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/`; the reviews and questions tabs and their dialogs in `server/src/main/kotlin/io/github/youndie/haul/feature/reviews/screen/ReviewTabs.kt` |
+| The dialogs and their commands | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/product/ReviewDialogs.kt`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/product/ReviewCommandsClient.kt`; the shell draws a `present` over the page (`presenting` in `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Storefront.kt`) |
 | Reference PNGs, one per artboard | `composeApp/src/desktopTest/snapshots/design/` |
 | Parity fixtures, one per artboard | `composeApp/src/desktopTest/kotlin/io/github/youndie/haul/ProductFixtures.kt` |
 
@@ -55,10 +56,10 @@ returns. The list is held against the real state when the code exists.
 - [x] **Loading:** breadcrumbs, photo placeholder, placeholder lines for title, price and delivery
 - [x] **Description:** the page with the Description tab open
 - [x] **Specifications:** Specifications tab: the full key → value list
-- [x] **Reviews:** Reviews tab: 4.8, histogram 78/14/4/2/2, two reviews. Drawn from a wire body (`composeApp/src/desktopTest/resources/bodies/product_reviews.json`); the server answers `400` for this tab until B-22
-- [x] **Questions:** Questions tab: two answered questions, one «Not answered yet», «Ask a question». Drawn from a wire body (`composeApp/src/desktopTest/resources/bodies/product_questions.json`); the server answers `400` for this tab until B-22
-- [ ] **ReviewDialog:** dialog over Reviews: stars, title, body, Post (B-22)
-- [ ] **QuestionDialog:** dialog over Questions: text, Send (B-22)
+- [x] **Reviews:** Reviews tab: 4.8, histogram 78/14/4/2/2, two reviews, newest first. Answered by the server (`?tab=reviews`, B-22); the fixture's body (`composeApp/src/desktopTest/resources/bodies/product_reviews.json`) is held equal to it by `ReviewFixturesTest`
+- [x] **Questions:** Questions tab: two answered questions, one «Not answered yet», «Ask a question». Answered by the server (`?tab=questions`, B-22); `composeApp/src/desktopTest/resources/bodies/product_questions.json`, held the same way
+- [x] **ReviewDialog:** dialog over Reviews: stars, title, body, Post — kompot's `present` of `ReviewForm` carried by «Write a review», drawn over the tab; no address of its own (B-22)
+- [x] **QuestionDialog:** dialog over Questions: text, Send — `present` of `QuestionForm` carried by «Ask a question» (B-22)
 - [x] **OutOfStock:** colour «Silver» chosen: «Out of stock», Add to cart and Buy now disabled, Save kept
 - [x] **NotFound:** «This product is no longer available», link home
 - [x] **Error:** header, message, Retry
@@ -85,4 +86,5 @@ Desktop artboards are named as in `design.states`; each has a phone twin with th
 - Buy now → adds and opens screen-checkout (*target*: no action yet)
 - the photo → the stored photo (`ProductDetails.photo`, B-30) over the placeholder tile, which stays without one
 - seller card → nothing in v1
-- helpful → vote
+- «Write a review» / «Ask a question» → the dialog over the tab for a customer, `/sign-in` for a guest; Post / Send → `POST /api/v1/products/{id}/reviews` or `/questions` ([endpoint-reviews](../api/endpoint-reviews.md)), the client checking the rules first; `201` closes the dialog and draws the page again, a refusal is drawn in the dialog; Cancel and «×» close it and send nothing
+- «Helpful» → nothing yet: drawn and inert until B-43

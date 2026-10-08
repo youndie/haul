@@ -100,8 +100,10 @@ B-08, and what the server fills:
   `ProductDescription` or `SpecificationList`. `ProductDetails` gained `gallery`, `morePhotos`,
   `photoTotal`, `haulPayStrong`, `photo` (the stored photo's address, B-30) and, for a SKU out of
   stock, `stockAdvice` in place of the delivery lines; the courier line reads the cut-off while the SKU is in stock. `TabLabel.compactTitle` is
-  the phone's «Specs». `ProductReviews` and `ProductQuestions` exist in the contract and no route
-  answers them yet (B-22). `ProductDescription` carries the product's headline as `title` and
+  the phone's «Specs». `?tab=reviews` and `?tab=questions` answer `ProductReviews` and
+  `ProductQuestions` from storage, and the tab row lists four tabs with the reviews' and questions'
+  counts (B-22, [endpoint-reviews](endpoint-reviews.md)); their buttons carry the dialogs' `present`
+  for a customer and `navigate` to `/sign-in` for a guest. `ProductDescription` carries the product's headline as `title` and
   `accent` since B-33 (`products.headline`, `products.headline_accent`,
   `server/src/main/resources/db/migration/V6__product_headline.sql`); a catalogue seeded before V6
   has the product's title as its headline and no accent.
@@ -112,7 +114,7 @@ B-08, and what the server fills:
 
 ## Quirks
 
-* `tab` takes `description` and `specifications` only; `reviews` and `questions` answer `400 validation_failed` (field `tab`) until feature-reviews lands (B-22), and the tab row lists only those two.
+* `tab` takes `description`, `specifications`, `reviews` and `questions`; anything else is `400 validation_failed` (field `tab`).
 * No view is recorded: nothing in `server/` stores a `ProductView` yet.
 * `/ui/home` answers a customer the guest's page without the Plus offer: no «Picked for you», no member's Plus block.
 * The product page's «Add to cart» and «Buy now», home's «All N categories», the brand facet's «Show N more», the header strip's links and the footer carry no action (B-37's findings).

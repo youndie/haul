@@ -16,11 +16,12 @@ publishes:
 
 # Haul server
 
-> Describes the server as it stands after B-17: catalog with photos and the deals page, search,
+> Describes the server as it stands after B-42: catalog with photos and the deals page, search,
 > identity (guests, shildik sign-in, customers), the cart, checkout, placement through the order saga
-> and the payment simulator, the fulfilment simulator with capture per shipment (B-17), the probes,
-> the precompressed web bundle with its storefront addresses, the agents. What is still *target* — the
-> order page, the account, saved lists, reviews, membership and points — is marked where it appears.
+> and the payment simulator, the fulfilment simulator with capture per shipment (B-17), reviews and
+> questions (B-22), the probes, the precompressed web bundle with its storefront addresses, the
+> agents. What is still *target* — the order page, the account, saved lists, helpful votes,
+> membership and points — is marked where it appears.
 
 ## 1. Responsibility
 
@@ -29,9 +30,9 @@ reviews, questions, saved lists, memberships and points. Builds every screen as 
 every command, runs the order saga, and simulates the outside world — the card processor and the
 fulfilment of each seller's shipment. Today it holds the catalog, search, guests and customers,
 carts, checkouts and addresses, orders with their shipments and each shipment's history, the saga's
-state, the payment simulator's ledger with its captures
-(`server/src/main/kotlin/io/github/youndie/haul/feature/`); reviews, saved lists, memberships and
-points are *target*. Product photos live in object storage, which the
+state, the payment simulator's ledger with its captures, reviews and questions
+(`server/src/main/kotlin/io/github/youndie/haul/feature/`); saved lists, memberships and points are
+*target*. Product photos live in object storage, which the
 server reads and serves from its own origin.
 
 It also serves the browser bundle at `/` (section 5), so the page and the API come from one image
@@ -53,7 +54,8 @@ data); send e-mail or push notifications.
   - **commands** are `POST` / `PUT` / `DELETE` under `/api/v1/...`, taking JSON and answering a
     kompot action (refresh the screen, navigate, show a route over it) or an error — the cart's,
     checkout's, the merge's and «Clear» on recent searches answer `refresh` (`respondKompotAction`);
-    placement answers `202` with `navigate` to the order;
+    placement answers `202` with `navigate` to the order; a review or a question answers `201` with
+    kompot's `sequence` of `close` and `refresh` (the dialog goes, the page is drawn again);
   - JSON is `haulWireJson` (`shared/src/commonMain/kotlin/io/github/youndie/haul/HaulWire.kt`):
     discriminator `type`, `explicitNulls = false`, unknown keys ignored. Prices and dates travel as
     the strings the screen shows, formatted by the server; the deals' countdown is an ISO-8601
@@ -79,7 +81,7 @@ data); send e-mail or push notifications.
   |---|---|---|
   | public | none, or an optional bearer — one that does not verify is `401`, not ignored; `X-Haul-Guest` for the header's cart count | catalog (photos included), deals, search, `POST /api/v1/guests`, `GET /api/v1/sign-in` |
   | public, cart owner | a customer's bearer or `X-Haul-Guest: <guest id>` the server issued (a token wins), otherwise `401 unauthenticated` | the cart |
-  | customer | `Authorization: Bearer <shildik access token>`: signature against the realm's JWKS, lifetime and issuer checked by shildik's `oidc-auth-server` (`configureAuth`), and `azp` must be the storefront's client (`installSignIn` in `feature/identity/SignIn.kt`) | the merge, «Clear» on recent searches, `/ui/account`, checkout and placement; *target*: orders, saved, reviews, membership |
+  | customer | `Authorization: Bearer <shildik access token>`: signature against the realm's JWKS, lifetime and issuer checked by shildik's `oidc-auth-server` (`configureAuth`), and `azp` must be the storefront's client (`installSignIn` in `feature/identity/SignIn.kt`) | the merge, «Clear» on recent searches, `/ui/account`, checkout and placement, writing a review or a question; *target*: orders, saved, helpful votes, membership |
   | infra | none, not in the public schema | `/healthz`, `/readyz`, `/version` ([endpoint-ops](../api/endpoint-ops.md)) |
 
   The tiers are decided at the mount in `HaulModule.kt` (`authenticate(JWT_AUTH_OIDC, optional =
@@ -99,7 +101,7 @@ data); send e-mail or push notifications.
 | `server/src/main/kotlin/io/github/youndie/haul/ErrorAnswers.kt` | the catch-all |
 | `server/src/main/kotlin/io/github/youndie/haul/ops/` | the probes (`Probes.kt`) and metrik, tracy, katcher (`Observability.kt`) |
 | `server/src/main/kotlin/io/github/youndie/haul/WebBundle.kt` | the bundle at `/`: precompressed variants, cache headers, the page at the storefront's addresses |
-| `server/src/main/kotlin/io/github/youndie/haul/feature/` | `catalog/` (with photos and `/ui/deals`), `search/`, `identity/`, `cart/`, `checkout/`, `order/`, `payment/`, `account/` (the placeholder) — each with its routing, use cases, storage and screens |
+| `server/src/main/kotlin/io/github/youndie/haul/feature/` | `catalog/` (with photos and `/ui/deals`), `search/`, `identity/`, `cart/`, `checkout/`, `order/`, `payment/`, `fulfilment/`, `reviews/`, `account/` (the placeholder) — each with its routing, use cases, storage and screens |
 | `server/src/main/kotlin/io/github/youndie/haul/shell/` | `Frame` (the header and footer every screen but checkout sits in) and `Viewers` (who is looking: first name, cart count, what the cart holds) |
 | `server/src/main/resources/db/migration/` | migrations (Flyway) |
 | `server/src/main/kotlin/io/github/youndie/haul/seed/` | the generated catalog and the sample-data fixtures, promo codes included |
@@ -112,7 +114,8 @@ data); send e-mail or push notifications.
 
 * **One feature, one package**, each with its use cases, its repository, its routes and the tree
   builders of the screens it owns (`catalog/` builds Home, Deals, Catalog and Product; `search/`
-  Search; `cart/` the Cart; `checkout/` the Checkout).
+  Search; `cart/` the Cart; `checkout/` the Checkout; `reviews/` the product page's reviews and questions tabs
+  and their dialogs).
 * **Who is calling** is `Callers` (`feature/identity/Callers.kt`): a verified token is the customer
   (created from its `name` claim on first sight), else a guest id the server issued, else nobody.
 * **The order is a petich saga** (`feature/order/saga/OrderSaga.kt`, B-16) — reserve stock → reserve
@@ -199,7 +202,7 @@ shildik (`ghcr.io/youndie/shildik-sqlite:0.4.1`) and SeaweedFS in Testcontainers
 (`server/src/test/kotlin/io/github/youndie/haul/testing/ShildikHarness.kt`,
 `server/src/test/kotlin/io/github/youndie/haul/testing/SeaweedHarness.kt`). The seed adds Maya (Plus)
 and Sam as customers with ids `maya` and `sam`, Maya's cart and address, three pickup points and
-two lockers (B-15); a realm for a local shildik imports them by those ids.
+two lockers (B-15), and the sample product's reviews, histogram and questions (B-22); a realm for a local shildik imports them by those ids.
 
 ## 7. Configuration
 
