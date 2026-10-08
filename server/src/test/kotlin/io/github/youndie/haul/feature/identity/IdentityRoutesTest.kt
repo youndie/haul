@@ -18,10 +18,10 @@ import io.github.youndie.haul.testing.guest
 import io.github.youndie.haul.testing.haulTest
 import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.putLine
+import io.github.youndie.haul.ui.AccountBody
 import io.github.youndie.haul.ui.CartLine
 import io.github.youndie.haul.ui.EmptyState
 import io.github.youndie.haul.ui.HaulHeader
-import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.decodeKompotComponent
 import io.github.youndie.kompot.standard.NavigateAction
@@ -137,7 +137,7 @@ class IdentityRoutesTest {
             get("/ui/account") { header(GUEST_HEADER, guest()) }
                 .assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
 
-            assertEquals("Hi, Maya", tree("/ui/account") { bearerAuth(token) }.only<PageTitle>().title)
+            assertEquals("Hi, Maya", tree("/ui/account") { bearerAuth(token) }.only<AccountBody>().title)
         }
 
     /** «The first authenticated request of an unknown `sub` creates the Customer from the token's name claim.» */
