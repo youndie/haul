@@ -40,13 +40,14 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (13)
+## Open (16)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-18](docs/backlog/B-18-order-tree-and-renderers-reorder.md) `[ ]` | server + client: Order tree and renderers, reorder | P1 | M | B-01, B-15, B-17 |
 | [B-19](docs/backlog/B-19-account-overview-and-orders-history.md) `[ ]` | server + client: Account overview and orders history | P1 | M | B-01, B-18 |
 | [B-26](docs/backlog/B-26-the-whole-path-over-http-against.md) `[ ]` | e2e: the whole path over HTTP against the composed stack | P1 | M | B-21, B-22 |
+| [B-39](docs/backlog/B-39-placement-refuses-a-quote-checkout-holds.md) `[ ]` | server: placement refuses a quote the checkout is holding | P1 | S | B-15, B-16 |
 | [B-20](docs/backlog/B-20-saved-list-save-for-later-price.md) `[ ]` | server + client: Saved list, save for later, price drops | P2 | M | B-01, B-13, B-19 |
 | [B-21](docs/backlog/B-21-returns-and-refunds.md) `[ ]` | server + client: returns and refunds | P2 | M | B-18 |
 | [B-22](docs/backlog/B-22-reviews-and-questions-the-two-dialog.md) `[ ]` | server + client: reviews and questions, the two dialog routes and forms | P2 | L | B-08, B-17 |
@@ -56,7 +57,9 @@ A stage is a field on the item, not a directory.
 | [B-27](docs/backlog/B-27-helm-chart-tracy-metrik-katcher-wiring.md) `[?]` | ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand | P2 | M | B-03 |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 | [B-38](docs/backlog/B-38-re-render-the-search-references-with-grayscale.md) `[ ]` | design refs: re-render the Search references with grayscale text | P2 | S | - |
+| [B-41](docs/backlog/B-41-sign-in-returns-to-where-it-was-asked.md) `[ ]` | client: sign-in returns to where it was asked for | P2 | S | B-12, B-35 |
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
+| [B-40](docs/backlog/B-40-saving-an-address-updates-it-in-place.md) `[ ]` | server: saving the address being delivered to updates it in place | P3 | S | B-15 |
 
 ## Closed (25)
 
