@@ -40,8 +40,8 @@ import kotlin.time.TimeSource
  * The whole path a shopper takes, over HTTP, against the server's own image with PostgreSQL and shildik
  * beside it ([ComposedStack]): browse from `/` to a product, put it in a guest cart from its page, sign in and take
  * the cart along, check out by courier with an address, a window and a card the checkout offers, place
- * the order, wait for the fast clock to deliver it, return it, wait for the refund, and find it in the
- * history as returned.
+ * the order, wait for the fast clock to deliver it, return it, wait for the refund — read again, and pushed to the
+ * order's page down the channel its tree names (B-29) — and find it in the history as returned.
  *
  * **What it guards** is the seams no route test crosses: the image (its AOT cache, its configuration
  * from the environment), the realm a stand signs in against, the trees handing each other their
@@ -240,6 +240,14 @@ class WholePathTest {
                 Placed(orderAddress, cents(summary.total))
             }
 
+        // The order's page listens on the channel its tree names (B-29), from here to the refund: every move the
+        // simulators make after this is pushed down it.
+        val live =
+            step("the order's page listens for its moves") {
+                val topic = assertNotNull(shop.page(placed.address).realtimeTopic, "the order's page names no channel")
+                shop.listen(topic)
+            }
+
         val form =
             step("the fast clock delivers the order") {
                 val delivered =
@@ -297,6 +305,18 @@ class WholePathTest {
                 "what the order cost after the refund",
             )
             assertTrue(refunded.shipments.any { it.returned }, "no card of returned items: ${refunded.shipments}")
+        }
+
+        step("the refund was pushed to the order's page") {
+            // The return was asked for after the page started listening, so a refunded order on the stream was
+            // pushed by the simulator's move, not drawn when the stream opened.
+            live.use {
+                val pushed =
+                    it.await(OrderBody.serializer(), 30.seconds) { order ->
+                        order.summary.rows.any { row -> row.label == "Refunded" }
+                    }
+                assertEquals("Return refunded", pushed.title)
+            }
         }
 
         step("the account's history shows the order returned") {
