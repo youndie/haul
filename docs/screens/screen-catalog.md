@@ -27,12 +27,13 @@ design:
 
 ## 0a. Code anchors
 
-| What | File (planned) |
+| What | File |
 |---|---|
 | Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/catalog/` |
 | Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` |
 | The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/` |
 | Reference PNGs, one per artboard | `composeApp/src/desktopTest/snapshots/design/` |
+| Parity fixtures, one per artboard | `composeApp/src/desktopTest/kotlin/io/github/youndie/haul/ScreenFixtures.kt` |
 
 ## 0. Entry point and visibility
 
@@ -45,11 +46,11 @@ The names are the artboard names without the screen prefix. `Loading` and `Error
 client while it has no tree or after a failed request; every other state is a tree the server
 returns. The list is held against the real state when the code exists.
 
-- [ ] **Loading:** breadcrumbs and title, placeholder facet column and 12 card placeholders
-- [ ] **Content:** Headphones, 12,408 items, facets with Sony + Bose + $80–$400 + Noise cancelling applied, chips, sort «Popular», 12 cards, «Show 24 more», pages 1 2 3 … 517
-- [ ] **Empty:** same filters plus Marshall + Pink: «No items match these filters», Clear all, facets still visible
-- [ ] **FiltersSheet:** **phone only**: the facet column as a full-height sheet with «Show 48 items»
-- [ ] **Error:** header, message, Retry
+- [x] **Loading:** breadcrumbs and title, placeholder facet column and 12 card placeholders
+- [x] **Content:** Headphones, 12,408 items, facets with Sony + Bose + $80–$400 + Noise cancelling applied, chips, sort «Popular», 12 cards, «Show 24 more», pages 1 2 3 … 517
+- [x] **Empty:** same filters plus Marshall + Pink: «No items match these filters», Clear all, facets still visible
+- [x] **FiltersSheet:** **phone only**: the facet column as a full-height sheet with «Show 48 items»
+- [x] **Error:** header, message, Retry
 
 ### Artboards and sizes
 

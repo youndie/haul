@@ -29,12 +29,13 @@ design:
 
 ## 0a. Code anchors
 
-| What | File (planned) |
+| What | File |
 |---|---|
 | Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/home/` |
 | Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` |
 | The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/` |
 | Reference PNGs, one per artboard | `composeApp/src/desktopTest/snapshots/design/` |
+| Parity fixtures, one per artboard | `composeApp/src/desktopTest/kotlin/io/github/youndie/haul/ScreenFixtures.kt` |
 
 ## 0. Entry point and visibility
 
@@ -47,11 +48,11 @@ The names are the artboard names without the screen prefix. `Loading` and `Error
 client while it has no tree or after a failed request; every other state is a tree the server
 returns. The list is held against the real state when the code exists.
 
-- [ ] **Loading:** header, placeholder blocks for hero, categories and two product rows
-- [ ] **Content:** Maya signed in: campaign «Autumn mega sale», «Tech week», «Free delivery» banners, 8 categories, 6 deals with the countdown, the Plus block **in its member form** («You saved $186 on delivery this year · renews Nov 2»), «Picked for you» 6 products, footer
-- [ ] **Guest:** header «Sign in»; Plus block offers the trial; no «Picked for you»
-- [ ] **PlusTrialDialog:** Sam signed in, dialog over Content: the benefits, «30 days free, then $4.99/month», Start trial / Not now
-- [ ] **Error:** header, message that the page could not load, Retry
+- [x] **Loading:** header, placeholder blocks for hero, categories and two product rows
+- [x] **Content:** Maya signed in: campaign «Autumn mega sale», «Tech week», «Free delivery» banners, 8 categories, 6 deals with the countdown, the Plus block **in its member form** («You saved $186 on delivery this year · renews Nov 2»), «Picked for you» 6 products, footer. Drawn from a wire body (`composeApp/src/desktopTest/resources/bodies/home_content.json`); the server does not build the member form or «Picked for you» yet, so `/ui/home` answers every viewer the Guest state
+- [x] **Guest:** header «Sign in»; Plus block offers the trial; no «Picked for you»
+- [ ] **PlusTrialDialog:** Sam signed in, dialog over Content: the benefits, «30 days free, then $4.99/month», Start trial / Not now (B-23)
+- [x] **Error:** header, message that the page could not load, Retry
 
 ### Artboards and sizes
 

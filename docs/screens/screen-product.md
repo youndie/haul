@@ -33,12 +33,13 @@ design:
 
 ## 0a. Code anchors
 
-| What | File (planned) |
+| What | File |
 |---|---|
 | Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/product/` |
 | Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` |
 | The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/` |
 | Reference PNGs, one per artboard | `composeApp/src/desktopTest/snapshots/design/` |
+| Parity fixtures, one per artboard | `composeApp/src/desktopTest/kotlin/io/github/youndie/haul/ProductFixtures.kt` |
 
 ## 0. Entry point and visibility
 
@@ -51,16 +52,16 @@ The names are the artboard names without the screen prefix. `Loading` and `Error
 client while it has no tree or after a failed request; every other state is a tree the server
 returns. The list is held against the real state when the code exists.
 
-- [ ] **Loading:** breadcrumbs, photo placeholder, placeholder lines for title, price and delivery
-- [ ] **Description:** the page with the Description tab open
-- [ ] **Specifications:** Specifications tab: the full key → value list
-- [ ] **Reviews:** Reviews tab: 4.8, histogram 78/14/4/2/2, two reviews
-- [ ] **Questions:** Questions tab: two answered questions, one «Not answered yet», «Ask a question»
-- [ ] **ReviewDialog:** dialog over Reviews: stars, title, body, Post
-- [ ] **QuestionDialog:** dialog over Questions: text, Send
-- [ ] **OutOfStock:** colour «Silver» chosen: «Out of stock», Add to cart and Buy now disabled, Save kept
-- [ ] **NotFound:** «This product is no longer available», link home
-- [ ] **Error:** header, message, Retry
+- [x] **Loading:** breadcrumbs, photo placeholder, placeholder lines for title, price and delivery
+- [x] **Description:** the page with the Description tab open
+- [x] **Specifications:** Specifications tab: the full key → value list
+- [x] **Reviews:** Reviews tab: 4.8, histogram 78/14/4/2/2, two reviews. Drawn from a wire body (`composeApp/src/desktopTest/resources/bodies/product_reviews.json`); the server answers `400` for this tab until B-22
+- [x] **Questions:** Questions tab: two answered questions, one «Not answered yet», «Ask a question». Drawn from a wire body (`composeApp/src/desktopTest/resources/bodies/product_questions.json`); the server answers `400` for this tab until B-22
+- [ ] **ReviewDialog:** dialog over Reviews: stars, title, body, Post (B-22)
+- [ ] **QuestionDialog:** dialog over Questions: text, Send (B-22)
+- [x] **OutOfStock:** colour «Silver» chosen: «Out of stock», Add to cart and Buy now disabled, Save kept
+- [x] **NotFound:** «This product is no longer available», link home
+- [x] **Error:** header, message, Retry
 
 ### Artboards and sizes
 
