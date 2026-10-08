@@ -1,7 +1,7 @@
 ---
 id: B-52
 title: "server: «bought this month» on the product page"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-2-browse
