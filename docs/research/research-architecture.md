@@ -554,8 +554,12 @@ Mitigation: B-12 starts by proving the authorisation-code flow with PKCE from wa
 shildik before any UI is built on it. **Settled in B-12** (D5): kotlin-multiplatform-oidc in a popup.
 What is proven and where: the flow with PKCE against the published shildik image, played over HTTP by
 the server's suite (`ShildikHarness`, every identity scenario signs in through it); the library's own
-half — the popup, the redirect page, the exchange from a page — compiles into the bundle and is not
-exercised by any automated test: shildik's acceptance runs this library on the JVM, not in a browser.
+half — the popup, the redirect page, the exchange from a page — by hand on 2026-10-08, in a headless
+Chrome for Testing driven over the DevTools protocol against the bundle `installDist` serves, the
+same image and a fresh PostgreSQL: the guest's «Sign in» opened shildik's page in a popup, the popup
+came back through `signed-in.html` and closed, the page exchanged the code (`200` from the token
+endpoint, cross-origin), merged the guest cart, and redrew the header as «Maya» with the merged count.
+No automated test covers that half; shildik's acceptance runs this library on the JVM only.
 
 **Risk 3. Fixtures and server disagree.** If the parity fixture is a hand-built tree, a screen can
 match the canvas while the server builds something else. Mitigation (*hypothesis*): the fixture for

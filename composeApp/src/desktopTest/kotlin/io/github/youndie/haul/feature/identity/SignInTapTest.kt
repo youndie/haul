@@ -19,6 +19,7 @@ import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -48,6 +49,16 @@ class SignInTapTest {
 
             assertEquals(listOf<KompotAction>(NavigateAction("/sign-in")), handled)
         }
+
+    /**
+     * The server leaves a `null` out of the wire (`explicitNulls = false`), so a guest's header arrives
+     * with no `customerName` at all — and until B-12 the client refused it, every guest's every screen.
+     */
+    @Test
+    fun `a guest's header decodes as the server sends it, without a name`() {
+        val header = decode("haul_header_guest.json") as HaulHeader
+        assertNull(header.customerName)
+    }
 
     @Test
     fun `sign-in's actions sign in and redraw, every other action is left to navigation`() =

@@ -15,7 +15,9 @@ import kotlinx.serialization.Serializable
  * The header of every screen but checkout: the delivery strip, the logo, the catalog button, search,
  * the account shortcuts and the cart, and the category row.
  *
- * [customerName] is the signed-in first name; `null` is a guest, and the shortcut reads «Sign in».
+ * [customerName] is the signed-in first name; `null` is a guest, and the shortcut reads «Sign in». It
+ * has a default because the server's wire leaves a `null` out (`explicitNulls = false`): without one a
+ * guest's header did not decode in the client at all.
  * [query] is what the search field holds on the search screen; `null` shows the placeholder.
  * [account] is what a tap on the account shortcut does: a guest is sent to `/sign-in`, which the
  * client answers by opening the provider's page; a customer to `/account`.
@@ -27,7 +29,7 @@ public data class HaulHeader(
     override val id: String,
     val deliverTo: String,
     val deliveryPromise: String,
-    val customerName: String?,
+    val customerName: String? = null,
     val cartCount: Int,
     val searchPlaceholder: String,
     val query: String? = null,
