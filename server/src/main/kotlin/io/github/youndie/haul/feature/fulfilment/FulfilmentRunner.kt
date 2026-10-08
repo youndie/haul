@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.fulfilment
 
 import io.github.youndie.haul.feature.fulfilment.domain.FulfilmentPace
 import io.github.youndie.haul.feature.fulfilment.domain.FulfilmentSimulator
+import io.github.youndie.haul.feature.payment.domain.HaulPayPlans
 import io.github.youndie.haul.feature.returns.domain.ReturnSimulator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -34,13 +35,14 @@ internal data class FulfilmentSettings(
 }
 
 /**
- * Runs [simulator]'s pass, then [returns]' (B-21), every [interval] in the application's scope, from the
- * first moment it serves until it stops. A pass that fails is said at `warn` and the next one tries again — a
+ * Runs [simulator]'s pass, then [returns]' (B-21), then Haul Pay's [plans]' (B-24), every [interval] in the
+ * application's scope, from the first moment it serves until it stops. A pass that fails is said at `warn` and the next one tries again — a
  * failing pass and an idle one look the same from outside, and every move a pass makes is safe to make again.
  */
 internal class FulfilmentRunner(
     private val simulator: FulfilmentSimulator,
     private val returns: ReturnSimulator,
+    private val plans: HaulPayPlans,
     private val interval: Duration,
 ) {
     fun start(scope: CoroutineScope): Job =
@@ -51,6 +53,8 @@ internal class FulfilmentRunner(
                     if (moves > 0) log.debug("fulfilment pass moved {} shipments a step", moves)
                     val returned = returns.advance()
                     if (returned > 0) log.debug("fulfilment pass moved {} returns a step", returned)
+                    val instalments = plans.advance()
+                    if (instalments > 0) log.debug("fulfilment pass took {} Haul Pay payments", instalments)
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {

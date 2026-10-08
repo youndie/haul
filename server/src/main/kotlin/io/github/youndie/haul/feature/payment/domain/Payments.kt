@@ -84,6 +84,9 @@ internal sealed interface RefundOutcome {
  * A refund gives back part of what was captured (B-21): one per return, named by the caller's key, so a
  * refund asked twice gives back once, and the refunds of an order never add up to more than its captures.
  *
+ * A Haul Pay order is captured by its plan's payments rather than by its shipments (B-24, [HaulPayPlans]):
+ * four captures out of the same authorisation, each named by the payment.
+ *
  * v1 has no real processor: [PaymentSimulator] is the one implementation.
  */
 internal interface PaymentProcessor {
@@ -125,8 +128,9 @@ internal interface PaymentProcessor {
 
 /**
  * The simulator's rule, and the whole of it (research D4, §6): every way to pay is approved except the
- * test card ···· 0002, which is always declined. Haul Pay is authorised like a card — its four payments
- * are B-24's; pay on delivery is never sent here (nothing is authorised for it, feature-orders).
+ * test card ···· 0002, which is always declined. Haul Pay is authorised like a card, its whole total, and its
+ * four payments are captured out of that ([HaulPayPlans]); pay on delivery is never sent here (nothing is
+ * authorised for it, feature-orders).
  */
 internal object PaymentSimulator {
     fun decide(method: PaymentMethod): AuthorisationOutcome =

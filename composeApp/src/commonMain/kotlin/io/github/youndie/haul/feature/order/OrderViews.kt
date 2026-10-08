@@ -55,7 +55,9 @@ import io.github.youndie.haul.ui.OrderNotice
 import io.github.youndie.haul.ui.OrderShipment
 import io.github.youndie.haul.ui.OrderSteps
 import io.github.youndie.haul.ui.OrderTotals
+import io.github.youndie.haul.ui.PaymentPlan
 import io.github.youndie.haul.ui.PickupCode
+import io.github.youndie.haul.ui.PlanPaymentState
 import io.github.youndie.haul.ui.SummaryRow
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.accented
@@ -508,7 +510,11 @@ private fun Summary(
                 softWrap = false,
             )
         }
-        totals.facts.forEach { Fact(it) }
+        totals.facts.forEach { fact ->
+            Fact(fact)
+            // Haul Pay's schedule sits under the fact that says how the order is paid (B-24).
+            if (fact.kind == OrderFactKind.Card) totals.plan?.let { Plan(it) }
+        }
         val reorder = totals.reorderLabel
         if (reorder != null || totals.returnLabel != null) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -548,6 +554,70 @@ private fun Summary(
                 icon = HaulIcons.arrowRight,
                 onClick = following(it.action),
             )
+        }
+    }
+}
+
+/**
+ * Haul Pay's schedule (B-24). No artboard draws it, so it is built from the summary's own pieces: indented under
+ * the payment fact's text, a caption in the fact's detail style, then one line per payment as the summary's rows
+ * are drawn — its day and where it stands on the left, what it charges on the right. A paid payment is muted, a
+ * declined one says so in the error colour, a covered one's amount is struck through.
+ */
+@Composable
+private fun Plan(plan: PaymentPlan) {
+    Column(
+        Modifier.fillMaxWidth().padding(start = 32.dp).testTag(PLAN_TAG),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Text(plan.title, HaulType.text(14f, lineHeight = FACT_LEADING).copy(color = HaulColors.outline))
+        plan.payments.forEach { payment ->
+            val muted = payment.state == PlanPaymentState.Paid || payment.state == PlanPaymentState.Covered
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        payment.label,
+                        HaulType.text(15f, 600, lineHeight = FACT_LEADING).let {
+                            if (muted) it.copy(color = HaulColors.outline) else it
+                        },
+                    )
+                    Text(
+                        payment.detail,
+                        HaulType.text(14f, lineHeight = FACT_LEADING).copy(
+                            color =
+                                if (payment.state ==
+                                    PlanPaymentState.Declined
+                                ) {
+                                    HaulColors.error
+                                } else {
+                                    HaulColors.outline
+                                },
+                        ),
+                    )
+                }
+                Text(
+                    payment.amount,
+                    normal(15f, 600).let {
+                        when (payment.state) {
+                            PlanPaymentState.Paid -> {
+                                it.copy(color = HaulColors.outline)
+                            }
+
+                            PlanPaymentState.Covered -> {
+                                it.copy(
+                                    color = HaulColors.outline,
+                                    textDecoration = TextDecoration.LineThrough,
+                                )
+                            }
+
+                            else -> {
+                                it
+                            }
+                        }
+                    },
+                    softWrap = false,
+                )
+            }
         }
     }
 }
@@ -639,6 +709,9 @@ private val RING: Dp = 4.dp
 
 /** «Reorder», for the tests that press it. */
 internal const val REORDER_TAG: String = "order-reorder"
+
+/** Haul Pay's schedule, for the tests that look for it. */
+internal const val PLAN_TAG: String = "order-plan"
 
 /** «Return items», for the tests that press it. */
 internal const val RETURN_TAG: String = "order-return"

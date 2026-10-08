@@ -22,6 +22,9 @@ import kotlin.time.Duration.Companion.seconds
  * A return goes the other way (B-21): the courier collects it [returnPickup] after it is asked for, and it
  * is refunded [returnRefund] after that, when the seller has it back.
  *
+ * A Haul Pay plan runs on the same clock (B-24): its payments are [instalmentInterval] apart from the first
+ * shipment's leaving, and a declined one is tried again [instalmentRetry] later.
+ *
  * [STORE] is the store's own pace, a decision rather than an observation (research D4, «Decided in
  * B-17»); [faster] is the same schedule run [faster]'s times quicker — the fast clock of a stand or a test.
  */
@@ -33,10 +36,22 @@ internal data class FulfilmentPace(
     val collection: Duration,
     val returnPickup: Duration = 1.days,
     val returnRefund: Duration = 1.days,
+    val instalmentInterval: Duration = 14.days,
+    val instalmentRetry: Duration = 1.days,
 ) {
     init {
         require(
-            listOf(packing, dispatch, dispatchDay, transit, collection, returnPickup, returnRefund).all {
+            listOf(
+                packing,
+                dispatch,
+                dispatchDay,
+                transit,
+                collection,
+                returnPickup,
+                returnRefund,
+                instalmentInterval,
+                instalmentRetry,
+            ).all {
                 it.isPositive()
             },
         ) {
@@ -86,6 +101,8 @@ internal data class FulfilmentPace(
             collection / speed,
             returnPickup / speed,
             returnRefund / speed,
+            instalmentInterval / speed,
+            instalmentRetry / speed,
         )
     }
 
@@ -109,7 +126,8 @@ internal data class FulfilmentPace(
          * The store's pace: packed four hours after the seller sees the order, on the road twenty hours
          * later plus a day per dispatch day, delivered or ready to collect a day after that, collected two
          * days later — inside the five days a point holds it ([HELD_FOR]). A return is collected a day after it
-         * is asked for and refunded a day after that.
+         * is asked for and refunded a day after that. Haul Pay's payments are two weeks apart (research D6), a
+         * declined one tried again a day later.
          */
         val STORE: FulfilmentPace =
             FulfilmentPace(

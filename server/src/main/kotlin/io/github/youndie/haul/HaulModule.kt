@@ -138,8 +138,9 @@ internal fun Application.haulModule(
     // Carries on what a process that died left mid-saga, from the first moment this one serves; it
     // stops with the application, whose scope it runs in.
     get<SuspendedPetichSweeper>().start(this)
-    // The simulated world after placement, in the same scope: shipments move and are charged as they ship.
-    fulfilment.interval?.let { FulfilmentRunner(get(), get(), it).start(this) }
+    // The simulated world after placement, in the same scope: shipments move and are charged as they ship,
+    // returns are refunded, and Haul Pay's payments are taken as they come due.
+    fulfilment.interval?.let { FulfilmentRunner(get(), get(), get(), it).start(this) }
     install(StatusPages) {
         // A bearer token that did not verify, or none where the customer tier needs one: the
         // authentication challenge answers with an empty body, and every refusal here has one.

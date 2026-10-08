@@ -19,10 +19,13 @@ internal val fulfilmentModule =
                 shipments = get(),
                 orders = get(),
                 payments = get(),
+                plans = get(),
                 points = get(),
                 clock = get(),
                 pace = get(),
             )
         }
-        single { OrderTracking(orders = get(), shipments = get(), payments = get(), returns = get()) }
+        single {
+            OrderTracking(orders = get(), shipments = get(), payments = get(), returns = get(), plans = get())
+        }
     }

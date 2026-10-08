@@ -1,10 +1,14 @@
 package io.github.youndie.haul.feature.fulfilment.domain
 
 import io.github.youndie.haul.feature.checkout.DeliveryMethod
+import io.github.youndie.haul.feature.checkout.domain.PaymentMethod
 import io.github.youndie.haul.feature.order.domain.Order
 import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.domain.OrderStatus
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus
+import io.github.youndie.haul.feature.payment.domain.InstalmentPlan
+import io.github.youndie.haul.feature.payment.domain.InstalmentRepository
+import io.github.youndie.haul.feature.payment.domain.InstalmentSchedule
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
 import io.github.youndie.haul.feature.returns.domain.OrderReturn
 import io.github.youndie.haul.feature.returns.domain.ReturnRepository
@@ -80,12 +84,17 @@ internal data class TrackedShipment(
     val heldUntil: Instant?,
 )
 
-/** An order as its customer may see it (screen-order); B-18 draws it, with its return (B-21) when it has one. */
+/**
+ * An order as its customer may see it (screen-order); B-18 draws it, with its return (B-21) when it has one and
+ * its Haul Pay [plan] (B-24) when it is paid that way and was not cancelled — the stored one once it started,
+ * the schedule its total gives before that.
+ */
 internal data class TrackedOrder(
     val order: Order,
     val progress: OrderProgress,
     val shipments: List<TrackedShipment>,
     val returned: OrderReturn? = null,
+    val plan: InstalmentPlan? = null,
 )
 
 /**
@@ -99,6 +108,7 @@ internal class OrderTracking(
     private val shipments: FulfilmentRepository,
     private val payments: PaymentProcessor,
     private val returns: ReturnRepository,
+    private val plans: InstalmentRepository,
 ) {
     suspend fun track(
         customerId: String,
@@ -137,6 +147,12 @@ internal class OrderTracking(
                     )
                 },
             returned = order.returnStatus?.let { returns.returnOf(orderId) },
+            plan = plan(order),
         )
+    }
+
+    private suspend fun plan(order: Order): InstalmentPlan? {
+        if (order.placed.payment != PaymentMethod.HaulPayPlan.id || order.status == OrderStatus.Cancelled) return null
+        return plans.plan(order.id) ?: InstalmentSchedule.projected(order.id, order.placed.totalCents)
     }
 }

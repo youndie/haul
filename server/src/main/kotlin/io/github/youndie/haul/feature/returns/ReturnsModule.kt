@@ -19,6 +19,7 @@ internal val returnsModule =
                 returns = get(),
                 orders = get(),
                 payments = get(),
+                plans = get(),
                 points = get(),
                 clock = get(),
                 pace = get(),

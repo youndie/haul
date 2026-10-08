@@ -13,6 +13,9 @@ import io.github.youndie.haul.feature.order.domain.OrderLine
 import io.github.youndie.haul.feature.order.domain.OrderStatus
 import io.github.youndie.haul.feature.order.domain.Shipment
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus
+import io.github.youndie.haul.feature.payment.domain.InstalmentPlan
+import io.github.youndie.haul.feature.payment.domain.InstalmentSchedule
+import io.github.youndie.haul.feature.payment.domain.InstalmentStatus
 import io.github.youndie.haul.feature.returns.domain.OrderReturn
 import io.github.youndie.haul.feature.returns.domain.ReturnStatus
 import io.github.youndie.haul.feature.returns.domain.ReturnedLine
@@ -51,6 +54,44 @@ internal object SampleOrders {
                     ),
             )
         return tracked(order, captured = true)
+    }
+
+    /**
+     * #HL-48230: Maya's three things again on Haul Pay (B-24), placed on Sunday the 5th, Sony's on the road since
+     * Monday the 6th and Brooklyn Home Co.'s still being packed: the plan started when Sony shipped, its first
+     * $128.00 paid then, three more two weeks apart. No artboard draws it; the fixture is the schedule's.
+     */
+    fun haulPay(mayas: NewOrder): TrackedOrder {
+        val order =
+            Order(
+                mayas.copy(
+                    id = "HL-48230",
+                    sagaId = "saga-48230",
+                    payment = "haul_pay",
+                    placedAt = OffsetDateTime.parse("2025-10-05T11:20:00-04:00"),
+                ),
+                OrderStatus.Placed,
+                cancelReason = null,
+                shipments =
+                    listOf(
+                        Shipment("HL-48230-1", mayas.lines[0].sellerId, ShipmentStatus.IN_TRANSIT),
+                        Shipment("HL-48230-2", mayas.lines[1].sellerId, ShipmentStatus.PACKED),
+                    ),
+            )
+        val started = Instant.parse("2025-10-06T15:00:00Z")
+        val instalments =
+            InstalmentSchedule.of(order.placed.totalCents, started, FulfilmentPace.STORE.instalmentInterval).map {
+                if (it.number ==
+                    1
+                ) {
+                    it.copy(status = InstalmentStatus.PAID, chargeCents = it.amountCents, paidAt = started)
+                } else {
+                    it
+                }
+            }
+        return tracked(order, captured = false).copy(
+            plan = InstalmentPlan(order.id, order.placed.totalCents, started, instalments),
+        )
     }
 
     /** #HL-47960: FlowFit Studio's yoga mat to 214 Bedford Ave, ready since Sunday the 5th with code 4821. */

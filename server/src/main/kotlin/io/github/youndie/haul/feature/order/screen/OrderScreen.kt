@@ -22,6 +22,9 @@ import io.github.youndie.haul.feature.order.OrderPaths
 import io.github.youndie.haul.feature.order.domain.CancelReason
 import io.github.youndie.haul.feature.order.domain.OrderLine
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus
+import io.github.youndie.haul.feature.payment.domain.Instalment
+import io.github.youndie.haul.feature.payment.domain.InstalmentPlan
+import io.github.youndie.haul.feature.payment.domain.InstalmentStatus
 import io.github.youndie.haul.feature.returns.ReturnPaths
 import io.github.youndie.haul.feature.returns.domain.ReturnReason
 import io.github.youndie.haul.feature.returns.domain.ReturnRefunds
@@ -40,7 +43,10 @@ import io.github.youndie.haul.ui.OrderNotice
 import io.github.youndie.haul.ui.OrderShipment
 import io.github.youndie.haul.ui.OrderSteps
 import io.github.youndie.haul.ui.OrderTotals
+import io.github.youndie.haul.ui.PaymentPlan
 import io.github.youndie.haul.ui.PickupCode
+import io.github.youndie.haul.ui.PlanPayment
+import io.github.youndie.haul.ui.PlanPaymentState
 import io.github.youndie.haul.ui.ReturnForm
 import io.github.youndie.haul.ui.ReturnLine
 import io.github.youndie.haul.ui.SummaryRow
@@ -652,7 +658,110 @@ private class OrderPage(
             returnLabel = "Return items".takeIf { form != null },
             returnAction = form?.let { PresentAction(it, ReviewTabs.DIALOG) },
             back = Link("Back to cart", toCart()).takeIf { cancelled },
+            plan = plan(),
         )
+    }
+
+    /**
+     * Haul Pay's schedule (B-24) — no artboard draws it, so it is the summary's rows under the payment fact:
+     * each payment's day, where it stands and what it charges; before the first shipment ships the days are
+     * counted from it. `null` for every other way to pay and for a cancelled order.
+     */
+    private fun plan(): PaymentPlan? {
+        val plan = view.tracked.plan ?: return null
+        return PaymentPlan(
+            title = "${plan.instalments.size} payments, two weeks apart",
+            payments =
+                plan.instalments.map { instalment ->
+                    PlanPayment(
+                        label = instalment.dueAt?.let { MONTH_DAY.format(day(it)) } ?: UNSTARTED[instalment.number - 1],
+                        detail = standing(instalment),
+                        amount =
+                            exact(
+                                if (instalment.status == InstalmentStatus.PAID) {
+                                    instalment.chargeCents ?: instalment.owedCents
+                                } else {
+                                    instalment.owedCents
+                                },
+                            ),
+                        state = state(instalment),
+                    )
+                },
+        )
+    }
+
+    /** How one payment is drawn: paid, covered, declined — once or for good — or still to come. */
+    private fun state(instalment: Instalment): PlanPaymentState =
+        when {
+            instalment.status == InstalmentStatus.PAID -> PlanPaymentState.Paid
+            instalment.status == InstalmentStatus.COVERED -> PlanPaymentState.Covered
+            instalment.status == InstalmentStatus.OVERDUE -> PlanPaymentState.Declined
+            instalment.declined > 0 -> PlanPaymentState.Declined
+            else -> PlanPaymentState.Upcoming
+        }
+
+    /** Where one payment stands, in words: «Paid», «Upcoming», «Declined, tried again Oct 23», «Covered by your return». */
+    private fun standing(instalment: Instalment): String {
+        val reduced = instalment.reducedCents > 0
+        return when (instalment.status) {
+            InstalmentStatus.PAID -> {
+                val paid = instalment.paidAt?.let(::day)
+                if (paid == null || paid == instalment.dueAt?.let(::day)) "Paid" else "Paid " + MONTH_DAY.format(paid)
+            }
+
+            InstalmentStatus.COLLECTING -> {
+                "Processing"
+            }
+
+            InstalmentStatus.COVERED -> {
+                "Covered by your return"
+            }
+
+            InstalmentStatus.OVERDUE -> {
+                "Declined twice · overdue"
+            }
+
+            else -> {
+                val retry =
+                    instalment.nextAttemptAt?.takeIf { instalment.declined > 0 }?.let {
+                        MONTH_DAY.format(
+                            day(it),
+                        )
+                    }
+                when {
+                    retry != null -> "Declined, tried again $retry"
+                    reduced -> "Upcoming · reduced by your return"
+                    else -> "Upcoming"
+                }
+            }
+        }
+    }
+
+    /** A Haul Pay order's payment fact: how much of the plan is paid and what comes next, or why it stopped. */
+    private fun planned(plan: InstalmentPlan): String {
+        val payments = plan.instalments.size
+        val next = plan.next
+        val overdue = plan.instalments.firstOrNull { it.status == InstalmentStatus.OVERDUE }
+        return when {
+            !plan.started -> {
+                "$payments interest-free payments of ${exact(
+                    plan.instalments.first().amountCents,
+                )}, the first when it ships"
+            }
+
+            overdue != null -> {
+                "Payment ${overdue.number} was declined twice — the plan is overdue"
+            }
+
+            next == null -> {
+                "${exact(plan.paidCents)} paid in $payments payments"
+            }
+
+            else -> {
+                val due = next.nextAttemptAt?.let { " on " + MONTH_DAY.format(day(it)) }.orEmpty()
+                "${exact(plan.paidCents)} of ${exact(plan.totalCents)} paid · next ${exact(next.owedCents)}$due"
+            }
+        }
     }
 
     /**
@@ -734,6 +843,10 @@ private class OrderPage(
 
                 payment == PaymentMethod.OnDelivery -> {
                     "Paid when it is handed over"
+                }
+
+                view.tracked.plan != null -> {
+                    planned(view.tracked.plan)
                 }
 
                 captured == 0 -> {
@@ -837,6 +950,9 @@ private class OrderPage(
                 DeliveryMethod.PickupPoint to "Pickup point",
                 DeliveryMethod.ParcelLocker to "Parcel locker",
             )
+
+        /** A plan's days before it starts, counted from the first shipment's leaving (B-24). */
+        val UNSTARTED = listOf("When it ships", "In 2 weeks", "In 4 weeks", "In 6 weeks")
 
         val NUMBERS = listOf("No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten")
     }

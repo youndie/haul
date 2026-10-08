@@ -131,12 +131,54 @@ public data class OrderFact(
     val detail: String,
 )
 
+/** How one payment of a [PaymentPlan] stands, which is how it is drawn. */
+@Serializable
+public enum class PlanPaymentState {
+    /** Charged. */
+    @SerialName("paid")
+    Paid,
+
+    /** Still to come. */
+    @SerialName("upcoming")
+    Upcoming,
+
+    /** Declined: tried again once, then overdue (drawn in the error colour). */
+    @SerialName("declined")
+    Declined,
+
+    /** Nothing left to charge: a return took all of it off. */
+    @SerialName("covered")
+    Covered,
+}
+
+/**
+ * One payment of a Haul Pay plan: [label] — its day, «Oct 8», or before the plan starts «When it ships», «In 2
+ * weeks» — [detail] «Paid», «Upcoming», «Declined, tried again Oct 23», the [amount] it charges, and its [state].
+ */
+@Serializable
+public data class PlanPayment(
+    val label: String,
+    val detail: String,
+    val amount: String,
+    val state: PlanPaymentState,
+)
+
+/**
+ * Haul Pay's schedule (B-24): the [title] «4 payments, two weeks apart» and the [payments] in order, drawn
+ * under the summary's payment fact. No artboard draws it; it is the summary's rows under a fact.
+ */
+@Serializable
+public data class PaymentPlan(
+    val title: String,
+    val payments: List<PlanPayment>,
+)
+
 /**
  * «Summary»: the [rows] («Items (3) $652.00», «Discount −$140.00», «Delivery Free»), the total — struck
- * through once it is [voided], a cancelled order's — the [facts], and the ways on: [reorderLabel] puts the
- * order's lines back into the cart (`POST` to [reorderUrl], answered `navigate` to the cart);
- * [returnLabel] is «Return items», and [returnAction] what it does — kompot's `present` of the [ReturnForm]
- * (B-21); [back] is a cancelled order's «Back to cart».
+ * through once it is [voided], a cancelled order's — the [facts], a Haul Pay order's [plan] under the payment
+ * fact (B-24), and the ways on: [reorderLabel] puts the order's lines back into the cart (`POST` to
+ * [reorderUrl], answered `navigate` to the cart); [returnLabel] is «Return items», and [returnAction] what it
+ * does — kompot's `present` of the [ReturnForm] (B-21); [back] is a cancelled order's «Back to cart».
  */
 @Serializable
 public data class OrderTotals(
@@ -151,6 +193,7 @@ public data class OrderTotals(
     val returnLabel: String? = null,
     val returnAction: @Polymorphic KompotAction? = null,
     val back: Link? = null,
+    val plan: PaymentPlan? = null,
 )
 
 /**

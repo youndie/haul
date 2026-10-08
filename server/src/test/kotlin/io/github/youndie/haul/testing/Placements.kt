@@ -11,6 +11,7 @@ import io.github.youndie.haul.feature.order.data.OrdersTable
 import io.github.youndie.haul.feature.order.data.SagaTables
 import io.github.youndie.haul.feature.order.data.ShipmentsTable
 import io.github.youndie.haul.feature.order.data.StockReservationsTable
+import io.github.youndie.haul.feature.payment.data.InstalmentsTable
 import io.github.youndie.haul.feature.payment.data.PaymentAuthorisationsTable
 import io.github.youndie.haul.feature.payment.data.PaymentCapturesTable
 import io.github.youndie.haul.feature.payment.data.PaymentRefundsTable
@@ -157,6 +158,25 @@ internal class Ledger(
                 .selectAll()
                 .where { PaymentCapturesTable.orderId eq orderId }
                 .associate { it[PaymentCapturesTable.key] to it[PaymentCapturesTable.amountCents] }
+        }
+
+    /**
+     * [orderId]'s Haul Pay payments as stored (V21), read past the repository: number → status, what it owes
+     * after a return's reduction, and how many attempts were declined.
+     */
+    fun instalments(orderId: String): Map<Int, Triple<String, Int, Int>> =
+        transaction(database) {
+            InstalmentsTable
+                .selectAll()
+                .where { InstalmentsTable.orderId eq orderId }
+                .associate {
+                    it[InstalmentsTable.number] to
+                        Triple(
+                            it[InstalmentsTable.status],
+                            it[InstalmentsTable.amountCents] - it[InstalmentsTable.reducedCents],
+                            it[InstalmentsTable.attempts],
+                        )
+                }
         }
 
     /** How many steps of shipment history there are, every shipment's. */
