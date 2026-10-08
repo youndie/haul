@@ -1,7 +1,7 @@
 ---
 id: B-27
 title: "ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand"
-status: wip
+status: question
 priority: P2
 size: M
 stage: stage-9-ship
@@ -92,3 +92,16 @@ Not covered here, noticed on the way: whether `ApplicationStopping` fires on SIG
 exits 143 with no stop line in its log, so the agents' flush on shutdown is unverified; and the
 service documents in the open documentation pull request (`haul-server` §5 and §7) do not yet list
 `HAUL_WEB_DIR`, `HAUL_ENVIRONMENT`, `HAUL_<AGENT>_ENDPOINT`/`_KEY` and `HAUL_TRACY_SAMPLE_RATE`.
+
+## Question (2026-10-08)
+
+Everything but the deploy is merged; the item waits for the owner, who decides:
+
+1. **Deploy the public stand at all?** A deploy is outward-facing and was never approved; merging
+   this item deployed nothing (`stand.yaml` runs only by hand).
+2. If yes: **which cluster**, and is the host `haul.kotlin.website` right (or covered by a wildcard)?
+3. The secrets the first run needs, created by the owner: `STAND_KUBECONFIG`, `STAND_PG_PASSWORD`,
+   `STAND_TRACY_KEY`, `STAND_KATCHER_KEY` (and `STAND_METRIK_KEY` if metrik's in-cluster ingest is reachable from that cluster).
+
+On a yes the item goes back to `wip`, the workflow runs with `deploy: true`, and the AC's last clause
+is checked against the public host.
