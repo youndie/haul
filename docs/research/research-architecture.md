@@ -254,7 +254,7 @@ are written against them and verified against the code before they go `active`.
 The canvas marks photos as striped placeholder tiles (tone + label), and v1 ships those tiles.
 Images through object storage are B-30.
 
-**Settled in B-30: the mechanism, not the photography.** A product row may carry an `image_key` (V5);
+**Settled in B-30: the mechanism, not the photography.** A product row may carry an `image_key` (V7);
 when the server has an S3-compatible bucket (`HAUL_S3_ENDPOINT`, `_BUCKET`, `_ACCESS_KEY`,
 `_SECRET_KEY`, optional `_REGION`), the card and the product page carry the photo's address,
 `/images/<key>`, which the server serves from its own origin — the bucket stays private and the browser

@@ -40,7 +40,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (21)
+## Open (20)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -64,9 +64,8 @@ A stage is a field on the item, not a directory.
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 | [B-34](docs/backlog/B-34-the-stand-serves-the-bundle-uncompressed.md) `[ ]` | ops: the stand serves the wasm bundle uncompressed | P2 | S | B-27 |
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
-| [B-30](docs/backlog/B-30-product-images-through-object-storage.md) `[~]` | product images through object storage | P3 | M | B-08 |
 
-## Closed (14)
+## Closed (15)
 
 **Skeleton**
 
@@ -96,6 +95,7 @@ A stage is a field on the item, not a directory.
 **Ship**
 
 - [B-28](docs/backlog/B-28-first-load-size-and-time-of.md) `[x]` - measure: first-load size and time of the wasm bundle
+- [B-30](docs/backlog/B-30-product-images-through-object-storage.md) `[x]` - product images through object storage
 
 <!-- END INDEX -->
 
