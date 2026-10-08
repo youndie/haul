@@ -322,7 +322,7 @@ public fun FiltersSheet(
             Text(
                 applied.clearLabel,
                 HaulType.text(15f, 600).copy(color = HaulColors.primary),
-                Modifier.padding(horizontal = 8.dp),
+                Modifier.follows(applied.clearAction).padding(horizontal = 8.dp),
                 softWrap = false,
             )
             Box(

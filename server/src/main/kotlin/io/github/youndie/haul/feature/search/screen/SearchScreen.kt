@@ -14,7 +14,7 @@ import io.github.youndie.haul.feature.catalog.domain.money
 import io.github.youndie.haul.feature.catalog.screen.card
 import io.github.youndie.haul.feature.catalog.screen.categoryLink
 import io.github.youndie.haul.feature.catalog.screen.navigation
-import io.github.youndie.haul.feature.catalog.screen.pageNumbers
+import io.github.youndie.haul.feature.catalog.screen.pagination
 import io.github.youndie.haul.feature.catalog.screen.productLink
 import io.github.youndie.haul.feature.search.domain.Query
 import io.github.youndie.haul.feature.search.domain.RecentSearches
@@ -26,7 +26,6 @@ import io.github.youndie.haul.ui.CategorySuggestion
 import io.github.youndie.haul.ui.CategoryTile
 import io.github.youndie.haul.ui.Chip
 import io.github.youndie.haul.ui.FilterChips
-import io.github.youndie.haul.ui.HaulPagination
 import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.ProductSuggestion
@@ -70,6 +69,7 @@ internal class SearchScreen(
         val matches = search.matching(query)
         val categories = catalog.categories()
         val products = catalog.listed(matches.take(TOP_PRODUCTS).map { it.productId })
+        val recentSearches = viewer.customerId?.let { recent.list(it) }.orEmpty()
         return SearchSuggestPanel(
             id = "suggest",
             query = query.text,
@@ -97,8 +97,9 @@ internal class SearchScreen(
                     )
                 },
             allResultsLabel = "All ${count(matches.size)} results",
-            recent = viewer.customerId?.let { recent.list(it) }.orEmpty(),
+            recent = recentSearches,
             allResultsAction = searchLink(query.text),
+            clearUrl = if (recentSearches.isEmpty()) null else RECENT_SEARCHES,
         )
     }
 
@@ -143,13 +144,12 @@ internal class SearchScreen(
                                 Chip(leaf.name, request.category == slug, searchLink(query.text, slug), count(n))
                             },
                 ),
-                ProductGrid("grid", page.items.map { card(it, calendar, photos) }, columns = GRID_COLUMNS),
-                HaulPagination(
-                    id = "pagination",
-                    current = page.page,
-                    pages = pageNumbers(page.pages),
-                    moreLabel = if (page.page < page.pages) "Show ${Browse.PAGE_SIZE} more" else null,
+                ProductGrid(
+                    "grid",
+                    page.items.map { card(it, calendar, photos, viewer.inCart) },
+                    columns = GRID_COLUMNS,
                 ),
+                pagination(page) { searchLink(query.text, request.category, request.sort, it).deeplink },
             )
         return Frame.page("search", viewer, navigation(categories), sections, query = query.text)
     }
@@ -214,12 +214,22 @@ internal class SearchScreen(
     private fun searchLink(
         query: String,
         category: String? = null,
+        sort: Sort = Sort.Popular,
+        page: Int = 1,
     ): NavigateAction {
         val q = URLEncoder.encode(query, StandardCharsets.UTF_8).replace("+", "%20")
-        return NavigateAction("/search?q=$q" + (category?.let { "&category=$it" } ?: ""))
+        return NavigateAction(
+            "/search?q=$q" +
+                (category?.let { "&category=$it" } ?: "") +
+                (if (sort != Sort.Popular) "&sort=${sort.key}" else "") +
+                (if (page > 1) "&page=$page" else ""),
+        )
     }
 
     companion object {
+        /** Where «Clear» on recent searches sends its `DELETE` (endpoint-search, the customer tier). */
+        const val RECENT_SEARCHES = "/api/v1/me/recent-searches"
+
         /** feature-search: up to five queries, three categories, three products. */
         const val QUERIES = 5
         const val CATEGORIES = 3

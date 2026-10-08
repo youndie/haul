@@ -250,7 +250,11 @@ public data class FacetPanel(
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
-/** What is applied, as removable chips, «Clear all», and the sort control. */
+/**
+ * What is applied, as removable chips, «Clear all», and the sort control. [clearAction] is where «Clear
+ * all» goes; [sorts] are the orders the sort control offers, each with where it goes — the one shown
+ * is [sortLabel].
+ */
 @Serializable
 @SerialName("haul_applied_filters")
 @KompotComponentMarker
@@ -260,6 +264,8 @@ public data class AppliedFilters(
     val clearLabel: String,
     val sortLabel: String,
     val filterCount: Int,
+    val clearAction: @Polymorphic KompotAction? = null,
+    val sorts: List<Link> = emptyList(),
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
@@ -282,7 +288,11 @@ public data class FilteredResults(
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
-/** «Show 24 more» and the page numbers; [pages] lists what is drawn, `…` included. */
+/**
+ * «Show 24 more» and the page numbers; [pages] lists what is drawn, `…` included. [moreAction] is where
+ * «Show 24 more» goes (the next page); [links] are the page numbers that go somewhere, by their label —
+ * the current page and `…` have none.
+ */
 @Serializable
 @SerialName("haul_pagination")
 @KompotComponentMarker
@@ -291,6 +301,8 @@ public data class HaulPagination(
     val current: Int,
     val pages: List<String>,
     val moreLabel: String? = null,
+    val moreAction: @Polymorphic KompotAction? = null,
+    val links: List<Link> = emptyList(),
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 

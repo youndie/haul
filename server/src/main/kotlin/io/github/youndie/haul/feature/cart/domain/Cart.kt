@@ -117,9 +117,6 @@ internal interface CartRepository {
 
     suspend fun promo(code: String): PromoCode?
 
-    /** How many items the owner's cart holds — the header's count. */
-    suspend fun units(owner: CartOwner): Int
-
     /**
      * Sign-in's merge, in one transaction: writes [lines] into the customer's cart (a new SKU goes
      * last, one already there keeps its place), sets its code to [promoCode], and deletes the guest's

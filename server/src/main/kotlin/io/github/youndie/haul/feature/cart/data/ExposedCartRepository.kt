@@ -14,7 +14,6 @@ import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.max
-import org.jetbrains.exposed.v1.core.sum
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
@@ -63,15 +62,6 @@ internal class ExposedCartRepository(
             writeLine(cartId, line)
         }
     }
-
-    override suspend fun units(owner: CartOwner): Int =
-        tx {
-            val cartId = existingCartId(owner) ?: return@tx 0
-            CartLinesTable
-                .select(CartLinesTable.quantity.sum())
-                .where { CartLinesTable.cartId eq cartId }
-                .single()[CartLinesTable.quantity.sum()] ?: 0
-        }
 
     override suspend fun merge(
         from: CartOwner.Guest,

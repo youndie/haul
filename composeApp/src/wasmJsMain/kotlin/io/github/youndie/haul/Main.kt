@@ -8,6 +8,7 @@ import io.github.youndie.haul.feature.identity.Identity
 import io.github.youndie.haul.feature.identity.IdentityApi
 import io.github.youndie.haul.feature.identity.OidcSignInFlow
 import io.github.youndie.haul.shell.WindowHistory
+import io.github.youndie.haul.shell.ktorCommands
 import io.github.youndie.haul.shell.ktorTransport
 import io.github.youndie.haul.ui.coilPhotoLoader
 import io.ktor.client.HttpClient
@@ -35,5 +36,8 @@ public fun main() {
         )
     val transport = ktorTransport(http, origin, identity::send)
     val cartCommands = ktorCartCommands(http, origin, identity::send)
-    ComposeViewport(document.body!!) { App(photos, transport, WindowHistory, identity, cartCommands = cartCommands) }
+    val commands = ktorCommands(http, origin, identity::send)
+    ComposeViewport(document.body!!) {
+        App(photos, transport, WindowHistory, identity, cartCommands = cartCommands, commands = commands)
+    }
 }

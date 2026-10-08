@@ -191,13 +191,13 @@ internal class CartScreen(
                 accent = "empty",
                 text = "Today’s deals end at midnight — up to −70 % in the Autumn mega sale.",
                 actionLabel = "See today’s deals",
-                action = NavigateAction("/deals"),
+                action = NavigateAction(Frame.DEALS),
                 primary = true,
             ),
             // The picks are the day's deals, not recommendations (feature-recommendations), so the
             // subtitle says so rather than the canvas's «Based on your recent views».
             SectionHeader("picked-title", "Picked for you", subtitle = "From today’s deals", accent = "you"),
-            ProductGrid("picked", picks.take(PICKS).map { card(it, calendar, photos) }, columns = PICKS),
+            ProductGrid("picked", picks.take(PICKS).map { card(it, calendar, photos, inCart = emptyMap()) }, columns = PICKS),
         )
     }
 

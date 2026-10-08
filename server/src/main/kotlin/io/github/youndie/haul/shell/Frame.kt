@@ -3,26 +3,33 @@ package io.github.youndie.haul.shell
 import io.github.youndie.haul.ui.FooterColumn
 import io.github.youndie.haul.ui.HaulFooter
 import io.github.youndie.haul.ui.HaulHeader
+import io.github.youndie.haul.ui.Link
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
 
 /**
  * Who is looking: what the header shows and which blocks a screen offers. [customerId] is a signed-in
- * customer's id, `null` for a guest; [Viewers] tells it from a request.
+ * customer's id, `null` for a guest; [inCart] is how many of each SKU their cart holds, by SKU id;
+ * [Viewers] tells both from a request.
  */
 internal data class Viewer(
     val firstName: String? = null,
     val cartCount: Int = 0,
     val customerId: String? = null,
+    val inCart: Map<String, Int> = emptyMap(),
 )
 
-/** The frame every screen but checkout sits in: the header above, the screen's sections, the footer. */
+/**
+ * The frame every screen but checkout sits in: the header above, the screen's sections, the footer.
+ * [navigation] is every top-level category with its link: the header's «Catalog» menu, and the first
+ * [ROW] of them its category row.
+ */
 internal object Frame {
     fun page(
         id: String,
         viewer: Viewer,
-        navigation: List<String>,
+        navigation: List<Link>,
         sections: List<KompotComponent>,
         query: String? = null,
         footer: Boolean = false,
@@ -35,7 +42,7 @@ internal object Frame {
 
     private fun header(
         viewer: Viewer,
-        navigation: List<String>,
+        navigation: List<Link>,
         query: String?,
     ) = HaulHeader(
         id = "header",
@@ -45,15 +52,27 @@ internal object Frame {
         cartCount = viewer.cartCount,
         searchPlaceholder = "Search 2.4 million products",
         query = query,
-        categories = navigation,
+        categories = navigation.take(ROW).map { it.label },
         account = NavigateAction(if (viewer.customerId == null) SIGN_IN else ACCOUNT),
+        catalog = navigation,
+        deals = NavigateAction(DEALS),
+        cart = NavigateAction(CART),
     )
+
+    /** How many categories the header's row names. */
+    private const val ROW = 10
 
     /** Where the account shortcut sends a guest: the client opens the provider's page (feature-identity). */
     const val SIGN_IN = "/sign-in"
 
     /** Where it sends a customer. */
     const val ACCOUNT = "/account"
+
+    /** Where «Deals» goes: every product on sale, today's deals first (`/ui/deals`). */
+    const val DEALS = "/deals"
+
+    /** Where the cart button goes (`/ui/cart`). */
+    const val CART = "/cart"
 
     /** The store's default place, until a customer's address says otherwise (feature-browse). */
     private const val DEFAULT_PLACE = "Brooklyn, NY 11211"

@@ -18,3 +18,7 @@ Feature: `feature-orders` — its scenarios are this item's acceptance where it 
 
 - AC: parity for `Order_*` except ReturnDialog and Returned.
 - Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/feature/order/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/order/`.
+
+- **From B-37:** the header's «Orders» shortcut is drawn and carries no action; it gets one with the
+  orders it leads to (here or B-19's history) — a `navigate` in `HaulHeader`, followed by the client
+  like «Deals» and the cart (`Frame.kt`).

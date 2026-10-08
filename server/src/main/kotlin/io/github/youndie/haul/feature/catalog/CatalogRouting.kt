@@ -6,6 +6,7 @@ import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.Sort
 import io.github.youndie.haul.feature.catalog.screen.CatalogRequest
 import io.github.youndie.haul.feature.catalog.screen.CatalogScreen
+import io.github.youndie.haul.feature.catalog.screen.DealsScreen
 import io.github.youndie.haul.feature.catalog.screen.HomeScreen
 import io.github.youndie.haul.feature.catalog.screen.ProductScreen
 import io.github.youndie.haul.feature.catalog.screen.ProductTab
@@ -33,10 +34,20 @@ internal fun Route.catalogRouting() {
     val home by inject<HomeScreen>()
     val catalog by inject<CatalogScreen>()
     val product by inject<ProductScreen>()
+    val deals by inject<DealsScreen>()
     val photos by inject<ProductPhotos>()
     val viewers by inject<Viewers>()
 
     get("/ui/home") { call.respondKompotComponent(haulWireJson, home.build(viewers.of(call))) }
+
+    get("/ui/deals") {
+        val page =
+            call.request.queryParameters["page"]?.let {
+                it.toIntOrNull()?.takeIf { p -> p >= 1 }
+                    ?: throw CatalogError.Invalid("page", "Pages start at 1, not «$it»")
+            } ?: 1
+        call.respondKompotComponent(haulWireJson, deals.build(page, viewers.of(call)))
+    }
 
     get("/ui/c/{path...}") {
         val path =

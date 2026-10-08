@@ -23,6 +23,7 @@ import io.github.youndie.haul.feature.identity.installSignIn
 import io.github.youndie.haul.feature.order.domain.OrderError
 import io.github.youndie.haul.feature.order.orderModule
 import io.github.youndie.haul.feature.payment.paymentModule
+import io.github.youndie.haul.feature.search.customerSearchRouting
 import io.github.youndie.haul.feature.search.domain.SearchError
 import io.github.youndie.haul.feature.search.searchModule
 import io.github.youndie.haul.feature.search.searchRouting
@@ -141,6 +142,7 @@ internal fun Application.haulModule(
         // Customer: a verified shildik token, or `401 unauthenticated`.
         authenticate(JWT_AUTH_OIDC) {
             customerIdentityRouting()
+            customerSearchRouting()
             accountRouting()
             checkoutRouting()
         }

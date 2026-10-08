@@ -1,5 +1,6 @@
 package io.github.youndie.haul.ui
 
+import io.github.youndie.haul.feature.cart.LineCommand
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.KompotModifierNode
@@ -21,6 +22,10 @@ import kotlinx.serialization.Serializable
  * [query] is what the search field holds on the search screen; `null` shows the placeholder.
  * [account] is what a tap on the account shortcut does: a guest is sent to `/sign-in`, which the
  * client answers by opening the provider's page; a customer to `/account`.
+ *
+ * [catalog] is every top-level category with where it goes: «Catalog» opens it as a menu, and each
+ * word of the category row ([categories], the first of them) follows the entry of the same name.
+ * [deals] is where «Deals» goes, [cart] where the cart button goes.
  */
 @Serializable
 @SerialName("haul_header")
@@ -35,8 +40,18 @@ public data class HaulHeader(
     val query: String? = null,
     val categories: List<String>,
     val account: @Polymorphic KompotAction? = null,
+    val catalog: List<Link> = emptyList(),
+    val deals: @Polymorphic KompotAction? = null,
+    val cart: @Polymorphic KompotAction? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
+
+/** Something drawn with a [label] that goes somewhere: a menu entry, a word of a row, a page number. */
+@Serializable
+public data class Link(
+    val label: String,
+    val action: @Polymorphic KompotAction? = null,
+)
 
 /**
  * A product in a grid or a row: the photo tile, the price, the title, the rating and the earliest
@@ -46,6 +61,10 @@ public data class HaulHeader(
  * tree came from; absent when there is no photo or no object storage. The placeholder tile — [tone],
  * one of the canvas's tile tones as `#RRGGBB`, and [label], what the tile says — is drawn whenever the
  * photo is absent, still loading or failed to load.
+ *
+ * [add] is what «+» sends: the line change that puts one more of the SKU whose price the card shows
+ * into the cart (`PUT`, endpoint-cart). It is absent when the cart already holds as many as can be
+ * bought, or the SKU is out of stock.
  */
 @Serializable
 @SerialName("haul_product_card")
@@ -66,5 +85,6 @@ public data class ProductCard(
     val image: String? = null,
     /** Where a tap on the card goes: the product page. */
     val action: @Polymorphic KompotAction? = null,
+    val add: LineCommand? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent

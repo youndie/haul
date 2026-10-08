@@ -26,6 +26,9 @@ public enum class StorefrontPage {
     /** `/cart`. */
     Cart,
 
+    /** `/deals`: today's deals and everything on sale, paged in the query string (B-37). */
+    Deals,
+
     /** `/checkout`, where the cart sends a customer (B-14). */
     Checkout,
 
@@ -50,6 +53,7 @@ public enum class StorefrontPage {
                 "p" -> Product.takeIf { rest == 1 }
                 "search" -> Search.takeIf { rest == 0 }
                 "cart" -> Cart.takeIf { rest == 0 }
+                "deals" -> Deals.takeIf { rest == 0 }
                 "checkout" -> Checkout.takeIf { rest == 0 }
                 "account" -> Account.takeIf { rest == 0 }
                 "sign-in" -> SignIn.takeIf { rest == 0 }

@@ -397,7 +397,8 @@ internal fun ClampedText(
 /**
  * A row of one-line words [gap] apart, laid out as one paragraph. A row of separate texts rounds each
  * one's width up to a whole pixel, and over ten category names that adds up to a visible drift from
- * the browser, which keeps the fractions; here the gaps are placeholders inside a single line.
+ * the browser, which keeps the fractions; here the gaps are placeholders inside a single line. A word
+ * follows the action of the entry of [links] with its name (the header's categories, B-37).
  */
 @Composable
 internal fun SpacedWords(
@@ -405,13 +406,15 @@ internal fun SpacedWords(
     gap: Dp,
     style: TextStyle,
     modifier: Modifier = Modifier,
+    links: List<Link> = emptyList(),
 ) {
     val gapSp = with(LocalDensity.current) { gap.toSp() }
+    val actions = LocalHaulActions.current
     val text =
         buildAnnotatedString {
             words.forEachIndexed { index, word ->
                 if (index > 0) appendInlineContent(GAP, " ")
-                append(word)
+                appendLink(word, links.firstOrNull { it.label == word }?.action, actions)
             }
         }
     BasicText(

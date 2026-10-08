@@ -80,7 +80,9 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * The storefront at the address [history] is at: every page from [transport], «now» from [clock] — one
  * clock, ticking each second, that every countdown reads. A tree's `navigate` to `/sign-in` is
  * sign-in's ([SignInActions]): [signIn] runs, then the screen is drawn again, signed in or not. The
- * cart's presses go to [cartCommands] (B-13), whose answer, `refresh`, draws the cart again.
+ * cart's presses — the cart's own and a card's «+» — go to [cartCommands] (B-13, B-37), whose answer,
+ * `refresh`, draws the screen again. «Clear» on recent searches goes through [commands] (B-37), and
+ * the suggest panel is asked for again once the server has answered.
  */
 @Composable
 public fun Storefront(
@@ -89,6 +91,7 @@ public fun Storefront(
     signIn: suspend () -> Unit,
     clock: Clock = Clock.System,
     cartCommands: CartCommands? = null,
+    commands: HaulCommands? = null,
 ) {
     val navigator = remember(history) { Navigator(history) }
     DisposableEffect(navigator) {
@@ -98,6 +101,7 @@ public fun Storefront(
     val registry = remember { haulRegistry() }
     val now by rememberNow(clock)
     val focus = LocalFocusManager.current
+    val scope = rememberCoroutineScope()
 
     // The header's search field: typing asks for the suggest panel once the shopper pauses, Enter opens
     // the results. A query the server refuses, or a request that fails, shows no panel. The panel stays
@@ -125,6 +129,19 @@ public fun Storefront(
         focus.clearFocus()
     }
     LaunchedEffect(navigator.address) { dismiss() }
+    // «Clear» on recent searches: the panel is asked for again once the server has emptied them.
+    val clearUrl = panel?.clearUrl
+    val clearRecent =
+        if (commands == null || clearUrl == null) {
+            null
+        } else {
+            {
+                scope.launch {
+                    if (commands.answered { send("DELETE", clearUrl, null) }) panel = transport.suggest(typed)
+                }
+                Unit
+            }
+        }
 
     // The header the client last drew: a page that is not there is drawn under it (Product_NotFound).
     var header by remember { mutableStateOf<HaulHeader?>(null) }
@@ -138,7 +155,7 @@ public fun Storefront(
         LocalHaulActions provides panelActions,
         LocalCartCommands provides cartCommands,
     ) {
-        SearchSuggestOverlay(panel, highlighted = -1, field = field, onDismiss = dismiss) {
+        SearchSuggestOverlay(panel, highlighted = -1, field = field, onDismiss = dismiss, onClear = clearRecent) {
             val address = navigator.address
             key(address) {
                 Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
@@ -188,6 +205,25 @@ private fun Shown(
     val forms = remember { FormController(FormSchema(formId = "none", fields = emptyList())) }
     CompositionLocalProvider(LocalScreenRefresh provides refresh) { KompotScreen(tree, registry, forms, actions) }
 }
+
+/**
+ * Whether [send] got an answer at all — a refusal is an answer, and the panel asked for again shows
+ * what the server now has. No answer leaves the panel as it was; the next press tries again.
+ */
+@Suppress(
+    "ktlint:kapkan:swallowed-failure",
+    "A command that got no answer changed nothing the shopper can see; the page stays as the server last drew it.",
+)
+private suspend fun HaulCommands.answered(send: suspend HaulCommands.() -> HaulResponse): Boolean =
+    try {
+        send()
+        true
+    } catch (cancelled: CancellationException) {
+        throw cancelled
+    } catch (_: Throwable) {
+        // Throwable: in the browser a failed fetch is a JavaScript error, which is no `Exception` on Wasm.
+        false
+    }
 
 /** Follows `navigate` to its deeplink; anything else is somebody else's to handle. */
 private fun navigating(navigator: Navigator): KompotActionHandler =

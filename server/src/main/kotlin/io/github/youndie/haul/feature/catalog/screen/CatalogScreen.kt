@@ -23,7 +23,7 @@ import io.github.youndie.haul.ui.FacetOption
 import io.github.youndie.haul.ui.FacetPanel
 import io.github.youndie.haul.ui.FilterChips
 import io.github.youndie.haul.ui.FilteredResults
-import io.github.youndie.haul.ui.HaulPagination
+import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.kompot.KompotComponent
@@ -78,6 +78,8 @@ internal class CatalogScreen(
                 clearLabel = "Clear all",
                 sortLabel = request.sort.label,
                 filterCount = request.filters.count,
+                clearAction = NavigateAction(url.cleared()),
+                sorts = Sort.entries.map { Link(it.label, NavigateAction(url.sorted(it))) },
             )
         // One component for the facets and the results, because a wide page puts them side by side and
         // a phone moves the facets into a sheet (B-07).
@@ -104,14 +106,13 @@ internal class CatalogScreen(
                     facets = facets(all, request.filters, url),
                     applied = applied,
                     showLabel = "Show ${count(page.total)} items",
-                    grid = ProductGrid("grid", page.items.map { card(it, calendar, photos) }, columns = GRID_COLUMNS),
-                    pagination =
-                        HaulPagination(
-                            id = "pagination",
-                            current = page.page,
-                            pages = pageNumbers(page.pages),
-                            moreLabel = if (page.page < page.pages) "Show ${Browse.PAGE_SIZE} more" else null,
+                    grid =
+                        ProductGrid(
+                            "grid",
+                            page.items.map { card(it, calendar, photos, viewer.inCart) },
+                            columns = GRID_COLUMNS,
                         ),
+                    pagination = pagination(page, url::page),
                 )
             }
         return Frame.page("catalog", viewer, navigation(categories), sections)
@@ -361,7 +362,10 @@ internal class CatalogScreen(
     }
 }
 
-/** A category page's address with its filters, the form every facet's action navigates to. */
+/**
+ * A category page's address with its filters and sort, the form every facet's, sort's and page's action
+ * navigates to. A change of filters or sort starts again from the first page.
+ */
 internal class CatalogUrl(
     private val slug: String,
     private val filters: Filters,
@@ -369,9 +373,19 @@ internal class CatalogUrl(
 ) {
     fun with(next: Filters): String = render(next)
 
+    /** No filters, the sort kept: «Clear all». */
     fun cleared(): String = render(Filters())
 
-    private fun render(f: Filters): String {
+    fun sorted(next: Sort): String = render(filters, next)
+
+    /** The same filters and sort at page [n]. */
+    fun page(n: Int): String = render(filters, sort, n)
+
+    private fun render(
+        f: Filters,
+        sort: Sort = this.sort,
+        page: Int = 1,
+    ): String {
         val params =
             f.brands.sorted().map { "brand=$it" } +
                 f.features.sorted().map { "feature=$it" } +
@@ -383,6 +397,7 @@ internal class CatalogUrl(
                     if (f.deliveryTomorrow) "delivery=tomorrow" else null,
                     f.ratingAtLeast?.let { "rating=${it.toPlainString()}" },
                     if (sort != Sort.Popular) "sort=${sort.key}" else null,
+                    if (page > 1) "page=$page" else null,
                 )
         val query = params.joinToString("&") { it.replace(" ", "%20") }
         return "/c/$slug" + if (query.isEmpty()) "" else "?$query"

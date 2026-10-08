@@ -18,6 +18,7 @@ class StorefrontPageTest {
         assertEquals(StorefrontPage.Product, StorefrontPage.of("/p/p-sony-wh-1000xm6"))
         assertEquals(StorefrontPage.Search, StorefrontPage.of("/search"))
         assertEquals(StorefrontPage.Cart, StorefrontPage.of("/cart"))
+        assertEquals(StorefrontPage.Deals, StorefrontPage.of("/deals"))
         assertEquals(StorefrontPage.Checkout, StorefrontPage.of("/checkout"))
         assertEquals(StorefrontPage.Account, StorefrontPage.of("/account"))
         assertEquals(StorefrontPage.SignIn, StorefrontPage.of("/sign-in"))
@@ -29,7 +30,8 @@ class StorefrontPageTest {
             "",
             "c/headphones",
             "/nowhere",
-            "/deals",
+            "/deals/",
+            "/deals/today",
             "/ui/home",
             "/ui/p/p-1",
             "/api/v1/guests",

@@ -28,3 +28,13 @@ public data class LinesRemoval(
 public data class PromoEntry(
     val code: String,
 )
+
+/**
+ * A line change fixed in the tree, so the client sends it as it is: «+» on a product card (B-37) is
+ * [change] — the quantity the line will have — with `PUT` to [url], answered `refresh`.
+ */
+@Serializable
+public data class LineCommand(
+    val url: String,
+    val change: LineChange,
+)
