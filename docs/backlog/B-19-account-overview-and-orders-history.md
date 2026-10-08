@@ -1,7 +1,7 @@
 ---
 id: B-19
 title: "server + client: Account overview and orders history"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-6-account
