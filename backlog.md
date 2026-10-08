@@ -40,7 +40,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (8)
+## Open (7)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -49,11 +49,10 @@ A stage is a field on the item, not a directory.
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
 | [B-45](docs/backlog/B-45-a-product-s-listing-name.md) `[ ]` | server: a product's listing name, as cards, cart and orders write it | P3 | S | B-18 |
 | [B-50](docs/backlog/B-50-the-return-dialog-names-the-points-share.md) `[ ]` | server + client: the return dialog names the points share of a refund | P3 | S | B-21, B-23 |
-| [B-52](docs/backlog/B-52-bought-this-month-on-the-product-page.md) `[~]` | server: «bought this month» on the product page | P3 | S | B-18 |
 | [B-53](docs/backlog/B-53-plus-members-see-campaign-prices-early.md) `[ ]` | server: Plus members see campaign prices early | P3 | S | B-23 |
 | [B-54](docs/backlog/B-54-the-filter-sheet-stays-open-while-filtering.md) `[ ]` | client: the filter sheet stays open while filtering | P3 | S | B-49 |
 
-## Closed (46)
+## Closed (47)
 
 **Skeleton**
 
@@ -68,6 +67,7 @@ A stage is a field on the item, not a directory.
 - [B-06](docs/backlog/B-06-home-catalog-product-pngs.md) `[x]` - design refs: `Home_*`, `Catalog_*`, `Product_*` PNGs
 - [B-07](docs/backlog/B-07-renderers-for-the-home-and-catalog.md) `[x]` - client: renderers for the Home and Catalog components; Loading / Error shells
 - [B-08](docs/backlog/B-08-renderers-for-the-product-components.md) `[x]` - client: renderers for the Product components (without the dialogs)
+- [B-52](docs/backlog/B-52-bought-this-month-on-the-product-page.md) `[x]` - server: «bought this month» on the product page
 
 **Search**
 
