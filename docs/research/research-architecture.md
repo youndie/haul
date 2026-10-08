@@ -174,6 +174,16 @@ client alone.
   one, the deepest discount first, 24 a page. It is built from the components other screens draw; no
   artboard draws it, so it has no parity reference.
 
+**Decided in B-22, a route over the screen.** A dialog the canvas draws over a page («Write a review»,
+«Ask a question») is kompot's `present` of a component the server built — the form, its labels and the
+URL it posts to — carried by the control that opens it, so it has no address of its own and
+`StorefrontPage` lists nothing for it; a reload shows the page without it. The shell draws the presented
+component over the page with the scrim, and the same handler follows its actions: `close` takes it away,
+and a `sequence` is each of its actions in turn — a dialog's command answers `close`, then `refresh`.
+What is typed is the client's until it is sent; the client checks the rules the server will (they are
+the contract's, `shared/.../feature/reviews/`), and a refusal is drawn in the dialog. For a guest the
+same control is the way to sign in instead of a `present`.
+
 ### D3. PostgreSQL; the access layer is chosen at scaffold
 
 Decision: one PostgreSQL database for the catalog, carts, orders and the saga's state. Exposed with
@@ -817,3 +827,8 @@ for fixtures, not a target for the database.
 
 The canvas's *canvas/canvas.json* and the artboards hold the rest of the copy (product lists,
 campaigns, reviews); the fixtures take it from there, not from this table.
+
+The headphones' histogram on Product_Reviews (78 / 14 / 4 / 2 / 2 % of 2,341) averages 4.6, not the 4.8
+every artboard writes. The seed keeps both as drawn — the histogram as counts (`rating_counts`), the
+average on the product — and a new review moves the average from the stored one rather than recounting
+it from the histogram (B-22).
