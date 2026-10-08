@@ -19,9 +19,7 @@ IMAGE=${1:-haul/server:check}
 NET=haul-check-$$
 PORT=${PORT:-18080}
 
-./gradlew :server:installDist --no-daemon --console=plain -q || exit 1
-docker build -f docker/Dockerfile -t "$IMAGE" server/build/install/server > /tmp/haul-image-build.log 2>&1 \
-  || { echo "image build failed:"; tail -40 /tmp/haul-image-build.log; exit 1; }
+scripts/image-build.sh "$IMAGE" || exit 1
 
 docker network create "$NET" >/dev/null
 PG=$(docker run -d --network "$NET" --name "$NET-pg" -e POSTGRES_USER=haul -e POSTGRES_PASSWORD=haul -e POSTGRES_DB=haul postgres:18-alpine)

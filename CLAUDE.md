@@ -31,6 +31,7 @@ module it touches, and only packages several features import (`db`, `seed`, `di`
 make check                                                                  # the documentation gate
 ./gradlew check :server:installDist :composeApp:wasmJsBrowserDistribution  # the code gate
 scripts/image-check.sh                                                      # the image, its AOT cache, the page it serves
+scripts/e2e.sh                                                              # browse, buy, receive, return over HTTP against the image
 scripts/chart-check.sh                                                      # the chart renders and refuses what it must
 ```
 
@@ -38,8 +39,10 @@ A change that touches only documentation (`docs/`, `backlog.md`, `README.md`, `C
 documentation gate alone in CI: the code jobs report success with their steps skipped
 (`scripts/code-changed.sh`). The default branch runs everything on every push.
 
-The server's tests and the image check need Docker: PostgreSQL runs in Testcontainers, and the image
-trains its cache against a PostgreSQL of its own (`docker/Dockerfile`).
+The server's tests, the image check and the e2e need Docker: PostgreSQL runs in Testcontainers, and the
+image trains its cache against a PostgreSQL of its own (`docker/Dockerfile`). The e2e runs the image on the
+host's network beside PostgreSQL and shildik, so it needs Docker on Linux
+(`e2e/src/test/kotlin/io/github/youndie/haul/e2e/ComposedStack.kt` says why).
 
 ## Screenshot goldens
 
