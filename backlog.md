@@ -44,7 +44,7 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-02](docs/backlog/B-02-settings-plugin-modules-shared-server-composeapp.md) `[ ]` | scaffold: settings plugin, modules `shared` / `server` / `composeApp` / `e2e`, CI, `CLAUDE.md`, docs check | P1 | M | - |
+| [B-02](docs/backlog/B-02-settings-plugin-modules-shared-server-composeapp.md) `[~]` | scaffold: settings plugin, modules `shared` / `server` / `composeApp` / `e2e`, CI, `CLAUDE.md`, docs check | P1 | M | - |
 | [B-03](docs/backlog/B-03-schema-migrations-seed-generator-and-sample.md) `[ ]` | server: schema migrations, seed generator and sample-data fixtures, probes, the image with a zavarnik cache | P1 | M | B-02 |
 | [B-04](docs/backlog/B-04-theme-registry-haulheader-and-productcard-renderers.md) `[ ]` | contract + client: theme (colour roles, three bundled fonts), registry, `HaulHeader` and `ProductCard` renderers | P1 | M | B-02 |
 | [B-05](docs/backlog/B-05-catalog-use-cases-and-the-home.md) `[ ]` | server: catalog use cases (home, facets, product, delivery estimate) and the Home / Catalog / Product trees | P1 | L | B-03, B-04 |

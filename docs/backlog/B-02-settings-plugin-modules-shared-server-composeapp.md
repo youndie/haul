@@ -1,7 +1,7 @@
 ---
 id: B-02
 title: "scaffold: settings plugin, modules `shared` / `server` / `composeApp` / `e2e`, CI, `CLAUDE.md`, docs check"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-1-skeleton
