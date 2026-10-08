@@ -1,7 +1,7 @@
 ---
 id: B-34
 title: "ops: the stand serves the wasm bundle uncompressed"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-9-ship
