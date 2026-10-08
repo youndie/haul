@@ -87,6 +87,16 @@ Linux for the four dialogs; the other sixteen are byte-identical to the committe
   and the page fetched again, the rules checked before sending, a refusal and a refused field drawn in the
   dialog, no answer keeps the draft, Cancel and «×», a question sent, a guest sent to sign in) and
   `ReviewCommandsTest` (method, URL, body and bearer token over a mock engine; a refusal's fields).
+- Mutations seen failing, each in a private copy on the Linux build machine: an in-transit shipment
+  counted as received (the unmarked review), the one-per-product check and the index's answer ignored («A
+  second review»), the body's minimum dropped from the rules («Too short» and the client's check; the
+  review that then got in moved the shared seed's count under the tab test too), the count not moved
+  («A verified review», «A second review»), the tab's `present` dropped (`ReviewFixturesTest` and two
+  route tests), `close` ignored by the shell (three wiring tests), the client posting without checking
+  the rules (the wiring test).
+- Where it ran: `check :server:installDist :composeApp:wasmJsBrowserDistribution` on the Linux build
+  machine (PostgreSQL and shildik in Testcontainers, `viddikVerify` green), parity and recording there in
+  a private copy; `make check` on the Mac.
 
 ## Findings (2026-10-08)
 
