@@ -51,7 +51,9 @@ class AddressTest {
         assertEquals(PageKind.Other, Address("/p/p-1/reviews").kind)
         assertEquals(PageKind.Other, Address("/c/").kind)
         assertEquals(PageKind.Other, Address("/search/extra").kind)
-        assertEquals(PageKind.Other, Address("/cart").kind)
+        // The cart draws its own placeholders and failure (B-13); checkout and the account do not yet.
+        assertEquals(PageKind.Cart, Address("/cart").kind)
+        assertEquals(PageKind.Other, Address("/cart/x").kind)
         assertEquals(PageKind.Other, Address("/account").kind)
         assertEquals("/ui/cart", Address("/cart").screen)
     }

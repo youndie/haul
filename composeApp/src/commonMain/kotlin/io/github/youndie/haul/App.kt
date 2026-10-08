@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.youndie.haul.feature.cart.CartCommands
 import io.github.youndie.haul.feature.identity.Identity
 import io.github.youndie.haul.shell.BrowserHistory
 import io.github.youndie.haul.shell.HaulTransport
@@ -24,7 +25,8 @@ import kotlin.time.Clock
  *
  * The entry point supplies what is the platform's: [photos] draws the product photos the trees name
  * (B-30), [transport] fetches the screens through [identity]'s headers (B-12, B-35), [history] is the
- * browser's, and [clock] is the one «now» the countdowns read.
+ * browser's, [clock] is the one «now» the countdowns read, and [cartCommands] sends the cart's
+ * commands through the same headers (B-13).
  */
 @Composable
 public fun App(
@@ -33,11 +35,12 @@ public fun App(
     history: BrowserHistory,
     identity: Identity,
     clock: Clock = Clock.System,
+    cartCommands: CartCommands? = null,
 ) {
     BoxWithConstraints(Modifier.fillMaxSize().background(HaulColors.background)) {
         CompositionLocalProvider(LocalPhotoLoader provides photos) {
             HaulTheme(rememberHaulFonts(), compact = maxWidth < COMPACT_BELOW) {
-                Storefront(transport, history, identity::signIn, clock)
+                Storefront(transport, history, identity::signIn, clock, cartCommands)
             }
         }
     }

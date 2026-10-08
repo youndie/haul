@@ -3,6 +3,150 @@
   "source": "/Users/youndie/Documents/GitHub/haul/composeApp/src/desktopTest/snapshots/design/.canvas",
   "references": [
     {
+      "artboard": "Cart_Content.dc.html",
+      "frame": null,
+      "reference": "Cart_Content.png",
+      "width": 1440,
+      "height": 1179,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Cart_Content_Phone.dc.html",
+      "frame": null,
+      "reference": "Cart_Content_Phone.png",
+      "width": 390,
+      "height": 1668,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Cart_Empty.dc.html",
+      "frame": null,
+      "reference": "Cart_Empty.png",
+      "width": 1440,
+      "height": 1216,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Cart_Empty_Phone.dc.html",
+      "frame": null,
+      "reference": "Cart_Empty_Phone.png",
+      "width": 390,
+      "height": 1722,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Cart_Error.dc.html",
+      "frame": null,
+      "reference": "Cart_Error.png",
+      "width": 1440,
+      "height": 900,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Cart_Error_Phone.dc.html",
+      "frame": null,
+      "reference": "Cart_Error_Phone.png",
+      "width": 390,
+      "height": 617,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Cart_Guest.dc.html",
+      "frame": null,
+      "reference": "Cart_Guest.png",
+      "width": 1440,
+      "height": 1179,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Cart_Guest_Phone.dc.html",
+      "frame": null,
+      "reference": "Cart_Guest_Phone.png",
+      "width": 390,
+      "height": 1607,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Cart_ItemChanged.dc.html",
+      "frame": null,
+      "reference": "Cart_ItemChanged.png",
+      "width": 1440,
+      "height": 1263,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Cart_ItemChanged_Phone.dc.html",
+      "frame": null,
+      "reference": "Cart_ItemChanged_Phone.png",
+      "width": 390,
+      "height": 1776,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Cart_Loading.dc.html",
+      "frame": null,
+      "reference": "Cart_Loading.png",
+      "width": 1440,
+      "height": 1041,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Cart_Loading_Phone.dc.html",
+      "frame": null,
+      "reference": "Cart_Loading_Phone.png",
+      "width": 390,
+      "height": 1220,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Cart_PromoApplied.dc.html",
+      "frame": null,
+      "reference": "Cart_PromoApplied.png",
+      "width": 1440,
+      "height": 1179,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Cart_PromoApplied_Phone.dc.html",
+      "frame": null,
+      "reference": "Cart_PromoApplied_Phone.png",
+      "width": 390,
+      "height": 1705,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Cart_PromoError.dc.html",
+      "frame": null,
+      "reference": "Cart_PromoError.png",
+      "width": 1440,
+      "height": 1179,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Cart_PromoError_Phone.dc.html",
+      "frame": null,
+      "reference": "Cart_PromoError_Phone.png",
+      "width": 390,
+      "height": 1688,
+      "page": null,
+      "warnings": []
+    },
+    {
       "artboard": "Catalog_Content.dc.html",
       "frame": null,
       "reference": "Catalog_Content.png",

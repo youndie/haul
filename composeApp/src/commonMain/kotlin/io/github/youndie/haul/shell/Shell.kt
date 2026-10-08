@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -567,3 +568,106 @@ public fun SearchLoading(query: String) {
 }
 
 private val SEARCH_CHIP_WIDTHS = listOf(100, 140, 150, 130, 100, 90)
+
+/** A failed cart (Cart_Error): nothing in it was lost, which is what the shopper is told. */
+@Composable
+public fun CartError(onRetry: () -> Unit = {}) {
+    ErrorPage(
+        SHELL_HEADER,
+        accented("Your cart didn’t load", "load"),
+        "Nothing in it was lost. Try again in a moment.",
+        // `text-wrap: balance`: «Your cart / didn’t load» at both widths.
+        balanced = true,
+        onRetry = onRetry,
+    )
+}
+
+/**
+ * The cart before its tree (Cart_Loading): the title, two seller groups — one line, then two — and the
+ * summary as placeholders; the summary beside the groups at 1440, under them on a phone.
+ */
+@Composable
+public fun CartLoading() {
+    val compact = LocalHaulCompact.current
+    val gutter = gutter()
+    Column(Modifier.fillMaxWidth()) {
+        HaulHeaderView(SHELL_HEADER, pending = true)
+        Column(
+            Modifier.padding(
+                start = gutter,
+                end = gutter,
+                top = if (compact) 24.dp else 40.dp,
+                bottom = if (compact) 64.dp else 96.dp,
+            ),
+        ) {
+            Skeleton(
+                Modifier
+                    .padding(bottom = if (compact) 24.dp else 36.dp)
+                    .size(if (compact) 140.dp else 260.dp, if (compact) 50.dp else 96.dp),
+                12.dp,
+            )
+            if (compact) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    CartGroupSkeleton(lines = 1)
+                    CartGroupSkeleton(lines = 2)
+                    CartSummarySkeleton(Modifier.fillMaxWidth())
+                }
+            } else {
+                Row(horizontalArrangement = Arrangement.spacedBy(40.dp)) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        CartGroupSkeleton(lines = 1)
+                        CartGroupSkeleton(lines = 2)
+                    }
+                    CartSummarySkeleton(Modifier.width(420.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CartGroupSkeleton(lines: Int) {
+    val compact = LocalHaulCompact.current
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .background(HaulColors.surfaceContainerLowest, RoundedCornerShape(24.dp))
+            .padding(horizontal = if (compact) 16.dp else 28.dp, vertical = if (compact) 16.dp else 24.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+    ) {
+        Skeleton(Modifier.size(220.dp, 16.dp), 6.dp)
+        repeat(lines) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(if (compact) 14.dp else 24.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Skeleton(Modifier.size(22.dp), 6.dp)
+                Skeleton(Modifier.size(if (compact) 88.dp else 128.dp), 16.dp)
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Skeleton(Modifier.fillMaxWidth(0.8f).height(16.dp), 6.dp)
+                    Skeleton(Modifier.fillMaxWidth(0.5f).height(14.dp), 5.dp)
+                }
+                if (!compact) {
+                    Skeleton(Modifier.size(112.dp, 48.dp), 14.dp)
+                    Skeleton(Modifier.size(90.dp, 30.dp), 8.dp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CartSummarySkeleton(modifier: Modifier) {
+    Column(
+        modifier
+            .background(HaulColors.surfaceContainerLowest, RoundedCornerShape(28.dp))
+            .padding(32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Skeleton(Modifier.size(220.dp, 30.dp), 8.dp)
+        repeat(3) { Skeleton(Modifier.fillMaxWidth().height(14.dp), 5.dp) }
+        Skeleton(Modifier.align(Alignment.End).size(160.dp, 52.dp), 10.dp)
+        Skeleton(Modifier.fillMaxWidth().height(52.dp), 14.dp)
+        Skeleton(Modifier.fillMaxWidth().height(64.dp), 18.dp)
+    }
+}

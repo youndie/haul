@@ -5,11 +5,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import io.github.youndie.haul.feature.cart.CartBodyView
+import io.github.youndie.haul.feature.cart.LocalCartCommands
+import io.github.youndie.haul.feature.cart.run
 import io.github.youndie.haul.feature.catalog.BreadcrumbsView
 import io.github.youndie.haul.feature.catalog.FilterChipsView
 import io.github.youndie.haul.feature.catalog.FilteredResultsView
@@ -30,6 +34,7 @@ import io.github.youndie.haul.feature.search.SearchNoResultsView
 import io.github.youndie.haul.theme.LocalHaulCompact
 import io.github.youndie.haul.ui.Breadcrumbs
 import io.github.youndie.haul.ui.CampaignRow
+import io.github.youndie.haul.ui.CartBody
 import io.github.youndie.haul.ui.CategoryGrid
 import io.github.youndie.haul.ui.EmptyState
 import io.github.youndie.haul.ui.EmptyStateView
@@ -59,6 +64,7 @@ import io.github.youndie.kompot.KompotActionHandler
 import io.github.youndie.kompot.KompotComponentRenderer
 import io.github.youndie.kompot.form.FormController
 import io.github.youndie.kompot.registry.KompotComponentMarker
+import kotlinx.coroutines.launch
 
 // One renderer per Haul component; kompot's processor collects them into `generatedHaulAppRenderers`.
 
@@ -249,7 +255,13 @@ public class EmptyStateRenderer : KompotComponentRenderer<EmptyState> {
         actionHandler: KompotActionHandler,
         formController: FormController,
     ) {
-        EmptyStateView(component)
+        // Standing on the page itself, it is the empty cart's (Cart_Empty): under the page's title,
+        // in the page's gutter. The category page draws its own inside `FilteredResults`.
+        val compact = LocalHaulCompact.current
+        EmptyStateView(
+            component,
+            Modifier.padding(start = gutter(), end = gutter(), top = if (compact) 24.dp else 40.dp),
+        )
     }
 }
 
@@ -339,5 +351,24 @@ public class SearchNoResultsRenderer : KompotComponentRenderer<SearchNoResults> 
         formController: FormController,
     ) {
         SearchNoResultsView(component)
+    }
+}
+
+// The cart (screen-cart). A press is a command to the server (`LocalCartCommands`, the storefront's),
+// and the server's answer — `refresh` — goes to the screen's handler, which draws the cart again.
+
+@KompotComponentMarker
+public class CartBodyRenderer : KompotComponentRenderer<CartBody> {
+    @Composable
+    override fun Render(
+        component: CartBody,
+        actionHandler: KompotActionHandler,
+        formController: FormController,
+    ) {
+        val commands = LocalCartCommands.current
+        val scope = rememberCoroutineScope()
+        CartBodyView(component) { batch ->
+            if (commands != null) scope.launch { commands.run(batch)?.let(actionHandler::handle) }
+        }
     }
 }

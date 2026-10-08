@@ -1,7 +1,7 @@
 ---
 id: B-13
 title: "design refs + client: Cart renderers"
-status: open
+status: done
 priority: P1
 size: M
 stage: stage-4-cart
@@ -17,4 +17,114 @@ Feature: `feature-cart` — its scenarios are this item's acceptance where it na
 - Not covered: the empty cart's recommendations beyond popular products.
 
 - AC: parity for every `Cart_*` artboard.
-- Anchors (planned): `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/cart/`, `composeApp/src/desktopTest/snapshots/design`.
+- Anchors: `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/cart/`, `composeApp/src/desktopTest/snapshots/design`.
+
+## Done (2026-10-08)
+
+`viddikDesignParity` (default tolerance, 5 % of pixels at ±16 per channel, untouched; references
+not edited), against the references re-rendered with grayscale text (Findings):
+
+| Artboard | Mismatch | | Artboard | Mismatch |
+|---|---|---|---|---|
+| Cart_Loading | 0.58 % | | Cart_Loading_Phone | 0.44 % |
+| Cart_Content | 1.69 % | | Cart_Content_Phone | 3.17 % |
+| Cart_Empty | 1.90 % | | Cart_Empty_Phone | 3.16 % |
+| Cart_PromoApplied | 1.75 % | | Cart_PromoApplied_Phone | 3.32 % |
+| Cart_PromoError | 1.72 % | | Cart_PromoError_Phone | 3.22 % |
+| Cart_ItemChanged | 1.66 % | | Cart_ItemChanged_Phone | 3.11 % |
+| Cart_Guest | 1.64 % | | Cart_Guest_Phone | 3.19 % |
+| Cart_Error | 1.33 % | | Cart_Error_Phone | 2.63 % |
+
+All sixteen within tolerance; what is left is glyph edges and the three disagreements in Findings.
+Goldens recorded on Linux.
+
+- References: the sixteen `Cart_*` artboards rendered into `composeApp/src/desktopTest/snapshots/design/`
+  with grayscale text (below; their sizes added to `.canvas/canvas.json`'s `artboards`, which listed them only under `pages`);
+  `manifest.json` lists all 65.
+- Contract (`shared/.../ui/CartComponents.kt`, `BrowseComponents.kt`): `CartBody` (`haul_cart_body`) — the
+  selection, the groups and the summary as one component, because the canvas lays the lines and the
+  summary side by side at 1440 and a page's column of sections cannot; `OrderSummary.title`,
+  `.promo` (the field sits inside the summary), `.pointsAccent` (the bold part of «You'll earn **1,024
+  points** on this order»); `SummaryRow.saving` in place of `detail` (the canvas draws the promo row like
+  the others, the savings in sale red); `CartLine.changeDetail` («It was $24 when you added it»);
+  `PromoField.terms` («10% off items, up to $50»); `PageTitle.badge` (the cart's count in a pill);
+  `EmptyState.primary` (a filled way on).
+- Server (`server/.../feature/cart/screen/CartScreen.kt`): the tree is `PageTitle` + `CartBody`; groups say
+  «Courier · Tomorrow»; Items counts the counted units («Items (3)»); the promo row is «Promo ·
+  AUTUMN10»; the total is a price tag («$512»); the empty cart has its title, the canvas's copy, a filled
+  button and a two-column grid on a phone. `CartRoutesTest`, `CustomerCartTest`, `ChangedLinesTest`
+  assert the new fields; `CartFixturesTest` holds the client's six cart bodies equal, as JSON, to the
+  trees the server builds for each artboard's cart (below).
+  Rebased over B-14: `summaryRows` is shared with the checkout tree, so its rows read the same there
+  («Items (3)», the savings marked) — the Checkout artboards write «Items (3)» too — and
+  `CheckoutRoutesTest` says so. B-14 holds the checkout's total equal to the cart's, so it is a price
+  tag too («$512», «$487.20»), as the Checkout artboards write it; the button keeps its cents («Place
+  order · $512.00»).
+- Client: `feature/cart/CartViews.kt` (the body at both widths: selection with its partial state, seller
+  cards, lines, stepper, the change notice, the summary with the promo field in its three forms,
+  checkout, points), `feature/cart/CartCommands.kt` (the seam, below), `CartBodyRenderer` in
+  `registry/HaulRenderers.kt`, `PageTitleView`'s badge form, `EmptyStateView`'s filled button and balanced
+  title, `CartLoading` and `CartError` in `shell/Shell.kt`; in B-35's shell `/cart` is `PageKind.Cart`
+  (its placeholders and its failure), and `Storefront`/`App` take the `CartCommands` that `Main` builds.
+- **The command seam**: a press is a `CartCommand` (`ChangeLine`, `RemoveLines`, `Acknowledge`, `ApplyPromo`,
+  `RemovePromo`) with the URL the tree carries; `CartCommands.send` returns the server's answer; the
+  browser's is `ktorCartCommands(http, origin, identity::send)`, so the bearer token or `X-Haul-Guest`
+  rides on it as on the screens. The renderer hands the answer — `refresh` — to the screen's action
+  handler, which B-35's shell answers by fetching the tree again in place; a refusal is a `refresh` too
+  (the server keeps a refused code and its reason for the next tree), no answer leaves the page as it
+  was. «Select all» is one `ChangeLine` per line and one redraw.
+- Fixtures: `composeApp/src/desktopTest/.../CartFixtures.kt`, one per artboard; the six server states are the
+  server's own trees (`resources/bodies/cart_*.json`, generated by `CartFixturesTest` and held equal to
+  it), Loading and Error the client's.
+- Tests: `CartWiringTest` (a press per action → the recorded command and the redraw; presses the tree does
+  not allow send nothing; in the storefront, `/cart` loads `/ui/cart`, a command's answer fetches it again,
+  and a failed cart says nothing was lost), `CartCommandsTest` (each command's method, URL, body and the
+  guest header over a mock engine; a refusal's code; a batch's answer). Mutations seen failing: the
+  renderer dropping the answer (10 wiring tests), «Select all» inverted, a refusal not redrawing, the
+  server dropping `changeDetail` (`CartFixturesTest`, `ChangedLinesTest`).
+- `Catalog_Empty` re-recorded: an empty state's title is now balanced as the canvas balances every one
+  (`text-wrap: balance`); its parity went from 2.96 % to 2.51 %.
+- Where it ran: `check :server:installDist :composeApp:wasmJsBrowserDistribution` on the Linux build machine
+  (227 tests, PostgreSQL in Testcontainers, `viddikVerify` green), parity and recording there in a
+  private copy; `make check` on the Mac.
+
+## Findings (2026-10-08)
+
+- **The references were first rendered with LCD text.** Chrome on the Linux build box draws text with
+  subpixel (LCD) antialiasing by default, so the first Cart references had colour fringes on every
+  glyph; the fixtures draw grayscale, and every glyph edge counted — the phones read 4.9–5.1 %, two over.
+  B-06's Home, Catalog and Product references are grayscale (no fringed pixel on the category row's
+  text; their manifest names the Mac checkout, whose Chrome draws grayscale). The Cart references were
+  rendered again with the same `canvas-references.mjs` and Chrome
+  (`~/.cache/shashki/chrome/152.0.7977.75`), adding `--disable-lcd-text` to its flags in a copy of the
+  script; the artboards, sizes and manifest did not change. Two B-06 artboards rendered the same way
+  differ from their committed references by 1.37 % and 0.78 % (4.66 % and 2.02 % with LCD text): the
+  rest is the Mac's rasterisation against Linux's. **B-10's Search references have the same LCD defect**
+  (90 % of the category row's text pixels fringed); not re-rendered here.
+- **Design or data, for a person:**
+  - the listing name: the canvas writes «Sony WH-1000XM6 Wireless Noise Cancelling Headphones» in the
+    cart and on cards; the seed's title has no brand («WH-1000XM6 …», the product page's title), and the
+    server's cards and cart lines send the title. The hand-written Home and Catalog bodies say «Sony …»,
+    which the server never sends — the same drift, unseen there because those bodies are not compared
+    with the server. The duvet's brand is its seller's and the canvas leaves it out, so «brand + title»
+    is not the rule either.
+  - the discount: Cart_PromoApplied draws «Discount −$140.00» and «Promo · AUTUMN10 −$50.00» beside it;
+    feature-cart's rule (B-11, tested) puts the promo inside the discount, «−$190.00». The server's rule
+    is kept.
+  - «Picked for you»: the canvas's subtitle is «Based on your recent views», but the empty cart's picks
+    are the day's deals (recommendations are feature-recommendations), so the server says «From today’s
+    deals». The canvas's six picks are not in the seed: the body keeps the canvas's cards and
+    `CartFixturesTest` checks each is shaped like a server card.
+  - No artboard draws a disabled checkout (nothing selected) or a stepper at its limits: both are drawn
+    as the canvas draws them and do nothing when pressed.
+- **«Select all» and a changed line.** B-11's `allSelected` speaks for the lines that can be selected
+  (true on Cart_ItemChanged), while the canvas draws the partial box there; the client draws partial
+  whenever a line is not ticked, and pressing it unticks the selectable ones.
+- **The header's cart has no action**, so the cart is reached only by its address (`/cart`); the header
+  needs a `cart` action like its `account` one (server and client). Not this item's AC.
+- **Not built here:** «Save for later» is drawn and does nothing (B-20); `CartLine.each` («$349 each») has
+  no artboard and is drawn small under the price.
+- PR #2's drafts this changes: screen-cart (states ticked; the Loading and Error pages are the client's
+  `CartLoading` / `CartError`; the source anchors), feature-cart (the client half; the delivery label and
+  the totals' wording; the discount disagreement), endpoint-cart (commands are sent as `CartCommand`s by
+  the client, refusals redraw), haul-shared (`CartBody`, the new fields, `SummaryRow.detail` gone).

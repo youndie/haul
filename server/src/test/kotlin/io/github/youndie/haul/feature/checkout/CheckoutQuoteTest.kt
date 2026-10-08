@@ -70,6 +70,6 @@ class CheckoutQuoteTest {
 
             val tree = CheckoutScreen(commands(later)).build(owner)
             assertEquals("Code AUTUMN10 has expired and is not in the total", tree.only<CheckoutNotice>().text)
-            assertEquals("$349.00", tree.only<CheckoutSummary>().total)
+            assertEquals("$349", tree.only<CheckoutSummary>().total)
         }
 }

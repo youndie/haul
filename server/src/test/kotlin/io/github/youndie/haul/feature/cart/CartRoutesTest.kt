@@ -67,17 +67,17 @@ class CartRoutesTest {
             val summary = tree.only<OrderSummary>()
             assertEquals(
                 listOf(
-                    SummaryRow("Items", "$652.00"),
-                    SummaryRow("Discount", "−$140.00"),
+                    SummaryRow("Items (3)", "$652.00"),
+                    SummaryRow("Discount", "−$140.00", saving = true),
                     SummaryRow("Delivery", "Free"),
                 ),
                 summary.rows,
             )
-            assertEquals("$512.00", summary.total)
+            assertEquals("$512", summary.total)
             // Content: three items in two seller groups, in the order they were added, all selected.
             val groups = tree.all().filterIsInstance<CartGroup>()
             assertEquals(listOf("Sony Official Store", "Brooklyn Home Co."), groups.map { it.seller })
-            assertEquals(listOf("Delivery tomorrow", "Delivery Thu, Oct 9"), groups.map { it.delivery })
+            assertEquals(listOf("Courier · Tomorrow", "Courier · Thu, Oct 9"), groups.map { it.delivery })
             assertEquals(listOf(listOf(headphones), listOf(duvet, mug)), groups.map { g -> g.lines.map { it.skuId } })
             assertTrue(groups.flatMap { it.lines }.all { it.selected && it.selectable && it.change == null })
             val line = groups.first().lines.single()
@@ -89,7 +89,7 @@ class CartRoutesTest {
                 CartSelection("selection", allSelected = true, selectedCount = 3, linesUrl = "/api/v1/cart/lines"),
                 tree.only<CartSelection>(),
             )
-            assertEquals("3 items", tree.only<PageTitle>().count)
+            assertEquals(PageTitle("title", "Cart", "3 items", badge = true), tree.only<PageTitle>())
             assertEquals(3, tree.only<HaulHeader>().cartCount, "the header counts the cart")
             assertEquals(PromoField("promo", "/api/v1/cart/promo"), tree.only<PromoField>())
         }
@@ -100,6 +100,7 @@ class CartRoutesTest {
         haulTest {
             val summary = cart(mayasCart()).only<OrderSummary>()
             assertNull(summary.points)
+            assertNull(summary.pointsAccent)
             assertEquals("Sign in to check out", summary.checkoutLabel)
             assertTrue(summary.checkoutEnabled)
             assertEquals(NavigateAction("/sign-in?next=%2Fcheckout"), summary.checkoutAction)
@@ -117,23 +118,29 @@ class CartRoutesTest {
 
             val tree = cart(guest)
             assertEquals(
-                PromoField("promo", "/api/v1/cart/promo", code = "AUTUMN10", applied = true),
+                PromoField(
+                    "promo",
+                    "/api/v1/cart/promo",
+                    code = "AUTUMN10",
+                    applied = true,
+                    terms = "10% off items, up to $50",
+                ),
                 tree.only<PromoField>(),
             )
             // 10 % of $512 is $51.20, and AUTUMN10 stops at $50; the discount includes the promo.
             assertEquals(
                 listOf(
-                    SummaryRow("Items", "$652.00"),
-                    SummaryRow("Discount", "−$190.00"),
-                    SummaryRow("Promo AUTUMN10", "−$50.00", detail = true),
+                    SummaryRow("Items (3)", "$652.00"),
+                    SummaryRow("Discount", "−$190.00", saving = true),
+                    SummaryRow("Promo · AUTUMN10", "−$50.00", saving = true),
                     SummaryRow("Delivery", "Free"),
                 ),
                 tree.only<OrderSummary>().rows,
             )
-            assertEquals("$462.00", tree.only<OrderSummary>().total)
+            assertEquals("$462", tree.only<OrderSummary>().total)
 
             removePromo(guest).assertRefresh()
-            assertEquals("$512.00", cart(guest).only<OrderSummary>().total)
+            assertEquals("$512", cart(guest).only<OrderSummary>().total)
             applyPromo(guest, "SUMMER5").assertError(HttpStatusCode.UnprocessableEntity, ErrorCode.PromoExpired)
         }
 
@@ -154,7 +161,7 @@ class CartRoutesTest {
                 PromoField("promo", "/api/v1/cart/promo", code = "SUMMER5", error = "This code has expired"),
                 tree.only<PromoField>(),
             )
-            assertEquals("$512.00", tree.only<OrderSummary>().total, "a refused code took money off")
+            assertEquals("$512", tree.only<OrderSummary>().total, "a refused code took money off")
             // The refusal is shown once: the next change to the cart clears it.
             putLine(guest, mug, LineChange(quantity = 2)).assertRefresh()
             assertEquals(PromoField("promo", "/api/v1/cart/promo"), cart(guest).only<PromoField>())
@@ -248,8 +255,8 @@ class CartRoutesTest {
             val guest = mayasCart()
             putLine(guest, headphones, LineChange(selected = false)).assertRefresh()
             val tree = cart(guest)
-            assertEquals(mapOf("Items" to "$203.00", "Discount" to "−$40.00", "Delivery" to "Free"), tree.rows())
-            assertEquals("$163.00", tree.only<OrderSummary>().total)
+            assertEquals(mapOf("Items (2)" to "$203.00", "Discount" to "−$40.00", "Delivery" to "Free"), tree.rows())
+            assertEquals("$163", tree.only<OrderSummary>().total)
             assertEquals(
                 CartSelection("selection", allSelected = false, selectedCount = 2, linesUrl = "/api/v1/cart/lines"),
                 tree.only<CartSelection>(),
@@ -259,7 +266,7 @@ class CartRoutesTest {
             removeLines(guest, duvet).assertRefresh()
             // The mug alone is under $35: delivery is $5.99 for a guest (research D7).
             val mugOnly = cart(guest)
-            assertEquals(mapOf("Items" to "$24.00", "Discount" to "−$0.00", "Delivery" to "$5.99"), mugOnly.rows())
+            assertEquals(mapOf("Items (1)" to "$24.00", "Discount" to "−$0.00", "Delivery" to "$5.99"), mugOnly.rows())
             assertEquals("$29.99", mugOnly.only<OrderSummary>().total)
 
             removeLines(guest, headphones, mug).assertRefresh()
@@ -274,7 +281,7 @@ class CartRoutesTest {
             putLine(guest, mug, LineChange(quantity = 1, selected = false)).assertRefresh()
             val summary = cart(guest).only<OrderSummary>()
             assertFalse(summary.checkoutEnabled)
-            assertEquals("$0.00", summary.total)
+            assertEquals("$0", summary.total)
         }
 
     @Test

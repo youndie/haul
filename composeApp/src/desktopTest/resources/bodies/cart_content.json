@@ -1,0 +1,155 @@
+{
+    "type": "column",
+    "id": "cart",
+    "children": [
+        {
+            "type": "haul_header",
+            "id": "header",
+            "deliverTo": "Brooklyn, NY 11211",
+            "deliveryPromise": "Free delivery over $35",
+            "customerName": "Maya",
+            "cartCount": 3,
+            "searchPlaceholder": "Search 2.4 million products",
+            "categories": [
+                "Electronics",
+                "Home & Kitchen",
+                "Fashion",
+                "Beauty",
+                "Kids & Toys",
+                "Sports",
+                "Grocery",
+                "Auto",
+                "Books",
+                "Pets"
+            ],
+            "account": {
+                "type": "navigate",
+                "deeplink": "/account"
+            }
+        },
+        {
+            "type": "haul_page_title",
+            "id": "title",
+            "title": "Cart",
+            "count": "3 items",
+            "badge": true
+        },
+        {
+            "type": "haul_cart_body",
+            "id": "cart",
+            "selection": {
+                "id": "selection",
+                "allSelected": true,
+                "selectedCount": 3,
+                "linesUrl": "/api/v1/cart/lines"
+            },
+            "groups": [
+                {
+                    "id": "group-s-sony-official-store",
+                    "seller": "Sony Official Store",
+                    "delivery": "Courier · Tomorrow",
+                    "lines": [
+                        {
+                            "id": "line-p-sony-wh-1000xm6-0",
+                            "skuId": "p-sony-wh-1000xm6-0",
+                            "productId": "p-sony-wh-1000xm6",
+                            "title": "WH-1000XM6 Wireless Noise Cancelling Headphones",
+                            "options": "Midnight Black · Headphones only",
+                            "tone": "#E6E4FF",
+                            "label": "headphones",
+                            "price": "$349",
+                            "oldPrice": "$449",
+                            "quantity": 1,
+                            "maxQuantity": 10,
+                            "selected": true,
+                            "selectable": true,
+                            "url": "/api/v1/cart/lines/p-sony-wh-1000xm6-0",
+                            "action": {
+                                "type": "navigate",
+                                "deeplink": "/p/p-sony-wh-1000xm6"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": "group-s-brooklyn-home-co",
+                    "seller": "Brooklyn Home Co.",
+                    "delivery": "Courier · Thu, Oct 9",
+                    "lines": [
+                        {
+                            "id": "line-p-linen-duvet-cover-set-0",
+                            "skuId": "p-linen-duvet-cover-set-0",
+                            "productId": "p-linen-duvet-cover-set",
+                            "title": "Linen Duvet Cover Set, Queen",
+                            "options": "Oat · 3 pieces",
+                            "tone": "#F1EBDD",
+                            "label": "bedding",
+                            "price": "$139",
+                            "oldPrice": "$179",
+                            "quantity": 1,
+                            "maxQuantity": 10,
+                            "selected": true,
+                            "selectable": true,
+                            "url": "/api/v1/cart/lines/p-linen-duvet-cover-set-0",
+                            "action": {
+                                "type": "navigate",
+                                "deeplink": "/p/p-linen-duvet-cover-set"
+                            }
+                        },
+                        {
+                            "id": "line-p-stoneware-mug-0",
+                            "skuId": "p-stoneware-mug-0",
+                            "productId": "p-stoneware-mug",
+                            "title": "Stoneware Mug, 12 oz",
+                            "options": "Sage · Set of 2",
+                            "tone": "#E3F5D8",
+                            "label": "mug",
+                            "price": "$24",
+                            "quantity": 1,
+                            "maxQuantity": 10,
+                            "selected": true,
+                            "selectable": true,
+                            "url": "/api/v1/cart/lines/p-stoneware-mug-0",
+                            "action": {
+                                "type": "navigate",
+                                "deeplink": "/p/p-stoneware-mug"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "summary": {
+                "id": "summary",
+                "rows": [
+                    {
+                        "label": "Items (3)",
+                        "value": "$652.00"
+                    },
+                    {
+                        "label": "Discount",
+                        "value": "−$140.00",
+                        "saving": true
+                    },
+                    {
+                        "label": "Delivery",
+                        "value": "Free"
+                    }
+                ],
+                "totalLabel": "Total",
+                "total": "$512",
+                "promo": {
+                    "id": "promo",
+                    "url": "/api/v1/cart/promo"
+                },
+                "points": "You'll earn 1,024 points on this order",
+                "pointsAccent": "1,024 points",
+                "checkoutLabel": "Checkout",
+                "checkoutEnabled": true,
+                "checkoutAction": {
+                    "type": "navigate",
+                    "deeplink": "/checkout"
+                }
+            }
+        }
+    ]
+}
