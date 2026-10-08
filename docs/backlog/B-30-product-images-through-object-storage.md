@@ -17,4 +17,4 @@ Feature: `feature-product` — its scenarios are this item's acceptance where it
 - Not covered in v1.
 
 - AC: cards and the product page show stored images; the placeholder tiles remain the fallback.
-- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/server/catalog/`.
+- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/`.

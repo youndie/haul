@@ -17,4 +17,4 @@ Feature: `feature-account` — its scenarios are this item's acceptance where it
 - Not covered: menu sections hidden in v1 (research D6).
 
 - AC: parity for every `Account_*` artboard.
-- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/server/account/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/account/`.
+- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/feature/account/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/account/`.

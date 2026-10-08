@@ -17,4 +17,4 @@ Feature: `feature-search` — its scenarios are this item's acceptance where it 
 - Not covered: ranking beyond full-text relevance and popularity.
 
 - AC: feature-search scenarios pass; the latency number is in the research document.
-- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/server/search/`.
+- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/feature/search/`.

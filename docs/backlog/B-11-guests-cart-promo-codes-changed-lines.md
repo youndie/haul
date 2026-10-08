@@ -17,4 +17,4 @@ Feature: `feature-cart` — its scenarios are this item's acceptance where it na
 - Not covered: save for later (B-20).
 
 - AC: feature-cart scenarios pass.
-- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/server/cart/`, `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/cart/`.
+- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/feature/cart/`, `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/cart/`.

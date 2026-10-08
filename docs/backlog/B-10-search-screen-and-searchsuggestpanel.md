@@ -17,4 +17,4 @@ Feature: `feature-search` — its scenarios are this item's acceptance where it 
 - Not covered: search analytics.
 
 - AC: parity for every `Search_*` artboard.
-- Anchors (planned): `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/search/`, `composeApp/src/desktopTest/snapshots/design`.
+- Anchors (planned): `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/search/`, `composeApp/src/desktopTest/snapshots/design`.

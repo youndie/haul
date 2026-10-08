@@ -17,4 +17,4 @@ Feature: `feature-orders` — its scenarios are this item's acceptance where it 
 - Not covered: fulfilment after placement (B-17).
 
 - AC: feature-checkout and «declined card» pass; a saga killed mid-way finishes after a restart.
-- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/server/order/`, `server/src/main/kotlin/io/github/youndie/haul/server/payment/`.
+- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/feature/order/`, `server/src/main/kotlin/io/github/youndie/haul/feature/payment/`.

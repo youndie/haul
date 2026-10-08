@@ -17,4 +17,4 @@ Feature: `feature-account` — its scenarios are this item's acceptance where it
 - Not covered: price-drop notifications outside the app.
 
 - AC: parity for every `Saved_*`; the price-drop scenario passes.
-- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/server/saved/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/saved/`.
+- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/feature/saved/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/saved/`.

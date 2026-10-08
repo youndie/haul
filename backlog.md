@@ -40,11 +40,10 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (30)
+## Open (29)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-02](docs/backlog/B-02-settings-plugin-modules-shared-server-composeapp.md) `[ ]` | scaffold: settings plugin, modules `shared` / `server` / `composeApp` / `e2e`, CI, `CLAUDE.md`, docs check | P1 | M | - |
 | [B-03](docs/backlog/B-03-schema-migrations-seed-generator-and-sample.md) `[ ]` | server: schema migrations, seed generator and sample-data fixtures, probes, the image with a zavarnik cache | P1 | M | B-02 |
 | [B-04](docs/backlog/B-04-theme-registry-haulheader-and-productcard-renderers.md) `[ ]` | contract + client: theme (colour roles, three bundled fonts), registry, `HaulHeader` and `ProductCard` renderers | P1 | M | B-02 |
 | [B-05](docs/backlog/B-05-catalog-use-cases-and-the-home.md) `[ ]` | server: catalog use cases (home, facets, product, delivery estimate) and the Home / Catalog / Product trees | P1 | L | B-03, B-04 |
@@ -75,11 +74,12 @@ A stage is a field on the item, not a directory.
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
 | [B-30](docs/backlog/B-30-product-images-through-object-storage.md) `[ ]` | product images through object storage | P3 | M | B-08 |
 
-## Closed (1)
+## Closed (2)
 
 **Skeleton**
 
 - [B-01](docs/backlog/B-01-canvas-per-the-design-briefs-static.md) `[x]` - design: canvas per the design briefs — static artboards, every screen state, desktop and phone, the three disagreements resolved
+- [B-02](docs/backlog/B-02-settings-plugin-modules-shared-server-composeapp.md) `[x]` - scaffold: settings plugin, modules `shared` / `server` / `composeApp` / `e2e`, CI, `CLAUDE.md`, docs check
 
 <!-- END INDEX -->
 

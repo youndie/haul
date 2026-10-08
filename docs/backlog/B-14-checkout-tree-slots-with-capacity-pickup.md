@@ -17,4 +17,4 @@ Feature: `feature-checkout` — its scenarios are this item's acceptance where i
 - Not covered: placing the order (B-16).
 
 - AC: quote scenarios pass; a full slot is refused.
-- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/server/checkout/`.
+- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/feature/checkout/`.

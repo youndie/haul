@@ -17,4 +17,4 @@ Feature: `feature-orders` — its scenarios are this item's acceptance where it 
 - Not covered: returns (B-21).
 
 - AC: «charged when shipped» passes; an order reaches delivered on the fast clock.
-- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/server/fulfilment/`.
+- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/feature/fulfilment/`.
