@@ -1,7 +1,7 @@
 ---
 id: B-42
 title: "server: a refused address form does not hold a pickup or locker order"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-5-order
