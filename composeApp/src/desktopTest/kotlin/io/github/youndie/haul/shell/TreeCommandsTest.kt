@@ -1,7 +1,8 @@
-package io.github.youndie.haul.feature.product
+package io.github.youndie.haul.shell
 
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.FieldError
+import io.github.youndie.haul.feature.returns.ReturnEntry
 import io.github.youndie.haul.feature.reviews.HelpfulVote
 import io.github.youndie.haul.feature.reviews.QuestionEntry
 import io.github.youndie.haul.feature.reviews.ReviewEntry
@@ -12,6 +13,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.request.HttpRequestData
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -22,14 +24,16 @@ import java.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
 import kotlin.test.assertNull
 
 /**
- * The dialogs' commands as the browser sends them (endpoint-reviews), against a server played by a mock
- * engine: `POST` to the URL the dialog carries with the contract's body and the bearer token, the
- * server's `close` + `refresh` handed back, and a refusal with its fields.
+ * The commands the trees fix as the browser sends them (endpoint-reviews, B-21, B-23, B-43), against a
+ * server played by a mock engine: each to the URL its component carries with the method and the contract's
+ * body its kind says and the bearer token, the server's `close` + `refresh` handed back, and a refusal with
+ * its fields.
  */
-class ReviewCommandsTest {
+class TreeCommandsTest {
     private val requests = mutableListOf<HttpRequestData>()
     private var answer: Pair<HttpStatusCode, String> = HttpStatusCode.Created to CLOSED
     private var unreachable = false
@@ -44,7 +48,7 @@ class ReviewCommandsTest {
         )
 
     private val commands =
-        ktorReviewCommands(http, "http://haul.test/") { request ->
+        ktorTreeCommands(http, "http://haul.test/") { request ->
             request(
                 mapOf(HttpHeaders.Authorization to "Bearer t-1"),
             )
@@ -58,9 +62,9 @@ class ReviewCommandsTest {
             val closed = SequenceAction(listOf(CloseAction, RefreshAction))
             assertEquals(
                 closed,
-                commands.send(ReviewCommand.Post(REVIEWS, ReviewEntry(5, "Worth it", "Twenty characters and more"))),
+                commands.send(TreeCommand.Review(REVIEWS, ReviewEntry(5, "Worth it", "Twenty characters and more"))),
             )
-            assertEquals(closed, commands.send(ReviewCommand.Ask(QUESTIONS, QuestionEntry("Does it fold flat?"))))
+            assertEquals(closed, commands.send(TreeCommand.Ask(QUESTIONS, QuestionEntry("Does it fold flat?"))))
             assertEquals(
                 listOf("http://haul.test$REVIEWS", "http://haul.test$QUESTIONS"),
                 requests.map { it.url.toString() },
@@ -84,32 +88,56 @@ class ReviewCommandsTest {
                 """{"code":"validation_failed","message":"The form has fields to fix","field":"body",""" +
                 """"fields":[{"field":"body","code":"field_invalid","message":"Write at least 20 characters"}]}"""
             val refused =
-                assertFailsWith<ReviewRefused> {
+                assertFailsWith<CommandRefused> {
                     commands.send(
-                        ReviewCommand.Post(REVIEWS, ReviewEntry(5, "x", "short")),
+                        TreeCommand.Review(REVIEWS, ReviewEntry(5, "x", "short")),
                     )
                 }
             assertEquals(ErrorCode.ValidationFailed, refused.code)
             val field = FieldError("body", ErrorCode.FieldInvalid, "Write at least 20 characters")
             assertEquals(listOf(field), refused.fields)
             assertEquals(
-                ReviewOutcome.Refused(listOf(field), null),
-                commands.run(ReviewCommand.Post(REVIEWS, ReviewEntry())),
+                CommandOutcome.Refused(listOf(field), null),
+                commands.run(TreeCommand.Review(REVIEWS, ReviewEntry())),
             )
 
             answer =
                 HttpStatusCode.Conflict to
                 """{"code":"review_exists","message":"You have already reviewed this product"}"""
             assertEquals(
-                ReviewOutcome.Refused(emptyList(), "You have already reviewed this product"),
-                commands.run(ReviewCommand.Post(REVIEWS, ReviewEntry())),
+                CommandOutcome.Refused(emptyList(), "You have already reviewed this product"),
+                commands.run(TreeCommand.Review(REVIEWS, ReviewEntry())),
             )
 
             unreachable = true
             assertEquals(
-                ReviewOutcome.NoAnswer,
-                commands.run(ReviewCommand.Ask(QUESTIONS, QuestionEntry("Does it fold flat?"))),
+                CommandOutcome.NoAnswer,
+                commands.run(TreeCommand.Ask(QUESTIONS, QuestionEntry("Does it fold flat?"))),
             )
+        }
+
+    /**
+     * The return (B-21) is a `POST` of its entry as JSON; the Plus trial (B-23) a `POST` with no body and no
+     * content type, as `ktorCommands` sent it before the trial moved onto this seam (B-51).
+     */
+    @Test
+    fun `a return and a trial are posted where their dialogs say`() =
+        runBlocking {
+            val closed = SequenceAction(listOf(CloseAction, RefreshAction))
+            assertEquals(closed, commands.send(TreeCommand.Return(RETURNS, ReturnEntry(listOf(0), "doesnt_fit"))))
+            assertEquals(closed, commands.send(TreeCommand.StartTrial(TRIAL)))
+            assertEquals(
+                listOf("http://haul.test$RETURNS", "http://haul.test$TRIAL"),
+                requests.map { it.url.toString() },
+            )
+            assertEquals(listOf(HttpMethod.Post, HttpMethod.Post), requests.map { it.method })
+            val (returned, trial) = requests
+            assertEquals("""{"lines":[0],"reason":"doesnt_fit"}""", returned.text())
+            assertEquals(true, returned.body.contentType?.match(ContentType.Application.Json))
+            assertIs<OutgoingContent.NoContent>(trial.body, "the trial sends no body")
+            assertNull(trial.body.contentType, "the trial sends no content type")
+            assertNull(trial.headers[HttpHeaders.ContentType], "the trial sends no content type")
+            requests.forEach { assertEquals("Bearer t-1", it.headers[HttpHeaders.Authorization]) }
         }
 
     /**
@@ -121,7 +149,7 @@ class ReviewCommandsTest {
     fun `a vote is put where the review says and its answer or refusal redraws the page`() =
         runBlocking {
             answer = HttpStatusCode.OK to """{"type":"refresh"}"""
-            val command = ReviewCommand.Vote(HELPFUL, HelpfulVote(helpful = false))
+            val command = TreeCommand.Vote(HELPFUL, HelpfulVote(helpful = false))
             assertEquals(RefreshAction, commands.vote(command))
             val request = requests.single()
             assertEquals(HttpMethod.Put, request.method)
@@ -131,7 +159,7 @@ class ReviewCommandsTest {
 
             answer =
                 HttpStatusCode.Conflict to """{"code":"own_review","message":"You cannot vote on your own review"}"""
-            val refused = assertFailsWith<ReviewRefused> { commands.send(command) }
+            val refused = assertFailsWith<CommandRefused> { commands.send(command) }
             assertEquals(ErrorCode.OwnReview, refused.code)
             assertEquals(RefreshAction, commands.vote(command))
 
@@ -143,6 +171,8 @@ class ReviewCommandsTest {
         const val HELPFUL = "/api/v1/reviews/r-sony-aisha/helpful"
         const val REVIEWS = "/api/v1/products/p-sony-wh-1000xm6/reviews"
         const val QUESTIONS = "/api/v1/products/p-sony-wh-1000xm6/questions"
+        const val RETURNS = "/api/v1/me/orders/HL-46102/returns"
+        const val TRIAL = "/api/v1/me/plus/trial"
         const val CLOSED = """{"type":"sequence","actions":[{"type":"close"},{"type":"refresh"}]}"""
     }
 }

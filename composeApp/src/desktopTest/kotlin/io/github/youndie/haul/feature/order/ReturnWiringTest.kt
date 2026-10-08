@@ -11,15 +11,15 @@ import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.FakeHistory
 import io.github.youndie.haul.FixtureFonts
 import io.github.youndie.haul.feature.product.CANCEL_TAG
-import io.github.youndie.haul.feature.product.ReviewCommand
-import io.github.youndie.haul.feature.product.ReviewCommands
-import io.github.youndie.haul.feature.product.ReviewRefused
 import io.github.youndie.haul.feature.product.SUBMIT_TAG
 import io.github.youndie.haul.feature.returns.ReturnEntry
 import io.github.youndie.haul.read
+import io.github.youndie.haul.shell.CommandRefused
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
 import io.github.youndie.haul.shell.Storefront
+import io.github.youndie.haul.shell.TreeCommand
+import io.github.youndie.haul.shell.TreeCommands
 import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.standard.CloseAction
@@ -40,9 +40,9 @@ import kotlin.time.Instant
  */
 @OptIn(ExperimentalTestApi::class)
 class ReturnWiringTest {
-    private val sent = CopyOnWriteArrayList<ReviewCommand>()
+    private val sent = CopyOnWriteArrayList<TreeCommand>()
     private val requests = CopyOnWriteArrayList<String>()
-    private var answer: (ReviewCommand) -> KompotAction = { CLOSED }
+    private var answer: (TreeCommand) -> KompotAction = { CLOSED }
 
     private fun ComposeUiTest.delivered() {
         val transport =
@@ -51,13 +51,13 @@ class ReturnWiringTest {
                 HaulResponse(200, read("order_delivered.json"))
             }
         val commands =
-            ReviewCommands { command ->
+            TreeCommands { command ->
                 sent += command
                 answer(command)
             }
         setContent {
             HaulTheme(FixtureFonts.fonts, compact = false) {
-                Storefront(transport, FakeHistory(ADDRESS), signIn = {}, clock = FixedClock, reviewCommands = commands)
+                Storefront(transport, FakeHistory(ADDRESS), signIn = {}, clock = FixedClock, treeCommands = commands)
             }
         }
         waitUntil(timeoutMillis = 5_000) { requests.isNotEmpty() }
@@ -93,7 +93,7 @@ class ReturnWiringTest {
             onNodeWithTag(SUBMIT_TAG).performClick()
             waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
             assertEquals(
-                listOf<ReviewCommand>(ReviewCommand.Return(RETURNS_URL, ReturnEntry(listOf(0), "doesnt_fit"))),
+                listOf<TreeCommand>(TreeCommand.Return(RETURNS_URL, ReturnEntry(listOf(0), "doesnt_fit"))),
                 sent.toList(),
             )
             onNodeWithTag(SUBMIT_TAG).assertDoesNotExist()
@@ -118,7 +118,7 @@ class ReturnWiringTest {
     fun `a late return is refused in the dialog`() =
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
             answer =
-                { throw ReviewRefused(422, ErrorCode.ReturnWindowClosed, "Returns for this order closed on Oct 26") }
+                { throw CommandRefused(422, ErrorCode.ReturnWindowClosed, "Returns for this order closed on Oct 26") }
             delivered()
             onNodeWithTag(lineTag(0)).performClick()
             onNodeWithTag(REASON_TAG).performClick()

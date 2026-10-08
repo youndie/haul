@@ -19,9 +19,13 @@ import io.github.youndie.haul.feature.reviews.QuestionEntry
 import io.github.youndie.haul.feature.reviews.ReviewEntry
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.read
+import io.github.youndie.haul.shell.CommandRefused
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
+import io.github.youndie.haul.shell.NOT_SENT
 import io.github.youndie.haul.shell.Storefront
+import io.github.youndie.haul.shell.TreeCommand
+import io.github.youndie.haul.shell.TreeCommands
 import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.ui.ProductReviews
 import io.github.youndie.kompot.KompotAction
@@ -49,14 +53,14 @@ import kotlin.time.Instant
  */
 @OptIn(ExperimentalTestApi::class)
 class ReviewWiringTest {
-    private val sent = CopyOnWriteArrayList<ReviewCommand>()
+    private val sent = CopyOnWriteArrayList<TreeCommand>()
     private val requests = CopyOnWriteArrayList<String>()
 
     /** The server's answer to a command: the dialog's `close` and `refresh` unless a test says otherwise. */
-    private var answer: (ReviewCommand) -> KompotAction = { CLOSED }
+    private var answer: (TreeCommand) -> KompotAction = { CLOSED }
 
     private val commands =
-        ReviewCommands { command ->
+        TreeCommands { command ->
             sent += command
             answer(command)
         }
@@ -78,7 +82,7 @@ class ReviewWiringTest {
                     FakeHistory(address),
                     signIn = signIn,
                     clock = FixedClock,
-                    reviewCommands = commands,
+                    treeCommands = commands,
                 )
             }
         }
@@ -103,7 +107,7 @@ class ReviewWiringTest {
             reviews()
             writeReview(GOOD)
             waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
-            assertEquals(listOf<ReviewCommand>(ReviewCommand.Post(REVIEWS_URL, GOOD)), sent.toList())
+            assertEquals(listOf<TreeCommand>(TreeCommand.Review(REVIEWS_URL, GOOD)), sent.toList())
             assertEquals(listOf("/ui$REVIEWS_ADDRESS", "/ui$REVIEWS_ADDRESS"), requests.toList())
             onNodeWithTag(SUBMIT_TAG).assertDoesNotExist()
         }
@@ -127,7 +131,7 @@ class ReviewWiringTest {
     @Test
     fun `the server's refusal is drawn in the dialog and the page is not fetched again`() =
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
-            answer = { throw ReviewRefused(409, ErrorCode.ReviewExists, "You have already reviewed this product") }
+            answer = { throw CommandRefused(409, ErrorCode.ReviewExists, "You have already reviewed this product") }
             reviews()
             writeReview(GOOD)
             waitUntil(timeoutMillis = 5_000) { sent.isNotEmpty() }
@@ -140,7 +144,7 @@ class ReviewWiringTest {
     fun `a field the server refused is drawn under it`() =
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
             answer = {
-                throw ReviewRefused(
+                throw CommandRefused(
                     400,
                     ErrorCode.ValidationFailed,
                     "The form has fields to fix",
@@ -189,8 +193,8 @@ class ReviewWiringTest {
             onNodeWithTag(SUBMIT_TAG).performClick()
             waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
             assertEquals(
-                listOf<ReviewCommand>(
-                    ReviewCommand.Ask(QUESTIONS_URL, QuestionEntry("Do the ear cushions come off for cleaning?")),
+                listOf<TreeCommand>(
+                    TreeCommand.Ask(QUESTIONS_URL, QuestionEntry("Do the ear cushions come off for cleaning?")),
                 ),
                 sent.toList(),
             )
@@ -228,7 +232,7 @@ class ReviewWiringTest {
             onAllNodesWithTag(HELPFUL_TAG)[1].performClick()
             waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
             assertEquals(
-                listOf<ReviewCommand>(ReviewCommand.Vote(HELPFUL_URL, HelpfulVote(helpful = true))),
+                listOf<TreeCommand>(TreeCommand.Vote(HELPFUL_URL, HelpfulVote(helpful = true))),
                 sent.toList(),
             )
             assertEquals(listOf("/ui$REVIEWS_ADDRESS", "/ui$REVIEWS_ADDRESS"), requests.toList())
@@ -244,7 +248,7 @@ class ReviewWiringTest {
             waitUntil(timeoutMillis = 5_000) { sent.size == 1 }
             waitForIdle()
             assertEquals(1, requests.size)
-            answer = { throw ReviewRefused(409, ErrorCode.OwnReview, "You cannot vote on your own review") }
+            answer = { throw CommandRefused(409, ErrorCode.OwnReview, "You cannot vote on your own review") }
             onAllNodesWithTag(HELPFUL_TAG)[0].performClick()
             waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
             assertEquals(2, sent.size)

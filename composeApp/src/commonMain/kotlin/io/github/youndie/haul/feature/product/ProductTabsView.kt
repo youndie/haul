@@ -32,6 +32,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.youndie.haul.shell.LocalTreeCommands
+import io.github.youndie.haul.shell.TreeCommand
+import io.github.youndie.haul.shell.vote
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
@@ -398,19 +401,19 @@ private fun ReviewCard(
 
 /**
  * What pressing «Helpful» on [review] does (B-43): a customer's vote — the review's `HelpfulCommand` —
- * sent through [LocalReviewCommands], its answer, `refresh`, handed to the screen's handler; a guest's
+ * sent through [LocalTreeCommands], its answer, `refresh`, handed to the screen's handler; a guest's
  * `navigate` to sign in followed as it is. Nothing on the customer's own review, which carries neither.
  */
 @Composable
 private fun helpfulPress(review: Review): (() -> Unit)? {
     val command = review.helpfulCommand ?: return following(review.helpfulAction)
-    val commands = LocalReviewCommands.current
+    val commands = LocalTreeCommands.current
     val actions = LocalHaulActions.current
     val scope = rememberCoroutineScope()
     return if (commands == null || actions == null) {
         null
     } else {
-        { scope.launch { commands.vote(ReviewCommand.Vote(command.url, command.vote))?.let(actions::handle) } }
+        { scope.launch { commands.vote(TreeCommand.Vote(command.url, command.vote))?.let(actions::handle) } }
     }
 }
 

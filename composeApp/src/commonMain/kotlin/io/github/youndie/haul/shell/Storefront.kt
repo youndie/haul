@@ -31,9 +31,7 @@ import io.github.youndie.haul.feature.home.PLUS_DIALOG_COMPACT_TOP
 import io.github.youndie.haul.feature.identity.SignInActions
 import io.github.youndie.haul.feature.order.OrderNotFound
 import io.github.youndie.haul.feature.product.DialogOverlay
-import io.github.youndie.haul.feature.product.LocalReviewCommands
 import io.github.youndie.haul.feature.product.ProductNotFound
-import io.github.youndie.haul.feature.product.ReviewCommands
 import io.github.youndie.haul.feature.search.SearchSuggestOverlay
 import io.github.youndie.haul.registry.haulRegistry
 import io.github.youndie.haul.ui.HaulHeader
@@ -100,8 +98,9 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * searches goes through [commands] (B-37), and the suggest panel is asked for again once the server
  * has answered. The checkout's go to [checkoutCommands] (B-15), whose `refresh` draws it again the
  * same way. A tree's `present` draws its component over the page — the product page's review and
- * question dialogs (B-22), whose commands go to [reviewCommands], and the Haul Plus trial's (B-23), whose
- * `POST` goes through [commands] — until a `close`, a new page or the scrim takes it away.
+ * question dialogs (B-22), an order's return dialog (B-21) and the Haul Plus trial's (B-23) — until a
+ * `close`, a new page or the scrim takes it away; their commands, and «Helpful» on a review (B-43), go to
+ * [treeCommands] (B-51).
  */
 @Composable
 public fun Storefront(
@@ -112,7 +111,7 @@ public fun Storefront(
     cartCommands: CartCommands? = null,
     commands: HaulCommands? = null,
     checkoutCommands: CheckoutCommands? = null,
-    reviewCommands: ReviewCommands? = null,
+    treeCommands: TreeCommands? = null,
 ) {
     val navigator = remember(history) { Navigator(history) }
     DisposableEffect(navigator) {
@@ -176,8 +175,7 @@ public fun Storefront(
         LocalHaulActions provides panelActions,
         LocalCartCommands provides cartCommands,
         LocalCheckoutCommands provides checkoutCommands,
-        LocalReviewCommands provides reviewCommands,
-        LocalHaulCommands provides commands,
+        LocalTreeCommands provides treeCommands,
     ) {
         SearchSuggestOverlay(panel, highlighted = -1, field = field, onDismiss = dismiss, onClear = clearRecent) {
             val address = navigator.address

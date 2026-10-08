@@ -44,6 +44,11 @@ import io.github.youndie.haul.feature.reviews.ReviewRules
 import io.github.youndie.haul.feature.reviews.groupedCount
 import io.github.youndie.haul.feature.reviews.questionProblems
 import io.github.youndie.haul.feature.reviews.reviewProblems
+import io.github.youndie.haul.shell.CommandOutcome
+import io.github.youndie.haul.shell.LocalTreeCommands
+import io.github.youndie.haul.shell.NOT_SENT
+import io.github.youndie.haul.shell.TreeCommand
+import io.github.youndie.haul.shell.run
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
@@ -197,7 +202,7 @@ public fun QuestionFormView(
 
 /**
  * The review dialog as the storefront presents it: the draft kept here, the rules checked before sending
- * (the server's own, `reviewProblems`), the command sent through [LocalReviewCommands], and its answer —
+ * (the server's own, `reviewProblems`), the command sent through [LocalTreeCommands], and its answer —
  * close, then refresh — handed to [handle]. A refusal draws its fields; no answer leaves the dialog open.
  */
 @Composable
@@ -205,7 +210,7 @@ internal fun ReviewDialog(
     form: ReviewForm,
     handle: (KompotAction) -> Unit,
 ) {
-    val commands = LocalReviewCommands.current
+    val commands = LocalTreeCommands.current
     val scope = rememberCoroutineScope()
     var draft by remember(form) { mutableStateOf(ReviewEntry()) }
     var problems by remember(form) { mutableStateOf(FormProblems()) }
@@ -228,7 +233,7 @@ internal fun ReviewDialog(
                 commands != null && !sending -> {
                     sending = true
                     scope.launch {
-                        problems = settle(commands.run(ReviewCommand.Post(form.url, draft)), handle)
+                        problems = settle(commands.run(TreeCommand.Review(form.url, draft)), handle)
                         sending = false
                     }
                 }
@@ -244,7 +249,7 @@ internal fun QuestionDialog(
     form: QuestionForm,
     handle: (KompotAction) -> Unit,
 ) {
-    val commands = LocalReviewCommands.current
+    val commands = LocalTreeCommands.current
     val scope = rememberCoroutineScope()
     var draft by remember(form) { mutableStateOf(QuestionEntry()) }
     var problems by remember(form) { mutableStateOf(FormProblems()) }
@@ -267,7 +272,7 @@ internal fun QuestionDialog(
                 commands != null && !sending -> {
                     sending = true
                     scope.launch {
-                        problems = settle(commands.run(ReviewCommand.Ask(form.url, draft)), handle)
+                        problems = settle(commands.run(TreeCommand.Ask(form.url, draft)), handle)
                         sending = false
                     }
                 }
@@ -279,20 +284,20 @@ internal fun QuestionDialog(
 
 /** An answer handed on, or what the dialog draws instead. */
 internal fun settle(
-    outcome: ReviewOutcome,
+    outcome: CommandOutcome,
     handle: (KompotAction) -> Unit,
 ): FormProblems =
     when (outcome) {
-        is ReviewOutcome.Done -> {
+        is CommandOutcome.Done -> {
             handle(outcome.action)
             FormProblems()
         }
 
-        is ReviewOutcome.Refused -> {
+        is CommandOutcome.Refused -> {
             FormProblems.of(outcome.fields, outcome.message)
         }
 
-        ReviewOutcome.NoAnswer -> {
+        CommandOutcome.NoAnswer -> {
             FormProblems(message = NOT_SENT)
         }
     }

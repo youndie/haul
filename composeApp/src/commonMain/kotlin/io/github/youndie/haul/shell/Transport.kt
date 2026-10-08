@@ -1,7 +1,5 @@
 package io.github.youndie.haul.shell
 
-import androidx.compose.runtime.ProvidableCompositionLocal
-import androidx.compose.runtime.staticCompositionLocalOf
 import io.github.youndie.haul.ErrorBody
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.registry.haulJson
@@ -55,9 +53,11 @@ public fun ktorTransport(
     }
 
 /**
- * Sends a command a tree carries (B-37): [method] to [path] — the server's string, from the tree — with
- * a JSON [body] or none, and returns what the server answered (a kompot action, `refresh`, or an
- * `ErrorBody`); no answer throws. The screens' half of the conversation is [HaulTransport].
+ * Sends a request a tree names by its method and path alone (B-37) — «Clear» on recent searches: [method]
+ * to [path] — the server's string, from the tree — with a JSON [body] or none, and returns what the server
+ * answered (a kompot action, `refresh`, or an `ErrorBody`); no answer throws. The screens' half of the
+ * conversation is [HaulTransport]; a command the tree fixes with a typed body, a dialog's or «Helpful»'s,
+ * is [TreeCommands]'.
  */
 public fun interface HaulCommands {
     public suspend fun send(
@@ -66,13 +66,6 @@ public fun interface HaulCommands {
         body: String?,
     ): HaulResponse
 }
-
-/**
- * Where a renderer sends a command its component carries with no seam of its own — the Plus trial's
- * «Start trial» (B-23); the storefront provides its [HaulCommands]. `null` — a screenshot — draws the same
- * pixels, and pressing does nothing.
- */
-public val LocalHaulCommands: ProvidableCompositionLocal<HaulCommands?> = staticCompositionLocalOf { null }
 
 /** The browser's commands: [http] against [origin], each through [send] — `Identity.send`, as for the screens. */
 public fun ktorCommands(
