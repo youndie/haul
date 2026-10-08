@@ -22,9 +22,10 @@ Feature: `feature-cart` — its scenarios are this item's acceptance where it na
 ## Done (2026-10-08)
 
 - Guests (`server/.../feature/identity/`, `shared/.../feature/identity/Guests.kt`): `POST /api/v1/guests`
-  answers `201` with `GuestDto(id)`; the id travels in `X-Haul-Guest`. Every cart route resolves the
+  answers `201` with `GuestDto(id)`; the id travels in `X-Haul-Guest` (`GUEST_HEADER`). Every cart route resolves the
   owner from it and answers `401 unauthenticated` with none, or with an id the server never issued.
-- Cart routes, public tier (`server/.../feature/cart/CartRouting.kt`, paths and bodies in
+- Cart routes, public tier (`server/.../feature/cart/CartRouting.kt`, the paths in `CartPaths` there —
+  the server's strings, handed to the client in the tree — and the bodies in
   `shared/.../feature/cart/CartCommands.kt`): `GET /ui/cart`; `PUT /api/v1/cart/lines/{skuId}`
   (`LineChange`: adds the SKU or changes quantity and selection), `DELETE /api/v1/cart/lines`
   (`LinesRemoval`), `POST /api/v1/cart/lines/{skuId}/acknowledge`, `PUT` and `DELETE /api/v1/cart/promo`
@@ -43,7 +44,7 @@ Feature: `feature-cart` — its scenarios are this item's acceptance where it na
   PromoApplied, PromoError, ItemChanged and Guest are all this one tree. New wire components in
   `shared/.../ui/CartComponents.kt`: `haul_cart_line`, `haul_cart_group`, `haul_cart_selection`,
   `haul_promo_field`, `haul_order_summary` (no renderers: B-13).
-- Where it ran: the server suite (45 tests, PostgreSQL in Testcontainers), `check
+- Where it ran: the server suite (47 tests, PostgreSQL in Testcontainers), `check
   :server:installDist :composeApp:wasmJsBrowserDistribution` and the image check on the Linux build
   machine; `make check` on the Mac.
 - Scenarios of feature-cart, automated in `server/src/test/.../feature/cart/CartRoutesTest.kt` against
@@ -66,9 +67,13 @@ Feature: `feature-cart` — its scenarios are this item's acceptance where it na
   database; `ChangedLinesTest`, the first over a database of its own, failed whenever it ran after the
   graph test. The test now closes the graph; the comment that blamed Exposed's global `Database` was
   this.
-- **The client's way to send a command is open (B-13).** The tree carries data, not actions, for the
-  commands (research D5). kompot's `perform` would need `POST` routes and a payload fixed in the tree;
-  the promo code is typed by the shopper.
+- **The client's way to send a command is open (B-13).** The tree carries each command's URL, and the
+  method and body are documented on the component (research D5); kompot's `perform` would need `POST`
+  routes and a payload of form values fixed in the tree, while the promo code is typed by the shopper.
+- **Rebased over B-10 mid-item:** `CLAUDE.md` now says paths are the server's strings, so the
+  `CartRoutes` / `GuestRoutes` objects this branch first put in `:shared` moved to the server
+  (`CartPaths`, `GUESTS`) and the components gained their URLs. PR #2's endpoint drafts still name
+  `CartRoutes` and `GuestRoutes, AddressRoutes` as `contract_source`; there are none.
 - **No `Idempotency-Key`.** kompot's protocol (SPEC §16.4–16.5) wants one on every state-changing
   submit. The cart's commands are idempotent as written — set a quantity, delete lines, acknowledge,
   apply the code already applied — so none is required; placement (B-16) is where it matters.
@@ -83,6 +88,6 @@ Feature: `feature-cart` — its scenarios are this item's acceptance where it na
   rename of the enum entry would silently drop a remembered refusal.
 - PR #2's drafts that this changes: endpoint-cart (`404 line_not_found` on acknowledge; `401
   unauthenticated` on every route; `409 out_of_stock` also for a quantity above the stock; the contract
-  is `CartRoutes`, `LineChange`, `LinesRemoval`, `PromoEntry`), endpoint-identity (`POST /api/v1/guests`
+  bodies are `LineChange`, `LinesRemoval`, `PromoEntry`; no route classes), endpoint-identity (`POST /api/v1/guests`
   is `201`; no `429` yet), feature-cart (the three scenarios automated; delivery and promo rules as in
   research D5), feature-product («Out of stock» automated), haul-shared (the five cart components).

@@ -206,10 +206,11 @@ the account need a shildik token; signing in merges the guest cart.
   server inventing one.
 - The cart's commands keep the methods and JSON bodies of endpoint-cart (`PUT`/`DELETE` with
   `LineChange`, `LinesRemoval`, `PromoEntry` from `shared/.../feature/cart/`) and answer kompot's
-  `refresh`. The tree's components carry what a command needs (the SKU id, the quantity bounds), not
-  the command. kompot's own `perform` action was the alternative and was not taken: it carries a URL
-  and a fixed payload, so it names no method and cannot carry the code a shopper types into the promo
-  field; how the client sends a command is B-13's to settle.
+  `refresh`. Their paths are the server's strings: each component of the tree carries the URL its
+  commands go to (`CartLine.url`, `acknowledgeUrl`, `CartSelection.linesUrl`, `PromoField.url`), so
+  the client builds none. kompot's own `perform` action was the alternative and was not taken: it is
+  sent as a `POST` with a payload of form values, which have no integer and no list and are fixed in
+  the tree, while the promo code is what the shopper types; how the client sends a command is B-13's.
 - A line remembers the price and the stock the shopper saw (`seen_price_cents`, `seen_in_stock`); it
   is changed when either moved, and acknowledging makes the current ones the seen ones. A refused
   promo code is stored with its reason until the next command, which is what makes `Cart_PromoError`
