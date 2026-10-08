@@ -22,3 +22,8 @@ Feature: `feature-account` — its scenarios are this item's acceptance where it
 - **From B-37:** the heart on a product card and the header's «Saved» shortcut are drawn and carry no
   action; they get one here — the heart a command fixed in the tree like the card's «+»
   (`ProductCard.add`, a `LineCommand`), «Saved» a `navigate` in `HaulHeader`.
+
+- **From B-19:** the account reads the Saved list's counts through `SavedLists`
+  (`server/src/main/kotlin/io/github/youndie/haul/feature/account/domain/Account.kt`), bound in `AccountModule.kt`
+  to `SampleSavedLists` (Maya's 48 saved and 6 price drops, research §6). Bind it to the Saved list here; the menu's
+  «Saved» (`AccountMenuItem`, no action yet) gets a `navigate` to `/saved` once that is a `StorefrontPage`.

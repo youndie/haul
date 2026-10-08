@@ -44,7 +44,6 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-19](docs/backlog/B-19-account-overview-and-orders-history.md) `[~]` | server + client: Account overview and orders history | P1 | M | B-01, B-18 |
 | [B-26](docs/backlog/B-26-the-whole-path-over-http-against.md) `[ ]` | e2e: the whole path over HTTP against the composed stack | P1 | M | B-21, B-22 |
 | [B-20](docs/backlog/B-20-saved-list-save-for-later-price.md) `[ ]` | server + client: Saved list, save for later, price drops | P2 | M | B-01, B-13, B-19 |
 | [B-21](docs/backlog/B-21-returns-and-refunds.md) `[ ]` | server + client: returns and refunds | P2 | M | B-18 |
@@ -102,6 +101,10 @@ A stage is a field on the item, not a directory.
 - [B-41](docs/backlog/B-41-sign-in-returns-to-where-it-was-asked.md) `[x]` - client: sign-in returns to where it was asked for
 - [B-42](docs/backlog/B-42-a-refused-address-form-holds-pickup-orders.md) `[x]` - server: a refused address form does not hold a pickup or locker order
 - [B-44](docs/backlog/B-44-a-guest-on-a-customer-page-is-sent-to-sign-in.md) `[x]` - client: a guest on a customer page is sent to sign-in
+
+**Account**
+
+- [B-19](docs/backlog/B-19-account-overview-and-orders-history.md) `[x]` - server + client: Account overview and orders history
 
 **Reviews**
 
