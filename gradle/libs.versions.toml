@@ -10,14 +10,35 @@ sborka = "0.5.0.113"
 # what the contract's components are built on.
 kompot = "0.40.0.210"
 logback = "1.5.20"
+# PostgreSQL through Exposed over JDBC, the pair petich-postgres runs on (research D3); the versions are
+# the sibling reference service's (research §1.1).
+exposed = "1.4.0"
+hikari = "7.1.0"
+postgresql = "42.7.13"
+flyway = "13.3.0"
+testcontainers = "1.21.4"
+# The AOT cache for start-up (research §1.5).
+zavarnik = "0.1.0"
 
 [libraries]
 ktor-server-core = { module = "io.ktor:ktor-server-core" }
 ktor-server-cio = { module = "io.ktor:ktor-server-cio" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+ktor-server-testHost = { module = "io.ktor:ktor-server-test-host" }
 kompot-core = { module = "io.github.youndie.kompot:kompot-core", version.ref = "kompot" }
+exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
+exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
+exposed-json = { module = "org.jetbrains.exposed:exposed-json", version.ref = "exposed" }
+exposed-javaTime = { module = "org.jetbrains.exposed:exposed-java-time", version.ref = "exposed" }
+exposed-migrationJdbc = { module = "org.jetbrains.exposed:exposed-migration-jdbc", version.ref = "exposed" }
+hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
+testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 
 [plugins]
 sborkaJvm = { id = "io.github.youndie.sborka.jvm", version.ref = "sborka" }
 sborkaKmp = { id = "io.github.youndie.sborka.kmp", version.ref = "sborka" }
 sborkaLint = { id = "io.github.youndie.sborka.lint", version.ref = "sborka" }
+zavarnik = { id = "io.github.youndie.zavarnik", version.ref = "zavarnik" }

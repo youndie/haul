@@ -178,7 +178,7 @@ processor count, the worst default for blocking handlers. Recorded in `server/bu
 
 Every module uses `io.github.youndie.haul`; a feature has the same directory in each module it
 touches (*feature/catalog* in `shared`, `server` and `composeApp`), and packages several features
-import — `db`, `seed`, `di`, `theme`, `registry`, `shell`, `ui` — sit at the root. A module-specific
+import — `db`, `seed`, `di`, `ops`, `theme`, `registry`, `shell`, `ui` — sit at the root. A module-specific
 root (`…haul.server`, `…haul.app`) was what the brief's planned paths used; it buys nothing and
 breaks the one `grep` that finds a feature everywhere. The planned anchors were rewritten to match.
 
@@ -257,6 +257,15 @@ the screenshot tests the tree and the renderer together. Settled in B-04.
 PostgreSQL.** An image build without a database trains nothing or fails. Mitigation (*hypothesis*):
 train against a throw-away PostgreSQL in the build and verify the cache is accepted on the real
 start; settled in B-03.
+
+**Settled in B-03.** `docker/Dockerfile` trains in a stage built from the same JRE image as the final
+one, with PostgreSQL installed into that stage alone and started for the training run; the final
+stage copies only the application. Measured on the build that closed B-03: the training run was
+ready in 2,029 ms with the seed included, 3,851 of 3,852 application classes came from the cache,
+and the final image started against a separate PostgreSQL with `-XX:AOTMode=on` (which refuses to
+start on a rejected cache) serving all 43 of the server's own classes from it —
+`scripts/image-check.sh`, which CI runs. Not measured: the start-up time against a run without the
+cache; that is a number for when there is a hot path worth timing.
 
 **Risk 5. The stand measures nothing.** The sibling reference services run without traffic, so no
 number about petich, tracy or metrik can be taken on them. Mitigation: synthetic shoppers (B-31).

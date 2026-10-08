@@ -13,4 +13,5 @@ plugins {
     alias(libs.plugins.sborkaJvm) apply false
     alias(libs.plugins.sborkaKmp) apply false
     alias(libs.plugins.sborkaLint) apply false
+    alias(libs.plugins.zavarnik) apply false
 }
