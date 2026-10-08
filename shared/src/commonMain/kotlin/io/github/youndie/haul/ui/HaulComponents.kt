@@ -29,6 +29,11 @@ import kotlinx.serialization.Serializable
  * [deals] is where «Deals» goes, [cart] where the cart button goes, [orders] where «Orders» goes — a
  * customer's orders, a guest's sign-in — and [saved] where «Saved» goes: a customer's Saved list
  * (`/account/saved`, B-20), a guest's sign-in.
+ *
+ * [plus] is what the «HAUL PLUS» pill does (B-49): presents the trial's dialog to a customer who is not
+ * a member — the same `present` as the home page's «Try 30 days free» (B-23) — opens `/account`, where
+ * the membership is drawn, for a member, and asks a guest to sign in. The strip's «Sell on HAUL»,
+ * «Help» and the language carry nothing: no page exists for them, so they are drawn as plain text.
  */
 @Serializable
 @SerialName("haul_header")
@@ -48,6 +53,7 @@ public data class HaulHeader(
     val cart: @Polymorphic KompotAction? = null,
     val orders: @Polymorphic KompotAction? = null,
     val saved: @Polymorphic KompotAction? = null,
+    val plus: @Polymorphic KompotAction? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 

@@ -40,7 +40,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (8)
+## Open (7)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -48,12 +48,11 @@ A stage is a field on the item, not a directory.
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
 | [B-45](docs/backlog/B-45-a-product-s-listing-name.md) `[ ]` | server: a product's listing name, as cards, cart and orders write it | P3 | S | B-18 |
-| [B-49](docs/backlog/B-49-the-last-drawn-controls-without-actions.md) `[ ]` | server + client: the last drawn controls without actions | P3 | S | B-37 |
 | [B-50](docs/backlog/B-50-the-return-dialog-names-the-points-share.md) `[ ]` | server + client: the return dialog names the points share of a refund | P3 | S | B-21, B-23 |
 | [B-52](docs/backlog/B-52-bought-this-month-on-the-product-page.md) `[ ]` | server: «bought this month» on the product page | P3 | S | B-18 |
 | [B-53](docs/backlog/B-53-plus-members-see-campaign-prices-early.md) `[ ]` | server: Plus members see campaign prices early | P3 | S | B-23 |
 
-## Closed (45)
+## Closed (46)
 
 **Skeleton**
 
@@ -88,6 +87,7 @@ A stage is a field on the item, not a directory.
 - [B-46](docs/backlog/B-46-a-closed-sign-in-popup-settles.md) `[x]` - client: a closed sign-in popup settles the sign-in
 - [B-47](docs/backlog/B-47-a-sign-in-that-fails-with-a-js-error.md) `[x]` - client: a sign-in that fails with a browser error ends as not gone through
 - [B-48](docs/backlog/B-48-the-product-page-adds-to-cart-and-buys-now.md) `[x]` - server + client: the product page adds to cart and buys now
+- [B-49](docs/backlog/B-49-the-last-drawn-controls-without-actions.md) `[x]` - server + client: the last drawn controls without actions
 
 **Checkout and orders**
 

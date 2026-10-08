@@ -14,6 +14,12 @@ public enum class StorefrontPage {
     /** `/`. */
     Home,
 
+    /**
+     * `/c`: the catalog's root, every top-level category as a tile (B-49) — where home's «All N
+     * categories» goes.
+     */
+    Categories,
+
     /** `/c/{path...}`: a category, by the slugs from the root to it (`/c/electronics/audio/headphones`) or its own. */
     Catalog,
 
@@ -69,7 +75,7 @@ public enum class StorefrontPage {
             val rest = segments.size - 1
             return when (segments.first()) {
                 "c" -> {
-                    Catalog.takeIf { rest >= 1 }
+                    if (rest == 0) Categories else Catalog
                 }
 
                 "p" -> {

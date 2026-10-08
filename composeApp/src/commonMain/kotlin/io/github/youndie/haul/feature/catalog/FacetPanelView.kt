@@ -27,6 +27,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.theme.HaulColors
@@ -40,6 +42,7 @@ import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Icon
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.follows
+import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.toneColor
 
 /**
@@ -107,7 +110,10 @@ private fun FacetBlock(
                 }
             }
         }
-        facet.moreLabel?.let { Text(it, HaulType.text(15f, 600).copy(color = HaulColors.primary)) }
+        // «Show N more» opens the page again with this block expanded (`Facet.moreAction`, B-49).
+        facet.moreLabel?.let {
+            Text(it, HaulType.text(15f, 600).copy(color = HaulColors.primary), Modifier.follows(facet.moreAction))
+        }
     }
 }
 
@@ -289,10 +295,15 @@ private fun Pills(options: List<FacetOption>) {
     }
 }
 
+/** What the filter sheet's «×» is called to a screen reader, and to the tests that press it. */
+public const val CLOSE_FILTERS: String = "Close filters"
+
 /**
  * The phone's filter sheet over the category page (Catalog_FiltersSheet_Phone): the title with how
  * many filters are applied and «Clear all», the facets scrolling between, the button that shows the
- * result pinned at the bottom.
+ * result pinned at the bottom. «×» is [onClose] (B-49): the sheet is the client's own, opened by
+ * «Filters» without asking the server, so closing it asks nothing either; `null` — a screenshot — leaves
+ * it unpressable.
  */
 @Composable
 public fun FiltersSheet(
@@ -300,7 +311,7 @@ public fun FiltersSheet(
     applied: AppliedFilters,
     showLabel: String,
     modifier: Modifier = Modifier,
-    onClose: () -> Unit = {},
+    onClose: (() -> Unit)? = null,
 ) {
     Column(modifier.fillMaxSize().background(HaulColors.background)) {
         Row(
@@ -326,7 +337,11 @@ public fun FiltersSheet(
                 softWrap = false,
             )
             Box(
-                Modifier.size(44.dp).background(HaulColors.background, CircleShape),
+                Modifier
+                    .size(44.dp)
+                    .background(HaulColors.background, CircleShape)
+                    .semantics { contentDescription = CLOSE_FILTERS }
+                    .pressable(onClose),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(HaulIcons.close, 18.dp, HaulColors.onSurface)

@@ -21,6 +21,7 @@ import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.ui.AccountBody
 import io.github.youndie.haul.ui.AccountTileKind
+import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.OrderSummary
 import io.github.youndie.haul.ui.PlusBlock
 import io.github.youndie.kompot.KompotComponent
@@ -168,5 +169,30 @@ class MembershipRoutesTest {
             assertEquals("You saved $186 on delivery this year", mayas.title)
             assertEquals("Renews Nov 2", mayas.renewal)
             assertEquals(null, mayas.offer)
+        }
+
+    /**
+     * B-49: the header's «HAUL PLUS» pill carried nothing. It is the Plus offer as the home page makes it,
+     * on every page with the header: the trial's dialog for Sam, no member — the very `present` the Plus
+     * block carries — and, once his trial has started, his account, where the membership is drawn, as it is
+     * for Maya. A guest's is sign-in (`DrawnActionsTest`).
+     */
+    @Test
+    fun `the plus pill offers the trial to a non-member and the account to a member`() =
+        store {
+            val dialog = PresentAction(PlusOffer.dialog, PlusOffer.DIALOG)
+            listOf("/ui/home", "/ui/c/headphones", CartPaths.SCREEN).forEach { path ->
+                assertEquals(dialog, screen(path, sam).only<HaulHeader>().plus, "Sam on $path")
+                assertEquals(NavigateAction(Frame.ACCOUNT), screen(path, maya).only<HaulHeader>().plus, "Maya on $path")
+            }
+            assertEquals(
+                screen("/ui/home", sam).only<PlusBlock>().action,
+                screen("/ui/home", sam).only<HaulHeader>().plus,
+            )
+
+            assertEquals(HttpStatusCode.Created, startTrial(sam).status)
+            assertEquals(NavigateAction(Frame.ACCOUNT), screen("/ui/home", sam).only<HaulHeader>().plus)
+            val tiles = screen(AccountPaths.SCREEN, sam).only<AccountBody>().tiles
+            assertTrue(tiles.any { it.kind == AccountTileKind.Plus }, "the account the pill opens draws no membership")
         }
 }

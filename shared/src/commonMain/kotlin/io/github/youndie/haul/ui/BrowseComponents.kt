@@ -226,6 +226,10 @@ public data class FacetOption(
 /**
  * One block of the facet column. [kind] is how it is drawn: `range` (price: [min], [max]),
  * `checkbox` (brand), `toggle` (delivery), `radio` (rating), `swatch` (colour), `pills` (features).
+ *
+ * [moreLabel] («Show 14 more») says how many options the block leaves out, and [moreAction] is where it
+ * goes (B-49): the same page with the block expanded — every option listed, the filters, the sort and
+ * the page kept — after which the block has neither.
  */
 @Serializable
 public data class Facet(
@@ -236,6 +240,7 @@ public data class Facet(
     val min: String? = null,
     val max: String? = null,
     val moreLabel: String? = null,
+    val moreAction: @Polymorphic KompotAction? = null,
     /** Where the price range's selection starts and ends on the slider, as fractions of its track. */
     val rangeStart: Float? = null,
     val rangeEnd: Float? = null,

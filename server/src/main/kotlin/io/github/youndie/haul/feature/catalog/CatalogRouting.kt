@@ -6,6 +6,7 @@ import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.Sort
 import io.github.youndie.haul.feature.catalog.screen.CatalogRequest
 import io.github.youndie.haul.feature.catalog.screen.CatalogScreen
+import io.github.youndie.haul.feature.catalog.screen.CatalogUrl
 import io.github.youndie.haul.feature.catalog.screen.DealsScreen
 import io.github.youndie.haul.feature.catalog.screen.HomeScreen
 import io.github.youndie.haul.feature.catalog.screen.ProductScreen
@@ -53,12 +54,17 @@ internal fun Route.catalogRouting() {
         call.respondKompotComponent(haulWireJson, deals.build(page, viewers.of(call)))
     }
 
+    // `/ui/c` itself — no category in the path — is the catalog's root (B-49), every top-level category.
     get("/ui/c/{path...}") {
         val path =
             call.parameters
                 .getAll("path")
                 .orEmpty()
                 .joinToString("/")
+        if (path.isEmpty()) {
+            call.respondKompotComponent(haulWireJson, catalog.root(viewers.of(call)))
+            return@get
+        }
         call.respondKompotComponent(
             haulWireJson,
             catalog.build(catalogRequest(path, call.request.queryParameters), viewers.of(call)),
@@ -146,7 +152,13 @@ internal fun catalogRequest(
         )
     val sort = query["sort"]?.let { Sort.of(it) ?: throw CatalogError.Invalid("sort", "No sort «$it»") } ?: Sort.Popular
     val page = int("page")?.also { if (it < 1) throw CatalogError.Invalid("page", "Pages start at 1") } ?: 1
-    return CatalogRequest(path, filters, sort, page)
+    val expanded =
+        when (val e = query[CatalogUrl.EXPAND]) {
+            null -> false
+            CatalogUrl.EXPAND_BRANDS -> true
+            else -> throw CatalogError.Invalid(CatalogUrl.EXPAND, "Only «brand» expands, not «$e»")
+        }
+    return CatalogRequest(path, filters, sort, page, expanded)
 }
 
 private val RATINGS = setOf(BigDecimal("4.5"), BigDecimal("4.0"))

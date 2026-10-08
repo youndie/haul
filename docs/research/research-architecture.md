@@ -181,6 +181,21 @@ client alone.
   one, the deepest discount first, 24 a page. It is built from the components other screens draw; no
   artboard draws it, so it has no parity reference.
 
+**Decided in B-49, the last of them.** Home's «All N categories» opens **the catalog's root, `/c`**
+(`StorefrontPage.Categories`, tree `GET /ui/c`; owner's call), every top-level category as a tile in
+the header's order — built from home's own tiles, no artboard, so no parity reference. The brand facet's
+«Show N more» is `Facet.moreAction`, the same page with `expand=brand` — filters, sort and page kept, and
+kept again on every address the page links to, so ticking a brand does not fold the list; any other
+`expand` is `400 validation_failed`. A recent search's row is a `Link` to its `/search?q=`, so the client
+builds no address from the text. The «HAUL PLUS» pill is `HaulHeader.plus`: B-23's `present` of the
+trial's dialog for a customer who is not a member, `/account` for a member, sign-in for a guest.
+
+- **The one control wired in the client alone is the filter sheet's.** The sheet is the facets already
+  in the tree, drawn over the page on a phone; «Filters» opens it and «×» closes it without asking the
+  server, because there is nothing for the server to decide and no address to change.
+- **A control with no page behind it is plain text**, not a link that opens nothing: the strip's «Sell
+  on HAUL», «Help» and the language, and the footer's links, until a page exists for them.
+
 **Decided in B-22, a route over the screen.** A dialog the canvas draws over a page («Write a review»,
 «Ask a question») is kompot's `present` of a component the server built — the form, its labels and the
 URL it posts to — carried by the control that opens it, so it has no address of its own and

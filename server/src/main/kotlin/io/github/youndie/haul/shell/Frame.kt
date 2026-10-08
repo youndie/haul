@@ -1,10 +1,12 @@
 package io.github.youndie.haul.shell
 
 import io.github.youndie.haul.feature.identity.domain.Customer
+import io.github.youndie.haul.feature.membership.screen.PlusOffer
 import io.github.youndie.haul.ui.FooterColumn
 import io.github.youndie.haul.ui.HaulFooter
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.Link
+import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
@@ -63,7 +65,16 @@ internal object Frame {
         cart = NavigateAction(CART),
         orders = NavigateAction(if (viewer.customerId == null) SIGN_IN else ORDERS),
         saved = NavigateAction(if (viewer.customerId == null) SIGN_IN else SAVED),
+        plus = plus(viewer),
     )
+
+    /**
+     * The «HAUL PLUS» pill (B-49): the Plus offer as the home page makes it — the trial's dialog to a
+     * customer who is not a member, sign-in to a guest ([PlusOffer.trial]) — and, since a member is never
+     * offered the trial (research D6), the account, where the membership is drawn, to a member.
+     */
+    private fun plus(viewer: Viewer): KompotAction =
+        if (viewer.customer?.plus == true) NavigateAction(ACCOUNT) else PlusOffer.trial(viewer)
 
     /** How many categories the header's row names. */
     private const val ROW = 10
@@ -73,6 +84,9 @@ internal object Frame {
 
     /** Where it sends a customer. */
     const val ACCOUNT = "/account"
+
+    /** Where home's «All N categories» goes: the catalog's root, every top-level category (B-49). */
+    const val CATALOG = "/c"
 
     /** Where «Deals» goes: every product on sale, today's deals first (`/ui/deals`). */
     const val DEALS = "/deals"

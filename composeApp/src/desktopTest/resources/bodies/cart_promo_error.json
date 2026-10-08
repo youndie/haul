@@ -267,6 +267,10 @@
             "saved": {
                 "type": "navigate",
                 "deeplink": "/account/saved"
+            },
+            "plus": {
+                "type": "navigate",
+                "deeplink": "/account"
             }
         },
         {

@@ -75,7 +75,8 @@ class SavedFixturesTest {
                     val maya = Customer(SampleCustomers.MAYA, "Maya Kowalski", plus = true, joined = CatalogSeed.NOW)
                     val view = screen.view(maya, SampleOrders.mayasHistory(mayas))
                     assertEquals(SavedSummary(saved = 48, priceDrops = 6), view.saved, "Maya's seeded list")
-                    val looking = Viewer(firstName = "Maya", cartCount = 3, customerId = SampleCustomers.MAYA)
+                    val looking =
+                        Viewer(firstName = "Maya", cartCount = 3, customerId = SampleCustomers.MAYA, customer = maya)
 
                     val all = saved.list(SampleCustomers.MAYA, SavedFilter.All, 1, looking)
                     check(CONTENT, screen.page(AccountPage.Saved(), view.copy(list = all), looking))

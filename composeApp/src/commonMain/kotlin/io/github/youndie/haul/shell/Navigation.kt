@@ -47,6 +47,7 @@ public data class Address(
 
             StorefrontPage.Order -> PageKind.Order
 
+            StorefrontPage.Categories,
             StorefrontPage.Deals,
             StorefrontPage.SignIn,
             null,

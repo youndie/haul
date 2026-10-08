@@ -184,6 +184,7 @@ private fun WideHeader(
             DeliverTo(header.deliverTo, style)
             Text(header.deliveryPromise.uppercase(), style)
         }
+        // No page exists for these yet (B-49): plain text, nothing to press.
         Row(horizontalArrangement = Arrangement.spacedBy(28.dp)) {
             listOf("Sell on HAUL", "Help", "EN · USD").forEach { Text(it.uppercase(), style) }
         }
@@ -261,10 +262,12 @@ private fun WideHeader(
         Deals(size = 15f, Modifier.follows(header.deals))
         SpacedWords(header.categories, 28.dp, HaulType.text(15f, 500), links = header.catalog)
         Spacer(Modifier.weight(1f))
+        // The Plus offer (`HaulHeader.plus`, B-49): the trial's dialog, a member's account, a guest's sign-in.
         Text(
             "HAUL PLUS",
             HaulType.label(11f, 600, 0.06f),
             Modifier
+                .follows(header.plus)
                 .background(
                     HaulColors.secondaryContainer,
                     CircleShape,

@@ -50,6 +50,7 @@ internal class HomeScreen(
                 "categories-title",
                 "Shop by category",
                 linkLabel = "All ${topLevel.size} categories",
+                action = NavigateAction(Frame.CATALOG),
                 accent = "category",
                 compactLinkLabel = "All ${topLevel.size}",
             )

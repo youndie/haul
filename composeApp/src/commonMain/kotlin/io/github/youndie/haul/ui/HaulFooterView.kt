@@ -27,6 +27,8 @@ import io.github.youndie.haul.theme.LocalHaulCompact
 /**
  * The footer (`HaulFooter` on the wire), with the gap the page leaves above it: four link columns and
  * «Get the app» at 1440, two columns and no app block at 390, the wordmark cut off by the page's end.
+ * The links are plain text: no page exists for any of them yet (B-49), and a link that opens nothing
+ * would be worse than none.
  */
 @Composable
 public fun HaulFooterView(footer: HaulFooter) {

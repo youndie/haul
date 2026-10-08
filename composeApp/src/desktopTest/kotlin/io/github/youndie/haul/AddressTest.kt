@@ -66,6 +66,9 @@ class AddressTest {
         assertEquals("/ui/deals?page=2", Address("/deals?page=2").screen)
         assertEquals(PageKind.Other, Address("/deals").kind)
         assertEquals(PageKind.Other, Address("/deals/today").kind)
+        // The catalog's root (B-49), every top-level category: a page, with the shell's own placeholders.
+        assertEquals("/ui/c", Address("/c").screen)
+        assertEquals(PageKind.Other, Address("/c").kind)
         assertEquals("/ui/cart", Address("/cart").screen)
         assertEquals("/ui/checkout", Address("/checkout").screen)
         // An order (B-18): under the account's history (B-19), where placement lands.

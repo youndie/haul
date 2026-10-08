@@ -48,8 +48,10 @@ public data class ProductSuggestion(
 /**
  * The panel under the search field while the shopper types (`GET /ui/search/suggest`): up to five
  * queries, three categories with counts, the shopper's recent searches (a guest has none), three top
- * products, and the way to every result («All 14,870 results ↵»). «Clear» empties [recent]: a `DELETE`
- * to [clearUrl], answered `refresh` (endpoint-search); a guest, who has none, has no [clearUrl].
+ * products, and the way to every result («All 14,870 results ↵»). Each of [recent] is the query as
+ * typed and where its row goes — that search's results (B-49), so the client builds no address from
+ * the text. «Clear» empties [recent]: a `DELETE` to [clearUrl], answered `refresh` (endpoint-search); a
+ * guest, who has none, has no [clearUrl].
  */
 @Serializable
 @SerialName("haul_search_suggest_panel")
@@ -61,7 +63,7 @@ public data class SearchSuggestPanel(
     val categories: List<CategorySuggestion>,
     val products: List<ProductSuggestion>,
     val allResultsLabel: String,
-    val recent: List<String> = emptyList(),
+    val recent: List<Link> = emptyList(),
     val allResultsAction: @Polymorphic KompotAction? = null,
     val clearUrl: String? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
