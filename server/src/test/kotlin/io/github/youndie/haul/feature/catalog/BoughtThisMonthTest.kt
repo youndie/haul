@@ -97,8 +97,8 @@ class BoughtThisMonthTest {
 
     /**
      * The owner's rule: the units in orders placed in the last 30 store days and not cancelled. An order a
-     * day past the window, a cancelled one, one still placing, and another product's line in the same order
-     * are all left out; a returned order was still bought and stays in. Exactly fifty are left, so any of
+     * day past the window, one dated after the store's «now», a cancelled one, one still placing, and another
+     * product's line in the same order are all left out; a returned order was still bought and stays in. Exactly fifty are left, so any of
      * them counted moves the number and any of the fifty dropped hides it.
      */
     @Test
@@ -110,6 +110,7 @@ class BoughtThisMonthTest {
         order("HL-4", now.minusDays(31), OrderStatus.Placed, marshall(100))
         order("HL-5", now.minusDays(2), OrderStatus.Cancelled, marshall(100))
         order("HL-6", now.minusHours(1), OrderStatus.Placing, marshall(100))
+        order("HL-7", now.plusHours(1), OrderStatus.Placed, marshall(100))
 
         haulTest(dataSource) {
             assertEquals("50 bought this month", bought(MARSHALL_PRODUCT))
