@@ -1,7 +1,7 @@
 ---
 id: B-49
 title: "server + client: the last drawn controls without actions"
-status: wip
+status: done
 priority: P3
 size: S
 stage: stage-4-cart
@@ -53,9 +53,42 @@ and the footer's links stay inert and are drawn as text, not as links, until a p
   - **«Sell on HAUL», «Help», the language, the footer's links** — already drawn as plain text (no
     `clickable`, no link annotation); kept so, with a client test that says it and a KDoc saying why.
 - **Wire changes.** `HaulHeader.plus`, `Facet.moreAction` are additions with defaults; `recent` changed
-  type, so `search_suggest.json` gained the `Link` shape. Every header body the fixture tests hold equal
-  to the server's trees gained `plus` (additions only, nothing drawn changed).
+  type, so `search_suggest.json` gained the `Link` shape. The 19 account, cart, order and Saved bodies
+  the fixture tests hold equal to the server's trees gained the header's `plus`, taken from what the
+  tests wrote — additions only, nothing drawn changed. Those tests built Maya's header from a `Viewer`
+  without its `customer`, which no request has (`Viewers` always sets it), so she read as a non-member
+  and was offered the trial; their viewers now carry the customer, and the bodies say `/account` for
+  her, the dialog for Sam and Jordan, sign-in for the guest.
+- **Decided here** and written into research D2 («Decided in B-49»): `/c` is a screen; the filter sheet
+  is the one control wired in the client alone; a control with no page behind it is plain text.
 - **Not done here, noticed on the way.** In the phone's sheet a facet press is a `navigate`, and the
   shell keys the page on its address, so the sheet closes after every tick (and after «Show N more»);
   the sheet's «Show N items» button carries nothing, though «×» now closes the sheet the same way it
   would. Neither is in this item's list.
+
+## Verification (2026-10-09)
+
+- **Tests**, per control a route test (the action in the tree, followed) and a client wiring test
+  (pressed, followed): server `feature/catalog/DrawnActionsTest.kt` (+4: «All N categories» to `/c` and
+  its tiles, followed to a category; «Show N more» with the filters, sort and page kept, every brand
+  listed, kept expanded after a tick; `expand=colour` refused; a guest's pill is sign-in on four pages),
+  `feature/search/RecentSearchesRoutesTest.kt` (+1, against shildik: the row is
+  `/search?q=stoneware%20mug`, followed to its results), `feature/membership/MembershipRoutesTest.kt`
+  (+1: Sam's pill presents the block's own dialog on three pages, Maya's opens `/account`, Sam's after
+  his trial too, and that account draws the membership), `StorefrontPageTest`, `WebBundleTest` (`/c` is a
+  page, `/c/` is not); the four fixture tests' viewers now carry their customer, so the bodies say what
+  each viewer's pill is. Client `DrawnActionsTest.kt` (+7: «All 32 categories», «Show 3 more», the
+  sheet opened by «Filters» and closed by «×» with no request, a recent row, «HAUL PLUS» presenting the
+  dialog and opening a member's account, the strip and the footer with no click action while the pill
+  has one), `AddressTest` (`/c`).
+- **Mutations**, each seen failing the tests written for it (three batches, then restored, the tree
+  clean): no action on «All N categories», no `moreAction`, `Link`s without an action, no `plus` in the
+  header — the five new server tests; the expansion not kept on the page's addresses — «Show N more»'s;
+  the facet's label, «Filters», the recent row and the pill not followed — the six client tests they
+  guard; then «×» not pressable alone (the sheet's test) and «Help» made pressable alone (the
+  plain-text test). The other client tests passed under each.
+- **Goldens**: none re-recorded and none changed; nothing drawn changed (no indication on any press).
+- **The gate** on the Linux build machine, after the rebase over B-25 and B-52/B-53's filing:
+  `:composeApp:wasmJsBrowserDistribution`, then `check :server:installDist` green — server 294 tests,
+  client 159, `viddikVerify` 134 cases with 0 failing; `scripts/e2e.sh` (the whole path against the
+  image) green; `make check` on the Mac.
