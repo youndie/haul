@@ -86,6 +86,20 @@ jobs:
 
       - run: scripts/image-check.sh
 
+  # B-27's chart, rendered with the defaults and the stand's values, and every refusal it promises
+  # made to fire. No cluster: whether it installs is a deploy, not a pull request's check.
+  chart:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.17.0
+
+      - run: scripts/chart-check.sh
+
   # Separate from the gate, and on a schedule rather than on a pull request, because an anchor rots
   # when somebody refactors a **different** repository. A pull request here is the least likely
   # moment for one to break, and running it there trains people to ignore a red build they did not

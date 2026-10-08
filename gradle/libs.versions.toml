@@ -21,6 +21,13 @@ testcontainers = "1.21.4"
 zavarnik = "0.1.0"
 # Screenshot goldens and design parity; parity arrived in 0.5.0.
 viddik = "0.7.0"
+# Who watches the stand (B-27): metrik counts every route, tracy carries the trace and the logs,
+# katcher files what the server failed with. The newest published of each, except tracy: from 0.3 its
+# Ktor server plugin moved into `agent-ktor-server`, which is not published yet, so 0.2.15 — what the
+# sibling reference services run — is the newest tracy a Ktor server can install.
+metrikAgent = "0.3.26"
+tracyAgent = "0.2.15"
+katcher = "0.8.51"
 
 [libraries]
 ktor-server-core = { module = "io.ktor:ktor-server-core" }
@@ -46,6 +53,10 @@ flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", versio
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 
 koin-ktor = { module = "io.insert-koin:koin-ktor" }
+
+metrik-agent = { module = "io.github.youndie.metrik:agent", version.ref = "metrikAgent" }
+tracy-agent = { module = "io.github.youndie.tracy:agent", version.ref = "tracyAgent" }
+katcher-client = { module = "io.github.youndie.katcher:client", version.ref = "katcher" }
 
 [plugins]
 sborkaJvm = { id = "io.github.youndie.sborka.jvm", version.ref = "sborka" }

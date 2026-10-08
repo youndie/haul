@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # B-03's acceptance for the image: it starts against a real PostgreSQL with its AOT cache accepted.
+# And B-27's: it serves the browser bundle it carries at `/`, labelled so the browser streams the module.
 #
 # `-XX:AOTMode=on` makes the JVM refuse to start when it cannot use the cache, so «ready» already
 # means «accepted»; the class-load log then shows the server's own classes coming from the cache, which
@@ -30,12 +31,16 @@ for _ in $(seq 120); do
   [ "$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/readyz")" = 200 ] && { ready=yes; break; }
   sleep 0.5
 done
+page=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/")
+module=$(cd server/build/install/server/web && ls -- *.wasm | head -1)
+wasm=$(curl -s -o /dev/null -w '%{content_type}' "http://127.0.0.1:$PORT/$module")
 LOG=$(docker logs "$CID" 2>&1)
 ours=$(printf '%s\n' "$LOG" | grep -E '\] io\.github\.youndie\.haul\.' | grep -c 'source:')
 cached=$(printf '%s\n' "$LOG" | grep -E '\] io\.github\.youndie\.haul\.' | grep -c 'source: shared objects file')
-echo "ready=$ready; io.github.youndie.haul classes from the cache: $cached of $ours"
+echo "ready=$ready; io.github.youndie.haul classes from the cache: $cached of $ours; page=$page; wasm=$wasm"
 printf '%s\n' "$LOG" | grep -E '\[(error|warning)\]\[aot' | head -5
-if [ "$ready" != yes ] || [ "$cached" -eq 0 ] || [ "$cached" != "$ours" ]; then
+if [ "$ready" != yes ] || [ "$cached" -eq 0 ] || [ "$cached" != "$ours" ] || [ "$page" != 200 ] \
+  || [ "$wasm" != application/wasm ]; then
   echo "--- the container's output:"; printf '%s\n' "$LOG" | grep -v 'source: ' | tail -20
   exit 1
 fi

@@ -30,7 +30,7 @@ public fun main() {
 
     embeddedServer(CIO, port = config.port) {
         monitor.subscribe(ApplicationStopped) { dataSource.close() }
-        haulModule(dataSource, systemClock(), config.commit)
+        haulModule(dataSource, systemClock(), config.commit, config.observability, config.webDir)
     }.start(wait = true)
 }
 
