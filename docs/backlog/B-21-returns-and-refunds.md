@@ -1,7 +1,7 @@
 ---
 id: B-21
 title: "server + client: returns and refunds"
-status: wip
+status: done
 priority: P2
 size: M
 stage: stage-6-account
@@ -49,3 +49,64 @@ Feature: `feature-orders` — its scenarios are this item's acceptance where it 
   `present`; a return's chip is Blush.
 - **Points**: no points ledger exists (B-23). The number reversed is stored with the return and drawn on the page
   once refunded; B-23 turns it into a ledger entry.
+- **Parity** (`viddikDesignParity --component "Order*"`, references rendered on Linux with grayscale text from the
+  extracted artboards, tolerance untouched), first round: `Order_ReturnDialog` 2.51 %, `_Phone` 3.23 %,
+  `Order_Returned` 1.84 %, `_Phone` 3.18 %. What is left is glyph edges, the refund box a pixel taller (Chrome's
+  22.5 px line) and with it the card's shadow crescent, and a pixel per wrapped title line on the phones. The other
+  sixteen `Order_*` did not move (`Order_Placed_Phone` still 5.11 %, B-18's). Goldens recorded for the four; the
+  other Order goldens came out byte-identical.
+- **Tests written**: `ReturnRoutesTest` (**late return**; each line to the last day of its own window; a returned
+  line refunded when the seller has it back — the page at each step, `returned` progress; the delivered page
+  presenting the dialog; not delivered, not yours, no token, already returned; every field at fault),
+  `ReturnLifecycleTest` (each step at its time and not a millisecond before; a pass after a pause; a pass that died
+  between the refund and the move refunds once; a refused refund holds the return; two passes at once; pay on
+  delivery), `RefundRulesTest` (the limit, a refund out of several captures, the replay, nothing without a
+  capture), `ReturnRefundsTest` (no discount, a code shared, a sale price, the points, the window's last day, the
+  dialog's money format equal to the page's), `OrderFixturesTest` (#HL-44019 returned, #HL-46102's dialog),
+  `SchemaTest` (V17), `KoinGraphTest`; client `ReturnWiringTest` (the refund added up as lines are ticked; sent
+  where the form says and closed; the rules before sending; a late return refused in the dialog; Cancel) and
+  `OrderWiringTest` («Return items» presents the dialog).
+- **Mutations**, each seen failing the test written for it and restored: no window check («late return», the
+  last-day test), the refund at pickup (the refunded-when-back route test, two lifecycle tests), the refund key
+  never found (the replay test, the died-between test), no refund limit (the limit test), a second return
+  accepted (the already-returned assertion), an undelivered line accepted (the not-delivered assertion), the
+  ownership check removed from `RequestReturn` (Sam's `404`), the discount counted against list prices (the sale
+  test, the route tests' $349.00), the points not reversed (the 698), returned lines left in their shipment (the
+  page test), the client skipping the rules, «Return items» not followed, the refund summing every line. A
+  failing route test closes the next one's pool (B-18's finding), so a mutation also fails the test after it with
+  `HikariPool-n has been closed`; the test it was written for failed on its own assertion each time.
+- **Where it ran**: the Linux build machine (WSL), on the branch rebased onto `1155b0d`:
+  `:composeApp:wasmJsBrowserDistribution` alone, then `./gradlew check :server:installDist` in a 5 GB scope,
+  green (`:server:test` 229 tests, `:composeApp:desktopTest` 123, `viddikVerify`; PostgreSQL and shildik in
+  containers); `scripts/image-check.sh` with its own tag and port, green (V17 migrated, 867 of 867 classes from
+  the cache, page 200). `make check` and `make docs-against BASE=origin/main` on the Mac. The chart is unchanged.
+- **Scenarios**: feature-orders «Late return» (`ReturnRoutesTest.late return`) — refused `422
+  return_window_closed`, as the draft says.
+
+## Findings (2026-10-08)
+
+- **The migration number and the merge order.** This takes V17; V16 is B-19's. Flyway validates on migrate and
+  does not run out of order, so a database migrated to V17 before V16 exists refuses to start once V16 lands
+  («resolved migration not applied»). Fresh test databases do not see it; the stand would. Merge B-19 first, or
+  renumber whichever lands second.
+- **The dialogs' command seam is named for reviews.** The return goes through `ReviewCommands`
+  (`ReviewCommand.Return`) — the seam is the dialogs' in all but name; renaming it touches the shell that B-44
+  just changed, so it is left for a person to decide.
+- **A partly returned order is drawn without an artboard**: the kept lines in their shipments, the returned ones
+  in their own card, «Return requested / picked up» before the refund; the canvas draws only a fully refunded
+  order. Its copy («A courier picks it up for free. $349.00 goes back to your card ···· 4821 once the seller has
+  it.») is this item's, as is «Returns closed on …» on a delivered order past its window, the reason list (Doesn’t
+  fit, Not as described, Arrived damaged, Changed my mind) and the pay-on-delivery and Haul Pay refund lines.
+- **Points**: no ledger (B-23). The reversed number is the order's points in proportion to the refund, stored
+  with the return; B-23 should turn it into a `reversed` ledger entry (research §5's `PointsEntry`).
+- **B-19's «Returned» chip** can read `OrderProgress.of(order)`: `returned` once the return is refunded,
+  `returning` while it is requested or picked up. It reads `Order.returnStatus`, which `ExposedOrders.order`
+  fills from `returns`; a history query of its own has to fill it too.
+- **The closed-pool cascade** (B-18's test-isolation finding) shows up under every failing route test here too.
+- PR #2's drafts that this changes: **feature-orders** (the *target* rule on returns becomes what is built: one
+  return per order of whole lines, 30 store days per line, refund when the parcel is back, points in proportion;
+  «Late return»: `ErrorCode` has `return_window_closed` now, `**Automated:** ReturnRoutesTest.late return`),
+  **endpoint-orders** (the returns route is built in `feature/returns/ReturnsRouting.kt`, not `feature/order/`;
+  answers `201` with `close` then `refresh`; errors `400 validation_failed`, `401`, `404 order_not_found`,
+  `409 already_returned`, `422 not_delivered`, `422 return_window_closed`), **screen-order** (ReturnDialog and
+  Returned built; a partly returned order and a return in flight are drawn without artboards).
