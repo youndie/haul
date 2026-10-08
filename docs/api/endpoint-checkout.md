@@ -16,7 +16,8 @@ parent_feature: feature-checkout
 # API: Checkout and placement
 
 > The checkout routes exist since B-14, placement since B-16 (held with the button since B-39 and
-> B-42); the client's commands since B-15. All are described as the code has them. There are no route classes in `shared`: the paths are the server's strings (`CheckoutPaths`
+> B-42, landing on the order page since B-18, taking points since B-23); the client's commands since
+> B-15. All are described as the code has them. There are no route classes in `shared`: the paths are the server's strings (`CheckoutPaths`
 > in `CheckoutRouting.kt`), handed to the client inside the tree — `DeliveryMethods.url`,
 > `CheckoutAddress.url`, `DeliverySlots.url`, `PickupPoints.url`,
 > `PaymentMethods.url`, `CheckoutSummary.placeUrl` — and the contract is the command bodies
@@ -31,7 +32,7 @@ parent_feature: feature-checkout
 |---|---|---|---|---|
 | `GET` `/ui/checkout` | haul-server | customer (shildik bearer) | yes | request: —; answers tree: Checkout — Content, PickupPoint, ParcelLocker, Validation and PlaceError are all this one tree, drawn from what the customer chose |
 | `PUT` `/api/v1/me/checkout` | haul-server | customer (shildik bearer) | yes | request: `CheckoutChoice` — only the fields given change, at least one; answers kompot's `refresh` (the checkout redrawn with a new quote) |
-| `POST` `/api/v1/orders` | haul-server | customer (shildik bearer) | yes | request: `PlaceOrderRequest` (`quote`: the fingerprint `CheckoutSummary.quote` carried), header `Idempotency-Key`; runs the order saga ([feature-orders](../features/feature-orders.md)) and answers `202` with kompot's `navigate` to `/orders/{id}` |
+| `POST` `/api/v1/orders` | haul-server | customer (shildik bearer) | yes | request: `PlaceOrderRequest` (`quote`: the fingerprint `CheckoutSummary.quote` carried), header `Idempotency-Key`; runs the order saga ([feature-orders](../features/feature-orders.md)) and answers `202` with kompot's `navigate` to `/account/orders/{id}` |
 
 Conventions for every group — trees versus actions, the error body, `404` for «not yours» — are
 in [haul-server](../services/haul-server.md), section 2.
@@ -64,7 +65,9 @@ Not copied here; what the server does with them:
   holder; `release` is its compensation) — that is what lets a window fill between page and order.
   A window chosen that filled since is cleared and the tree draws a notice (PlaceError).
 * **`CheckoutChoice`** — `method`, `addressId`, `pointId`, `slotId`, `payment`, the ids the tree's
-  options carry. An address makes the method courier; a point decides the method (a locker's id is a
+  options carry, and `usePoints` (the toggle, `PointsToggle.url`), stored with the checkout
+  (`checkouts.use_points`). With it on, the quote takes the whole balance capped at the items after
+  discounts (100 points = $1), adds a «Points» summary row, and the total and Haul Pay's range follow. An address makes the method courier; a point decides the method (a locker's id is a
   locker order); a way to pay must be offered for the method and the total. A method that no longer
   allows the chosen way to pay falls back to the card.
 * **Ways to pay** — `card-4821` (approved by the simulator), `card-0002` («Test card: always
@@ -82,7 +85,10 @@ Not copied here; what the server does with them:
   validation_failed` (field `quote`). Only then is the key claimed, so a refused placement does not
   spend it: the same request under the same key places once the hold is lifted. **The key is per quote**: a new quote under
   an old key is refused, so the client generates one per quote it places.
-* **The answer** — `202` with `NavigateAction("/orders/{id}")` (`HL-` and a number from 48302) for a
+* **The fingerprint** — over everything priced; the courier address by its fields, not only its id
+  (B-40: the form edits the address in place, so the id no longer changes on a save), and the points
+  only when some are taken (a quote without points keeps the fingerprint it had before B-23).
+* **The answer** — `202` with `NavigateAction("/account/orders/{id}")` (`HL-` and a number from 48302) for a
   placed order **and** for one the saga cancelled because the card was declined; the order's status
   says which. Stock that ran out inside the saga is `409 out_of_stock`, a window that filled inside the
   saga `409 slot_unavailable`; both take nothing.
@@ -99,13 +105,11 @@ again, a refusal of any code — an unknown one too — redraws the checkout, a 
 
 ## Quirks
 
-* The order page the answer navigates to, `/orders/{id}` (tree `GET /ui/orders/{id}`), is not built
-  (B-18) and is not in `StorefrontPage`; screen-order names `/account/orders/{orderId}` instead —
-  see [endpoint-orders](endpoint-orders.md).
 * Placement runs the saga inside the request; a saga that failed and was undone (not a refusal) is
   answered `500 internal`.
-* Points («Use N points», `PaymentMethods.points`) are not in the quote, the server sends no toggle,
-  and nothing answers `points_balance_changed` (B-23).
+* Points spent elsewhere since the quote (another order) are refused by the saga's `redeem-points`
+  step and answered `409 cart_changed`, like any quote that is no longer the checkout's; there is no
+  `points_balance_changed`.
 * `GET /ui/checkout` with no selected line is `409 cart_empty`, not an empty checkout.
 
 ## Errors

@@ -3,7 +3,7 @@ id: screen-checkout
 title: Checkout
 type: client_screen
 platform: [web]
-status: draft
+status: active
 entry:
   web: "/checkout"
 parent_feature: feature-checkout
@@ -32,9 +32,9 @@ The checkout page has its own minimal header (logo, steps «Delivery · Payment 
 «Secure checkout») instead of `Header`.
 
 > Built: the server's tree (B-14), placement (B-16), the renderers, the client's commands and parity
-> for all eighteen `Checkout_*` artboards (B-15), placement held with the button (B-39, B-42). Still
-> *target*, which keeps this document a draft: points (B-23 — PointsApplied and the toggle are drawn
-> from the canvas's data, not from a balance) and the order page placement navigates to (B-18).
+> for all eighteen `Checkout_*` artboards (B-15), placement held with the button (B-39, B-42), the
+> address form saved in place (B-40), the order page placement lands on (B-18), the points toggle drawn
+> from the customer's balance and pressable (B-23).
 
 ## 0a. Code anchors
 
@@ -68,9 +68,9 @@ What the server's one tree does per state: **Content**, **PickupPoint**, **Parce
 `CheckoutHeader`, then `CheckoutBody`: the title, a `CheckoutNotice` per notice, `DeliveryMethods`,
 `CheckoutAddress` (the inline form) + `DeliverySlots` by courier or `PickupPoints` otherwise,
 `PaymentMethods` (with the points toggle under it), `CheckoutSummary` — the sections beside the order
-at 1440, under them on a phone. **PointsApplied** has no tree of its own: no points balance is stored
-(B-23), so the server sends no toggle, and the fixtures carry the canvas's («Use 2,480 points
-(−$24.80)», inert). **Placing** is the client's: Content with the button «Placing order…» while
+at 1440, under them on a phone. **PointsApplied** is the same tree with the toggle on: the server draws
+«Use N points (−$x)» from the customer's ledger (`CheckoutCommands.ledger`, none for a balance of 0),
+and with it on a «Points» summary row and the totals after points. **Placing** is the client's: Content with the button «Placing order…» while
 `POST /api/v1/orders` runs, nothing sent meanwhile. **Loading** and **Error** are `CheckoutLoading` and
 `CheckoutError` («Checkout didn’t load», «Your cart is unchanged»).
 
@@ -78,7 +78,7 @@ All eighteen artboards are within the default parity tolerance (the table is in 
 
 - [x] **Loading:** the minimal header, placeholder sections and summary
 - [x] **Content:** courier, 148 Wythe Avenue 4F, Wed 8 / 15:00–18:00, card ···· 4821, «Use 2,480 points (−$24.80)» off, summary $512, «Place order · $512.00»
-- [x] **PointsApplied:** Content with the points toggle on: a «Points −$24.80» line, total $487.20, «Place order · $487.20», Haul Pay «4 payments of $121.80» — drawn from the canvas's data until B-23
+- [x] **PointsApplied:** Content with the points toggle on: a «Points −$24.80» line, total $487.20, «Place order · $487.20», Haul Pay «4 payments of $121.80»
 - [x] **PickupPoint:** «Pickup point» chosen: list of 3 nearby points with distance and hours, 214 Bedford Ave selected; no slot section
 - [x] **ParcelLocker:** «Parcel locker» chosen: list of lockers; «Pay on delivery» absent
 - [x] **Validation:** courier with empty street and ZIP: field errors, button disabled with its hint («Fill in the street address and ZIP»). The hold is the server's: placement past it is refused `409 checkout_held` (B-39). It holds only while the method is courier — a refused form does not hold a pickup point or a locker, and switching back to courier draws the form with its errors and holds the button again (B-42)
@@ -105,8 +105,8 @@ refusal included — fetches the tree again, and no answer leaves the page as it
 
 - method / point / slot / payment → `Choose`: `PUT /api/v1/me/checkout`; the method already chosen, a full window and a held button send nothing
 - the address form → `SaveAddress`: `POST /api/v1/me/addresses` when the shopper leaves the form (or presses Enter in a field), only when something changed; a refused form comes back in the tree with an error under each field
-- Place order → `Place`: `POST /api/v1/orders` with `PlaceOrderRequest(quote)` and one `Idempotency-Key` per quote (remembered per fingerprint, so a retry is the same order) → `202` and `navigate` to `/orders/{id}` (screen-order, `Order_Placed`; the order page and its address are B-18's — see [endpoint-orders](../api/endpoint-orders.md)); a refusal (`409 slot_unavailable`, `cart_changed`, `checkout_held`) redraws the checkout — PlaceError for a window that filled
-- the points toggle → nothing (B-23)
+- Place order → `Place`: `POST /api/v1/orders` with `PlaceOrderRequest(quote)` and one `Idempotency-Key` per quote (remembered per fingerprint, so a retry is the same order) → `202` and `navigate` to `/account/orders/{id}` (screen-order, `Order_Placed`); a refusal (`409 slot_unavailable`, `cart_changed`, `checkout_held`) redraws the checkout — PlaceError for a window that filled
+- the points toggle → `Choose`: `PUT /api/v1/me/checkout` with `CheckoutChoice(usePoints)` to `PointsToggle.url`, the opposite of its state
 - the logo → `/` (`CheckoutHeader.home`)
 
 ## 6. Copy

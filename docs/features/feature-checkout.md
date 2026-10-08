@@ -24,8 +24,9 @@ One page: how to receive, the address or the point, the delivery window, the pay
 
 > Built: the quote, windows with capacity, points and lockers, ways to pay and the address form
 > (B-14), placement through the order saga (B-16), the client's renderers, commands and key per quote
-> (B-15), placement held with the button (B-39, B-42), capture per shipment at ship time (B-17).
-> Still *target*, which keeps this document a draft: points (B-23) and Haul Pay's schedule (B-24).
+> (B-15), placement held with the button (B-39, B-42), capture per shipment at ship time (B-17), the
+> address saved in place (B-40), the order page placement lands on (B-18), points redeemed (B-23).
+> Still planned, which keeps this document a draft: Haul Pay's four payments two weeks apart (B-24).
 
 ## 2. Business rules
 
@@ -36,13 +37,14 @@ One page: how to receive, the address or the point, the delivery window, the pay
 * slots: the next 5 days from tomorrow, 4 windows a day (09, 12, 15, 18; three hours), 20 orders each; a slot at capacity is shown and not selectable (`409 slot_unavailable`); the default is the first with room;
 * a window's place is taken at placement, not held by the quote (research D5, «Decided in B-14»): a chosen window that filled since is cleared, the page says so, and placing it is refused (`409 slot_unavailable`);
 * pay on delivery is not offered for parcel lockers (`422 payment_method_not_allowed`); a method that no longer allows the chosen way to pay falls back to the card;
-* Haul Pay is offered for totals between $50 and $2,000 (`HaulPay` in `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/domain/HaulPay.kt`): 4 equal payments; *target* (B-24): two weeks apart, the first when the first shipment ships;
+* Haul Pay is offered for totals between $50 and $2,000 (`HaulPay` in `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/domain/HaulPay.kt`), drawn as 4 equal payments; today it is authorised as one payment and captured per shipment like a card; *planned* (B-24): two weeks apart, the first when the first shipment ships;
 * every customer is offered the simulator's two cards, ···· 4821 (approved) and the test card ···· 0002 (declined); there is no card form;
 * a promo code that expired after it was applied is not in the quote, and a notice says so;
-* *target* (B-23): «Use N points» redeems the whole balance, capped at the items total after discounts; 100 points = $1; redeemed points come back if the order is cancelled, and come back pro rata as points on a return;
+* the address form edits **the address being delivered to in place** (B-40): the checkout's chosen address while it is still the customer's, else the newest — the rule the quote uses (`CheckoutCommands.delivered`); a customer with none gets their first; a form equal to a saved address (every field after the form's trimming, an empty field equal to an absent one) makes that address the checkout's and writes nothing; the wire carries no address id;
+* «Use N points» (`CheckoutChoice.usePoints`, stored with the checkout; B-23) redeems the whole balance, capped at the items total after discounts, so points never pay for delivery; 100 points = $1; the summary gains a «Points» row and the total, Haul Pay's range and the quote follow it; the points are taken in the order saga and come back if the order is cancelled, and come back pro rata as points on a return ([feature-membership](feature-membership.md));
 * placing is idempotent by an `Idempotency-Key` the client generates **once per quote it places** — the same key with another quote is `409 idempotency_key_reused` — and a placement refused before the saga (`slot_unavailable`, `cart_changed`, `checkout_held`, an incomplete quote) does not spend the key, so the same request under the same key places once the reason is gone; a key whose order was placed answers that order, whatever the checkout holds now;
-* placement places only the quote the shopper saw: a fingerprint that is no longer the checkout's is `409 cart_changed`;
-* placement answers `202` with kompot's `navigate` to `/orders/{id}`, the order `placed` — or `cancelled` with `payment_declined` when the card was declined; the rest happens in the saga (feature-orders);
+* placement places only the quote the shopper saw: a fingerprint that is no longer the checkout's is `409 cart_changed`; the fingerprint names the courier address's fields, not only its id (an address edited from another tab changes it), and the points only when some are taken; points spent elsewhere since the quote are `409 cart_changed` too;
+* placement answers `202` with kompot's `navigate` to the order page `/account/orders/{id}` ([feature-orders](feature-orders.md)), the order `placed` — or `cancelled` with `payment_declined` when the card was declined; the rest happens in the saga (feature-orders);
 * «Your card is charged when the order ships» — the total is authorised at placement; each shipment's share is captured when it ships (B-17, feature-orders).
 
 Numbers in these rules are decisions of the brief, recorded in
@@ -121,8 +123,8 @@ Numbers in these rules are decisions of the brief, recorded in
 ### Scenario: Place by courier
 * **Given:** Maya's cart, courier to 148 Wythe Avenue, Wed Oct 8 15:00–18:00, card ···· 4821
 * **When:** she places the order
-* **Then:** the server returns `202` with a navigate to `/orders/HL-48302`, the order is `placed` at $512.00 with two shipments (Sony Official Store, Brooklyn Home Co.), one unit of each line is off its stock, the window has one place taken, the total is authorised and the bought lines left the cart.
-* **Automated:** `PlacementRoutesTest.Maya places her cart by courier and the saga takes stock window and payment` (`server/src/test/kotlin/io/github/youndie/haul/feature/order/PlacementRoutesTest.kt`)
+* **Then:** the server returns `202` with a navigate to `/account/orders/HL-48302`, the order is `placed` at $512.00 with two shipments (Sony Official Store, Brooklyn Home Co.), one unit of each line is off its stock, the window has one place taken, the total is authorised and the bought lines left the cart.
+* **Automated:** `PlacementRoutesTest.Maya places her cart by courier and the saga takes stock window and payment` (`server/src/test/kotlin/io/github/youndie/haul/feature/order/PlacementRoutesTest.kt`); over HTTP against the image, `WholePathTest.a shopper browses buys receives and returns an order over HTTP` (`e2e/src/test/kotlin/io/github/youndie/haul/e2e/WholePathTest.kt`)
 
 ### Scenario: Same key twice
 * **When:** the client repeats the placement with the same `Idempotency-Key`
@@ -151,7 +153,13 @@ Numbers in these rules are decisions of the brief, recorded in
 * **Given:** Maya with 2,480 points and the same cart
 * **When:** she places it with «Use 2,480 points»
 * **Then:** the total is $487.20 and her balance is 0 until the order earns.
-* Not automated: points are B-23's; no balance is stored.
+* **Automated:** `PointsTest.Maya pays with her 2480 points and her balance is 0 until the order earns` (`server/src/test/kotlin/io/github/youndie/haul/feature/membership/PointsTest.kt`); capped at the items, `PointsTest.points are capped at the items after discounts`; the client's toggle, `CheckoutWiringTest.the points toggle turns the points on and off`
+
+### Scenario: The address form edits the address in place
+* **Given:** Maya's courier checkout to «148 Wythe Avenue 4F»
+* **When:** she changes the apartment to «5B» and leaves the form, twice
+* **Then:** she has one stored address, with its first id, at «5B»; a form equal to an older saved address chooses that one and stores nothing.
+* **Automated:** `CheckoutRoutesTest.saving the address form twice edits the one address in place`, `CheckoutRoutesTest.an address equal to a saved one is chosen and not stored again` (`server/src/test/kotlin/io/github/youndie/haul/feature/checkout/CheckoutRoutesTest.kt`)
 
 ### Scenario: Slot filled meanwhile
 * **Given:** the chosen slot reached capacity after the page loaded
@@ -163,12 +171,12 @@ Numbers in these rules are decisions of the brief, recorded in
 * **Given:** the page was drawn, then a line's quantity changed
 * **When:** she places the old quote
 * **Then:** the server returns `409` with `cart_changed` and places nothing; the same key with the new quote places it.
-* **Automated:** `PlacementRoutesTest.a quote that changed since the page was drawn is refused`
+* **Automated:** `PlacementRoutesTest.a quote that changed since the page was drawn is refused`; an address edited from another tab, `PlacementRoutesTest.a quote whose address was edited since the page was drawn is refused`
 
 ## 6. Out of scope
 
 * What [research-architecture](../research/research-architecture.md) D6 and D8 leave out of v1.
-* Editing or deleting a saved address, and a card form: no artboard draws them.
+* An address list, deleting a saved address, and a card form: no artboard draws them.
 
 ## 7. Quirks
 
@@ -180,5 +188,8 @@ Numbers in these rules are decisions of the brief, recorded in
 * The held button answers in two codes: a quote held by a refused address form is `409
   checkout_held`, an incomplete one (no address, window or point) `400 validation_failed` with field
   `quote` (B-39's findings; one code for both is the owner's call). The client redraws on either.
-* Every address saved is a new row: editing «4F» to «5B» leaves the old one stored and unlisted
-  (B-15's findings, B-40).
+* A customer who used the form before B-40 may have one row per save; the equal-address rule keeps those
+  rows as they were rather than turning the chosen one into a copy of an older one.
+* Two tabs saving the form at once each edit what they read; the last one wins, as one form saved twice.
+* The fingerprint's formula changed with B-40, so every courier checkout open across that deploy is
+  refused `409 cart_changed` once and redrawn.

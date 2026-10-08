@@ -27,7 +27,7 @@ parent_feature: feature-identity
 | `POST` `/api/v1/guests` | haul-server | public (none) | yes | request: —; answers `201` with `GuestDto` (`id`, `g-` and a random UUID), which the client sends as `X-Haul-Guest` from then on |
 | `GET` `/api/v1/sign-in` | haul-server | public (none) | yes | request: —; answers `SignInSettings` — the shildik realm's `issuer`, the storefront's public `clientId`, the `scope` (`openid profile email offline_access`) and the `mergeUrl` |
 | `POST` `/api/v1/me/cart/merge` | haul-server | customer (shildik bearer) | yes | request: header `X-Haul-Guest`, no body; moves the guest's cart into the customer's; answers kompot's `refresh` |
-| `POST` `/api/v1/me/addresses` | haul-server | customer (shildik bearer) | yes | request: `AddressEntry`; saves the address and makes it the checkout's; answers kompot's `refresh` (the checkout redrawn, [endpoint-checkout](endpoint-checkout.md)) |
+| `POST` `/api/v1/me/addresses` | haul-server | customer (shildik bearer) | yes | request: `AddressEntry`; saves the address being delivered to — edited in place, or chosen when equal to a saved one — and makes it the checkout's; answers kompot's `refresh` (the checkout redrawn, [endpoint-checkout](endpoint-checkout.md)) |
 
 The tiers are decided at the mount in `server/src/main/kotlin/io/github/youndie/haul/HaulModule.kt`:
 the public routes take an optional bearer (one that does not verify is `401`, not ignored), the
@@ -50,7 +50,7 @@ in [haul-server](../services/haul-server.md), section 2.
 | `POST` `/api/v1/guests` | `server/src/main/kotlin/io/github/youndie/haul/feature/identity/IdentityRouting.kt` (`identityRouting`) → `Guests.create` (`server/src/main/kotlin/io/github/youndie/haul/feature/identity/data/ExposedGuests.kt`) |
 | `GET` `/api/v1/sign-in` | `server/src/main/kotlin/io/github/youndie/haul/feature/identity/IdentityRouting.kt` (`identityRouting`) → `SignInConfig.settings` (`server/src/main/kotlin/io/github/youndie/haul/feature/identity/SignIn.kt`) |
 | `POST` `/api/v1/me/cart/merge` | `server/src/main/kotlin/io/github/youndie/haul/feature/identity/IdentityRouting.kt` (`customerIdentityRouting`) → `CartCommands.merge` (`server/src/main/kotlin/io/github/youndie/haul/feature/cart/domain/CartCommands.kt`), one transaction in `ExposedCartRepository.merge` |
-| `POST` `/api/v1/me/addresses` | `server/src/main/kotlin/io/github/youndie/haul/feature/checkout/CheckoutRouting.kt` → `CheckoutCommands.addAddress` (`server/src/main/kotlin/io/github/youndie/haul/feature/checkout/domain/CheckoutCommands.kt`), rules in `server/src/main/kotlin/io/github/youndie/haul/feature/checkout/domain/AddressRules.kt` |
+| `POST` `/api/v1/me/addresses` | `server/src/main/kotlin/io/github/youndie/haul/feature/checkout/CheckoutRouting.kt` → `CheckoutCommands.saveAddress` (`server/src/main/kotlin/io/github/youndie/haul/feature/checkout/domain/CheckoutCommands.kt`) → `ExposedCheckoutRepository.saveAddress` (`server/src/main/kotlin/io/github/youndie/haul/feature/checkout/data/ExposedCheckoutRepository.kt`, one transaction), rules in `server/src/main/kotlin/io/github/youndie/haul/feature/checkout/domain/AddressRules.kt` |
 | who is calling | `server/src/main/kotlin/io/github/youndie/haul/feature/identity/Callers.kt` — a verified token is the customer (created on first sight), else a guest id the server issued, else nobody |
 | contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/Guests.kt` (`GuestDto`, `GUEST_HEADER`), `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/SignInSettings.kt`, `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/checkout/CheckoutCommands.kt` (`AddressEntry`), `shared/src/commonMain/kotlin/io/github/youndie/haul/ErrorCode.kt` |
 
@@ -68,7 +68,13 @@ cart changes nothing.
 
 The address form: `street`, `city` and `zip` required, the ZIP five digits; street up to 100
 characters, city 60, apartment and door code 20, courier note 200. A refused form is kept and the
-checkout tree draws it again with an error under each field.
+checkout tree draws it again with an error under each field. A save edits the address being delivered
+to in place (B-40) — the checkout's chosen address while it is still the customer's, else the newest;
+it keeps its id and `created_at` — and a customer with none gets their first; a form equal to a saved
+address (every field after the form's trimming, an empty field equal to an absent one) makes that
+address the checkout's and writes nothing. `AddressEntry` carries no id: which address a save edits is
+the server's state. Placed orders keep their own copy of the address (`orders.address`,
+`server/src/main/resources/db/migration/V14__order_address.sql`), so an edit never moves them.
 
 ## Errors
 
@@ -83,4 +89,5 @@ Automated in `server/src/test/kotlin/io/github/youndie/haul/feature/identity/Ide
 (`the merge needs a customer and a guest the server issued`, `the browser is told where to sign in,
 and a server without sign-in says so`, `a token that does not verify is 401 unauthenticated`) and
 `server/src/test/kotlin/io/github/youndie/haul/feature/checkout/CheckoutRoutesTest.kt` (`the address
-form is refused field by field and drawn again`).
+form is refused field by field and drawn again`, `saving the address form twice edits the one address
+in place`, `an address equal to a saved one is chosen and not stored again`).
