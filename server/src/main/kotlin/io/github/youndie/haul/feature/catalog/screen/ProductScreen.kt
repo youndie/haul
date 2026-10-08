@@ -1,5 +1,9 @@
 package io.github.youndie.haul.feature.catalog.screen
 
+import io.github.youndie.haul.feature.cart.CartPaths
+import io.github.youndie.haul.feature.cart.LineChange
+import io.github.youndie.haul.feature.cart.LineCommand
+import io.github.youndie.haul.feature.cart.screen.CartScreen
 import io.github.youndie.haul.feature.catalog.domain.CatalogError
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Category
@@ -51,6 +55,8 @@ internal enum class ProductTab(
  * `/ui/p/{productId}` (screen-product). The chosen SKU is the `sku` parameter, or the cheapest in
  * stock; everything in the buy box follows it — feature-product, «Variant changes the price». A SKU
  * with no stock is `Product_OutOfStock`: the details say so and the client keeps only «Save».
+ * «Add to cart» and «Buy now» carry their line changes for that SKU (B-48), drawn for the [Viewer]'s
+ * cart as a card's «+» is.
  */
 internal class ProductScreen(
     private val catalog: CatalogRepository,
@@ -195,6 +201,29 @@ internal class ProductScreen(
             saved = saved,
             heartCommand = heart(item.product.id, saved, viewer),
             heartAction = heartAction(viewer),
+            add = addToCart(sku, viewer.inCart),
+            buy = buyNow(sku, viewer),
+        )
+    }
+
+    /**
+     * «Buy now» (B-48): what «Add to cart» puts in, with the line selected — checkout takes the selected
+     * lines only, and a line the shopper had unticked would otherwise be left behind — then checkout. A
+     * guest goes there through sign-in, by the address the cart's «Sign in to check out» uses, so both
+     * ways to checkout run the same sign-in and the same merge, and none goes through a page refused
+     * first. At the line's limit there is nothing to add, and «Buy now» still buys what is there: the
+     * line is only selected. Out of stock there is nothing to buy.
+     */
+    private fun buyNow(
+        sku: Sku,
+        viewer: Viewer,
+    ): LineCommand? {
+        if (sku.stock <= 0) return null
+        val add = addToCart(sku, viewer.inCart)?.change
+        return LineCommand(
+            url = CartPaths.line(sku.id),
+            change = LineChange(quantity = add?.quantity, selected = true),
+            next = NavigateAction(if (viewer.customerId == null) CartScreen.SIGN_IN else CartScreen.CHECKOUT),
         )
     }
 

@@ -1,5 +1,7 @@
 package io.github.youndie.haul.feature.cart
 
+import io.github.youndie.kompot.KompotAction
+import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.Serializable
 
 // The bodies of the cart's commands (endpoint-cart). Where each one is sent is the server's string,
@@ -30,11 +32,18 @@ public data class PromoEntry(
 )
 
 /**
- * A line change fixed in the tree, so the client sends it as it is: «+» on a product card (B-37) is
- * [change] — the quantity the line will have — with `PUT` to [url], answered `refresh`.
+ * A line change fixed in the tree, so the client sends it as it is: «+» on a product card (B-37) and
+ * «Add to cart» on the product page (B-48) are [change] — the quantity the line will have — with `PUT`
+ * to [url], answered `refresh`.
+ *
+ * [next] is what the client follows once the server has accepted the change, in place of its answer:
+ * «Buy now» (B-48) navigates to checkout, or to sign-in on the way there. A refused change follows
+ * the answer as any other command does — the page is drawn again — so nothing is bought that was not
+ * put in the cart.
  */
 @Serializable
 public data class LineCommand(
     val url: String,
     val change: LineChange,
+    val next: @Polymorphic KompotAction? = null,
 )

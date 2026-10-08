@@ -164,6 +164,13 @@ client alone.
   tree, fixed by the server — a card's «+» is `ProductCard.add`, the `LineChange` with the line's
   *next* quantity (one more than the viewer's cart holds), so a press sent twice puts in one, and it
   is absent at ten, at the stock or out of stock. The client sends it and draws the screen again.
+  **Decided in B-48:** a command that leads somewhere carries where in the same tree —
+  `LineCommand.next`, followed in place of the answer once the server accepted the change, never on a
+  refusal. The product page's «Add to cart» is `ProductDetails.add`, a card's «+» for the SKU shown;
+  «Buy now» is `ProductDetails.buy`, the same line selected, then `/checkout` for a customer or
+  `/sign-in?next=%2Fcheckout` for a guest — the address the cart's «Sign in to check out» uses, so a
+  guest never reaches checkout through a page refused first (B-44's prompt is for addresses opened
+  directly). At the line's limit «Buy now» only selects the line; out of stock neither is offered.
 - A list of choices («Catalog»'s categories, the sort's orders) travels as `Link`s and opens as a
   menu in the client. No artboard draws a menu open; the menu is drawn from the theme's tokens.
 - «Show 24 more» opens the next page, the same address as the page number. Appending to the grid in

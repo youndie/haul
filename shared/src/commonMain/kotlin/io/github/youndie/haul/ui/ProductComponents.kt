@@ -1,5 +1,6 @@
 package io.github.youndie.haul.ui
 
+import io.github.youndie.haul.feature.cart.LineCommand
 import io.github.youndie.haul.feature.reviews.HelpfulCommand
 import io.github.youndie.haul.feature.saved.SaveCommand
 import io.github.youndie.kompot.KompotAction
@@ -67,6 +68,11 @@ public data class SellerSummary(
  * The heart over the photo — and «Save» beside an out-of-stock product's buttons — is the Saved list's
  * (B-20), as on a card: drawn filled when [saved]; for a customer [heartCommand], for a guest
  * [heartAction], the way to sign in.
+ *
+ * [add] is what «Add to cart» sends (B-48): one more of [skuId] into the cart, as a card's «+» does —
+ * absent when the line already holds as many as can be bought. [buy] is «Buy now»: the same line,
+ * selected, then [LineCommand.next] to checkout (or to sign-in on the way there, for a guest); at the
+ * line's limit it only selects the line. Both are absent out of stock.
  */
 @Serializable
 @SerialName("haul_product_details")
@@ -105,6 +111,8 @@ public data class ProductDetails(
     val photo: String? = null,
     val heartCommand: SaveCommand? = null,
     val heartAction: @Polymorphic KompotAction? = null,
+    val add: LineCommand? = null,
+    val buy: LineCommand? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
