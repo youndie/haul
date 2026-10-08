@@ -62,7 +62,8 @@ class PickedForYouTest {
     @Test
     fun `three headphones viewed give at most two headphones and none of the three`() =
         runBlocking {
-            val viewed = category("headphones").filter { it.inStock }.take(3)
+            // The best three: had the views not been left out, they would be the first picks.
+            val viewed = category("headphones").filter { it.inStock }.sortedWith(BEST).take(3)
             val picks = picker(views(*viewed.toTypedArray()))("c-maya")
             assertEquals(PickBasis.RecentViews, picks.basis)
             assertEquals(6, picks.items.size, "the row has holes")
@@ -171,6 +172,13 @@ class PickedForYouTest {
             val viewed = views(*category("headphones").take(3).toTypedArray(), category("mugs").first())
             assertEquals(picker(viewed)("c-ed"), picker(viewed.toList())("c-ed"))
         }
+
+    private companion object {
+        val BEST =
+            compareByDescending<Listed> { it.product.rating }
+                .thenByDescending { it.product.reviewsCount }
+                .thenBy { it.product.id }
+    }
 
     private class FixedViews(
         private val viewed: List<ProductView>,

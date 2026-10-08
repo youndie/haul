@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.recommendations
 
 import io.github.youndie.haul.db.Databases
 import io.github.youndie.haul.feature.catalog.data.ExposedCatalogRepository
+import io.github.youndie.haul.feature.catalog.domain.Listed
 import io.github.youndie.haul.feature.identity.GUEST_HEADER
 import io.github.youndie.haul.feature.recommendations.screen.PickedSection
 import io.github.youndie.haul.haulWireJson
@@ -37,6 +38,16 @@ class RecommendationsRoutesTest {
     private val catalog = ExposedCatalogRepository(Databases.connect(SeededDatabase.dataSource))
     private val headphones =
         runBlocking { catalog.listedIn(setOf("headphones")) }.map { it.product.id }.sorted()
+
+    /** The headphones in stock, best rated first: the three a test views are the ones the rule would pick first. */
+    private val bestHeadphones =
+        runBlocking { catalog.listedIn(setOf("headphones")) }
+            .filter { it.inStock }
+            .sortedWith(
+                compareByDescending<Listed> { it.product.rating }
+                    .thenByDescending { it.product.reviewsCount }
+                    .thenBy { it.product.id },
+            ).map { it.product.id }
     private val categoryOf: Map<String, String> =
         runBlocking { catalog.listedIn(setOf("headphones", "duvet-covers", "mugs")) }
             .associate { it.product.id to it.product.categorySlug }
@@ -62,7 +73,7 @@ class RecommendationsRoutesTest {
     fun `a customer who viewed three headphones is picked at most two and none of them`() {
         val token = ShildikHarness.accessToken(ShildikHarness.person("Vera Viewer"))
         haulTest(signIn = ShildikHarness.signIn) {
-            val viewed = headphones.take(3)
+            val viewed = bestHeadphones.take(3)
             viewed.forEach { page("/ui/p/$it") { bearerAuth(token) } }
 
             val (header, grid) = assertNotNull(page("/ui/home") { bearerAuth(token) }.picked(), "no «Picked for you»")
