@@ -62,11 +62,18 @@ dependencies {
 // **The browser bundle ships inside the server's distribution**, under `web/`, and the image points
 // `HAUL_WEB_DIR` at it (haul-web: «served by haul-server»). One image, one origin: the page and the API
 // it calls cannot be deployed at two different versions, and the client needs no base URL.
+//
+// Without `composeApp.js.map` (1.45 MB, B-34): the page never asks for it, and a server that publishes
+// the directory as it is would publish the source map with it. The `.br`/`.gz` beside each file are
+// written by the image (`docker/Dockerfile`), where the brotli encoder is.
 val webBundle = project(":composeApp").tasks.named("wasmJsBrowserDistribution")
 distributions {
     main {
         contents {
-            from(webBundle) { into("web") }
+            from(webBundle) {
+                into("web")
+                exclude("**/*.map")
+            }
         }
     }
 }

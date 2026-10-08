@@ -390,6 +390,65 @@ match — same host, about 25 minutes after the first, 1-minute load 4.4–14.2)
   the first frame does not wait for the fonts — the finding above. The floor over the bytes the frame
   can have waited for (everything but the fonts) passes in both arms (17,404 and 19,686 ms).
 
+#### Measured in B-34
+
+**What changed.** The stand now sends the bundle the way B-28's script served it, from the image
+itself: `docker/Dockerfile` writes a `.br` (brotli 1.2.0, quality 11) and a `.gz` (-9) beside each file
+of the bundle's directory once, at build time, and the server's `staticFiles` picks one by `Accept-Encoding`
+(`server/src/main/kotlin/io/github/youndie/haul/WebBundle.kt`), keeping the original `Content-Type`
+and sending `Vary: Accept-Encoding`; the two hash-named `.wasm` are `public, max-age=31536000,
+immutable`, everything else `no-cache`; `composeApp.js.map` is gone from the distribution. No
+compression per request, no Traefik middleware.
+
+**How.** On 2026-10-08, the image of this item's branch on `4e4d27c`, before its rebase onto B-30
+(`haul/server:b34`, `sha256:5b2b3a6a…`, built by
+`scripts/image-check.sh`, which also asserts the headers), measured by B-28's script with two new arms:
+`ARMS="image image-identity" IMAGE=haul/server:b34 OUT=/tmp/b34-first-load
+scripts/measure-first-load.sh 7`. **image** starts the image beside a PostgreSQL and points the
+measurement at it (`measure-first-load.py --url`), so every byte is what the server sends;
+**image-identity** serves the same bundle directory, copied out of the image, uncompressed through the script's
+own server — the stand before B-34. The bundle is `main`'s (its root still draws no screen): skiko's
+`.wasm` is byte-identical to B-28's (sha256 `089052ba…`), the app `.wasm` 1,598 KiB against B-28's
+1,597. Same Chromium, profiles, probe, rounds and controls as B-28; the same shared machine, load
+average 1.6–8.0 during the image arm and 1.1–14.1 during the identity arm.
+
+**What the browser got** (Accept-Encoding `gzip, deflate, br, zstd`): brotli on every file but the
+`favicon.ico` the page does not have (404); `application/wasm` on both modules; 3,486 KiB on the wire
+against 11,708 KiB uncompressed — the image's `.br` files are within 4 KiB of the q11 sizes B-28
+computed.
+
+| Arm | Profile | Transferred KiB | skiko's last byte | First frame | Settled |
+|---|---|---:|---:|---:|---:|
+| image (brotli) | none | 3,486 | 250 | 414 (367–791) | 589 (512–1,157) |
+| image (brotli) | Fast 4G | 3,486 | 3,801 | 3,981 (3,846–4,101) | 4,666 (4,512–4,955) |
+| image (brotli) | Slow 4G | 3,486 | 19,267 | 19,429 (19,401–19,480) | 22,546 (22,497–22,601) |
+| image-identity (raw) | none | 11,708 | 423 | 975 (613–1,714) | 1,429 (845–2,545) |
+| image-identity (raw) | Fast 4G | 11,708 | 11,517 | 11,768 (11,494–12,152) | 13,219 (12,902–13,976) |
+| image-identity (raw) | Slow 4G | 11,708 | 61,915 | 62,180 (61,910–62,329) | 69,419 (69,138–69,562) |
+
+The raw values, rounds 1–7 (round 1 discarded), first frame / settled:
+
+| Arm | Profile | First frame | Settled |
+|---|---|---|---|
+| image | none | 858 791 738 427 372 402 367 | 1196 1157 1096 620 512 559 519 |
+| image | Fast 4G | 3910 4101 3944 4090 3885 3846 4019 | 4645 4955 4621 4915 4552 4512 4712 |
+| image | Slow 4G | 19413 19468 19444 19480 19401 19413 19412 | 22531 22601 22575 22593 22497 22515 22516 |
+| image-identity | none | 841 1079 1714 762 959 992 613 | 1154 1743 2545 1038 1434 1423 845 |
+| image-identity | Fast 4G | 11461 11844 12152 11507 11754 11781 11494 | 12859 13296 13976 12939 13218 13220 12902 |
+| image-identity | Slow 4G | 62158 62195 62184 62329 62176 62087 61910 | 69422 69513 69424 69562 69414 69336 69138 |
+
+Controls as in B-28: the probe stayed silent with every `.wasm` blocked (both arms), the profiles came
+out in order, and Slow 4G's first frame lies above its non-font bytes ÷ bandwidth (17,377 and
+60,024 ms); the pre-registered all-bytes floor fails again for the reason B-28 found (the first frame
+does not wait for the fonts).
+
+**What it says.** The stand's first frame on Slow 4G drops from 62.2 s to 19.4 s and on Fast 4G from
+11.8 s to 4.0 s — the factor of three B-28 predicted, now from the server rather than from the
+measurement's own static server, and within 0.1 s of B-28's brotli numbers for the same bundle
+(19.5 s and 3.9 s). On loopback the CPU still dominates and the shared machine's load still sets the
+spread (0.4 s against 1.0 s here, inside B-28's 0.4–1.2 s). Only the first load was measured; what
+`immutable` saves on a second visit (skiko's 2.5 MB) was not.
+
 ### D10. Documentation in English
 
 As the sibling reference projects; this repository is read from outside.

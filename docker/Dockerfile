@@ -13,9 +13,17 @@ ARG TEMURIN=25.0.4_7
 
 FROM eclipse-temurin:${TEMURIN}-jre AS train
 RUN apt-get update \
- && apt-get install -y --no-install-recommends postgresql \
+ && apt-get install -y --no-install-recommends postgresql brotli \
  && rm -rf /var/lib/apt/lists/*
 COPY . /opt/app
+# **The browser bundle, precompressed once here rather than on every request** (B-34): a `.br`
+# (quality 11) and a `.gz` (-9) beside each file the page loads, which the server picks by the
+# browser's Accept-Encoding (`WebBundle.kt`). Here and not in Gradle because this is where an encoder
+# is: brotli has no pure-JVM encoder, and a build machine cannot be counted on for `brotli`; this stage is
+# thrown away, so the encoder never reaches the image. About half a minute, mostly skiko's 8 MB wasm.
+RUN find /opt/app/web -type f \( -name '*.wasm' -o -name '*.js' -o -name '*.mjs' -o -name '*.html' \
+      -o -name '*.css' -o -name '*.json' -o -name '*.ttf' -o -name '*.otf' -o -name '*.svg' \) -print0 \
+    | xargs -0 -r -P 4 -I{} sh -c 'brotli -q 11 -f -o "$1.br" "$1" && gzip -9 -n -k -f "$1"' _ {}
 ENV HAUL_DB_URL=jdbc:postgresql://127.0.0.1:5432/haul \
     HAUL_DB_USER=haul \
     HAUL_DB_PASSWORD=haul \

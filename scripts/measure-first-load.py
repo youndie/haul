@@ -20,7 +20,11 @@ Controls in the same log: a run with every .wasm blocked must report no frame, a
 must come out in their known order with Slow 4G above its bandwidth floor. A run with every font
 blocked shows what the first frame looks like before the fonts arrive (its screenshot).
 
-    scripts/measure-first-load.py DIST_DIR OUT_DIR [--rounds 7] [--label main] [--identity]
+    scripts/measure-first-load.py DIST_DIR OUT_DIR [--rounds 7] [--label main] [--identity] [--url URL]
+
+--url measures a server that is already running (B-34: the image, which sends the `.br`/`.gz` it
+carries) instead of serving DIST_DIR; DIST_DIR is then only read for the size table, and a `.br` or
+`.gz` found beside a file there is reported as that file's compressed size, since it is what is sent.
 
 CHROME_BIN names the Chromium (default: Playwright's under ~/.cache/ms-playwright).
 """
@@ -152,13 +156,21 @@ def load_dist(dist, lib):
     for root, _, names in os.walk(dist):
         for n in names:
             path = os.path.join(root, n)
+            if n.endswith((".br", ".gz")) and os.path.exists(path[:-3]):
+                continue  # a precompressed variant (B-34): read below as its original's size
             rel = os.path.relpath(path, dist).replace(os.sep, "/")
             data = open(path, "rb").read()
             compress = not n.endswith(INCOMPRESSIBLE)
+
+            def variant(ext, make):
+                if os.path.exists(f"{path}.{ext}"):
+                    return open(f"{path}.{ext}", "rb").read()
+                return make() if compress else None
+
             files[rel] = {
                 "raw": data,
-                "gzip": gzip.compress(data, 9, mtime=0) if compress else None,
-                "br": brotli(lib, data) if compress else None,
+                "gzip": variant("gz", lambda: gzip.compress(data, 9, mtime=0)),
+                "br": variant("br", lambda: brotli(lib, data)),
                 "bucket": bucket(rel, data),
             }
     return files
@@ -365,7 +377,7 @@ def stand():
 
 def run_once(chrome, url, profile_name, blocked, timeout, shot=None):
     proc, profile_dir, cdp = launch(chrome)
-    inflight, responses, finished, failed = set(), {}, {}, []
+    inflight, responses, finished, failed, accepts = set(), {}, {}, [], set()
     state = {"load": False, "last_net": time.time()}
 
     def on_event(msg):
@@ -373,11 +385,17 @@ def run_once(chrome, url, profile_name, blocked, timeout, shot=None):
         if m == "Network.requestWillBeSent":
             inflight.add(p["requestId"])
             state["last_net"] = time.time()
+        elif m == "Network.requestWillBeSentExtraInfo":
+            hdr = {k.lower(): v for k, v in p.get("headers", {}).items()}
+            if "accept-encoding" in hdr:
+                accepts.add(hdr["accept-encoding"])
         elif m == "Network.responseReceived":
             r = p["response"]
             hdr = {k.lower(): v for k, v in r.get("headers", {}).items()}
             responses[p["requestId"]] = {"url": r["url"], "status": r["status"],
-                                         "encoding": hdr.get("content-encoding", "identity")}
+                                         "encoding": hdr.get("content-encoding", "identity"),
+                                         "type": hdr.get("content-type"), "cache": hdr.get("cache-control"),
+                                         "vary": hdr.get("vary")}
         elif m == "Network.loadingFinished":
             inflight.discard(p["requestId"])
             finished[p["requestId"]] = p["encodedDataLength"]
@@ -449,7 +467,7 @@ def run_once(chrome, url, profile_name, blocked, timeout, shot=None):
         "html_end_ms": (data["nav"] or {}).get("responseEnd"), "nav_transfer": (data["nav"] or {}).get("transferSize"), "load_event_ms": (data["nav"] or {}).get("load"),
         "last_byte_ms": bundle_end,
         "transferred_bytes": sum(n for n in finished.values() if n),
-        "requests": net, "failed": failed, "resources": data["resources"],
+        "requests": net, "failed": failed, "resources": data["resources"], "accept_encoding": sorted(accepts),
     }
 
 
@@ -503,16 +521,20 @@ def main():
     ap.add_argument("--label", default="main")
     ap.add_argument("--identity", action="store_true", help="serve uncompressed")
     ap.add_argument("--profiles", default="none,fast4g,slow4g")
+    ap.add_argument("--url", help="measure this running server instead of serving DIST (B-34)")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     chrome = chromium()
     lib, libpath = brotli_lib(chrome)
     files = load_dist(a.dist, lib)
-    srv, seen = serve(files, a.identity)
-    url = f"http://127.0.0.1:{srv.server_address[1]}/"
+    if a.url:
+        srv, seen, url = None, set(), a.url.rstrip("/") + "/"
+    else:
+        srv, seen = serve(files, a.identity)
+        url = f"http://127.0.0.1:{srv.server_address[1]}/"
     version = subprocess.run([chrome, "--version"], capture_output=True, text=True).stdout.strip()
     header = {"label": a.label, "chrome": version, "brotli": libpath, "dist": os.path.abspath(a.dist),
-              "identity": a.identity, "stand": stand(), "kernel": os.uname().release,
+              "identity": a.identity, "served_by": a.url or "this script", "stand": stand(), "kernel": os.uname().release,
               "date": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
     print(json.dumps(header))
     raw = open(os.path.join(a.out, f"{a.label}-runs.jsonl"), "w")
@@ -544,7 +566,9 @@ def main():
                   f"timeout={res['timed_out']} load={res['stand']['loadavg']} mem={res['stand']['mem_available_mb']}",
                   flush=True)
     raw.close()
-    srv.shutdown()
+    if srv:
+        srv.shutdown()
+    seen |= {e for x in runs for e in x["accept_encoding"]}
 
     counted = [x for x in runs if x["round"] > 1]
     requested = {u.split("/", 3)[3].split("?")[0] or "index.html"
@@ -552,10 +576,14 @@ def main():
     sizes, total = size_table(files, requested)
     encodings = sorted({(q["url"].rsplit("/", 1)[-1] or "index.html", q["encoding"])
                         for x in counted for q in x["requests"]})
+    served_headers = sorted({(q["url"].rsplit("/", 1)[-1] or "index.html", q["type"] or "—", q["cache"] or "—",
+                              q["vary"] or "—") for x in counted for q in x["requests"]})
     lines = [f"# First load — {a.label}", "", "```", json.dumps(header, indent=1), "```", "",
              "## Sizes", "", sizes, "",
              f"Accept-Encoding the browser sent: {sorted(seen)}", "",
              "Encodings served: " + ", ".join(f"`{n}` {e}" for n, e in encodings), "",
+             "| File | Content-Type | Cache-Control | Vary |", "|---|---|---|---|",
+             *[f"| `{n}` | {t} | {c} | {v} |" for n, t, c, v in served_headers], "",
              "## Time (ms since navigation start; median (min–max) of the counted rounds)", "",
              f"Rounds {a.rounds}, round 1 discarded; counted per profile: "
              f"{ {p: sum(1 for x in counted if x['profile'] == p) for p in profiles} }", "",
