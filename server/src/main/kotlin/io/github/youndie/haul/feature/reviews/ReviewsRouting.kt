@@ -8,6 +8,7 @@ import io.github.youndie.haul.feature.reviews.domain.ReviewCommands
 import io.github.youndie.haul.feature.reviews.domain.ReviewError
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.kompot.encodeKompotAction
+import io.github.youndie.kompot.ktor.respondKompotAction
 import io.github.youndie.kompot.standard.CloseAction
 import io.github.youndie.kompot.standard.RefreshAction
 import io.github.youndie.kompot.standard.SequenceAction
@@ -18,15 +19,17 @@ import io.ktor.server.request.receiveText
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import io.ktor.server.routing.put
 import kotlinx.serialization.DeserializationStrategy
 import org.koin.ktor.ext.inject
 
 /**
  * feature-reviews' commands (endpoint-reviews), in the customer tier: a request without a verified token
  * never reaches here (`401 unauthenticated`). Reading reviews and questions is the product page's `tab`
- * (`/ui/p/{id}?tab=reviews`, the catalog's). Both commands answer `201` with kompot's `sequence` of
- * `close` and `refresh` — the dialog goes and the page is drawn again with what was written — and every
- * refusal is a [ReviewError].
+ * (`/ui/p/{id}?tab=reviews`, the catalog's). The two dialogs' commands answer `201` with kompot's
+ * `sequence` of `close` and `refresh` — the dialog goes and the page is drawn again with what was written;
+ * «Helpful» (B-43) answers `200` with `refresh`, the page drawn again with the count the server now has.
+ * Every refusal is a [ReviewError].
  */
 internal fun Route.reviewsRouting() {
     val commands by inject<ReviewCommands>()
@@ -45,6 +48,12 @@ internal fun Route.reviewsRouting() {
         val customer = call.customer()
         commands.ask(customer, call.parameters["productId"]!!, call.body(QuestionEntry.serializer()))
         call.respondClosed()
+    }
+
+    put(ReviewPaths.HELPFUL) {
+        val customer = call.customer()
+        commands.helpful(customer, call.parameters["reviewId"]!!, call.body(HelpfulVote.serializer()))
+        call.respondKompotAction(haulWireJson, RefreshAction)
     }
 }
 
@@ -65,10 +74,13 @@ private suspend fun ApplicationCall.respondClosed() =
 internal object ReviewPaths {
     const val REVIEWS = "/api/v1/products/{productId}/reviews"
     const val QUESTIONS = "/api/v1/products/{productId}/questions"
+    const val HELPFUL = "/api/v1/reviews/{reviewId}/helpful"
 
     fun reviews(productId: String): String = REVIEWS.replace("{productId}", productId)
 
     fun questions(productId: String): String = QUESTIONS.replace("{productId}", productId)
+
+    fun helpful(reviewId: String): String = HELPFUL.replace("{reviewId}", reviewId)
 }
 
 /**

@@ -1,5 +1,6 @@
 package io.github.youndie.haul.ui
 
+import io.github.youndie.haul.feature.reviews.HelpfulCommand
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.KompotModifierNode
@@ -153,7 +154,11 @@ public data class HistogramBar(
 
 /**
  * A review. [tone] is the avatar's tile tone, [photos] the tones of its photo placeholders (research
- * D8); [helpful] is «48 people found this helpful», absent while nobody has.
+ * D8); [helpful] is «48 people found this helpful», the stored count, absent while nobody has.
+ *
+ * «Helpful» ([helpfulLabel]) carries, for a customer, [helpfulCommand] — their vote, or taking it back
+ * (B-43) — and for a guest [helpfulAction], the way to sign in. On the customer's own review it carries
+ * neither: the author cannot vote on it.
  */
 @Serializable
 public data class Review(
@@ -168,6 +173,7 @@ public data class Review(
     val helpful: String? = null,
     val helpfulLabel: String = "Helpful",
     val helpfulAction: @Polymorphic KompotAction? = null,
+    val helpfulCommand: HelpfulCommand? = null,
 )
 
 /**

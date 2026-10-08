@@ -98,7 +98,7 @@ class SchemaTest {
         assertEquals(10, tables.size)
     }
 
-    /** V12's reviews, rating counts and questions against their Exposed declarations. */
+    /** V12's reviews, rating counts and questions, and V15's helpful votes, against their Exposed declarations. */
     @Test
     fun `the migrated schema needs no further DDL for the review tables`() {
         val required =
@@ -108,7 +108,7 @@ class SchemaTest {
                 }
             }
         assertEquals(emptyList(), required, "still required:\n" + required.joinToString("\n"))
-        assertEquals(3, reviewTables.size)
+        assertEquals(4, reviewTables.size)
     }
 
     /** The guard on the guard: an empty table list also needs no DDL. */

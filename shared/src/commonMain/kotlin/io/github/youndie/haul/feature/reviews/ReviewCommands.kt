@@ -4,7 +4,7 @@ import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.FieldError
 import kotlinx.serialization.Serializable
 
-// The bodies of feature-reviews' two commands (endpoint-reviews) and the rules both are held to. Where
+// The bodies of feature-reviews' commands (endpoint-reviews) and the rules both are held to. Where
 // each is sent is the server's string, carried by the dialog's component (`ReviewForm.url`,
 // `QuestionForm.url`); both answer kompot's `sequence` of `close` and `refresh` — the dialog goes and
 // the page is drawn again with what was written — or an `ErrorBody`.
@@ -25,6 +25,27 @@ public data class ReviewEntry(
 @Serializable
 public data class QuestionEntry(
     val text: String = "",
+)
+
+/**
+ * «Helpful», `PUT` to `HelpfulCommand.url`: [helpful] is the vote the press leaves — `true` counts the
+ * customer as finding the review helpful, `false` takes that back. The state, not a toggle, so a press
+ * sent twice counts once (research, «Decided in B-37»); one vote per customer per review.
+ */
+@Serializable
+public data class HelpfulVote(
+    val helpful: Boolean,
+)
+
+/**
+ * «Helpful» on a review fixed in the tree for the customer looking at it (B-43): [vote] — the opposite of
+ * the vote they have — with `PUT` to [url], answered `refresh`. A guest has none (the button is the way to
+ * sign in), and neither has the review's own author, whom the route refuses (`409 own_review`).
+ */
+@Serializable
+public data class HelpfulCommand(
+    val url: String,
+    val vote: HelpfulVote,
 )
 
 /** feature-reviews' limits. Lengths count the text without its leading and trailing blanks. */

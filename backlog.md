@@ -40,7 +40,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (13)
+## Open (12)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -56,9 +56,8 @@ A stage is a field on the item, not a directory.
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 | [B-44](docs/backlog/B-44-a-guest-on-a-customer-page-is-sent-to-sign-in.md) `[ ]` | client: a guest on a customer page is sent to sign-in | P2 | S | B-41 |
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
-| [B-43](docs/backlog/B-43-helpful-votes-on-reviews.md) `[ ]` | server + client: «Helpful» votes on reviews | P3 | S | B-22 |
 
-## Closed (31)
+## Closed (32)
 
 **Skeleton**
 
@@ -105,6 +104,7 @@ A stage is a field on the item, not a directory.
 **Reviews**
 
 - [B-22](docs/backlog/B-22-reviews-and-questions-the-two-dialog.md) `[x]` - server + client: reviews and questions, the two dialog routes and forms
+- [B-43](docs/backlog/B-43-helpful-votes-on-reviews.md) `[x]` - server + client: «Helpful» votes on reviews
 
 **Ship**
 

@@ -202,6 +202,7 @@ internal fun status(code: ErrorCode): HttpStatusCode =
         ErrorCode.SlotNotFound,
         ErrorCode.PickupPointNotFound,
         ErrorCode.AddressNotFound,
+        ErrorCode.ReviewNotFound,
         -> HttpStatusCode.NotFound
 
         ErrorCode.OutOfStock,
@@ -212,6 +213,7 @@ internal fun status(code: ErrorCode): HttpStatusCode =
         ErrorCode.CartChanged,
         ErrorCode.CheckoutHeld,
         ErrorCode.ReviewExists,
+        ErrorCode.OwnReview,
         -> HttpStatusCode.Conflict
 
         ErrorCode.PromoExpired,

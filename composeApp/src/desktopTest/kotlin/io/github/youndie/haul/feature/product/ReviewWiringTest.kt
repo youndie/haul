@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.product
 
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -13,6 +14,7 @@ import io.github.youndie.haul.FakeHistory
 import io.github.youndie.haul.FieldError
 import io.github.youndie.haul.FixtureFonts
 import io.github.youndie.haul.decode
+import io.github.youndie.haul.feature.reviews.HelpfulVote
 import io.github.youndie.haul.feature.reviews.QuestionEntry
 import io.github.youndie.haul.feature.reviews.ReviewEntry
 import io.github.youndie.haul.haulWireJson
@@ -43,6 +45,7 @@ import kotlin.time.Instant
  * form at fault by the server's rules sends nothing, a filled one is the command endpoint-reviews names
  * sent to the URL the form carries, and its answer — close, then refresh — takes the dialog away and
  * fetches the page again. A refusal is drawn in the dialog; Cancel and «×» close it and send nothing.
+ * «Helpful» (B-43) sends the vote its review carries and follows the answer, `refresh`.
  */
 @OptIn(ExperimentalTestApi::class)
 class ReviewWiringTest {
@@ -213,6 +216,68 @@ class ReviewWiringTest {
             onNodeWithTag(SUBMIT_TAG).assertDoesNotExist()
         }
 
+    /**
+     * B-43: «Helpful» sends the vote its review carries — Aisha's, the second card — to the URL it names,
+     * and the answer, `refresh`, fetches the page again, where the server's count is drawn.
+     */
+    @Test
+    fun `helpful sends the review's vote and the answer redraws the page`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            answer = { RefreshAction }
+            reviews()
+            onAllNodesWithTag(HELPFUL_TAG)[1].performClick()
+            waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
+            assertEquals(
+                listOf<ReviewCommand>(ReviewCommand.Vote(HELPFUL_URL, HelpfulVote(helpful = true))),
+                sent.toList(),
+            )
+            assertEquals(listOf("/ui$REVIEWS_ADDRESS", "/ui$REVIEWS_ADDRESS"), requests.toList())
+        }
+
+    /** A refused vote (the review gone, or the voter's own) draws the page as the server has it; no answer leaves it. */
+    @Test
+    fun `a refused vote redraws the page and one with no answer does not`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            answer = { throw IOException("connection refused") }
+            reviews()
+            onAllNodesWithTag(HELPFUL_TAG)[0].performClick()
+            waitUntil(timeoutMillis = 5_000) { sent.size == 1 }
+            waitForIdle()
+            assertEquals(1, requests.size)
+            answer = { throw ReviewRefused(409, ErrorCode.OwnReview, "You cannot vote on your own review") }
+            onAllNodesWithTag(HELPFUL_TAG)[0].performClick()
+            waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
+            assertEquals(2, sent.size)
+        }
+
+    /** A guest's «Helpful» is the way to sign in, as the server builds it: sign-in runs and no vote is sent. */
+    @Test
+    fun `a guest's helpful signs in and sends no vote`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            val signIns = AtomicInteger()
+            val tree = decode("product_reviews.json") as ColumnComponent
+            val guests =
+                tree.copy(
+                    children =
+                        tree.children.map { child ->
+                            if (child is ProductReviews) {
+                                child.copy(
+                                    reviews =
+                                        child.reviews.map {
+                                            it.copy(helpfulCommand = null, helpfulAction = NavigateAction("/sign-in"))
+                                        },
+                                )
+                            } else {
+                                child
+                            }
+                        },
+                )
+            storefront(REVIEWS_ADDRESS, haulWireJson.encodeKompotComponent(guests)) { signIns.incrementAndGet() }
+            onAllNodesWithTag(HELPFUL_TAG)[1].performClick()
+            waitUntil(timeoutMillis = 5_000) { signIns.get() == 1 }
+            assertEquals(emptyList(), sent.toList())
+        }
+
     private object FixedClock : Clock {
         override fun now(): Instant = CANVAS_NOW
     }
@@ -224,6 +289,7 @@ class ReviewWiringTest {
         const val QUESTIONS_ADDRESS = "/p/p-sony-wh-1000xm6?tab=questions"
         const val REVIEWS_URL = "/api/v1/products/p-sony-wh-1000xm6/reviews"
         const val QUESTIONS_URL = "/api/v1/products/p-sony-wh-1000xm6/questions"
+        const val HELPFUL_URL = "/api/v1/reviews/r-sony-aisha/helpful"
         val CLOSED = SequenceAction(listOf(CloseAction, RefreshAction))
         val GOOD =
             ReviewEntry(
