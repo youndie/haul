@@ -74,7 +74,7 @@ at 1440, under them on a phone. **PointsApplied** has no tree of its own: no poi
 `POST /api/v1/orders` runs, nothing sent meanwhile. **Loading** and **Error** are `CheckoutLoading` and
 `CheckoutError` («Checkout didn’t load», «Your cart is unchanged»).
 
-All eighteen artboards are within the default parity tolerance (B-15's findings carry the table).
+All eighteen artboards are within the default parity tolerance (the table is in B-15's item).
 
 - [x] **Loading:** the minimal header, placeholder sections and summary
 - [x] **Content:** courier, 148 Wythe Avenue 4F, Wed 8 / 15:00–18:00, card ···· 4821, «Use 2,480 points (−$24.80)» off, summary $512, «Place order · $512.00»
