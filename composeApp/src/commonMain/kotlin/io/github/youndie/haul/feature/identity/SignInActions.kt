@@ -4,6 +4,7 @@ import io.github.youndie.haul.StorefrontPage
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.standard.NavigateAction
 import io.ktor.http.URLDecodeException
+import io.ktor.http.encodeURLParameter
 import io.ktor.http.parseQueryString
 import kotlinx.coroutines.CancellationException
 
@@ -12,18 +13,26 @@ import kotlinx.coroutines.CancellationException
  * guest to `/sign-in` — the header's «Sign in», the cart's «Sign in to check out» — and the client
  * answers it by running [signIn] (the provider's popup, then the cart merge). A sign-in that went
  * through [open]s the address the action asked to come back to ([next], B-41) when it carries one the
- * storefront has a page for; otherwise — no `next`, a refused one, a popup closed, a server without
- * sign-in — the screen is drawn again with [redraw], signed in or not. [handle] says whether the
- * action was sign-in's, so the navigation that owns every other `navigate` can hand it the rest.
+ * storefront has a page for; otherwise — no `next` or a refused one — the screen is drawn again with
+ * [redraw]. A sign-in that did not go through — a popup closed, a server without sign-in — is
+ * [cancelled]'s, which draws the screen again too unless the caller has somewhere else to be: a page
+ * that asked for the sign-in itself (B-44) has nothing to draw for a guest, and goes home. [handle]
+ * says whether the action was sign-in's, so the navigation that owns every other `navigate` can hand
+ * it the rest.
  */
 public class SignInActions(
     private val signIn: suspend () -> Unit,
     private val redraw: () -> Unit,
+    private val cancelled: () -> Unit = redraw,
     private val open: (address: String) -> Unit,
 ) {
     public suspend fun handle(action: KompotAction): Boolean {
         if (action !is NavigateAction || action.deeplink.substringBefore('?') != SIGN_IN) return false
-        val next = if (attempt()) next(action.deeplink) else null
+        if (!attempt()) {
+            cancelled()
+            return true
+        }
+        val next = next(action.deeplink)
         if (next == null) redraw() else open(next)
         return true
     }
@@ -47,6 +56,9 @@ public class SignInActions(
     public companion object {
         /** The server's word for «sign in here» (`Frame.SIGN_IN` on the server). */
         public const val SIGN_IN: String = "/sign-in"
+
+        /** The sign-in that returns to [address] once it has gone through — what the server writes as `next`. */
+        public fun returningTo(address: String): String = "$SIGN_IN?next=" + address.encodeURLParameter()
 
         /**
          * Where a sign-in asked by [deeplink] returns: its `next`, decoded, when that is a storefront

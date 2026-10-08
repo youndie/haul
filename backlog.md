@@ -40,7 +40,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (11)
+## Open (10)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -53,10 +53,9 @@ A stage is a field on the item, not a directory.
 | [B-25](docs/backlog/B-25-recommendations-from-views-in-the-home.md) `[ ]` | server: recommendations from views in the Home tree | P2 | M | B-07, B-19 |
 | [B-27](docs/backlog/B-27-helm-chart-tracy-metrik-katcher-wiring.md) `[?]` | ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand | P2 | M | B-03 |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
-| [B-44](docs/backlog/B-44-a-guest-on-a-customer-page-is-sent-to-sign-in.md) `[ ]` | client: a guest on a customer page is sent to sign-in | P2 | S | B-41 |
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
 
-## Closed (33)
+## Closed (34)
 
 **Skeleton**
 
@@ -100,6 +99,7 @@ A stage is a field on the item, not a directory.
 - [B-40](docs/backlog/B-40-saving-an-address-updates-it-in-place.md) `[x]` - server: saving the address being delivered to updates it in place
 - [B-41](docs/backlog/B-41-sign-in-returns-to-where-it-was-asked.md) `[x]` - client: sign-in returns to where it was asked for
 - [B-42](docs/backlog/B-42-a-refused-address-form-holds-pickup-orders.md) `[x]` - server: a refused address form does not hold a pickup or locker order
+- [B-44](docs/backlog/B-44-a-guest-on-a-customer-page-is-sent-to-sign-in.md) `[x]` - client: a guest on a customer page is sent to sign-in
 
 **Reviews**
 
