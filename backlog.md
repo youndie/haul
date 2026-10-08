@@ -47,7 +47,7 @@ A stage is a field on the item, not a directory.
 | [B-18](docs/backlog/B-18-order-tree-and-renderers-reorder.md) `[ ]` | server + client: Order tree and renderers, reorder | P1 | M | B-01, B-15, B-17 |
 | [B-19](docs/backlog/B-19-account-overview-and-orders-history.md) `[ ]` | server + client: Account overview and orders history | P1 | M | B-01, B-18 |
 | [B-26](docs/backlog/B-26-the-whole-path-over-http-against.md) `[ ]` | e2e: the whole path over HTTP against the composed stack | P1 | M | B-21, B-22 |
-| [B-39](docs/backlog/B-39-placement-refuses-a-quote-checkout-holds.md) `[ ]` | server: placement refuses a quote the checkout is holding | P1 | S | B-15, B-16 |
+| [B-39](docs/backlog/B-39-placement-refuses-a-quote-checkout-holds.md) `[~]` | server: placement refuses a quote the checkout is holding | P1 | S | B-15, B-16 |
 | [B-20](docs/backlog/B-20-saved-list-save-for-later-price.md) `[ ]` | server + client: Saved list, save for later, price drops | P2 | M | B-01, B-13, B-19 |
 | [B-21](docs/backlog/B-21-returns-and-refunds.md) `[ ]` | server + client: returns and refunds | P2 | M | B-18 |
 | [B-22](docs/backlog/B-22-reviews-and-questions-the-two-dialog.md) `[ ]` | server + client: reviews and questions, the two dialog routes and forms | P2 | L | B-08, B-17 |

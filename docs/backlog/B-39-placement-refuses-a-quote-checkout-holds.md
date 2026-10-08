@@ -1,7 +1,7 @@
 ---
 id: B-39
 title: "server: placement refuses a quote the checkout is holding"
-status: open
+status: wip
 priority: P1
 size: S
 stage: stage-5-order
