@@ -47,8 +47,10 @@ command URL like the cart's), the client follows it. A control whose screen belo
     `PUT /api/v1/cart/lines/{sku}` with the line's *next* quantity, for the SKU whose price the card
     shows (the deal's SKU on a deal card). The server knows the viewer's cart (`Viewer.inCart`, read in
     `Viewers` from the cart's lines; `CartRepository.units` went with it), so «+» is absent at ten, at
-    the stock and out of stock, and a press sent twice adds one. The client sends it and draws the
-    screen again; the header's count moves.
+    the stock and out of stock, and a press sent twice adds one. The client sends it as B-13's cart
+    command, `CartCommand.ChangeLine(add.url, add.change)` through `LocalCartCommands`, and hands the
+    answer, `refresh`, to the renderer's action handler, as the cart's own presses do; the screen is
+    drawn again and the header's count moves.
   - **«Clear» on recent searches** — `SearchSuggestPanel.clearUrl` (it replaces `clearAction`, never
     set), present only when the customer has recent searches; `DELETE /api/v1/me/recent-searches` in
     the customer tier (`customerSearchRouting`), `refresh`; the shell sends it and asks for the panel
@@ -62,15 +64,16 @@ command URL like the cart's), the client follows it. A control whose screen belo
   it**, so it has no parity reference and no golden. It reads the whole catalog per request (some
   3,000 products on the seed) the way a top-level category page reads its descendants; research D3's
   in-memory note covers both.
-- **Where B-13 folds in the «+»:** `composeApp/.../feature/cart/AddToCart.kt` — `AddToCart` /
-  `LocalAddToCart` and `HaulCommands.changeLine(LineCommand)`; the storefront provides it in
-  `Shown` (`shell/Storefront.kt`). With B-13's `CartCommands` it is `CartCommand.ChangeLine(command.url,
-  command.change)` sent through `LocalCartCommands`, and this file goes. Both run over the same
-  `Identity.send`; B-37's transport for commands is `HaulCommands`/`ktorCommands` in
-  `shell/Transport.kt` (`App` and `Storefront` take it after the transport).
-- **`/cart` needed no mapping**: every address the shell has no kind for is asked of the server at
-  the same path under `/ui` (`Address.screen`), so the cart button loads `/ui/cart`; `AddressTest`
-  says so. B-13's `PageKind` for the cart, if it adds one, is a loading state, not the route.
+- **Folded into B-13 on the rebase.** The «+» first had a seam of its own (`AddToCart`); once B-13
+  merged with `CartCommands`, it goes through those, and the seam is gone. What B-37 keeps of its own
+  is `HaulCommands` / `ktorCommands` (`shell/Transport.kt`), the last, optional parameter of `App` and
+  `Storefront` beside B-13's `cartCommands`, for the one command outside the cart: «Clear» on recent
+  searches. Both go through `Identity.send`.
+- **`/deals` reloads too.** B-36's `StorefrontPage` — the one list the server serves the page at and
+  the client reads its page kinds from — gained `Deals` (`/deals`, its query in the query string; not
+  `/deals/…`), so a reloaded or shared `/deals` opens the page; the client draws it as `PageKind.Other`
+  (the shell's own placeholders). `StorefrontPageTest`, `WebBundleTest`'s listed shapes and
+  `AddressTest` say so. The cart button needed nothing: `/cart` was B-13's and B-36's already.
 - **Menus have no artboard.** «Catalog» and the sort open a menu drawn from the theme's tokens
   (surface, outline, Archivo 15); the canvas draws both controls closed only, and closed is all a
   screenshot draws (no handler, no menu).

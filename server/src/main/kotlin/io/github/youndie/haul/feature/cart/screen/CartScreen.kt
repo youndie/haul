@@ -197,7 +197,11 @@ internal class CartScreen(
             // The picks are the day's deals, not recommendations (feature-recommendations), so the
             // subtitle says so rather than the canvas's «Based on your recent views».
             SectionHeader("picked-title", "Picked for you", subtitle = "From today’s deals", accent = "you"),
-            ProductGrid("picked", picks.take(PICKS).map { card(it, calendar, photos, inCart = emptyMap()) }, columns = PICKS),
+            ProductGrid(
+                "picked",
+                picks.take(PICKS).map { card(it, calendar, photos, inCart = emptyMap()) },
+                columns = PICKS,
+            ),
         )
     }
 
