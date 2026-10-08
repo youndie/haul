@@ -1,7 +1,7 @@
 ---
 id: B-17
 title: "server: fulfilment simulator, capture per shipment, pickup codes"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-5-order
