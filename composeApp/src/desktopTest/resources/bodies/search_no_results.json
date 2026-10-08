@@ -1,0 +1,101 @@
+{
+ "type": "column",
+ "id": "search",
+ "children": [
+  {
+   "type": "haul_header",
+   "id": "header",
+   "customerName": "Maya",
+   "deliverTo": "Brooklyn, NY 11211",
+   "deliveryPromise": "Free delivery over $35",
+   "cartCount": 3,
+   "searchPlaceholder": "Search 2.4 million products",
+   "query": "xqzt",
+   "categories": [
+    "Electronics",
+    "Home & Kitchen",
+    "Fashion",
+    "Beauty",
+    "Kids & Toys",
+    "Sports",
+    "Grocery",
+    "Auto",
+    "Books",
+    "Pets"
+   ]
+  },
+  {
+   "type": "haul_search_no_results",
+   "id": "no-results",
+   "query": "xqzt",
+   "title": "Nothing found for “xqzt”",
+   "accent": "“xqzt”",
+   "count": "0 results",
+   "tips": [
+    "Check the spelling",
+    "Use fewer or more general words",
+    "Browse a category below"
+   ]
+  },
+  {
+   "type": "haul_section_header",
+   "id": "popular-title",
+   "title": "Popular categories",
+   "accent": "categories"
+  },
+  {
+   "type": "haul_category_grid",
+   "id": "popular",
+   "tiles": [
+    {
+     "id": "tile-0",
+     "name": "Electronics",
+     "tone": "#E6E4FF",
+     "label": "tech"
+    },
+    {
+     "id": "tile-1",
+     "name": "Home & Kitchen",
+     "tone": "#F1EBDD",
+     "label": "home"
+    },
+    {
+     "id": "tile-2",
+     "name": "Fashion",
+     "tone": "#FFE5DD",
+     "label": "apparel"
+    },
+    {
+     "id": "tile-3",
+     "name": "Beauty",
+     "tone": "#F1E4F5",
+     "label": "beauty"
+    },
+    {
+     "id": "tile-4",
+     "name": "Kids & Toys",
+     "tone": "#FFF1C9",
+     "label": "toys"
+    },
+    {
+     "id": "tile-5",
+     "name": "Sports",
+     "tone": "#E3F5D8",
+     "label": "sport"
+    },
+    {
+     "id": "tile-6",
+     "name": "Grocery",
+     "tone": "#E9F0D2",
+     "label": "grocery"
+    },
+    {
+     "id": "tile-7",
+     "name": "Pets",
+     "tone": "#E0EEF7",
+     "label": "pets"
+    }
+   ]
+  }
+ ]
+}

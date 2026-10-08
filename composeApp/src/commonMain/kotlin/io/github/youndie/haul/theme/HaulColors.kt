@@ -41,6 +41,12 @@ public object HaulColors {
     public val inverseOnSurfaceVariant: Color = Color(0xFFBDB8AE)
     public val scrim: Color = Color(0x800F0F0F)
 
+    /**
+     * A floating panel's shadow, black at 45 % (Search_Autocomplete's `box-shadow`). `canvas.json` lists
+     * no role for it: the canvas's own shadows are written inline.
+     */
+    public val shadow: Color = Color(0x73000000)
+
     /** The placeholder photo tile's hatching: Ink at 5 %. */
     public val tileHatch: Color = Color(0x0D0F0F0F)
 

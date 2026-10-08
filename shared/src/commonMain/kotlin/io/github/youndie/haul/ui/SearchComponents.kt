@@ -9,19 +9,21 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 // The pieces of the Search screen (feature-search). The results page is the catalog's own pieces —
-// `PageTitle` with the count, `FilterChips` whose chips carry counts, `ProductGrid`, `HaulPagination` —
+// `PageTitle` (quoted) with the count, `FilterChips` whose chips carry counts, `ProductGrid`, `HaulPagination` —
 // and these are what search adds: the suggest panel and the page for a query that found nothing.
 
 /**
- * A query the panel suggests. [typed] is the part the shopper typed, drawn regular, and [completion]
- * the rest, drawn bold («running sh» + «oes»); a suggestion that does not start with what was typed
- * (a corrected spelling) has an empty [typed].
+ * A query the panel suggests. [typed] is the part the shopper typed, drawn regular, and [prefix] and
+ * [completion] what the suggestion adds before and after it, drawn bold («running sh» + «oes»,
+ * «trail » + «running shoes»); a suggestion that does not contain what was typed (a corrected
+ * spelling) has an empty [typed] and is all [completion].
  */
 @Serializable
 public data class QuerySuggestion(
     val typed: String,
     val completion: String,
     val action: @Polymorphic KompotAction? = null,
+    val prefix: String = "",
 )
 
 /** A category the query's products fall in: «Sports › Running shoes» and how many of them. */
@@ -65,8 +67,9 @@ public data class SearchSuggestPanel(
 ) : KompotComponent
 
 /**
- * A search that found nothing (`Search_NoResults`): the title naming the query, the queries to try
- * instead when there are any, and otherwise [tips]. The popular categories follow it as a
+ * A search that found nothing (`Search_NoResults`): [count] above the title naming the query, whose
+ * [accent] — the quoted query — is drawn in the italic; then the queries to try instead when there
+ * are any, and otherwise [tips]. The popular categories follow it as a `SectionHeader` and a
  * `CategoryGrid` of their own.
  */
 @Serializable
@@ -78,5 +81,7 @@ public data class SearchNoResults(
     val title: String,
     val suggestions: List<QuerySuggestion> = emptyList(),
     val tips: List<String> = emptyList(),
+    val count: String? = null,
+    val accent: String? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent

@@ -177,7 +177,10 @@ public data class Breadcrumbs(
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
-/** A page's title with the count beside it («Headphones · 12,408 items»). */
+/**
+ * A page's title with the count beside it («Headphones · 12,408 items»); or, [quoted], a search's:
+ * the query in quotes with the count above it («14,870 results», «“Running shoes”»).
+ */
 @Serializable
 @SerialName("haul_page_title")
 @KompotComponentMarker
@@ -185,6 +188,7 @@ public data class PageTitle(
     override val id: String,
     val title: String,
     val count: String? = null,
+    val quoted: Boolean = false,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 

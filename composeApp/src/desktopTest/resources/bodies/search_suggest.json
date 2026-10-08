@@ -1,0 +1,62 @@
+{
+ "type": "haul_search_suggest_panel",
+ "id": "suggest",
+ "query": "running shoes",
+ "suggestions": [
+  {
+   "typed": "running shoes",
+   "completion": " women"
+  },
+  {
+   "typed": "running shoes",
+   "completion": " men wide"
+  },
+  {
+   "prefix": "trail ",
+   "typed": "running shoes",
+   "completion": ""
+  },
+  {
+   "typed": "running shoes",
+   "completion": " waterproof"
+  }
+ ],
+ "categories": [
+  {
+   "label": "Sports › Running shoes",
+   "count": "8,214"
+  },
+  {
+   "label": "Fashion › Sneakers",
+   "count": "5,102"
+  }
+ ],
+ "recent": [
+  "wireless earbuds",
+  "standing desk"
+ ],
+ "products": [
+  {
+   "productId": "p-1",
+   "title": "Pace Runner 3, Men's",
+   "price": "$89",
+   "tone": "#FFF1C9",
+   "label": "shoes"
+  },
+  {
+   "productId": "p-2",
+   "title": "Cloudline Daily Trainer, Women's",
+   "price": "$112",
+   "tone": "#E0EEF7",
+   "label": "shoes"
+  },
+  {
+   "productId": "p-3",
+   "title": "Ridge Trail GTX, Waterproof",
+   "price": "$72",
+   "tone": "#E3F5D8",
+   "label": "shoes"
+  }
+ ],
+ "allResultsLabel": "All 14,870 results"
+}

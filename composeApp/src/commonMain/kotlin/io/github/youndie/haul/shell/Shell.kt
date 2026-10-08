@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -28,6 +29,7 @@ import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.HaulType.browserLeading
 import io.github.youndie.haul.theme.LocalHaulCompact
+import io.github.youndie.haul.ui.BalancedText
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HaulHeaderView
@@ -80,16 +82,45 @@ public enum class ShellFailure(
     Server("Something went wrong on our side. Try again in a moment."),
 }
 
-/** The page a failed screen leaves: «[subject] didn’t *load*», why, and Retry. */
+/**
+ * The page a failed screen leaves: «[subject] didn’t *load*», why, and Retry. A search's
+ * ([SearchError]) keeps the query in the header's field and says «Search didn’t *respond*».
+ */
 @Composable
 public fun ErrorShell(
     subject: String,
     failure: ShellFailure,
     onRetry: () -> Unit = {},
 ) {
+    ErrorPage(SHELL_HEADER, accented("$subject didn’t\u00A0load", "load"), failure.message, balanced = false)
+}
+
+/** A failed search (Search_Error): the query stays in the field, and the shopper is told so. */
+@Composable
+public fun SearchError(
+    query: String,
+    onRetry: () -> Unit = {},
+) {
+    ErrorPage(
+        SHELL_HEADER.copy(query = query),
+        accented("Search didn’t respond", "respond"),
+        "Your query is still in the field. Try again in a moment.",
+        // `text-wrap: balance` keeps «didn’t respond» together at 1440 and breaks it on a phone,
+        // where the two words do not fit one line.
+        balanced = true,
+    )
+}
+
+@Composable
+private fun ErrorPage(
+    header: HaulHeader,
+    title: AnnotatedString,
+    message: String,
+    balanced: Boolean,
+) {
     val compact = LocalHaulCompact.current
     Column(Modifier.fillMaxWidth()) {
-        HaulHeaderView(SHELL_HEADER, pending = true)
+        HaulHeaderView(header, pending = true)
         Column(
             Modifier.padding(
                 start = gutter(),
@@ -103,22 +134,23 @@ public fun ErrorShell(
                 Icon(HaulIcons.alert, 18.dp, HaulColors.error)
                 Text("Something went wrong".uppercase(), HaulType.label(11f, 600, 0.08f).copy(color = HaulColors.error))
             }
-            Text(
+            val style =
+                HaulType
+                    .display(
+                        if (compact) 56f else 112f,
+                        800,
+                        letterSpacing = if (compact) -0.01f else -0.03f,
+                        lineHeight = 0.9f,
+                    ).copy(lineBreak = LineBreak.Simple)
+            if (balanced) {
+                BalancedText(title, style, Modifier.widthIn(max = 1000.dp))
+            } else {
                 // The canvas balances the title (`text-wrap: balance`), which keeps «didn’t load» together
                 // at both widths; a no-break space keeps it together in a plain greedy break.
-                accented("$subject didn’t\u00A0load", "load"),
-                Modifier.widthIn(max = 1000.dp),
-                style =
-                    HaulType
-                        .display(
-                            if (compact) 56f else 112f,
-                            800,
-                            letterSpacing = if (compact) -0.01f else -0.03f,
-                            lineHeight = 0.9f,
-                        ).copy(lineBreak = LineBreak.Simple),
-            )
+                Text(title, Modifier.widthIn(max = 1000.dp), style = style)
+            }
             Text(
-                failure.message,
+                message,
                 HaulType
                     .text(
                         if (compact) 16f else 18f,
@@ -480,3 +512,54 @@ private fun BuyBoxSkeleton(modifier: Modifier) {
         Skeleton(Modifier.fillMaxWidth().height(80.dp), 18.dp)
     }
 }
+
+/**
+ * A search before its tree (Search_Loading): the header already holds the query; a count, the title,
+ * six category chips and ten cards as placeholders — five across at 1440, two on a phone.
+ */
+@Composable
+public fun SearchLoading(query: String) {
+    val compact = LocalHaulCompact.current
+    val gutter = gutter()
+    Column(Modifier.fillMaxWidth()) {
+        HaulHeaderView(SHELL_HEADER.copy(query = query), pending = true)
+        Column(
+            Modifier.padding(
+                start = gutter,
+                end = gutter,
+                top = if (compact) 24.dp else 36.dp,
+                bottom = if (compact) 64.dp else 80.dp,
+            ),
+        ) {
+            Skeleton(Modifier.size(140.dp, 13.dp), 5.dp)
+            Skeleton(
+                Modifier
+                    .padding(top = 16.dp, bottom = if (compact) 20.dp else 26.dp)
+                    .size(if (compact) 300.dp else 720.dp, if (compact) 50.dp else 96.dp),
+                12.dp,
+            )
+            Row(
+                Modifier
+                    .padding(bottom = if (compact) 24.dp else 32.dp)
+                    .fillMaxWidth()
+                    .clipToBounds()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                SEARCH_CHIP_WIDTHS.forEach {
+                    Skeleton(
+                        Modifier.width(it.dp).height(if (compact) 40.dp else 44.dp),
+                        22.dp,
+                    )
+                }
+            }
+            if (compact) {
+                Grid(columns = 2, count = 10, columnGap = 12.dp, rowGap = 28.dp) { CardSkeleton(it) }
+            } else {
+                Grid(columns = 5, count = 10, columnGap = 24.dp, rowGap = 40.dp) { CardSkeleton(it) }
+            }
+        }
+    }
+}
+
+private val SEARCH_CHIP_WIDTHS = listOf(100, 140, 150, 130, 100, 90)
