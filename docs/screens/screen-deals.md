@@ -54,6 +54,7 @@ No artboard, so the states are the tree's and the shell's:
 
 - card → screen-product (`/p/{productId}`)
 - «+» on a card → `PUT /api/v1/cart/lines/{skuId}` with the line's next quantity (a deal card's deal SKU), then the page drawn again in place
+- a card's heart → `PUT` / `DELETE /api/v1/me/saved/{productId}`, then the page drawn again; a guest's → `/sign-in` (B-20, [endpoint-saved](../api/endpoint-saved.md))
 - page number, «Show 24 more» → `/deals?page=n`
 - the header → as on every screen (screen-home)
 

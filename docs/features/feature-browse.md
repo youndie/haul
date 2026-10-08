@@ -59,9 +59,6 @@ code, not observed, until this document goes `active`.
 
 ## 5. Scenarios (BDD / test cases)
 
-All scenarios are *target*: written against the intended behaviour and verified against the real
-status codes and error strings before this document goes `active`.
-
 ### Scenario: Facets narrow the list
 * **Given:** the `headphones` category
 * **When:** the client asks for brands Sony and Bose, price 80…400 and feature «noise cancelling»
