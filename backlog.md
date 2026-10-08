@@ -1,0 +1,95 @@
+# Backlog: Haul, an open end-to-end marketplace storefront
+
+> Role of this document: the product backlog. **One file per item in
+> [`docs/backlog/`](docs/backlog/)** — `B-NN-<slug>.md`. What lives here is the index (generated)
+> and everything that is not an item: the goal, the stages, and the decisions.
+>
+> New item: copy [`docs/templates/backlog-item.md`](docs/templates/backlog-item.md), take the next
+> free `B-NN`, and run `make fix` after editing.
+
+## Goal
+
+A shopper on the public stand finds a product, buys it from two sellers in one order, watches it
+arrive and returns part of it — and every step runs on the stack this project exists to show:
+Ktor, kompot, petich, shildik, Compose Multiplatform in the browser. The order of work follows what
+everything else compiles against: the skeleton and the two components every screen uses, then the
+browse half, then the money half, then the account and the loyalty layer, then the stand.
+
+Why it is built this way is in [research-architecture](docs/research/research-architecture.md);
+read it before taking an item.
+
+## Stages
+
+A stage is a field on the item, not a directory.
+
+| Stage id | Stage | What it is |
+|---|---|---|
+| `stage-1-skeleton` | Skeleton | the repository builds, the docs check passes, the canvas is complete, the theme and the first components render |
+| `stage-2-browse` | Browse | home, category and product screens from the server on the seed, against the canvas |
+| `stage-3-search` | Search | search and autocomplete |
+| `stage-4-cart` | Cart and sign-in | guest cart, sign-in, merge, cart screen |
+| `stage-5-order` | Checkout and orders | placement, the saga, simulators, the order screen |
+| `stage-6-account` | Account | overview, history, Saved, price drops, returns |
+| `stage-7-reviews` | Reviews | reviews and questions |
+| `stage-8-loyalty` | Loyalty | Plus, points, Haul Pay, recommendations |
+| `stage-9-ship` | Ship | the end-to-end suite, the chart and the stand, observability, first-load numbers |
+
+## Marks
+
+`[ ]` open · `[~]` in progress · `[x]` done · `[?]` open question · `[-]` dropped
+
+<!-- BEGIN INDEX -->
+
+## Open (30)
+
+| Task | | Priority | Size | Blocked by |
+|---|---|---|---|---|
+| [B-02](docs/backlog/B-02-settings-plugin-modules-shared-server-composeapp.md) `[ ]` | scaffold: settings plugin, modules `shared` / `server` / `composeApp` / `e2e`, CI, `CLAUDE.md`, docs check | P1 | M | - |
+| [B-03](docs/backlog/B-03-schema-migrations-seed-generator-and-sample.md) `[ ]` | server: schema migrations, seed generator and sample-data fixtures, probes, the image with a zavarnik cache | P1 | M | B-02 |
+| [B-04](docs/backlog/B-04-theme-registry-haulheader-and-productcard-renderers.md) `[ ]` | contract + client: theme (colour roles, three bundled fonts), registry, `HaulHeader` and `ProductCard` renderers | P1 | M | B-02 |
+| [B-05](docs/backlog/B-05-catalog-use-cases-and-the-home.md) `[ ]` | server: catalog use cases (home, facets, product, delivery estimate) and the Home / Catalog / Product trees | P1 | L | B-03, B-04 |
+| [B-06](docs/backlog/B-06-home-catalog-product-pngs.md) `[ ]` | design refs: `Home_*`, `Catalog_*`, `Product_*` PNGs | P1 | S | B-01 |
+| [B-07](docs/backlog/B-07-renderers-for-the-home-and-catalog.md) `[ ]` | client: renderers for the Home and Catalog components; Loading / Error shells | P1 | L | B-05, B-06 |
+| [B-08](docs/backlog/B-08-renderers-for-the-product-components.md) `[ ]` | client: renderers for the Product components (without the dialogs) | P1 | L | B-05, B-06 |
+| [B-09](docs/backlog/B-09-search-suggest-recent-searches-suggest-latency.md) `[ ]` | server: search, suggest, recent searches; suggest latency measured on the seed | P1 | M | B-05 |
+| [B-10](docs/backlog/B-10-search-screen-and-searchsuggestpanel.md) `[ ]` | design refs + client: Search screen and `SearchSuggestPanel` | P1 | M | B-01, B-07, B-09 |
+| [B-11](docs/backlog/B-11-guests-cart-promo-codes-changed-lines.md) `[ ]` | server: guests, cart, promo codes, changed lines, the Cart tree | P1 | M | B-05 |
+| [B-12](docs/backlog/B-12-shildik-sign-in-in-the-browser.md) `[ ]` | server + client: shildik sign-in in the browser, customer creation, cart merge, header states | P1 | L | B-04, B-11 |
+| [B-13](docs/backlog/B-13-cart-renderers.md) `[ ]` | design refs + client: Cart renderers | P1 | M | B-01, B-11, B-12 |
+| [B-14](docs/backlog/B-14-checkout-tree-slots-with-capacity-pickup.md) `[ ]` | server: checkout tree, slots with capacity, pickup points, quote, the address form | P1 | M | B-12 |
+| [B-15](docs/backlog/B-15-checkout-renderers-and-the-address-form.md) `[ ]` | design refs + client: Checkout renderers and the address form | P1 | L | B-01, B-13, B-14 |
+| [B-16](docs/backlog/B-16-placement-with-an-idempotency-key-the.md) `[ ]` | server: placement with an idempotency key; the petich saga — reserve, authorise, confirm, compensate; the payment simulator | P1 | L | B-14 |
+| [B-17](docs/backlog/B-17-fulfilment-simulator-capture-per-shipment-pickup.md) `[ ]` | server: fulfilment simulator, capture per shipment, pickup codes | P1 | M | B-16 |
+| [B-18](docs/backlog/B-18-order-tree-and-renderers-reorder.md) `[ ]` | server + client: Order tree and renderers, reorder | P1 | M | B-01, B-15, B-17 |
+| [B-19](docs/backlog/B-19-account-overview-and-orders-history.md) `[ ]` | server + client: Account overview and orders history | P1 | M | B-01, B-18 |
+| [B-26](docs/backlog/B-26-the-whole-path-over-http-against.md) `[ ]` | e2e: the whole path over HTTP against the composed stack | P1 | M | B-21, B-22 |
+| [B-20](docs/backlog/B-20-saved-list-save-for-later-price.md) `[ ]` | server + client: Saved list, save for later, price drops | P2 | M | B-01, B-13, B-19 |
+| [B-21](docs/backlog/B-21-returns-and-refunds.md) `[ ]` | server + client: returns and refunds | P2 | M | B-18 |
+| [B-22](docs/backlog/B-22-reviews-and-questions-the-two-dialog.md) `[ ]` | server + client: reviews and questions, the two dialog routes and forms | P2 | L | B-08, B-17 |
+| [B-23](docs/backlog/B-23-haul-plus-trial-and-benefits-points.md) `[ ]` | server + client: Haul Plus trial and benefits, points ledger, redemption at checkout, delivery savings | P2 | M | B-15, B-17, B-19 |
+| [B-24](docs/backlog/B-24-haul-pay-4-payments-two-weeks.md) `[ ]` | server + client: Haul Pay, 4 payments two weeks apart | P2 | M | B-15, B-16 |
+| [B-25](docs/backlog/B-25-recommendations-from-views-in-the-home.md) `[ ]` | server: recommendations from views in the Home tree | P2 | M | B-07, B-19 |
+| [B-27](docs/backlog/B-27-helm-chart-tracy-metrik-katcher-wiring.md) `[ ]` | ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand | P2 | M | B-03 |
+| [B-28](docs/backlog/B-28-first-load-size-and-time-of.md) `[ ]` | measure: first-load size and time of the wasm bundle | P2 | S | B-07 |
+| [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
+| [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
+| [B-30](docs/backlog/B-30-product-images-through-object-storage.md) `[ ]` | product images through object storage | P3 | M | B-08 |
+
+## Closed (1)
+
+**Skeleton**
+
+- [B-01](docs/backlog/B-01-canvas-per-the-design-briefs-static.md) `[x]` - design: canvas per the design briefs — static artboards, every screen state, desktop and phone, the three disagreements resolved
+
+<!-- END INDEX -->
+
+## Decisions worth not re-litigating
+
+**A client item is accepted against the canvas, not against a description of it.** Every client
+item's acceptance is `viddikDesignParity` within tolerance for the artboards it names; a number
+above the tolerance comes with a reason, never with a loosened threshold.
+
+**The feature, screen, endpoint and service documents are drafted in an open pull request.** They
+describe intent until the code behind them exists, and intent does not live on `main`. An item that
+lands a feature moves its documents from `draft` to `active` in the same change, after checking each
+scenario against the real status codes and error strings.
