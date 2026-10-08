@@ -62,9 +62,10 @@ Feature: `feature-identity` — its scenarios are this item's acceptance where i
   whoever is looking and counts their cart`); the merge's caps in `CartMergeTest`; Maya's seeded cart
   in `CustomerCartTest`; the client's session in `IdentityTest` and `SignInTapTest`. Mutations seen
   failing: no `azp` check, no merge caps, no recovery from a `401`.
-- Where it ran: the server suite (83 tests; PostgreSQL and shildik in Testcontainers), `check
-  :server:installDist :composeApp:wasmJsBrowserDistribution` and `viddikVerify` (51 screenshots, 0
-  failing, no golden re-recorded) on the Linux build machine; `make check` on the Mac.
+- Where it ran: the server suite (102 tests after the rebase over B-30; PostgreSQL and shildik in
+  Testcontainers), `check :server:installDist :composeApp:wasmJsBrowserDistribution` with
+  `viddikVerify` (52 screenshots, 0 failing, no golden re-recorded) and `scripts/image-check.sh` (551 of
+  551 classes from the cache) on the Linux build machine; `make check` on the Mac.
 
 ## Findings (2026-10-08)
 
