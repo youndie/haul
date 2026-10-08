@@ -1,5 +1,7 @@
 package io.github.youndie.haul.seed
 
+import io.github.youndie.haul.feature.cart.data.CartLinesTable
+import io.github.youndie.haul.feature.cart.data.CartsTable
 import io.github.youndie.haul.feature.cart.data.PromoCodesTable
 import io.github.youndie.haul.feature.catalog.data.CampaignsTable
 import io.github.youndie.haul.feature.catalog.data.CategoriesTable
@@ -7,10 +9,12 @@ import io.github.youndie.haul.feature.catalog.data.DealsTable
 import io.github.youndie.haul.feature.catalog.data.ProductsTable
 import io.github.youndie.haul.feature.catalog.data.SellersTable
 import io.github.youndie.haul.feature.catalog.data.SkusTable
+import io.github.youndie.haul.feature.identity.data.CustomersTable
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.batchInsert
+import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
@@ -100,6 +104,30 @@ internal object Seeder {
                 this[PromoCodesTable.capCents] = it.capCents
                 this[PromoCodesTable.startsAt] = it.startsAt
                 this[PromoCodesTable.endsAt] = it.endsAt
+            }
+            CustomersTable.batchInsert(catalog.customers) {
+                this[CustomersTable.id] = it.id
+                this[CustomersTable.name] = it.name
+                this[CustomersTable.plus] = it.plus
+                this[CustomersTable.createdAt] = CatalogSeed.NOW
+            }
+            val prices = catalog.skus.associate { it.id to it.priceCents }
+            catalog.carts.forEach { cart ->
+                CartsTable.insert {
+                    it[CartsTable.id] = cart.id
+                    it[CartsTable.customerId] = cart.customerId
+                }
+                CartLinesTable.batchInsert(cart.skuIds.withIndex()) { (index, skuId) ->
+                    this[CartLinesTable.cartId] = cart.id
+                    this[CartLinesTable.skuId] = skuId
+                    this[CartLinesTable.quantity] = 1
+                    this[CartLinesTable.selected] = true
+                    this[CartLinesTable.seenPriceCents] = checkNotNull(prices[skuId]) { "no SKU $skuId in the seed" }
+                    this[CartLinesTable.seenInStock] = true
+                    // A minute apart, the first a day before «now»: the order is the cart's.
+                    this[CartLinesTable.addedAt] = CatalogSeed.NOW.minusDays(1).plusMinutes(index.toLong())
+                    this[CartLinesTable.position] = index + 1
+                }
             }
             true
         }

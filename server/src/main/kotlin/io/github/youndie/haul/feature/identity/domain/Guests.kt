@@ -1,6 +1,7 @@
 package io.github.youndie.haul.feature.identity.domain
 
 import io.github.youndie.haul.ErrorCode
+import io.github.youndie.haul.feature.identity.GUEST_HEADER
 import java.time.OffsetDateTime
 
 /** What identity can refuse with; the application answers each with its status and body. */
@@ -15,6 +16,12 @@ internal sealed class IdentityError(
      * creates a new guest.
      */
     class Unauthenticated : IdentityError(ErrorCode.Unauthenticated, "Create a guest or sign in first")
+
+    /** The guest cart to merge names no guest the server issued (endpoint-identity). */
+    class GuestNotFound : IdentityError(ErrorCode.GuestNotFound, "No such guest to merge", GUEST_HEADER)
+
+    /** Sign-in asked of a server that has none configured: `503 unavailable`, the deployment's condition. */
+    class SignInOff : IdentityError(ErrorCode.Unavailable, "Sign-in is not configured on this server")
 }
 
 /** The guests the server issued (research D5). A guest is an id and the cart it owns. */

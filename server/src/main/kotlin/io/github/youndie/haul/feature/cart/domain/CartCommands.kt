@@ -111,6 +111,32 @@ internal class CartCommands(
         carts.setPromo(owner, null)
     }
 
+    /**
+     * Sign-in keeps what the guest put in the cart (feature-identity): the guest's lines move into the
+     * customer's cart — the same SKU's quantities summed and capped at ten and at the stock, a new SKU
+     * appended as the guest had it — the customer's code stays, or the guest's comes along when the
+     * customer had none, and the guest's cart is deleted. Merging a guest with no cart deletes nothing
+     * and changes nothing: a second merge of the same guest is harmless.
+     */
+    suspend fun merge(
+        guest: CartOwner.Guest,
+        customer: CartOwner.Customer,
+    ) {
+        val from = carts.cart(guest)
+        val into = carts.cart(customer)
+        val stock =
+            catalog
+                .listedBySkus(from.lines.map { it.skuId }.toSet())
+                .flatMap { it.skus }
+                .associate { it.id to it.stock }
+        val lines =
+            from.lines.map { line ->
+                val existing = into.line(line.skuId) ?: return@map line
+                existing.copy(quantity = mergedQuantity(existing.quantity + line.quantity, stock[line.skuId] ?: 0))
+            }
+        carts.merge(guest, customer, lines, into.promoCode ?: from.promoCode)
+    }
+
     /** The stored lines with their SKUs as the catalog has them now, in the cart's order. */
     suspend fun priced(cart: StoredCart): List<PricedLine> {
         val items = catalog.listedBySkus(cart.lines.map { it.skuId }.toSet())
@@ -138,6 +164,15 @@ internal class CartCommands(
 
     companion object {
         const val MAX_QUANTITY = 10
+
+        /**
+         * A merged line's quantity: the [sum], at most ten and at most the [stock]; never below one,
+         * because a line is one item or more — one out of stock shows as changed and cannot be bought.
+         */
+        fun mergedQuantity(
+            sum: Int,
+            stock: Int,
+        ): Int = minOf(sum, MAX_QUANTITY, stock).coerceAtLeast(1)
 
         /** What a refused code is told: the command's error message, and the field's text in the next tree. */
         fun promoMessage(error: ErrorCode): String =

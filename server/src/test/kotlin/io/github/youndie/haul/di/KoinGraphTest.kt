@@ -13,11 +13,14 @@ import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.screen.CatalogScreen
 import io.github.youndie.haul.feature.catalog.screen.HomeScreen
 import io.github.youndie.haul.feature.catalog.screen.ProductScreen
+import io.github.youndie.haul.feature.identity.Callers
+import io.github.youndie.haul.feature.identity.domain.Customers
 import io.github.youndie.haul.feature.identity.domain.Guests
 import io.github.youndie.haul.feature.identity.identityModule
 import io.github.youndie.haul.feature.search.screen.SearchScreen
 import io.github.youndie.haul.feature.search.searchModule
 import io.github.youndie.haul.seed.CatalogSeed
+import io.github.youndie.haul.shell.Viewers
 import io.github.youndie.haul.testing.SeededDatabase
 import org.koin.core.Koin
 import org.koin.dsl.koinApplication
@@ -69,6 +72,9 @@ class KoinGraphTest {
         assertNotNull(koin.get<ProductScreen>())
         assertNotNull(koin.get<SearchScreen>())
         assertNotNull(koin.get<Guests>())
+        assertNotNull(koin.get<Customers>())
+        assertNotNull(koin.get<Callers>())
+        assertNotNull(koin.get<Viewers>())
         assertNotNull(koin.get<CartRepository>())
         assertNotNull(koin.get<CartCommands>())
         assertNotNull(koin.get<CartScreen>())

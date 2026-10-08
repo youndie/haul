@@ -46,13 +46,16 @@ internal class CartScreen(
     private val clock: StoreClock,
     private val photos: ProductPhotos,
 ) {
-    suspend fun build(owner: CartOwner): KompotComponent {
+    suspend fun build(
+        owner: CartOwner,
+        viewer: Viewer = Viewer(customerId = (owner as? CartOwner.Customer)?.id),
+    ): KompotComponent {
         val cart = carts.cart(owner)
         val lines = commands.priced(cart)
         val categories = catalog.categories()
         val units = lines.sumOf { it.stored.quantity }
-        val viewer = Viewer(cartCount = units)
-        if (lines.isEmpty()) return Frame.page("cart", viewer, navigation(categories), empty())
+        val frame = viewer.copy(cartCount = units)
+        if (lines.isEmpty()) return Frame.page("cart", frame, navigation(categories), empty())
 
         val plus = (owner as? CartOwner.Customer)?.plus ?: false
         val promo = cart.promoCode?.let { carts.promo(it) }
@@ -72,7 +75,7 @@ internal class CartScreen(
                     promoField(cart),
                     summary(totals, promo?.code, owner, plus),
                 )
-        return Frame.page("cart", viewer, navigation(categories), sections)
+        return Frame.page("cart", frame, navigation(categories), sections)
     }
 
     private suspend fun groups(lines: List<PricedLine>): List<CartGroup> =
@@ -185,8 +188,8 @@ internal class CartScreen(
     companion object {
         private const val PICKS = 6
 
-        /** Checkout asks a guest to sign in first (feature-cart); the page that does it is B-12's. */
-        const val SIGN_IN = "/sign-in?next=%2Fcheckout"
+        /** Checkout asks a guest to sign in first (feature-cart); the client opens the provider's page. */
+        const val SIGN_IN = "${Frame.SIGN_IN}?next=%2Fcheckout"
         const val CHECKOUT = "/checkout"
 
         private val GROUPED = NumberFormat.getIntegerInstance(Locale.US)

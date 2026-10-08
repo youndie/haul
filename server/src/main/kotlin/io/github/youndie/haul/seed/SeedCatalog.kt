@@ -14,6 +14,8 @@ internal data class SeedCatalog(
     val campaigns: List<SeedCampaign>,
     val deals: List<SeedDeal>,
     val promoCodes: List<SeedPromoCode>,
+    val customers: List<SeedCustomer> = emptyList(),
+    val carts: List<SeedCart> = emptyList(),
 )
 
 internal data class SeedCategory(
@@ -96,4 +98,17 @@ internal data class SeedPromoCode(
     val capCents: Int?,
     val startsAt: OffsetDateTime,
     val endsAt: OffsetDateTime,
+)
+
+internal data class SeedCustomer(
+    val id: String,
+    val name: String,
+    val plus: Boolean,
+)
+
+/** A customer's cart: one of each SKU, selected, at the price the catalog has, in the order given. */
+internal data class SeedCart(
+    val id: String,
+    val customerId: String,
+    val skuIds: List<String>,
 )

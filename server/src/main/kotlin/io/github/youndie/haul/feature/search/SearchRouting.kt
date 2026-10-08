@@ -5,7 +5,7 @@ import io.github.youndie.haul.feature.catalog.domain.Sort
 import io.github.youndie.haul.feature.search.screen.SearchRequest
 import io.github.youndie.haul.feature.search.screen.SearchScreen
 import io.github.youndie.haul.haulWireJson
-import io.github.youndie.haul.shell.Viewer
+import io.github.youndie.haul.shell.Viewers
 import io.github.youndie.kompot.ktor.respondKompotComponent
 import io.ktor.http.Parameters
 import io.ktor.server.routing.Route
@@ -13,20 +13,21 @@ import io.ktor.server.routing.get
 import org.koin.ktor.ext.inject
 
 /**
- * The search screens (endpoint-search), in the public tier: a guest searches as a customer does.
- * Refusals are `SearchError` (`query_too_short`) and `CatalogError` (a sort, page or category the
- * page does not have). `DELETE /api/v1/me/recent-searches` is the customer tier's, and arrives with
- * sign-in (B-12).
+ * The search screens (endpoint-search), in the public tier: a guest searches as a customer does,
+ * and a signed-in customer's searches are recorded. Refusals are `SearchError` (`query_too_short`)
+ * and `CatalogError` (a sort, page or category the page does not have). Clearing recent searches,
+ * `DELETE /api/v1/me/recent-searches` in the customer tier, is not built yet (B-12's findings).
  */
 internal fun Route.searchRouting() {
     val screen by inject<SearchScreen>()
+    val viewers by inject<Viewers>()
 
     get("/ui/search") {
-        call.respondKompotComponent(haulWireJson, screen.results(searchRequest(call.request.queryParameters), Viewer()))
+        call.respondKompotComponent(haulWireJson, screen.results(searchRequest(call.request.queryParameters), viewers.of(call)))
     }
 
     get("/ui/search/suggest") {
-        call.respondKompotComponent(haulWireJson, screen.suggest(call.request.queryParameters["q"], Viewer()))
+        call.respondKompotComponent(haulWireJson, screen.suggest(call.request.queryParameters["q"], viewers.of(call)))
     }
 }
 

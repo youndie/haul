@@ -17,6 +17,8 @@ import kotlinx.serialization.Serializable
  *
  * [customerName] is the signed-in first name; `null` is a guest, and the shortcut reads «Sign in».
  * [query] is what the search field holds on the search screen; `null` shows the placeholder.
+ * [account] is what a tap on the account shortcut does: a guest is sent to `/sign-in`, which the
+ * client answers by opening the provider's page; a customer to `/account`.
  */
 @Serializable
 @SerialName("haul_header")
@@ -30,6 +32,7 @@ public data class HaulHeader(
     val searchPlaceholder: String,
     val query: String? = null,
     val categories: List<String>,
+    val account: @Polymorphic KompotAction? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 

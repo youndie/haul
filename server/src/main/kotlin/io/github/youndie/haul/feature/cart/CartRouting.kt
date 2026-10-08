@@ -4,10 +4,11 @@ import io.github.youndie.haul.feature.cart.domain.CartCommands
 import io.github.youndie.haul.feature.cart.domain.CartError
 import io.github.youndie.haul.feature.cart.domain.CartOwner
 import io.github.youndie.haul.feature.cart.screen.CartScreen
-import io.github.youndie.haul.feature.identity.GUEST_HEADER
-import io.github.youndie.haul.feature.identity.domain.Guests
+import io.github.youndie.haul.feature.identity.Caller
+import io.github.youndie.haul.feature.identity.Callers
 import io.github.youndie.haul.feature.identity.domain.IdentityError
 import io.github.youndie.haul.haulWireJson
+import io.github.youndie.haul.shell.Viewers
 import io.github.youndie.kompot.ktor.respondKompotAction
 import io.github.youndie.kompot.ktor.respondKompotComponent
 import io.github.youndie.kompot.standard.RefreshAction
@@ -22,26 +23,28 @@ import kotlinx.serialization.DeserializationStrategy
 import org.koin.ktor.ext.inject
 
 /**
- * The cart (endpoint-cart), in the public tier: the caller is a guest named by `X-Haul-Guest`, and a
- * request naming no guest the server issued is `401 unauthenticated`. A customer's bearer token joins
- * the guest id here with sign-in (B-12). Every command answers `refresh`, which redraws the cart and
- * the header's count; every refusal is a [CartError] or an [IdentityError].
+ * The cart (endpoint-cart), in the public tier: the caller is a customer by a verified bearer token,
+ * or else a guest named by `X-Haul-Guest`; a request with neither — or naming a guest the server never
+ * issued — is `401 unauthenticated`. A token and a guest id together are the customer (feature-identity).
+ * Every command answers `refresh`, which redraws the cart and the header's count; every refusal is a
+ * [CartError] or an [IdentityError].
  */
 internal fun Route.cartRouting() {
     val screen by inject<CartScreen>()
     val commands by inject<CartCommands>()
-    val guests by inject<Guests>()
+    val callers by inject<Callers>()
+    val viewers by inject<Viewers>()
 
-    suspend fun ApplicationCall.owner(): CartOwner {
-        val id = request.headers[GUEST_HEADER]?.trim()?.takeIf { it.isNotEmpty() }
-        if (id == null || !guests.exists(id)) throw IdentityError.Unauthenticated()
-        return CartOwner.Guest(id)
-    }
+    suspend fun ApplicationCall.caller(): Caller = callers.of(this)
+
+    suspend fun ApplicationCall.owner(): CartOwner = caller().owner() ?: throw IdentityError.Unauthenticated()
 
     suspend fun ApplicationCall.refresh() = respondKompotAction(haulWireJson, RefreshAction)
 
     get(CartPaths.SCREEN) {
-        call.respondKompotComponent(haulWireJson, screen.build(call.owner()))
+        val caller = call.caller()
+        val owner = caller.owner() ?: throw IdentityError.Unauthenticated()
+        call.respondKompotComponent(haulWireJson, screen.build(owner, viewers.of(caller)))
     }
 
     put(CartPaths.LINE) {
@@ -84,10 +87,21 @@ internal object CartPaths {
     const val ACKNOWLEDGE = "$LINES/{skuId}/acknowledge"
     const val PROMO = "/api/v1/cart/promo"
 
+    /** Sign-in's merge of a guest cart into the customer's (endpoint-identity), in the customer tier. */
+    const val MERGE = "/api/v1/me/cart/merge"
+
     fun line(skuId: String): String = "$LINES/$skuId"
 
     fun acknowledge(skuId: String): String = "$LINES/$skuId/acknowledge"
 }
+
+/** The cart a caller owns: a customer's, a guest's, or none. */
+internal fun Caller.owner(): CartOwner? =
+    when (this) {
+        Caller.Nobody -> null
+        is Caller.Guest -> CartOwner.Guest(id)
+        is Caller.Customer -> CartOwner.Customer(customer.id, customer.plus)
+    }
 
 /** A command's JSON body; one that does not parse is `400 validation_failed`, with no detail of why. */
 private suspend fun <T> ApplicationCall.body(strategy: DeserializationStrategy<T>): T =

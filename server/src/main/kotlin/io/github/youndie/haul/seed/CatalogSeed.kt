@@ -53,7 +53,17 @@ internal object CatalogSeed {
                     val sku = skus.first { it.productId == products[pick].id }
                     SeedDeal("deal-${i + 2}", sku.id, sku.priceCents * DEAL_PERCENT / 100, DEALS_END)
                 }
-        return SeedCatalog(categories, sellers, products, skus, SampleCatalog.campaigns, deals, SamplePromoCodes.all)
+        return SeedCatalog(
+            categories,
+            sellers,
+            products,
+            skus,
+            SampleCatalog.campaigns,
+            deals,
+            SamplePromoCodes.all,
+            SampleCustomers.all,
+            SampleCustomers.carts,
+        )
     }
 
     /** 32 top-level categories, two subcategories each, two leaves under each subcategory. */

@@ -5,10 +5,11 @@ import io.github.youndie.haul.ui.HaulFooter
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.ColumnComponent
+import io.github.youndie.kompot.standard.NavigateAction
 
 /**
  * Who is looking: what the header shows and which blocks a screen offers. [customerId] is a signed-in
- * customer's id, `null` for a guest; nothing sets it until sign-in arrives (B-12).
+ * customer's id, `null` for a guest; [Viewers] tells it from a request.
  */
 internal data class Viewer(
     val firstName: String? = null,
@@ -45,7 +46,14 @@ internal object Frame {
         searchPlaceholder = "Search 2.4 million products",
         query = query,
         categories = navigation,
+        account = NavigateAction(if (viewer.customerId == null) SIGN_IN else ACCOUNT),
     )
+
+    /** Where the account shortcut sends a guest: the client opens the provider's page (feature-identity). */
+    const val SIGN_IN = "/sign-in"
+
+    /** Where it sends a customer. */
+    const val ACCOUNT = "/account"
 
     /** The store's default place, until a customer's address says otherwise (feature-browse). */
     private const val DEFAULT_PLACE = "Brooklyn, NY 11211"

@@ -1,6 +1,7 @@
 package io.github.youndie.haul.feature.cart.data
 
 import io.github.youndie.haul.feature.catalog.data.SkusTable
+import io.github.youndie.haul.feature.identity.data.CustomersTable
 import io.github.youndie.haul.feature.identity.data.GuestsTable
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.Table
@@ -11,7 +12,7 @@ import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.javatime.timestampWithTimeZone
 
-// The Exposed side of V4__cart.sql. `SchemaTest` holds the two together, CHECK constraints included:
+// The Exposed side of V4__cart.sql (and of V7's key from a cart to its customer). `SchemaTest` holds the two together, CHECK constraints included:
 // they are declared here under the names PostgreSQL gave them there.
 
 internal object PromoCodesTable : Table("promo_codes") {
@@ -29,7 +30,10 @@ internal object CartsTable : Table("carts") {
         text(
             "guest_id",
         ).references(GuestsTable.id, onDelete = ReferenceOption.CASCADE).nullable().uniqueIndex()
-    val customerId = text("customer_id").nullable().uniqueIndex()
+    val customerId =
+        text(
+            "customer_id",
+        ).references(CustomersTable.id, onDelete = ReferenceOption.CASCADE).nullable().uniqueIndex()
     val promoCode = text("promo_code").references(PromoCodesTable.code).nullable()
     val promoAttempt = text("promo_attempt").nullable()
     val promoError = text("promo_error").nullable()
@@ -54,5 +58,5 @@ internal object CartLinesTable : Table("cart_lines") {
     override val primaryKey = PrimaryKey(cartId, skuId)
 }
 
-/** Every table the cart and its guests own, parents before children. */
-internal val cartTables: List<Table> = listOf(GuestsTable, PromoCodesTable, CartsTable, CartLinesTable)
+/** Every table the cart and its owners — guests and customers — need, parents before children. */
+internal val cartTables: List<Table> = listOf(GuestsTable, CustomersTable, PromoCodesTable, CartsTable, CartLinesTable)

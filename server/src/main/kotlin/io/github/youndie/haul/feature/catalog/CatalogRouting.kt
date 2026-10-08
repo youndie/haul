@@ -10,7 +10,7 @@ import io.github.youndie.haul.feature.catalog.screen.HomeScreen
 import io.github.youndie.haul.feature.catalog.screen.ProductScreen
 import io.github.youndie.haul.feature.catalog.screen.ProductTab
 import io.github.youndie.haul.haulWireJson
-import io.github.youndie.haul.shell.Viewer
+import io.github.youndie.haul.shell.Viewers
 import io.github.youndie.kompot.ktor.respondKompotComponent
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -25,7 +25,8 @@ import org.koin.ktor.ext.inject
 import java.math.BigDecimal
 
 /**
- * The browse screens (endpoint-catalog), all in the public tier: a guest sees them as a customer does.
+ * The browse screens (endpoint-catalog), all in the public tier: a guest sees them as a customer does,
+ * save the header, which greets a customer and counts whoever's cart.
  * Every refusal is a [CatalogError], which the application answers with its status and body.
  */
 internal fun Route.catalogRouting() {
@@ -33,8 +34,9 @@ internal fun Route.catalogRouting() {
     val catalog by inject<CatalogScreen>()
     val product by inject<ProductScreen>()
     val photos by inject<ProductPhotos>()
+    val viewers by inject<Viewers>()
 
-    get("/ui/home") { call.respondKompotComponent(haulWireJson, home.build(Viewer())) }
+    get("/ui/home") { call.respondKompotComponent(haulWireJson, home.build(viewers.of(call))) }
 
     get("/ui/c/{path...}") {
         val path =
@@ -44,7 +46,7 @@ internal fun Route.catalogRouting() {
                 .joinToString("/")
         call.respondKompotComponent(
             haulWireJson,
-            catalog.build(catalogRequest(path, call.request.queryParameters), Viewer()),
+            catalog.build(catalogRequest(path, call.request.queryParameters), viewers.of(call)),
         )
     }
 
@@ -55,7 +57,7 @@ internal fun Route.catalogRouting() {
                 ?: ProductTab.Description
         call.respondKompotComponent(
             haulWireJson,
-            product.build(call.parameters["productId"]!!, query["sku"], tab, Viewer()),
+            product.build(call.parameters["productId"]!!, query["sku"], tab, viewers.of(call)),
         )
     }
 

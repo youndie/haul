@@ -115,4 +115,32 @@ class ServerConfigTest {
         assertEquals("us-east-1", photos?.region)
         assertTrue("very-secret" !in photos.toString(), "the config prints its secret: $photos")
     }
+
+    @Test
+    fun `no sign-in variables leave sign-in off`() {
+        assertNull(config().signIn)
+    }
+
+    @Test
+    fun `an issuer and a client turn sign-in on, the realm read off the issuer`() {
+        val signIn =
+            config(
+                "HAUL_OIDC_ISSUER" to "http://127.0.0.1:18081/realms/haul",
+                "HAUL_OIDC_CLIENT_ID" to "haul-web",
+            ).signIn!!
+
+        assertEquals("http://127.0.0.1:18081", signIn.base)
+        assertEquals("haul", signIn.realm)
+        assertEquals("http://127.0.0.1:18081/realms/haul", signIn.settings().issuer)
+        assertEquals("haul-web", signIn.settings().clientId)
+    }
+
+    @Test
+    fun `half of sign-in, or an issuer that is not a realm's, refuses the start`() {
+        assertFailsWith<IllegalStateException> { config("HAUL_OIDC_ISSUER" to "http://h/realms/haul").signIn }
+        assertFailsWith<IllegalStateException> { config("HAUL_OIDC_CLIENT_ID" to "haul-web").signIn }
+        assertFailsWith<IllegalArgumentException> {
+            config("HAUL_OIDC_ISSUER" to "http://h/haul", "HAUL_OIDC_CLIENT_ID" to "haul-web").signIn
+        }
+    }
 }

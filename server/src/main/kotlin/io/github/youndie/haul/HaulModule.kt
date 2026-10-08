@@ -1,6 +1,7 @@
 package io.github.youndie.haul
 
 import io.github.youndie.haul.db.Databases
+import io.github.youndie.haul.feature.account.accountRouting
 import io.github.youndie.haul.feature.cart.cartModule
 import io.github.youndie.haul.feature.cart.cartRouting
 import io.github.youndie.haul.feature.cart.domain.CartError
@@ -10,20 +11,26 @@ import io.github.youndie.haul.feature.catalog.domain.CatalogError
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.PhotoStore
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
+import io.github.youndie.haul.feature.identity.SignInConfig
+import io.github.youndie.haul.feature.identity.customerIdentityRouting
 import io.github.youndie.haul.feature.identity.domain.IdentityError
 import io.github.youndie.haul.feature.identity.identityModule
 import io.github.youndie.haul.feature.identity.identityRouting
+import io.github.youndie.haul.feature.identity.installSignIn
 import io.github.youndie.haul.feature.search.domain.SearchError
 import io.github.youndie.haul.feature.search.searchModule
 import io.github.youndie.haul.feature.search.searchRouting
 import io.github.youndie.haul.ops.ObservabilitySettings
 import io.github.youndie.haul.ops.installObservability
 import io.github.youndie.haul.ops.probes
+import io.github.youndie.shildik.oidc.JWT_AUTH_OIDC
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
+import io.ktor.server.auth.UnauthorizedResponse
+import io.ktor.server.auth.authenticate
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.routing
@@ -41,7 +48,7 @@ internal fun interface StoreClock {
 /**
  * The application as both `main` and the tests assemble it: the agents that watch it, DI, error
  * answers, and every route under its tier. Nothing here reads the environment or the clock; [clock],
- * [dataSource], [observability] and [web] come in.
+ * [dataSource], [observability], [web] and [signIn] come in.
  *
  * [web] is the browser bundle's directory, served at `/` beside the API when given ([webBundle]: its
  * precompressed files, its cache headers). Every API route is more specific than the static one, so a
@@ -58,8 +65,10 @@ internal fun Application.haulModule(
     observability: ObservabilitySettings = ObservabilitySettings.NONE,
     web: File? = null,
     photoStore: PhotoStore? = null,
+    signIn: SignInConfig? = null,
 ) {
     val reportFailure = installObservability(observability)
+    installSignIn(signIn)
     val database = Databases.connect(dataSource)
     install(Koin) {
         modules(
@@ -77,6 +86,13 @@ internal fun Application.haulModule(
         )
     }
     install(StatusPages) {
+        // A bearer token that did not verify, or none where the customer tier needs one: the
+        // authentication challenge answers with an empty body, and every refusal here has one.
+        status(HttpStatusCode.Unauthorized) {
+            if (content is UnauthorizedResponse) {
+                call.respondError(ErrorCode.Unauthenticated, "Sign in: no valid token came with the request", null)
+            }
+        }
         exception<CatalogError> { call, error -> call.respondError(error.code, error.message, error.field) }
         exception<SearchError> { call, error -> call.respondError(error.code, error.message, error.field) }
         exception<IdentityError> { call, error -> call.respondError(error.code, error.message, error.field) }
@@ -85,10 +101,19 @@ internal fun Application.haulModule(
     }
     routing {
         probes(commit = commit, ready = { databaseAnswers(dataSource) })
-        catalogRouting()
-        searchRouting()
-        identityRouting()
-        cartRouting()
+        // Public: a guest, a customer or nobody. A token is optional, and one that does not verify is
+        // refused rather than ignored — a shopper whose sign-in lapsed is told, not shown as a guest.
+        authenticate(JWT_AUTH_OIDC, optional = true) {
+            catalogRouting()
+            searchRouting()
+            identityRouting(signIn)
+            cartRouting()
+        }
+        // Customer: a verified shildik token, or `401 unauthenticated`.
+        authenticate(JWT_AUTH_OIDC) {
+            customerIdentityRouting()
+            accountRouting()
+        }
         web?.let { webBundle(it) }
     }
 }
@@ -115,6 +140,7 @@ internal fun status(code: ErrorCode): HttpStatusCode =
         ErrorCode.SkuNotFound,
         ErrorCode.LineNotFound,
         ErrorCode.PromoNotFound,
+        ErrorCode.GuestNotFound,
         -> HttpStatusCode.NotFound
 
         ErrorCode.OutOfStock, ErrorCode.PromoAlreadyApplied -> HttpStatusCode.Conflict
