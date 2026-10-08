@@ -68,7 +68,8 @@ Feature: `feature-orders` — its scenarios are this item's acceptance where it 
   capture from a voided hold (1), a step one millisecond early (1), the tracking answering any customer (the pickup
   test), the runner never started (the runner test). Not covered by a test: the authorisation's row lock (two
   shipments of one order captured in the same instant by two processes — a race no deterministic test makes).
-- **Where it ran**: the Linux build machine (WSL), after a rebase onto `e218d6f`: `./gradlew check :server:installDist
+- **Where it ran**: the Linux build machine (WSL), after a rebase onto `e218d6f` (the branch now sits on `734d516`,
+  which adds a backlog item and nothing else): `./gradlew check :server:installDist
   :composeApp:wasmJsBrowserDistribution` green (the wasm distribution built alone first; `:server:test` 169 tests, 0
   failed, PostgreSQL in Testcontainers), `scripts/image-check.sh` green (V11 migrated in the training run, 752 of 752
   classes from the cache, page 200). `make check` on the Mac. `scripts/chart-check.sh` not run: the chart is
