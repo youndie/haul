@@ -23,6 +23,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -81,9 +83,13 @@ public fun BreadcrumbsView(breadcrumbs: Breadcrumbs) {
 
 private const val COMPACT_CRUMBS = 4
 
-/** The page's title with the count beside it, on one baseline. */
+/** The page's title with the count beside it, on one baseline; a search's ([PageTitle.quoted]) has it above. */
 @Composable
 public fun PageTitleView(title: PageTitle) {
+    if (title.quoted) {
+        QueryTitle(title)
+        return
+    }
     val compact = LocalHaulCompact.current
     val gutter = gutter()
     BaselineWrapRow(
@@ -112,6 +118,49 @@ public fun PageTitleView(title: PageTitle) {
     }
 }
 
+/**
+ * A search's title (Search_Results): the count in mono, then the query in quotes, the quotes in the
+ * italic. The page's top padding is the title's, as on the category page the crumbs carry it.
+ */
+@Composable
+private fun QueryTitle(title: PageTitle) {
+    val compact = LocalHaulCompact.current
+    val gutter = gutter()
+    Column(
+        Modifier.fillMaxWidth().padding(
+            start = gutter,
+            end = gutter,
+            top = if (compact) 24.dp else 36.dp,
+            bottom = if (compact) 20.dp else 24.dp,
+        ),
+    ) {
+        title.count?.let { ResultCount(it) }
+        Text(
+            buildAnnotatedString {
+                withStyle(QUOTE) { append("“") }
+                append(title.title)
+                withStyle(QUOTE) { append("”") }
+            },
+            Modifier.padding(top = 14.dp),
+            style =
+                HaulType.display(
+                    if (compact) 56f else 112f,
+                    800,
+                    letterSpacing = if (compact) -0.01f else -0.03f,
+                    lineHeight = 0.9f,
+                ),
+        )
+    }
+}
+
+private val QUOTE = SpanStyle(fontStyle = FontStyle.Italic, fontWeight = FontWeight(500))
+
+/** «14,870 results» over a search's title. */
+@Composable
+internal fun ResultCount(count: String) {
+    Text(count, HaulType.label(13f, 600, 0.04f).copy(color = HaulColors.outline))
+}
+
 /** The kinds of a category as pills: one row at 1440, a row that scrolls off the right edge on a phone. */
 @Composable
 public fun FilterChipsView(chips: FilterChips) {
@@ -119,15 +168,25 @@ public fun FilterChipsView(chips: FilterChips) {
     val gutter = gutter()
     val row =
         if (compact) {
-            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = gutter, bottom = 16.dp)
+            Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(start = gutter, bottom = if (chips.counted()) 24.dp else 16.dp)
         } else {
-            Modifier.fillMaxWidth().padding(start = gutter, end = gutter, bottom = 36.dp)
+            Modifier.fillMaxWidth().padding(
+                start = gutter,
+                end = gutter,
+                bottom = if (chips.counted()) 32.dp else 36.dp,
+            )
         }
     // A flex line stretches its items: the selected pill has no border and is as tall as the others.
     Row(row.height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         chips.chips.forEach { KindChip(it, compact) }
     }
 }
+
+/** A chip with a count is a search's category (Search_Results), and its row sits closer to the grid. */
+private fun FilterChips.counted(): Boolean = chips.any { it.count != null }
 
 @Composable
 private fun KindChip(
@@ -149,7 +208,7 @@ private fun KindChip(
         }
     Box(Modifier.fillMaxHeight().then(box)) {
         Text(
-            chip.label,
+            chip.count?.let { "${chip.label} $it" } ?: chip.label,
             style,
             Modifier.padding(horizontal = if (compact) 16.dp else 18.dp, vertical = if (compact) 10.dp else 11.dp),
             softWrap = false,

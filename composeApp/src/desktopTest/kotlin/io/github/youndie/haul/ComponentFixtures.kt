@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,6 +16,8 @@ import io.github.youndie.haul.registry.haulJson
 import io.github.youndie.haul.registry.haulRegistry
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulTheme
+import io.github.youndie.haul.ui.LocalSearchField
+import io.github.youndie.haul.ui.SearchFieldState
 import io.github.youndie.kompot.KompotActionHandler
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.KompotScreen
@@ -42,7 +45,13 @@ internal fun HeaderGuest() = Fixture(compact = false) { Body("haul_header_guest.
 
 @ViddikScreenshot(name = "Search", group = "HaulHeader", width = 1440, height = 186)
 @Composable
-internal fun HeaderSearch() = Fixture(compact = false) { Body("haul_header_search.json") }
+internal fun HeaderSearch() =
+    Fixture(compact = false) {
+        // The shopper is typing: the field is focused and draws its caret.
+        CompositionLocalProvider(LocalSearchField provides remember { SearchFieldState(focused = true) }) {
+            Body("haul_header_search.json")
+        }
+    }
 
 @ViddikScreenshot(name = "SignedIn_Phone", group = "HaulHeader", width = 390, height = 206)
 @Composable

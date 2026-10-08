@@ -13,6 +13,7 @@ import io.github.youndie.haul.ui.FilterChips
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.ProductGrid
+import io.github.youndie.haul.ui.QuerySuggestion
 import io.github.youndie.haul.ui.SearchNoResults
 import io.github.youndie.haul.ui.SearchSuggestPanel
 import io.ktor.client.request.get
@@ -37,6 +38,23 @@ class SearchRoutesTest {
             assertTrue(
                 panel.categories.any { it.label == "Sports › Running shoes" },
                 "categories were ${panel.categories.map { it.label }}",
+            )
+        }
+
+    /**
+     * A suggestion whose term holds the query after its first word is drawn with the typed part regular
+     * between two bold ones («**trail** running shoes», Search_Autocomplete). Treating it as a
+     * misspelling made the whole term bold, which said the shopper had typed none of it.
+     */
+    @Test
+    fun `a query typed inside a suggestion keeps what comes before it apart`() =
+        haulTest {
+            val panel = tree("/ui/search/suggest?q=shoes") as SearchSuggestPanel
+            val inside = panel.suggestions.firstOrNull { it.prefix.isNotEmpty() }
+            assertEquals(
+                QuerySuggestion("shoes", "", inside?.action, prefix = "running "),
+                inside,
+                "suggestions were ${panel.suggestions}",
             )
         }
 
@@ -108,6 +126,7 @@ class SearchRoutesTest {
                 "no «Running shoes» chip in ${chips.map { it.label }}",
             )
             assertEquals("$total results", page.only<PageTitle>().count)
+            assertTrue(page.only<PageTitle>().quoted, "a search's title is not drawn as the query")
             val cards = page.only<ProductGrid>().cards
             assertTrue(cards.isNotEmpty())
             assertEquals("running shoes", page.only<HaulHeader>().query, "the header lost the query")
@@ -129,7 +148,9 @@ class SearchRoutesTest {
             val page = tree("/ui/search?q=xqzt")
             assertTrue(page.all().none { it is ProductGrid }, "a grid was drawn for nothing")
             val none = page.only<SearchNoResults>()
-            assertEquals("Nothing found for \"xqzt\"", none.title)
+            assertEquals("Nothing found for “xqzt”", none.title)
+            assertEquals("“xqzt”", none.accent, "the quoted query is the title's italic")
+            assertEquals("0 results", none.count)
             assertEquals(3, none.tips.size)
             assertEquals(8, page.only<CategoryGrid>().tiles.size)
         }

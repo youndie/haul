@@ -1,10 +1,13 @@
 package io.github.youndie.haul.registry
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import io.github.youndie.haul.feature.catalog.BreadcrumbsView
@@ -23,6 +26,8 @@ import io.github.youndie.haul.feature.product.ProductQuestionsView
 import io.github.youndie.haul.feature.product.ProductReviewsView
 import io.github.youndie.haul.feature.product.ProductTabsView
 import io.github.youndie.haul.feature.product.SpecificationListView
+import io.github.youndie.haul.feature.search.SearchNoResultsView
+import io.github.youndie.haul.theme.LocalHaulCompact
 import io.github.youndie.haul.ui.Breadcrumbs
 import io.github.youndie.haul.ui.CampaignRow
 import io.github.youndie.haul.ui.CategoryGrid
@@ -46,6 +51,7 @@ import io.github.youndie.haul.ui.ProductGridView
 import io.github.youndie.haul.ui.ProductQuestions
 import io.github.youndie.haul.ui.ProductReviews
 import io.github.youndie.haul.ui.ProductTabs
+import io.github.youndie.haul.ui.SearchNoResults
 import io.github.youndie.haul.ui.SectionHeader
 import io.github.youndie.haul.ui.SpecificationList
 import io.github.youndie.haul.ui.gutter
@@ -215,6 +221,10 @@ public class FilteredResultsRenderer : KompotComponentRenderer<FilteredResults> 
     }
 }
 
+/**
+ * Pages standing on the page itself, under a search's grid: the page's gutter, and the gap the
+ * category page leaves above its own (which draws them inside `FilteredResults`).
+ */
 @KompotComponentMarker
 public class HaulPaginationRenderer : KompotComponentRenderer<HaulPagination> {
     @Composable
@@ -223,7 +233,11 @@ public class HaulPaginationRenderer : KompotComponentRenderer<HaulPagination> {
         actionHandler: KompotActionHandler,
         formController: FormController,
     ) {
-        PaginationView(component)
+        val compact = LocalHaulCompact.current
+        PaginationView(
+            component,
+            Modifier.padding(start = gutter(), end = gutter(), top = if (compact) 36.dp else 48.dp),
+        )
     }
 }
 
@@ -310,5 +324,20 @@ public class ProductQuestionsRenderer : KompotComponentRenderer<ProductQuestions
         formController: FormController,
     ) {
         ProductQuestionsView(component)
+    }
+}
+
+// The search page (screen-search). The suggest panel is not a page's component: the screen draws it
+// over the page while the shopper types (`SearchSuggestOverlay`).
+
+@KompotComponentMarker
+public class SearchNoResultsRenderer : KompotComponentRenderer<SearchNoResults> {
+    @Composable
+    override fun Render(
+        component: SearchNoResults,
+        actionHandler: KompotActionHandler,
+        formController: FormController,
+    ) {
+        SearchNoResultsView(component)
     }
 }

@@ -1,0 +1,200 @@
+{
+ "type": "column",
+ "id": "search",
+ "children": [
+  {
+   "type": "haul_header",
+   "id": "header",
+   "customerName": "Maya",
+   "deliverTo": "Brooklyn, NY 11211",
+   "deliveryPromise": "Free delivery over $35",
+   "cartCount": 3,
+   "searchPlaceholder": "Search 2.4 million products",
+   "query": "running shoes",
+   "categories": [
+    "Electronics",
+    "Home & Kitchen",
+    "Fashion",
+    "Beauty",
+    "Kids & Toys",
+    "Sports",
+    "Grocery",
+    "Auto",
+    "Books",
+    "Pets"
+   ]
+  },
+  {
+   "type": "haul_page_title",
+   "id": "title",
+   "title": "Running shoes",
+   "count": "14,870 results",
+   "quoted": true
+  },
+  {
+   "type": "haul_filter_chips",
+   "id": "categories",
+   "chips": [
+    {
+     "label": "All",
+     "selected": true,
+     "count": "14,870"
+    },
+    {
+     "label": "Men's shoes",
+     "selected": false,
+     "count": "6,204"
+    },
+    {
+     "label": "Women's shoes",
+     "selected": false,
+     "count": "5,880"
+    },
+    {
+     "label": "Kids' shoes",
+     "selected": false,
+     "count": "1,412"
+    },
+    {
+     "label": "Insoles",
+     "selected": false,
+     "count": "830"
+    },
+    {
+     "label": "Socks",
+     "selected": false,
+     "count": "544"
+    }
+   ]
+  },
+  {
+   "type": "haul_product_grid",
+   "id": "grid",
+   "columns": 5,
+   "cards": [
+    {
+     "id": "card-1",
+     "productId": "p-1",
+     "label": "shoes",
+     "badge": "−26%",
+     "price": "$89",
+     "oldPrice": "$120",
+     "title": "Pace Runner 3 Road Running Shoes, Men's",
+     "rating": "4.7",
+     "reviews": "3,812",
+     "delivery": "Tomorrow",
+     "tone": "#FFF1C9"
+    },
+    {
+     "id": "card-2",
+     "productId": "p-2",
+     "label": "shoes",
+     "price": "$112",
+     "title": "Cloudline Daily Trainer, Women's",
+     "rating": "4.8",
+     "reviews": "2,140",
+     "delivery": "Tomorrow",
+     "tone": "#E0EEF7"
+    },
+    {
+     "id": "card-3",
+     "productId": "p-3",
+     "label": "shoes",
+     "badge": "−40%",
+     "price": "$72",
+     "oldPrice": "$120",
+     "title": "Ridge Trail GTX Running Shoes, Waterproof",
+     "rating": "4.7",
+     "reviews": "2,018",
+     "delivery": "Fri, Oct 10",
+     "tone": "#E3F5D8"
+    },
+    {
+     "id": "card-4",
+     "productId": "p-4",
+     "label": "shoes",
+     "price": "$189",
+     "title": "Tempo Carbon Racing Shoes, Unisex",
+     "rating": "4.6",
+     "reviews": "702",
+     "delivery": "Thu, Oct 9",
+     "tone": "#FFE5DD"
+    },
+    {
+     "id": "card-5",
+     "productId": "p-5",
+     "label": "shoes",
+     "badge": "−25%",
+     "price": "$64",
+     "oldPrice": "$85",
+     "title": "Featherlite Knit Running Shoes, Women's",
+     "rating": "4.5",
+     "reviews": "5,330",
+     "delivery": "Tomorrow",
+     "tone": "#F1E4F5"
+    },
+    {
+     "id": "card-6",
+     "productId": "p-6",
+     "label": "shoes",
+     "price": "$129",
+     "title": "Stride Max Cushion Running Shoes, Men's Wide",
+     "rating": "4.7",
+     "reviews": "1,904",
+     "delivery": "Tomorrow",
+     "tone": "#ECE9E2"
+    },
+    {
+     "id": "card-7",
+     "productId": "p-7",
+     "label": "shoes",
+     "badge": "−21%",
+     "price": "$38",
+     "oldPrice": "$48",
+     "title": "Kids' Velcro Running Sneakers",
+     "rating": "4.8",
+     "reviews": "960",
+     "delivery": "Tomorrow",
+     "tone": "#FFF1C9"
+    },
+    {
+     "id": "card-8",
+     "productId": "p-8",
+     "label": "shoes",
+     "price": "$98",
+     "title": "Summit Trail Runner, Women's",
+     "rating": "4.6",
+     "reviews": "1,288",
+     "delivery": "Thu, Oct 9",
+     "tone": "#E3F5D8"
+    },
+    {
+     "id": "card-9",
+     "productId": "p-9",
+     "label": "shoes",
+     "badge": "−32%",
+     "price": "$54",
+     "oldPrice": "$79",
+     "title": "Metro Everyday Running Shoes",
+     "rating": "4.4",
+     "reviews": "4,021",
+     "delivery": "Tomorrow",
+     "tone": "#E6E4FF"
+    },
+    {
+     "id": "card-10",
+     "productId": "p-10",
+     "label": "shoes",
+     "badge": "−26%",
+     "price": "$89",
+     "oldPrice": "$120",
+     "title": "Pace Runner 3 Road Running Shoes, Women's",
+     "rating": "4.7",
+     "reviews": "3,514",
+     "delivery": "Tomorrow",
+     "tone": "#E0EEF7"
+    }
+   ]
+  }
+ ]
+}

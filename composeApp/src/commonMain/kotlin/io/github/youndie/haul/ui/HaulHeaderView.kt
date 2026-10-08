@@ -17,13 +17,22 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -37,6 +46,26 @@ import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
 
 /**
+ * The header's search field as the page around the header sees it: whether the shopper is typing in
+ * it — the field then draws its caret — and, once laid out, where it is, so the suggest panel can open
+ * under it. [scrimTop] is where the panel's scrim starts: the header's bottom at 1440, the field's
+ * row on a phone (Search_Autocomplete). Both in root coordinates, pixels.
+ */
+@Stable
+public class SearchFieldState(
+    focused: Boolean = false,
+) {
+    public var focused: Boolean by mutableStateOf(focused)
+    public var bounds: Rect? by mutableStateOf(null)
+        internal set
+    public var scrimTop: Float? by mutableStateOf(null)
+        internal set
+}
+
+/** The search field's state, provided by whoever owns the field's focus; none is a field nobody types in. */
+public val LocalSearchField: ProvidableCompositionLocal<SearchFieldState?> = staticCompositionLocalOf { null }
+
+/**
  * The header, at the width the page is drawn at (`HaulHeader` on the wire). [pending] is the client's
  * own header before any tree has arrived (Loading, Error): who is looking is not known yet, so the
  * account slot is a placeholder and the cart has no count.
@@ -48,10 +77,18 @@ public fun HaulHeaderView(
     pending: Boolean = false,
 ) {
     val compact = LocalHaulCompact.current
+    val field = LocalSearchField.current
     Column(
         modifier
             .fillMaxWidth()
-            .background(HaulColors.surfaceContainerLowest),
+            .background(HaulColors.surfaceContainerLowest)
+            .then(
+                if (field != null && !compact) {
+                    Modifier.onGloballyPositioned { field.scrimTop = it.boundsInRoot().bottom }
+                } else {
+                    Modifier
+                },
+            ),
     ) {
         if (compact) CompactHeader(header, pending) else WideHeader(header, pending)
         Box(Modifier.fillMaxWidth().height(1.dp).background(HaulColors.outlineVariant))
@@ -195,7 +232,19 @@ private fun CompactHeader(
             label = false,
         )
     }
-    Box(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)) {
+    val field = LocalSearchField.current
+    Box(
+        Modifier
+            .then(
+                if (field !=
+                    null
+                ) {
+                    Modifier.onGloballyPositioned { field.scrimTop = it.boundsInRoot().bottom }
+                } else {
+                    Modifier
+                },
+            ).padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+    ) {
         SearchField(
             header,
             Modifier.fillMaxWidth(),
@@ -293,8 +342,10 @@ private fun SearchField(
     trailing: @Composable () -> Unit,
 ) {
     val shape = RoundedCornerShape(radius)
+    val field = LocalSearchField.current
     Row(
         modifier
+            .then(if (field != null) Modifier.onGloballyPositioned { field.bounds = it.boundsInRoot() } else Modifier)
             .height(height)
             .background(HaulColors.surfaceContainerLowest, shape)
             .border(2.dp, HaulColors.onSurface, shape)
@@ -313,13 +364,17 @@ private fun SearchField(
                 )
             } else {
                 Text(query, HaulType.text(textSize, 500), softWrap = false)
-                Box(
-                    Modifier
-                        .padding(start = 2.dp)
-                        .width(2.dp)
-                        .height(20.dp)
-                        .background(HaulColors.primary),
-                )
+                // The caret only while the shopper is typing (Search_Autocomplete); a page showing its
+                // query has none (Search_Results).
+                if (field?.focused == true) {
+                    Box(
+                        Modifier
+                            .padding(start = 2.dp)
+                            .width(2.dp)
+                            .height(20.dp)
+                            .background(HaulColors.primary),
+                    )
+                }
             }
         }
         trailing()

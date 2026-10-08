@@ -126,7 +126,12 @@ internal class SearchScreen(
 
         val sections =
             listOf(
-                PageTitle("title", query.text.replaceFirstChar { it.uppercase() }, "${count(all.size)} results"),
+                PageTitle(
+                    "title",
+                    query.text.replaceFirstChar { it.uppercase() },
+                    "${count(all.size)} results",
+                    quoted = true,
+                ),
                 FilterChips(
                     id = "categories",
                     chips =
@@ -158,11 +163,13 @@ internal class SearchScreen(
                 SearchNoResults(
                     id = "no-results",
                     query = query.text,
-                    title = "Nothing found for \"${query.text}\"",
+                    title = "Nothing found for “${query.text}”",
                     suggestions = search.terms(query, QUERIES).map { suggestion(it, query) },
                     tips = TIPS,
+                    count = "0 results",
+                    accent = "“${query.text}”",
                 ),
-                SectionHeader("popular-title", "Popular categories"),
+                SectionHeader("popular-title", "Popular categories", accent = "categories"),
                 CategoryGrid(
                     id = "popular",
                     tiles =
@@ -174,16 +181,23 @@ internal class SearchScreen(
         return Frame.page("search", viewer, navigation(categories), sections, query = query.text)
     }
 
-    /** «running sh» typed, «oes» completed; a term that does not start with the query is all completion. */
+    /**
+     * «running sh» typed, «oes» completed; «shoes» typed inside «running shoes» has «running » before it.
+     * A term that does not contain the query (a corrected spelling) is all completion.
+     */
     private fun suggestion(
         term: String,
         query: Query,
-    ): QuerySuggestion =
-        if (term.startsWith(query.text)) {
-            QuerySuggestion(query.text, term.removePrefix(query.text), searchLink(term))
-        } else {
-            QuerySuggestion("", term, searchLink(term))
-        }
+    ): QuerySuggestion {
+        val at = term.indexOf(query.text)
+        if (at < 0) return QuerySuggestion("", term, searchLink(term))
+        return QuerySuggestion(
+            typed = query.text,
+            completion = term.substring(at + query.text.length),
+            action = searchLink(term),
+            prefix = term.substring(0, at),
+        )
+    }
 
     /** «Sports › Running shoes»: the top-level category and the leaf. */
     private fun label(
@@ -214,8 +228,8 @@ internal class SearchScreen(
         private val TIPS =
             listOf(
                 "Check the spelling",
-                "Try a more general word",
-                "Search for a brand or a category",
+                "Use fewer or more general words",
+                "Browse a category below",
             )
     }
 }

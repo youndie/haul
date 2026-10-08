@@ -423,3 +423,38 @@ internal fun SpacedWords(
 }
 
 private const val GAP = "gap"
+
+/**
+ * CSS's `text-wrap: balance`: the text keeps the number of lines it breaks into at the full width, at
+ * the narrowest width that still holds it in that many — «Search / didn’t respond» rather than
+ * «Search didn’t / respond». Chrome finds that width by bisection too.
+ */
+@Composable
+internal fun BalancedText(
+    text: AnnotatedString,
+    style: TextStyle,
+    modifier: Modifier = Modifier,
+) {
+    val measurer = rememberTextMeasurer()
+    Text(
+        text,
+        modifier.layout { measurable, constraints ->
+            fun lines(width: Int) = measurer.measure(text, style, constraints = Constraints(maxWidth = width)).lineCount
+            val full = constraints.maxWidth
+            val count = lines(full)
+            var width = full
+            if (count > 1) {
+                var low = 0
+                var high = full
+                while (low < high) {
+                    val mid = (low + high) / 2
+                    if (lines(mid) <= count) high = mid else low = mid + 1
+                }
+                width = low
+            }
+            val placeable = measurable.measure(constraints.copy(minWidth = 0, maxWidth = width))
+            layout(placeable.width, placeable.height) { placeable.place(0, 0) }
+        },
+        style = style,
+    )
+}
