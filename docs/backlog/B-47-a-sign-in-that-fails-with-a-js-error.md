@@ -1,7 +1,7 @@
 ---
 id: B-47
 title: "client: a sign-in that fails with a browser error ends as not gone through"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-4-cart
