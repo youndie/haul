@@ -14,9 +14,9 @@ publishes:
 
 # Haul web storefront
 
-> Describes the module as it stands after B-22: the app loads its screens from the server and
-> navigates between them (B-35), signs in through shildik and keeps the guest id (B-12), draws product
-> photos (B-30), the cart (B-13), the checkout
+> Describes the module as it stands after B-41: the app loads its screens from the server and
+> navigates between them (B-35), signs in through shildik and keeps the guest id (B-12), returning to
+> the page sign-in was asked from (B-41), draws product photos (B-30), the cart (B-13), the checkout
 > (B-15) and the review and question dialogs (B-22) with their commands, and follows the controls'
 > actions (B-37); the renderers of the browse, product, search, cart and checkout screens are checked
 > against the canvas. The order page (B-18), the account (B-19) and saved lists (B-20) are *target*.
@@ -86,8 +86,10 @@ fee or a delivery date, or keep any state the server owns.
   the results.
 * **Sign-in** (feature-identity): a `navigate` to `/sign-in` is claimed by `SignInActions` before
   navigation; `Identity.signIn` reads `GET /api/v1/sign-in`, runs the code flow with PKCE in a popup
-  that returns to `signed-in.html`, keeps the tokens, merges the guest cart and the screen is drawn
-  again in place.
+  that returns to `signed-in.html`, keeps the tokens and merges the guest cart. Then it opens the
+  action's `next` when that is a storefront address (`SignInActions.next`: a path `StorefrontPage` has
+  a page for, not `/sign-in`; never an absolute URL or `//host`, B-41), or else draws the screen again
+  in place; a sign-in that did not go through opens nothing.
 * **Commands**: the cart's presses are `CartCommand`s (`feature/cart/CartCommands.kt`), and a card's
   «+» is one too; the checkout's are `CheckoutCommand`s (`feature/checkout/CheckoutCommandsClient.kt`:
   `Choose`, `SaveAddress`, `Place` under one idempotency key per quote); the dialogs' are

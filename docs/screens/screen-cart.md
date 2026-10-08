@@ -88,7 +88,7 @@ shell fetch `/ui/cart` again in place (`LocalScreenRefresh`) — a refusal too.
 - Apply / Remove on the code → `PUT` / `DELETE /api/v1/cart/promo` (Apply with nothing typed sends nothing)
 - a line's title → screen-product
 - Save for later → nothing yet (B-20)
-- Checkout → screen-checkout (`/checkout`); a guest's «Sign in to check out» → sign-in, then the cart drawn again (the `?next=%2Fcheckout` it carries is not read)
+- Checkout → screen-checkout (`/checkout`); a guest's «Sign in to check out» → sign-in, then `/checkout` (the `?next=%2Fcheckout` it carries, B-41); a sign-in that does not go through draws the cart again
 - the empty cart's «See today’s deals» → [screen-deals](screen-deals.md)
 
 The client's wiring is `CartWiringTest` and `CartCommandsTest` in

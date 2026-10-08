@@ -32,7 +32,7 @@ The cart groups lines by seller, each group with its delivery day; it shows what
 * one promo code per cart; an invalid, expired or inapplicable code is refused with its reason, and the refused code and its reason stay in the promo field until the next command; the code already applied, sent again, is not a refusal;
 * a line whose `Sku` went out of stock or changed price since it was added is marked and excluded from selection until the shopper acknowledges it;
 * «You'll earn N points on this order»: whole dollars of the total, ×2 for Plus (Maya: $512 → 1,024); a guest is shown no points;
-* a guest sees the cart; «Sign in to check out» runs sign-in (feature-identity) and the cart is drawn again; a customer's «Checkout» goes to `/checkout`;
+* a guest sees the cart; «Sign in to check out» (`/sign-in?next=%2Fcheckout`) runs sign-in (feature-identity) and lands on `/checkout`; a sign-in that does not go through draws the cart again (B-41); a customer's «Checkout» goes to `/checkout`;
 * each line groups under its seller with «Courier · <the group's latest delivery day>»; an empty cart offers today's deals («Picked for you» / «From today’s deals»), each with its «+».
 * every command answers `refresh` and the client fetches the cart again in place, a refusal included (the server keeps a refused code and its reason for the next tree); no answer leaves the page as it was.
 
@@ -96,5 +96,3 @@ cart bodies are the server's trees).
   lines, the client draws the partial box whenever a line is unticked.
 * «Save for later» is drawn and does nothing (B-20); a disabled checkout and a stepper at its limit
   are drawn as the canvas draws them and send nothing.
-* A guest's «Sign in to check out» carries `/sign-in?next=%2Fcheckout`; the client ignores `next`
-  and draws the cart again after sign-in.
