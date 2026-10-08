@@ -52,13 +52,20 @@ in [haul-server](../services/haul-server.md), section 2.
 | `POST` `/api/v1/me/orders/{id}/returns` | planned in `server/src/main/kotlin/io/github/youndie/haul/feature/order/` |
 | contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/order/` — the Order tree's components (planned) |
 | the order today | `server/src/main/kotlin/io/github/youndie/haul/feature/order/domain/Order.kt` (`OrderStatus`, `CancelReason`, `ShipmentStatus`), `server/src/main/kotlin/io/github/youndie/haul/feature/order/data/ExposedOrders.kt` |
+| what the order page reads | `server/src/main/kotlin/io/github/youndie/haul/feature/fulfilment/domain/OrderTracking.kt` (`OrderTracking.track`, `OrderProgress`, `TrackedShipment`), B-17 |
 
 ## Request and response bodies
 
 In `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/order/` once it exists; not copied here.
 What the tree will draw from: an order's status is `placing`, `placed` or `cancelled` with a
 `cancel_reason` (`payment_declined`, `failed`); its lines as bought; one shipment per seller, written
-`placed` (or `cancelled`) by placement and moved on by the fulfilment simulator (B-17).
+`placed` (or `cancelled`) by placement and moved on by the fulfilment simulator (B-17) through
+`packed`, `in_transit`, then `delivered` or `ready_for_pickup` and `picked_up`, each step stamped in
+`shipment_events` (`server/src/main/resources/db/migration/V11__fulfilment.sql`). `GET /ui/orders/{id}`
+is to be built on `OrderTracking.track(customer, order)`, which answers the order's progress (the
+saga's `placing` / `cancelled`, else the least advanced shipment's) and per shipment its history, its
+share, what was captured and — only while it waits at a point — the pickup code and the day it is
+held until; for any customer but the order's own it answers nothing, which the route answers `404`.
 
 ## Errors
 

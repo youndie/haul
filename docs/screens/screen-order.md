@@ -41,6 +41,15 @@ The Placed state's #HL-48302 is the first order number a fresh store gives (`ord
 `server/src/main/resources/db/migration/V10__orders.sql`), and the Cancelled state's declined card
 ···· 0002 is the payment simulator's test card.
 
+What the page will draw from exists since B-17: `OrderTracking.track(customer, order)`
+(`server/src/main/kotlin/io/github/youndie/haul/feature/fulfilment/domain/OrderTracking.kt`) answers the
+order's own customer only, with its `OrderProgress` — `placing`, `placed`, `packed`, `in_transit`,
+`ready_for_pickup`, `delivered`, `picked_up`, `cancelled` — and per shipment its history, its share,
+what was captured, and, only while it waits at a point, the pickup code and the day it is held until.
+The states below map from that progress: Placed, InTransit, ReadyForPickup, Delivered and Cancelled
+have artboards; **`packed` has no artboard of its own** (B-18 decides how it is drawn), nor does
+`picked_up` apart from Delivered. The sample orders of these states are B-18's fixtures, not seeded.
+
 ## 0a. Code anchors
 
 | What | File (planned) |

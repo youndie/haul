@@ -16,11 +16,11 @@ publishes:
 
 # Haul server
 
-> Describes the server as it stands after B-37: catalog with photos and the deals page, search,
+> Describes the server as it stands after B-17: catalog with photos and the deals page, search,
 > identity (guests, shildik sign-in, customers), the cart, checkout, placement through the order saga
-> and the payment simulator, the probes, the precompressed web bundle with its storefront addresses,
-> the agents. What is still *target* — the fulfilment simulator and capture, the order page, the
-> account, saved lists, reviews, membership and points — is marked where it appears.
+> and the payment simulator, the fulfilment simulator with capture per shipment (B-17), the probes,
+> the precompressed web bundle with its storefront addresses, the agents. What is still *target* — the
+> order page, the account, saved lists, reviews, membership and points — is marked where it appears.
 
 ## 1. Responsibility
 
@@ -28,9 +28,10 @@ Owns all data: catalog, carts, guests, customers, orders and their shipments, th
 reviews, questions, saved lists, memberships and points. Builds every screen as a kompot tree, takes
 every command, runs the order saga, and simulates the outside world — the card processor and the
 fulfilment of each seller's shipment. Today it holds the catalog, search, guests and customers,
-carts, checkouts and addresses, orders with their shipments, the saga's state and the payment
-simulator's ledger (`server/src/main/kotlin/io/github/youndie/haul/feature/`); fulfilment, reviews,
-saved lists, memberships and points are *target*. Product photos live in object storage, which the
+carts, checkouts and addresses, orders with their shipments and each shipment's history, the saga's
+state, the payment simulator's ledger with its captures
+(`server/src/main/kotlin/io/github/youndie/haul/feature/`); reviews, saved lists, memberships and
+points are *target*. Product photos live in object storage, which the
 server reads and serves from its own origin.
 
 It also serves the browser bundle at `/` (section 5), so the page and the API come from one image
@@ -105,7 +106,7 @@ data); send e-mail or push notifications.
 | `server/build.gradle.kts` | the `application` plugin, zavarnik, and the browser bundle copied into the distribution |
 | `server/src/main/kotlin/io/github/youndie/haul/feature/order/` | placement and the order saga, the sweeper's engine (`saga/SagaEngine.kt`) |
 | `server/src/main/kotlin/io/github/youndie/haul/feature/payment/` | the payment simulator |
-| fulfilment | the fulfilment simulator (*planned*, B-17), in `feature/fulfilment/` |
+| `server/src/main/kotlin/io/github/youndie/haul/feature/fulfilment/` | the fulfilment simulator (`domain/FulfilmentSimulator.kt`), its pace (`domain/Fulfilment.kt`), pickup codes, `OrderTracking`, the runner (`FulfilmentRunner.kt`), B-17 |
 
 ## 3. How it is built
 
@@ -119,15 +120,20 @@ data); send e-mail or push notifications.
   bought lines — that compensates in reverse when a member refuses or fails; placement's
   `Idempotency-Key` is petich-idempotency's. It runs inside the placement request. A
   `SuspendedPetichSweeper`, started with the application in its own scope, carries on a saga left
-  `PROCESSING` or `COMPENSATING` for 60 s by a process that died. *Target* (B-17): capture per
-  shipment, triggered by the fulfilment simulator at `in_transit` — «your card is charged when the
-  order ships».
+  `PROCESSING` or `COMPENSATING` for 60 s by a process that died. Capture is per shipment, taken by
+  the fulfilment simulator just before a shipment moves to `in_transit` — «your card is charged when
+  the order ships» (B-17, feature-orders).
 * **The outside world is in-process**: a payment simulator (`feature/payment/`, a ledger; every way
-  to pay approves except the test card ending `0002`; pay on delivery holds nothing) and, *target*
-  (B-17), a fulfilment simulator on a clock whose speed is configuration.
+  to pay approves except the test card ending `0002`; pay on delivery holds nothing; a capture takes a
+  part of an authorisation, keyed, never more than it) and a fulfilment simulator (`feature/fulfilment/`,
+  B-17): one pass, `advance()`, moves every shipment through the steps that came due on the saga's
+  clock at the store's pace times `HAUL_FULFILMENT_SPEED`. `FulfilmentRunner` runs the pass in the
+  application's scope beside the saga's sweeper, every tenth of the shortest step (between 1 s and 1
+  min); the tests get `FulfilmentSettings.MANUAL` and call the pass themselves on a clock they hold.
 * **Two clocks are injected.** `StoreClock`, so the seed and the fixtures can run at the canvas's
   «now», 2025-10-07 19:47:23 America/New_York; and the saga's `PetichClock` (`sagaClock` in
-  `haulModule`), a wall clock apart from it, because what it stamps is compared across processes.
+  `haulModule`), a wall clock apart from it, because what it stamps is compared across processes; the
+  fulfilment simulator reads the saga's clock too.
   `Application.kt` reads the wall clock for both, and only tracy's record timestamps read it
   elsewhere (`ops/Observability.kt`).
 * **Product photos** (`feature/catalog/domain/Photos.kt`, `data/S3PhotoStore.kt`, B-30): a
@@ -175,7 +181,8 @@ data); send e-mail or push notifications.
   password or host, and half an agent; `scripts/chart-check.sh` makes each refusal fire.
   `charts/haul/values-stand.yaml` holds the public stand's choices; the stand is not deployed
   (`.github/workflows/stand.yaml` runs only by hand, B-27 waits for the owner). The chart passes no
-  `HAUL_OIDC_*` and no `HAUL_S3_*`, so a release runs with sign-in off and placeholder tiles.
+  `HAUL_OIDC_*`, no `HAUL_S3_*` and no `HAUL_FULFILMENT_SPEED`, so a release runs with sign-in off,
+  placeholder tiles and the store's own pace.
 * **Health:** `GET /healthz`, `GET /readyz`; **Version:** `GET /version` ([endpoint-ops](../api/endpoint-ops.md)).
 
 ## 6. Local setup
@@ -217,7 +224,7 @@ no default, and the server refuses to start without it.
 | `HAUL_S3_ENDPOINT` | object storage for product photos; unset, no photos | no |
 | `HAUL_S3_BUCKET`, `HAUL_S3_ACCESS_KEY`, `HAUL_S3_SECRET_KEY` | required once `HAUL_S3_ENDPOINT` is set; missing refuses the start | with the endpoint |
 | `HAUL_S3_REGION` | the SigV4 region; a default when unset | no |
-| `HAUL_FULFILMENT_SPEED` | how fast the simulator moves shipments (*planned*, B-17) | — |
+| `HAUL_FULFILMENT_SPEED` | how many times quicker than the store's pace the fulfilment simulator moves shipments: `1` by default (a courier order in about two days), `1440` a day a minute; anything but a positive number refuses the start | no |
 
 An agent that is off says so at `warn` on start; tracy's delivery and katcher are flushed on
 `ApplicationStopping` (`ops/Observability.kt`).
