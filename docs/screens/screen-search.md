@@ -25,12 +25,13 @@ design:
 
 ## 0a. Code anchors
 
-| What | File (planned) |
+| What | File |
 |---|---|
-| Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/search/` |
-| Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` |
-| The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/search/` |
+| Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/search/SearchViews.kt` (the no-results page; the suggest panel, which `SearchSuggestOverlay` draws over the page rather than the registry); `SearchNoResultsRenderer` in `composeApp/src/commonMain/kotlin/io/github/youndie/haul/registry/HaulRenderers.kt`; the results page is the catalog's renderers |
+| Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Shell.kt` (`SearchLoading`, `SearchError`) |
+| The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/search/screen/SearchScreen.kt` |
 | Reference PNGs, one per artboard | `composeApp/src/desktopTest/snapshots/design/` |
+| Parity fixtures, one per artboard | `composeApp/src/desktopTest/kotlin/io/github/youndie/haul/SearchFixtures.kt` |
 
 ## 0. Entry point and visibility
 
@@ -43,11 +44,11 @@ The names are the artboard names without the screen prefix. `Loading` and `Error
 client while it has no tree or after a failed request; every other state is a tree the server
 returns. The list is held against the real state when the code exists.
 
-- [ ] **Loading:** header with «running shoes», placeholder chips and cards
-- [ ] **Results:** «Running shoes», 14,870 results, category chips with counts, 10 cards; no panel
-- [ ] **Autocomplete:** Results with the panel open: suggestions, «In categories», «Recent», «Top products», «All 14,870 results ↵»
-- [ ] **NoResults:** «Nothing found for "xqzt"», suggestions to try, popular categories
-- [ ] **Error:** header, message, Retry
+- [x] **Loading:** header with «running shoes» in the field, placeholders for the count, the title, six chips and ten cards
+- [x] **Results:** «14,870 results» above «“Running shoes”» (`PageTitle.quoted`), category chips with counts, 10 cards; no panel. The artboard draws no pagination, and neither does its fixture body; the server's tree has `HaulPagination` under the grid
+- [x] **Autocomplete:** Results with the panel open over a scrim: suggestions, «In categories», «Recent», «Top products», «All 14,870 results ↵». «Recent» is drawn only when the panel carries recent searches, which the server fills for a signed-in customer only (B-12); its «Clear» is drawn and does nothing until then
+- [x] **NoResults:** «0 results» above «Nothing found for “xqzt”», the three tips, «Popular *categories*» with eight tiles. The tips are shown when there are no query suggestions; when there are, the queries to try take their place (no artboard draws that form)
+- [x] **Error:** header with the query still in the field, «Search didn’t *respond*», Retry
 
 ### Artboards and sizes
 
@@ -62,7 +63,12 @@ Desktop artboards are named as in `design.states`; each has a phone twin with th
 
 ## 5. Navigation (summary)
 
-- suggestion → Results for it
-- category → screen-catalog
-- top product → screen-product
-- «Clear» → empties Recent
+The server builds every target as a `NavigateAction`; no client loader follows them yet — the app
+has no navigation, and nothing fetches `/ui/search` or `/ui/search/suggest` as the shopper types (B-10, «Not done here»).
+
+- suggestion → Results for it (`/search?q=`)
+- category chip on Results → the same query narrowed (`/search?q=&category=`)
+- category in the panel → screen-catalog (`/c/{slug}`)
+- top product → screen-product (`/p/{productId}`)
+- «All N results» → Results for the query
+- «Clear» → empties Recent (B-12; no action is set until then)
