@@ -20,12 +20,17 @@ import io.github.youndie.haul.feature.identity.domain.IdentityError
 import io.github.youndie.haul.feature.identity.identityModule
 import io.github.youndie.haul.feature.identity.identityRouting
 import io.github.youndie.haul.feature.identity.installSignIn
+import io.github.youndie.haul.feature.order.domain.OrderError
+import io.github.youndie.haul.feature.order.orderModule
+import io.github.youndie.haul.feature.payment.paymentModule
 import io.github.youndie.haul.feature.search.domain.SearchError
 import io.github.youndie.haul.feature.search.searchModule
 import io.github.youndie.haul.feature.search.searchRouting
 import io.github.youndie.haul.ops.ObservabilitySettings
 import io.github.youndie.haul.ops.installObservability
 import io.github.youndie.haul.ops.probes
+import io.github.youndie.petich.PetichClock
+import io.github.youndie.petich.SuspendedPetichSweeper
 import io.github.youndie.shildik.oidc.JWT_AUTH_OIDC
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -38,6 +43,7 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.routing
 import org.koin.dsl.module
+import org.koin.ktor.ext.get
 import org.koin.ktor.plugin.Koin
 import java.io.File
 import java.time.ZonedDateTime
@@ -61,6 +67,10 @@ internal fun interface StoreClock {
  *
  * [photoStore] is the object storage product photos are kept in (B-30); `null` — no storage
  * configured — serves no photos, and every tile is the placeholder.
+ *
+ * [sagaClock] is the order saga's clock (B-16): a wall clock, apart from [clock], because what it
+ * stamps is compared across processes — the sweeper takes a saga untouched for a minute as abandoned
+ * by a process that died — while [clock] is the store's «now», which the tests hold at the canvas's.
  */
 internal fun Application.haulModule(
     dataSource: DataSource,
@@ -70,6 +80,7 @@ internal fun Application.haulModule(
     web: File? = null,
     photoStore: PhotoStore? = null,
     signIn: SignInConfig? = null,
+    sagaClock: PetichClock,
 ) {
     val reportFailure = installObservability(observability)
     installSignIn(signIn)
@@ -80,6 +91,7 @@ internal fun Application.haulModule(
                 single { database }
                 single { dataSource }
                 single { clock }
+                single { sagaClock }
                 single { DeliveryCalendar(clock::now) }
                 single { ProductPhotos(photoStore) }
             },
@@ -88,8 +100,13 @@ internal fun Application.haulModule(
             identityModule,
             cartModule,
             checkoutModule,
+            paymentModule,
+            orderModule,
         )
     }
+    // Carries on what a process that died left mid-saga, from the first moment this one serves; it
+    // stops with the application, whose scope it runs in.
+    get<SuspendedPetichSweeper>().start(this)
     install(StatusPages) {
         // A bearer token that did not verify, or none where the customer tier needs one: the
         // authentication challenge answers with an empty body, and every refusal here has one.
@@ -102,6 +119,7 @@ internal fun Application.haulModule(
         exception<SearchError> { call, error -> call.respondError(error.code, error.message, error.field) }
         exception<IdentityError> { call, error -> call.respondError(error.code, error.message, error.field) }
         exception<CartError> { call, error -> call.respondError(error.code, error.message, error.field) }
+        exception<OrderError> { call, error -> call.respondError(error.code, error.message, error.field) }
         exception<CheckoutError> {
             call,
             error,
@@ -148,6 +166,7 @@ internal fun status(code: ErrorCode): HttpStatusCode =
         ErrorCode.QueryTooShort,
         ErrorCode.FieldRequired,
         ErrorCode.FieldInvalid,
+        ErrorCode.IdempotencyKeyMissing,
         -> HttpStatusCode.BadRequest
 
         ErrorCode.Unauthenticated -> HttpStatusCode.Unauthorized
@@ -167,6 +186,8 @@ internal fun status(code: ErrorCode): HttpStatusCode =
         ErrorCode.PromoAlreadyApplied,
         ErrorCode.CartEmpty,
         ErrorCode.SlotUnavailable,
+        ErrorCode.IdempotencyKeyReused,
+        ErrorCode.CartChanged,
         -> HttpStatusCode.Conflict
 
         ErrorCode.PromoExpired,

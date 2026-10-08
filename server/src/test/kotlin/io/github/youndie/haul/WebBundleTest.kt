@@ -1,6 +1,7 @@
 package io.github.youndie.haul
 
 import io.github.youndie.haul.testing.CANVAS_NOW
+import io.github.youndie.haul.testing.SAGA_CLOCK
 import io.github.youndie.haul.testing.SeededDatabase
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -41,7 +42,15 @@ class WebBundleTest {
 
     private fun withBundle(block: suspend HttpClient.() -> Unit) =
         testApplication {
-            application { haulModule(SeededDatabase.dataSource, CANVAS_NOW, commit = "test", web = bundle) }
+            application {
+                haulModule(
+                    SeededDatabase.dataSource,
+                    CANVAS_NOW,
+                    commit = "test",
+                    web = bundle,
+                    sagaClock = SAGA_CLOCK,
+                )
+            }
             client.block()
         }
 

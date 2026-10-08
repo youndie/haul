@@ -38,6 +38,11 @@ shildik = "0.4.1.23"
 # contour was accepted against (shildik docs/api/protocol-oidc-app.md, 0.18.4). A new version is a new
 # acceptance run there, not a dependency refresh here.
 oidc = "0.18.4"
+# The order saga (B-16, research D4): the engine, its storage on Exposed over JDBC (research D3) and the
+# guard against an `Idempotency-Key` reused with a different request (research §1.3, consequence 4).
+# The build research §1.1 names and the sibling reference service runs; petich-postgres pins Exposed
+# 1.4.0 in its own POM, which is the version above.
+petich = "0.4.0.112"
 
 [libraries]
 ktor-server-core = { module = "io.ktor:ktor-server-core" }
@@ -76,6 +81,9 @@ ktor-client-js = { module = "io.ktor:ktor-client-js" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock" }
 
 shildik-oidcAuthServer = { module = "io.github.youndie.shildik:oidc-auth-server", version.ref = "shildik" }
+petich-core = { module = "io.github.youndie.petich:petich-core", version.ref = "petich" }
+petich-postgres = { module = "io.github.youndie.petich:petich-postgres", version.ref = "petich" }
+petich-idempotency = { module = "io.github.youndie.petich:petich-idempotency", version.ref = "petich" }
 oidc-appsupport = { module = "io.github.kalinjul.kotlin.multiplatform:oidc-appsupport", version.ref = "oidc" }
 
 [plugins]

@@ -5,8 +5,9 @@ import kotlinx.serialization.Serializable
 
 // The bodies of checkout's commands (endpoint-checkout, endpoint-identity). Where each one is sent is
 // the server's string, carried by the Checkout tree's components (`DeliveryMethods.url`,
-// `CheckoutAddress.url`, …); every command answers kompot's `refresh`, which redraws the checkout with
-// a new quote, or an `ErrorBody`.
+// `CheckoutAddress.url`, `CheckoutSummary.placeUrl`, …); every command answers kompot's `refresh`,
+// which redraws the checkout with a new quote, or an `ErrorBody` — except placement, which answers
+// `202` and kompot's `navigate` to the order.
 
 /** How an order is received (research §5, `DeliveryMethod`). */
 @Serializable
@@ -48,4 +49,22 @@ public data class AddressEntry(
     val zip: String = "",
     val doorCode: String = "",
     val courierNote: String = "",
+)
+
+/**
+ * The header placement carries its idempotency key in (feature-checkout): the client generates one key
+ * per quote it places, and sends it again with every retry of that placement. The same key with the same
+ * [PlaceOrderRequest] is answered with the same order; with a different one it is refused
+ * (`409 idempotency_key_reused`).
+ */
+public const val IDEMPOTENCY_KEY_HEADER: String = "Idempotency-Key"
+
+/**
+ * «Place order», `POST` to `CheckoutSummary.placeUrl` with an [IDEMPOTENCY_KEY_HEADER]: [quote] is the
+ * fingerprint the summary carried (`CheckoutSummary.quote`). The server computes the quote again and
+ * places only that one; a quote that changed since the page was drawn is refused (`409 cart_changed`).
+ */
+@Serializable
+public data class PlaceOrderRequest(
+    val quote: String,
 )

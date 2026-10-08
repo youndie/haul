@@ -3,6 +3,7 @@ package io.github.youndie.haul
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.github.youndie.haul.testing.CANVAS_NOW
+import io.github.youndie.haul.testing.SAGA_CLOCK
 import io.github.youndie.haul.testing.SeededDatabase
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
@@ -47,7 +48,7 @@ class ErrorAnswersTest {
     fun `the assembled application answers an unexpected failure with 500 internal`() =
         testApplication {
             application {
-                haulModule(SeededDatabase.dataSource, CANVAS_NOW, commit = "test")
+                haulModule(SeededDatabase.dataSource, CANVAS_NOW, commit = "test", sagaClock = SAGA_CLOCK)
                 routing { throwing() }
             }
             val response = client.get("/test/bug")
@@ -121,7 +122,7 @@ class ErrorAnswersTest {
             )
         unreachable.use {
             testApplication {
-                application { haulModule(it, CANVAS_NOW, commit = "test") }
+                application { haulModule(it, CANVAS_NOW, commit = "test", sagaClock = SAGA_CLOCK) }
                 val response = client.get("/ui/home")
 
                 assertEquals(HttpStatusCode.ServiceUnavailable, response.status, response.bodyAsText())

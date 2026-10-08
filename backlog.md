@@ -40,12 +40,11 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (16)
+## Open (15)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-15](docs/backlog/B-15-checkout-renderers-and-the-address-form.md) `[ ]` | design refs + client: Checkout renderers and the address form | P1 | L | B-01, B-13, B-14 |
-| [B-16](docs/backlog/B-16-placement-with-an-idempotency-key-the.md) `[ ]` | server: placement with an idempotency key; the petich saga — reserve, authorise, confirm, compensate; the payment simulator | P1 | L | B-14 |
 | [B-17](docs/backlog/B-17-fulfilment-simulator-capture-per-shipment-pickup.md) `[ ]` | server: fulfilment simulator, capture per shipment, pickup codes | P1 | M | B-16 |
 | [B-18](docs/backlog/B-18-order-tree-and-renderers-reorder.md) `[ ]` | server + client: Order tree and renderers, reorder | P1 | M | B-01, B-15, B-17 |
 | [B-19](docs/backlog/B-19-account-overview-and-orders-history.md) `[ ]` | server + client: Account overview and orders history | P1 | M | B-01, B-18 |
@@ -61,7 +60,7 @@ A stage is a field on the item, not a directory.
 | [B-37](docs/backlog/B-37-actions-the-trees-draw-but-do-not-carry.md) `[ ]` | server + client: actions the trees draw but do not carry | P2 | M | B-35 |
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
 
-## Closed (21)
+## Closed (22)
 
 **Skeleton**
 
@@ -95,6 +94,7 @@ A stage is a field on the item, not a directory.
 **Checkout and orders**
 
 - [B-14](docs/backlog/B-14-checkout-tree-slots-with-capacity-pickup.md) `[x]` - server: checkout tree, slots with capacity, pickup points, quote, the address form
+- [B-16](docs/backlog/B-16-placement-with-an-idempotency-key-the.md) `[x]` - server: placement with an idempotency key; the petich saga — reserve, authorise, confirm, compensate; the payment simulator
 
 **Ship**
 

@@ -220,6 +220,7 @@ internal class CheckoutScreen(
             note = if (quote.payment.card) "Your card is charged when the order ships" else null,
             placeLabel = "Place order · $exact",
             placeEnabled = quote.complete,
+            placeUrl = CheckoutPaths.PLACE,
             quote = quote.fingerprint,
         )
     }
