@@ -27,6 +27,11 @@ design:
 
 Menu items other than Overview, Orders and Saved are not shown in v1 (§2).
 
+> Today `/account` — where a customer's header shortcut goes — is a placeholder (B-12): `GET
+> /ui/account` answers the frame and «Hi, <first name>»
+> (`server/src/main/kotlin/io/github/youndie/haul/feature/account/AccountRouting.kt`), drawn with the
+> shell's generic placeholders (`PageKind.Other`). The Account tree and its renderers are B-19's.
+
 ## 0a. Code anchors
 
 | What | File (planned) |
