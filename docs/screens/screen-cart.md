@@ -29,11 +29,12 @@ design:
 
 ## 0a. Code anchors
 
-| What | File (planned) |
+| What | File |
 |---|---|
-| Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/cart/` |
-| Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` |
-| The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/cart/` |
+| Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/cart/` (planned, B-13) |
+| Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` (the cart's pages planned, B-13) |
+| The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/cart/screen/CartScreen.kt` |
+| The components on the wire | `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/CartComponents.kt` |
 | Reference PNGs, one per artboard | `composeApp/src/desktopTest/snapshots/design/` |
 
 ## 0. Entry point and visibility
@@ -46,6 +47,12 @@ design:
 The names are the artboard names without the screen prefix. `Loading` and `Error` are drawn by the
 client while it has no tree or after a failed request; every other state is a tree the server
 returns. The list is held against the real state when the code exists.
+
+Since B-11 the server answers Content, Empty, PromoApplied, PromoError, ItemChanged and Guest as one
+tree — each is what the stored cart is, not a builder of its own — and its tests hold them
+(`CartRoutesTest`, `ChangedLinesTest` in `server/src/test/kotlin/io/github/youndie/haul/feature/cart/`).
+The boxes are ticked when the client draws them (B-13). Content's «You'll earn 1,024 points» is
+Maya's as a Plus customer; over HTTP the cart is a guest's until B-12, and a guest's is Guest.
 
 - [ ] **Loading:** title, placeholder groups and summary
 - [ ] **Content:** 3 items in 2 seller groups, all selected, summary $652.00 / −$140.00 / Free / $512, empty promo field, «You'll earn 1,024 points»
