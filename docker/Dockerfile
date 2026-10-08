@@ -1,7 +1,8 @@
 # The server's image, with an AOT cache trained on the JRE that runs it (research §1.5, risk 4).
 #
 # The context is the installed distribution — `./gradlew :server:installDist`, then this file with
-# `server/build/install/server` as the context; `scripts/image-check.sh` does both.
+# `server/build/install/server` as the context; `scripts/image-build.sh` does both, for the image check
+# and the e2e alike.
 #
 # **Why a training stage with its own PostgreSQL.** The JVM accepts a cache only from the very build
 # that wrote it, down to the size of `lib/modules`, so the cache is trained on this image's JRE and

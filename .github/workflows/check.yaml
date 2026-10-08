@@ -109,6 +109,37 @@ jobs:
       - if: steps.scope.outputs.code == 'true'
         run: scripts/image-check.sh
 
+  # B-26's acceptance: one run that browses, buys, receives and returns, over HTTP, against the server's
+  # image with PostgreSQL and shildik beside it — started by the test through Testcontainers, the
+  # fulfilment clock at a day a second. The image is built here once, by the recipe the image job checks
+  # (`scripts/image-build.sh`); sharing the image job's would mean moving 700 MB between jobs, which costs
+  # about what building it does. The script is the same one a person runs.
+  e2e:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # A change that only moves documents skips the steps below and still reports success under
+      # this job's name; the default branch always runs them (scripts/code-changed.sh says why).
+      - id: scope
+        run: scripts/code-changed.sh >> "$GITHUB_OUTPUT"
+
+      - if: steps.scope.outputs.code == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - if: steps.scope.outputs.code == 'true'
+        uses: gradle/actions/setup-gradle@v4
+
+      - if: steps.scope.outputs.code == 'true'
+        run: scripts/e2e.sh
+
   # B-27's chart, rendered with the defaults and the stand's values, and every refusal it promises
   # made to fire. No cluster: whether it installs is a deploy, not a pull request's check.
   chart:
