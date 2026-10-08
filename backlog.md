@@ -44,7 +44,6 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-18](docs/backlog/B-18-order-tree-and-renderers-reorder.md) `[~]` | server + client: Order tree and renderers, reorder | P1 | M | B-01, B-15, B-17 |
 | [B-19](docs/backlog/B-19-account-overview-and-orders-history.md) `[ ]` | server + client: Account overview and orders history | P1 | M | B-01, B-18 |
 | [B-26](docs/backlog/B-26-the-whole-path-over-http-against.md) `[ ]` | e2e: the whole path over HTTP against the composed stack | P1 | M | B-21, B-22 |
 | [B-20](docs/backlog/B-20-saved-list-save-for-later-price.md) `[ ]` | server + client: Saved list, save for later, price drops | P2 | M | B-01, B-13, B-19 |
@@ -96,6 +95,7 @@ A stage is a field on the item, not a directory.
 - [B-15](docs/backlog/B-15-checkout-renderers-and-the-address-form.md) `[x]` - design refs + client: Checkout renderers and the address form
 - [B-16](docs/backlog/B-16-placement-with-an-idempotency-key-the.md) `[x]` - server: placement with an idempotency key; the petich saga — reserve, authorise, confirm, compensate; the payment simulator
 - [B-17](docs/backlog/B-17-fulfilment-simulator-capture-per-shipment-pickup.md) `[x]` - server: fulfilment simulator, capture per shipment, pickup codes
+- [B-18](docs/backlog/B-18-order-tree-and-renderers-reorder.md) `[x]` - server + client: Order tree and renderers, reorder
 - [B-39](docs/backlog/B-39-placement-refuses-a-quote-checkout-holds.md) `[x]` - server: placement refuses a quote the checkout is holding
 - [B-40](docs/backlog/B-40-saving-an-address-updates-it-in-place.md) `[x]` - server: saving the address being delivered to updates it in place
 - [B-41](docs/backlog/B-41-sign-in-returns-to-where-it-was-asked.md) `[x]` - client: sign-in returns to where it was asked for
