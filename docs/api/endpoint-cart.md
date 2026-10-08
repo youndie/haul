@@ -20,10 +20,13 @@ parent_feature: feature-cart
 
 > The six routes exist since B-11 and are described as the code has them; B-12 let a customer in,
 > B-13 gave the tree its canvas shape (`CartBody`) and the client its commands, B-37 put the same
-> line command on every product card. There are no route classes in `shared`: the paths are the
+> line command on every product card, B-48 on the product page's «Add to cart» and «Buy now».
+> «Save for later» on a line, `POST /api/v1/cart/lines/{skuId}/save-for-later`, is the Saved list's
+> route ([endpoint-saved](endpoint-saved.md)); an order's «Reorder» goes through the same rules
+> ([endpoint-orders](endpoint-orders.md)). There are no route classes in `shared`: the paths are the
 > server's strings (`CartPaths` in `CartRouting.kt`), handed to the client inside the tree —
-> `CartLine.url` and `acknowledgeUrl`, `CartSelection.linesUrl`, `PromoField.url`, `ProductCard.add`
-> — and the contract is the command bodies, the components and `ErrorCode`.
+> `CartLine.url` and `acknowledgeUrl`, `CartSelection.linesUrl`, `PromoField.url`, `ProductCard.add`,
+> `ProductDetails.add` and `.buy` — and the contract is the command bodies, the components and `ErrorCode`.
 
 The public tier here means a cart owner: a customer by a verified shildik bearer, or a guest id the
 server issued, sent as `X-Haul-Guest` (`GUEST_HEADER` in
@@ -37,7 +40,7 @@ below; so is a token that does not verify.
 | Method and path | Service | Auth tier | In the generated schema? | Purpose |
 |---|---|---|---|---|
 | `GET` `/ui/cart` | haul-server | public (customer bearer or `X-Haul-Guest`) | yes | request: —; answers tree: Cart — Content, Empty, PromoApplied, PromoError, ItemChanged and Guest are all this one tree |
-| `PUT` `/api/v1/cart/lines/{skuId}` | haul-server | public (customer bearer or `X-Haul-Guest`) | yes | request: `LineChange` — adds the SKU, or changes its line's quantity or selection; a card's «+» sends it too (`ProductCard.add`); answers action: `refresh` |
+| `PUT` `/api/v1/cart/lines/{skuId}` | haul-server | public (customer bearer or `X-Haul-Guest`) | yes | request: `LineChange` — adds the SKU, or changes its line's quantity or selection; a card's «+» sends it too (`ProductCard.add`), and the product page's «Add to cart» and «Buy now» (`ProductDetails.add`, `.buy`); answers action: `refresh` — a `LineCommand` with a `next` («Buy now») is followed by the client to that address once the change was accepted |
 | `DELETE` `/api/v1/cart/lines` | haul-server | public (customer bearer or `X-Haul-Guest`) | yes | request: `LinesRemoval` — «Remove» and «Delete selected»; answers action: `refresh` |
 | `POST` `/api/v1/cart/lines/{skuId}/acknowledge` | haul-server | public (customer bearer or `X-Haul-Guest`) | yes | request: —; «OK» on a changed line; answers action: `refresh` |
 | `PUT` `/api/v1/cart/promo` | haul-server | public (customer bearer or `X-Haul-Guest`) | yes | request: `PromoEntry`; answers action: `refresh` |
@@ -82,7 +85,8 @@ server does with them:
   canvas lays the lines and the summary side by side, which a column of sections cannot): the
   `CartSelection`, one `CartGroup` per seller in the order the lines were added, each with «Courier ·
   <latest delivery day>», and the `OrderSummary` with the `PromoField` inside it. A line carries
-  `changeDetail` («It was $24 when you added it») when changed, `each` above one unit. The summary's
+  `changeDetail` («It was $24 when you added it») when changed, `each` above one unit, and «Save for
+  later» — `saveUrl` for a customer, `saveAction` (a `navigate` to `/sign-in`) for a guest. The summary's
   rows are «Items (N)» of the counted units, «Discount», «Promo · AUTUMN10» when the code took
   something off, «Delivery»; `SummaryRow.saving` marks the savings; the total is a price tag («$512»);
   «You'll earn **N points** on this order» (`pointsAccent`) for a customer only. «Checkout» goes to
@@ -101,8 +105,6 @@ server does with them:
 * The discount folds the promo in: Cart_PromoApplied draws «Discount −$140.00» beside «Promo ·
   AUTUMN10 −$50.00», while the server sends «Discount −$190.00» (B-11's tested rule, kept by B-13;
   feature-cart). Unresolved between the canvas and the rule.
-* The guest's checkout action carries `?next=%2Fcheckout`, but the client's `SignInActions` reads only
-  the path: after sign-in the cart is drawn again, not the checkout.
 * No command takes an `Idempotency-Key`: each is idempotent as written — set a quantity, delete
   lines, acknowledge, apply the code already applied.
 

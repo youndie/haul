@@ -3,7 +3,7 @@ id: screen-cart
 title: Cart
 type: client_screen
 platform: [web]
-status: draft
+status: active
 entry:
   web: "/cart"
 parent_feature: feature-cart
@@ -87,10 +87,11 @@ shell fetch `/ui/cart` again in place (`LocalScreenRefresh`) — a refusal too.
 - «OK» on a changed line → `POST /api/v1/cart/lines/{skuId}/acknowledge`
 - Apply / Remove on the code → `PUT` / `DELETE /api/v1/cart/promo` (Apply with nothing typed sends nothing)
 - a line's title → screen-product
-- Save for later → nothing yet (B-20)
+- Save for later → `POST /api/v1/cart/lines/{skuId}/save-for-later` (`CartLine.saveUrl`), then the cart drawn again without the line; a guest's → `/sign-in` (B-20)
+- a pick's heart on the empty cart → `PUT` / `DELETE /api/v1/me/saved/{productId}` ([endpoint-saved](../api/endpoint-saved.md))
 - Checkout → screen-checkout (`/checkout`); a guest's «Sign in to check out» → sign-in, then `/checkout` (the `?next=%2Fcheckout` it carries, B-41); a sign-in that does not go through draws the cart again
 - the empty cart's «See today’s deals» → [screen-deals](screen-deals.md)
 
 The client's wiring is `CartWiringTest` and `CartCommandsTest` in
-`composeApp/src/desktopTest/kotlin/io/github/youndie/haul/feature/cart/`. This document stays a draft
-while «Save for later» (B-20) is drawn and inert.
+`composeApp/src/desktopTest/kotlin/io/github/youndie/haul/feature/cart/`; «Save for later» is
+`SavedWiringTest` (`composeApp/src/desktopTest/kotlin/io/github/youndie/haul/feature/saved/SavedWiringTest.kt`).
