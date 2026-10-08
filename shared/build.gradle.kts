@@ -1,5 +1,6 @@
-// The contract both halves read, and nothing else: the Haul components on the wire, the route
-// classes, the request bodies of commands, the closed `ErrorCode` enum, money and time types.
+// The contract both halves read, and nothing else: the Haul components on the wire, the request
+// bodies of commands, the closed `ErrorCode` enum. Paths are the server's strings — the client follows
+// the actions in its trees — and prices and dates travel already formatted.
 //
 // Not here: anything only one side reads — a default a screen depends on, the server's address, a
 // business rule. jvm for the server and the desktop screenshots, wasmJs for the storefront.
