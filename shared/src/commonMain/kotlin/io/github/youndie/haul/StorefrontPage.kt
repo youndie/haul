@@ -26,6 +26,9 @@ public enum class StorefrontPage {
     /** `/cart`. */
     Cart,
 
+    /** `/checkout`, where the cart sends a customer (B-14). */
+    Checkout,
+
     /** `/account`, a customer's. */
     Account,
 
@@ -47,6 +50,7 @@ public enum class StorefrontPage {
                 "p" -> Product.takeIf { rest == 1 }
                 "search" -> Search.takeIf { rest == 0 }
                 "cart" -> Cart.takeIf { rest == 0 }
+                "checkout" -> Checkout.takeIf { rest == 0 }
                 "account" -> Account.takeIf { rest == 0 }
                 "sign-in" -> SignIn.takeIf { rest == 0 }
                 else -> null

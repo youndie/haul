@@ -33,12 +33,15 @@ exist, as it already does in-page.
 ## Findings (2026-10-08)
 
 - **One list, in `:shared`.** The shapes are `StorefrontPage` — `/`, `/c/{path...}`, `/p/{productId}`,
-  `/search`, `/cart`, `/account`, `/sign-in` — and both halves read it: the server to decide where the
+  `/search`, `/cart`, `/checkout`, `/account`, `/sign-in` — and both halves read it: the server to decide where the
   page answers, the client's `Address.kind` to decide which page an address is. One definition rather
   than a test on each side pinning a copy: it cost one small file (string splitting, no regex in the
   wasm), and two pinned copies would still let a third place — the next screen — drift from both.
   Exact shapes, not prefixes: an empty segment or a trailing slash is no page, a product has one id
   (`/ui/p/{productId}`), the other pages none.
+- **`/checkout` joined the list on the rebase.** B-14 merged while this was built, with a
+  `/ui/checkout` screen the cart links to as `/checkout`; without it in the list a customer reloading
+  checkout would get the 404 this item removes. It is exactly the drift the last finding is about.
 - **A category address has one or more slugs**, not exactly one: the screen route is
   `/ui/c/{path...}`, the catalog reads the last slug, the client already mapped any `/c/…` to the
   catalog, and `CatalogRoutesTest` asks `/ui/c/electronics/audio/headphones`. Allowing only `/c/{slug}`

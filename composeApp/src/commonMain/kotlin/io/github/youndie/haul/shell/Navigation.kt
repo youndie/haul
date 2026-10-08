@@ -30,10 +30,19 @@ public data class Address(
     val kind: PageKind =
         when (StorefrontPage.of(path)) {
             StorefrontPage.Home -> PageKind.Home
+
             StorefrontPage.Catalog -> PageKind.Catalog
+
             StorefrontPage.Product -> PageKind.Product
+
             StorefrontPage.Search -> PageKind.Search
-            StorefrontPage.Cart, StorefrontPage.Account, StorefrontPage.SignIn, null -> PageKind.Other
+
+            StorefrontPage.Cart,
+            StorefrontPage.Checkout,
+            StorefrontPage.Account,
+            StorefrontPage.SignIn,
+            null,
+            -> PageKind.Other
         }
 
     /** Where the server keeps this page's tree: `/` is `/ui/home`, any other address the same under `/ui`. */

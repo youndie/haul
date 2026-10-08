@@ -211,6 +211,7 @@ class WebBundleTest {
                 "/p/p-001-05?sku=s-1&tab=specifications",
                 "/search?q=running%20shoes",
                 "/cart",
+                "/checkout",
                 "/account",
                 "/sign-in",
             )
