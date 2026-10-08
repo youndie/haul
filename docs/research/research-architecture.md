@@ -264,7 +264,8 @@ is about a tenth, and the fonts another tenth.
 #### Measured in B-28
 
 **How.** `scripts/measure-first-load.sh` (it builds the arms and calls `scripts/measure-first-load.py`)
-on 2026-10-08, scripts at `68a95b9` on top of `cfb9e1f`. The production bundle
+on 2026-10-08, on the tree of `cfb9e1f` (before B-27 and B-10 merged; the scripts have not changed
+since). The production bundle
 (`:composeApp:wasmJsBrowserDistribution`, Compose Multiplatform and Kotlin from the sborka 0.5.0.113
 `wip` catalog), served as static files by the script over loopback, each response compressed with
 what the browser asked for — it asked for `gzip, deflate, br, zstd` and got brotli (quality 11) on
