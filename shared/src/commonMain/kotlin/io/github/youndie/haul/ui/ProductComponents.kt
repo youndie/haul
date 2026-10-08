@@ -61,6 +61,9 @@ public data class SellerSummary(
  * thumbnail's «+3»; [photoTotal] is how many photos there are (the phone's dots). [haulPayStrong] is
  * the part of [haulPay] drawn bold.
  *
+ * [bought] is «12K bought this month» under the rating, already abbreviated by the server (B-52); absent
+ * for a product bought fewer than 50 times in the last 30 days.
+ *
  * [photo] is where the product's stored photo is served (research D8, B-30): drawn as the shown photo
  * and the first thumbnail, over the placeholder tile of [photoTone], which stays whenever the photo is
  * absent, loading or failed.

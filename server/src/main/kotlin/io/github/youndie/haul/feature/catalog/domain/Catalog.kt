@@ -44,6 +44,11 @@ internal data class Product(
     val headlineAccent: String?,
     /** The key of the product's photo in the object storage (B-30); `null` is the placeholder tile. */
     val imageKey: String? = null,
+    /**
+     * The month of sales the store holds no orders for, added to the live count of «bought this month»
+     * (B-52, V23): the seed's stand-in for the sample products, 0 for every other product.
+     */
+    val boughtBase: Int = 0,
 )
 
 internal data class Sku(

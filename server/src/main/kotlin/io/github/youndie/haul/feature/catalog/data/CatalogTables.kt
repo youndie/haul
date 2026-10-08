@@ -7,6 +7,7 @@ import org.jetbrains.exposed.v1.core.CustomFunction
 import org.jetbrains.exposed.v1.core.IntegerColumnType
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.greater
+import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.javatime.timestampWithTimeZone
@@ -62,6 +63,10 @@ internal object ProductsTable : Table("products") {
 
     // V7: the key of the product's photo in the object storage; null is the placeholder tile.
     val imageKey = text("image_key").nullable()
+
+    // V23: the month of sales the store holds no orders for, added to the live count (B-52); 0 but for the
+    // sample products.
+    val boughtBase = integer("bought_base").default(0).check("products_bought_base_check") { it greaterEq 0 }
     override val primaryKey = PrimaryKey(id)
 
     init {

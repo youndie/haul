@@ -11,9 +11,11 @@ import io.github.youndie.haul.feature.cart.domain.CartCommands
 import io.github.youndie.haul.feature.cart.domain.CartRepository
 import io.github.youndie.haul.feature.cart.screen.CartScreen
 import io.github.youndie.haul.feature.catalog.catalogModule
+import io.github.youndie.haul.feature.catalog.domain.BoughtThisMonth
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
+import io.github.youndie.haul.feature.catalog.domain.ProductSales
 import io.github.youndie.haul.feature.catalog.screen.CatalogScreen
 import io.github.youndie.haul.feature.catalog.screen.DealsScreen
 import io.github.youndie.haul.feature.catalog.screen.HomeScreen
@@ -130,6 +132,8 @@ class KoinGraphTest {
         assertNotNull(koin.get<CatalogRepository>())
         assertNotNull(koin.get<HomeScreen>())
         assertNotNull(koin.get<CatalogScreen>())
+        assertNotNull(koin.get<ProductSales>())
+        assertNotNull(koin.get<BoughtThisMonth>())
         assertNotNull(koin.get<ProductScreen>())
         assertNotNull(koin.get<DealsScreen>())
         assertNotNull(koin.get<SearchScreen>())

@@ -2,6 +2,8 @@ package io.github.youndie.haul.feature.reviews
 
 import io.github.youndie.haul.db.Databases
 import io.github.youndie.haul.feature.catalog.data.ExposedCatalogRepository
+import io.github.youndie.haul.feature.catalog.data.ExposedProductSales
+import io.github.youndie.haul.feature.catalog.domain.BoughtThisMonth
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.screen.ProductScreen
@@ -36,8 +38,8 @@ import kotlin.test.assertEquals
  * `build/review-fixtures/`.
  *
  * The rest of each body — the header, the crumbs and the details above the tabs — is B-08's, written with
- * the canvas's copy, which the seed's product does not match («Color», «12K bought this month», the
- * pickup line), and stays outside this comparison as it was.
+ * the canvas's copy, which the seed's product does not match («Color», the pickup line), and stays outside
+ * this comparison as it was; «12K bought this month» there is held by `ProductRoutesTest` (B-52).
  */
 class ReviewFixturesTest {
     private val bodies = File(System.getProperty("haul.clientBodies") ?: error("haul.clientBodies is not set"))
@@ -54,6 +56,7 @@ class ReviewFixturesTest {
                     DeliveryCalendar(CANVAS_NOW::now),
                     ProductPhotos(null),
                     ReviewTabs(ExposedReviews(database)),
+                    BoughtThisMonth(ExposedProductSales(database), CANVAS_NOW),
                 )
             val maya = Viewer(firstName = "Maya", customerId = SampleCustomers.MAYA)
             val mismatches = mutableListOf<String>()

@@ -60,6 +60,11 @@ internal object OrderLinesTable : Table("order_lines") {
     val priceCents = integer("price_cents")
     val listCents = integer("list_cents")
     override val primaryKey = PrimaryKey(orderId, position, name = "pk_order_lines")
+
+    init {
+        // V23: «bought this month» reads a product's lines through its SKUs (B-52).
+        index("order_lines_sku_id", false, skuId)
+    }
 }
 
 internal object ShipmentsTable : Table("shipments") {

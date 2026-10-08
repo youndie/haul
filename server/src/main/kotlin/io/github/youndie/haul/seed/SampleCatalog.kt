@@ -69,6 +69,8 @@ internal object SampleCatalog {
                 // Product_Description's headline, the accent in Bodoni italic.
                 headline = "Silence, tuned to you",
                 headlineAccent = "to you",
+                // «12K bought this month», as every Product_* artboard writes it (B-52).
+                boughtBase = 12_340,
             ),
             SeedProduct(
                 id = DUVET_COVER,
@@ -87,6 +89,8 @@ internal object SampleCatalog {
                 dispatchDays = 1,
                 headline = "Linen that softens with every wash",
                 headlineAccent = "every wash",
+                // «2.1K bought this month»: no artboard draws its page.
+                boughtBase = 2_180,
             ),
             SeedProduct(
                 id = STONEWARE_MUG,
@@ -105,6 +109,8 @@ internal object SampleCatalog {
                 dispatchDays = 1,
                 headline = "Glazed by hand, one at a time",
                 headlineAccent = "by hand",
+                // «840 bought this month», the backlog item's own example.
+                boughtBase = 840,
             ),
         ) + SampleHeadphones.products
 
