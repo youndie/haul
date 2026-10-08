@@ -17,6 +17,9 @@ import io.github.youndie.haul.feature.order.saga.SagaStorage
 import io.github.youndie.haul.feature.order.saga.orderEngine
 import io.github.youndie.haul.feature.order.saga.orderSaga
 import io.github.youndie.haul.feature.payment.data.ExposedPaymentSimulator
+import io.github.youndie.haul.feature.payment.domain.Authorisation
+import io.github.youndie.haul.feature.payment.domain.AuthorisationOutcome
+import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog.BROOKLYN_HOME
 import io.github.youndie.haul.seed.SampleCatalog.SONY_STORE
@@ -85,6 +88,7 @@ class OrderSagaTest {
         dataSource: DataSource,
         payload: OrderPayload,
         orders: (OrderRepository) -> OrderRepository = { it },
+        payments: (PaymentProcessor) -> PaymentProcessor = { it },
     ): Pair<PetichResult, Petich> =
         runBlocking {
             val database = Databases.connect(dataSource)
@@ -98,7 +102,7 @@ class OrderSagaTest {
                             stock = ExposedStock(database),
                             slots = ExposedDeliverySlots(database),
                             orders = orders(ExposedOrders(database)),
-                            payments = ExposedPaymentSimulator(database, CANVAS_NOW),
+                            payments = payments(ExposedPaymentSimulator(database, CANVAS_NOW)),
                             carts = ExposedCartRepository(database),
                         ),
                     ),
@@ -140,6 +144,37 @@ class OrderSagaTest {
             assertEquals(stockBefore, ledger.stock(), "the stock was kept")
             assertEquals(0, ledger.reservedStock())
             assertEquals(MAYAS_SKUS, ledger.cartLines(SampleCustomers.MAYA))
+        }
+
+    /**
+     * The card processor failing — down, or answering what nobody expected — is a fault, not a
+     * decline: the order it was asked for is cancelled as `failed` by `open-order`'s own compensation,
+     * and the window and the stock come back. Its own compensation runs too, because petich cannot tell
+     * an authorisation that landed from one that did not, and voids nothing here.
+     */
+    @Test
+    fun `a card processor that fails cancels the order it had opened`() =
+        seededFreshDatabase().use { dataSource ->
+            val ledger = Ledger(dataSource)
+            val stockBefore = ledger.stock()
+            val failing: (PaymentProcessor) -> PaymentProcessor = { real ->
+                object : PaymentProcessor by real {
+                    override suspend fun authorise(
+                        key: String,
+                        authorisation: Authorisation,
+                    ): AuthorisationOutcome = error("the card processor answered 502")
+                }
+            }
+
+            val (result, saga) = run(dataSource, payload("HL-90004"), payments = failing)
+
+            assertEquals(PetichStatus.FAILED, saga.status, result.toString())
+            val order = assertNotNull(runBlocking { ExposedOrders(Databases.connect(dataSource)).order("HL-90004") })
+            assertEquals(OrderStatus.Cancelled, order.status, "the order a failed payment opened is still open")
+            assertEquals(CancelReason.FAILED, order.cancelReason)
+            assertEquals(0, ledger.taken(slotId))
+            assertEquals(stockBefore, ledger.stock())
+            assertEquals(emptyList(), ledger.authorisations())
         }
 
     /**
