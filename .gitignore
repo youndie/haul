@@ -11,3 +11,7 @@ local.properties
 
 # Session artefacts of the agent, including its git worktrees under .claude/worktrees/.
 .claude/
+
+# The canvas sources the design references are rendered from: reproducible from the Claude Design
+# project, and recorded in design/manifest.json.
+composeApp/src/desktopTest/snapshots/design/.canvas/

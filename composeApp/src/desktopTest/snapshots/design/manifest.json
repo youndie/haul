@@ -1,0 +1,357 @@
+{
+  "title": "",
+  "source": "/Users/youndie/Documents/GitHub/haul/composeApp/src/desktopTest/snapshots/design/.canvas",
+  "references": [
+    {
+      "artboard": "Catalog_Content.dc.html",
+      "frame": null,
+      "reference": "Catalog_Content.png",
+      "width": 1440,
+      "height": 1940,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Catalog_Content_Phone.dc.html",
+      "frame": null,
+      "reference": "Catalog_Content_Phone.png",
+      "width": 390,
+      "height": 2789,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Catalog_Empty.dc.html",
+      "frame": null,
+      "reference": "Catalog_Empty.png",
+      "width": 1440,
+      "height": 1646,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Catalog_Empty_Phone.dc.html",
+      "frame": null,
+      "reference": "Catalog_Empty_Phone.png",
+      "width": 390,
+      "height": 852,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Catalog_Error.dc.html",
+      "frame": null,
+      "reference": "Catalog_Error.png",
+      "width": 1440,
+      "height": 900,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Catalog_Error_Phone.dc.html",
+      "frame": null,
+      "reference": "Catalog_Error_Phone.png",
+      "width": 390,
+      "height": 692,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Catalog_FiltersSheet_Phone.dc.html",
+      "frame": null,
+      "reference": "Catalog_FiltersSheet_Phone.png",
+      "width": 390,
+      "height": 1467,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Catalog_Loading.dc.html",
+      "frame": null,
+      "reference": "Catalog_Loading.png",
+      "width": 1440,
+      "height": 1717,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Catalog_Loading_Phone.dc.html",
+      "frame": null,
+      "reference": "Catalog_Loading_Phone.png",
+      "width": 390,
+      "height": 2356,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Home_Content.dc.html",
+      "frame": null,
+      "reference": "Home_Content.png",
+      "width": 1440,
+      "height": 3263,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Home_Content_Phone.dc.html",
+      "frame": null,
+      "reference": "Home_Content_Phone.png",
+      "width": 390,
+      "height": 3875,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Home_Error.dc.html",
+      "frame": null,
+      "reference": "Home_Error.png",
+      "width": 1440,
+      "height": 900,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Home_Error_Phone.dc.html",
+      "frame": null,
+      "reference": "Home_Error_Phone.png",
+      "width": 390,
+      "height": 692,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Home_Guest.dc.html",
+      "frame": null,
+      "reference": "Home_Guest.png",
+      "width": 1440,
+      "height": 2627,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Home_Guest_Phone.dc.html",
+      "frame": null,
+      "reference": "Home_Guest_Phone.png",
+      "width": 390,
+      "height": 2721,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Home_Loading.dc.html",
+      "frame": null,
+      "reference": "Home_Loading.png",
+      "width": 1440,
+      "height": 2129,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Home_Loading_Phone.dc.html",
+      "frame": null,
+      "reference": "Home_Loading_Phone.png",
+      "width": 390,
+      "height": 2010,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Home_PlusTrialDialog.dc.html",
+      "frame": null,
+      "reference": "Home_PlusTrialDialog.png",
+      "width": 1440,
+      "height": 3134,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Home_PlusTrialDialog_Phone.dc.html",
+      "frame": null,
+      "reference": "Home_PlusTrialDialog_Phone.png",
+      "width": 390,
+      "height": 3850,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Product_Description.dc.html",
+      "frame": null,
+      "reference": "Product_Description.png",
+      "width": 1440,
+      "height": 1494,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Product_Description_Phone.dc.html",
+      "frame": null,
+      "reference": "Product_Description_Phone.png",
+      "width": 390,
+      "height": 2720,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Product_Error.dc.html",
+      "frame": null,
+      "reference": "Product_Error.png",
+      "width": 1440,
+      "height": 900,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Product_Error_Phone.dc.html",
+      "frame": null,
+      "reference": "Product_Error_Phone.png",
+      "width": 390,
+      "height": 641,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Product_Loading.dc.html",
+      "frame": null,
+      "reference": "Product_Loading.png",
+      "width": 1440,
+      "height": 835,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Product_Loading_Phone.dc.html",
+      "frame": null,
+      "reference": "Product_Loading_Phone.png",
+      "width": 390,
+      "height": 1547,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Product_NotFound.dc.html",
+      "frame": null,
+      "reference": "Product_NotFound.png",
+      "width": 1440,
+      "height": 799,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Product_NotFound_Phone.dc.html",
+      "frame": null,
+      "reference": "Product_NotFound_Phone.png",
+      "width": 390,
+      "height": 653,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Product_OutOfStock.dc.html",
+      "frame": null,
+      "reference": "Product_OutOfStock.png",
+      "width": 1440,
+      "height": 1494,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Product_OutOfStock_Phone.dc.html",
+      "frame": null,
+      "reference": "Product_OutOfStock_Phone.png",
+      "width": 390,
+      "height": 2680,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Product_QuestionDialog.dc.html",
+      "frame": null,
+      "reference": "Product_QuestionDialog.png",
+      "width": 1440,
+      "height": 1723,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Product_QuestionDialog_Phone.dc.html",
+      "frame": null,
+      "reference": "Product_QuestionDialog_Phone.png",
+      "width": 390,
+      "height": 2930,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Product_Questions.dc.html",
+      "frame": null,
+      "reference": "Product_Questions.png",
+      "width": 1440,
+      "height": 1723,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Product_Questions_Phone.dc.html",
+      "frame": null,
+      "reference": "Product_Questions_Phone.png",
+      "width": 390,
+      "height": 2930,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Product_ReviewDialog.dc.html",
+      "frame": null,
+      "reference": "Product_ReviewDialog.png",
+      "width": 1440,
+      "height": 1572,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Product_ReviewDialog_Phone.dc.html",
+      "frame": null,
+      "reference": "Product_ReviewDialog_Phone.png",
+      "width": 390,
+      "height": 3067,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Product_Reviews.dc.html",
+      "frame": null,
+      "reference": "Product_Reviews.png",
+      "width": 1440,
+      "height": 1572,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Product_Reviews_Phone.dc.html",
+      "frame": null,
+      "reference": "Product_Reviews_Phone.png",
+      "width": 390,
+      "height": 3067,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Product_Specifications.dc.html",
+      "frame": null,
+      "reference": "Product_Specifications.png",
+      "width": 1440,
+      "height": 1624,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Product_Specifications_Phone.dc.html",
+      "frame": null,
+      "reference": "Product_Specifications_Phone.png",
+      "width": 390,
+      "height": 2869,
+      "page": null,
+      "warnings": []
+    }
+  ]
+}
