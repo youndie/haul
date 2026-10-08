@@ -496,7 +496,9 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   price drops; nobody else has any. The tree carries the tiles either way, so B-23 and B-20 change the source, not the
   account. «Try 30 days free» has no action until B-23's trial, as the home page's offer has none; «Saved» has none
   until `/saved` is a page.
-- **Returned** is a state of the history (the chip, the filter) that nothing derives until B-21's returns exist.
+- **Returned** is a state of the history (the chip, the filter), derived since B-21 from the order's return: a
+  refunded one reads «Returned», one asked for and not refunded yet «Returning» — Blush like it, under the same
+  «Returned» filter, with «Details» rather than «Reorder».
 - **The profile line** is «Plus member since <year>» for a member, «Joined <month year>» (the customer row's
   `created_at`) for somebody who has never ordered, «No membership» otherwise; a non-member's avatar is the tile tone
   their reviews are signed with (`ReviewCommands.avatarTone`), a member's Acid.

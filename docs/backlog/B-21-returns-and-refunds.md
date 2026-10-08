@@ -54,7 +54,8 @@ Feature: `feature-orders` — its scenarios are this item's acceptance where it 
   `Order_Returned` 1.84 %, `_Phone` 3.18 %. What is left is glyph edges, the refund box a pixel taller (Chrome's
   22.5 px line) and with it the card's shadow crescent, and a pixel per wrapped title line on the phones. The other
   sixteen `Order_*` did not move (`Order_Placed_Phone` still 5.11 %, B-18's). Goldens recorded for the four; the
-  other Order goldens came out byte-identical.
+  other Order goldens came out byte-identical. After the rebase onto B-19 the twenty `Order_*` and twelve
+  `Account_*` read the same numbers and `viddikVerify` is green: no golden moved.
 - **Tests written**: `ReturnRoutesTest` (**late return**; each line to the last day of its own window; a returned
   line refunded when the seller has it back — the page at each step, `returned` progress; the delivered page
   presenting the dialog; not delivered, not yours, no token, already returned; every field at fault),
@@ -65,30 +66,31 @@ Feature: `feature-orders` — its scenarios are this item's acceptance where it 
   dialog's money format equal to the page's), `OrderFixturesTest` (#HL-44019 returned, #HL-46102's dialog),
   `SchemaTest` (V17), `KoinGraphTest`; client `ReturnWiringTest` (the refund added up as lines are ticked; sent
   where the form says and closed; the rules before sending; a late return refused in the dialog; Cancel) and
-  `OrderWiringTest` («Return items» presents the dialog).
+  `OrderWiringTest` («Return items» presents the dialog); after B-19 merged, `AccountRoutesTest` (a returned
+  order is «Returning», then «Returned», in the history and under its filter, with «Details») and
+  `AccountFixturesTest` (#HL-44019 derived returned, no longer forced by the fixture).
 - **Mutations**, each seen failing the test written for it and restored: no window check («late return», the
   last-day test), the refund at pickup (the refunded-when-back route test, two lifecycle tests), the refund key
   never found (the replay test, the died-between test), no refund limit (the limit test), a second return
   accepted (the already-returned assertion), an undelivered line accepted (the not-delivered assertion), the
   ownership check removed from `RequestReturn` (Sam's `404`), the discount counted against list prices (the sale
   test, the route tests' $349.00), the points not reversed (the 698), returned lines left in their shipment (the
-  page test), the client skipping the rules, «Return items» not followed, the refund summing every line. A
+  page test), the client skipping the rules, «Return items» not followed, the refund summing every line; after
+  the rebase, the history mapping returns to «Delivered» (both account tests) and the orders' query leaving the
+  return status out (the account route test). A
   failing route test closes the next one's pool (B-18's finding), so a mutation also fails the test after it with
   `HikariPool-n has been closed`; the test it was written for failed on its own assertion each time.
-- **Where it ran**: the Linux build machine (WSL), on the branch rebased onto `1155b0d`:
+- **Where it ran**: the Linux build machine (WSL), on the branch rebased onto `a7c56c1` (B-19, B-46):
   `:composeApp:wasmJsBrowserDistribution` alone, then `./gradlew check :server:installDist` in a 5 GB scope,
-  green (`:server:test` 229 tests, `:composeApp:desktopTest` 123, `viddikVerify`; PostgreSQL and shildik in
-  containers); `scripts/image-check.sh` with its own tag and port, green (V17 migrated, 867 of 867 classes from
-  the cache, page 200). `make check` and `make docs-against BASE=origin/main` on the Mac. The chart is unchanged.
+  green (`:server:test` 236 tests, `:composeApp:desktopTest` 135, `viddikVerify`; PostgreSQL and shildik in
+  containers); `scripts/image-check.sh` with its own tag and port, green (V16 and V17 migrated, 883 of 883 classes
+  from the cache, page 200). `make check` and `make docs-against BASE=origin/main` on the Mac. The chart is unchanged.
 - **Scenarios**: feature-orders «Late return» (`ReturnRoutesTest.late return`) — refused `422
   return_window_closed`, as the draft says.
 
 ## Findings (2026-10-08)
 
-- **The migration number and the merge order.** This takes V17; V16 is B-19's. Flyway validates on migrate and
-  does not run out of order, so a database migrated to V17 before V16 exists refuses to start once V16 lands
-  («resolved migration not applied»). Fresh test databases do not see it; the stand would. Merge B-19 first, or
-  renumber whichever lands second.
+- **The migration number**: V17, after B-19's V16, which merged first — in order.
 - **The dialogs' command seam is named for reviews.** The return goes through `ReviewCommands`
   (`ReviewCommand.Return`) — the seam is the dialogs' in all but name; renaming it touches the shell that B-44
   just changed, so it is left for a person to decide.
@@ -99,9 +101,13 @@ Feature: `feature-orders` — its scenarios are this item's acceptance where it 
   fit, Not as described, Arrived damaged, Changed my mind) and the pay-on-delivery and Haul Pay refund lines.
 - **Points**: no ledger (B-23). The reversed number is the order's points in proportion to the refund, stored
   with the return; B-23 should turn it into a `reversed` ledger entry (research §5's `PointsEntry`).
-- **B-19's «Returned» chip** can read `OrderProgress.of(order)`: `returned` once the return is refunded,
-  `returning` while it is requested or picked up. It reads `Order.returnStatus`, which `ExposedOrders.order`
-  fills from `returns`; a history query of its own has to fill it too.
+- **B-19's history**, merged first, now derives its returns: `ExposedOrders` reads each order's return status in
+  the same batch as its lines and shipments (four queries for any number of orders), `OrderProgress.of` answers
+  `returned` / `returning`, and `OrderState` gains `Returning` beside `Returned` — a return in flight has a label
+  of its own («Returning», Blush, «Details», counted under the «Returned» filter), rather than staying with the
+  delivered orders, whose «Reorder» its page no longer offers. #HL-44019 is one sample order now
+  (`testing/SampleOrders.kt`, `returned`): the account's returned row and the Returned page, its lines the
+  Order_Returned artboard's (the account draws only their tiles, which are the same).
 - **The closed-pool cascade** (B-18's test-isolation finding) shows up under every failing route test here too.
 - PR #2's drafts that this changes: **feature-orders** (the *target* rule on returns becomes what is built: one
   return per order of whole lines, 30 store days per line, refund when the parcel is back, points in proportion;
