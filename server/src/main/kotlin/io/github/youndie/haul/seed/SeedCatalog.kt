@@ -24,6 +24,7 @@ internal data class SeedCatalog(
     /** Per product, stars to how many reviews gave them: the histogram (feature-reviews). */
     val ratingCounts: Map<String, Map<Int, Int>> = emptyMap(),
     val questions: List<StoredQuestion> = emptyList(),
+    val saved: List<SeedSaved> = emptyList(),
 )
 
 internal data class SeedCategory(
@@ -112,6 +113,14 @@ internal data class SeedCustomer(
     val id: String,
     val name: String,
     val plus: Boolean,
+)
+
+/** A product in a customer's Saved list (B-20): the price it was saved at, and when. */
+internal data class SeedSaved(
+    val customerId: String,
+    val productId: String,
+    val savedPriceCents: Int,
+    val savedAt: OffsetDateTime,
 )
 
 /** A customer's cart: one of each SKU, selected, at the price the catalog has, in the order given. */

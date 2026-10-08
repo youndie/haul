@@ -16,6 +16,7 @@ import io.github.youndie.haul.ui.CategoryGrid
 import io.github.youndie.haul.ui.CheckoutBody
 import io.github.youndie.haul.ui.FilteredResults
 import io.github.youndie.haul.ui.OrderSummary
+import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.decodeKompotComponent
 import io.github.youndie.kompot.standard.BoxComponent
@@ -101,6 +102,7 @@ internal fun KompotComponent.all(): List<KompotComponent> =
             is BoxComponent -> children.flatMap { it.all() }
             is CampaignRow -> listOf(hero).flatMap { it.all() } + banners.flatMap { it.all() }
             is CategoryGrid -> tiles.flatMap { it.all() }
+            is ProductGrid -> cards
             is FilteredResults -> listOfNotNull(facets, applied, grid, pagination, empty).flatMap { it.all() }
             is CartBody -> listOf(selection) + groups.flatMap { it.all() } + summary.all()
             is CheckoutBody -> notices + listOfNotNull(methods, address, slots, points, payment, summary)

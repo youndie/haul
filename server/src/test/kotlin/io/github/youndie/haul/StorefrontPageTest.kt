@@ -23,6 +23,7 @@ class StorefrontPageTest {
         assertEquals(StorefrontPage.Account, StorefrontPage.of("/account"))
         assertEquals(StorefrontPage.Orders, StorefrontPage.of("/account/orders"))
         assertEquals(StorefrontPage.Order, StorefrontPage.of("/account/orders/HL-48302"))
+        assertEquals(StorefrontPage.Saved, StorefrontPage.of("/account/saved"))
         assertEquals(StorefrontPage.SignIn, StorefrontPage.of("/sign-in"))
     }
 
@@ -52,10 +53,11 @@ class StorefrontPageTest {
             "/checkout/pay",
             "/account/",
             "/account/orders/",
-            "/account/saved",
+            "/account/saved/",
             "/account/orders/HL-48302/returns",
             "/account/saved/HL-48302",
             "/orders/HL-48302",
+            "/saved",
             "/sign-in/",
         ).forEach { assertNull(StorefrontPage.of(it), "«$it»") }
     }

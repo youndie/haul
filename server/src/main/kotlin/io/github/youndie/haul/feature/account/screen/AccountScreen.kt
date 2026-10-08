@@ -20,6 +20,8 @@ import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.screen.OrderCard
 import io.github.youndie.haul.feature.order.screen.OrderScreen
 import io.github.youndie.haul.feature.reviews.domain.ReviewCommands
+import io.github.youndie.haul.feature.saved.screen.SavedFilter
+import io.github.youndie.haul.feature.saved.screen.SavedScreen
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.ui.AccountBody
@@ -36,6 +38,7 @@ import io.github.youndie.haul.ui.HistoryRow
 import io.github.youndie.haul.ui.HistoryStatusKind
 import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.OrderHistory
+import io.github.youndie.haul.ui.SavedList
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import java.time.OffsetDateTime
@@ -43,11 +46,12 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /**
- * `GET /ui/account` and `GET /ui/account/orders` (screen-account, feature-account): the frame and one
- * [AccountBody] — the overview, or the orders' history under a [HistoryFilterKey]. Both are drawn from the
- * customer's orders as tracking reads them (B-17), newest first, and from what the account cannot store
- * yet: the points and the membership ([Loyalty], B-23's) and the Saved list's counts ([SavedLists],
- * B-20's). The copy is the canvas's (`Account_*`).
+ * `GET /ui/account`, `GET /ui/account/orders` and `GET /ui/account/saved` (screen-account, screen-saved,
+ * feature-account): the frame and one [AccountBody] — the overview, the orders' history under a
+ * [HistoryFilterKey], or the Saved list ([SavedScreen], B-20). All are drawn from the customer's orders as
+ * tracking reads them (B-17), newest first — the menu counts the active ones — from the Saved list's counts
+ * ([SavedLists]), and from what the account cannot store yet: the points and the membership ([Loyalty],
+ * B-23's). The copy is the canvas's (`Account_*`, `Saved_*`).
  */
 internal class AccountScreen(
     private val orders: OrderRepository,
@@ -56,6 +60,7 @@ internal class AccountScreen(
     private val catalog: CatalogRepository,
     private val loyalty: Loyalty,
     private val saved: SavedLists,
+    private val savedScreen: SavedScreen,
 ) {
     suspend fun build(
         customer: Customer,
@@ -63,7 +68,8 @@ internal class AccountScreen(
         viewer: Viewer,
     ): KompotComponent {
         val tracked = orders.orders(customer.id).map { tracking.of(it) }
-        return page(page, view(customer, tracked), viewer)
+        val list = (page as? AccountPage.Saved)?.let { savedScreen.list(customer.id, it.filter, it.page, viewer) }
+        return page(page, view(customer, tracked).copy(list = list), viewer)
     }
 
     /** The page of [view], under the frame [viewer] is looking at. */
@@ -123,12 +129,20 @@ internal class AccountScreen(
     }
 }
 
-/** Which of the account's pages: the overview (`/account`) or the orders' history (`/account/orders`). */
+/**
+ * Which of the account's pages: the overview (`/account`), the orders' history (`/account/orders`), or the
+ * Saved list (`/account/saved`) under its filter at its page.
+ */
 internal sealed interface AccountPage {
     data object Overview : AccountPage
 
     data class Orders(
         val filter: HistoryFilterKey = HistoryFilterKey.All,
+    ) : AccountPage
+
+    data class Saved(
+        val filter: SavedFilter = SavedFilter.All,
+        val page: Int = 1,
     ) : AccountPage
 }
 
@@ -213,12 +227,16 @@ internal data class AccountOrder(
     val card: OrderCard?,
 )
 
-/** What the account is drawn from: who, their [standing], their Saved list's counts, and their [orders], newest first. */
+/**
+ * What the account is drawn from: who, their [standing], their Saved list's counts, their [orders], newest
+ * first, and — on the Saved list's page — the [list] itself.
+ */
 internal data class AccountView(
     val customer: Customer,
     val standing: Standing,
     val saved: SavedSummary,
     val orders: List<AccountOrder>,
+    val list: SavedList? = null,
 )
 
 /** The account's body, built from its [view]; every date is the store's (New York's). */
@@ -253,6 +271,17 @@ private class AccountPageBuilder(
                     history = history(page.filter),
                 )
             }
+
+            is AccountPage.Saved -> {
+                AccountBody(
+                    id = "account",
+                    profile = profile(),
+                    menu = menu(page),
+                    title = "Saved",
+                    count = savedCount(),
+                    saved = view.list,
+                )
+            }
         }
 
     /** The initials on Acid for a member, else on the customer's own tile tone — the one their reviews are signed with. */
@@ -272,7 +301,7 @@ private class AccountPageBuilder(
         )
     }
 
-    /** Overview, Orders with the active orders' count, Saved with the saved products' — which has no page yet (B-20). */
+    /** Overview, Orders with the active orders' count, Saved with the saved products'; each goes to its page. */
     private fun menu(page: AccountPage): List<AccountMenuItem> =
         listOf(
             AccountMenuItem(
@@ -289,12 +318,17 @@ private class AccountPageBuilder(
             ),
             AccountMenuItem(
                 "Saved",
-                count =
-                    view.saved.saved
-                        .takeIf { it > 0 }
-                        ?.let(::count),
+                count = savedCount(),
+                selected = page is AccountPage.Saved,
+                action = NavigateAction(Frame.SAVED),
             ),
         )
+
+    /** «48»: how many products are saved — none while nothing is. */
+    private fun savedCount(): String? =
+        view.saved.saved
+            .takeIf { it > 0 }
+            ?.let(::count)
 
     private fun tiles(): List<AccountTile> {
         val standing = view.standing

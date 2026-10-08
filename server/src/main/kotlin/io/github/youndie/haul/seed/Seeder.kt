@@ -15,6 +15,7 @@ import io.github.youndie.haul.feature.identity.data.CustomersTable
 import io.github.youndie.haul.feature.reviews.data.QuestionsTable
 import io.github.youndie.haul.feature.reviews.data.RatingCountsTable
 import io.github.youndie.haul.feature.reviews.data.ReviewsTable
+import io.github.youndie.haul.feature.saved.data.SavedItemsTable
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -173,6 +174,12 @@ internal object Seeder {
                 this[RatingCountsTable.productId] = product
                 this[RatingCountsTable.stars] = stars
                 this[RatingCountsTable.count] = n
+            }
+            SavedItemsTable.batchInsert(catalog.saved) {
+                this[SavedItemsTable.customerId] = it.customerId
+                this[SavedItemsTable.productId] = it.productId
+                this[SavedItemsTable.savedPriceCents] = it.savedPriceCents
+                this[SavedItemsTable.savedAt] = it.savedAt
             }
             QuestionsTable.batchInsert(catalog.questions) {
                 this[QuestionsTable.id] = it.id

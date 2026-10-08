@@ -263,6 +263,10 @@
             "orders": {
                 "type": "navigate",
                 "deeplink": "/account/orders"
+            },
+            "saved": {
+                "type": "navigate",
+                "deeplink": "/account/saved"
             }
         },
         {
@@ -314,6 +318,10 @@
                         "change": {
                             "quantity": 1
                         }
+                    },
+                    "heartCommand": {
+                        "url": "/api/v1/me/saved/p-pick-7",
+                        "save": true
                     }
                 },
                 {
@@ -335,6 +343,10 @@
                         "change": {
                             "quantity": 1
                         }
+                    },
+                    "heartCommand": {
+                        "url": "/api/v1/me/saved/p-pick-8",
+                        "save": true
                     }
                 },
                 {
@@ -358,6 +370,10 @@
                         "change": {
                             "quantity": 1
                         }
+                    },
+                    "heartCommand": {
+                        "url": "/api/v1/me/saved/p-pick-9",
+                        "save": true
                     }
                 },
                 {
@@ -379,6 +395,10 @@
                         "change": {
                             "quantity": 1
                         }
+                    },
+                    "heartCommand": {
+                        "url": "/api/v1/me/saved/p-pick-10",
+                        "save": true
                     }
                 },
                 {
@@ -400,6 +420,10 @@
                         "change": {
                             "quantity": 1
                         }
+                    },
+                    "heartCommand": {
+                        "url": "/api/v1/me/saved/p-pick-11",
+                        "save": true
                     }
                 },
                 {
@@ -421,6 +445,10 @@
                         "change": {
                             "quantity": 1
                         }
+                    },
+                    "heartCommand": {
+                        "url": "/api/v1/me/saved/p-pick-12",
+                        "save": true
                     }
                 }
             ],

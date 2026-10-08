@@ -28,6 +28,8 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -41,17 +43,22 @@ import io.github.youndie.haul.theme.LocalHaulCompact
 import io.github.youndie.haul.ui.DeliveryLine
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
+import io.github.youndie.haul.ui.Heart
 import io.github.youndie.haul.ui.Highlight
 import io.github.youndie.haul.ui.Icon
 import io.github.youndie.haul.ui.PhotoOrPlaceholder
 import io.github.youndie.haul.ui.ProductDetails
+import io.github.youndie.haul.ui.SAVE
 import io.github.youndie.haul.ui.SellerSummary
 import io.github.youndie.haul.ui.Text
+import io.github.youndie.haul.ui.UNSAVE
 import io.github.youndie.haul.ui.VariantGroup
 import io.github.youndie.haul.ui.accented
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.hatching
+import io.github.youndie.haul.ui.pressable
+import io.github.youndie.haul.ui.rememberHeartPress
 import io.github.youndie.haul.ui.toneColor
 import kotlin.math.roundToInt
 
@@ -209,7 +216,15 @@ private fun Photo(
             Modifier.align(Alignment.TopEnd).padding(14.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            RoundIcon(HaulIcons.heart, if (details.saved) HaulColors.tertiaryContainer else HaulColors.onSurface)
+            // The heart is the Saved list's (B-20): the customer's command, a guest's way to sign in.
+            Box(
+                Modifier
+                    .pressable(rememberHeartPress(details.heartCommand, details.heartAction))
+                    .semantics { contentDescription = if (details.saved) UNSAVE else SAVE }
+                    .size(44.dp)
+                    .background(HaulColors.surfaceContainerLowest, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) { Heart(details.saved, 20.dp) }
             RoundIcon(HaulIcons.share, HaulColors.onSurface)
         }
     }
@@ -523,6 +538,7 @@ private fun BuyBox(
                         textSize = 16f,
                         icon = HaulIcons.heart,
                         iconFirst = true,
+                        onClick = rememberHeartPress(details.heartCommand?.takeIf { it.save }, details.heartAction),
                     )
                 }
             }

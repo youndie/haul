@@ -70,7 +70,7 @@ internal class HomeScreen(
                 id = "deals",
                 columns = DEAL_COLUMNS,
                 scroll = true,
-                cards = dealCards(catalog, calendar, photos, viewer.inCart),
+                cards = dealCards(catalog, calendar, photos, viewer),
             )
         if (viewer.firstName == null) sections += PLUS_OFFER
         return Frame.page("home", viewer, navigation(categories), sections, footer = true)

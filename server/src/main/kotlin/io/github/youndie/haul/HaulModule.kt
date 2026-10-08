@@ -34,6 +34,8 @@ import io.github.youndie.haul.feature.returns.returnsRouting
 import io.github.youndie.haul.feature.reviews.domain.ReviewError
 import io.github.youndie.haul.feature.reviews.reviewsModule
 import io.github.youndie.haul.feature.reviews.reviewsRouting
+import io.github.youndie.haul.feature.saved.savedModule
+import io.github.youndie.haul.feature.saved.savedRouting
 import io.github.youndie.haul.feature.search.customerSearchRouting
 import io.github.youndie.haul.feature.search.domain.SearchError
 import io.github.youndie.haul.feature.search.searchModule
@@ -122,6 +124,7 @@ internal fun Application.haulModule(
             orderModule,
             fulfilmentModule,
             reviewsModule,
+            savedModule,
             accountModule,
             returnsModule,
         )
@@ -173,6 +176,7 @@ internal fun Application.haulModule(
             customerIdentityRouting()
             customerSearchRouting()
             accountRouting()
+            savedRouting()
             checkoutRouting()
             reviewsRouting()
             orderRouting()

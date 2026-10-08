@@ -8,12 +8,14 @@ import io.github.youndie.haul.feature.checkout.data.AddressesTable
 import io.github.youndie.haul.feature.checkout.data.PickupPointsTable
 import io.github.youndie.haul.feature.identity.data.CustomersTable
 import io.github.youndie.haul.feature.reviews.data.reviewTables
+import io.github.youndie.haul.feature.saved.data.savedTables
 import java.security.MessageDigest
 import javax.sql.DataSource
 
 /**
  * A SHA-256 over every row the seed writes — the catalog, the promo codes, the sample customers,
- * Maya's cart and address, the pickup points, and the reviews and questions — as PostgreSQL prints it:
+ * Maya's cart, address and Saved list, the pickup points, and the reviews and questions — as PostgreSQL
+ * prints it:
  * the «same hash twice» of B-03.
  *
  * Read through JDBC as text, not through the Exposed tables, so a column the tables forgot is still
@@ -28,7 +30,8 @@ internal object SeedDigest {
             for (table in catalogTables + PromoCodesTable + CustomersTable + CartsTable + CartLinesTable +
                 PickupPointsTable +
                 AddressesTable +
-                reviewTables) {
+                reviewTables +
+                savedTables) {
                 connection.createStatement().use { statement ->
                     statement.executeQuery("SELECT * FROM ${table.tableName} ORDER BY 1").use { rows ->
                         val columns = rows.metaData.columnCount

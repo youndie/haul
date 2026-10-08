@@ -77,7 +77,7 @@ internal class ProductScreen(
         val sections =
             listOf(
                 Breadcrumbs("breadcrumbs", crumbs(item, categories)),
-                details(item, sku, seller),
+                details(item, sku, seller, viewer),
                 ProductTabs(
                     id = "tabs",
                     tabs =
@@ -133,8 +133,10 @@ internal class ProductScreen(
         item: Listed,
         sku: Sku,
         seller: Seller,
+        viewer: Viewer,
     ): ProductDetails {
         val inStock = sku.stock > 0
+        val saved = item.product.id in viewer.saved
         val courier = calendar.courier(item)
         val freeDelivery = sku.priceCents >= FREE_DELIVERY_CENTS
         val cutoff = if (inStock) calendar.cutoffLabel() else null
@@ -190,6 +192,9 @@ internal class ProductScreen(
                     seller.name.take(1),
                     "${seller.rating.toPlainString()} · ${seller.positivePercent}% positive · ${seller.yearsOnHaul} yrs on Haul",
                 ),
+            saved = saved,
+            heartCommand = heart(item.product.id, saved, viewer),
+            heartAction = heartAction(viewer),
         )
     }
 

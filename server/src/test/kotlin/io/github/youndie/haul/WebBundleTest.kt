@@ -227,6 +227,8 @@ class WebBundleTest {
                 "/account/orders",
                 "/account/orders?status=active",
                 "/account/orders/HL-48302",
+                "/account/saved",
+                "/account/saved?filter=price-dropped&page=2",
                 "/sign-in",
             )
 
@@ -243,6 +245,7 @@ class WebBundleTest {
                 "/p/p-001-05/reviews",
                 "/search/extra",
                 "/cart/1",
+                "/saved",
                 "/p/p-001-05.map",
             )
         val WASM = byteArrayOf(0, 0x61, 0x73, 0x6d, 1, 0, 0, 0)

@@ -146,7 +146,7 @@ internal class SearchScreen(
                 ),
                 ProductGrid(
                     "grid",
-                    page.items.map { card(it, calendar, photos, viewer.inCart) },
+                    page.items.map { card(it, calendar, photos, viewer) },
                     columns = GRID_COLUMNS,
                 ),
                 pagination(page) { searchLink(query.text, request.category, request.sort, it).deeplink },

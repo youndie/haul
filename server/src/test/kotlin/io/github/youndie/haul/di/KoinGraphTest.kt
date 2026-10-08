@@ -49,6 +49,10 @@ import io.github.youndie.haul.feature.reviews.domain.ReviewCommands
 import io.github.youndie.haul.feature.reviews.domain.ReviewRepository
 import io.github.youndie.haul.feature.reviews.reviewsModule
 import io.github.youndie.haul.feature.reviews.screen.ReviewTabs
+import io.github.youndie.haul.feature.saved.domain.SavedCommands
+import io.github.youndie.haul.feature.saved.domain.SavedRepository
+import io.github.youndie.haul.feature.saved.savedModule
+import io.github.youndie.haul.feature.saved.screen.SavedScreen
 import io.github.youndie.haul.feature.search.domain.RecentSearches
 import io.github.youndie.haul.feature.search.screen.SearchScreen
 import io.github.youndie.haul.feature.search.searchModule
@@ -99,6 +103,7 @@ class KoinGraphTest {
                     orderModule,
                     fulfilmentModule,
                     reviewsModule,
+                    savedModule,
                     accountModule,
                     returnsModule,
                 )
@@ -145,6 +150,9 @@ class KoinGraphTest {
         assertNotNull(koin.get<OrderScreen>())
         assertNotNull(koin.get<Reorder>())
         assertNotNull(koin.get<Loyalty>())
+        assertNotNull(koin.get<SavedRepository>())
+        assertNotNull(koin.get<SavedCommands>())
+        assertNotNull(koin.get<SavedScreen>())
         assertNotNull(koin.get<SavedLists>())
         assertNotNull(koin.get<AccountScreen>())
         assertNotNull(koin.get<ReturnRepository>())

@@ -36,8 +36,8 @@ internal data class SavedSummary(
 )
 
 /**
- * Where the menu's Saved count and the Price drops tile come from: the Saved list's (B-20), which is not
- * stored yet; until then the canvas's numbers for the sample customers (`seed/SampleLoyalty.kt`).
+ * Where the menu's Saved count and the Price drops tile come from: the Saved list (B-20,
+ * `feature/saved/domain/Saved.kt`'s `SavedListing`).
  */
 internal fun interface SavedLists {
     suspend fun summary(customerId: String): SavedSummary

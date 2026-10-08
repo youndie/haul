@@ -68,6 +68,7 @@ internal object CatalogSeed {
             SampleReviews.reviews,
             SampleReviews.ratingCounts,
             SampleReviews.questions,
+            SampleSaved.mayas(products, skus, deals),
         )
     }
 

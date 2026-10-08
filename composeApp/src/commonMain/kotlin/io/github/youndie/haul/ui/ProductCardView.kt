@@ -24,18 +24,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.feature.cart.CartCommand
 import io.github.youndie.haul.feature.cart.LocalCartCommands
 import io.github.youndie.haul.feature.cart.run
+import io.github.youndie.haul.feature.saved.SaveCommand
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
+import io.github.youndie.kompot.KompotAction
 import kotlinx.coroutines.launch
 import kotlin.math.sqrt
 
 /** What «+» on a card says to a screen reader, and what the tests find it by. */
 public const val ADD_TO_CART: String = "Add to cart"
+
+/** What a heart says to a screen reader — the press it makes — and what the tests find it by. */
+public const val SAVE: String = "Save"
+public const val UNSAVE: String = "Remove from Saved"
 
 /** A product card (`ProductCard` on the wire), at the width its grid cell gives it. */
 @Composable
@@ -97,6 +104,7 @@ public fun ProductCardView(
                 Icon(HaulIcons.plus, 18.dp, HaulColors.onPrimary)
             }
         }
+        card.drop?.let { PriceDrop(it) }
         val titleSize = if (compact) 14f else 15f
         ClampedText(
             card.title,
@@ -152,11 +160,61 @@ private fun PhotoTile(
             Modifier
                 .align(Alignment.TopEnd)
                 .padding(if (compact) 6.dp else 10.dp)
+                .pressable(rememberHeartPress(card.heartCommand, card.heartAction))
+                .semantics { contentDescription = if (card.saved) UNSAVE else SAVE }
                 .size(heart)
                 .background(HaulColors.surfaceContainerLowest, CircleShape),
             contentAlignment = Alignment.Center,
-        ) { Icon(HaulIcons.heart, 18.dp, if (card.saved) HaulColors.tertiaryContainer else HaulColors.onSurface) }
+        ) { Heart(card.saved, 18.dp) }
     }
+}
+
+/** The heart: outlined in Ink, or — the product saved — filled in Hot (`Saved_*`). */
+@Composable
+internal fun Heart(
+    saved: Boolean,
+    size: Dp,
+) {
+    if (saved) {
+        Icon(HaulIcons.heartFilled, size, HaulColors.tertiaryContainer)
+    } else {
+        Icon(HaulIcons.heart, size, HaulColors.onSurface)
+    }
+}
+
+/**
+ * What a press on a heart does (B-20): a customer's sends the tree's [command] as a cart command and
+ * follows the answer, `refresh`, which draws the heart as it now is; a guest's follows [action], the way
+ * to sign in. `null` — nothing to send, or nobody to send it (a screenshot) — is not pressable.
+ */
+@Composable
+internal fun rememberHeartPress(
+    command: SaveCommand?,
+    action: KompotAction?,
+): (() -> Unit)? {
+    val cart = LocalCartCommands.current
+    val actions = LocalHaulActions.current
+    val scope = rememberCoroutineScope()
+    if (actions == null) return null
+    if (command != null && cart != null) {
+        return {
+            scope.launch { cart.run(listOf(CartCommand.Heart(command.url, command.save)))?.let(actions::handle) }
+        }
+    }
+    return action?.let { { actions.handle(it) } }
+}
+
+/** The Saved list's mark on a card that got cheaper: «PRICE DROPPED −$200», mono capitals on Hot. */
+@Composable
+private fun PriceDrop(text: String) {
+    Text(
+        text.uppercase(),
+        HaulType.label(11f, 600, 0.04f),
+        Modifier
+            .background(HaulColors.tertiaryContainer, CircleShape)
+            .padding(horizontal = 9.dp, vertical = 6.dp),
+        softWrap = false,
+    )
 }
 
 /**

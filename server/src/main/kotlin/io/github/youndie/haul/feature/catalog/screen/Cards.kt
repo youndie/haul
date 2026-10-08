@@ -14,26 +14,32 @@ import io.github.youndie.haul.feature.catalog.domain.Sku
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.discount
 import io.github.youndie.haul.feature.catalog.domain.money
+import io.github.youndie.haul.feature.saved.SaveCommand
+import io.github.youndie.haul.feature.saved.SavedPaths
+import io.github.youndie.haul.shell.Frame
+import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.ui.HaulPagination
 import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.kompot.standard.NavigateAction
 
 /**
- * A product as a card: the shown SKU's price, the earliest delivery day (feature-browse), its photo if
- * stored, and «+», which puts one more of [sku] into the cart — [inCart] is how many of each SKU the
- * viewer's cart already holds (`Viewer.inCart`).
+ * A product as a card for [viewer]: the shown SKU's price, the earliest delivery day (feature-browse), its
+ * photo if stored, «+», which puts one more of [sku] into the cart — given how many of each SKU the
+ * viewer's cart already holds (`Viewer.inCart`) — and the heart, filled when the product is in the
+ * viewer's Saved list (`Viewer.saved`, B-20).
  */
 internal fun card(
     item: Listed,
     calendar: DeliveryCalendar,
     photos: ProductPhotos,
-    inCart: Map<String, Int>,
+    viewer: Viewer,
     sku: Sku = item.shown,
     priceCents: Int = sku.priceCents,
     oldCents: Int? = sku.oldPriceCents,
-): ProductCard =
-    ProductCard(
+): ProductCard {
+    val saved = item.product.id in viewer.saved
+    return ProductCard(
         id = "card-${item.product.id}",
         productId = item.product.id,
         title = item.product.title,
@@ -47,8 +53,32 @@ internal fun card(
         label = item.product.label,
         image = photos.url(item.product),
         action = productLink(item.product.id),
-        add = addToCart(sku, inCart),
+        add = addToCart(sku, viewer.inCart),
+        saved = saved,
+        heartCommand = heart(item.product.id, saved, viewer),
+        heartAction = heartAction(viewer),
     )
+}
+
+/**
+ * The heart of [productId] for [viewer], a customer (B-20): the state a press leaves — out of the Saved
+ * list when it is [saved], in it otherwise — fixed in the tree as «+» is. A guest has none.
+ */
+internal fun heart(
+    productId: String,
+    saved: Boolean,
+    viewer: Viewer,
+): SaveCommand? = viewer.customerId?.let { SaveCommand(SavedPaths.item(productId), save = !saved) }
+
+/** A guest's heart: the way to sign in, which draws the same page again once it has gone through (B-41). */
+internal fun heartAction(viewer: Viewer): NavigateAction? =
+    if (viewer.customerId ==
+        null
+    ) {
+        NavigateAction(Frame.SIGN_IN)
+    } else {
+        null
+    }
 
 /**
  * «+»: the line [sku] will have with one more in it (endpoint-cart, `PUT` `LineChange`) — or nothing to
@@ -72,7 +102,7 @@ internal suspend fun dealCards(
     catalog: CatalogRepository,
     calendar: DeliveryCalendar,
     photos: ProductPhotos,
-    inCart: Map<String, Int>,
+    viewer: Viewer,
 ): List<ProductCard> {
     val deals = catalog.deals()
     val items = catalog.listed(deals.map { deal -> deal.skuId.substringBeforeLast('-') })
@@ -80,7 +110,7 @@ internal suspend fun dealCards(
         val item = items.firstOrNull { item -> item.skus.any { it.id == deal.skuId } } ?: return@mapNotNull null
         val sku = item.skus.first { it.id == deal.skuId }
         val old = if (deal.priceCents < sku.priceCents) sku.priceCents else sku.oldPriceCents
-        card(item, calendar, photos, inCart, sku = sku, priceCents = deal.priceCents, oldCents = old)
+        card(item, calendar, photos, viewer, sku = sku, priceCents = deal.priceCents, oldCents = old)
     }
 }
 

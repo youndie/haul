@@ -57,7 +57,11 @@ class AddressTest {
         assertEquals(PageKind.Checkout, Address("/checkout").kind)
         assertEquals(PageKind.Other, Address("/checkout/x").kind)
         assertEquals(PageKind.Account, Address("/account").kind)
-        assertEquals(PageKind.Other, Address("/account/saved").kind)
+        // The Saved list (B-20), an account page with its own placeholders, its filter and page in the query.
+        assertEquals(PageKind.Saved, Address("/account/saved").kind)
+        assertEquals(PageKind.Saved, Address("/account/saved?filter=price-dropped&page=2").kind)
+        assertEquals("/ui/account/saved?page=2", Address("/account/saved?page=2").screen)
+        assertEquals(PageKind.Other, Address("/saved").kind)
         // The deals page (B-37) is a page a reload opens, drawn with the shell's own placeholders.
         assertEquals("/ui/deals?page=2", Address("/deals?page=2").screen)
         assertEquals(PageKind.Other, Address("/deals").kind)
