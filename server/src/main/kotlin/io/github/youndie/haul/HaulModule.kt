@@ -202,6 +202,7 @@ internal fun status(code: ErrorCode): HttpStatusCode =
         ErrorCode.SlotUnavailable,
         ErrorCode.IdempotencyKeyReused,
         ErrorCode.CartChanged,
+        ErrorCode.CheckoutHeld,
         -> HttpStatusCode.Conflict
 
         ErrorCode.PromoExpired,
