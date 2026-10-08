@@ -12,12 +12,20 @@
 # Neither arm needs the server or PostgreSQL: the page is static files and the wired arm's body is
 # compiled in. Outputs go to $OUT (raw runs as JSON lines, a summary per arm, a screenshot per run).
 #
+# Two more arms measure what the stand sends (B-34), from an image already built
+# (`scripts/image-check.sh $IMAGE`); neither is in the default ARMS:
+#
+#   image           — the image itself, started beside a PostgreSQL on $PORT, sending the `.br`/`.gz`
+#                     it carries; its `web/` is copied out for the size table.
+#   image-identity  — the same `web/`, served uncompressed by this script: the stand before B-34.
+#
 #   scripts/measure-first-load.sh [rounds]
 #
 # GRADLE overrides the Gradle invocation, e.g. to cap memory on a shared box:
 #   GRADLE='systemd-run --user --scope -p MemoryMax=5G -p MemorySwapMax=0 ./gradlew --max-workers=2
 #           -Pkotlin.compiler.execution.strategy=in-process -Dorg.gradle.daemon=false'
-# ARMS picks the arms (default "main wired"); CHROME_BIN the Chromium (default: Playwright's).
+# ARMS picks the arms (default "main wired"); PROFILES narrows the network profiles (default all three,
+# e.g. PROFILES=none,slow4g); CHROME_BIN the Chromium (default: Playwright's).
 set -u
 cd "$(dirname "$0")/.."
 ROUNDS=${1:-7}
@@ -25,9 +33,32 @@ OUT=${OUT:-/tmp/b28-first-load}
 WORK=${WORK:-/tmp/b28-wired-tree}
 GRADLE=${GRADLE:-./gradlew}
 ARMS=${ARMS:-main wired}
+IMAGE=${IMAGE:-haul/server:check}
+PORT=${PORT:-18134}
 DIST=composeApp/build/dist/wasmJs/productionExecutable
 mkdir -p "$OUT"
 status=0
+
+NET=haul-measure-$$
+cleanup() { docker rm -f "$NET-app" "$NET-pg" >/dev/null 2>&1; docker network rm "$NET" >/dev/null 2>&1; }
+trap cleanup EXIT
+
+stand_up() { # the image beside a PostgreSQL, as scripts/image-check.sh starts it; its web/ into $OUT
+  [ -d "$OUT/image-web" ] && return 0
+  docker network create "$NET" >/dev/null
+  docker run -d --network "$NET" --name "$NET-pg" -e POSTGRES_USER=haul -e POSTGRES_PASSWORD=haul \
+    -e POSTGRES_DB=haul postgres:18-alpine >/dev/null
+  for _ in $(seq 60); do docker exec "$NET-pg" pg_isready -U haul -d haul >/dev/null 2>&1 && break; sleep 0.5; done
+  docker run -d --network "$NET" --name "$NET-app" -p "127.0.0.1:$PORT:8080" \
+    -e HAUL_DB_URL="jdbc:postgresql://$NET-pg:5432/haul" -e HAUL_DB_USER=haul -e HAUL_DB_PASSWORD=haul \
+    -e HAUL_SEED=true "$IMAGE" >/dev/null
+  for _ in $(seq 120); do
+    [ "$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/readyz")" = 200 ] && break
+    sleep 0.5
+  done
+  docker cp "$NET-app:/opt/app/web" "$OUT/image-web"
+  docker image inspect --format '{{.Id}}' "$IMAGE" > "$OUT/image.id"
+}
 
 build() { # $1 = tree, $2 = log
   (cd "$1" && $GRADLE :composeApp:wasmJsBrowserDistribution > "$2" 2>&1) || { echo "build failed: $2"; exit 1; }
@@ -101,11 +132,21 @@ assert "{ App() }" in src, "Main.kt changed: update the wired arm's patch"
 open(main, "w").write(src.replace("{ App() }", "{ WiredHome() }"))
 EOF
       ;;
+    image | image-identity)
+      stand_up
+      sha256sum "$OUT/image-web"/*.wasm > "$OUT/$arm-wasm.sha256"
+      if [ "$arm" = image ]; then how=(--url "http://127.0.0.1:$PORT/"); else how=(--identity); fi
+      python3 scripts/measure-first-load.py "$OUT/image-web" "$OUT" --rounds "$ROUNDS" --label "$arm" \
+        ${PROFILES:+--profiles "$PROFILES"} "${how[@]}" > "$OUT/$arm.log" 2>&1 || status=1
+      tail -n +1 "$OUT/$arm-summary.md" 2>/dev/null || cat "$OUT/$arm.log"
+      continue
+      ;;
     *) echo "unknown arm $arm"; exit 2 ;;
   esac
   build "$tree" "$OUT/$arm-build.log"
   sha256sum "$tree/$DIST"/*.wasm > "$OUT/$arm-wasm.sha256"
-  python3 scripts/measure-first-load.py "$tree/$DIST" "$OUT" --rounds "$ROUNDS" --label "$arm" > "$OUT/$arm.log" 2>&1 || status=1
+  python3 scripts/measure-first-load.py "$tree/$DIST" "$OUT" --rounds "$ROUNDS" --label "$arm" \
+    ${PROFILES:+--profiles "$PROFILES"} > "$OUT/$arm.log" 2>&1 || status=1
   tail -n +1 "$OUT/$arm-summary.md" 2>/dev/null || cat "$OUT/$arm.log"
 done
 exit $status
