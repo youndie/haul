@@ -228,6 +228,168 @@
       "warnings": []
     },
     {
+      "artboard": "Checkout_Content.dc.html",
+      "frame": null,
+      "reference": "Checkout_Content.png",
+      "width": 1440,
+      "height": 1564,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Checkout_Content_Phone.dc.html",
+      "frame": null,
+      "reference": "Checkout_Content_Phone.png",
+      "width": 390,
+      "height": 2362,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Checkout_Error.dc.html",
+      "frame": null,
+      "reference": "Checkout_Error.png",
+      "width": 1440,
+      "height": 804,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Checkout_Error_Phone.dc.html",
+      "frame": null,
+      "reference": "Checkout_Error_Phone.png",
+      "width": 390,
+      "height": 529,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Checkout_Loading.dc.html",
+      "frame": null,
+      "reference": "Checkout_Loading.png",
+      "width": 1440,
+      "height": 1467,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Checkout_Loading_Phone.dc.html",
+      "frame": null,
+      "reference": "Checkout_Loading_Phone.png",
+      "width": 390,
+      "height": 2204,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Checkout_ParcelLocker.dc.html",
+      "frame": null,
+      "reference": "Checkout_ParcelLocker.png",
+      "width": 1440,
+      "height": 1193,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Checkout_ParcelLocker_Phone.dc.html",
+      "frame": null,
+      "reference": "Checkout_ParcelLocker_Phone.png",
+      "width": 390,
+      "height": 1802,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Checkout_PickupPoint.dc.html",
+      "frame": null,
+      "reference": "Checkout_PickupPoint.png",
+      "width": 1440,
+      "height": 1267,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Checkout_PickupPoint_Phone.dc.html",
+      "frame": null,
+      "reference": "Checkout_PickupPoint_Phone.png",
+      "width": 390,
+      "height": 2005,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Checkout_PlaceError.dc.html",
+      "frame": null,
+      "reference": "Checkout_PlaceError.png",
+      "width": 1440,
+      "height": 1678,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Checkout_PlaceError_Phone.dc.html",
+      "frame": null,
+      "reference": "Checkout_PlaceError_Phone.png",
+      "width": 390,
+      "height": 2509,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Checkout_Placing.dc.html",
+      "frame": null,
+      "reference": "Checkout_Placing.png",
+      "width": 1440,
+      "height": 1564,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Checkout_Placing_Phone.dc.html",
+      "frame": null,
+      "reference": "Checkout_Placing_Phone.png",
+      "width": 390,
+      "height": 2362,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Checkout_PointsApplied.dc.html",
+      "frame": null,
+      "reference": "Checkout_PointsApplied.png",
+      "width": 1440,
+      "height": 1564,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Checkout_PointsApplied_Phone.dc.html",
+      "frame": null,
+      "reference": "Checkout_PointsApplied_Phone.png",
+      "width": 390,
+      "height": 2390,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Checkout_Validation.dc.html",
+      "frame": null,
+      "reference": "Checkout_Validation.png",
+      "width": 1440,
+      "height": 1608,
+      "page": null,
+      "warnings": []
+    },
+    {
+      "artboard": "Checkout_Validation_Phone.dc.html",
+      "frame": null,
+      "reference": "Checkout_Validation_Phone.png",
+      "width": 390,
+      "height": 2438,
+      "page": null,
+      "warnings": []
+    },
+    {
       "artboard": "Home_Content.dc.html",
       "frame": null,
       "reference": "Home_Content.png",
