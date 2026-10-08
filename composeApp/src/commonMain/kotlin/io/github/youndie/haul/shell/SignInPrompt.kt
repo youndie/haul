@@ -54,12 +54,11 @@ internal fun SignInPrompt(
                 if (next == address.value) onSignedIn() else navigator.open(next)
             }
         }
-    val checkout = address.kind == PageKind.Checkout
     Box(Modifier.testTag(SIGN_IN_PROMPT_TAG)) {
         NotFoundShell(
             header = header,
             eyebrow = "Sign in",
-            title = if (checkout) "Checkout needs a sign-in" else "This page needs a sign-in",
+            title = address.kind.signInTitle,
             accent = "sign-in",
             text = "Sign in and you’re back here. Whatever is in your cart comes with you.",
             actionLabel = SIGN_IN_PROMPT_LABEL,
@@ -69,5 +68,14 @@ internal fun SignInPrompt(
         )
     }
 }
+
+/** What the prompt says needs the sign-in: the page, by what it is. */
+private val PageKind.signInTitle: String
+    get() =
+        when (this) {
+            PageKind.Checkout -> "Checkout needs a sign-in"
+            PageKind.Order -> "This order needs a sign-in"
+            else -> "This page needs a sign-in"
+        }
 
 private const val UNAUTHENTICATED = 401

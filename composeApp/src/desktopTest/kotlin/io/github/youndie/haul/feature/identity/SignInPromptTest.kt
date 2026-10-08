@@ -12,6 +12,7 @@ import io.github.youndie.haul.CANVAS_NOW
 import io.github.youndie.haul.FakeHistory
 import io.github.youndie.haul.FixtureFonts
 import io.github.youndie.haul.feature.checkout.PLACE_TAG
+import io.github.youndie.haul.feature.order.REORDER_TAG
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.read
 import io.github.youndie.haul.registry.haulJson
@@ -86,6 +87,32 @@ class SignInPromptTest {
             assertEquals(listOf("/checkout"), history.entries)
             assertEquals(listOf("/ui/checkout", "/ui/checkout"), requests.toList())
             onNodeWithTag(SIGN_IN_PROMPT_TAG).assertDoesNotExist()
+        }
+
+    /** An order's page is a customer's too (B-18): the guest at its address is asked for the same sign-in. */
+    @Test
+    fun `a guest opening an order signs in and lands on the order`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            history.entries[0] = ORDER_ADDRESS
+            var signedIn = false
+            val signIn: suspend () -> Unit = {
+                signIns += 1
+                signedIn = true
+            }
+            storefront(signIn) { path ->
+                when {
+                    path == "/ui$ORDER_ADDRESS" && signedIn -> HaulResponse(200, read(ORDER))
+                    path == "/ui$ORDER_ADDRESS" -> UNAUTHENTICATED
+                    else -> error("nothing answers $path")
+                }
+            }
+            onNodeWithText("This order needs a sign-in").assertExists()
+
+            pressSignIn()
+            waitUntil(timeoutMillis = 5_000) { exists(hasTestTag(REORDER_TAG)) }
+
+            assertEquals(1, signIns)
+            assertEquals(listOf(ORDER_ADDRESS), history.entries)
         }
 
     /** A popup the shopper closed leaves nothing to draw on a customer's page: the guest goes home. */
@@ -297,6 +324,8 @@ class SignInPromptTest {
         const val ORIGIN = "http://haul.test"
         const val CHECKOUT = "checkout_content.json"
         const val HOME = "home_guest.json"
+        const val ORDER = "order_delivered.json"
+        const val ORDER_ADDRESS = "/account/orders/HL-46102"
         const val CHECKOUT_ERROR = "Checkout didn’t load"
         const val ACCOUNT_TEXT = "Your account"
 
