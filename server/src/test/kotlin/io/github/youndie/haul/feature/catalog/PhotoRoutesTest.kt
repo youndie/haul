@@ -83,13 +83,19 @@ class PhotoRoutesTest {
             assertContentEquals(SeedPhotos.draw(tone), response.bodyAsBytes())
         }
 
-    /** The route is public and the bucket is not: nothing outside the product photos is served. */
+    /**
+     * The route is public and the bucket is not: an object outside the product photos is not served,
+     * though it is there — the store is asked for nothing but `products/`.
+     */
     @Test
     fun `a photo that is not there or not a product photo is 404`() =
         haulTest(Photographed.dataSource, Photographed.store) {
-            assertEquals(HttpStatusCode.NotFound, get("/images/products/nobody/0000000000000000.png").status)
+            Photographed.store.put("elsewhere/secret.txt", "secret".toByteArray(), "text/plain")
+            assertNotNull(Photographed.store.get("elsewhere/secret.txt"), "the control object was not stored")
+
             assertEquals(HttpStatusCode.NotFound, get("/images/elsewhere/secret.txt").status)
             assertEquals(HttpStatusCode.NotFound, get("/images/products/../elsewhere/secret.txt").status)
+            assertEquals(HttpStatusCode.NotFound, get("/images/products/nobody/0000000000000000.png").status)
         }
 
     /**
