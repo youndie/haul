@@ -3,7 +3,7 @@ id: screen-home
 title: Home
 type: client_screen
 platform: [web]
-status: draft
+status: active
 entry:
   web: "/"
 parent_feature: feature-browse
@@ -49,9 +49,9 @@ client while it has no tree or after a failed request; every other state is a tr
 returns. The list is held against the real state when the code exists.
 
 - [x] **Loading:** header, placeholder blocks for hero, categories and two product rows
-- [x] **Content:** Maya signed in: campaign «Autumn mega sale», «Tech week», «Free delivery» banners, 8 categories, 6 deals with the countdown, the Plus block **in its member form** («You saved $186 on delivery this year · renews Nov 2»), «Picked for you» 6 products, footer. Drawn from a wire body (`composeApp/src/desktopTest/resources/bodies/home_content.json`); the server does not build the member form or «Picked for you» yet, so `/ui/home` answers a customer the Guest state with their name in the header and no Plus block at all
-- [x] **Guest:** header «Sign in»; Plus block offers the trial; no «Picked for you»
-- [ ] **PlusTrialDialog:** Sam signed in, dialog over Content: the benefits, «30 days free, then $4.99/month», Start trial / Not now (B-23)
+- [x] **Content:** Maya signed in: campaign «Autumn mega sale», «Tech week», «Free delivery» banners, 8 categories, 6 deals with the countdown, the Plus block **in its member form** («You saved $186 on delivery this year · renews Nov 2», B-23), «Picked for you» 6 products («Based on your recent views», B-25), footer. The server builds both for a customer; the fixture's body (`composeApp/src/desktopTest/resources/bodies/home_content.json`) keeps the canvas's picked cards, its header held to the server's (`PickedSectionTest`)
+- [x] **Guest:** header «Sign in»; Plus block offers the trial («Try 30 days free» → `/sign-in`); no «Picked for you»
+- [x] **PlusTrialDialog:** Sam signed in, dialog over Content: the benefits, «30 days free, then $4.99/month», Start trial / Not now — kompot's `present` of `PlusTrialDialog` from «Try 30 days free» (B-23; Sam's picks read «Popular right now»)
 - [x] **Error:** header, message that the page could not load, Retry
 
 ### Artboards and sizes
@@ -78,7 +78,7 @@ The server builds each target as an action in the tree and the shell follows it 
 - «+» on a card → `PUT /api/v1/cart/lines/{skuId}` with the line's next quantity for the card's SKU — on a deal card the deal's SKU, otherwise the cheapest in stock; absent at ten, at the stock limit and out of stock; the page is drawn again in place
 - «Shop the sale», «View all deals», the header's «Deals» → [screen-deals](screen-deals.md) (`/deals`)
 - the header's «Catalog» and category row → screen-catalog; the cart button → screen-cart (`/cart`); «Sign in» → sign-in (feature-identity), a customer's name → `/account`
-- heart → save (*target*, B-20: no action yet)
-- «Try 30 days free» → PlusTrialDialog (*target*, B-23: no action yet)
-- «All N categories», the promo banners, the footer → nothing yet (B-37's findings)
+- heart → `PUT` / `DELETE /api/v1/me/saved/{productId}`, then the page drawn again; a guest's → `/sign-in` (B-20)
+- «Try 30 days free» → PlusTrialDialog for a customer, `/sign-in` for a guest; «Start trial» → `POST /api/v1/me/plus/trial`, answered `201` with `close` then `refresh` — the page drawn again with the member's block; «Not now» closes it and sends nothing (B-23)
+- «All N categories», the promo banners, the footer → nothing yet (B-37's findings; B-49)
 - search field → screen-search

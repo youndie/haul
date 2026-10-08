@@ -2,56 +2,49 @@
 id: endpoint-recommendations
 title: Picked for you
 type: api_endpoints
-status: draft
+status: active
 services:
   - haul-server
 contract_source:
   - haul:shared ProductGrid
-  - haul:shared PlusBlock
-  - haul:shared ErrorCode
+  - haul:shared SectionHeader
 parent_feature: feature-recommendations
 ---
 
 # API: Picked for you
 
-> Drafted from the product brief; nothing of it is built yet (B-25). `/ui/home` exists since B-05
-> and answers every viewer the guest's page ([endpoint-catalog](endpoint-catalog.md)). There are no
-> route classes in `shared`: the path is the server's string, and the block will be drawn with
-> components that exist (`ProductGrid`, `SectionHeader`, `PlusBlock` in
-> `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/BrowseComponents.kt`).
-
-Not a route of its own: the
-block is part of the `/ui/home` tree for a customer; its scenarios run against the use case.
+> Built by B-25 and described as the code has it. Not a route of its own: the block is part of the
+> `/ui/home` tree for a customer ([endpoint-catalog](endpoint-catalog.md)), drawn with components that
+> already existed (`SectionHeader`, `ProductGrid` in
+> `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/BrowseComponents.kt`), and the views it reads
+> are recorded by the product tree, `GET /ui/p/{productId}`.
 
 ## Routes — all of them, no exceptions
 
 | Method and path | Service | Auth tier | In the generated schema? | Purpose |
 |---|---|---|---|---|
-| `GET` `/ui/home` (the `PlusBlock` and «Picked for you» part) | haul-server | public (none, or `X-Haul-Guest`) | yes | request: —; answers tree fragment, absent for a guest |
+| `GET` `/ui/home` (the «Picked for you» part) | haul-server | public (optional bearer; `X-Haul-Guest`) | yes | request: —; answers tree fragment — `SectionHeader` «Picked for you» with «Based on your recent views» or «Popular right now» (`picked-title`) and a six-card `ProductGrid` (`picked`), after the Plus block; absent for a guest |
+| `GET` `/ui/p/{productId}` (the view it records) | haul-server | public (optional bearer; `X-Haul-Guest`) | yes | records a customer's view beside the page's reads; the answer is the product's tree as before |
 
 Conventions for every group — trees versus actions, the error body, `404` for «not yours» — are
 in [haul-server](../services/haul-server.md), section 2.
 
 ## Handlers (code anchors)
 
-| Route | Handler (planned) |
+| Route | Handler |
 |---|---|
-| `GET` `/ui/home` (the `PlusBlock` and «Picked for you» part) | `server/src/main/kotlin/io/github/youndie/haul/feature/recommendations/` |
-| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/BrowseComponents.kt`, `shared/src/commonMain/kotlin/io/github/youndie/haul/ErrorCode.kt` |
+| `GET` `/ui/home` (the «Picked for you» part) | `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/screen/HomeScreen.kt` → `PickedSection` (`server/src/main/kotlin/io/github/youndie/haul/feature/recommendations/screen/PickedSection.kt`) → `PickedForYou` (`server/src/main/kotlin/io/github/youndie/haul/feature/recommendations/domain/Recommendations.kt`) |
+| `GET` `/ui/p/{productId}` (the view) | `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/CatalogRouting.kt` → `RecordView` → `ExposedProductViews` (`server/src/main/kotlin/io/github/youndie/haul/feature/recommendations/data/ExposedProductViews.kt`, `server/src/main/resources/db/migration/V20__product_views.sql`) |
+| contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/BrowseComponents.kt` |
 
 ## Request and response bodies
 
 The components are in `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/BrowseComponents.kt`;
-not copied here.
+not copied here. The cards are the server's ordinary product cards, with their «+» and heart.
 
 ## Errors
 
 | Route | Status and `code` |
 |---|---|
-| `GET` `/ui/home` (the `PlusBlock` and «Picked for you» part) | none of its own (*target*) |
-
-The `503` unavailable this draft first gave the personalised part is withdrawn: since B-32, `503`
-means one thing — the database cannot be reached — and `/ui/home` as a whole answers it then
-(`server/src/main/kotlin/io/github/youndie/haul/ErrorAnswers.kt`; see
-[endpoint-catalog](endpoint-catalog.md)). Whether a failure inside the block drops the block or
-fails the page is B-25's decision.
+| `GET` `/ui/home` (the «Picked for you» part) | none of its own: a failure inside the block drops the block, logged (`PickedSectionTest.a block that fails is left out`); the page as a whole answers `503 unavailable` when the database cannot be reached ([endpoint-catalog](endpoint-catalog.md), B-32) |
+| `GET` `/ui/p/{productId}` (the view) | none of its own: a failed write is logged and never fails the page (`PickedSectionTest.a view is recorded for a customer only and a failed write is swallowed`) |

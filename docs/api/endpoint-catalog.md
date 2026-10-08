@@ -2,7 +2,7 @@
 id: endpoint-catalog
 title: Home, deals, category, product, photos
 type: api_endpoints
-status: draft
+status: active
 services:
   - haul-server
 contract_source:
@@ -16,8 +16,8 @@ parent_feature: feature-browse
 
 > Drafted from the product brief; the three browse routes exist since B-05 and their trees took
 > their current shape in B-07 and B-08; photos arrived with B-30, the controls' actions and `/ui/deals`
-> with B-37. What a customer would see differently (the member's Plus block, «Picked for you», a
-> recorded view) is still *target*, which keeps this document a draft. There are no route classes in
+> with B-37; a customer's Plus block with B-23, the hearts with B-20, the product page's «Add to
+> cart» and «Buy now» with B-48, «Picked for you» and the recorded view with B-25. There are no route classes in
 > `shared`: the paths are strings in `CatalogRouting.kt` (and `Frame.DEALS`, `ProductPhotos.PATH`),
 > and the contract is the components the routes answer and `ErrorCode`.
 
@@ -25,10 +25,10 @@ parent_feature: feature-browse
 
 | Method and path | Service | Auth tier | In the generated schema? | Purpose |
 |---|---|---|---|---|
-| `GET` `/ui/home` | haul-server | public (optional bearer; `X-Haul-Guest`) | yes | request: —; answers tree: Home (with recommendations and the member's Plus block for a customer — *target*: today a customer gets the guest's page without the Plus offer) |
+| `GET` `/ui/home` | haul-server | public (optional bearer; `X-Haul-Guest`) | yes | request: —; answers tree: Home — the Plus block per viewer, and «Picked for you» for a customer ([endpoint-recommendations](endpoint-recommendations.md)) |
 | `GET` `/ui/deals` | haul-server | public (optional bearer; `X-Haul-Guest`) | yes | request: `page`; answers tree: Deals ([screen-deals](../screens/screen-deals.md)) |
 | `GET` `/ui/c/{categoryPath}` | haul-server | public (optional bearer; `X-Haul-Guest`) | yes | request: filters, sort, page; answers tree: Catalog |
-| `GET` `/ui/p/{productId}` | haul-server | public (optional bearer; `X-Haul-Guest`) | yes | request: `sku`, `tab` (description / specifications / reviews / questions); answers tree: Product; records a view for a customer (*target*, see Quirks) |
+| `GET` `/ui/p/{productId}` | haul-server | public (optional bearer; `X-Haul-Guest`) | yes | request: `sku`, `tab` (description / specifications / reviews / questions); answers tree: Product; records a view for a customer, beside the page's reads (B-25, [endpoint-recommendations](endpoint-recommendations.md)) |
 | `GET` `/images/{key...}` | haul-server | public (optional bearer, as every catalog route) | no — bytes, not a tree | request: —; answers the stored photo under `products/` with its image media type, `Cache-Control: public, max-age=31536000, immutable` and `X-Content-Type-Options: nosniff` |
 
 The screen routes read the caller (`Viewers` in `server/src/main/kotlin/io/github/youndie/haul/shell/Viewers.kt`)
@@ -75,8 +75,12 @@ B-08, and what the server fills:
 * **Home** — `CampaignRow` (the campaign with its two banners, one component because the two widths
   arrange them differently), `SectionHeader` + `CategoryGrid` (eight tiles; `compactLinkLabel` «All N»
   is what the link reads on a phone), `SectionHeader` «Deals of the day» with the deals'
-  `countdownEndsAt` and «View all deals» → `/deals`, a `ProductGrid` with `scroll = true`, and — for
-  a guest only — the `PlusBlock` offering the trial.
+  `countdownEndsAt` and «View all deals» → `/deals`, a `ProductGrid` with `scroll = true`, the
+  `PlusBlock` (B-23, `server/src/main/kotlin/io/github/youndie/haul/feature/membership/screen/PlusOffer.kt`)
+  — the offer to a guest and a non-member, whose «Try 30 days free» is `navigate /sign-in` for a guest
+  and kompot's `present` of the `PlusTrialDialog` for a customer, or a member's savings this year and
+  renewal («You saved $186 on delivery this year», «Renews Nov 2») — and, for a customer, «Picked for
+  you» ([endpoint-recommendations](endpoint-recommendations.md)).
 * **Deals** — `PageTitle` «Deals» / «N items on sale»; on page 1 only, `SectionHeader` «Deals of the
   day» with the countdown and the day's deals; `SectionHeader` «On sale» and a `ProductGrid` of every
   product whose shown price is under its old one, deepest discount first (then the most reviews),
@@ -89,7 +93,10 @@ B-08, and what the server fills:
   configured), else absent and the tile is the placeholder. `ProductCard.add` is a `LineCommand`:
   `PUT /api/v1/cart/lines/{skuId}` ([endpoint-cart](endpoint-cart.md)) with the line's **next**
   quantity for the SKU whose price the card shows (a deal card's deal SKU) — absent when the cart
-  holds ten, or the stock, or the SKU is out of stock; a press sent twice adds one.
+  holds ten, or the stock, or the SKU is out of stock; a press sent twice adds one. The heart is
+  `ProductCard.heartCommand` — a `SaveCommand`, `PUT` or `DELETE /api/v1/me/saved/{productId}`
+  ([endpoint-saved](endpoint-saved.md)), drawn filled (`saved`) when the product is in the viewer's
+  list — or, for a guest, `heartAction`, a `navigate` to `/sign-in` (B-20).
 * **Pagination** — `HaulPagination.moreAction` («Show 24 more») opens the next page, `links` every
   page number but the current one; the address keeps filters and sort, and page 1 has no `page=`. The price facet carries
   `rangeStart` / `rangeEnd`, the selection as fractions of a track from $0 to the category's dearest
@@ -103,7 +110,11 @@ B-08, and what the server fills:
   the phone's «Specs». `?tab=reviews` and `?tab=questions` answer `ProductReviews` and
   `ProductQuestions` from storage, and the tab row lists four tabs with the reviews' and questions'
   counts (B-22, [endpoint-reviews](endpoint-reviews.md)); their buttons carry the dialogs' `present`
-  for a customer and `navigate` to `/sign-in` for a guest. `ProductDescription` carries the product's headline as `title` and
+  for a customer and `navigate` to `/sign-in` for a guest; each review carries «Helpful»'s
+  `helpfulCommand` for a customer (B-43). `ProductDetails.add` and `.buy` are «Add to cart» and «Buy
+  now» for the SKU shown (B-48, `LineCommand`s, `buy` with `next`: `/checkout`, or
+  `/sign-in?next=%2Fcheckout` for a guest; both absent out of stock, `add` absent at the line's limit),
+  and `heartCommand` / `heartAction` the heart and «Save». `ProductDescription` carries the product's headline as `title` and
   `accent` since B-33 (`products.headline`, `products.headline_accent`,
   `server/src/main/resources/db/migration/V6__product_headline.sql`); a catalogue seeded before V6
   has the product's title as its headline and no accent.
@@ -115,9 +126,8 @@ B-08, and what the server fills:
 ## Quirks
 
 * `tab` takes `description`, `specifications`, `reviews` and `questions`; anything else is `400 validation_failed` (field `tab`).
-* No view is recorded: nothing in `server/` stores a `ProductView` yet.
-* `/ui/home` answers a customer the guest's page without the Plus offer: no «Picked for you», no member's Plus block.
-* The product page's «Add to cart» and «Buy now», home's «All N categories», the brand facet's «Show N more», the header strip's links and the footer carry no action (B-37's findings).
+* Home's «All N categories», the brand facet's «Show N more», the filter sheet's ×, the header strip's «Help» and «HAUL PLUS» and the footer carry no action (B-37's findings); B-49 gives them actions or draws them as text.
+* `ProductDetails.bought` («12K bought this month») is never sent ([feature-product](../features/feature-product.md)).
 * `/ui/deals` reads the whole catalog per request, as a top-level category page reads its descendants.
 * With no object storage configured (`HAUL_S3_ENDPOINT` unset) no `image` or `photo` is sent and every `/images/…` is `404`.
 

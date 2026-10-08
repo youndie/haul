@@ -24,9 +24,8 @@ tags: []
 
 Everything needed to decide: photos (a stored photo when there is one, placeholder tiles otherwise — B-30), variants, price, delivery options with dates, returns, the seller, description, specifications, reviews and questions — and the buttons that buy it («Add to cart», «Buy now», B-48) or keep it (the heart and «Save», B-20).
 
-> Still not built, which keeps this document a draft: recording a `ProductView` when a customer opens
-> the page (B-25, recommendations), and «12K bought this month», which the server does not send
-> (`ProductDetails.bought` is never set; no backlog item builds it yet).
+> Still not built, which keeps this document a draft: «12K bought this month», which the server does
+> not send (`ProductDetails.bought` is never set; no backlog item builds it yet).
 
 ## 2. Business rules
 
@@ -38,7 +37,7 @@ Everything needed to decide: photos (a stored photo when there is one, placehold
 * **«Buy now»** (`ProductDetails.buy`) is the same line with `selected = true` — checkout takes the selected lines only — then a navigate fixed in the tree (`LineCommand.next`): `/checkout` for a customer, **`/sign-in?next=%2Fcheckout` for a guest** (the cart's «Sign in to check out» address, so both ways into checkout run one sign-in and one cart merge; decided as product owner, B-48); at the line's limit it only selects and goes on; the client follows `next` only when the change was accepted — a refused «Buy now» redraws the page and goes nowhere;
 * the heart and «Save» keep the product in the customer's Saved list (`ProductDetails.heartCommand`: `PUT` to keep, `DELETE` to let go) and are drawn filled when it is there; a guest's lead to `/sign-in` ([feature-account](feature-account.md));
 * *not built*: «12K bought this month» is the count of delivered and in-transit units in the last 30 days, rounded down to thousands above 1,000;
-* *planned* (B-25): opening the page as a customer records a `ProductView`;
+* opening the page as a customer records a view for «Picked for you» (B-25, [feature-recommendations](feature-recommendations.md)): beside the page's reads, never failing the page; a guest's views are not kept;
 * under the price, for prices between $50 and $2,000: «or 4 payments of $87.25 with Haul Pay» (the price ÷ 4, rounded to cents).
 
 Numbers in these rules (fees, thresholds, limits) are decisions of the brief, recorded in

@@ -3,7 +3,7 @@ id: screen-catalog
 title: Category
 type: client_screen
 platform: [web]
-status: draft
+status: active
 entry:
   web: "/c/{categoryPath}"
 parent_feature: feature-browse
@@ -78,5 +78,5 @@ Every control below is an action the server puts in the tree; the shell follows 
 - card → screen-product (`/p/{productId}`)
 - «+» on a card → `PUT /api/v1/cart/lines/{skuId}` with the line's next quantity; absent at ten, at the stock limit and out of stock; the page is drawn again in place
 - crumb → that category or home
-- heart → save (*target*, B-20: no action yet)
-- the brand facet's «Show N more», the filter sheet's × → nothing yet (B-37's findings)
+- heart → `PUT` / `DELETE /api/v1/me/saved/{productId}`, then the page drawn again; a guest's → `/sign-in` (B-20)
+- the brand facet's «Show N more», the filter sheet's × → nothing yet (B-37's findings; B-49)

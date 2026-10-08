@@ -24,15 +24,22 @@ tags: []
 
 The home page sells: a campaign, two side banners, categories, deals of the day with a countdown, Haul Plus, and recommendations. A category page lists products with facet filters, sort and pages.
 
+> Still not built, which keeps this document a draft: a Plus member's early access to campaign prices —
+> the seed stores the campaign's `plus_early_access_at`, but no price reads it, and no backlog item
+> builds it yet. The home page's Plus block (B-23), «Picked for you» (B-25) and the cards' hearts (B-20)
+> are built.
+
 ## 2. Business rules
 
 * deals of the day end at local midnight in the store's time zone (`America/New_York`); the countdown is computed by the client from the server's `endsAt`, and an ended deal disappears on the next load;
-* a Plus member sees a campaign's prices from its early-access start (24 hours before the public start);
-* the Haul Plus block offers the trial to guests and non-members, and shows a member their delivery savings this year and the renewal date;
+* *not built*: a Plus member sees a campaign's prices from its early-access start (24 hours before the public start);
+* the Haul Plus block offers the trial to guests and non-members — «Try 30 days free» presents the trial dialog to a customer and sends a guest to `/sign-in` — and shows a member their delivery savings this year and the renewal date (B-23, [feature-membership](feature-membership.md));
+* a customer's home page ends with «Picked for you» ([feature-recommendations](feature-recommendations.md)); a guest's has none;
 * facet counts are computed over the current filter set minus the facet itself (the usual «what you would get if you ticked this»);
 * 24 products per page; sort: popular (default), price ascending, price descending, rating, newest;
 * a product card shows the cheapest in-stock `Sku`'s price, its old price and discount, rating, reviews count and the earliest delivery day to the customer's default address (guest: the store's default ZIP).
 * a card's «+» puts one more of the card's `Sku` into the cart — the line's next quantity, so a press sent twice adds one — and is not offered at ten, at the stock or out of stock (B-37; `Cards.kt`);
+* a card's heart keeps the product in the customer's Saved list or lets it go, and is drawn filled when it is there; a guest's leads to `/sign-in` (B-20, [feature-account](feature-account.md));
 * a product with a stored photo shows it on its card and its page; without one, or while it loads or after it fails, the placeholder tile stays (B-30, research D8);
 * `/deals` lists the day's deals (on its first page) and then every product whose shown price is under its old one, the deepest discount first, 24 a page (B-37, research D2).
 
