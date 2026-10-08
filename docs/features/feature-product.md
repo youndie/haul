@@ -22,7 +22,7 @@ tags: []
 
 ## 1. Overview
 
-Everything needed to decide: photos (placeholders in v1), variants, price, delivery options with dates, returns, the seller, description, specifications, reviews and questions.
+Everything needed to decide: photos (a stored photo when there is one, placeholder tiles otherwise — B-30), variants, price, delivery options with dates, returns, the seller, description, specifications, reviews and questions.
 
 ## 2. Business rules
 

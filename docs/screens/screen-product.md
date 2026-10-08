@@ -79,8 +79,10 @@ Desktop artboards are named as in `design.states`; each has a phone twin with th
 
 ## 5. Navigation (summary)
 
-- colour / bundle → another `Sku`
-- Add to cart → header count +1
-- Buy now → adds and opens screen-checkout
+- colour / bundle → another `Sku` (the variant's address, followed by the shell since B-35)
+- crumb → that category or home; tabs → the tab's address
+- Add to cart → header count +1 (*target*: drawn and carrying no action, B-37's findings)
+- Buy now → adds and opens screen-checkout (*target*: no action yet)
+- the photo → the stored photo (`ProductDetails.photo`, B-30) over the placeholder tile, which stays without one
 - seller card → nothing in v1
 - helpful → vote
