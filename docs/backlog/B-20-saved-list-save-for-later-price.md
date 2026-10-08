@@ -83,12 +83,13 @@ Feature: `feature-account` — its scenarios are this item's acceptance where it
   always saving (`Saved twice`, the hearts and the paging tests); the list read without its customer filter (`a
   customer sees only their own list`); the client heart sending the opposite state and a guest's «Save for later»
   following nothing (three `SavedWiringTest`s).
-- **Where it ran**: the Linux build machine (WSL), on the branch rebased onto `6120263` (B-21's returns), two workers
-  in a 5 GB scope: `:composeApp:wasmJsBrowserDistribution` alone, then `./gradlew check :server:installDist` green
-  (`:server:test` 247 tests, `:composeApp:desktopTest` 141, `viddikVerify` 132 goldens, 0 failed; PostgreSQL and
-  shildik in containers); `scripts/image-check.sh haul/server:b20` on port 18120 green (V17 and V18 migrated and
-  seeded, 912 of 912 classes from the AOT cache). `make check` and `make docs-against BASE=origin/main` on the Mac.
-  The chart is unchanged.
+- **Where it ran**: the Linux build machine (WSL), on the branch rebased onto `5859c32` (B-21's returns, B-26's
+  e2e), two workers in a 5 GB scope: `:composeApp:wasmJsBrowserDistribution` alone, then `./gradlew check
+  :server:installDist` green (`:server:test` 247 tests, `:composeApp:desktopTest` 141, `viddikVerify` 132 goldens,
+  0 failed; PostgreSQL and shildik in containers); `scripts/image-check.sh haul/server:b20` on port 18120 green (V17
+  and V18 migrated and seeded, 912 of 912 classes from the AOT cache); `scripts/e2e.sh` against that image, its
+  whole path passing with every card now carrying a heart. `make check` and `make docs-against BASE=origin/main` on
+  the Mac. The chart is unchanged.
 
 ## Findings (2026-10-08)
 
