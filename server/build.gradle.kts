@@ -98,6 +98,10 @@ zavarnik {
             get("http://127.0.0.1:8080/ui/search/suggest?q=running%20sh")
             get("http://127.0.0.1:8080/ui/search?q=running%20shoes")
             get("http://127.0.0.1:8080/ui/search?q=xqzt")
+            // The cart needs a guest, and the workload has no PUT to fill one: an empty cart is what
+            // trains here, with the guest's creation in front of it.
+            post("http://127.0.0.1:8080/api/v1/guests", "application/json", "") { capture("guest", "id") }
+            get("http://127.0.0.1:8080/ui/cart") { header("X-Haul-Guest", "{{guest}}") }
         }
     }
 }
