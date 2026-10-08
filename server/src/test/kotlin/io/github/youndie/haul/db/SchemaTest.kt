@@ -6,6 +6,7 @@ import io.github.youndie.haul.feature.checkout.data.checkoutTables
 import io.github.youndie.haul.feature.fulfilment.data.fulfilmentTables
 import io.github.youndie.haul.feature.order.data.orderTables
 import io.github.youndie.haul.feature.payment.data.paymentTables
+import io.github.youndie.haul.feature.returns.data.returnTables
 import io.github.youndie.haul.feature.reviews.data.reviewTables
 import io.github.youndie.haul.feature.search.data.searchTables
 import io.github.youndie.haul.testing.PostgresHarness
@@ -82,12 +83,12 @@ class SchemaTest {
     /**
      * V10's tables against their Exposed declarations: petich's three, which petich declares and V10
      * writes by hand (petich ships no DDL), and placement's own — with V11's additions: the shipments'
-     * pickup code, their history, and the payment simulator's captures — and V14's address an order was
-     * placed to.
+     * pickup code, their history, and the payment simulator's captures — V14's address an order was
+     * placed to, and V17's returns, their lines and the simulator's refunds (B-21).
      */
     @Test
     fun `the migrated schema needs no further DDL for the order and payment tables`() {
-        val tables = orderTables + paymentTables + fulfilmentTables
+        val tables = orderTables + paymentTables + fulfilmentTables + returnTables
         val required =
             PostgresHarness.freshDatabase().use {
                 transaction(Databases.connect(it)) {
@@ -95,7 +96,7 @@ class SchemaTest {
                 }
             }
         assertEquals(emptyList(), required, "still required:\n" + required.joinToString("\n"))
-        assertEquals(10, tables.size)
+        assertEquals(13, tables.size)
     }
 
     /** V12's reviews, rating counts and questions, and V15's helpful votes, against their Exposed declarations. */

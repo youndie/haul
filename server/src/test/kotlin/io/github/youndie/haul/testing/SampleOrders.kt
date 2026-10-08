@@ -13,6 +13,9 @@ import io.github.youndie.haul.feature.order.domain.OrderLine
 import io.github.youndie.haul.feature.order.domain.OrderStatus
 import io.github.youndie.haul.feature.order.domain.Shipment
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus
+import io.github.youndie.haul.feature.returns.domain.OrderReturn
+import io.github.youndie.haul.feature.returns.domain.ReturnStatus
+import io.github.youndie.haul.feature.returns.domain.ReturnedLine
 import io.github.youndie.haul.seed.SampleCheckout
 import io.github.youndie.haul.seed.SampleCustomers
 import java.time.Instant
@@ -120,10 +123,46 @@ internal object SampleOrders {
     }
 
     /**
+     * #HL-44019 (`Order_Returned`, and the returned row of `Account_Orders`): three things from one seller,
+     * $87.50 placed on Aug 30 and delivered on Sep 2, all of it sent back — collected Sep 18 and refunded Sep 19
+     * to the card, the 174 points it earned taken back (B-21).
+     */
+    fun returned(mayas: NewOrder): TrackedOrder {
+        val delivered =
+            deliveredOrder(
+                mayas,
+                RETURNED,
+                "2025-08-30T09:15:00-04:00",
+                "2025-09-02T16:00:00Z",
+                listOf(
+                    OrderLine(BLOCKS_SKU, HOMEWORKS, "Building Blocks Space Station, 1,200 pcs", 1, 3_500, 3_500),
+                    OrderLine(BAGS_SKU, HOMEWORKS, "Silicone Food Storage Bags, Set of 6", 1, 2_450, 2_450),
+                    OrderLine(CABLE_SKU, HOMEWORKS, "USB-C Charging Cable, 2 m, 2-pack", 1, 2_800, 2_800),
+                ),
+            )
+        val order = delivered.order.copy(returnStatus = ReturnStatus.REFUNDED)
+        val back =
+            OrderReturn(
+                orderId = RETURNED,
+                reason = "changed_mind",
+                lines = listOf(ReturnedLine(0, 3_500), ReturnedLine(1, 2_450), ReturnedLine(2, 2_800)),
+                refundCents = 8_750,
+                points = 174,
+                status = ReturnStatus.REFUNDED,
+                history =
+                    mapOf(
+                        ReturnStatus.REQUESTED to Instant.parse("2025-09-17T14:00:00Z"),
+                        ReturnStatus.PICKED_UP to Instant.parse("2025-09-18T14:00:00Z"),
+                        ReturnStatus.REFUNDED to Instant.parse("2025-09-19T14:00:00Z"),
+                    ),
+            )
+        return delivered.copy(order = order, progress = OrderProgress.of(order), returned = back)
+    }
+
+    /**
      * Maya's history as the account draws it (`Account_Content`, `Account_Orders`), newest first: #HL-48211
-     * in transit, #HL-47960 waiting at the point, #HL-46102, #HL-45277 and #HL-42860 delivered, and #HL-44019,
-     * which the canvas draws returned — delivered here: no order is returned until the returns exist (B-21),
-     * and the fixture says it is the returned one ([RETURNED]).
+     * in transit, #HL-47960 waiting at the point, #HL-46102, #HL-45277 and #HL-42860 delivered, and #HL-44019
+     * returned ([returned]).
      */
     fun mayasHistory(mayas: NewOrder): List<TrackedOrder> =
         listOf(
@@ -137,17 +176,7 @@ internal object SampleOrders {
                 "2025-09-13T17:00:00Z",
                 listOf(OrderLine(VACUUM_SKU, HOMEWORKS, "Cordless Stick Vacuum V8", 1, 29_900, 29_900)),
             ),
-            deliveredOrder(
-                mayas,
-                RETURNED,
-                "2025-08-30T09:15:00-04:00",
-                "2025-09-02T16:00:00Z",
-                listOf(
-                    OrderLine(CANDLES_SKU, HOMEWORKS, "Beeswax Taper Candles, set of 6", 1, 2_450, 2_450),
-                    OrderLine(PLANTER_SKU, HOMEWORKS, "Ceramic Planter, 6 in", 1, 2_800, 2_800),
-                    OrderLine(NAPKINS_SKU, HOMEWORKS, "Linen Napkins, set of 4", 1, 3_500, 3_500),
-                ),
-            ),
+            returned(mayas),
             deliveredOrder(
                 mayas,
                 "HL-42860",
@@ -246,9 +275,9 @@ internal object SampleOrders {
     const val SWEATER_SKU = "p-merino-sweater-0"
     const val SERUM_SKU = "p-vitamin-c-serum-0"
     const val VACUUM_SKU = "p-stick-vacuum-0"
-    const val CANDLES_SKU = "p-taper-candles-0"
-    const val PLANTER_SKU = "p-ceramic-planter-0"
-    const val NAPKINS_SKU = "p-linen-napkins-0"
+    const val BLOCKS_SKU = "p-space-station-blocks-0"
+    const val BAGS_SKU = "p-silicone-bags-0"
+    const val CABLE_SKU = "p-usb-c-cable-0"
     const val THROW_SKU = "p-cotton-throw-0"
 
     /** The tiles the canvas draws for the products the seed does not sell, by SKU. */
@@ -258,9 +287,9 @@ internal object SampleOrders {
             SWEATER_SKU to "#FFE5DD",
             SERUM_SKU to "#F1E4F5",
             VACUUM_SKU to "#E0EEF7",
-            CANDLES_SKU to "#FFF1C9",
-            PLANTER_SKU to "#E3F5D8",
-            NAPKINS_SKU to "#E6E4FF",
+            BLOCKS_SKU to "#FFF1C9",
+            BAGS_SKU to "#E3F5D8",
+            CABLE_SKU to "#E6E4FF",
             THROW_SKU to "#ECE9E2",
         )
 }

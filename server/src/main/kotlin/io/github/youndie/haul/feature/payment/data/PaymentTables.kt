@@ -6,7 +6,7 @@ import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.javatime.timestampWithTimeZone
 
-// The Exposed side of V10's `payment_authorisations` and V11's `payment_captures`. `SchemaTest` holds the
+// The Exposed side of V10's `payment_authorisations`, V11's `payment_captures` and V17's `payment_refunds`. `SchemaTest` holds the
 // two together, CHECK constraints included: declared here under the names PostgreSQL gave them there.
 
 internal object PaymentAuthorisationsTable : Table("payment_authorisations") {
@@ -39,4 +39,20 @@ internal object PaymentCapturesTable : Table("payment_captures") {
     }
 }
 
-internal val paymentTables: List<Table> = listOf(PaymentAuthorisationsTable, PaymentCapturesTable)
+/**
+ * One refund per key (B-21): what was given back of an order's captures. Keyed by the order, not by an
+ * authorisation — what is given back is out of what was captured, whichever shipment took it.
+ */
+internal object PaymentRefundsTable : Table("payment_refunds") {
+    val key = text("key")
+    val orderId = text("order_id")
+    val amountCents = integer("amount_cents").check("payment_refunds_amount_cents_check") { it greater 0 }
+    val refundedAt = timestampWithTimeZone("refunded_at")
+    override val primaryKey = PrimaryKey(key)
+
+    init {
+        index("payment_refunds_order_id", false, orderId)
+    }
+}
+
+internal val paymentTables: List<Table> = listOf(PaymentAuthorisationsTable, PaymentCapturesTable, PaymentRefundsTable)

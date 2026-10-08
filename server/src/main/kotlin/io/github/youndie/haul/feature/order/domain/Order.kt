@@ -94,12 +94,17 @@ internal data class NewOrder(
     val lines: List<OrderLine>,
 )
 
-/** An order as stored. */
+/**
+ * An order as stored. [returnStatus] is its return's (B-21: `requested`, `picked_up`, `refunded`), `null`
+ * while nothing was sent back; the order's progress reads it (`OrderProgress.of`), so a refunded order is
+ * «Returned» wherever orders are listed.
+ */
 internal data class Order(
     val placed: NewOrder,
     val status: OrderStatus,
     val cancelReason: String?,
     val shipments: List<Shipment>,
+    val returnStatus: String? = null,
 ) {
     val id: String get() = placed.id
 }

@@ -7,6 +7,8 @@ import io.github.youndie.haul.feature.payment.domain.Capture
 import io.github.youndie.haul.feature.payment.domain.CaptureOutcome
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
 import io.github.youndie.haul.feature.payment.domain.PaymentSimulator
+import io.github.youndie.haul.feature.payment.domain.Refund
+import io.github.youndie.haul.feature.payment.domain.RefundOutcome
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.v1.core.and
@@ -137,5 +139,56 @@ internal class ExposedPaymentSimulator(
                 .selectAll()
                 .where { PaymentCapturesTable.orderId eq orderId }
                 .associate { it[PaymentCapturesTable.key] to it[PaymentCapturesTable.amountCents] }
+        }
+
+    /**
+     * The order's authorisation is locked first, as a capture locks it, so a refund and a capture of one order
+     * — or two refunds — are taken one after the other and each sees what the other wrote. A key refunded
+     * already answers what it gave back; otherwise the refund is held to what was captured and not refunded.
+     */
+    override suspend fun refund(
+        key: String,
+        refund: Refund,
+    ): RefundOutcome =
+        tx {
+            PaymentAuthorisationsTable
+                .selectAll()
+                .where { PaymentAuthorisationsTable.orderId eq refund.orderId }
+                .forUpdate()
+                .toList()
+            val earlier =
+                PaymentRefundsTable
+                    .selectAll()
+                    .where { PaymentRefundsTable.key eq key }
+                    .singleOrNull()
+            if (earlier != null) return@tx RefundOutcome.Refunded(earlier[PaymentRefundsTable.amountCents])
+            val captured =
+                PaymentCapturesTable
+                    .selectAll()
+                    .where { PaymentCapturesTable.orderId eq refund.orderId }
+                    .sumOf { it[PaymentCapturesTable.amountCents] }
+            if (captured == 0) return@tx RefundOutcome.NotCaptured
+            val given =
+                PaymentRefundsTable
+                    .selectAll()
+                    .where { PaymentRefundsTable.orderId eq refund.orderId }
+                    .sumOf { it[PaymentRefundsTable.amountCents] }
+            val remaining = captured - given
+            if (refund.amountCents > remaining) return@tx RefundOutcome.Exceeds(remaining)
+            PaymentRefundsTable.insert {
+                it[this.key] = key
+                it[orderId] = refund.orderId
+                it[amountCents] = refund.amountCents
+                it[refundedAt] = refund.at.atOffset(ZoneOffset.UTC)
+            }
+            RefundOutcome.Refunded(refund.amountCents)
+        }
+
+    override suspend fun refunded(orderId: String): Map<String, Int> =
+        tx {
+            PaymentRefundsTable
+                .selectAll()
+                .where { PaymentRefundsTable.orderId eq orderId }
+                .associate { it[PaymentRefundsTable.key] to it[PaymentRefundsTable.amountCents] }
         }
 }

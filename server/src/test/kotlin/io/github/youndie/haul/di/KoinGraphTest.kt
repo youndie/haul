@@ -41,6 +41,10 @@ import io.github.youndie.haul.feature.order.saga.SagaStorage
 import io.github.youndie.haul.feature.order.screen.OrderScreen
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
 import io.github.youndie.haul.feature.payment.paymentModule
+import io.github.youndie.haul.feature.returns.domain.RequestReturn
+import io.github.youndie.haul.feature.returns.domain.ReturnRepository
+import io.github.youndie.haul.feature.returns.domain.ReturnSimulator
+import io.github.youndie.haul.feature.returns.returnsModule
 import io.github.youndie.haul.feature.reviews.domain.ReviewCommands
 import io.github.youndie.haul.feature.reviews.domain.ReviewRepository
 import io.github.youndie.haul.feature.reviews.reviewsModule
@@ -96,6 +100,7 @@ class KoinGraphTest {
                     fulfilmentModule,
                     reviewsModule,
                     accountModule,
+                    returnsModule,
                 )
             }
         try {
@@ -142,5 +147,8 @@ class KoinGraphTest {
         assertNotNull(koin.get<Loyalty>())
         assertNotNull(koin.get<SavedLists>())
         assertNotNull(koin.get<AccountScreen>())
+        assertNotNull(koin.get<ReturnRepository>())
+        assertNotNull(koin.get<RequestReturn>())
+        assertNotNull(koin.get<ReturnSimulator>())
     }
 }

@@ -152,7 +152,7 @@ internal enum class HistoryFilterKey(
             All -> true
             Active -> state.active
             Delivered -> state == OrderState.Delivered || state == OrderState.PickedUp
-            Returned -> state == OrderState.Returned
+            Returned -> state == OrderState.Returned || state == OrderState.Returning
             Cancelled -> state == OrderState.Cancelled
         }
 
@@ -164,8 +164,9 @@ internal enum class HistoryFilterKey(
 
 /**
  * Where an order is, as the history's chip says it. [active] is on its way or waiting to be collected —
- * the overview's «Active orders» and the menu's count. [Returned] is the returns' (B-21): no order is
- * returned until they exist, so nothing here derives it yet.
+ * the overview's «Active orders» and the menu's count. [Returned] and [Returning] are the returns' (B-21):
+ * refunded, or asked for and not refunded yet — a return in flight has a label of its own, in Blush like a
+ * returned one and under the same «Returned» filter, with «Details» rather than «Reorder», as its page has.
  */
 internal enum class OrderState(
     val label: String,
@@ -178,6 +179,7 @@ internal enum class OrderState(
     ReadyForPickup("Ready for pickup", HistoryStatusKind.Active, true),
     Delivered("Delivered", HistoryStatusKind.Done, false),
     PickedUp("Picked up", HistoryStatusKind.Done, false),
+    Returning("Returning", HistoryStatusKind.Returned, false),
     Returned("Returned", HistoryStatusKind.Returned, false),
     Cancelled("Cancelled", HistoryStatusKind.Done, false),
     ;
@@ -192,6 +194,8 @@ internal enum class OrderState(
                 OrderProgress.Delivered -> Delivered
                 OrderProgress.PickedUp -> PickedUp
                 OrderProgress.Cancelled -> Cancelled
+                OrderProgress.Returning -> Returning
+                OrderProgress.Returned -> Returned
             }
     }
 }

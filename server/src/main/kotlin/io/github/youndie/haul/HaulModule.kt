@@ -28,6 +28,9 @@ import io.github.youndie.haul.feature.order.domain.OrderError
 import io.github.youndie.haul.feature.order.orderModule
 import io.github.youndie.haul.feature.order.orderRouting
 import io.github.youndie.haul.feature.payment.paymentModule
+import io.github.youndie.haul.feature.returns.domain.ReturnError
+import io.github.youndie.haul.feature.returns.returnsModule
+import io.github.youndie.haul.feature.returns.returnsRouting
 import io.github.youndie.haul.feature.reviews.domain.ReviewError
 import io.github.youndie.haul.feature.reviews.reviewsModule
 import io.github.youndie.haul.feature.reviews.reviewsRouting
@@ -120,13 +123,14 @@ internal fun Application.haulModule(
             fulfilmentModule,
             reviewsModule,
             accountModule,
+            returnsModule,
         )
     }
     // Carries on what a process that died left mid-saga, from the first moment this one serves; it
     // stops with the application, whose scope it runs in.
     get<SuspendedPetichSweeper>().start(this)
     // The simulated world after placement, in the same scope: shipments move and are charged as they ship.
-    fulfilment.interval?.let { FulfilmentRunner(get(), it).start(this) }
+    fulfilment.interval?.let { FulfilmentRunner(get(), get(), it).start(this) }
     install(StatusPages) {
         // A bearer token that did not verify, or none where the customer tier needs one: the
         // authentication challenge answers with an empty body, and every refusal here has one.
@@ -140,6 +144,9 @@ internal fun Application.haulModule(
         exception<IdentityError> { call, error -> call.respondError(error.code, error.message, error.field) }
         exception<CartError> { call, error -> call.respondError(error.code, error.message, error.field) }
         exception<OrderError> { call, error -> call.respondError(error.code, error.message, error.field) }
+        exception<ReturnError> { call, error ->
+            call.respondError(error.code, error.message, error.field, error.fields)
+        }
         exception<ReviewError> { call, error ->
             call.respondError(error.code, error.message, error.field, error.fields)
         }
@@ -169,6 +176,7 @@ internal fun Application.haulModule(
             checkoutRouting()
             reviewsRouting()
             orderRouting()
+            returnsRouting()
         }
         web?.let { webBundle(it) }
     }
@@ -219,11 +227,14 @@ internal fun status(code: ErrorCode): HttpStatusCode =
         ErrorCode.CheckoutHeld,
         ErrorCode.ReviewExists,
         ErrorCode.OwnReview,
+        ErrorCode.AlreadyReturned,
         -> HttpStatusCode.Conflict
 
         ErrorCode.PromoExpired,
         ErrorCode.PromoNotApplicable,
         ErrorCode.PaymentMethodNotAllowed,
+        ErrorCode.ReturnWindowClosed,
+        ErrorCode.NotDelivered,
         -> HttpStatusCode.UnprocessableEntity
 
         ErrorCode.Unavailable -> HttpStatusCode.ServiceUnavailable

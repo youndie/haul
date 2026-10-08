@@ -6,13 +6,17 @@ import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.domain.OrderStatus
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
+import io.github.youndie.haul.feature.returns.domain.OrderReturn
+import io.github.youndie.haul.feature.returns.domain.ReturnRepository
+import io.github.youndie.haul.feature.returns.domain.ReturnStatus
 import java.time.Instant
 import kotlin.time.toJavaDuration
 
 /**
  * Where an order is, as its page names it (screen-order's states): the saga's side while it is placed or
  * undone, then its least advanced shipment's (feature-orders: «the order's status is derived from its
- * shipments, the least advanced one wins»).
+ * shipments, the least advanced one wins») — until something of it is sent back (B-21): [Returning] while
+ * its return is requested or on its way back, [Returned] once it is refunded.
  */
 internal enum class OrderProgress(
     val id: String,
@@ -25,11 +29,23 @@ internal enum class OrderProgress(
     Delivered(ShipmentStatus.DELIVERED),
     PickedUp(ShipmentStatus.PICKED_UP),
     Cancelled("cancelled"),
+    Returning("returning"),
+    Returned("returned"),
     ;
 
     companion object {
-        /** The order's progress: [Placing] and [Cancelled] are the saga's, the rest the least advanced shipment's. */
+        /**
+         * The order's progress: [Placing] and [Cancelled] are the saga's, [Returning] and [Returned] its
+         * return's, the rest the least advanced shipment's.
+         */
         fun of(order: Order): OrderProgress =
+            when (order.returnStatus) {
+                null -> shipped(order)
+                ReturnStatus.REFUNDED -> Returned
+                else -> Returning
+            }
+
+        private fun shipped(order: Order): OrderProgress =
             when (order.status) {
                 OrderStatus.Placing -> {
                     Placing
@@ -64,11 +80,12 @@ internal data class TrackedShipment(
     val heldUntil: Instant?,
 )
 
-/** An order as its customer may see it (screen-order); B-18 draws it. */
+/** An order as its customer may see it (screen-order); B-18 draws it, with its return (B-21) when it has one. */
 internal data class TrackedOrder(
     val order: Order,
     val progress: OrderProgress,
     val shipments: List<TrackedShipment>,
+    val returned: OrderReturn? = null,
 )
 
 /**
@@ -81,6 +98,7 @@ internal class OrderTracking(
     private val orders: OrderRepository,
     private val shipments: FulfilmentRepository,
     private val payments: PaymentProcessor,
+    private val returns: ReturnRepository,
 ) {
     suspend fun track(
         customerId: String,
@@ -118,6 +136,7 @@ internal class OrderTracking(
                                 ?.plus(FulfilmentPace.HELD_FOR.toJavaDuration()),
                     )
                 },
+            returned = order.returnStatus?.let { returns.returnOf(orderId) },
         )
     }
 }
