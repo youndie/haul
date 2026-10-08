@@ -1,7 +1,7 @@
 ---
 id: B-33
 title: "server: the product description's headline is never sent"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-3-search
