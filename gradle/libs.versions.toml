@@ -19,6 +19,8 @@ flyway = "13.3.0"
 testcontainers = "1.21.4"
 # The AOT cache for start-up (research §1.5).
 zavarnik = "0.1.0"
+# Screenshot goldens and design parity; parity arrived in 0.5.0.
+viddik = "0.7.0"
 
 [libraries]
 ktor-server-core = { module = "io.ktor:ktor-server-core" }
@@ -26,6 +28,9 @@ ktor-server-cio = { module = "io.ktor:ktor-server-cio" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 ktor-server-testHost = { module = "io.ktor:ktor-server-test-host" }
 kompot-core = { module = "io.github.youndie.kompot:kompot-core", version.ref = "kompot" }
+kompot-client = { module = "io.github.youndie.kompot:kompot-client", version.ref = "kompot" }
+kompot-registryAnnotations = { module = "io.github.youndie.kompot:kompot-registry-annotations", version.ref = "kompot" }
+kompot-registryProcessor = { module = "io.github.youndie.kompot:kompot-registry-processor", version.ref = "kompot" }
 exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
 exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
 exposed-json = { module = "org.jetbrains.exposed:exposed-json", version.ref = "exposed" }
@@ -42,3 +47,4 @@ sborkaJvm = { id = "io.github.youndie.sborka.jvm", version.ref = "sborka" }
 sborkaKmp = { id = "io.github.youndie.sborka.kmp", version.ref = "sborka" }
 sborkaLint = { id = "io.github.youndie.sborka.lint", version.ref = "sborka" }
 zavarnik = { id = "io.github.youndie.zavarnik", version.ref = "zavarnik" }
+viddik = { id = "io.github.youndie.viddik", version.ref = "viddik" }

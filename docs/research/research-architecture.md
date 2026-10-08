@@ -239,6 +239,20 @@ As the sibling reference projects; this repository is read from outside.
 
 ## 3. Risks and open questions
 
+**Found in B-04: goldens are recorded on Linux.** The three fonts ship as variable files, and the
+same golden recorded on macOS differed on Linux by 0.06–0.10 % of the pixels — single pixels on the
+edges of a few glyphs («$» in Bodoni Moda, the comma in JetBrains Mono) — with viddik's vertical
+metrics normalised and rasterisation pinned. The likely mechanism, not measured further: CoreText
+and FreeType instance a variable font's outlines differently. The tolerance stays viddik's default;
+the goldens are recorded where CI verifies them, on Linux (`CLAUDE.md` says how), and a verification
+on macOS is expected to fail by that margin.
+
+**The fonts (B-04).** Bodoni Moda, Archivo and JetBrains Mono are the variable files of
+`google/fonts@5e8a3ba`, OFL, bundled as Compose resources with their licences in
+`composeResources/files/licences`. Bodoni Moda is loaded per optical size (`opsz`), because the canvas
+draws it with optical sizing on. *Hypothesis still open:* that wasmJs honours the `opsz` setting as the
+desktop target does — checked when a screen is first compared in the browser.
+
 **Risk 1. The canvas and the code drift apart without anyone seeing it.** A renderer changed for one
 screen changes every screen that uses the component. Mitigation: one reference PNG per artboard
 (125), exported from the canvas into the client's snapshot directory, and `viddikDesignParity` in
