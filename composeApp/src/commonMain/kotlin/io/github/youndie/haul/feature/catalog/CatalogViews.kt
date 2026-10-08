@@ -37,7 +37,7 @@ import io.github.youndie.haul.ui.Chip
 import io.github.youndie.haul.ui.EmptyStateView
 import io.github.youndie.haul.ui.FilterChips
 import io.github.youndie.haul.ui.FilteredResults
-import io.github.youndie.haul.ui.FlexHalves
+import io.github.youndie.haul.ui.FlexPair
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.HaulPagination
@@ -214,7 +214,11 @@ private fun CompactApplied(
     gutter: androidx.compose.ui.unit.Dp,
     onOpenFilters: () -> Unit,
 ) {
-    FlexHalves(10.dp, Modifier.fillMaxWidth().padding(start = gutter, end = gutter, bottom = 14.dp)) {
+    FlexPair(
+        10.dp,
+        secondFrame = SORT_FRAME,
+        modifier = Modifier.fillMaxWidth().padding(start = gutter, end = gutter, bottom = 14.dp),
+    ) {
         Row(
             Modifier
                 .height(48.dp)
@@ -270,6 +274,9 @@ private fun ClearAll(
 ) {
     Text(label, HaulType.text(14f, 600).copy(color = HaulColors.primary), modifier, softWrap = false)
 }
+
+/** The sort control's padding (16 each side) and border (1 each side). */
+private val SORT_FRAME = 34.dp
 
 @Composable
 private fun Sort(

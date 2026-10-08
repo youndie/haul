@@ -2,18 +2,23 @@ package io.github.youndie.haul.theme
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import io.github.youndie.haul.resources.Res
 import io.github.youndie.haul.resources.archivo
 import io.github.youndie.haul.resources.bodoni_moda
+import io.github.youndie.haul.resources.bodoni_moda_italic
 import io.github.youndie.haul.resources.jetbrains_mono
 import org.jetbrains.compose.resources.Font
 
 /** The weights the canvas uses, per family; a variable font is asked for one weight at a time. */
 private val ARCHIVO_WEIGHTS = listOf(400, 500, 600, 700, 800)
 private val MONO_WEIGHTS = listOf(500, 600)
-private val BODONI_WEIGHTS = listOf(500, 800, 900)
+private val BODONI_WEIGHTS = listOf(800, 900)
+
+/** The canvas draws Bodoni's italic only for a title's accent, and only at 500. */
+private val BODONI_ITALIC_WEIGHTS = listOf(500)
 
 /** The app's fonts, from the bundled variable files (OFL, `files/licences`). */
 @Composable
@@ -51,7 +56,19 @@ public fun rememberHaulFonts(): HaulFonts {
                                 FontVariation.Setting("opsz", opsz),
                             ),
                     )
-                },
+                } +
+                    BODONI_ITALIC_WEIGHTS.map {
+                        Font(
+                            Res.font.bodoni_moda_italic,
+                            FontWeight(it),
+                            FontStyle.Italic,
+                            variationSettings =
+                                FontVariation.Settings(
+                                    FontVariation.weight(it),
+                                    FontVariation.Setting("opsz", opsz),
+                                ),
+                        )
+                    },
             )
         }
     return HaulFonts(archivo, mono, { size -> bodoni.getValue(nearestOpticalSize(size)) })

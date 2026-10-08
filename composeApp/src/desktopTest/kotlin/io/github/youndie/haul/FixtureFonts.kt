@@ -7,6 +7,7 @@ import androidx.compose.ui.text.FontSmoothing
 import androidx.compose.ui.text.PlatformParagraphStyle
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.platform.Font
@@ -48,23 +49,31 @@ internal object FixtureFonts {
     private val archivo by lazy { bytes("archivo.ttf") }
     private val mono by lazy { bytes("jetbrains_mono.ttf") }
     private val bodoni by lazy { bytes("bodoni_moda.ttf") }
+    private val bodoniItalic by lazy { bytes("bodoni_moda_italic.ttf") }
 
     private fun family(
         name: String,
         data: ByteArray,
         weights: List<Int>,
         vararg extra: FontVariation.Setting,
-    ): FontFamily =
-        FontFamily(
-            weights.map {
-                Font(
-                    identity = "$name-$it-${extra.joinToString { s -> s.toString() }}",
-                    data = data,
-                    weight = FontWeight(it),
-                    variationSettings = FontVariation.Settings(FontVariation.weight(it), *extra),
-                )
-            },
-        )
+    ): FontFamily = FontFamily(fonts(name, data, weights, FontStyle.Normal, *extra))
+
+    private fun fonts(
+        name: String,
+        data: ByteArray,
+        weights: List<Int>,
+        style: FontStyle,
+        vararg extra: FontVariation.Setting,
+    ): List<androidx.compose.ui.text.font.Font> =
+        weights.map {
+            Font(
+                identity = "$name-$it-$style-${extra.joinToString { s -> s.toString() }}",
+                data = data,
+                weight = FontWeight(it),
+                style = style,
+                variationSettings = FontVariation.Settings(FontVariation.weight(it), *extra),
+            )
+        }
 
     val fonts: HaulFonts by lazy {
         val bodoniCache = mutableMapOf<Float, FontFamily>()
@@ -74,7 +83,13 @@ internal object FixtureFonts {
             bodoniAt = { opsz ->
                 bodoniCache.getOrPut(
                     opsz,
-                ) { family("bodoni", bodoni, listOf(500, 800, 900), FontVariation.Setting("opsz", opsz)) }
+                ) {
+                    val size = FontVariation.Setting("opsz", opsz)
+                    FontFamily(
+                        fonts("bodoni", bodoni, listOf(800, 900), FontStyle.Normal, size) +
+                            fonts("bodoni-italic", bodoniItalic, listOf(500), FontStyle.Italic, size),
+                    )
+                }
             },
             platformStyle = BROWSER_RASTERISATION,
         )

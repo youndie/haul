@@ -133,7 +133,7 @@ private fun WideHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Deals(size = 15f)
-        header.categories.forEach { Text(it, HaulType.text(15f, 500)) }
+        SpacedWords(header.categories, 28.dp, HaulType.text(15f, 500))
         Spacer(Modifier.weight(1f))
         Text(
             "HAUL PLUS",
@@ -215,14 +215,15 @@ private fun CompactHeader(
     Row(
         Modifier
             .fillMaxWidth()
-            .height(45.dp)
+            // `height: 46px` with a 1 px top border outside it: 47 in all.
+            .height(46.dp)
             .padding(horizontal = 16.dp)
             .clipToBounds(),
         horizontalArrangement = Arrangement.spacedBy(22.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Deals(size = 14f)
-        header.categories.forEach { Text(it, HaulType.text(14f, 500), softWrap = false) }
+        SpacedWords(header.categories, 22.dp, HaulType.text(14f, 500))
     }
 }
 
@@ -297,7 +298,8 @@ private fun SearchField(
             .height(height)
             .background(HaulColors.surfaceContainerLowest, shape)
             .border(2.dp, HaulColors.onSurface, shape)
-            .padding(start = start, end = end),
+            // The 2 px border is inside the box's size (`box-sizing: border-box`) but outside its padding.
+            .padding(start = start + 2.dp, end = end + 2.dp),
         horizontalArrangement = Arrangement.spacedBy(gap),
         verticalAlignment = Alignment.CenterVertically,
     ) {

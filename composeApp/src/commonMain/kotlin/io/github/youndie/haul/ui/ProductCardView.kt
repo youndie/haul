@@ -67,11 +67,11 @@ public fun ProductCardView(
             }
         }
         val titleSize = if (compact) 14f else 15f
-        Text(
+        ClampedText(
             card.title,
             HaulType.text(titleSize, lineHeight = 1.35f),
-            Modifier.heightIn(min = if (compact) 38.dp else 40.dp),
             maxLines = 2,
+            modifier = Modifier.heightIn(min = if (compact) 38.dp else 40.dp),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(HaulIcons.star, 14.dp, HaulColors.onSurface)

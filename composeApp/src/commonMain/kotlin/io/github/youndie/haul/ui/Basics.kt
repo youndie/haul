@@ -4,12 +4,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
@@ -21,17 +24,22 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
@@ -61,8 +69,8 @@ internal fun Skeleton(
 }
 
 /**
- * [title] with its [accent] in Bodoni's italic at weight 500, as the canvas draws «Shop by *category*».
- * The italic cut is not bundled, so the italic is synthesised from the roman.
+ * [title] with its [accent] in Bodoni Moda's italic cut at weight 500, as the canvas draws
+ * «Shop by *category*».
  */
 internal fun accented(
     title: String,
@@ -136,7 +144,8 @@ internal fun HaulButton(
         modifier
             .height(height)
             .then(if (fill != null) Modifier.background(fill, shape) else Modifier)
-            .then(if (border != null) Modifier.border(2.dp, border, shape) else Modifier)
+            // A CSS border takes room of its own, outside the padding.
+            .then(if (border != null) Modifier.border(2.dp, border, shape).padding(horizontal = 2.dp) else Modifier)
             .padding(horizontal = horizontal),
         horizontalArrangement = Arrangement.spacedBy(gap, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
@@ -288,21 +297,25 @@ internal fun BaselineWrapRow(
 }
 
 /**
- * Two `flex: 1` items [gap] apart: halves of the width, except that neither shrinks below its own
- * content (CSS's `min-width: auto`), so a wide second item takes what it needs from the first.
+ * Two `flex: 1` items [gap] apart. `flex: 1` shares the free space from a basis of zero, and an item's
+ * padding and border are not part of that basis: they come on top of its share. So the second item,
+ * with [secondFrame] of padding and border, is wider than the first by exactly that — on the phone's
+ * catalog, «Filters» 157 px and the sort 191 px, not two halves.
  */
 @Composable
-internal fun FlexHalves(
+internal fun FlexPair(
     gap: Dp,
+    secondFrame: Dp,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
     androidx.compose.ui.layout.Layout(content, modifier) { measurables, constraints ->
         val (first, second) = measurables
         val gapPx = gap.roundToPx()
-        val room = constraints.maxWidth - gapPx
-        val secondWidth = maxOf(room / 2, second.minIntrinsicWidth(constraints.maxHeight))
-        val firstWidth = room - secondWidth
+        val frame = secondFrame.roundToPx()
+        val share = (constraints.maxWidth - gapPx - frame) / 2
+        val firstWidth = share
+        val secondWidth = share + frame
         val a = first.measure(constraints.copy(minWidth = firstWidth, maxWidth = firstWidth))
         val b = second.measure(constraints.copy(minWidth = secondWidth, maxWidth = secondWidth))
         layout(constraints.maxWidth, maxOf(a.height, b.height)) {
@@ -329,3 +342,65 @@ internal fun InlineLine(
         Text(text, style, Modifier.alignByBaseline(), softWrap = false)
     }
 }
+
+/**
+ * CSS's `-webkit-line-clamp`: the text broken into lines as usual, the first [maxLines] kept and «…»
+ * put after the last kept word — «Wireless Noise…», where Compose's own ellipsis would fill the line
+ * with the next word's letters («Wireless Noise Cancelli…»). Only when «…» does not fit after the
+ * kept words does it cut letters.
+ */
+@Composable
+internal fun ClampedText(
+    text: String,
+    style: TextStyle,
+    maxLines: Int,
+    modifier: Modifier = Modifier,
+) {
+    val measurer = rememberTextMeasurer()
+    BoxWithConstraints(modifier) {
+        val width = constraints.maxWidth
+        val shown =
+            remember(text, style, width) {
+                val full = measurer.measure(text, style, constraints = Constraints(maxWidth = width))
+                if (full.lineCount <= maxLines) {
+                    text
+                } else {
+                    text.substring(0, full.getLineEnd(maxLines - 1, visibleEnd = true)).trimEnd() + "…"
+                }
+            }
+        Text(shown, style, maxLines = maxLines)
+    }
+}
+
+/**
+ * A row of one-line words [gap] apart, laid out as one paragraph. A row of separate texts rounds each
+ * one's width up to a whole pixel, and over ten category names that adds up to a visible drift from
+ * the browser, which keeps the fractions; here the gaps are placeholders inside a single line.
+ */
+@Composable
+internal fun SpacedWords(
+    words: List<String>,
+    gap: Dp,
+    style: TextStyle,
+    modifier: Modifier = Modifier,
+) {
+    val gapSp = with(LocalDensity.current) { gap.toSp() }
+    val text =
+        buildAnnotatedString {
+            words.forEachIndexed { index, word ->
+                if (index > 0) appendInlineContent(GAP, " ")
+                append(word)
+            }
+        }
+    BasicText(
+        text,
+        modifier,
+        style,
+        softWrap = false,
+        maxLines = 1,
+        inlineContent =
+            mapOf(GAP to InlineTextContent(Placeholder(gapSp, 1.sp, PlaceholderVerticalAlign.AboveBaseline)) {}),
+    )
+}
+
+private const val GAP = "gap"
