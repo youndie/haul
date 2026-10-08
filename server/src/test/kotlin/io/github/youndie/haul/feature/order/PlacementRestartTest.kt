@@ -145,8 +145,11 @@ class PlacementRestartTest {
             val later = PetichClock { SAGA_CLOCK.nowEpochMs() + 5.minutes.inWholeMilliseconds }
             haulTest(dataSource, sagaClock = later) {
                 get("/healthz")
+                // Wait for the saga itself, not for the order: `confirm` makes the order placed one step
+                // before the saga writes COMPLETED, and leaving this block stops the application — on a
+                // loaded runner the stop overtook that last step and the row stayed PROCESSING.
                 withTimeout(30.seconds) {
-                    while (dataSource.order("HL-48302")?.status != OrderStatus.Placed) delay(100)
+                    while (ledger.sagaStatus() != "COMPLETED") delay(100)
                 }
             }
 
