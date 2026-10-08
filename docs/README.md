@@ -80,7 +80,7 @@ Browsing:
 - [ ] [feature-recommendations](features/feature-recommendations.md) — Picked for you (draft)
 
 Buying:
-- [ ] [feature-identity](features/feature-identity.md) — Sign-in, guests and the guest cart (draft)
+- [x] [feature-identity](features/feature-identity.md) — Sign-in, guests and the guest cart
 - [ ] [feature-cart](features/feature-cart.md) — Cart (draft)
 - [ ] [feature-checkout](features/feature-checkout.md) — Checkout (draft)
 - [ ] [feature-orders](features/feature-orders.md) — Order lifecycle, tracking and returns (draft)
@@ -107,7 +107,7 @@ Account and loyalty:
 - [x] [endpoint-cart](api/endpoint-cart.md) — Cart
 - [ ] [endpoint-catalog](api/endpoint-catalog.md) — Home, category, product (draft)
 - [ ] [endpoint-checkout](api/endpoint-checkout.md) — Checkout and placement (draft)
-- [ ] [endpoint-identity](api/endpoint-identity.md) — Guests, cart merge, addresses (draft)
+- [x] [endpoint-identity](api/endpoint-identity.md) — Guests, sign-in, cart merge, addresses
 - [ ] [endpoint-membership](api/endpoint-membership.md) — Haul Plus (draft)
 - [x] [endpoint-ops](api/endpoint-ops.md) — Probes
 - [ ] [endpoint-orders](api/endpoint-orders.md) — Orders and returns (draft)
