@@ -17,6 +17,10 @@ public enum class ErrorCode {
 
     @SerialName("unavailable")
     Unavailable,
+
+    /** A search or a suggestion asked for with fewer than two characters (feature-search). */
+    @SerialName("query_too_short")
+    QueryTooShort,
 }
 
 /** The body of every error answer: the code, a sentence for a person, and the field when one is at fault. */

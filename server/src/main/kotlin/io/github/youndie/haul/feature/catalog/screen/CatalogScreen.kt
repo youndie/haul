@@ -107,7 +107,7 @@ internal class CatalogScreen(
                         HaulPagination(
                             id = "pagination",
                             current = page.page,
-                            pages = pageNumbers(page.page, page.pages),
+                            pages = pageNumbers(page.pages),
                             moreLabel = if (page.page < page.pages) "Show ${Browse.PAGE_SIZE} more" else null,
                         ),
                 )
@@ -332,23 +332,9 @@ internal class CatalogScreen(
 
     private fun Set<String>.toggle(value: String): Set<String> = if (value in this) this - value else this + value
 
-    /** «1 2 3 … 517»: the first three, and the last after an ellipsis when there are more. */
-    private fun pageNumbers(
-        current: Int,
-        pages: Int,
-    ): List<String> =
-        if (pages <=
-            PAGES_SHOWN + 1
-        ) {
-            (1..pages).map { "$it" }
-        } else {
-            (1..PAGES_SHOWN).map { "$it" } + "…" + "$pages"
-        }
-
     companion object {
         private const val GRID_COLUMNS = 4
         private const val BRANDS_SHOWN = 6
-        private const val PAGES_SHOWN = 3
         private const val CENTS = 100
         private const val PRICE_STEP = 100
         private val RATINGS =

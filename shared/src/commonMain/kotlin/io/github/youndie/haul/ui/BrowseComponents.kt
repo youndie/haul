@@ -193,6 +193,8 @@ public data class Chip(
     val label: String,
     val selected: Boolean,
     val action: @Polymorphic KompotAction? = null,
+    /** How many results the chip stands for («Running shoes 1,204»), on a search's category chips. */
+    val count: String? = null,
 )
 
 /** The pill row under a title: the kinds of a category, or the categories of a search. */

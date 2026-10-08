@@ -32,6 +32,12 @@ internal object SampleCatalog {
                 ),
             "home-kitchen" to
                 listOf("Bedding" to listOf("Duvet covers", "Pillows"), "Kitchen" to listOf("Mugs", "Cookware")),
+            // feature-search's «Typing suggests» looks for «Sports › Running shoes».
+            "sports" to
+                listOf(
+                    "Running gear" to listOf("Running shoes", "Running jackets"),
+                    "Fitness" to listOf("Yoga mats", "Dumbbells"),
+                ),
         )
 
     private val created: OffsetDateTime = CatalogSeed.NOW.minusDays(90)

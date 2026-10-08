@@ -1,5 +1,6 @@
 package io.github.youndie.haul.di
 
+import io.github.youndie.haul.StoreClock
 import io.github.youndie.haul.db.Databases
 import io.github.youndie.haul.feature.catalog.catalogModule
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
@@ -7,10 +8,13 @@ import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.screen.CatalogScreen
 import io.github.youndie.haul.feature.catalog.screen.HomeScreen
 import io.github.youndie.haul.feature.catalog.screen.ProductScreen
+import io.github.youndie.haul.feature.search.screen.SearchScreen
+import io.github.youndie.haul.feature.search.searchModule
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.testing.SeededDatabase
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import javax.sql.DataSource
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 
@@ -24,20 +28,24 @@ import kotlin.test.assertNotNull
  */
 class KoinGraphTest {
     @Test
-    fun `every catalog screen resolves`() {
+    fun `every screen resolves`() {
         val koin =
             koinApplication {
                 modules(
                     module {
                         single { Databases.connect(SeededDatabase.dataSource) }
+                        single<DataSource> { SeededDatabase.dataSource }
+                        single { StoreClock { CatalogSeed.NOW.toZonedDateTime() } }
                         single { DeliveryCalendar { CatalogSeed.NOW.toZonedDateTime() } }
                     },
                     catalogModule,
+                    searchModule,
                 )
             }.koin
         assertNotNull(koin.get<CatalogRepository>())
         assertNotNull(koin.get<HomeScreen>())
         assertNotNull(koin.get<CatalogScreen>())
         assertNotNull(koin.get<ProductScreen>())
+        assertNotNull(koin.get<SearchScreen>())
     }
 }

@@ -5,6 +5,9 @@ import io.github.youndie.haul.feature.catalog.catalogModule
 import io.github.youndie.haul.feature.catalog.catalogRouting
 import io.github.youndie.haul.feature.catalog.domain.CatalogError
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
+import io.github.youndie.haul.feature.search.domain.SearchError
+import io.github.youndie.haul.feature.search.searchModule
+import io.github.youndie.haul.feature.search.searchRouting
 import io.github.youndie.haul.ops.probes
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -38,13 +41,23 @@ internal fun Application.haulModule(
         modules(
             module {
                 single { database }
+                single { dataSource }
+                single { clock }
                 single { DeliveryCalendar(clock::now) }
             },
             catalogModule,
+            searchModule,
         )
     }
     install(StatusPages) {
         exception<CatalogError> { call, error ->
+            call.respondText(
+                haulWireJson.encodeToString(ErrorBody.serializer(), ErrorBody(error.code, error.message, error.field)),
+                ContentType.Application.Json,
+                status(error.code),
+            )
+        }
+        exception<SearchError> { call, error ->
             call.respondText(
                 haulWireJson.encodeToString(ErrorBody.serializer(), ErrorBody(error.code, error.message, error.field)),
                 ContentType.Application.Json,
@@ -66,6 +79,7 @@ internal fun Application.haulModule(
     routing {
         probes(commit = commit, ready = { databaseAnswers(dataSource) })
         catalogRouting()
+        searchRouting()
     }
 }
 
@@ -73,7 +87,7 @@ private val log = LoggerFactory.getLogger("io.github.youndie.haul.HaulModule")
 
 internal fun status(code: ErrorCode): HttpStatusCode =
     when (code) {
-        ErrorCode.ValidationFailed -> HttpStatusCode.BadRequest
+        ErrorCode.ValidationFailed, ErrorCode.QueryTooShort -> HttpStatusCode.BadRequest
         ErrorCode.CategoryNotFound, ErrorCode.ProductNotFound -> HttpStatusCode.NotFound
         ErrorCode.Unavailable -> HttpStatusCode.ServiceUnavailable
     }
