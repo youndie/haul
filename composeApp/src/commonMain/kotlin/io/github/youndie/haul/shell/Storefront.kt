@@ -12,6 +12,7 @@ import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -89,7 +90,9 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * The storefront at the address [history] is at: every page from [transport], «now» from [clock] — one
  * clock, ticking each second, that every countdown reads. A tree's `navigate` to `/sign-in` is
  * sign-in's ([SignInActions]): [signIn] runs, then the page its `next` names opens (B-41), or the
- * screen is drawn again, signed in or not. The cart's presses — the cart's own and a card's «+» — go
+ * screen is drawn again, signed in or not. A page refused for want of a sign-in (`401`: a guest on a
+ * customer's page, or a sign-in lapsed past renewing) asks for one ([SignInPrompt], B-44) and is loaded
+ * again once it has gone through. The cart's presses — the cart's own and a card's «+» — go
  * to [cartCommands] (B-13, B-37), whose answer, `refresh`, draws the screen again. «Clear» on recent
  * searches goes through [commands] (B-37), and the suggest panel is asked for again once the server
  * has answered. The checkout's go to [checkoutCommands] (B-15), whose `refresh` draws it again the
@@ -177,15 +180,38 @@ public fun Storefront(
             key(address) {
                 // What a `present` put over the page; a new page starts without one.
                 var presented by remember { mutableStateOf<Presented?>(null) }
+                // A page refused for want of a sign-in asks for one (B-44); [loads] counts the page's loads
+                // after a sign-in or a lapsed one, and [signedInFor] is the load a sign-in from here asked
+                // for — refused again, that one is an error page, not another prompt.
+                var loads by remember { mutableIntStateOf(0) }
+                var signedInFor by remember { mutableIntStateOf(-1) }
                 Box(Modifier.fillMaxSize()) {
                     Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                         KompotScreenLoader(
-                            key = address,
+                            key = address to loads,
                             load = { transport.tree(address.screen) },
                             loading = { Box(Modifier.testTag(LOADING_TAG)) { Loading(address) } },
-                            failed = { cause, retry -> Failed(address, cause, header ?: SHELL_HEADER, retry, home) },
+                            failed = { cause, retry ->
+                                if (cause.asksForSignIn && signedInFor != loads) {
+                                    SignInPrompt(address, header ?: SHELL_HEADER, signIn, navigator) {
+                                        loads += 1
+                                        signedInFor = loads
+                                    }
+                                } else {
+                                    Failed(address, cause, header ?: SHELL_HEADER, retry, home)
+                                }
+                            },
                         ) { tree ->
-                            Shown(tree, address, transport, navigator, registry, signIn, { header = it }) {
+                            Shown(
+                                tree,
+                                address,
+                                transport,
+                                navigator,
+                                registry,
+                                signIn,
+                                { header = it },
+                                { loads += 1 },
+                            ) {
                                 presented =
                                     it
                             }
@@ -211,7 +237,8 @@ internal class Presented(
 
 /**
  * A screen's tree, following its actions: `/sign-in` is sign-in's, any other `navigate` opens its
- * deeplink, and `refresh` — kompot's action, or [LocalScreenRefresh] — draws the screen again in place.
+ * deeplink, and `refresh` — kompot's action, or [LocalScreenRefresh] — draws the screen again in place;
+ * a refresh refused for want of a sign-in (a lapsed one, B-44) is [onSignedOut]'s.
  * `present` and `close` are [onPresent]'s, and a `sequence` is each of its actions in turn.
  */
 @Composable
@@ -223,6 +250,7 @@ private fun Shown(
     registry: KompotRegistry,
     signIn: suspend () -> Unit,
     onHeader: (HaulHeader) -> Unit,
+    onSignedOut: () -> Unit,
     onPresent: (Presented?) -> Unit,
 ) {
     var tree by remember(loaded) { mutableStateOf(loaded) }
@@ -230,7 +258,7 @@ private fun Shown(
     val scope = rememberCoroutineScope()
     val refresh =
         remember(address) {
-            ScreenRefresh { scope.launch { transport.treeOrNull(address.screen)?.let { tree = it } } }
+            ScreenRefresh { scope.launch { transport.treeOrNull(address.screen, onSignedOut)?.let { tree = it } } }
         }
     val actions =
         remember(address) {
@@ -296,12 +324,17 @@ internal fun presenting(
 private fun navigating(navigator: Navigator): KompotActionHandler =
     KompotActionHandler { action -> if (action is NavigateAction) navigator.open(action.deeplink) }
 
-private suspend fun HaulTransport.treeOrNull(path: String): KompotComponent? =
+/** The tree at [path], or `null` when it did not arrive — after telling [signedOut] when that was a `401`. */
+private suspend fun HaulTransport.treeOrNull(
+    path: String,
+    signedOut: () -> Unit,
+): KompotComponent? =
     try {
         tree(path)
     } catch (cancelled: CancellationException) {
         throw cancelled
     } catch (failed: ScreenFailed) {
+        if (failed.asksForSignIn) signedOut()
         null
     }
 
