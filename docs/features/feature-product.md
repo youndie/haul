@@ -40,9 +40,9 @@ code, not observed, until this document goes `active`.
 
 ## 4. Code anchors
 
-| Service | Code (planned) |
+| Service | Code |
 |---|---|
-| haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/catalog/` — the contract |
+| haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/ProductComponents.kt` — the contract |
 | haul-server | `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/` |
 | haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/product/` |
 
@@ -58,7 +58,7 @@ status codes and error strings before this document goes `active`.
 * **Automated:** `ProductRoutesTest.a variant changes the price`
 
 ### Scenario: Out of stock
-* The page half — the SKU drawn «Out of stock», no cut-off offered — is `ProductRoutesTest.an out of stock SKU is drawn out of stock`; the `409` is the cart route's (B-11).
+* The page half — the SKU drawn «Out of stock», no cut-off offered, «Silver is out of stock.» (`stockAdvice`) where the delivery lines were — is `ProductRoutesTest.an out of stock SKU is drawn out of stock`; the `409` is the cart route's (B-11).
 * **Given:** a `Sku` with stock 0
 * **When:** the client adds it to the cart
 * **Then:** the server returns `409` with `out_of_stock`.

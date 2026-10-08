@@ -39,9 +39,9 @@ code, not observed, until this document goes `active`.
 
 ## 4. Code anchors
 
-| Service | Code (planned) |
+| Service | Code |
 |---|---|
-| haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/catalog/` — the contract |
+| haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/BrowseComponents.kt` — the contract |
 | haul-server | `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/` |
 | haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/home/` |
 | haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/catalog/` |
