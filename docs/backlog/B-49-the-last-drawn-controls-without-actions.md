@@ -53,7 +53,7 @@ and the footer's links stay inert and are drawn as text, not as links, until a p
   - **«Sell on HAUL», «Help», the language, the footer's links** — already drawn as plain text (no
     `clickable`, no link annotation); kept so, with a client test that says it and a KDoc saying why.
 - **Wire changes.** `HaulHeader.plus`, `Facet.moreAction` are additions with defaults; `recent` changed
-  type, so `search_suggest.json` gained the `Link` shape. The 19 account, cart, order and Saved bodies
+  type, so `search_suggest.json` gained the `Link` shape. The 20 account, cart, order and Saved bodies (B-24's `order_haul_pay.json` among them, after the rebase over it)
   the fixture tests hold equal to the server's trees gained the header's `plus`, taken from what the
   tests wrote — additions only, nothing drawn changed. Those tests built Maya's header from a `Viewer`
   without its `customer`, which no request has (`Viewers` always sets it), so she read as a non-member
