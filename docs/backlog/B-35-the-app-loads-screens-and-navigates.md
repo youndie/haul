@@ -1,7 +1,7 @@
 ---
 id: B-35
 title: "client: the app loads screens from the server and navigates between them"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-3-search
