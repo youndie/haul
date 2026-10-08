@@ -33,3 +33,13 @@ internal fun card(
 internal fun productLink(productId: String): NavigateAction = NavigateAction("/p/$productId")
 
 internal fun categoryLink(slug: String): NavigateAction = NavigateAction("/c/$slug")
+
+/** «1 2 3 … 517»: the first three pages, and the last after an ellipsis when there are more. */
+internal fun pageNumbers(pages: Int): List<String> =
+    if (pages <= PAGES_SHOWN + 1) {
+        (1..pages).map { "$it" }
+    } else {
+        (1..PAGES_SHOWN).map { "$it" } + "…" + "$pages"
+    }
+
+private const val PAGES_SHOWN = 3

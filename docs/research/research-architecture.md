@@ -330,8 +330,32 @@ cache; that is a number for when there is a hot path worth timing.
 **Risk 5. The stand measures nothing.** The sibling reference services run without traffic, so no
 number about petich, tracy or metrik can be taken on them. Mitigation: synthetic shoppers (B-31).
 
-**Open question 1. Search quality on PostgreSQL full text with `pg_trgm`.** *Hypothesis:* enough for
-a seed of ≈ 2,000 products; the suggest latency is measured in B-09.
+**Open question 1. Search quality on PostgreSQL full text with `pg_trgm`.** *Settled for the seed in
+B-09; open beyond it.* Search matches a product when its `to_tsvector('english', title, brand, kind)`
+matches every typed word as a prefix (`running:* & sh:*`) or its lower-cased title contains the query
+(`LIKE`, under a trigram index); query suggestions are category, brand and kind names that start with
+the query, then those with a word that does, then the ones `similarity()` finds (a misspelling —
+«heaphones» is offered «headphones»). Both indexes are in `V3__search.sql`.
+
+Measured with `scripts/suggest-latency.sh` on 2026-10-08: the server from `installDist` on the JVM
+(JDK 25.0.4, no AOT cache, CIO) and PostgreSQL 18.6 (`postgres:18-alpine`, default configuration) in
+Docker, both on the shared Linux build machine (WSL2, 20 cores, 16 GB; load average 3–3.6 during the
+runs, other workloads on it), over loopback; the seed of 1,920 products. One client, sequential, one
+kept-alive connection; the URL list is every prefix from two characters of seven queries («running
+shoes», «headphones», «sony», «wireless earbuds», «yoga mats», «heaphones», «xqzt»), 58 requests a
+pass; one pass discarded as warm-up, 20 kept. Two runs:
+
+| Run | n | cold first request | p50 | p90 | p99 | max |
+|---|---|---|---|---|---|---|
+| 1 | 1,160 | 109.2 ms | 17.57 ms | 22.00 ms | 25.38 ms | 31.23 ms |
+| 2 | 1,160 | 129.3 ms | 17.98 ms | 20.72 ms | 24.43 ms | 29.53 ms |
+
+Two to four characters and five or more did not differ (p50 17.4–17.5 against 17.6–18.2 ms). Inside
+that, PostgreSQL spends about 7.4 ms on the matching statement and 4.7 ms on the terms statement, with
+2–2.6 ms of planning each (`EXPLAIN ANALYZE`, «running sh»). **The planner uses neither index at this
+size**, before and after an explicit `ANALYZE`: it scans 1,920 rows and computes the `tsvector` per
+row. So the number says the seed is served comfortably, and nothing about the indexes; at marketplace
+scale the next step is a stored `tsvector` column and a prepared statement, measured the same way.
 
 ---
 

@@ -6,10 +6,14 @@ import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.ColumnComponent
 
-/** Who is looking: what the header shows and which blocks a screen offers. */
+/**
+ * Who is looking: what the header shows and which blocks a screen offers. [customerId] is a signed-in
+ * customer's id, `null` for a guest; nothing sets it until sign-in arrives (B-12).
+ */
 internal data class Viewer(
     val firstName: String? = null,
     val cartCount: Int = 0,
+    val customerId: String? = null,
 )
 
 /** The frame every screen but checkout sits in: the header above, the screen's sections, the footer. */
