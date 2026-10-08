@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Signing in…</title>
+</head>
+<body>
+<!--
+  Where shildik returns the sign-in popup (the realm's client registers `<origin>/signed-in.html`).
+  The address carries the code and the state; the storefront in the window that opened the popup
+  exchanges them (kotlin-multiplatform-oidc's popup flow), so this page only hands the address back
+  — to its own origin, never `*` — and closes. Loading the whole bundle here to do the same would
+  cost the shopper a second wasm start for four lines.
+-->
+<script>
+    if (window.opener) {
+        window.opener.postMessage(window.location.href, window.location.origin);
+        window.close();
+    }
+</script>
+</body>
+</html>

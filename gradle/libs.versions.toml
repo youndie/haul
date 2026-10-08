@@ -31,6 +31,13 @@ katcher = "0.8.51"
 # Product photos in the storefront (B-30): Coil 3 publishes wasmJs, loads over Ktor and caches in memory;
 # built against Kotlin 2.4.10, so the 2.4.20 compiler reads its klibs. Released 2026-09-18.
 coil = "3.6.3"
+# Sign-in (B-12): the server checks shildik's tokens with shildik's own validator (research §1.4,
+# consequence 5). The newest build of its 0.4.1 line; the image the tests sign in against is 0.4.1.
+shildik = "0.4.1.23"
+# The browser's half of the sign-in: kalinjul's kotlin-multiplatform-oidc, the client shildik's app
+# contour was accepted against (shildik docs/api/protocol-oidc-app.md, 0.18.4). A new version is a new
+# acceptance run there, not a dependency refresh here.
+oidc = "0.18.4"
 
 [libraries]
 ktor-server-core = { module = "io.ktor:ktor-server-core" }
@@ -66,6 +73,10 @@ coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" 
 coil-networkKtor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 ktor-client-js = { module = "io.ktor:ktor-client-js" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock" }
+
+shildik-oidcAuthServer = { module = "io.github.youndie.shildik:oidc-auth-server", version.ref = "shildik" }
+oidc-appsupport = { module = "io.github.kalinjul.kotlin.multiplatform:oidc-appsupport", version.ref = "oidc" }
+ktor-client-core = { module = "io.ktor:ktor-client-core" }
 
 [plugins]
 sborkaJvm = { id = "io.github.youndie.sborka.jvm", version.ref = "sborka" }

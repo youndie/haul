@@ -35,13 +35,19 @@ kotlin {
             implementation(wip.kotlinx.serialization.json)
             api(libs.kompot.client)
             implementation(libs.kompot.registryAnnotations)
-            // Product photos (B-30): Coil draws them, over a Ktor client the entry point supplies.
+            // Product photos (B-30): Coil draws them, over a Ktor client the entry point supplies; the
+            // storefront's own requests — guests, the screens' trees, the cart merge (B-12) — go over the
+            // same client. The Ktor the server runs, so the two halves move together.
             implementation(project.dependencies.platform("io.ktor:ktor-bom:${wip.versions.ktor.get()}"))
             implementation(libs.coil.compose)
             implementation(libs.coil.networkKtor)
+            implementation(libs.ktor.client.core)
         }
         wasmJsMain.dependencies {
-            // The browser's fetch, for the photos' Ktor client.
+            // The browser's sign-in: the code flow with PKCE in a popup, against shildik (research
+            // risk 2, decided in B-12). Only the shipped target needs it; the desktop one draws.
+            implementation(libs.oidc.appsupport)
+            // The browser's fetch, for the photos' and the storefront's Ktor client.
             implementation(libs.ktor.client.js)
         }
         commonTest.dependencies {

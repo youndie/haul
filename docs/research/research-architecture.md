@@ -218,6 +218,41 @@ the account need a shildik token; signing in merges the guest cart.
 - Delivery is free from $35 of the selected items at their price, before the promo, and is one fee per
   cart, not per seller group; research D7's «over $35» is read as «$35 or more».
 
+**Decided in B-12, sign-in and the customer.**
+
+- **The browser signs in with kotlin-multiplatform-oidc 0.18.4** (`oidc-appsupport`, wasmJs only),
+  the client shildik's app contour was accepted against (`youndie/shildik@18488c4!/docs/api/protocol-oidc-app.md`):
+  authorization code with PKCE (S256), the provider's page in a popup. Risk 2's alternative, a
+  hand-written flow, was not needed — shildik answers discovery, the key set and the token endpoint
+  to any origin (`youndie/shildik@41c2804!/server/src/commonMain/kotlin/io/github/youndie/shildik/server/oidc/PageReadable.kt`),
+  so the exchange runs in the page. The popup returns to `signed-in.html`, a static page beside the
+  bundle that posts its address to the opener and closes; the realm's public client registers
+  `<origin>/signed-in.html`. `offline_access` is asked for, because shildik's access token lives five
+  minutes and a refresh token is issued only when asked.
+- **The server verifies with shildik's own `oidc-auth-server`** (0.4.1.23): signature against the
+  realm's JWKS, lifetime, `iss`; Haul adds `azp` = its client, so a token the realm issued to another
+  of its clients is refused. The issuer and the client are `HAUL_OIDC_ISSUER` and
+  `HAUL_OIDC_CLIENT_ID`, set together or not at all; neither is a server with sign-in off (every
+  bearer `401`, `GET /api/v1/sign-in` `503 unavailable`), one of them refuses the start. Off rather
+  than required, so the image's training run and the chart need no realm to start.
+- **Tiers at the mount** (`HaulModule.kt`): the public routes take an optional bearer — a token that
+  does not verify is `401 unauthenticated`, not quietly a guest — and the customer tier
+  (`/api/v1/me/cart/merge`, `/ui/account`) a required one. A token wins over a guest id on the same
+  request. Ktor's challenge has no body, so a `401` it sends is rewritten into the `ErrorBody` every
+  other refusal has.
+- **A customer is created by the first request their token makes** (`customers`, `V8__customers.sql`):
+  the `sub` is the id, the token's `name` the name (else the e-mail's local part, else the `sub`),
+  no Plus. The seed holds Maya (`maya`, Plus) and Sam (`sam`) and Maya's cart; a stand's realm that
+  imports these two people with those ids signs them in as the sample customers.
+- **The merge** is an explicit command after sign-in, `POST /api/v1/me/cart/merge` with the guest id:
+  the same SKU's quantities summed, capped at ten and at the stock (never below one); the guest's
+  other lines appended in their order; the customer's code kept, or the guest's taken when the
+  customer had none; the guest's cart deleted, the guest kept (signing out is that guest again, with
+  an empty cart). A second merge of the same guest changes nothing.
+- **The browser keeps** the guest id in `localStorage` and the tokens in `sessionStorage` (a
+  sign-in lasts the tab). A `401` is answered once: a customer's token renewed through the refresh
+  token, or the customer signed out when it cannot be; a guest the server forgot replaced.
+
 ### D6. Product decisions taken by the owner on the brief (2026-10-08)
 
 The canvas contradicted itself in three places and left one promise unbacked; the owner decided:
@@ -516,7 +551,15 @@ every client item's acceptance. Open: the tolerance, set from the first measured
 
 **Risk 2. The browser cannot sign in with shildik's own client** (§1.4, consequence 5).
 Mitigation: B-12 starts by proving the authorisation-code flow with PKCE from wasmJs against a local
-shildik before any UI is built on it. Open: which client library, or a hand-written flow.
+shildik before any UI is built on it. **Settled in B-12** (D5): kotlin-multiplatform-oidc in a popup.
+What is proven and where: the flow with PKCE against the published shildik image, played over HTTP by
+the server's suite (`ShildikHarness`, every identity scenario signs in through it); the library's own
+half — the popup, the redirect page, the exchange from a page — by hand on 2026-10-08, in a headless
+Chrome for Testing driven over the DevTools protocol against the bundle `installDist` serves, the
+same image and a fresh PostgreSQL: the guest's «Sign in» opened shildik's page in a popup, the popup
+came back through `signed-in.html` and closed, the page exchanged the code (`200` from the token
+endpoint, cross-origin), merged the guest cart, and redrew the header as «Maya» with the merged count.
+No automated test covers that half; shildik's acceptance runs this library on the JVM only.
 
 **Risk 3. Fixtures and server disagree.** If the parity fixture is a hand-built tree, a screen can
 match the canvas while the server builds something else. Mitigation (*hypothesis*): the fixture for

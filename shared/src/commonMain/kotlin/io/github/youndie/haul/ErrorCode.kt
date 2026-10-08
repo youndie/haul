@@ -31,6 +31,10 @@ public enum class ErrorCode {
     @SerialName("unauthenticated")
     Unauthenticated,
 
+    /** A guest cart merged on sign-in names a guest the server never issued (feature-identity). */
+    @SerialName("guest_not_found")
+    GuestNotFound,
+
     /** A cart line asked for a SKU that does not exist. */
     @SerialName("sku_not_found")
     SkuNotFound,

@@ -3,6 +3,7 @@ package io.github.youndie.haul.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +34,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -68,14 +70,17 @@ public val LocalSearchField: ProvidableCompositionLocal<SearchFieldState?> = sta
 /**
  * The header, at the width the page is drawn at (`HaulHeader` on the wire). [pending] is the client's
  * own header before any tree has arrived (Loading, Error): who is looking is not known yet, so the
- * account slot is a placeholder and the cart has no count.
+ * account slot is a placeholder and the cart has no count. [onAccount] is a tap on the account slot —
+ * «Sign in» for a guest, the name for a customer — and the renderer hands it `HaulHeader.account`.
  */
 @Composable
 public fun HaulHeaderView(
     header: HaulHeader,
     modifier: Modifier = Modifier,
     pending: Boolean = false,
+    onAccount: (() -> Unit)? = null,
 ) {
+    val account = accountTap(if (pending) null else onAccount, header.customerName)
     val compact = LocalHaulCompact.current
     val field = LocalSearchField.current
     Column(
@@ -90,15 +95,36 @@ public fun HaulHeaderView(
                 },
             ),
     ) {
-        if (compact) CompactHeader(header, pending) else WideHeader(header, pending)
+        if (compact) CompactHeader(header, pending, account) else WideHeader(header, pending, account)
         Box(Modifier.fillMaxWidth().height(1.dp).background(HaulColors.outlineVariant))
     }
 }
+
+/**
+ * The account slot's tap, without a drawn indication: the canvas draws no pressed state, and a
+ * screenshot of a header must not depend on whether it is tappable.
+ */
+private fun accountTap(
+    onAccount: (() -> Unit)?,
+    customerName: String?,
+): Modifier =
+    if (onAccount == null) {
+        Modifier
+    } else {
+        Modifier.clickable(
+            interactionSource = null,
+            indication = null,
+            onClickLabel = if (customerName == null) "Sign in" else "Account",
+            role = Role.Button,
+            onClick = onAccount,
+        )
+    }
 
 @Composable
 private fun WideHeader(
     header: HaulHeader,
     pending: Boolean,
+    account: Modifier,
 ) {
     Strip(height = 36.dp, padding = 48.dp, size = 11f, spacing = 0.06f) { style ->
         Row(horizontalArrangement = Arrangement.spacedBy(28.dp)) {
@@ -150,8 +176,8 @@ private fun WideHeader(
             Shortcut(HaulIcons.heart, "Saved")
             when {
                 pending -> Shortcut(HaulIcons.person) { Skeleton(Modifier.width(40.dp).height(10.dp), 5.dp) }
-                header.customerName == null -> Shortcut(HaulIcons.person, "Sign in", weight = 700)
-                else -> Shortcut(HaulIcons.person, header.customerName.orEmpty())
+                header.customerName == null -> Shortcut(HaulIcons.person, "Sign in", weight = 700, modifier = account)
+                else -> Shortcut(HaulIcons.person, header.customerName.orEmpty(), modifier = account)
             }
             CartButton(
                 if (pending) 0 else header.cartCount,
@@ -188,6 +214,7 @@ private fun WideHeader(
 private fun CompactHeader(
     header: HaulHeader,
     pending: Boolean,
+    account: Modifier,
 ) {
     Strip(height = 32.dp, padding = 16.dp, size = 10f, spacing = 0.04f) { style ->
         DeliverTo(header.deliverTo, style)
@@ -210,14 +237,14 @@ private fun CompactHeader(
             }
 
             header.customerName == null -> {
-                Box(Modifier.height(44.dp).padding(horizontal = 6.dp), contentAlignment = Alignment.Center) {
+                Box(account.height(44.dp).padding(horizontal = 6.dp), contentAlignment = Alignment.Center) {
                     Text("Sign in", HaulType.text(15f, 700), softWrap = false)
                 }
             }
 
             else -> {
                 Box(
-                    Modifier.size(44.dp),
+                    account.size(44.dp),
                     contentAlignment = Alignment.Center,
                 ) { Icon(HaulIcons.person, 24.dp, HaulColors.onSurface) }
             }
@@ -390,17 +417,19 @@ private fun Shortcut(
     icon: ImageVector,
     label: String,
     weight: Int = 500,
+    modifier: Modifier = Modifier,
 ) {
-    Shortcut(icon) { Text(label, HaulType.text(12f, weight)) }
+    Shortcut(icon, modifier) { Text(label, HaulType.text(12f, weight)) }
 }
 
 @Composable
 private fun Shortcut(
     icon: ImageVector,
+    modifier: Modifier = Modifier,
     label: @Composable () -> Unit,
 ) {
     Column(
-        Modifier.width(76.dp),
+        modifier.width(76.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp),
     ) {

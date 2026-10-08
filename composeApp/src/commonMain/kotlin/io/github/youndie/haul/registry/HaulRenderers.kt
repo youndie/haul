@@ -70,7 +70,7 @@ public class HaulHeaderRenderer : KompotComponentRenderer<HaulHeader> {
         actionHandler: KompotActionHandler,
         formController: FormController,
     ) {
-        HaulHeaderView(component)
+        HaulHeaderView(component, onAccount = component.account?.let { action -> { actionHandler.handle(action) } })
     }
 }
 

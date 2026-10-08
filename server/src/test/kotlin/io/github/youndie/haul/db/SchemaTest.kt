@@ -49,7 +49,7 @@ class SchemaTest {
         assertEquals(1, searchTables.size)
     }
 
-    /** V4's guests, promo codes, carts and lines against their Exposed declarations. */
+    /** V4's guests, promo codes, carts and lines, and V8's customers, against their Exposed declarations. */
     @Test
     fun `the migrated schema needs no further DDL for the cart tables`() {
         val database = Databases.connect(PostgresHarness.freshDatabase())
@@ -58,7 +58,7 @@ class SchemaTest {
                 MigrationUtils.statementsRequiredForDatabaseMigration(*cartTables.toTypedArray())
             }
         assertEquals(emptyList(), required, "still required:\n" + required.joinToString("\n"))
-        assertEquals(4, cartTables.size)
+        assertEquals(5, cartTables.size)
     }
 
     /** The guard on the guard: an empty table list also needs no DDL. */

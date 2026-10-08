@@ -43,6 +43,10 @@ dependencies {
     implementation(libs.tracy.agent)
     implementation(libs.katcher.client)
 
+    // The customer tier (B-12): shildik's own token validator — signature against the realm's JWKS,
+    // lifetime, issuer (research §1.4, consequence 5).
+    implementation(libs.shildik.oidcAuthServer)
+
     implementation(libs.exposed.core)
     implementation(libs.exposed.jdbc)
     implementation(libs.exposed.json)

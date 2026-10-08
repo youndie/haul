@@ -39,7 +39,7 @@ public fun main() {
 
     embeddedServer(CIO, port = config.port) {
         monitor.subscribe(ApplicationStopped) { dataSource.close() }
-        haulModule(dataSource, clock, config.commit, config.observability, config.webDir, photoStore)
+        haulModule(dataSource, clock, config.commit, config.observability, config.webDir, photoStore, config.signIn)
     }.start(wait = true)
 }
 

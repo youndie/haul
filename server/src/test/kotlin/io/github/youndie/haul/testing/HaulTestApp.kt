@@ -3,6 +3,7 @@ package io.github.youndie.haul.testing
 import io.github.youndie.haul.StoreClock
 import io.github.youndie.haul.db.Databases
 import io.github.youndie.haul.feature.catalog.domain.PhotoStore
+import io.github.youndie.haul.feature.identity.SignInConfig
 import io.github.youndie.haul.haulModule
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.CatalogSeed
@@ -40,14 +41,16 @@ internal val CANVAS_NOW: StoreClock = StoreClock { CatalogSeed.NOW.toZonedDateTi
 /**
  * The application exactly as `main` assembles it, at the canvas's «now», over the shared seeded
  * database — or over [dataSource], for a test that has to change the catalog under the routes — with
- * no object storage unless a test hands it [photoStore] (B-30).
+ * no object storage unless a test hands it [photoStore] (B-30). Sign-in is off unless [signIn] names a
+ * realm (`ShildikHarness.signIn` for a running shildik).
  */
 internal fun haulTest(
     dataSource: DataSource = SeededDatabase.dataSource,
     photoStore: PhotoStore? = null,
+    signIn: SignInConfig? = null,
     block: suspend HttpClient.() -> Unit,
 ) = testApplication {
-    application { haulModule(dataSource, CANVAS_NOW, commit = "test", photoStore = photoStore) }
+    application { haulModule(dataSource, CANVAS_NOW, commit = "test", photoStore = photoStore, signIn = signIn) }
     client.block()
 }
 

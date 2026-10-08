@@ -2,6 +2,7 @@ package io.github.youndie.haul
 
 import io.github.youndie.haul.db.DatabaseConfig
 import io.github.youndie.haul.feature.catalog.data.S3Config
+import io.github.youndie.haul.feature.identity.SignInConfig
 import io.github.youndie.haul.ops.AgentEndpoint
 import io.github.youndie.haul.ops.ObservabilitySettings
 import java.io.File
@@ -61,6 +62,22 @@ internal class ServerConfig(
             env("HAUL_WEB_DIR")?.let { path ->
                 File(path).also { require(it.isDirectory) { "HAUL_WEB_DIR=$path is not a directory" } }
             }
+
+    /**
+     * Where customers sign in (feature-identity): the shildik realm's issuer and the storefront's
+     * public client, set together or not at all. Neither is a server without sign-in — every bearer
+     * token is refused and `GET /api/v1/sign-in` says `unavailable` — which a shopper sees at once;
+     * one of the two is refused at start, because it is a half-made deployment, not a choice.
+     */
+    val signIn: SignInConfig?
+        get() {
+            val issuer = env("HAUL_OIDC_ISSUER")?.takeIf { it.isNotBlank() }
+            val clientId = env("HAUL_OIDC_CLIENT_ID")?.takeIf { it.isNotBlank() }
+            check((issuer == null) == (clientId == null)) {
+                "HAUL_OIDC_ISSUER and HAUL_OIDC_CLIENT_ID are set together or not at all"
+            }
+            return if (issuer != null && clientId != null) SignInConfig(issuer, clientId) else null
+        }
 
     /**
      * Who watches this server. An agent is on when both its endpoint and its key are set, off when

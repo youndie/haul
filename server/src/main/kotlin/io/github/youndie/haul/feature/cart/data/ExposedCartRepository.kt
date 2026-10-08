@@ -14,6 +14,7 @@ import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.max
+import org.jetbrains.exposed.v1.core.sum
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
@@ -59,24 +60,31 @@ internal class ExposedCartRepository(
         tx {
             val cartId = cartId(owner)
             forgetAttempt(cartId)
-            val next =
-                (
-                    CartLinesTable
-                        .select(CartLinesTable.position.max())
-                        .where { CartLinesTable.cartId eq cartId }
-                        .single()[CartLinesTable.position.max()] ?: 0
-                ) + 1
-            // A line already there keeps its place: `position` is left out of the update.
-            CartLinesTable.upsert(onUpdateExclude = listOf(CartLinesTable.position, CartLinesTable.addedAt)) {
-                it[CartLinesTable.cartId] = cartId
-                it[skuId] = line.skuId
-                it[quantity] = line.quantity
-                it[selected] = line.selected
-                it[seenPriceCents] = line.seenPriceCents
-                it[seenInStock] = line.seenInStock
-                it[addedAt] = line.addedAt
-                it[position] = next
-            }
+            writeLine(cartId, line)
+        }
+    }
+
+    override suspend fun units(owner: CartOwner): Int =
+        tx {
+            val cartId = existingCartId(owner) ?: return@tx 0
+            CartLinesTable
+                .select(CartLinesTable.quantity.sum())
+                .where { CartLinesTable.cartId eq cartId }
+                .single()[CartLinesTable.quantity.sum()] ?: 0
+        }
+
+    override suspend fun merge(
+        from: CartOwner.Guest,
+        into: CartOwner.Customer,
+        lines: List<StoredLine>,
+        promoCode: String?,
+    ) {
+        tx {
+            val cartId = cartId(into)
+            forgetAttempt(cartId)
+            lines.forEach { writeLine(cartId, it) }
+            CartsTable.update({ CartsTable.id eq cartId }) { it[CartsTable.promoCode] = promoCode }
+            CartsTable.deleteWhere { owns(from) }
         }
     }
 
@@ -145,6 +153,31 @@ internal class ExposedCartRepository(
             it[customerId] = (owner as? CartOwner.Customer)?.id
         }
         return checkNotNull(existingCartId(owner)) { "the cart of $owner was neither found nor created" }
+    }
+
+    /** Writes a line; a new one goes last, one already there keeps its place and when it was added. */
+    private fun writeLine(
+        cartId: String,
+        line: StoredLine,
+    ) {
+        val next =
+            (
+                CartLinesTable
+                    .select(CartLinesTable.position.max())
+                    .where { CartLinesTable.cartId eq cartId }
+                    .single()[CartLinesTable.position.max()] ?: 0
+            ) + 1
+        // A line already there keeps its place: `position` is left out of the update.
+        CartLinesTable.upsert(onUpdateExclude = listOf(CartLinesTable.position, CartLinesTable.addedAt)) {
+            it[CartLinesTable.cartId] = cartId
+            it[skuId] = line.skuId
+            it[quantity] = line.quantity
+            it[selected] = line.selected
+            it[seenPriceCents] = line.seenPriceCents
+            it[seenInStock] = line.seenInStock
+            it[addedAt] = line.addedAt
+            it[position] = next
+        }
     }
 
     private fun forgetAttempt(cartId: String) {
