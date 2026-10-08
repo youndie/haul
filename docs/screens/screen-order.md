@@ -30,6 +30,17 @@ design:
 
 Not on the canvas at all; the account's «Details» link and «Place order» both lead here.
 
+> **The address is not decided (for B-18).** This document's entry is `/account/orders/{orderId}`;
+> placement (B-16) navigates to `/orders/{id}`, following [endpoint-orders](../api/endpoint-orders.md)
+> (`GET /ui/orders/{id}`). B-18 or the owner reconciles the two — see endpoint-orders, «The order
+> page's address». Until then neither address is in `StorefrontPage` and the order page is not built.
+
+The order the page will show exists since B-16: `placing` / `placed` / `cancelled` with
+`cancel_reason`, one shipment per seller (`server/src/main/kotlin/io/github/youndie/haul/feature/order/domain/Order.kt`).
+The Placed state's #HL-48302 is the first order number a fresh store gives (`order_numbers` in
+`server/src/main/resources/db/migration/V10__orders.sql`), and the Cancelled state's declined card
+···· 0002 is the payment simulator's test card.
+
 ## 0a. Code anchors
 
 | What | File (planned) |
