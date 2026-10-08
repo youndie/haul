@@ -15,8 +15,13 @@ public enum class ErrorCode {
     @SerialName("product_not_found")
     ProductNotFound,
 
+    /** A dependency the answer needs is down — the database could not be reached; try again later (`503`). */
     @SerialName("unavailable")
     Unavailable,
+
+    /** A failure nobody expected: a bug, reported to katcher. Not worth retrying as it is (`500`). */
+    @SerialName("internal")
+    Internal,
 
     /** A search or a suggestion asked for with fewer than two characters (feature-search). */
     @SerialName("query_too_short")

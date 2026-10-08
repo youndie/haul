@@ -28,7 +28,6 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.routing
 import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
-import org.slf4j.LoggerFactory
 import java.io.File
 import java.time.ZonedDateTime
 import javax.sql.DataSource
@@ -76,18 +75,7 @@ internal fun Application.haulModule(
         exception<SearchError> { call, error -> call.respondError(error.code, error.message, error.field) }
         exception<IdentityError> { call, error -> call.respondError(error.code, error.message, error.field) }
         exception<CartError> { call, error -> call.respondError(error.code, error.message, error.field) }
-        exception<Throwable> { call, error ->
-            log.error("unhandled", error)
-            reportFailure(error)
-            call.respondText(
-                haulWireJson.encodeToString(
-                    ErrorBody.serializer(),
-                    ErrorBody(ErrorCode.Unavailable, "Something went wrong"),
-                ),
-                ContentType.Application.Json,
-                HttpStatusCode.InternalServerError,
-            )
-        }
+        unexpectedFailures(report = reportFailure)
     }
     routing {
         probes(commit = commit, ready = { databaseAnswers(dataSource) })
@@ -100,17 +88,15 @@ internal fun Application.haulModule(
 }
 
 /** The one shape of every refusal: [ErrorBody] with the status its [code] maps to. */
-private suspend fun ApplicationCall.respondError(
+internal suspend fun ApplicationCall.respondError(
     code: ErrorCode,
     message: String,
-    field: String?,
+    field: String? = null,
 ) = respondText(
     haulWireJson.encodeToString(ErrorBody.serializer(), ErrorBody(code, message, field)),
     ContentType.Application.Json,
     status(code),
 )
-
-private val log = LoggerFactory.getLogger("io.github.youndie.haul.HaulModule")
 
 internal fun status(code: ErrorCode): HttpStatusCode =
     when (code) {
@@ -130,4 +116,6 @@ internal fun status(code: ErrorCode): HttpStatusCode =
         ErrorCode.PromoExpired, ErrorCode.PromoNotApplicable -> HttpStatusCode.UnprocessableEntity
 
         ErrorCode.Unavailable -> HttpStatusCode.ServiceUnavailable
+
+        ErrorCode.Internal -> HttpStatusCode.InternalServerError
     }

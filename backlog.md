@@ -40,7 +40,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (21)
+## Open (20)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -61,12 +61,11 @@ A stage is a field on the item, not a directory.
 | [B-25](docs/backlog/B-25-recommendations-from-views-in-the-home.md) `[ ]` | server: recommendations from views in the Home tree | P2 | M | B-07, B-19 |
 | [B-27](docs/backlog/B-27-helm-chart-tracy-metrik-katcher-wiring.md) `[?]` | ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand | P2 | M | B-03 |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
-| [B-32](docs/backlog/B-32-catch-all-answers-500-with-unavailable.md) `[ ]` | server: the catch-all answers 500 with the `unavailable` code | P2 | S | - |
 | [B-34](docs/backlog/B-34-the-stand-serves-the-bundle-uncompressed.md) `[ ]` | ops: the stand serves the wasm bundle uncompressed | P2 | S | B-27 |
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
 | [B-30](docs/backlog/B-30-product-images-through-object-storage.md) `[ ]` | product images through object storage | P3 | M | B-08 |
 
-## Closed (13)
+## Closed (14)
 
 **Skeleton**
 
@@ -86,6 +85,7 @@ A stage is a field on the item, not a directory.
 
 - [B-09](docs/backlog/B-09-search-suggest-recent-searches-suggest-latency.md) `[x]` - server: search, suggest, recent searches; suggest latency measured on the seed
 - [B-10](docs/backlog/B-10-search-screen-and-searchsuggestpanel.md) `[x]` - design refs + client: Search screen and `SearchSuggestPanel`
+- [B-32](docs/backlog/B-32-catch-all-answers-500-with-unavailable.md) `[x]` - server: the catch-all answers 500 with the `unavailable` code
 - [B-33](docs/backlog/B-33-the-product-description-headline-is-never.md) `[x]` - server: the product description's headline is never sent
 
 **Cart and sign-in**
