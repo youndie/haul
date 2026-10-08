@@ -1,7 +1,7 @@
 ---
 id: B-49
 title: "server + client: the last drawn controls without actions"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-4-cart
