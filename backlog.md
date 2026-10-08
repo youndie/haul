@@ -40,7 +40,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (7)
+## Open (8)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -51,6 +51,7 @@ A stage is a field on the item, not a directory.
 | [B-50](docs/backlog/B-50-the-return-dialog-names-the-points-share.md) `[ ]` | server + client: the return dialog names the points share of a refund | P3 | S | B-21, B-23 |
 | [B-52](docs/backlog/B-52-bought-this-month-on-the-product-page.md) `[ ]` | server: «bought this month» on the product page | P3 | S | B-18 |
 | [B-53](docs/backlog/B-53-plus-members-see-campaign-prices-early.md) `[ ]` | server: Plus members see campaign prices early | P3 | S | B-23 |
+| [B-54](docs/backlog/B-54-the-filter-sheet-stays-open-while-filtering.md) `[ ]` | client: the filter sheet stays open while filtering | P3 | S | B-49 |
 
 ## Closed (46)
 
