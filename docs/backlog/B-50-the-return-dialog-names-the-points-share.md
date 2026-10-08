@@ -1,7 +1,7 @@
 ---
 id: B-50
 title: "server + client: the return dialog names the points share of a refund"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-6-account
