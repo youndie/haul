@@ -1,0 +1,438 @@
+{
+ "type": "column",
+ "id": "catalog",
+ "children": [
+  {
+   "type": "haul_header",
+   "id": "header",
+   "customerName": "Maya",
+   "deliverTo": "Brooklyn, NY 11211",
+   "deliveryPromise": "Free delivery over $35",
+   "cartCount": 3,
+   "searchPlaceholder": "Search 2.4 million products",
+   "categories": [
+    "Electronics",
+    "Home & Kitchen",
+    "Fashion",
+    "Beauty",
+    "Kids & Toys",
+    "Sports",
+    "Grocery",
+    "Auto",
+    "Books",
+    "Pets"
+   ]
+  },
+  {
+   "type": "haul_breadcrumbs",
+   "id": "breadcrumbs",
+   "crumbs": [
+    {
+     "label": "Home"
+    },
+    {
+     "label": "Electronics"
+    },
+    {
+     "label": "Audio"
+    },
+    {
+     "label": "Headphones"
+    }
+   ]
+  },
+  {
+   "type": "haul_page_title",
+   "id": "title",
+   "title": "Headphones",
+   "count": "12,408 items"
+  },
+  {
+   "type": "haul_filter_chips",
+   "id": "kinds",
+   "chips": [
+    {
+     "label": "All",
+     "selected": true
+    },
+    {
+     "label": "Over-ear",
+     "selected": false
+    },
+    {
+     "label": "In-ear",
+     "selected": false
+    },
+    {
+     "label": "True wireless",
+     "selected": false
+    },
+    {
+     "label": "Gaming",
+     "selected": false
+    },
+    {
+     "label": "Studio",
+     "selected": false
+    },
+    {
+     "label": "Sport",
+     "selected": false
+    },
+    {
+     "label": "Kids",
+     "selected": false
+    }
+   ]
+  },
+  {
+   "type": "haul_filtered_results",
+   "id": "results",
+   "facets": {
+    "id": "facets",
+    "facets": [
+     {
+      "key": "price",
+      "title": "Price",
+      "kind": "range",
+      "min": "$80",
+      "max": "$400",
+      "rangeStart": 0.16,
+      "rangeEnd": 0.8
+     },
+     {
+      "key": "brand",
+      "title": "Brand",
+      "kind": "checkbox",
+      "moreLabel": "Show 48 more",
+      "options": [
+       {
+        "label": "Sony",
+        "selected": true,
+        "count": 1204
+       },
+       {
+        "label": "Bose",
+        "selected": true,
+        "count": 611
+       },
+       {
+        "label": "JBL",
+        "selected": false,
+        "count": 1980
+       },
+       {
+        "label": "Apple",
+        "selected": false,
+        "count": 842
+       },
+       {
+        "label": "Sennheiser",
+        "selected": false,
+        "count": 530
+       },
+       {
+        "label": "Marshall",
+        "selected": false,
+        "count": 204
+       }
+      ]
+     },
+     {
+      "key": "delivery",
+      "title": "Delivery",
+      "kind": "toggle",
+      "options": [
+       {
+        "label": "Tomorrow",
+        "selected": true
+       },
+       {
+        "label": "Within 3 days",
+        "selected": false
+       }
+      ]
+     },
+     {
+      "key": "rating",
+      "title": "Rating",
+      "kind": "radio",
+      "options": [
+       {
+        "label": "4.5 and up",
+        "selected": true
+       },
+       {
+        "label": "4.0 and up",
+        "selected": false
+       },
+       {
+        "label": "Any rating",
+        "selected": false
+       }
+      ]
+     },
+     {
+      "key": "colour",
+      "title": "Color",
+      "kind": "swatch",
+      "options": [
+       {
+        "label": "Black",
+        "selected": true,
+        "swatch": "#0F0F0F"
+       },
+       {
+        "label": "White",
+        "selected": false,
+        "swatch": "#FFFFFF"
+       },
+       {
+        "label": "Beige",
+        "selected": false,
+        "swatch": "#B9B2A4"
+       },
+       {
+        "label": "Navy",
+        "selected": false,
+        "swatch": "#2E4A7A"
+       },
+       {
+        "label": "Pink",
+        "selected": false,
+        "swatch": "#E8C9C2"
+       },
+       {
+        "label": "Olive",
+        "selected": false,
+        "swatch": "#5B6B4E"
+       }
+      ]
+     },
+     {
+      "key": "feature",
+      "title": "Features",
+      "kind": "pills",
+      "options": [
+       {
+        "label": "Noise cancelling",
+        "selected": true
+       },
+       {
+        "label": "Wireless",
+        "selected": false
+       },
+       {
+        "label": "Microphone",
+        "selected": false
+       },
+       {
+        "label": "Foldable",
+        "selected": false
+       },
+       {
+        "label": "Water resistant",
+        "selected": false
+       }
+      ]
+     }
+    ]
+   },
+   "applied": {
+    "id": "applied",
+    "chips": [
+     {
+      "label": "Sony",
+      "selected": true
+     },
+     {
+      "label": "Bose",
+      "selected": true
+     },
+     {
+      "label": "$80 – $400",
+      "selected": true
+     },
+     {
+      "label": "Noise cancelling",
+      "selected": true
+     }
+    ],
+    "clearLabel": "Clear all",
+    "sortLabel": "Popular",
+    "filterCount": 4
+   },
+   "showLabel": "Show 48 items",
+   "grid": {
+    "id": "grid",
+    "columns": 4,
+    "cards": [
+     {
+      "id": "card-1",
+      "productId": "p-1",
+      "label": "headphones",
+      "badge": "−22%",
+      "price": "$349",
+      "oldPrice": "$449",
+      "title": "Sony WH-1000XM6 Wireless Noise Cancelling Headphones",
+      "rating": "4.8",
+      "reviews": "2,341",
+      "delivery": "Tomorrow",
+      "tone": "#E6E4FF"
+     },
+     {
+      "id": "card-2",
+      "productId": "p-2",
+      "label": "headphones",
+      "badge": "−12%",
+      "price": "$379",
+      "oldPrice": "$429",
+      "title": "Bose QuietComfort Ultra Headphones",
+      "rating": "4.7",
+      "reviews": "4,108",
+      "delivery": "Tomorrow",
+      "tone": "#ECE9E2"
+     },
+     {
+      "id": "card-3",
+      "productId": "p-3",
+      "label": "headphones",
+      "badge": "−34%",
+      "price": "$98",
+      "oldPrice": "$149",
+      "title": "Sony WH-CH720N Wireless Noise Cancelling",
+      "rating": "4.5",
+      "reviews": "6,920",
+      "delivery": "Tomorrow",
+      "tone": "#E0EEF7"
+     },
+     {
+      "id": "card-4",
+      "productId": "p-4",
+      "label": "headphones",
+      "badge": "−14%",
+      "price": "$299",
+      "oldPrice": "$349",
+      "title": "Bose QuietComfort Headphones, Sandstone",
+      "rating": "4.7",
+      "reviews": "1,877",
+      "delivery": "Thu, Oct 9",
+      "tone": "#F1EBDD"
+     },
+     {
+      "id": "card-5",
+      "productId": "p-5",
+      "label": "headphones",
+      "badge": "−26%",
+      "price": "$148",
+      "oldPrice": "$199",
+      "title": "Sony ULT Wear Wireless Bass Headphones",
+      "rating": "4.6",
+      "reviews": "1,066",
+      "delivery": "Tomorrow",
+      "tone": "#E3F5D8"
+     },
+     {
+      "id": "card-6",
+      "productId": "p-6",
+      "label": "earbuds",
+      "badge": "−18%",
+      "price": "$229",
+      "oldPrice": "$279",
+      "title": "Bose QuietComfort Earbuds II",
+      "rating": "4.6",
+      "reviews": "3,540",
+      "delivery": "Tomorrow",
+      "tone": "#F1E4F5"
+     },
+     {
+      "id": "card-7",
+      "productId": "p-7",
+      "label": "earbuds",
+      "badge": "−17%",
+      "price": "$248",
+      "oldPrice": "$299",
+      "title": "Sony WF-1000XM5 Noise Cancelling Earbuds",
+      "rating": "4.7",
+      "reviews": "2,903",
+      "delivery": "Tomorrow",
+      "tone": "#FFE5DD"
+     },
+     {
+      "id": "card-8",
+      "productId": "p-8",
+      "label": "headphones",
+      "price": "$129",
+      "title": "Bose SoundLink Around-Ear Wireless II",
+      "rating": "4.5",
+      "reviews": "812",
+      "delivery": "Fri, Oct 10",
+      "tone": "#FFF1C9"
+     },
+     {
+      "id": "card-9",
+      "productId": "p-9",
+      "label": "studio",
+      "price": "$99",
+      "title": "Sony MDR-7506 Professional Studio Headphones",
+      "rating": "4.8",
+      "reviews": "9,215",
+      "delivery": "Tomorrow",
+      "tone": "#ECE9E2"
+     },
+     {
+      "id": "card-10",
+      "productId": "p-10",
+      "label": "headphones",
+      "badge": "−29%",
+      "price": "$199",
+      "oldPrice": "$279",
+      "title": "Bose QuietComfort 45, Refurbished",
+      "rating": "4.4",
+      "reviews": "640",
+      "delivery": "Thu, Oct 9",
+      "tone": "#E0EEF7"
+     },
+     {
+      "id": "card-11",
+      "productId": "p-11",
+      "label": "gaming",
+      "badge": "−24%",
+      "price": "$228",
+      "oldPrice": "$299",
+      "title": "Sony INZONE H9 Wireless Gaming Headset",
+      "rating": "4.6",
+      "reviews": "1,321",
+      "delivery": "Tomorrow",
+      "tone": "#E6E4FF"
+     },
+     {
+      "id": "card-12",
+      "productId": "p-12",
+      "label": "headphones",
+      "badge": "−49%",
+      "price": "$128",
+      "oldPrice": "$249",
+      "title": "Sony WH-XB910N Extra Bass Noise Cancelling",
+      "rating": "4.5",
+      "reviews": "2,450",
+      "delivery": "Tomorrow",
+      "tone": "#E3F5D8"
+     }
+    ]
+   },
+   "pagination": {
+    "id": "pagination",
+    "current": 1,
+    "pages": [
+     "1",
+     "2",
+     "3",
+     "…",
+     "517"
+    ],
+    "moreLabel": "Show 24 more"
+   }
+  }
+ ]
+}

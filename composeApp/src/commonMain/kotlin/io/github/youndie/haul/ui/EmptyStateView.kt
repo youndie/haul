@@ -1,0 +1,53 @@
+package io.github.youndie.haul.ui
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import io.github.youndie.haul.theme.HaulColors
+import io.github.youndie.haul.theme.HaulType
+import io.github.youndie.haul.theme.HaulType.browserLeading
+import io.github.youndie.haul.theme.LocalHaulCompact
+
+/** An empty or no-results state (`EmptyState` on the wire): the title, the sentence, the outlined way out. */
+@Composable
+public fun EmptyStateView(
+    empty: EmptyState,
+    modifier: Modifier = Modifier,
+) {
+    val compact = LocalHaulCompact.current
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(if (compact) 18.dp else 24.dp)) {
+        Text(
+            accented(empty.title, empty.accent),
+            Modifier.widthIn(max = 900.dp),
+            style =
+                HaulType.display(
+                    if (compact) 44f else 84f,
+                    800,
+                    letterSpacing = if (compact) -0.01f else -0.03f,
+                    lineHeight = 0.95f,
+                ),
+        )
+        Text(
+            empty.text,
+            HaulType
+                .text(
+                    if (compact) 16f else 18f,
+                    lineHeight = 1.5f,
+                ).browserLeading()
+                .copy(color = HaulColors.onSurfaceVariant),
+            Modifier.widthIn(max = 560.dp),
+        )
+        empty.actionLabel?.let {
+            HaulButton(
+                it,
+                height = if (compact) 56.dp else 64.dp,
+                radius = 18.dp,
+                border = HaulColors.onSurface,
+                icon = HaulIcons.arrowRight,
+            )
+        }
+    }
+}
