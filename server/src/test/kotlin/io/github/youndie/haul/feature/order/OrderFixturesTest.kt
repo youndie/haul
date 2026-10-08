@@ -1,5 +1,7 @@
 package io.github.youndie.haul.feature.order
 
+import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
+import io.github.youndie.haul.feature.catalog.domain.Listed
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.checkout.DeliveryMethod
 import io.github.youndie.haul.feature.fulfilment.domain.FulfilmentPace
@@ -16,7 +18,9 @@ import io.github.youndie.haul.feature.order.domain.Shipment
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus
 import io.github.youndie.haul.feature.order.screen.Bought
 import io.github.youndie.haul.feature.order.screen.OrderScreen
+import io.github.youndie.haul.feature.reviews.screen.ReviewTabs
 import io.github.youndie.haul.haulWireJson
+import io.github.youndie.haul.seed.SampleCatalog
 import io.github.youndie.haul.seed.SampleCheckout
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.shell.Viewer
@@ -90,17 +94,78 @@ class OrderFixturesTest {
                         )
                     }
 
+                    // The canvas's own products, written as the catalog would hold them, so «Write a review» on a
+                    // delivered line is the same dialog the route draws for a product it sells.
+                    val sony = checkNotNull(world.koin.get<CatalogRepository>().product(SampleCatalog.SONY_HEADPHONES))
+                    val tabs = world.koin.get<ReviewTabs>()
+
+                    fun bought(
+                        sku: String,
+                        brand: String,
+                        title: String,
+                        options: Map<String, String>,
+                        tone: String,
+                    ): Map<String, Bought> {
+                        val productId = sku.removeSuffix("-0")
+                        val item =
+                            Listed(
+                                sony.product.copy(
+                                    id = productId,
+                                    brand = brand,
+                                    title = title,
+                                    tone = tone,
+                                    dispatchDays = 0,
+                                ),
+                                listOf(sony.skus.first().copy(id = sku, productId = productId, options = options)),
+                            )
+                        val shown = options.entries.sortedBy { it.key != "colour" }.joinToString(" · ") { it.value }
+                        return mapOf(
+                            sku to
+                                Bought(
+                                    productId,
+                                    shown,
+                                    tone,
+                                    0,
+                                    tabs.writeReview(item, item.skus.single(), canvasViewer),
+                                ),
+                        )
+                    }
+
                     val placedId = world.place(CheckoutChoice(slotId = WEDNESDAY_3PM))
                     check(PLACED, checkNotNull(screen.build(SampleCustomers.MAYA, placedId, canvasViewer)))
                     val mayas = checkNotNull(world.order(placedId)).placed
 
                     check(IN_TRANSIT, page(inTransit(mayas)))
-                    check(READY_FOR_PICKUP, page(readyForPickup(), YOGA_MAT, mapOf(FLOWFIT to "FlowFit Studio")))
+                    val yogaMat =
+                        bought(
+                            YOGA_MAT_SKU,
+                            "FlowFit",
+                            "Natural Rubber Yoga Mat, 6 mm",
+                            mapOf("colour" to "Black"),
+                            "#E3F5D8",
+                        )
+                    check(READY_FOR_PICKUP, page(readyForPickup(), yogaMat, mapOf(FLOWFIT to "FlowFit Studio")))
+                    val sweater =
+                        bought(
+                            SWEATER_SKU,
+                            "Northline",
+                            "Merino Wool Crewneck Sweater, Unisex",
+                            mapOf("colour" to "Moss", "size" to "M"),
+                            "#FFE5DD",
+                        )
+                    val serum =
+                        bought(
+                            SERUM_SKU,
+                            "Clear Skin Lab",
+                            "Vitamin C Brightening Serum, 30 ml",
+                            mapOf("size" to "30 ml"),
+                            "#F1E4F5",
+                        )
                     check(
                         DELIVERED,
                         page(
                             delivered(mayas),
-                            SWEATER + SERUM,
+                            sweater + serum,
                             mapOf(
                                 NORTHLINE to "Northline Knitwear",
                                 CLEAR_SKIN to "Clear Skin Lab",
@@ -269,9 +334,5 @@ class OrderFixturesTest {
         const val YOGA_MAT_SKU = "p-yoga-mat-0"
         const val SWEATER_SKU = "p-merino-sweater-0"
         const val SERUM_SKU = "p-vitamin-c-serum-0"
-
-        val YOGA_MAT = mapOf(YOGA_MAT_SKU to Bought("p-yoga-mat", "Black", "#E3F5D8", dispatchDays = 0))
-        val SWEATER = mapOf(SWEATER_SKU to Bought("p-merino-sweater", "Moss · M", "#FFE5DD", dispatchDays = 0))
-        val SERUM = mapOf(SERUM_SKU to Bought("p-vitamin-c-serum", "30 ml", "#F1E4F5", dispatchDays = 0))
     }
 }

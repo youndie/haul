@@ -47,6 +47,6 @@ internal val orderModule =
                 clock = get(),
             )
         }
-        single { OrderScreen(tracking = get(), catalog = get(), checkout = get(), clock = get()) }
+        single { OrderScreen(tracking = get(), catalog = get(), checkout = get(), reviews = get(), clock = get()) }
         single { Reorder(orders = get(), carts = get(), catalog = get(), commands = get()) }
     }

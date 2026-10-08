@@ -22,6 +22,7 @@ import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.decodeKompotAction
 import io.github.youndie.kompot.decodeKompotComponent
 import io.github.youndie.kompot.standard.NavigateAction
+import io.github.youndie.kompot.standard.PresentAction
 import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
@@ -34,6 +35,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 
@@ -133,7 +135,8 @@ class OrderRoutesTest {
         }
 
     /**
-     * Scenario «Reorder» (feature-orders, B-18): a delivered order's page offers «Reorder», which puts the
+     * Scenario «Reorder» (feature-orders, B-18): a delivered order's page offers «Write a review» on each line —
+     * the review dialog (B-22) — and «Reorder», which puts the
      * order's SKUs back into the cart — emptied by placement — selected, and answers `navigate` to the cart.
      * A second press is the same reorder: nothing is added twice.
      */
@@ -143,6 +146,11 @@ class OrderRoutesTest {
             val body = tree(maya, "/ui" + OrderPaths.page(orderId)).only<OrderBody>()
             assertEquals(listOf("Delivered", "Delivered"), body.shipments.map { it.status })
             val url = assertNotNull(body.summary.reorderUrl, "a delivered order offers no reorder")
+            val reviews = body.shipments.flatMap { it.items }.map { it.review?.action }
+            assertTrue(
+                reviews.all { it is PresentAction },
+                "a delivered line's «Write a review» is not the dialog: $reviews",
+            )
             assertEquals(emptyList(), cartOf(maya), "placement left the cart as it was")
 
             repeat(2) { press ->

@@ -22,6 +22,7 @@ import io.github.youndie.haul.feature.order.OrderPaths
 import io.github.youndie.haul.feature.order.domain.CancelReason
 import io.github.youndie.haul.feature.order.domain.OrderLine
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus
+import io.github.youndie.haul.feature.reviews.screen.ReviewTabs
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.ui.Crumb
@@ -36,6 +37,7 @@ import io.github.youndie.haul.ui.OrderSteps
 import io.github.youndie.haul.ui.OrderTotals
 import io.github.youndie.haul.ui.PickupCode
 import io.github.youndie.haul.ui.SummaryRow
+import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import java.time.Instant
@@ -55,6 +57,7 @@ internal class OrderScreen(
     private val tracking: OrderTracking,
     private val catalog: CatalogRepository,
     private val checkout: CheckoutRepository,
+    private val reviews: ReviewTabs,
     private val clock: StoreClock,
 ) {
     suspend fun build(
@@ -97,6 +100,7 @@ internal class OrderScreen(
                                     .joinToString(" · ") { it.value },
                             tone = item.product.tone,
                             dispatchDays = item.product.dispatchDays,
+                            review = reviews.writeReview(item, sku, Viewer(customerId = customerId)),
                         )
                 }.toMap()
         return OrderView(
@@ -136,12 +140,16 @@ internal data class OrderView(
     val now: ZonedDateTime,
 )
 
-/** A SKU's product as the page draws its line: the tile's tone, the options, and how long its seller takes to dispatch. */
+/**
+ * A SKU's product as the page draws its line: the tile's tone, the options, how long its seller takes to
+ * dispatch, and what «Write a review» does once the line has arrived (the review dialog, B-22).
+ */
 internal data class Bought(
     val productId: String,
     val options: String,
     val tone: String,
     val dispatchDays: Int,
+    val review: KompotAction,
 )
 
 /** One order's page, built from its [view]; every date is the store's (New York's). */
@@ -335,7 +343,6 @@ private class OrderPage(
         received: Boolean,
     ): OrderItem {
         val bought = view.products[line.skuId]
-        val link = bought?.let { productLink(it.productId) }
         return OrderItem(
             title = line.title,
             details =
@@ -346,9 +353,8 @@ private class OrderPage(
                     "${line.quantity} × ${money(line.priceCents)}",
                 ).joinToString(" · "),
             tone = bought?.tone.orEmpty(),
-            action = link,
-            // B-22 writes the review; until then «Write a review» opens the product, where its reviews are.
-            review = link?.takeIf { received }?.let { Link("Write a review", it) },
+            action = bought?.let { productLink(it.productId) },
+            review = bought?.review?.takeIf { received }?.let { Link("Write a review", it) },
         )
     }
 

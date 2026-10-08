@@ -32,17 +32,19 @@ import io.github.youndie.kompot.form.FormController
 import io.github.youndie.kompot.form.FormSchema
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
+import io.github.youndie.kompot.standard.PresentAction
 import io.github.youndie.kompot.standard.RefreshAction
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 /**
  * The order page's presses, drawn from the server's own trees (`resources/bodies/order_*.json`) through the
  * app's registry (B-18): «Reorder» is the cart command the tree's url names, and the server's answer —
- * `navigate` to the cart — goes to the screen's handler; the links follow the tree's actions; «Return
- * items» is drawn and sends nothing (B-21).
+ * `navigate` to the cart — goes to the screen's handler; «Write a review» follows its tree's `present` of the
+ * review dialog (B-22); «Return items» is drawn and sends nothing (B-21).
  */
 @OptIn(ExperimentalTestApi::class)
 class OrderWiringTest {
@@ -87,7 +89,10 @@ class OrderWiringTest {
             onAllNodesWithText("Write a review")[0].performClick()
             waitForIdle()
             assertEquals(1, sent.size, "«Return items» or a review link sent a command")
-            assertEquals(NavigateAction("/p/p-merino-sweater"), followed.last(), "«Write a review» opens the product")
+            assertTrue(
+                followed.last() is PresentAction,
+                "«Write a review» presents the review dialog: ${followed.last()}",
+            )
         }
 
     /** A reorder the server refuses draws the order again — `refresh` — rather than leaving the page. */

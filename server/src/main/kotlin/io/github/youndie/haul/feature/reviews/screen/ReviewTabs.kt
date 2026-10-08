@@ -65,7 +65,7 @@ internal class ReviewTabs(
                 },
             actionLabel = "Write a review",
             reviews = listed.map { review(it, viewer, it.id in voted) },
-            action = forCustomer(viewer) { reviewForm(item, sku) },
+            action = writeReview(item, sku, viewer),
         )
     }
 
@@ -130,6 +130,16 @@ internal class ReviewTabs(
             answeredBy = question.answeredAt?.let { "${seller.name} · ${day(it)}" },
             pendingLabel = if (question.answer == null) "Not answered yet" else null,
         )
+
+    /**
+     * «Write a review» for [sku] of [item] wherever it is drawn — the product's reviews, and a delivered line
+     * of an order (B-18): the review dialog for a customer, sign-in for a guest.
+     */
+    fun writeReview(
+        item: Listed,
+        sku: Sku,
+        viewer: Viewer,
+    ): KompotAction = forCustomer(viewer) { reviewForm(item, sku) }
 
     private fun reviewForm(
         item: Listed,

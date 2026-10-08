@@ -23,6 +23,7 @@ import io.github.youndie.haul.feature.order.domain.Placement
 import io.github.youndie.haul.feature.order.orderModule
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
 import io.github.youndie.haul.feature.payment.paymentModule
+import io.github.youndie.haul.feature.reviews.reviewsModule
 import io.github.youndie.haul.feature.search.searchModule
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCustomers
@@ -84,6 +85,7 @@ internal class FulfilmentWorld(
                 paymentModule,
                 orderModule,
                 fulfilmentModule,
+                reviewsModule,
             )
         }
     val koin: Koin get() = application.koin
