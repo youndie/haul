@@ -89,10 +89,12 @@ Feature: `feature-membership` — its scenarios are this item's acceptance where
   `check :server:installDist` green — 251 server tests (PostgreSQL and shildik in Testcontainers), 139 desktop tests,
   124 `viddikVerify` — and `scripts/image-check.sh` (tag `haul/server:b23`, port 18123): ready, 923 of 923 classes
   from the AOT cache, page 200 — and, after rebasing onto B-26, `:e2e:test` against that image (`WholePathTest`,
-  green); the gate again after the rebase, its tests up to date.
+  green); the gate again after the rebase, its tests up to date. Rebased again onto B-20 (V18, the Saved list): the
+  whole gate again — 262 server tests, 145 desktop tests, 134 `viddikVerify`, all green; the six artboards' parity
+  unchanged — `scripts/image-check.sh` on a fresh PostgreSQL (V17, V18 and V19 migrate; 952 of 952 classes from the
+  cache) and `scripts/e2e.sh` against that image, green.
 - **Findings**: a saga in flight across the deploy meets the definition with one more step (`redeem-points`); petich's
-  chain fingerprint is what decides its fate, as for any change to the saga. Flyway runs V19 after V17 and before a
-  later V18 (B-20) only with out-of-order migrations on a database that already has V19 — fresh databases are fine.
-  The return dialog still states the refund as the lines' value; for an order paid partly in points the card gets
+  chain fingerprint is what decides its fate, as for any change to the saga. B-20 merged V18 before this item, so
+  the numbers are in order and the stand migrates V18 then V19. The return dialog still states the refund as the lines' value; for an order paid partly in points the card gets
   that less the points' share (above), which the dialog does not yet say.
 
