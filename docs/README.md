@@ -74,7 +74,7 @@ The list below is **checked** against the files on disk.
 
 Browsing:
 - [ ] [feature-browse](features/feature-browse.md) — Home and category catalog (draft)
-- [ ] [feature-search](features/feature-search.md) — Search and autocomplete (draft)
+- [x] [feature-search](features/feature-search.md) — Search and autocomplete
 - [ ] [feature-product](features/feature-product.md) — Product page (draft)
 - [ ] [feature-reviews](features/feature-reviews.md) — Reviews and questions (draft)
 - [ ] [feature-recommendations](features/feature-recommendations.md) — Picked for you (draft)
@@ -99,7 +99,7 @@ Account and loyalty:
 - [ ] [screen-order](screens/screen-order.md) — Order, 10 states (draft)
 - [ ] [screen-product](screens/screen-product.md) — Product, 10 states (draft)
 - [ ] [screen-saved](screens/screen-saved.md) — Saved, 5 states (draft)
-- [ ] [screen-search](screens/screen-search.md) — Search, 5 states (draft)
+- [x] [screen-search](screens/screen-search.md) — Search, 5 states
 
 ### API (12)
 
@@ -114,4 +114,4 @@ Account and loyalty:
 - [ ] [endpoint-recommendations](api/endpoint-recommendations.md) — Picked for you (draft)
 - [ ] [endpoint-reviews](api/endpoint-reviews.md) — Reviews and questions (draft)
 - [ ] [endpoint-saved](api/endpoint-saved.md) — Saved list (draft)
-- [ ] [endpoint-search](api/endpoint-search.md) — Search (draft)
+- [x] [endpoint-search](api/endpoint-search.md) — Search
