@@ -14,12 +14,12 @@ import kotlinx.coroutines.CancellationException
  * answers it by running [signIn] (the provider's popup, then the cart merge). A sign-in that went
  * through [open]s the address the action asked to come back to ([next], B-41) when it carries one the
  * storefront has a page for; otherwise — no `next` or a refused one — the screen is drawn again with
- * [redraw]. A sign-in that did not go through — a popup closed, a server without sign-in — is
- * [cancelled]'s, which draws the screen again too unless the caller has somewhere else to be: a page
- * that asked for the sign-in itself (B-44) has nothing to draw for a guest, and goes home. A press
- * while a sign-in is already under way ([SignInPending], B-46) does none of these: that sign-in's own
- * press answers when it ends. [handle] says whether the action was sign-in's, so the navigation that
- * owns every other `navigate` can hand it the rest.
+ * [redraw]. A sign-in that did not go through — a popup closed, a server without sign-in, a request
+ * that failed in the browser (B-47) — is [cancelled]'s, which draws the screen again too unless the
+ * caller has somewhere else to be: a page that asked for the sign-in itself (B-44) has nothing to draw
+ * for a guest, and goes home. A press while a sign-in is already under way ([SignInPending], B-46) does
+ * none of these: that sign-in's own press answers when it ends. [handle] says whether the action was
+ * sign-in's, so the navigation that owns every other `navigate` can hand it the rest.
  */
 public class SignInActions(
     private val signIn: suspend () -> Unit,
@@ -42,7 +42,7 @@ public class SignInActions(
     /** How the shopper came back. */
     @Suppress(
         "ktlint:kapkan:swallowed-failure",
-        "A closed or blocked popup is the shopper's or the browser's choice and a server without sign-in is the deployment's; either way the shopper stays the guest they were, which the redrawn header shows.",
+        "A closed or blocked popup is the shopper's or the browser's choice, a server without sign-in is the deployment's and a failed request is the network's; either way the shopper stays the guest they were, which the redrawn header shows.",
     )
     private suspend fun attempt(): Outcome =
         try {
@@ -52,8 +52,11 @@ public class SignInActions(
             throw e
         } catch (_: SignInPending) {
             Outcome.AlreadyUnderWay
-        } catch (_: Exception) {
-            // The shopper is the guest they were (see the suppression above).
+        } catch (_: Throwable) {
+            // Throwable, not Exception: in the browser a fetch that fails during the token exchange is a
+            // JavaScript error, which is no `Exception` on Wasm — caught narrower, it escaped the press
+            // and the shopper was left on the prompt with nothing happening (B-47). The shopper is the
+            // guest they were (see the suppression above).
             Outcome.NotSignedIn
         }
 
