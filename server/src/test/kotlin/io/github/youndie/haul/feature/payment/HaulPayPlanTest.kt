@@ -26,6 +26,8 @@ import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.ui.OrderTotals
 import io.github.youndie.haul.ui.PlanPayment
 import io.github.youndie.haul.ui.PlanPaymentState
+import io.github.youndie.haul.ui.ReturnForm
+import io.github.youndie.kompot.standard.PresentAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -516,6 +518,38 @@ class HaulPayPlanTest {
                             .values
                             .sum(),
                 )
+            }
+        }
+
+    /**
+     * B-50 on Haul Pay: Maya's plan paid partly with her 2,480 points — four payments of $121.80 — offers Sony's
+     * headphones back as «Refund $332.10 to your Haul Pay plan» and «+ 1,690 points back». Returned after three
+     * payments, the $332.10 is what the plan and the processor give back together: the fourth payment, $121.80,
+     * covered, and $210.30 refunded. The dialog says the one amount, not the split, because what the plan still
+     * owes when the parcel is back is not known when the dialog is drawn.
+     */
+    @Test
+    fun `a points-paid return gives back through the plan what the dialog said`() =
+        seededFreshDatabase().use { dataSource ->
+            FulfilmentWorld(dataSource).use { world ->
+                val order = world.placeOnHaulPay(CheckoutChoice(usePoints = true))
+                world.advance(Duration.ZERO)
+                world.advance(first * 3)
+                val form =
+                    assertNotNull((world.summary(order).returnAction as? PresentAction)?.content as? ReturnForm)
+                assertEquals("Refund {amount} to your Haul Pay plan", form.refund)
+                assertEquals("+ {points} points back", form.pointsBack)
+                val sony = form.lines.single { it.position == 0 }
+                val money = sony.refundCents - sony.pointsBack
+                assertEquals(33_210, money)
+
+                world.advancePlans(first + twoWeeks * 2)
+                world.clock.at(first + twoWeeks * 2 + 1.hours)
+                world.returnSony(order)
+                world.advanceReturns(first + twoWeeks * 2 + 3.days)
+
+                assertEquals(Triple(COVERED, 0, 0), world.ledger.instalments(order)[4])
+                assertEquals(mapOf("refund:$order" to money - 12_180), world.ledger.refunds(order))
             }
         }
 

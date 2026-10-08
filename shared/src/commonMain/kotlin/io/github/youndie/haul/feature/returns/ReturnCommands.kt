@@ -32,16 +32,19 @@ public fun returnProblems(entry: ReturnEntry): List<FieldError> =
  * «$80.00», «$1,204.50»: an amount the way the order's page writes it to the cent. The return dialog adds up
  * the lines the shopper ticks and writes the sum itself, so both sides need the one format.
  */
-public fun exactDollars(cents: Int): String {
-    val dollars = cents / CENTS
-    val grouped =
-        dollars
-            .toString()
-            .reversed()
-            .chunked(3)
-            .joinToString(",")
-            .reversed()
-    return "$" + grouped + "." + (cents % CENTS).toString().padStart(2, '0')
-}
+public fun exactDollars(cents: Int): String =
+    "$" + groupedCount(cents / CENTS) + "." + (cents % CENTS).toString().padStart(2, '0')
+
+/**
+ * «1,926»: a count the way the pages write one, in threes. The return dialog adds up the points the ticked
+ * lines give back («+ 1,926 points back», B-50) and writes the sum itself.
+ */
+public fun groupedCount(value: Int): String =
+    value
+        .toString()
+        .reversed()
+        .chunked(3)
+        .joinToString(",")
+        .reversed()
 
 private const val CENTS = 100

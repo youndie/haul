@@ -132,18 +132,43 @@ internal object ReturnRefunds {
     }
 
     /**
-     * The part of [refundCents] that [order] paid in points and that comes back as points (B-23): its redeemed
-     * points in proportion to the refund against what was paid for the items, rounded down — all of them when
-     * every line goes back. A point is a cent, so the rest of the refund is the money.
+     * Each line's part of the points [order] was paid with (B-23), by its position: what comes back as points,
+     * not money, when that line goes back. A point is a cent, so the rest of the line's refund ([of]) is money.
+     *
+     * The redeemed points are shared over the lines in proportion to their refunds, as the discount is: each
+     * share rounded down, and the few points that leaves over (fewer than the lines) given one each to the lines
+     * whose share was cut, from the last line back. So the shares add up to every point redeemed, each is its
+     * exact part rounded down or up — never more than its line's refund, the redemption being capped at the
+     * items as paid — and a return's points are the sum of its lines' (B-50): the return dialog adds up the
+     * ticked lines' shares and the refund ([pointsBack] of the positions) adds up the same ones, so what the
+     * dialog says the card gets is what the card gets, for any lines ticked.
      */
+    fun pointsBack(order: Order): Map<Int, Int> {
+        val refunds = of(order)
+        val positions = order.placed.lines.indices
+        val redeemed = order.placed.pointsRedeemed.toLong()
+        val paid = refunds.values.sumOf { it.toLong() }
+        if (redeemed <= 0 || paid <= 0) return positions.associateWith { 0 }
+        val parts = positions.map { redeemed * refunds.getValue(it) }
+        val shares = parts.map { it / paid }.toMutableList()
+        var left = redeemed - shares.sum()
+        for (position in positions.reversed()) {
+            if (left == 0L) break
+            if (parts[position] % paid != 0L) {
+                shares[position]++
+                left--
+            }
+        }
+        return positions.associateWith { shares[it].toInt() }
+    }
+
+    /** The points the lines at [positions] of [order] give back as points: the sum of their [pointsBack] shares. */
     fun pointsBack(
         order: Order,
-        refundCents: Int,
+        positions: Collection<Int>,
     ): Int {
-        val redeemed = order.placed.pointsRedeemed
-        val paid = order.placed.itemsCents.toLong() - order.placed.discountCents
-        if (redeemed <= 0 || paid <= 0) return 0
-        return (redeemed.toLong() * refundCents / paid).toInt().coerceIn(0, redeemed)
+        val shares = pointsBack(order)
+        return positions.sumOf { shares.getValue(it) }
     }
 
     /** The points [refundCents] of [order] takes back. */

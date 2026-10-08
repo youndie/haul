@@ -3,7 +3,9 @@ package io.github.youndie.haul.feature.returns
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.fulfilment.domain.OrderProgress
+import io.github.youndie.haul.feature.membership.domain.PointsLedger
 import io.github.youndie.haul.feature.order.OrderPaths
+import io.github.youndie.haul.feature.returns.domain.ReturnRefunds
 import io.github.youndie.haul.feature.returns.domain.ReturnStatus
 import io.github.youndie.haul.feature.reviews.CLOSE_AND_REFRESH
 import io.github.youndie.haul.haulWireJson
@@ -32,11 +34,13 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import kotlinx.coroutines.runBlocking
 import javax.sql.DataSource
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -231,9 +235,66 @@ class ReturnRoutesTest {
                     },
                 )
                 assertEquals("Refund {amount} to card ···· 4821", form.refund)
+                assertNull(form.pointsBack, "an order paid without points reads as before B-50")
+                assertEquals(listOf(0, 0, 0), form.lines.map { it.pointsBack })
                 assertEquals(ReturnPaths.returns(orderId), form.url)
                 assertEquals("doesnt_fit", form.reasons.first().id)
             }
+        }
+
+    /**
+     * B-50: Maya pays her $512.00 with her 2,480 points, and the dialog gives each line its share of them beside
+     * its refund — 1,690, 673 and 117 — so whatever she ticks it reads the money her card gets back and the
+     * points that come back, the numbers the refund itself adds up for those lines. She ticks the duvet cover
+     * and the mugs: the dialog reads $155.10 and «+ 790 points back» (it read $163.00 before), and once they are
+     * back the card is refunded $155.10 — not a cent more or less — and 790 points come back.
+     */
+    @Test
+    fun `a points-paid order's dialog says what the card and the points get back for any lines ticked`() =
+        delivered(choice = CheckoutChoice(slotId = "2025-10-08T15", usePoints = true)) { orderId, database ->
+            var dialog: ReturnForm? = null
+            http(database, 72.hours) {
+                dialog = (page(orderId).summary.returnAction as? PresentAction)?.content as? ReturnForm
+                requestReturn(maya, orderId, ReturnEntry(listOf(1, 2), "changed_mind")).assertAccepted()
+            }
+            val form = assertNotNull(dialog, "a delivered order paid with points offers no return dialog")
+            assertEquals(
+                listOf(Triple(0, 34_900, 1_690), Triple(1, 13_900, 673), Triple(2, 2_400, 117)),
+                form.lines.map { Triple(it.position, it.refundCents, it.pointsBack) },
+            )
+            assertEquals("Refund {amount} to card ···· 4821", form.refund)
+            assertEquals("+ {points} points back", form.pointsBack)
+
+            // Every set of lines the shopper can tick: the dialog's sum is what the refund takes as points.
+            val order = assertNotNull(world(database) { it.order(orderId) })
+            (1 until (1 shl form.lines.size)).forEach { mask ->
+                val ticked = form.lines.filterIndexed { index, _ -> mask shr index and 1 == 1 }
+                val positions = ticked.map { it.position }
+                assertEquals(
+                    ReturnRefunds.pointsBack(order, positions),
+                    ticked.sumOf { it.pointsBack },
+                    "the points back for $positions",
+                )
+                assertTrue(ticked.all { it.pointsBack <= it.refundCents }, "a card amount below zero for $positions")
+            }
+
+            val ticked = form.lines.filter { it.position in listOf(1, 2) }
+            val card = ticked.sumOf { it.refundCents - it.pointsBack }
+            assertEquals(15_510, card)
+            val returned =
+                world(database) { world ->
+                    world.advanceReturns(120.hours)
+                    runBlocking { world.koin.get<PointsLedger>().movements(SampleCustomers.MAYA) }
+                        .filter { it.key.startsWith("returned:return-") }
+                        .map { it.points }
+                }
+            assertEquals(ReturnStatus.REFUNDED, Ledger(database).storedReturn(orderId)?.first)
+            assertEquals(
+                mapOf("refund:$orderId" to card),
+                Ledger(database).refunds(orderId),
+                "the card got another amount",
+            )
+            assertEquals(listOf(ticked.sumOf { it.pointsBack }), returned, "other points came back")
         }
 
     /**
