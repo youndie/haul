@@ -1,7 +1,7 @@
 ---
 id: B-43
 title: "server + client: «Helpful» votes on reviews"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-7-reviews
