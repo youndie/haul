@@ -1,7 +1,7 @@
 ---
 id: B-37
 title: "server + client: actions the trees draw but do not carry"
-status: open
+status: wip
 priority: P2
 size: M
 stage: stage-4-cart
