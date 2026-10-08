@@ -6,9 +6,11 @@ import io.github.youndie.haul.feature.account.AccountPaths
 import io.github.youndie.haul.feature.cart.CartPaths
 import io.github.youndie.haul.feature.cart.LineChange
 import io.github.youndie.haul.feature.membership.data.ExposedMemberships
+import io.github.youndie.haul.feature.membership.domain.PlusMembership
 import io.github.youndie.haul.feature.membership.domain.PlusStatus
 import io.github.youndie.haul.feature.membership.screen.PlusOffer
 import io.github.youndie.haul.haulWireJson
+import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.shell.Frame
@@ -111,6 +113,11 @@ class MembershipRoutesTest {
             assertEquals(LocalDate.parse("2025-11-06"), membership?.paidFrom)
             assertEquals(PlusStatus.Trial, membership?.status(LocalDate.parse("2025-11-05")))
             assertEquals(PlusStatus.Active, membership?.status(LocalDate.parse("2025-11-06")))
+            val again = PlusMembership.trial(SampleCustomers.SAM, CatalogSeed.NOW, LocalDate.parse("2025-10-07"))
+            assertFalse(
+                runBlocking { ExposedMemberships(Databases.connect(database)).start(again) },
+                "a member's second trial is refused by the store as well",
+            )
             assertEquals("Free", delivery(sam))
 
             val tiles = screen(AccountPaths.SCREEN, sam).only<AccountBody>().tiles

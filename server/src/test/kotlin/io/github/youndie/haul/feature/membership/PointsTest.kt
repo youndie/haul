@@ -1,8 +1,12 @@
 package io.github.youndie.haul.feature.membership
 
+import io.github.youndie.haul.feature.account.domain.Loyalty
+import io.github.youndie.haul.feature.cart.LineChange
+import io.github.youndie.haul.feature.cart.domain.CartCommands
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.checkout.domain.CheckoutCommands
 import io.github.youndie.haul.feature.checkout.screen.CheckoutScreen
+import io.github.youndie.haul.feature.identity.domain.Customer
 import io.github.youndie.haul.feature.membership.domain.PointsKind
 import io.github.youndie.haul.feature.membership.domain.PointsLedger
 import io.github.youndie.haul.feature.membership.domain.PointsMovement
@@ -14,6 +18,8 @@ import io.github.youndie.haul.feature.order.domain.ShipmentStatus
 import io.github.youndie.haul.feature.returns.ReturnEntry
 import io.github.youndie.haul.feature.returns.domain.RequestReturn
 import io.github.youndie.haul.seed.CatalogSeed
+import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
+import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.testing.FulfilmentWorld
 import io.github.youndie.haul.testing.MAYA
@@ -225,6 +231,29 @@ class PointsTest {
                 assertEquals(1_967, world.balance())
                 world.advanceReturns(9.days)
                 assertEquals(1_967, world.balance(), "a refunded return settles its points once")
+            }
+        }
+
+    /**
+     * Delivery savings (feature-membership: «Σ the fee a non-member would have paid on the member's orders since
+     * January 1»): Maya, a member, places only her $24 mug set — under the $35 threshold — for free, and the
+     * $5.99 a non-member would have paid joins the $186 carried in, on her account's standing.
+     */
+    @Test
+    fun `a member's order under the threshold adds the waived fee to the year's savings`() =
+        seededFreshDatabase().use { dataSource ->
+            FulfilmentWorld(dataSource).use { world ->
+                runBlocking {
+                    val cart = world.koin.get<CartCommands>()
+                    cart.changeLine(MAYA, "$SONY_HEADPHONES-0", LineChange(selected = false))
+                    cart.changeLine(MAYA, "$DUVET_COVER-0", LineChange(selected = false))
+                }
+                val order = assertNotNull(world.order(world.place())).placed
+                assertEquals(0, order.deliveryCents)
+                assertEquals(599, order.deliveryWaivedCents)
+                val maya = Customer(SampleCustomers.MAYA, "Maya Kowalski", plus = true, joined = CatalogSeed.NOW)
+                val standing = runBlocking { world.koin.get<Loyalty>().standing(maya) }
+                assertEquals(18_600 + 599, standing.membership?.savedCents)
             }
         }
 
