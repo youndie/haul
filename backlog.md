@@ -40,12 +40,11 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (19)
+## Open (18)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-13](docs/backlog/B-13-cart-renderers.md) `[ ]` | design refs + client: Cart renderers | P1 | M | B-01, B-11, B-12 |
-| [B-14](docs/backlog/B-14-checkout-tree-slots-with-capacity-pickup.md) `[~]` | server: checkout tree, slots with capacity, pickup points, quote, the address form | P1 | M | B-12 |
 | [B-15](docs/backlog/B-15-checkout-renderers-and-the-address-form.md) `[ ]` | design refs + client: Checkout renderers and the address form | P1 | L | B-01, B-13, B-14 |
 | [B-16](docs/backlog/B-16-placement-with-an-idempotency-key-the.md) `[ ]` | server: placement with an idempotency key; the petich saga — reserve, authorise, confirm, compensate; the payment simulator | P1 | L | B-14 |
 | [B-17](docs/backlog/B-17-fulfilment-simulator-capture-per-shipment-pickup.md) `[ ]` | server: fulfilment simulator, capture per shipment, pickup codes | P1 | M | B-16 |
@@ -64,7 +63,7 @@ A stage is a field on the item, not a directory.
 | [B-37](docs/backlog/B-37-actions-the-trees-draw-but-do-not-carry.md) `[ ]` | server + client: actions the trees draw but do not carry | P2 | M | B-35 |
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
 
-## Closed (18)
+## Closed (19)
 
 **Skeleton**
 
@@ -92,6 +91,10 @@ A stage is a field on the item, not a directory.
 
 - [B-11](docs/backlog/B-11-guests-cart-promo-codes-changed-lines.md) `[x]` - server: guests, cart, promo codes, changed lines, the Cart tree
 - [B-12](docs/backlog/B-12-shildik-sign-in-in-the-browser.md) `[x]` - server + client: shildik sign-in in the browser, customer creation, cart merge, header states
+
+**Checkout and orders**
+
+- [B-14](docs/backlog/B-14-checkout-tree-slots-with-capacity-pickup.md) `[x]` - server: checkout tree, slots with capacity, pickup points, quote, the address form
 
 **Ship**
 

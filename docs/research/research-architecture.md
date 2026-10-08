@@ -253,6 +253,40 @@ the account need a shildik token; signing in merges the guest cart.
   sign-in lasts the tab). A `401` is answered once: a customer's token renewed through the refresh
   token, or the customer signed out when it cannot be; a guest the server forgot replaced.
 
+**Decided in B-14, checkout and the quote.**
+
+- **The quote is the cart's, computed in one place** (`CheckoutCommands.state`, `feature/checkout/`):
+  the lines the cart counts — selected, in stock, unchanged — priced by `CartCommands.priced` and
+  totalled by the cart's `Totals.of`, with the method, the address or the point, the window and the way
+  to pay. Nothing is stored as «the quote»: the tree carries its fingerprint (`CheckoutSummary.quote`, a
+  SHA-256 over every value it names, the total included), and placement (B-16) computes the quote again
+  through the same call and places only when the fingerprint is the one the shopper saw. A promo code
+  applied while valid and expired since is not honoured: the quote leaves it out and the tree says so.
+- **What the shopper chose is stored per customer** (`checkouts`, `V9__checkout.sql`), each choice
+  optional; a choice not made, or no longer possible, is the quote's default: courier, the newest
+  address, the nearest point of the method, the first window with room, the card ···· 4821. Choices are
+  `PUT /api/v1/me/checkout` (`CheckoutChoice`), the address form `POST /api/v1/me/addresses`
+  (`AddressEntry`); both answer `refresh`, in the customer tier. A point decides the method; a method
+  that no longer allows the way to pay chosen falls back to the card.
+- **A window's place is taken at placement, not held at quote time** — feature-checkout's «Slot filled
+  meanwhile» and `Checkout_PlaceError` only exist if the window can fill between the page and the
+  order. Choosing a full window is refused (`409 slot_unavailable`); one that fills after it was chosen
+  is cleared from the quote, not swapped for another, and the tree tells the shopper. The place itself
+  is `DeliverySlots.reserve(slot, holder)`, one conditional update (`taken = taken + 1 WHERE taken <
+  capacity`) per holder, idempotent per holder, with `release` as placement's compensation; built and
+  raced here, called by B-16.
+- **The numbers** (decisions, not observations — neither the canvas nor the brief names them): windows
+  09:00, 12:00, 15:00 and 18:00, three hours each, on the five days from tomorrow in the store's time
+  zone whatever the items' dispatch days (the canvas offers Maya Wed 8 for a duvet and mugs that dispatch
+  in a day), 20 orders a window. The delivery fee is the cart's, the same for every method.
+- **Every customer pays with the simulator's cards.** v1 has no way to add a card (no artboard; D6 hides
+  the account's payment methods), so the payment options are fixed: card ···· 4821 (approves), test
+  card ···· 0002 (declines), Haul Pay for totals from $50 to $2,000, pay on delivery except to a locker.
+- **The address form** keeps research §5's fields (street, apt, city, ZIP, door code, courier note; no
+  state, so Maya's city is «Brooklyn, NY»). A form at fault is `400 validation_failed` with every field
+  at fault in `ErrorBody.fields` (`field_required`, `field_invalid`), and is stored and drawn again with
+  an error under each field (`Checkout_Validation`), as B-11 stores a refused promo code.
+
 ### D6. Product decisions taken by the owner on the brief (2026-10-08)
 
 The canvas contradicted itself in three places and left one promise unbacked; the owner decided:
