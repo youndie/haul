@@ -306,6 +306,8 @@ and on the stand.
   nothing. A SKU gone or out of stock is left out. It answers `navigate` to the cart.
 - **«Orders» in the header** goes to `/account` until the history has its own address (B-19), and a
   guest's to sign-in, as the account shortcut does.
+- **«Write a review»** on a delivered line is the product page's own: B-22's review dialog, presented over the
+  order (`ReviewTabs.writeReview`). «Return items» is drawn and waits for B-21.
 
 ### D5. Sign-in through shildik; guests can browse and fill a cart
 

@@ -42,23 +42,25 @@ Feature: `feature-orders` — its scenarios are this item's acceptance where it 
   /api/v1/me/orders/{id}/reorder`) sets each of the order's SKUs in the cart through `CartCommands.changeLine`,
   selected, at the order's quantity within ten and the stock — a line already holding as many is only selected, so
   a second press adds nothing — leaves out what is gone or out of stock, and answers `navigate` to the cart.
+  «Write a review» on a delivered line is B-22's review dialog (`ReviewTabs.writeReview`, kompot's `present`).
   «Orders» in the header goes to `/account` (a guest's to sign-in) until B-19 gives the history an address.
 - **The client** (`composeApp/.../feature/order/`): `OrderBodyView` and its renderer (Reorder is a `CartCommand`, its
   `navigate` followed, a refusal drawn again); the shell's `OrderLoading`, `OrderNotFound` under the header last
   drawn («Go to your orders» follows its `orders`), and «This order didn’t load» with Retry; «Orders» followed in the
   header. `BalancedText` no longer narrows a title below its widest word (a phone title was broken inside
-  «tomorrow,»), and `HaulType.normal` is the checkout's `line-height: normal` text, now shared.
+  «tomorrow,»).
 - **Parity** (`viddikDesignParity --component "Order*"`, references rendered on Linux with grayscale text, tolerance
   untouched): all eight 1440 artboards within 5 % (0.50–3.34 %); the phones read 0.42–3.18 % for Loading, NotFound and
   Error and 5.55–7.22 % for the five order states, over by glyph rasterisation, a 1 px drift from fractional line
   boxes, and the data differences below. Goldens recorded for `Order*` only.
 
 - **Tests written**: `OrderRoutesTest` (the page placement lands on; another customer's order and a missing one
-  answer alike, `401` without a token, Sam cannot reorder Maya's; reorder twice is once; a declined order's page),
+  answer alike, `401` without a token, Sam cannot reorder Maya's; a delivered line's review is the dialog and reorder
+  twice is once; a declined order's page),
   `OrderFixturesTest` (the five client bodies are the server's trees), `StorefrontPageTest`, `WebBundleTest`,
   `DrawnActionsTest` (server: a guest's «Orders» is sign-in), `KoinGraphTest`; in the client `OrderWiringTest`
-  (Reorder sends the tree's reorder and follows the cart; a refusal redraws; «Back to cart»; «Return items» sends
-  nothing), `StorefrontTest` (an order not there leads to the orders; one that did not load retries),
+  (Reorder sends the tree's reorder and follows the cart; a refusal redraws; «Write a review» presents the dialog;
+  «Back to cart»; «Return items» sends nothing), `StorefrontTest` (an order not there leads to the orders; one that did not load retries),
   `DrawnActionsTest` («Orders»), `AddressTest`, `CartCommandsTest`, and sixteen `Order_*` goldens.
 - **Mutations**, each seen failing and restored: reorder adding to the line instead of setting it (the twice-is-once
   test), the header without `orders` (both `DrawnActionsTest`s, the page test, the fixtures), the page's address back
@@ -67,11 +69,13 @@ Feature: `feature-orders` — its scenarios are this item's acceptance where it 
   (`StorefrontTest`), `BalancedText` without its lower bound (two phone goldens). Not run: the owner check in
   `Reorder` removed — the session's safety check refused that edit; the «not yours» test covers it by its assertions
   (`404` for Sam, Sam's cart empty).
-- **Where it ran**: the Linux build machine (WSL), on the branch rebased onto `e2782e5`: `./gradlew check
-  :server:installDist` green (`:server:test` 177 tests, `:composeApp` 231 tests including `viddikVerify`, 0 failed;
-  PostgreSQL and shildik in containers), `:composeApp:wasmJsBrowserDistribution` alone green, `viddikDesignParity` as
-  above. `make check` and `make docs-against BASE=origin/main` on the Mac. No migration, so `scripts/image-check.sh`
-  was not run; the chart is unchanged.
+- **Where it ran**: the Linux build machine (WSL), on the branch rebased onto `762ce3b` (B-22; it now sits on `3c67667`, which adds a backlog item and nothing else): `./gradlew check
+  :server:installDist` green (`:server:test` 193 tests, `:composeApp` 245 tests including `viddikVerify`, 0 failed;
+  PostgreSQL and shildik in containers) — run with one worker in a 5 GB scope, where the wasm bundle's optimiser
+  inside `check` was killed for memory once the tests had passed, so `:composeApp:wasmJsBrowserDistribution` was
+  built alone (green) and `check :server:installDist` run again, up to date; `viddikDesignParity` as above. `make
+  check` and `make docs-against BASE=origin/main` on the Mac. No migration, so `scripts/image-check.sh` was not run;
+  the chart is unchanged.
 
 ## Findings (2026-10-08)
 
@@ -80,8 +84,7 @@ Feature: `feature-orders` — its scenarios are this item's acceptance where it 
 - **Unavailable lines are not reported.** endpoint-orders' draft and feature-orders say reorder «reports the ones that
   are not» available; `navigate` carries no message and no artboard draws one. They are left out of the cart, and the
   answer is the cart as it is. A person decides whether the cart should say so (and where).
-- **«Write a review»** opens the product page until B-22 has a review route; **«Return items»** is drawn and does
-  nothing (B-21).
+- **«Return items»** is drawn and does nothing (B-21).
 - **«Go to your orders»** follows the last header's `orders`: on an order page reloaded at a missing number the
   client has drawn no header yet, so the button (and the header, the shell's own) is Product_NotFound's case, inert.
 - **A guest at an order's address** gets the shell's error page (`401`, as `/account` does today), not sign-in, which
