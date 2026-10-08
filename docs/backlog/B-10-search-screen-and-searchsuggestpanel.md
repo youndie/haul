@@ -1,7 +1,7 @@
 ---
 id: B-10
 title: "design refs + client: Search screen and `SearchSuggestPanel`"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-3-search
