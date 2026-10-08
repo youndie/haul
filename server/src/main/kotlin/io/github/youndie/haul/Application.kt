@@ -6,6 +6,7 @@ import io.github.youndie.haul.feature.catalog.data.S3PhotoStore
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SeedPhotos
 import io.github.youndie.haul.seed.Seeder
+import io.github.youndie.petich.PetichClock
 import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
@@ -39,7 +40,16 @@ public fun main() {
 
     embeddedServer(CIO, port = config.port) {
         monitor.subscribe(ApplicationStopped) { dataSource.close() }
-        haulModule(dataSource, clock, config.commit, config.observability, config.webDir, photoStore, config.signIn)
+        haulModule(
+            dataSource,
+            clock,
+            config.commit,
+            config.observability,
+            config.webDir,
+            photoStore,
+            config.signIn,
+            sagaClock = sagaClock(),
+        )
     }.start(wait = true)
 }
 
@@ -84,3 +94,13 @@ internal suspend fun databaseAnswers(dataSource: DataSource): Boolean =
     "The composition root is the one reader of the clock: delivery days are this store's local dates, not a value another party must agree with.",
 )
 private fun systemClock(): StoreClock = StoreClock { java.time.ZonedDateTime.now() }
+
+/**
+ * The order saga's clock: the wall clock, read here and nowhere else. What it stamps — when a saga's row
+ * was last written — is compared with what another process stamped, so it is never the store's «now».
+ */
+@Suppress(
+    "ktlint:kapkan:wall-clock",
+    "The composition root is the one reader of the clock: the saga's stamps are compared across processes, which only the wall clock can do.",
+)
+private fun sagaClock(): PetichClock = PetichClock { System.currentTimeMillis() }

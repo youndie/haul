@@ -47,6 +47,12 @@ dependencies {
     // lifetime, issuer (research §1.4, consequence 5).
     implementation(libs.shildik.oidcAuthServer)
 
+    // The order saga (B-16): the engine, its tables on the same Exposed database as everything else, and
+    // petich's guard for placement's `Idempotency-Key` (research D3, D4).
+    implementation(libs.petich.core)
+    implementation(libs.petich.postgres)
+    implementation(libs.petich.idempotency)
+
     implementation(libs.exposed.core)
     implementation(libs.exposed.jdbc)
     implementation(libs.exposed.json)

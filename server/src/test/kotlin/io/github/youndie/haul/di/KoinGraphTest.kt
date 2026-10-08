@@ -22,11 +22,21 @@ import io.github.youndie.haul.feature.identity.Callers
 import io.github.youndie.haul.feature.identity.domain.Customers
 import io.github.youndie.haul.feature.identity.domain.Guests
 import io.github.youndie.haul.feature.identity.identityModule
+import io.github.youndie.haul.feature.order.domain.OrderRepository
+import io.github.youndie.haul.feature.order.domain.Placement
+import io.github.youndie.haul.feature.order.domain.StockReservations
+import io.github.youndie.haul.feature.order.orderModule
+import io.github.youndie.haul.feature.order.saga.SagaStorage
+import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
+import io.github.youndie.haul.feature.payment.paymentModule
 import io.github.youndie.haul.feature.search.screen.SearchScreen
 import io.github.youndie.haul.feature.search.searchModule
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.shell.Viewers
+import io.github.youndie.haul.testing.SAGA_CLOCK
 import io.github.youndie.haul.testing.SeededDatabase
+import io.github.youndie.petich.PetichEngine
+import io.github.youndie.petich.SuspendedPetichSweeper
 import org.koin.core.Koin
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -56,12 +66,15 @@ class KoinGraphTest {
                         single { StoreClock { CatalogSeed.NOW.toZonedDateTime() } }
                         single { DeliveryCalendar { CatalogSeed.NOW.toZonedDateTime() } }
                         single { ProductPhotos(null) }
+                        single { SAGA_CLOCK }
                     },
                     catalogModule,
                     searchModule,
                     identityModule,
                     cartModule,
                     checkoutModule,
+                    paymentModule,
+                    orderModule,
                 )
             }
         try {
@@ -88,5 +101,12 @@ class KoinGraphTest {
         assertNotNull(koin.get<DeliverySlots>())
         assertNotNull(koin.get<CheckoutCommands>())
         assertNotNull(koin.get<CheckoutScreen>())
+        assertNotNull(koin.get<PaymentProcessor>())
+        assertNotNull(koin.get<OrderRepository>())
+        assertNotNull(koin.get<StockReservations>())
+        assertNotNull(koin.get<SagaStorage>())
+        assertNotNull(koin.get<PetichEngine>())
+        assertNotNull(koin.get<SuspendedPetichSweeper>())
+        assertNotNull(koin.get<Placement>())
     }
 }

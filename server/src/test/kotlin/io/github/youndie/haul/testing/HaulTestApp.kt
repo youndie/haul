@@ -20,6 +20,7 @@ import io.github.youndie.kompot.decodeKompotComponent
 import io.github.youndie.kompot.standard.BoxComponent
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.RowComponent
+import io.github.youndie.petich.PetichClock
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
@@ -38,6 +39,17 @@ internal object SeededDatabase {
     }
 }
 
+/**
+ * The order saga's clock in the tests: the wall clock, as in production. The saga's stamps never reach
+ * a tree, and a test that has to move it — the restart that must look like the next minute — passes
+ * its own.
+ */
+@Suppress(
+    "ktlint:kapkan:wall-clock",
+    "the saga's clock in production is the wall clock; the tests share it rather than inventing one",
+)
+internal val SAGA_CLOCK: PetichClock = PetichClock { System.currentTimeMillis() }
+
 /** The canvas's «now», so every date in a tree is the one the artboards show. */
 internal val CANVAS_NOW: StoreClock = StoreClock { CatalogSeed.NOW.toZonedDateTime() }
 
@@ -51,9 +63,19 @@ internal fun haulTest(
     dataSource: DataSource = SeededDatabase.dataSource,
     photoStore: PhotoStore? = null,
     signIn: SignInConfig? = null,
+    sagaClock: PetichClock = SAGA_CLOCK,
     block: suspend HttpClient.() -> Unit,
 ) = testApplication {
-    application { haulModule(dataSource, CANVAS_NOW, commit = "test", photoStore = photoStore, signIn = signIn) }
+    application {
+        haulModule(
+            dataSource,
+            CANVAS_NOW,
+            commit = "test",
+            photoStore = photoStore,
+            signIn = signIn,
+            sagaClock = sagaClock,
+        )
+    }
     client.block()
 }
 

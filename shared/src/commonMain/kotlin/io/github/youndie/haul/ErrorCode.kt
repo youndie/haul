@@ -84,6 +84,21 @@ public enum class ErrorCode {
     @SerialName("payment_method_not_allowed")
     PaymentMethodNotAllowed,
 
+    /** Placement without an `Idempotency-Key` header, or with an empty one (feature-checkout). */
+    @SerialName("idempotency_key_missing")
+    IdempotencyKeyMissing,
+
+    /** Placement under an `Idempotency-Key` already used for a different request (feature-checkout). */
+    @SerialName("idempotency_key_reused")
+    IdempotencyKeyReused,
+
+    /**
+     * Placement of a quote that is no longer the checkout's: a line, a price, the code, the method, the
+     * address, the point, the window or the way to pay changed since the page was drawn.
+     */
+    @SerialName("cart_changed")
+    CartChanged,
+
     /** In [ErrorBody.fields] only: a form field that must be filled was left empty. */
     @SerialName("field_required")
     FieldRequired,
