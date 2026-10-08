@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.account
 
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
+import io.github.youndie.haul.feature.membership.screen.PlusOffer
 import io.github.youndie.haul.feature.order.OrderPaths
 import io.github.youndie.haul.feature.returns.ReturnEntry
 import io.github.youndie.haul.feature.returns.domain.RequestReturn
@@ -23,6 +24,7 @@ import io.github.youndie.haul.ui.HistoryStatusKind
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.decodeKompotComponent
 import io.github.youndie.kompot.standard.NavigateAction
+import io.github.youndie.kompot.standard.PresentAction
 import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
@@ -94,9 +96,9 @@ class AccountRoutesTest {
         }
 
     /**
-     * The tiles the overview draws from sources B-23 and B-20 will own: Maya's points, membership and
-     * price drops are the canvas's (research §6) until then; Sam, no member, is offered the trial, whose
-     * button starts nothing yet.
+     * The tiles the overview draws from feature-membership's ledger and membership (B-23) and from the
+     * Saved list B-20 will own: Maya's seeded points and membership, and her price drops, are the canvas's
+     * (research §6); Sam, no member, is offered the trial, whose button presents its dialog.
      */
     @Test
     fun `the tiles are the member's standing or the trial's offer`() =
@@ -116,7 +118,7 @@ class AccountRoutesTest {
             val sams = account(sam).only<AccountBody>()
             val offer = sams.tiles.single { it.kind == AccountTileKind.PlusOffer }
             assertEquals("Try 30 days free", offer.button?.label)
-            assertNull(offer.button?.action, "the trial is B-23's")
+            assertEquals(PresentAction(PlusOffer.dialog, PlusOffer.DIALOG), offer.button?.action)
             assertEquals(listOf("0", "30 days free", "0"), sams.tiles.map { it.figure })
         }
 

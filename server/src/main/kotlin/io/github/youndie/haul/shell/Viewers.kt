@@ -36,6 +36,7 @@ internal class Viewers(
                         firstName = customer.firstName,
                         customerId = customer.id,
                         saved = saved.productIds(customer.id),
+                        customer = customer,
                     ),
                     CartOwner.Customer(customer.id, customer.plus),
                 )

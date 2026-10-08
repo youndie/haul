@@ -251,6 +251,7 @@ internal fun summaryRows(
     promoCode: String?,
     units: Int,
     delivery: String = "Delivery",
+    pointsCents: Int = 0,
 ): List<SummaryRow> =
     buildList {
         add(SummaryRow("Items ($units)", CartScreen.exact(totals.itemsCents)))
@@ -258,5 +259,7 @@ internal fun summaryRows(
         if (promoCode != null && totals.promoCents > 0) {
             add(SummaryRow("Promo · $promoCode", "−" + CartScreen.exact(totals.promoCents), saving = true))
         }
+        // The points taken off at checkout (`Checkout_PointsApplied`, B-23); the cart has none.
+        if (pointsCents > 0) add(SummaryRow("Points", "−" + CartScreen.exact(pointsCents), saving = true))
         add(SummaryRow(delivery, if (totals.deliveryCents == 0) "Free" else CartScreen.exact(totals.deliveryCents)))
     }

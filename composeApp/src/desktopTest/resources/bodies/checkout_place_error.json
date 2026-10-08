@@ -276,12 +276,13 @@
                         "selected": false
                     }
                 ],
-                "url": "/api/v1/me/checkout",
                 "points": {
                     "label": "Use 2,480 points (−$24.80)",
                     "detail": "100 points = $1 · all or nothing",
-                    "on": false
-                }
+                    "on": false,
+                    "url": "/api/v1/me/checkout"
+                },
+                "url": "/api/v1/me/checkout"
             },
             "summary": {
                 "id": "summary",

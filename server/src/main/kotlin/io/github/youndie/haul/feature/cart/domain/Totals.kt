@@ -32,6 +32,8 @@ internal data class PricedLine(
 /**
  * The summary of feature-cart's rules, over the counted lines: Items = Σ old price (or price) × qty;
  * Discount = Σ (old − price) × qty + promo; Delivery per research D7; Total = Items − Discount + Delivery.
+ * [deliveryWaivedCents] is the fee Plus took off — what a non-member would have paid — which an order
+ * keeps for «saved on delivery this year» (B-23).
  */
 internal data class Totals(
     val itemsCents: Int,
@@ -39,6 +41,7 @@ internal data class Totals(
     val promoCents: Int,
     val deliveryCents: Int,
     val counted: Int,
+    val deliveryWaivedCents: Int = 0,
 ) {
     val discountCents: Int get() = productDiscountCents + promoCents
 
@@ -63,12 +66,16 @@ internal data class Totals(
             val items = counted.sumOf { it.listCents }
             val atPrice = counted.sumOf { it.priceCents }
             val promoCents = promo?.takeIf { it.activeAt(now) }?.discountOn(atPrice) ?: 0
-            val delivery =
-                when {
-                    counted.isEmpty() || plus || atPrice >= FREE_DELIVERY_FROM_CENTS -> 0
-                    else -> DELIVERY_CENTS
-                }
-            return Totals(items, items - atPrice, promoCents, delivery, counted.size)
+            val fee = if (counted.isEmpty() || atPrice >= FREE_DELIVERY_FROM_CENTS) 0 else DELIVERY_CENTS
+            val delivery = if (plus) 0 else fee
+            return Totals(
+                itemsCents = items,
+                productDiscountCents = items - atPrice,
+                promoCents = promoCents,
+                deliveryCents = delivery,
+                counted = counted.size,
+                deliveryWaivedCents = fee - delivery,
+            )
         }
     }
 }

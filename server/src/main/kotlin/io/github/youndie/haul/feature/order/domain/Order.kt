@@ -73,6 +73,8 @@ internal data class Shipment(
  * What an order was placed for: the quote at placement, copied (the checkout and the cart move on, the
  * order does not). [id] is `HL-` and five digits (research §5). [address] is the address delivered to as
  * it was then, [addressId] the saved address it was: the address form edits that one in place (B-40).
+ * [totalCents] is what is paid once [pointsRedeemed] are off (a point a cent), [points] what it earns on
+ * delivery, and [deliveryWaivedCents] the fee Plus took off it (B-23).
  */
 internal data class NewOrder(
     val id: String,
@@ -92,6 +94,8 @@ internal data class NewOrder(
     val points: Int,
     val placedAt: OffsetDateTime,
     val lines: List<OrderLine>,
+    val pointsRedeemed: Int = 0,
+    val deliveryWaivedCents: Int = 0,
 )
 
 /**

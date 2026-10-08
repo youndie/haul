@@ -2,6 +2,8 @@ package io.github.youndie.haul.feature.returns.domain
 
 import io.github.youndie.haul.feature.checkout.domain.PaymentMethod
 import io.github.youndie.haul.feature.fulfilment.domain.FulfilmentPace
+import io.github.youndie.haul.feature.membership.domain.PointsLedger
+import io.github.youndie.haul.feature.membership.domain.PointsMovement
 import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
 import io.github.youndie.haul.feature.payment.domain.Refund
@@ -9,6 +11,7 @@ import io.github.youndie.haul.feature.payment.domain.RefundOutcome
 import io.github.youndie.petich.PetichClock
 import org.slf4j.LoggerFactory
 import java.time.Instant
+import java.time.ZoneOffset
 import kotlin.time.toJavaDuration
 
 private val log = LoggerFactory.getLogger("io.github.youndie.haul.returns")
@@ -25,12 +28,19 @@ private val log = LoggerFactory.getLogger("io.github.youndie.haul.returns")
  * said at `error` — a return never reads «refunded» without the money. Pay on delivery was paid to the
  * courier and is paid back by the courier: nothing goes through the processor.
  *
+ * **The points move with the refund** (B-23), before the move as well and each once by its key: the points the
+ * returned lines earned are taken back (`reversed:<order>`, the return's [OrderReturn.points]), and the points
+ * the order was paid with come back in proportion to the refund ([ReturnRefunds.pointsBack], `returned:<order>`
+ * — kept apart from the cancellation's give-back, which an order that was delivered never had); that part of the
+ * refund is not paid in money.
+ *
  * Every move is conditional on the status it leaves, so two passes at once move a return once.
  */
 internal class ReturnSimulator(
     private val returns: ReturnRepository,
     private val orders: OrderRepository,
     private val payments: PaymentProcessor,
+    private val points: PointsLedger,
     private val clock: PetichClock,
     private val pace: FulfilmentPace,
 ) {
@@ -57,6 +67,7 @@ internal class ReturnSimulator(
             val due = since + after.toJavaDuration()
             if (due.isAfter(now)) break
             if (to == ReturnStatus.REFUNDED && !refunded(orderReturn, due)) break
+            if (to == ReturnStatus.REFUNDED) settlePoints(orderReturn, due)
             if (!returns.move(orderReturn.orderId, status, to, due)) break
             status = to
             since = due
@@ -65,19 +76,40 @@ internal class ReturnSimulator(
         return moves
     }
 
+    /** The points [orderReturn] takes back and gives back, as of [at]; each written once. */
+    private suspend fun settlePoints(
+        orderReturn: OrderReturn,
+        at: Instant,
+    ) {
+        val order = orders.order(orderReturn.orderId) ?: error("the return of ${orderReturn.orderId} has no order")
+        val customer = order.placed.customerId
+        val stamp = at.atOffset(ZoneOffset.UTC)
+        if (orderReturn.points > 0) {
+            points.record(PointsMovement.reversed(customer, order.id, order.id, orderReturn.points, stamp))
+        }
+        val back = ReturnRefunds.pointsBack(order, orderReturn.refundCents)
+        if (back >
+            0
+        ) {
+            points.record(PointsMovement.returned(customer, order.id, back, stamp, returnId = "return-${order.id}"))
+        }
+    }
+
     /** Whether [orderReturn]'s refund was given back — now, or by an earlier pass — or goes back another way. */
     private suspend fun refunded(
         orderReturn: OrderReturn,
         at: Instant,
     ): Boolean {
-        if (orderReturn.refundCents == 0) return true
         val order = orders.order(orderReturn.orderId) ?: error("the return of ${orderReturn.orderId} has no order")
+        // What the order was paid with in points comes back as points, not money.
+        val money = orderReturn.refundCents - ReturnRefunds.pointsBack(order, orderReturn.refundCents)
+        if (money <= 0) return true
         val method =
             PaymentMethod.byId(order.placed.payment)
                 ?: error("the order ${order.id} pays with «${order.placed.payment}»")
         if (!method.card) return true
         val key = refundKey(order.id)
-        return when (val outcome = payments.refund(key, Refund(order.id, orderReturn.refundCents, at))) {
+        return when (val outcome = payments.refund(key, Refund(order.id, money, at))) {
             is RefundOutcome.Refunded -> {
                 true
             }
@@ -86,7 +118,7 @@ internal class ReturnSimulator(
                 log.error(
                     "return of {} is held: refunding {} cents was refused: {}",
                     order.id,
-                    orderReturn.refundCents,
+                    money,
                     outcome,
                 )
                 false

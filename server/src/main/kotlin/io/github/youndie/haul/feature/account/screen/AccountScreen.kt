@@ -15,6 +15,7 @@ import io.github.youndie.haul.feature.fulfilment.domain.OrderProgress
 import io.github.youndie.haul.feature.fulfilment.domain.OrderTracking
 import io.github.youndie.haul.feature.fulfilment.domain.TrackedOrder
 import io.github.youndie.haul.feature.identity.domain.Customer
+import io.github.youndie.haul.feature.membership.screen.PlusOffer
 import io.github.youndie.haul.feature.order.OrderPaths
 import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.screen.OrderCard
@@ -41,6 +42,7 @@ import io.github.youndie.haul.ui.OrderHistory
 import io.github.youndie.haul.ui.SavedList
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.NavigateAction
+import io.github.youndie.kompot.standard.PresentAction
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -356,14 +358,14 @@ private class AccountPageBuilder(
                     ).joinToString(" · "),
                 )
             } else {
-                // The trial is feature-membership's (B-23); like the home page's offer, the button has no action yet.
+                // The trial's dialog, as the home page's offer presents it (feature-membership, B-23).
                 AccountTile(
                     AccountTileKind.PlusOffer,
                     "Haul Plus",
                     "30 days free",
                     "Free delivery and double points, then $4.99 / month",
                     accent = "free",
-                    button = Link("Try 30 days free"),
+                    button = Link("Try 30 days free", PresentAction(PlusOffer.dialog, PlusOffer.DIALOG)),
                 )
             }
         val drops = view.saved.priceDrops

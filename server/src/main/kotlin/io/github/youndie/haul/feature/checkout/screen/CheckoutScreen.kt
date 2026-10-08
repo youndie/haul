@@ -12,6 +12,7 @@ import io.github.youndie.haul.feature.checkout.domain.CheckoutError
 import io.github.youndie.haul.feature.checkout.domain.CheckoutState
 import io.github.youndie.haul.feature.checkout.domain.PickupPoint
 import io.github.youndie.haul.feature.checkout.domain.Slot
+import io.github.youndie.haul.feature.membership.domain.PointsRules
 import io.github.youndie.haul.ui.CheckoutAddress
 import io.github.youndie.haul.ui.CheckoutBody
 import io.github.youndie.haul.ui.CheckoutHeader
@@ -25,6 +26,7 @@ import io.github.youndie.haul.ui.PaymentMethods
 import io.github.youndie.haul.ui.PaymentOption
 import io.github.youndie.haul.ui.PickupPointOption
 import io.github.youndie.haul.ui.PickupPoints
+import io.github.youndie.haul.ui.PointsToggle
 import io.github.youndie.haul.ui.SlotDay
 import io.github.youndie.haul.ui.SlotOption
 import io.github.youndie.haul.ui.SummaryItem
@@ -38,9 +40,10 @@ import java.util.Locale
 /**
  * `GET /ui/checkout` (screen-checkout, feature-checkout): the checkout's own header and one
  * [CheckoutBody]. One tree covers every server state: Content, PickupPoint, ParcelLocker, Validation and
- * PlaceError are what the stored checkout is. The copy is the canvas's (`Checkout_*`). Points
- * (`PaymentMethods.points`, `Checkout_PointsApplied`) are feature-membership's and are not sent until a
- * customer has a balance (B-23).
+ * PlaceError are what the stored checkout is. The copy is the canvas's (`Checkout_*`). The points toggle
+ * (`PaymentMethods.points`) is drawn for a customer with points to spend, and PointsApplied is the
+ * checkout with it on (B-23): «Points −$24.80» in the summary and the total, the button and Haul Pay's
+ * payments with the points off.
  */
 internal class CheckoutScreen(
     private val commands: CheckoutCommands,
@@ -199,7 +202,7 @@ internal class CheckoutScreen(
     }
 
     private fun payments(state: CheckoutState): PaymentMethods {
-        val total = state.quote.totals.totalCents
+        val total = state.quote.totalCents
         return PaymentMethods(
             id = "payment",
             title = "Payment",
@@ -207,6 +210,21 @@ internal class CheckoutScreen(
                 state.payments.map {
                     PaymentOption(it.id, it.label, it.detail(total), selected = it == state.quote.payment)
                 },
+            points = toggle(state),
+            url = CheckoutPaths.CHOICE,
+        )
+    }
+
+    /**
+     * «Use 2,480 points (−$24.80)»: what the toggle takes off, whether it is on or not — all of the
+     * balance, or as much of it as the items after discounts allow. None for a customer with nothing to spend.
+     */
+    private fun toggle(state: CheckoutState): PointsToggle? {
+        val points = state.redeemable.takeIf { it > 0 } ?: return null
+        return PointsToggle(
+            label = "Use ${count(points)} points (−${CartScreen.exact(points * PointsRules.CENTS_PER_POINT)})",
+            detail = "100 points = $1 · all or nothing",
+            on = state.usePoints,
             url = CheckoutPaths.CHOICE,
         )
     }
@@ -215,7 +233,7 @@ internal class CheckoutScreen(
         val quote = state.quote
         // The canvas writes the total as a price tag («$512», «$487.20»), as the cart does, and the
         // button with its cents («Place order · $512.00», Checkout_Content).
-        val exact = CartScreen.exact(quote.totals.totalCents)
+        val exact = CartScreen.exact(quote.totalCents)
         val deliveryDay =
             when (quote.method) {
                 DeliveryMethod.Courier -> (quote.slot ?: state.filledSlot)?.day
@@ -244,9 +262,10 @@ internal class CheckoutScreen(
                     quote.promo?.code,
                     quote.lines.sumOf { it.stored.quantity },
                     delivery = listOfNotNull("Delivery", deliveryDay?.let(::day)).joinToString(" · "),
+                    pointsCents = quote.pointsRedeemed * PointsRules.CENTS_PER_POINT,
                 ),
             totalLabel = "Total",
-            total = money(quote.totals.totalCents),
+            total = money(quote.totalCents),
             note =
                 "By placing the order you agree to the Terms of Sale." +
                     if (quote.payment.card) " Your card is charged when the order ships." else "",

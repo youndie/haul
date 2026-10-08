@@ -1,6 +1,8 @@
 package io.github.youndie.haul.feature.fulfilment.domain
 
 import io.github.youndie.haul.feature.checkout.domain.PaymentMethod
+import io.github.youndie.haul.feature.membership.domain.PointsLedger
+import io.github.youndie.haul.feature.membership.domain.PointsMovement
 import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus
 import io.github.youndie.haul.feature.payment.domain.Capture
@@ -9,6 +11,7 @@ import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
 import io.github.youndie.petich.PetichClock
 import org.slf4j.LoggerFactory
 import java.time.Instant
+import java.time.ZoneOffset
 import kotlin.time.toJavaDuration
 
 private val log = LoggerFactory.getLogger("io.github.youndie.haul.fulfilment")
@@ -29,8 +32,12 @@ private val log = LoggerFactory.getLogger("io.github.youndie.haul.fulfilment")
  * answered with what was taken, and moves it. A capture the processor refuses holds the shipment where it
  * is, said at `error` — a shipment is never on the road unpaid. Pay on delivery has nothing to capture.
  *
+ * **Points are credited before the move to `delivered` or `picked_up`** (B-23): the shipment's share of
+ * what its order earns, written once by the shipment's key, so a pass that died between the two credits
+ * nothing more when the next one moves it.
+ *
  * Every move is conditional on the status it leaves, so two passes at once — two processes in a rolling
- * deploy — move each shipment once, and capture it once.
+ * deploy — move each shipment once, capture it once, and credit it once.
  *
  * [clock] is the saga's (`Application.kt`): the stamps are compared across processes, which only the wall
  * clock can do; the store's «now» is not it.
@@ -39,6 +46,7 @@ internal class FulfilmentSimulator(
     private val shipments: FulfilmentRepository,
     private val orders: OrderRepository,
     private val payments: PaymentProcessor,
+    private val points: PointsLedger,
     private val clock: PetichClock,
     private val pace: FulfilmentPace,
 ) {
@@ -64,6 +72,7 @@ internal class FulfilmentSimulator(
             val due = since + step.after.toJavaDuration()
             if (due.isAfter(now)) break
             if (step.to == ShipmentStatus.IN_TRANSIT && !charged(shipment, due)) break
+            if (step.to in ARRIVED) credit(shipment, due)
             val code =
                 if (step.to ==
                     ShipmentStatus.READY_FOR_PICKUP
@@ -78,6 +87,19 @@ internal class FulfilmentSimulator(
             moves++
         }
         return moves
+    }
+
+    /** [shipment]'s share of the points its order earns, to its customer, as of [at]; once, by the shipment. */
+    private suspend fun credit(
+        shipment: ActiveShipment,
+        at: Instant,
+    ) {
+        val order = orders.order(shipment.orderId) ?: error("the shipment ${shipment.id} has no order")
+        val share = ShipmentShares.of(order, order.placed.points).getValue(shipment.id)
+        if (share <= 0) return
+        points.record(
+            PointsMovement.earned(order.placed.customerId, order.id, shipment.id, share, at.atOffset(ZoneOffset.UTC)),
+        )
     }
 
     /** Whether [shipment]'s share of its order is captured — now, or by an earlier pass — or has nothing to capture. */
@@ -110,3 +132,6 @@ internal class FulfilmentSimulator(
         }
     }
 }
+
+/** Where a shipment has arrived: the statuses that credit its points. */
+private val ARRIVED = setOf(ShipmentStatus.DELIVERED, ShipmentStatus.PICKED_UP)

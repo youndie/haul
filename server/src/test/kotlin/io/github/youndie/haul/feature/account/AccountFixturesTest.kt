@@ -33,11 +33,11 @@ import kotlin.test.assertTrue
  *
  * The orders are research §6's history, which no seed holds ([SampleOrders]): written as tracking reads
  * them and drawn by the builder the route uses ([AccountScreen.view], [AccountScreen.page]), over the seeded
- * catalog and Maya's checkout; the points and the membership are the account's placeholders for B-23
- * (`SampleLoyalty`), and the Saved list's counts are Maya's seeded list (`SampleSaved`, B-20), both of which
- * the route reads too. One part is the canvas's and not the server's, and is checked to be only that: the
- * tiles of lines whose products the seed does not sell, given by the canvas ([SampleOrders.TONES]). #HL-44019
- * is returned by its own refunded return (B-21), as tracking reads it.
+ * catalog and Maya's checkout; the points and the membership are the seeded ledger and membership (B-23), and
+ * the Saved list's counts are Maya's seeded list (`SampleSaved`, B-20), both of which the route reads too. One
+ * part is the canvas's and not the server's, and is checked to be only that: the tiles of lines whose products the
+ * seed does not sell, given by the canvas ([SampleOrders.TONES]). #HL-44019 is returned by its own refunded
+ * return (B-21), as tracking reads it.
  *
  * The headers are the artboards': Maya with three in the cart, Sam and Jordan with none.
  */

@@ -12,6 +12,7 @@ import io.github.youndie.haul.feature.checkout.data.ExposedDeliverySlots
 import io.github.youndie.haul.feature.checkout.domain.CheckoutCommands
 import io.github.youndie.haul.feature.checkout.screen.CheckoutScreen
 import io.github.youndie.haul.feature.identity.data.ExposedCustomers
+import io.github.youndie.haul.feature.membership.data.ExposedPointsLedger
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog
 import io.github.youndie.haul.testing.CANVAS_NOW
@@ -42,6 +43,7 @@ class CheckoutQuoteTest {
             ExposedDeliverySlots(database),
             carts,
             CartCommands(carts, catalog, clock),
+            ExposedPointsLedger(database),
             clock,
         )
 

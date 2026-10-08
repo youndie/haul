@@ -224,8 +224,8 @@ public data class SummaryItem(
 
 /**
  * «Use 2,480 points (−$24.80)», [detail] «100 points = $1 · all or nothing», and whether it is [on]
- * (`Checkout_PointsApplied`). Feature-membership's (B-23): the server sends none until a customer has a
- * points balance, and [url] — where a tap sends the change — is B-23's too; without one the toggle is
+ * (`Checkout_PointsApplied`). Feature-membership's (B-23): the server sends one only to a customer with
+ * points to spend; a tap sends `CheckoutChoice(usePoints = !on)` to [url], and without one the toggle is
  * drawn and does nothing.
  */
 @Serializable

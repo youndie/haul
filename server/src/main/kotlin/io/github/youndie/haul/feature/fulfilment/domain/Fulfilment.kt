@@ -168,10 +168,17 @@ internal interface FulfilmentRepository {
  * Each shipment's part of what its order charges (B-17): the order's total shared in proportion to what
  * each seller's lines cost at the price paid, so a promo code and the delivery fee are shared the same way.
  * Every share but the last is rounded down and the last takes the rest, so the shares always add up to the
- * total, cent for cent — the authorisation is taken whole, in parts, and never more.
+ * total, cent for cent — the authorisation is taken whole, in parts, and never more. The order's points are
+ * shared the same way, a shipment crediting its part as it arrives (B-23).
  */
 internal object ShipmentShares {
-    fun of(order: Order): Map<String, Int> {
+    fun of(order: Order): Map<String, Int> = of(order, order.placed.totalCents)
+
+    /** [amount] shared between [order]'s shipments as its total is. */
+    fun of(
+        order: Order,
+        amount: Int,
+    ): Map<String, Int> {
         val costs =
             order.shipments.map { shipment ->
                 shipment.id to
@@ -181,7 +188,7 @@ internal object ShipmentShares {
             }
         val cost = costs.sumOf { it.second }
         if (costs.isEmpty() || cost == 0L) return costs.associate { it.first to 0 }
-        val total = order.placed.totalCents.toLong()
+        val total = amount.toLong()
         val shares = costs.dropLast(1).map { (id, part) -> id to (total * part / cost).toInt() }
         return (shares + (costs.last().first to (total - shares.sumOf { it.second.toLong() }).toInt())).toMap()
     }

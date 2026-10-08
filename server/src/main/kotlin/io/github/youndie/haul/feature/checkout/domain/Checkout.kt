@@ -88,6 +88,7 @@ internal data class PickupPoint(
  * What a customer chose at checkout, as stored. Every choice may be absent, and the quote fills an
  * absent one with its default: the newest address, the nearest point, the first window with room,
  * the card. [draft] is the last address form the server refused, drawn again until one is accepted.
+ * [usePoints] is the points toggle (B-23): on, the order is paid with the customer's points as well.
  */
 internal data class StoredCheckout(
     val method: DeliveryMethod = DeliveryMethod.Courier,
@@ -96,6 +97,7 @@ internal data class StoredCheckout(
     val slotId: String? = null,
     val payment: String? = null,
     val draft: AddressEntry? = null,
+    val usePoints: Boolean = false,
 )
 
 /** The checkout's storage. Every method takes the customer, and a read of a checkout never written is the default. */

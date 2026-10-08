@@ -113,7 +113,14 @@ class ChargedWhenShippedTest {
                     }
                 world.clock.at(24.hours)
                 val first =
-                    FulfilmentSimulator(dying, world.koin.get(), world.payments, world.clock, FulfilmentPace.STORE)
+                    FulfilmentSimulator(
+                        dying,
+                        world.koin.get(),
+                        world.payments,
+                        world.koin.get(),
+                        world.clock,
+                        FulfilmentPace.STORE,
+                    )
                 assertFailsWith<IllegalStateException> { runBlocking { first.advance() } }
                 assertEquals(mapOf(sony to PACKED, brooklyn to PACKED), world.statuses(order), "the move never landed")
                 assertEquals(mapOf(sony to 34_900), world.captures(order), "the capture did")
@@ -148,7 +155,14 @@ class ChargedWhenShippedTest {
                         ): CaptureOutcome = CaptureOutcome.NotAuthorised
                     }
                 val held =
-                    FulfilmentSimulator(world.shipments, world.koin.get(), refusing, world.clock, FulfilmentPace.STORE)
+                    FulfilmentSimulator(
+                        world.shipments,
+                        world.koin.get(),
+                        refusing,
+                        world.koin.get(),
+                        world.clock,
+                        FulfilmentPace.STORE,
+                    )
 
                 world.clock.at(30.hours)
                 assertEquals(0, runBlocking { held.advance() }, "Sony was due at 24 hours")

@@ -621,6 +621,10 @@ private class OrderPage(
                 ) {
                     add(SummaryRow("Discount", "−" + exact(placed.discountCents), saving = true))
                 }
+                // Paid in part with points (B-23): a point a cent, as the checkout's summary drew it.
+                if (placed.pointsRedeemed > 0) {
+                    add(SummaryRow("Points", "−" + exact(placed.pointsRedeemed), saving = true))
+                }
                 add(SummaryRow("Delivery", if (placed.deliveryCents == 0) "Free" else exact(placed.deliveryCents)))
                 returned?.takeIf { refunded }?.let {
                     add(

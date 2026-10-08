@@ -173,12 +173,28 @@ class CheckoutWiringTest {
             )
         }
 
-    /** Redeeming points is B-23's: the toggle carries no command yet. */
+    /** The points toggle turns on from Content and off from PointsApplied (B-23), each answered `refresh`. */
     @Test
-    fun `the points toggle sends nothing`() =
+    fun `the points toggle turns the points on and off`() =
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
             checkout(CONTENT)
-            pressInert(POINTS_TAG)
+            press(POINTS_TAG)
+            assertEquals(
+                listOf<CheckoutCommand>(CheckoutCommand.Choose(CHOICE, CheckoutChoice(usePoints = true))),
+                sent.toList(),
+            )
+            assertEquals(listOf<KompotAction>(RefreshAction), followed.toList())
+        }
+
+    @Test
+    fun `the points toggle on turns the points off`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            checkout(POINTS_APPLIED)
+            press(POINTS_TAG)
+            assertEquals(
+                listOf<CheckoutCommand>(CheckoutCommand.Choose(CHOICE, CheckoutChoice(usePoints = false))),
+                sent.toList(),
+            )
         }
 
     /** The address form is sent as typed once the shopper leaves it; the server's `refresh` redraws it. */
@@ -332,6 +348,7 @@ class CheckoutWiringTest {
         const val WIDTH = 1440
         const val HEIGHT = 1700
         const val CONTENT = "checkout_content.json"
+        const val POINTS_APPLIED = "checkout_points_applied.json"
         const val PICKUP_POINT = "checkout_pickup_point.json"
         const val VALIDATION = "checkout_validation.json"
         const val PLACE_ERROR = "checkout_place_error.json"

@@ -35,6 +35,7 @@ import io.github.youndie.haul.ui.DeliverySlots
 import io.github.youndie.haul.ui.OrderSummary
 import io.github.youndie.haul.ui.PaymentMethods
 import io.github.youndie.haul.ui.PickupPoints
+import io.github.youndie.haul.ui.PointsToggle
 import io.github.youndie.haul.ui.SummaryRow
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.decodeKompotComponent
@@ -232,7 +233,16 @@ class CheckoutRoutesTest {
                 )
                 assertEquals("card-4821", payment.options.single { it.selected }.id)
                 assertEquals("4 payments of $128", payment.options.single { it.id == "haul_pay" }.detail)
-                assertEquals(null, payment.points, "points are B-23's: no balance is stored")
+                assertEquals(
+                    PointsToggle(
+                        "Use 2,480 points (−$24.80)",
+                        "100 points = $1 · all or nothing",
+                        false,
+                        CheckoutPaths.CHOICE,
+                    ),
+                    payment.points,
+                    "her seeded balance, off until she turns it on",
+                )
 
                 val summary = tree.only<CheckoutSummary>()
                 assertEquals(

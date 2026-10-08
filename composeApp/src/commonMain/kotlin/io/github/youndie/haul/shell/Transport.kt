@@ -1,5 +1,7 @@
 package io.github.youndie.haul.shell
 
+import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.staticCompositionLocalOf
 import io.github.youndie.haul.ErrorBody
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.registry.haulJson
@@ -64,6 +66,13 @@ public fun interface HaulCommands {
         body: String?,
     ): HaulResponse
 }
+
+/**
+ * Where a renderer sends a command its component carries with no seam of its own — the Plus trial's
+ * «Start trial» (B-23); the storefront provides its [HaulCommands]. `null` — a screenshot — draws the same
+ * pixels, and pressing does nothing.
+ */
+public val LocalHaulCommands: ProvidableCompositionLocal<HaulCommands?> = staticCompositionLocalOf { null }
 
 /** The browser's commands: [http] against [origin], each through [send] — `Identity.send`, as for the screens. */
 public fun ktorCommands(

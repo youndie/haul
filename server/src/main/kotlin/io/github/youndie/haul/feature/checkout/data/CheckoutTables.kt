@@ -75,6 +75,9 @@ internal object CheckoutsTable : Table("checkouts") {
     val slot = text("slot").nullable()
     val payment = text("payment").nullable()
     val addressDraft = jsonb<AddressEntry>("address_draft", Json).nullable()
+
+    // V19: the points toggle (B-23).
+    val usePoints = bool("use_points").default(false)
     override val primaryKey = PrimaryKey(customerId)
 }
 

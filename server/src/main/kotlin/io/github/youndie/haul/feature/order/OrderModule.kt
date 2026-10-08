@@ -31,7 +31,14 @@ internal val orderModule =
                 clock = get(),
                 definitions =
                     listOf(
-                        orderSaga(stock = get(), slots = get(), orders = get(), payments = get(), carts = get()),
+                        orderSaga(
+                            stock = get(),
+                            slots = get(),
+                            orders = get(),
+                            payments = get(),
+                            carts = get(),
+                            points = get(),
+                        ),
                     ),
             )
         }

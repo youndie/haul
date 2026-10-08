@@ -11,6 +11,7 @@ import io.github.youndie.haul.feature.checkout.PlaceOrderRequest
 import io.github.youndie.haul.feature.checkout.checkoutModule
 import io.github.youndie.haul.feature.checkout.domain.CheckoutCommands
 import io.github.youndie.haul.feature.identity.identityModule
+import io.github.youndie.haul.feature.membership.membershipModule
 import io.github.youndie.haul.feature.order.data.ExposedOrders
 import io.github.youndie.haul.feature.order.domain.Order
 import io.github.youndie.haul.feature.order.domain.OrderStatus
@@ -117,6 +118,7 @@ class PlacementRestartTest {
             checkoutModule,
             paymentModule,
             orderModule,
+            membershipModule,
             module { single<PaymentProcessor> { payments } },
         )
     }

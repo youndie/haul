@@ -22,10 +22,12 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.feature.cart.CartCommands
 import io.github.youndie.haul.feature.cart.LocalCartCommands
 import io.github.youndie.haul.feature.checkout.CheckoutCommands
 import io.github.youndie.haul.feature.checkout.LocalCheckoutCommands
+import io.github.youndie.haul.feature.home.PLUS_DIALOG_COMPACT_TOP
 import io.github.youndie.haul.feature.identity.SignInActions
 import io.github.youndie.haul.feature.order.OrderNotFound
 import io.github.youndie.haul.feature.product.DialogOverlay
@@ -40,6 +42,7 @@ import io.github.youndie.haul.ui.LocalHaulActions
 import io.github.youndie.haul.ui.LocalHaulNow
 import io.github.youndie.haul.ui.LocalLogoAction
 import io.github.youndie.haul.ui.LocalSearchInput
+import io.github.youndie.haul.ui.PlusTrialDialog
 import io.github.youndie.haul.ui.SearchFieldState
 import io.github.youndie.haul.ui.SearchInput
 import io.github.youndie.haul.ui.SearchSuggestPanel
@@ -97,8 +100,8 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * searches goes through [commands] (B-37), and the suggest panel is asked for again once the server
  * has answered. The checkout's go to [checkoutCommands] (B-15), whose `refresh` draws it again the
  * same way. A tree's `present` draws its component over the page — the product page's review and
- * question dialogs (B-22), whose commands go to [reviewCommands] — until a `close`, a new page or the
- * scrim takes it away.
+ * question dialogs (B-22), whose commands go to [reviewCommands], and the Haul Plus trial's (B-23), whose
+ * `POST` goes through [commands] — until a `close`, a new page or the scrim takes it away.
  */
 @Composable
 public fun Storefront(
@@ -174,6 +177,7 @@ public fun Storefront(
         LocalCartCommands provides cartCommands,
         LocalCheckoutCommands provides checkoutCommands,
         LocalReviewCommands provides reviewCommands,
+        LocalHaulCommands provides commands,
     ) {
         SearchSuggestOverlay(panel, highlighted = -1, field = field, onDismiss = dismiss, onClear = clearRecent) {
             val address = navigator.address
@@ -219,7 +223,8 @@ public fun Storefront(
                     }
                     presented?.let { shown ->
                         val forms = remember { FormController(FormSchema(formId = "none", fields = emptyList())) }
-                        DialogOverlay(onDismiss = { presented = null }) {
+                        val top = if (shown.content is PlusTrialDialog) PLUS_DIALOG_COMPACT_TOP else 120.dp
+                        DialogOverlay(onDismiss = { presented = null }, compactTop = top) {
                             KompotScreen(shown.content, registry, forms, shown.actions)
                         }
                     }

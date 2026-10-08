@@ -32,6 +32,7 @@ import io.github.youndie.haul.feature.identity.Callers
 import io.github.youndie.haul.feature.identity.domain.Customers
 import io.github.youndie.haul.feature.identity.domain.Guests
 import io.github.youndie.haul.feature.identity.identityModule
+import io.github.youndie.haul.feature.membership.membershipModule
 import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.domain.Placement
 import io.github.youndie.haul.feature.order.domain.Reorder
@@ -106,6 +107,7 @@ class KoinGraphTest {
                     savedModule,
                     accountModule,
                     returnsModule,
+                    membershipModule,
                 )
             }
         try {

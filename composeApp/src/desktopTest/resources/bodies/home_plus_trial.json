@@ -1,0 +1,392 @@
+{
+ "type": "column",
+ "id": "home",
+ "children": [
+  {
+   "type": "haul_header",
+   "id": "header",
+   "customerName": "Sam",
+   "deliverTo": "Brooklyn, NY 11211",
+   "deliveryPromise": "Free delivery over $35",
+   "cartCount": 0,
+   "searchPlaceholder": "Search 2.4 million products",
+   "categories": [
+    "Electronics",
+    "Home & Kitchen",
+    "Fashion",
+    "Beauty",
+    "Kids & Toys",
+    "Sports",
+    "Grocery",
+    "Auto",
+    "Books",
+    "Pets"
+   ]
+  },
+  {
+   "type": "haul_campaign_row",
+   "id": "campaigns",
+   "hero": {
+    "id": "campaign-autumn-mega-sale",
+    "eyebrow": "Autumn mega sale · Oct 7 — 14",
+    "title": "Up to −70%",
+    "accent": "Up to",
+    "subtitle": "1.2 million items marked down across 32 categories",
+    "actionLabel": "Shop the sale",
+    "tone": "#2F2BFF",
+    "label": "campaign image"
+   },
+   "banners": [
+    {
+     "id": "banner-tech-week",
+     "eyebrow": "Tech week",
+     "title": "Laptops from $399",
+     "accent": "$399",
+     "actionLabel": "Shop now",
+     "tone": "#DFFF3A",
+     "label": "laptop"
+    },
+    {
+     "id": "banner-free-delivery-weekend",
+     "eyebrow": "This weekend",
+     "title": "Free delivery on everything",
+     "accent": "everything",
+     "subtitle": "600K items from local sellers",
+     "tone": "#FF3D2E"
+    }
+   ]
+  },
+  {
+   "type": "haul_section_header",
+   "id": "categories-title",
+   "title": "Shop by category",
+   "accent": "category",
+   "linkLabel": "All 32 categories",
+   "compactLinkLabel": "All 32"
+  },
+  {
+   "type": "haul_category_grid",
+   "id": "categories",
+   "tiles": [
+    {
+     "id": "tile-0",
+     "name": "Electronics",
+     "tone": "#E6E4FF",
+     "label": "tech"
+    },
+    {
+     "id": "tile-1",
+     "name": "Home & Kitchen",
+     "tone": "#F1EBDD",
+     "label": "home"
+    },
+    {
+     "id": "tile-2",
+     "name": "Fashion",
+     "tone": "#FFE5DD",
+     "label": "apparel"
+    },
+    {
+     "id": "tile-3",
+     "name": "Beauty",
+     "tone": "#F1E4F5",
+     "label": "beauty"
+    },
+    {
+     "id": "tile-4",
+     "name": "Kids & Toys",
+     "tone": "#FFF1C9",
+     "label": "toys"
+    },
+    {
+     "id": "tile-5",
+     "name": "Sports",
+     "tone": "#E3F5D8",
+     "label": "sport"
+    },
+    {
+     "id": "tile-6",
+     "name": "Grocery",
+     "tone": "#E9F0D2",
+     "label": "grocery"
+    },
+    {
+     "id": "tile-7",
+     "name": "Pets",
+     "tone": "#E0EEF7",
+     "label": "pets"
+    }
+   ]
+  },
+  {
+   "type": "haul_section_header",
+   "id": "deals-title",
+   "title": "Deals of the day",
+   "accent": "day",
+   "linkLabel": "View all deals",
+   "countdownEndsAt": "2025-10-08T00:00-04:00"
+  },
+  {
+   "type": "haul_product_grid",
+   "id": "deals",
+   "columns": 6,
+   "scroll": true,
+   "cards": [
+    {
+     "id": "card-1",
+     "productId": "p-1",
+     "label": "headphones",
+     "badge": "−22%",
+     "price": "$349",
+     "oldPrice": "$449",
+     "title": "Sony WH-1000XM6 Wireless Noise Cancelling Headphones",
+     "rating": "4.8",
+     "reviews": "2,341",
+     "delivery": "Tomorrow",
+     "tone": "#E6E4FF"
+    },
+    {
+     "id": "card-2",
+     "productId": "p-2",
+     "label": "air fryer",
+     "badge": "−36%",
+     "price": "$89",
+     "oldPrice": "$139",
+     "title": "6-in-1 Air Fryer, 5.5 qt, Stainless Steel",
+     "rating": "4.7",
+     "reviews": "8,102",
+     "delivery": "Tomorrow",
+     "tone": "#FFE5DD"
+    },
+    {
+     "id": "card-3",
+     "productId": "p-3",
+     "label": "sweater",
+     "badge": "−40%",
+     "price": "$48",
+     "oldPrice": "$80",
+     "title": "Merino Wool Crewneck Sweater, Unisex",
+     "rating": "4.6",
+     "reviews": "1,204",
+     "delivery": "Thu, Oct 9",
+     "tone": "#E3F5D8"
+    },
+    {
+     "id": "card-4",
+     "productId": "p-4",
+     "label": "vacuum",
+     "badge": "−40%",
+     "price": "$299",
+     "oldPrice": "$499",
+     "title": "Robot Vacuum S8 with Self-Empty Dock",
+     "rating": "4.5",
+     "reviews": "3,377",
+     "delivery": "Tomorrow",
+     "tone": "#E0EEF7"
+    },
+    {
+     "id": "card-5",
+     "productId": "p-5",
+     "label": "serum",
+     "badge": "−36%",
+     "price": "$14",
+     "oldPrice": "$22",
+     "title": "Hydrating Serum with Hyaluronic Acid, 30 ml",
+     "rating": "4.9",
+     "reviews": "12,880",
+     "delivery": "Tomorrow",
+     "tone": "#F1E4F5"
+    },
+    {
+     "id": "card-6",
+     "productId": "p-6",
+     "label": "shoes",
+     "badge": "−40%",
+     "price": "$72",
+     "oldPrice": "$120",
+     "title": "Ridge Trail GTX Running Shoes, Waterproof",
+     "rating": "4.7",
+     "reviews": "2,018",
+     "delivery": "Fri, Oct 10",
+     "tone": "#FFF1C9"
+    }
+   ]
+  },
+  {
+   "type": "haul_plus_block",
+   "id": "plus",
+   "member": false,
+   "title": "Free delivery. Every order.",
+   "benefits": [
+    "Next-day delivery with no minimum",
+    "Early access to sales",
+    "Double points on every purchase"
+   ],
+   "offer": "Try 30 days free",
+   "price": "then $4.99 / month",
+   "action": {
+    "type": "present",
+    "content": {
+     "type": "haul_plus_trial_dialog",
+     "id": "plus-trial",
+     "eyebrow": "Haul Plus",
+     "title": "30 days free",
+     "accent": "free",
+     "benefits": [
+      {
+       "title": "Free delivery on every order",
+       "detail": "No minimum basket"
+      },
+      {
+       "title": "Next-day courier",
+       "detail": "Whatever the order total"
+      },
+      {
+       "title": "Double points",
+       "detail": "2 points for every dollar"
+      },
+      {
+       "title": "Early access to sales",
+       "detail": "Campaign prices 24 hours early"
+      }
+     ],
+     "terms": "30 days free, then $4.99/month",
+     "startLabel": "Start trial",
+     "dismissLabel": "Not now",
+     "url": "/api/v1/me/plus/trial",
+     "close": {
+      "type": "close"
+     }
+    },
+    "kind": "dialog"
+   },
+   "accent": "Every"
+  },
+  {
+   "type": "haul_section_header",
+   "id": "picked-title",
+   "title": "Picked for you",
+   "accent": "you",
+   "subtitle": "Popular right now"
+  },
+  {
+   "type": "haul_product_grid",
+   "id": "picked",
+   "columns": 6,
+   "cards": [
+    {
+     "id": "card-7",
+     "productId": "p-7",
+     "label": "keyboard",
+     "price": "$119",
+     "title": "Mechanical Keyboard 75%, Hot-Swappable",
+     "rating": "4.8",
+     "reviews": "940",
+     "delivery": "Tomorrow",
+     "tone": "#ECE9E2"
+    },
+    {
+     "id": "card-8",
+     "productId": "p-8",
+     "label": "coffee set",
+     "price": "$42",
+     "title": "Ceramic Pour-Over Coffee Set",
+     "rating": "4.9",
+     "reviews": "611",
+     "delivery": "Thu, Oct 9",
+     "tone": "#F1EBDD"
+    },
+    {
+     "id": "card-9",
+     "productId": "p-9",
+     "label": "bedding",
+     "badge": "−22%",
+     "price": "$139",
+     "oldPrice": "$179",
+     "title": "Linen Duvet Cover Set, Queen, Oat",
+     "rating": "4.7",
+     "reviews": "1,388",
+     "delivery": "Thu, Oct 9",
+     "tone": "#FFE5DD"
+    },
+    {
+     "id": "card-10",
+     "productId": "p-10",
+     "label": "toy",
+     "price": "$35",
+     "title": "Building Blocks Space Station, 1,200 pcs",
+     "rating": "4.8",
+     "reviews": "2,702",
+     "delivery": "Tomorrow",
+     "tone": "#FFF1C9"
+    },
+    {
+     "id": "card-11",
+     "productId": "p-11",
+     "label": "watch",
+     "price": "$229",
+     "title": "Smart Watch Series 4, 44 mm, Graphite",
+     "rating": "4.6",
+     "reviews": "5,410",
+     "delivery": "Tomorrow",
+     "tone": "#E6E4FF"
+    },
+    {
+     "id": "card-12",
+     "productId": "p-12",
+     "label": "yoga mat",
+     "price": "$58",
+     "title": "Natural Rubber Yoga Mat, 6 mm",
+     "rating": "4.8",
+     "reviews": "3,019",
+     "delivery": "Fri, Oct 10",
+     "tone": "#E3F5D8"
+    }
+   ]
+  },
+  {
+   "type": "haul_footer",
+   "id": "footer",
+   "columns": [
+    {
+     "title": "Shop",
+     "links": [
+      "Deals",
+      "New arrivals",
+      "Gift cards",
+      "Haul Plus"
+     ]
+    },
+    {
+     "title": "Sell",
+     "links": [
+      "Open a store",
+      "Seller center",
+      "Fulfillment",
+      "Ads"
+     ]
+    },
+    {
+     "title": "Help",
+     "links": [
+      "Track an order",
+      "Returns",
+      "Delivery",
+      "Contact us"
+     ]
+    },
+    {
+     "title": "Company",
+     "links": [
+      "About",
+      "Careers",
+      "Press",
+      "Privacy"
+     ]
+    }
+   ],
+   "appTitle": "Get the app",
+   "appText": "Order tracking, price drop alerts and app-only deals."
+  }
+ ]
+}
