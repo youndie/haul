@@ -1,7 +1,7 @@
 package io.github.youndie.haul.feature.cart
 
 import io.github.youndie.haul.ErrorCode
-import io.github.youndie.haul.feature.identity.GuestRoutes
+import io.github.youndie.haul.feature.identity.GUEST_HEADER
 import io.github.youndie.haul.seed.SampleCatalog
 import io.github.youndie.haul.testing.acknowledge
 import io.github.youndie.haul.testing.all
@@ -83,10 +83,15 @@ class CartRoutesTest {
             val line = groups.first().lines.single()
             assertEquals("$349" to "$449", line.price to line.oldPrice)
             assertEquals("Midnight Black · Headphones only", line.options)
-            assertEquals(CartSelection("selection", allSelected = true, selectedCount = 3), tree.only<CartSelection>())
+            // The tree says where the line's commands go; the client builds no path.
+            assertEquals("/api/v1/cart/lines/$headphones" to null, line.url to line.acknowledgeUrl)
+            assertEquals(
+                CartSelection("selection", allSelected = true, selectedCount = 3, linesUrl = "/api/v1/cart/lines"),
+                tree.only<CartSelection>(),
+            )
             assertEquals("3 items", tree.only<PageTitle>().count)
             assertEquals(3, tree.only<HaulHeader>().cartCount, "the header counts the cart")
-            assertEquals(PromoField("promo"), tree.only<PromoField>())
+            assertEquals(PromoField("promo", "/api/v1/cart/promo"), tree.only<PromoField>())
         }
 
     /** `Cart_Guest`: the same cart without the points line, and checkout asks to sign in. */
@@ -111,7 +116,10 @@ class CartRoutesTest {
             applyPromo(guest, "AUTUMN10").assertRefresh()
 
             val tree = cart(guest)
-            assertEquals(PromoField("promo", code = "AUTUMN10", applied = true), tree.only<PromoField>())
+            assertEquals(
+                PromoField("promo", "/api/v1/cart/promo", code = "AUTUMN10", applied = true),
+                tree.only<PromoField>(),
+            )
             // 10 % of $512 is $51.20, and AUTUMN10 stops at $50; the discount includes the promo.
             assertEquals(
                 listOf(
@@ -143,13 +151,13 @@ class CartRoutesTest {
 
             val tree = cart(guest)
             assertEquals(
-                PromoField("promo", code = "SUMMER5", error = "This code has expired"),
+                PromoField("promo", "/api/v1/cart/promo", code = "SUMMER5", error = "This code has expired"),
                 tree.only<PromoField>(),
             )
             assertEquals("$512.00", tree.only<OrderSummary>().total, "a refused code took money off")
             // The refusal is shown once: the next change to the cart clears it.
             putLine(guest, mug, LineChange(quantity = 2)).assertRefresh()
-            assertEquals(PromoField("promo"), cart(guest).only<PromoField>())
+            assertEquals(PromoField("promo", "/api/v1/cart/promo"), cart(guest).only<PromoField>())
         }
 
     @Test
@@ -165,8 +173,8 @@ class CartRoutesTest {
     @Test
     fun `no guest or an unknown one is 401 unauthenticated`() =
         haulTest {
-            get(CartRoutes.SCREEN).assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
-            get(CartRoutes.SCREEN) { header(GuestRoutes.HEADER, "g-not-issued") }
+            get(CartPaths.SCREEN).assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
+            get(CartPaths.SCREEN) { header(GUEST_HEADER, "g-not-issued") }
                 .assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
             putLine(
                 null,
@@ -227,8 +235,8 @@ class CartRoutesTest {
     fun `a body that is not the command's JSON is 400`() =
         haulTest {
             val guest = guest()
-            put(CartRoutes.line(mug)) {
-                header(GuestRoutes.HEADER, guest)
+            put(CartPaths.line(mug)) {
+                header(GUEST_HEADER, guest)
                 setBody("""{"quantity":"three"}""")
             }.assertError(HttpStatusCode.BadRequest, ErrorCode.ValidationFailed)
         }
@@ -242,7 +250,10 @@ class CartRoutesTest {
             val tree = cart(guest)
             assertEquals(mapOf("Items" to "$203.00", "Discount" to "−$40.00", "Delivery" to "Free"), tree.rows())
             assertEquals("$163.00", tree.only<OrderSummary>().total)
-            assertEquals(CartSelection("selection", allSelected = false, selectedCount = 2), tree.only<CartSelection>())
+            assertEquals(
+                CartSelection("selection", allSelected = false, selectedCount = 2, linesUrl = "/api/v1/cart/lines"),
+                tree.only<CartSelection>(),
+            )
             assertEquals(3, tree.only<HaulHeader>().cartCount, "an unselected line is still in the cart")
 
             removeLines(guest, duvet).assertRefresh()

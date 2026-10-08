@@ -18,7 +18,7 @@ internal fun Route.identityRouting() {
     val guests by inject<Guests>()
     val clock by inject<StoreClock>()
 
-    post(GuestRoutes.GUESTS) {
+    post(GUESTS) {
         val id = guests.create(clock.now().toOffsetDateTime())
         call.respondText(
             haulWireJson.encodeToString(GuestDto.serializer(), GuestDto(id)),
@@ -27,3 +27,6 @@ internal fun Route.identityRouting() {
         )
     }
 }
+
+/** Where a guest is created; the one path a client calls before it has a tree to follow. */
+internal const val GUESTS = "/api/v1/guests"

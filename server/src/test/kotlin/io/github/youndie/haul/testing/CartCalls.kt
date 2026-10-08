@@ -2,12 +2,13 @@ package io.github.youndie.haul.testing
 
 import io.github.youndie.haul.ErrorBody
 import io.github.youndie.haul.ErrorCode
-import io.github.youndie.haul.feature.cart.CartRoutes
+import io.github.youndie.haul.feature.cart.CartPaths
 import io.github.youndie.haul.feature.cart.LineChange
 import io.github.youndie.haul.feature.cart.LinesRemoval
 import io.github.youndie.haul.feature.cart.PromoEntry
+import io.github.youndie.haul.feature.identity.GUESTS
+import io.github.youndie.haul.feature.identity.GUEST_HEADER
 import io.github.youndie.haul.feature.identity.GuestDto
-import io.github.youndie.haul.feature.identity.GuestRoutes
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.decodeKompotAction
@@ -31,7 +32,7 @@ import kotlin.test.assertEquals
 
 /** A new guest, through `POST /api/v1/guests`. */
 internal suspend fun HttpClient.guest(): String {
-    val response = post(GuestRoutes.GUESTS)
+    val response = post(GUESTS)
     assertEquals(HttpStatusCode.Created, response.status, response.bodyAsText())
     return haulWireJson.decodeFromString(GuestDto.serializer(), response.bodyAsText()).id
 }
@@ -41,8 +42,8 @@ internal suspend fun HttpClient.putLine(
     skuId: String,
     change: LineChange,
 ): HttpResponse =
-    put(CartRoutes.line(skuId)) {
-        guest?.let { header(GuestRoutes.HEADER, it) }
+    put(CartPaths.line(skuId)) {
+        guest?.let { header(GUEST_HEADER, it) }
         contentType(ContentType.Application.Json)
         setBody(haulWireJson.encodeToString(LineChange.serializer(), change))
     }
@@ -51,8 +52,8 @@ internal suspend fun HttpClient.removeLines(
     guest: String,
     vararg skuIds: String,
 ): HttpResponse =
-    delete(CartRoutes.LINES) {
-        header(GuestRoutes.HEADER, guest)
+    delete(CartPaths.LINES) {
+        header(GUEST_HEADER, guest)
         contentType(ContentType.Application.Json)
         setBody(haulWireJson.encodeToString(LinesRemoval.serializer(), LinesRemoval(skuIds.toList())))
     }
@@ -60,24 +61,24 @@ internal suspend fun HttpClient.removeLines(
 internal suspend fun HttpClient.acknowledge(
     guest: String,
     skuId: String,
-): HttpResponse = post(CartRoutes.acknowledge(skuId)) { header(GuestRoutes.HEADER, guest) }
+): HttpResponse = post(CartPaths.acknowledge(skuId)) { header(GUEST_HEADER, guest) }
 
 internal suspend fun HttpClient.applyPromo(
     guest: String,
     code: String,
 ): HttpResponse =
-    put(CartRoutes.PROMO) {
-        header(GuestRoutes.HEADER, guest)
+    put(CartPaths.PROMO) {
+        header(GUEST_HEADER, guest)
         contentType(ContentType.Application.Json)
         setBody(haulWireJson.encodeToString(PromoEntry.serializer(), PromoEntry(code)))
     }
 
 internal suspend fun HttpClient.removePromo(guest: String): HttpResponse =
-    delete(CartRoutes.PROMO) { header(GuestRoutes.HEADER, guest) }
+    delete(CartPaths.PROMO) { header(GUEST_HEADER, guest) }
 
 /** The Cart tree for [guest]. */
 internal suspend fun HttpClient.cart(guest: String): KompotComponent {
-    val response = get(CartRoutes.SCREEN) { header(GuestRoutes.HEADER, guest) }
+    val response = get(CartPaths.SCREEN) { header(GUEST_HEADER, guest) }
     assertEquals(HttpStatusCode.OK, response.status, response.bodyAsText())
     return haulWireJson.decodeKompotComponent(response.bodyAsText())
 }

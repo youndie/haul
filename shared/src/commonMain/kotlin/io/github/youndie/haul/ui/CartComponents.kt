@@ -9,9 +9,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 // The pieces of the Cart screen (feature-cart). The title is the catalog's `PageTitle`, the empty cart
-// the shared `EmptyState` with a `ProductGrid` of picks. The commands a line or the promo field send
-// are the routes in `feature/cart/CartCommands.kt`; the components carry what those commands need
-// (the SKU id, the quantity bounds) rather than the commands themselves.
+// the shared `EmptyState` with a `ProductGrid` of picks. A command goes where the component says — its
+// `url`, the server's string — with a body from `feature/cart/CartCommands.kt`, and answers `refresh`.
 
 /**
  * One line of the cart: the product tile, the title and the chosen options, the price of the line
@@ -22,6 +21,9 @@ import kotlinx.serialization.Serializable
  * while it is in stock and unchanged; [change] is what changed since it was added («Price changed:
  * now $26», «Out of stock»), and [acknowledgeLabel] the button that accepts it («OK») — `null` on
  * both when nothing changed.
+ *
+ * The stepper and the box send a `LineChange` with `PUT` to [url]; «OK» is a `POST` to [acknowledgeUrl];
+ * «Remove» is `CartSelection.linesUrl` with this [skuId].
  */
 @Serializable
 @SerialName("haul_cart_line")
@@ -45,6 +47,8 @@ public data class CartLine(
     val acknowledgeLabel: String? = null,
     val saveLabel: String = "Save for later",
     val removeLabel: String = "Remove",
+    val url: String,
+    val acknowledgeUrl: String? = null,
     /** Where a tap on the tile or the title goes: the product page. */
     val action: @Polymorphic KompotAction? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
@@ -64,7 +68,8 @@ public data class CartGroup(
 
 /**
  * The row above the groups: «Select all» with its state, and «Delete selected», which deletes the
- * [selectedCount] lines whose box is ticked.
+ * [selectedCount] lines whose box is ticked — a `LinesRemoval` with `DELETE` to [linesUrl]. «Select
+ * all» sets every selectable line through its own `CartLine.url`.
  */
 @Serializable
 @SerialName("haul_cart_selection")
@@ -75,19 +80,21 @@ public data class CartSelection(
     val selectedCount: Int,
     val selectAllLabel: String = "Select all",
     val deleteLabel: String = "Delete selected",
+    val linesUrl: String,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
 /**
  * The promo code field. Empty: [code] `null`. Applied (`Cart_PromoApplied`): [applied] with the
  * [code] and [removeLabel]. Refused (`Cart_PromoError`): the [code] as typed and the [error]
- * («This code has expired»).
+ * («This code has expired»). Apply is a `PromoEntry` with `PUT` to [url], Remove a `DELETE` to it.
  */
 @Serializable
 @SerialName("haul_promo_field")
 @KompotComponentMarker
 public data class PromoField(
     override val id: String,
+    val url: String,
     val code: String? = null,
     val applied: Boolean = false,
     val error: String? = null,

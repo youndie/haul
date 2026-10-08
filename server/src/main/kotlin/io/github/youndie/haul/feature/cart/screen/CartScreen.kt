@@ -1,6 +1,7 @@
 package io.github.youndie.haul.feature.cart.screen
 
 import io.github.youndie.haul.StoreClock
+import io.github.youndie.haul.feature.cart.CartPaths
 import io.github.youndie.haul.feature.cart.domain.CartCommands
 import io.github.youndie.haul.feature.cart.domain.CartOwner
 import io.github.youndie.haul.feature.cart.domain.CartRepository
@@ -62,6 +63,7 @@ internal class CartScreen(
                     id = "selection",
                     allSelected = selectable.isNotEmpty() && selectable.all { it.counted },
                     selectedCount = totals.counted,
+                    linesUrl = CartPaths.LINES,
                 ),
             ) + groups(lines) +
                 listOf(
@@ -106,6 +108,8 @@ internal class CartScreen(
             selectable = selectable(line),
             change = change,
             acknowledgeLabel = if (line.changed) "OK" else null,
+            url = CartPaths.line(line.sku.id),
+            acknowledgeUrl = if (line.changed) CartPaths.acknowledge(line.sku.id) else null,
             action = productLink(line.item.product.id),
         )
     }
@@ -115,15 +119,20 @@ internal class CartScreen(
     private fun promoField(cart: StoredCart): PromoField =
         when {
             cart.promoCode != null -> {
-                PromoField("promo", code = cart.promoCode, applied = true)
+                PromoField("promo", CartPaths.PROMO, code = cart.promoCode, applied = true)
             }
 
             cart.promoAttempt != null && cart.promoError != null -> {
-                PromoField("promo", code = cart.promoAttempt, error = CartCommands.promoMessage(cart.promoError))
+                PromoField(
+                    "promo",
+                    CartPaths.PROMO,
+                    code = cart.promoAttempt,
+                    error = CartCommands.promoMessage(cart.promoError),
+                )
             }
 
             else -> {
-                PromoField("promo")
+                PromoField("promo", CartPaths.PROMO)
             }
         }
 

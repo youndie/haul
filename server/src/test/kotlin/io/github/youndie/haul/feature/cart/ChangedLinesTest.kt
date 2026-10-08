@@ -1,6 +1,7 @@
 package io.github.youndie.haul.feature.cart
 
 import io.github.youndie.haul.ErrorCode
+import io.github.youndie.haul.feature.identity.GUEST_HEADER
 import io.github.youndie.haul.seed.SampleCatalog
 import io.github.youndie.haul.testing.acknowledge
 import io.github.youndie.haul.testing.all
@@ -17,6 +18,8 @@ import io.github.youndie.haul.ui.CartLine
 import io.github.youndie.haul.ui.CartSelection
 import io.github.youndie.haul.ui.OrderSummary
 import io.github.youndie.kompot.KompotComponent
+import io.ktor.client.request.header
+import io.ktor.client.request.post
 import io.ktor.http.HttpStatusCode
 import javax.sql.DataSource
 import kotlin.test.Test
@@ -65,14 +68,16 @@ class ChangedLinesTest {
             assertEquals("$349.00", changed.only<OrderSummary>().total, "the changed line was counted")
             // «Select all» speaks for the lines that can be selected: the headphones are.
             assertEquals(
-                CartSelection("selection", allSelected = true, selectedCount = 1),
+                CartSelection("selection", allSelected = true, selectedCount = 1, linesUrl = "/api/v1/cart/lines"),
                 changed.only<CartSelection>(),
             )
             // Ticking it does not count it either, until the change is accepted.
             putLine(guest, mug, LineChange(selected = true)).assertRefresh()
             assertFalse(cart(guest).line(mug).selected)
 
-            acknowledge(guest, mug).assertRefresh()
+            // «OK» goes where the tree says.
+            assertEquals("/api/v1/cart/lines/$mug/acknowledge", line.acknowledgeUrl)
+            post(line.acknowledgeUrl!!) { header(GUEST_HEADER, guest) }.assertRefresh()
             val accepted = cart(guest)
             assertNull(accepted.line(mug).change)
             assertTrue(accepted.line(mug).selected)

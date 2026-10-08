@@ -4,7 +4,7 @@ import io.github.youndie.haul.feature.cart.domain.CartCommands
 import io.github.youndie.haul.feature.cart.domain.CartError
 import io.github.youndie.haul.feature.cart.domain.CartOwner
 import io.github.youndie.haul.feature.cart.screen.CartScreen
-import io.github.youndie.haul.feature.identity.GuestRoutes
+import io.github.youndie.haul.feature.identity.GUEST_HEADER
 import io.github.youndie.haul.feature.identity.domain.Guests
 import io.github.youndie.haul.feature.identity.domain.IdentityError
 import io.github.youndie.haul.haulWireJson
@@ -33,44 +33,60 @@ internal fun Route.cartRouting() {
     val guests by inject<Guests>()
 
     suspend fun ApplicationCall.owner(): CartOwner {
-        val id = request.headers[GuestRoutes.HEADER]?.trim()?.takeIf { it.isNotEmpty() }
+        val id = request.headers[GUEST_HEADER]?.trim()?.takeIf { it.isNotEmpty() }
         if (id == null || !guests.exists(id)) throw IdentityError.Unauthenticated()
         return CartOwner.Guest(id)
     }
 
     suspend fun ApplicationCall.refresh() = respondKompotAction(haulWireJson, RefreshAction)
 
-    get(CartRoutes.SCREEN) {
+    get(CartPaths.SCREEN) {
         call.respondKompotComponent(haulWireJson, screen.build(call.owner()))
     }
 
-    put(CartRoutes.LINE) {
+    put(CartPaths.LINE) {
         val owner = call.owner()
         commands.changeLine(owner, call.parameters["skuId"]!!, call.body(LineChange.serializer()))
         call.refresh()
     }
 
-    delete(CartRoutes.LINES) {
+    delete(CartPaths.LINES) {
         val owner = call.owner()
         commands.removeLines(owner, call.body(LinesRemoval.serializer()).skuIds)
         call.refresh()
     }
 
-    post(CartRoutes.ACKNOWLEDGE) {
+    post(CartPaths.ACKNOWLEDGE) {
         commands.acknowledge(call.owner(), call.parameters["skuId"]!!)
         call.refresh()
     }
 
-    put(CartRoutes.PROMO) {
+    put(CartPaths.PROMO) {
         val owner = call.owner()
         commands.applyPromo(owner, call.body(PromoEntry.serializer()).code)
         call.refresh()
     }
 
-    delete(CartRoutes.PROMO) {
+    delete(CartPaths.PROMO) {
         commands.removePromo(call.owner())
         call.refresh()
     }
+}
+
+/**
+ * The cart's paths: the server's strings (CLAUDE.md), handed to the client inside the tree
+ * (`CartLine.url`, `CartSelection.linesUrl`, `PromoField.url`) rather than built by it.
+ */
+internal object CartPaths {
+    const val SCREEN = "/ui/cart"
+    const val LINES = "/api/v1/cart/lines"
+    const val LINE = "$LINES/{skuId}"
+    const val ACKNOWLEDGE = "$LINES/{skuId}/acknowledge"
+    const val PROMO = "/api/v1/cart/promo"
+
+    fun line(skuId: String): String = "$LINES/$skuId"
+
+    fun acknowledge(skuId: String): String = "$LINES/$skuId/acknowledge"
 }
 
 /** A command's JSON body; one that does not parse is `400 validation_failed`, with no detail of why. */
