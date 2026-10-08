@@ -1,0 +1,23 @@
+# Versions this repository chooses. Kotlin, Compose Multiplatform, Ktor, Koin and kotlinx come from
+# the conventions' `wip` catalog (settings.gradle.kts), so the compiler moves when the conventions do.
+#
+# A library is added by the item that first needs it, not up front: an entry nothing uses is a version
+# Renovate keeps bumping for nobody.
+
+[versions]
+sborka = "0.5.0.113"
+# A snapshot of kompot's main, as the sibling reference service pins it (research §1.1); kompot-core is
+# what the contract's components are built on.
+kompot = "0.40.0.210"
+logback = "1.5.20"
+
+[libraries]
+ktor-server-core = { module = "io.ktor:ktor-server-core" }
+ktor-server-cio = { module = "io.ktor:ktor-server-cio" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+kompot-core = { module = "io.github.youndie.kompot:kompot-core", version.ref = "kompot" }
+
+[plugins]
+sborkaJvm = { id = "io.github.youndie.sborka.jvm", version.ref = "sborka" }
+sborkaKmp = { id = "io.github.youndie.sborka.kmp", version.ref = "sborka" }
+sborkaLint = { id = "io.github.youndie.sborka.lint", version.ref = "sborka" }

@@ -17,4 +17,4 @@ Feature: `feature-identity` — its scenarios are this item's acceptance where i
 - Not covered: account settings.
 
 - AC: feature-identity scenarios pass against a local shildik; a guest signs in and keeps the cart.
-- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/server/identity/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/identity/`.
+- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/feature/identity/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/`.

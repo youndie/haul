@@ -1,0 +1,13 @@
+.DS_Store
+__pycache__/
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+local.properties
+.kotlin/
+.idea/
+
+# Session artefacts of the agent, including its git worktrees under .claude/worktrees/.
+.claude/

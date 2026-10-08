@@ -17,4 +17,4 @@ Feature: `feature-cart` — its scenarios are this item's acceptance where it na
 - Not covered: the empty cart's recommendations beyond popular products.
 
 - AC: parity for every `Cart_*` artboard.
-- Anchors (planned): `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/cart/`, `composeApp/src/desktopTest/snapshots/design`.
+- Anchors (planned): `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/cart/`, `composeApp/src/desktopTest/snapshots/design`.

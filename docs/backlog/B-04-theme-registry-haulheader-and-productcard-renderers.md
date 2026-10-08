@@ -17,4 +17,4 @@ Feature: `feature-browse` — its scenarios are this item's acceptance where it 
 - Not covered: screen-specific components.
 
 - AC: both components render in desktop screenshot tests from a recorded body; fonts embedded.
-- Anchors (planned): `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/ui/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/theme/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/registry/`.
+- Anchors (planned): `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/theme/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/registry/`.

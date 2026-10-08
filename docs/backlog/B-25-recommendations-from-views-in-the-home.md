@@ -17,4 +17,4 @@ Feature: `feature-recommendations` — its scenarios are this item's acceptance 
 - Not covered: a recommendations service of its own.
 
 - AC: feature-recommendations scenarios pass.
-- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/server/recommendations/`.
+- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/feature/recommendations/`.

@@ -17,4 +17,4 @@ Feature: `feature-orders` — its scenarios are this item's acceptance where it 
 - Not covered in v1.
 
 - AC: the order screen moves to «In transit» without a refresh.
-- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/server/order/`.
+- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/feature/order/`.

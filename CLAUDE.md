@@ -12,10 +12,30 @@ screen, petich for the order, shildik for sign-in, Compose Multiplatform in the 
 3. The layer document the task belongs to — feature, screen, endpoint, service. Until its code
    lands it lives as `status: draft` in the open documentation pull request, not on `main`.
 
+## Modules
+
+| Module | What it is | Targets |
+|---|---|---|
+| `:shared` | the contract: Haul components on the wire, routes, `ErrorCode`, money and time | jvm, wasmJs |
+| `:server` | every screen as a kompot tree, every command, the order saga, the simulators; an `application` | JVM |
+| `:composeApp` | the storefront; `jvm("desktop")` only draws the screenshots | wasmJs, desktop |
+| `:e2e` | the whole path over HTTP against a composed stack | JVM |
+
+One root package everywhere, `io.github.youndie.haul`; a feature lives in `feature/<name>/` in every
+module it touches, and only packages several features import (`db`, `seed`, `di`, `theme`,
+`registry`, `shell`, `ui`) sit at the root (research D3a).
+
+## What runs on every pull request
+
+```bash
+make check                                                                  # the documentation gate
+./gradlew check :server:installDist :composeApp:wasmJsBrowserDistribution  # the code gate
+```
+
 ## Rules
 
 - Code, comments, KDoc, test names, exception messages, commits and pull requests in English;
   documentation in English too (research D10).
 - Commits in Conventional Commits.
 - A change that would make a document a lie changes the document in the same pull request.
-- `make check` before pushing; it is what CI runs.
+- A library is added by the item that first needs it, not up front.

@@ -17,4 +17,4 @@ Feature: `feature-membership` — its scenarios are this item's acceptance where
 - Not covered: real billing.
 
 - AC: feature-membership and «points redeemed» pass; parity for `Home_PlusTrialDialog`, `Account_NotMember`, `Checkout_PointsApplied`.
-- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/server/membership/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/home/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/checkout/`.
+- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/feature/membership/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/home/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/checkout/`.

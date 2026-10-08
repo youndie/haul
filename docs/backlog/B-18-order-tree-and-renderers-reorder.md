@@ -17,4 +17,4 @@ Feature: `feature-orders` — its scenarios are this item's acceptance where it 
 - Not covered: the return dialog (B-21).
 
 - AC: parity for `Order_*` except ReturnDialog and Returned.
-- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/server/order/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/order/`.
+- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/feature/order/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/order/`.

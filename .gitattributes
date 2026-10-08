@@ -1,0 +1,21 @@
+# Line endings, and one of these lines matters more here than it looks.
+#
+# `gradlew.bat` is broken on Windows if its CRLF are normalised away, which is what git announced it
+# would do at the first commit. That is the ordinary reason for this file.
+#
+# **The goldens are the reason it is not ordinary.** This repository's design acceptance is a set of
+# PNG bytes compared within a 0.05 % tolerance; a single byte rewritten by end-of-line normalisation
+# is a diff nobody made, in the one artefact whose whole value is that a diff means something. Git
+# detects binary content on its own and almost always gets it right — "almost always" is not the
+# standard for the files a check compares byte for byte.
+* text=auto
+
+*.bat text eol=crlf
+gradlew text eol=lf
+*.sh text eol=lf
+
+*.png binary
+*.jar binary
+*.ttf binary
+*.pbf binary
+*.pmtiles binary

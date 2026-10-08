@@ -17,4 +17,4 @@ Feature: `feature-product` — its scenarios are this item's acceptance where it
 - Not covered: the review and question dialogs (B-22).
 
 - AC: parity for `Product_*` except the two dialogs.
-- Anchors (planned): `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/product/`.
+- Anchors (planned): `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/product/`.

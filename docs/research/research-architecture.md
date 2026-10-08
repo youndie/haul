@@ -164,6 +164,24 @@ Why: the order rows and the saga's state live in one database; product specifica
 which would be natural in documents, are `jsonb` and SQL aggregation. *Hypothesis:* facet counts on
 the seed stay interactive (measured in B-05).
 
+**Decided in B-02: Exposed over JDBC, with `petich-postgres`.** The two sibling reference services
+run petich on exactly this pair, so the saga's storage is the combination already exercised by
+petich's conformance corpus and by two consumers (§1.1, §1.3); sqlx4k on the JVM would make Haul the
+first consumer of `petich-sqlx4k-postgres` off native, a risk with nothing bought by it. The price:
+JDBC blocks a thread per query, which is what decided the engine below.
+
+**The engine is CIO, for the same reason.** Handlers that block on JDBC need the slack of CIO's
+dispatch through `Dispatchers.IO` (64 workers on the JVM); Netty's call group defaults to the
+processor count, the worst default for blocking handlers. Recorded in `server/build.gradle.kts`.
+
+### D3a. One root package, features under `feature/<name>/` *(decided in B-02)*
+
+Every module uses `io.github.youndie.haul`; a feature has the same directory in each module it
+touches (*feature/catalog* in `shared`, `server` and `composeApp`), and packages several features
+import — `db`, `seed`, `di`, `theme`, `registry`, `shell`, `ui` — sit at the root. A module-specific
+root (`…haul.server`, `…haul.app`) was what the brief's planned paths used; it buys nothing and
+breaks the one `grep` that finds a feature everywhere. The planned anchors were rewritten to match.
+
 ### D4. The order is a petich saga; the outside world is simulated
 
 Decision: placement reserves stock and authorises payment in a saga that compensates (release

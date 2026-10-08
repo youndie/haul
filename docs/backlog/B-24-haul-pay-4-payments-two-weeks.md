@@ -17,4 +17,4 @@ Feature: `feature-membership` — its scenarios are this item's acceptance where
 - Not covered: collections for an overdue plan.
 
 - AC: an instalment order shows its schedule; captures follow it on the simulator clock.
-- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/server/membership/`, `server/src/main/kotlin/io/github/youndie/haul/server/payment/`.
+- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/feature/membership/`, `server/src/main/kotlin/io/github/youndie/haul/feature/payment/`.

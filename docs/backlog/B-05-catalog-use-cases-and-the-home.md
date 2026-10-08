@@ -17,4 +17,4 @@ Feature: `feature-browse` — its scenarios are this item's acceptance where it 
 - Not covered: search (B-09), reviews and questions (B-22).
 
 - AC: feature-browse and feature-product scenarios pass against PostgreSQL.
-- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/server/catalog/`, `shared/src/commonMain/kotlin/io/github/youndie/haul/shared/catalog/`.
+- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/`, `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/catalog/`.

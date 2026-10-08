@@ -46,6 +46,27 @@ jobs:
 
       - uses: youndie/docs-bootstrap@v0.3.11
 
+  # The code gate, beside the documentation one: two jobs, because they fail for unrelated reasons
+  # and a red build should say which half. `ubuntu-latest` because the repository is public, where
+  # GitHub's runners are free; it stops being right if the repository is ever made private.
+  gradle:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # `check` is the target a contributor runs. The server's distribution and the browser bundle
+      # are built too: `check` compiles both and packages neither, and a bundle that only ever
+      # builds on one person's machine is one that stops building quietly.
+      - run: ./gradlew check :server:installDist :composeApp:wasmJsBrowserDistribution --no-daemon
+
   # Separate from the gate, and on a schedule rather than on a pull request, because an anchor rots
   # when somebody refactors a **different** repository. A pull request here is the least likely
   # moment for one to break, and running it there trains people to ignore a red build they did not

@@ -17,4 +17,4 @@ Feature: `feature-reviews` — its scenarios are this item's acceptance where it
 - Not covered: moderation.
 
 - AC: feature-reviews scenarios pass; parity for the remaining `Product_*`.
-- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/server/reviews/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/product/`.
+- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/feature/reviews/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/product/`.

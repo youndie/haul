@@ -17,4 +17,4 @@ Feature: `feature-browse` — its scenarios are this item's acceptance where it 
 - Not covered: per-feature tables beyond what the catalog needs — each feature adds its own migration.
 
 - AC: a fresh database is seeded deterministically (same hash twice); the image starts with its cache accepted.
-- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/server/db/`, `server/src/main/resources/db/migration/`, `server/src/main/kotlin/io/github/youndie/haul/server/seed/`.
+- Anchors (planned): `server/src/main/kotlin/io/github/youndie/haul/db/`, `server/src/main/resources/db/migration/`, `server/src/main/kotlin/io/github/youndie/haul/seed/`.

@@ -17,4 +17,4 @@ Feature: `feature-browse` — its scenarios are this item's acceptance where it 
 - Not covered: the Plus trial dialog (B-23).
 
 - AC: `viddikDesignParity` within tolerance for every `Home_*` and `Catalog_*` artboard.
-- Anchors (planned): `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/home/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/catalog/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/app/shell/`.
+- Anchors (planned): `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/home/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/catalog/`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/`.
