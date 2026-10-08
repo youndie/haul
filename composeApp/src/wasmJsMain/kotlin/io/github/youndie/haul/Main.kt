@@ -2,12 +2,12 @@ package io.github.youndie.haul
 
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
-import io.github.youndie.haul.ui.coilPhotoLoader
 import io.github.youndie.haul.feature.identity.BrowserSessionStore
 import io.github.youndie.haul.feature.identity.Identity
 import io.github.youndie.haul.feature.identity.IdentityApi
 import io.github.youndie.haul.feature.identity.OidcSignInFlow
 import io.github.youndie.haul.shell.Trees
+import io.github.youndie.haul.ui.coilPhotoLoader
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.js.Js
 import kotlinx.browser.document
