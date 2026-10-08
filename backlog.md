@@ -44,7 +44,7 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-06](docs/backlog/B-06-home-catalog-product-pngs.md) `[ ]` | design refs: `Home_*`, `Catalog_*`, `Product_*` PNGs | P1 | S | B-01 |
+| [B-06](docs/backlog/B-06-home-catalog-product-pngs.md) `[~]` | design refs: `Home_*`, `Catalog_*`, `Product_*` PNGs | P1 | S | B-01 |
 | [B-07](docs/backlog/B-07-renderers-for-the-home-and-catalog.md) `[ ]` | client: renderers for the Home and Catalog components; Loading / Error shells | P1 | L | B-05, B-06 |
 | [B-08](docs/backlog/B-08-renderers-for-the-product-components.md) `[ ]` | client: renderers for the Product components (without the dialogs) | P1 | L | B-05, B-06 |
 | [B-09](docs/backlog/B-09-search-suggest-recent-searches-suggest-latency.md) `[ ]` | server: search, suggest, recent searches; suggest latency measured on the seed | P1 | M | B-05 |

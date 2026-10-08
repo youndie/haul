@@ -1,7 +1,7 @@
 ---
 id: B-06
 title: "design refs: `Home_*`, `Catalog_*`, `Product_*` PNGs"
-status: open
+status: wip
 priority: P1
 size: S
 stage: stage-2-browse
