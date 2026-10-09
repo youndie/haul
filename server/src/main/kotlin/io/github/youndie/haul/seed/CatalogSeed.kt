@@ -20,7 +20,10 @@ internal object CatalogSeed {
     /** 2025-10-07 19:47:23 in New York, a Tuesday: the moment every artboard shows (research §1.6). */
     val NOW: OffsetDateTime = OffsetDateTime.parse("2025-10-07T19:47:23-04:00")
 
-    /** Deals of the day end at local midnight (research D7). */
+    /** Deals of the day open at the canvas's day's local midnight (B-57)… */
+    val DEALS_START: OffsetDateTime = OffsetDateTime.parse("2025-10-07T00:00:00-04:00")
+
+    /** …and end at the next (research D7). */
     val DEALS_END: OffsetDateTime = OffsetDateTime.parse("2025-10-08T00:00:00-04:00")
 
     private const val RANDOM_SEED = 20251007
@@ -51,7 +54,7 @@ internal object CatalogSeed {
             listOf(SampleCatalog.SONY_DEAL) +
                 DEAL_PICKS.mapIndexed { i, pick ->
                     val sku = skus.first { it.productId == products[pick].id }
-                    SeedDeal("deal-${i + 2}", sku.id, sku.priceCents * DEAL_PERCENT / 100, DEALS_END)
+                    SeedDeal("deal-${i + 2}", sku.id, sku.priceCents * DEAL_PERCENT / 100, DEALS_START, DEALS_END)
                 }
         return SeedCatalog(
             categories,

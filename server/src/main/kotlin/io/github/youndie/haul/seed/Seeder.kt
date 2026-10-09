@@ -120,6 +120,7 @@ internal object Seeder {
                 this[DealsTable.id] = it.id
                 this[DealsTable.skuId] = it.skuId
                 this[DealsTable.priceCents] = it.priceCents
+                this[DealsTable.startsAt] = it.startsAt
                 this[DealsTable.endsAt] = it.endsAt
             }
             PromoCodesTable.batchInsert(catalog.promoCodes) {

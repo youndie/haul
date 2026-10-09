@@ -552,7 +552,7 @@ The canvas contradicted itself in three places and left one promise unbacked; th
 - **The price at saving is the product's**, not a SKU's: the cheapest SKU in stock then — the price its card shows —
   or the cheapest at all when none is. A product has **dropped** when its cheapest SKU in stock now is below that
   price; the mark is the difference («Price dropped −$200»), and a product with nothing in stock has not dropped,
-  whatever its price. Deals of the day do not count: a card shows the SKU's own price everywhere but the deals.
+  whatever its price. A live deal counts like any price: it is the SKU's price wherever the SKU is read (B-57).
 - **The page is an account page**, `/account/saved` (`StorefrontPage.Saved`, tree `GET /ui/account/saved`), the
   account's `AccountBody` with «Saved» and the count in its pill, selected in the menu — the address the screen
   document and the canvas's `Saved_Error` name, beside `/account/orders`. Newest first, 24 to a page; the filter and
@@ -699,6 +699,23 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   campaign is over on the stand's wall clock, so the stand's prices did not move.
 - **Nothing is cached between viewers**: every tree is built per request for its caller, and none is marked for a
   shared cache.
+
+**Decided in B-57, a deal's price is what the cart charges.**
+
+- **A deal is a price of its SKU for a window**: live from `deals.starts_at` up to, not including, `deals.ends_at` on
+  the store's clock. V1 gave a deal only its end; `V27__deal_windows.sql` adds the start, and a deal written before it
+  is a deal of the day (D7), opening a day before its end. The seed opens the canvas's deals at the canvas's day's
+  midnight (`CatalogSeed.DEALS_START`), the instant the Autumn mega sale starts.
+- **The same rule prices it** (`CampaignPricing.priced`): a live deal below the price the SKU would otherwise sell at —
+  the campaign's when the campaign is open for the viewer, the regular one otherwise — is the SKU's price, with the
+  price it beats struck through; a deal at or above it changes nothing, so a deal and a campaign on one SKU sell at
+  the lower of the two. The catalog repository reads a SKU's deals with its campaign, so the deal card, every other
+  card of the product, the product page, search, the Saved list's drops, the cart, the quote and placement read one
+  price. The deal card is the deal's SKU as the catalog prices it; the five generated deals are drawn as before — 70 %
+  of the SKU's price under that price — and now charged so; the Sony deal is the sale's own $349 under $449.
+- **An ended deal is gone**: `CatalogRepository.deals()` returns the deals live on the store's clock, so its card
+  leaves the home page, the deals page and the empty cart's picks, and its SKU sells at its campaign or regular price
+  again; a line put into a cart at the deal's price is then a changed price (B-11's rule).
 
 **How the stand is built (B-27).** One image serves the page and the API: the server's distribution
 carries the browser bundle and serves it at `/`, so the two cannot be deployed at different versions
@@ -1083,7 +1100,7 @@ The names go into the code unchanged.
 | `Product` | server id | `Seller` | title, brand, listing name (what cards, cart lines and order lines write; the title when unset, B-45), category, description, specifications, rating summary |
 | `Sku` | server id | `Product` | one combination of options (colour × bundle); price, old price, stock; the campaign whose price it is (B-53) |
 | `Campaign` | slug | — | home banners and sale windows; a Plus early-access start |
-| `Deal` | server id | `Sku` | a price that ends at a fixed instant |
+| `Deal` | server id | `Sku` | a price of its SKU for a window, `starts_at` to `ends_at` (B-57) |
 | `Customer` | the shildik `sub` claim | — | name, Plus membership, points balance |
 | `Guest` | server-issued id | — | owns a cart until sign-in |
 | `Address` | server id | `Customer` | street, apt, city, ZIP, door code, courier note |

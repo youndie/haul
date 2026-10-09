@@ -9,6 +9,7 @@ import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.isNull
+import org.jetbrains.exposed.v1.core.less
 import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.javatime.timestampWithTimeZone
@@ -121,7 +122,14 @@ internal object DealsTable : Table("deals") {
     val skuId = text("sku_id").references(SkusTable.id)
     val priceCents = integer("price_cents")
     val endsAt = timestampWithTimeZone("ends_at")
+
+    // V27 (B-57): where the deal's window opens; it closes at [endsAt]. The check is V27's.
+    val startsAt = timestampWithTimeZone("starts_at")
     override val primaryKey = PrimaryKey(id)
+
+    init {
+        check("deals_window_check") { startsAt less endsAt }
+    }
 }
 
 /** Every catalog table, parents before children: the order a seed inserts in. */
