@@ -1,7 +1,7 @@
 package io.github.youndie.haul.feature.catalog
 
-import io.github.youndie.haul.feature.catalog.domain.CampaignOpening
 import io.github.youndie.haul.feature.catalog.domain.CampaignPricing
+import io.github.youndie.haul.feature.catalog.domain.CampaignWindow
 import io.github.youndie.haul.feature.catalog.domain.Deal
 import io.github.youndie.haul.feature.catalog.domain.PriceList
 import io.github.youndie.haul.feature.catalog.domain.Sku
@@ -10,22 +10,24 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 /**
- * The rule every price passes through (B-53, B-57), at its edges: a campaign's SKU is at its regular price
- * with nothing struck through until the campaign opens for the list — at the early-access start for
- * Plus, at the start for everybody — and at the campaign's price from that instant on; a deal is the SKU's
- * price inside its window when it is below the price it would otherwise sell at, over that price.
+ * The rule every price passes through (B-53, B-57, B-58), at its edges: a campaign's SKU is at its regular
+ * price with nothing struck through until the campaign opens for the list — at the early-access start for
+ * Plus, at the start for everybody — at the campaign's price from that instant up to its end, and at the
+ * regular price again from the end on, for everybody; a deal is the SKU's price inside its window when it is
+ * below the price it would otherwise sell at, over that price.
  */
 class CampaignPricingTest {
     private val sale = Sku("p-1-0", "p-1", 0, emptyMap(), priceCents = 34_900, oldPriceCents = 44_900, stock = 3)
     private val regular = sale.copy(priceCents = 44_900, oldPriceCents = null)
     private val early = OffsetDateTime.parse("2025-10-06T00:00:00-04:00")
     private val start = OffsetDateTime.parse("2025-10-07T00:00:00-04:00")
-    private val opening = CampaignOpening(start, early)
+    private val end = OffsetDateTime.parse("2025-10-15T00:00:00-04:00")
+    private val window = CampaignWindow(start, end, early)
 
     private fun at(
         prices: PriceList,
         instant: OffsetDateTime,
-        campaign: CampaignOpening? = opening,
+        campaign: CampaignWindow? = window,
         deals: List<Deal> = emptyList(),
     ): Sku = CampaignPricing.priced(sale, campaign, deals, prices, instant)
 
@@ -61,10 +63,34 @@ class CampaignPricingTest {
         assertEquals(sale, at(PriceList.Plus, start))
     }
 
+    /**
+     * A campaign's prices end at its end, for everybody: up to the instant before it the campaign's price, from
+     * it the regular one with nothing struck through — a member's early access opens the sale sooner and keeps
+     * it no longer (B-58).
+     */
+    @Test
+    fun `from its end the campaign price is gone for everybody`() {
+        assertEquals(sale, at(PriceList.Public, end.minusSeconds(1)))
+        assertEquals(sale, at(PriceList.Plus, end.minusSeconds(1)))
+        assertEquals(regular, at(PriceList.Public, end))
+        assertEquals(regular, at(PriceList.Plus, end))
+        assertEquals(regular, at(PriceList.Plus, end.plusDays(30)))
+    }
+
+    /**
+     * A deal that outlives its campaign beats the regular price the SKU is back at, and strikes that through
+     * rather than the campaign's price that no longer holds.
+     */
+    @Test
+    fun `a deal after the campaign ends beats the regular price`() {
+        val after = listOf(Deal("deal-after", sale.id, 39_900, end, end.plusDays(1)))
+        assertEquals(sale.copy(priceCents = 39_900, oldPriceCents = 44_900), at(PriceList.Plus, end, deals = after))
+    }
+
     /** A campaign with no early access opens to a member at its start, like to everybody. */
     @Test
     fun `a campaign without early access opens to a member at its start`() {
-        val plain = CampaignOpening(start, plusEarlyAccessAt = null)
+        val plain = CampaignWindow(start, end, plusEarlyAccessAt = null)
         assertEquals(regular, at(PriceList.Plus, early, plain))
         assertEquals(sale, at(PriceList.Plus, start, plain))
     }
@@ -107,7 +133,7 @@ class CampaignPricingTest {
     @Test
     fun `a deal before the campaign opens beats the regular price`() {
         val live = OffsetDateTime.parse("2025-10-07T12:00:00-04:00")
-        val late = CampaignOpening(OffsetDateTime.parse("2025-10-09T00:00:00-04:00"), plusEarlyAccessAt = null)
+        val late = CampaignWindow(OffsetDateTime.parse("2025-10-09T00:00:00-04:00"), end, plusEarlyAccessAt = null)
         assertEquals(
             sale.copy(priceCents = 39_900, oldPriceCents = 44_900),
             at(PriceList.Public, live, late, listOf(deal(39_900))),

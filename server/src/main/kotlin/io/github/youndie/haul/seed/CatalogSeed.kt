@@ -1,10 +1,14 @@
 package io.github.youndie.haul.seed
 
+import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.OffsetDateTime
+import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 import kotlin.random.Random
 
 /**
@@ -15,6 +19,12 @@ import kotlin.random.Random
  * every machine: one [Random] with a fixed seed, consumed in one fixed order, and no clock — every
  * instant is derived from [NOW], the canvas's «now». A seed that differs between two runs makes every
  * screenshot and every scenario that reads it a coin toss.
+ *
+ * **The one exception is the sale's calendar** (B-58): the campaigns' and the deals' windows are the
+ * canvas's, moved to the day [generate] is given — the canvas's day [CANVAS_DAY] in every test, so each row
+ * is the canvas's, and the store's day on a stand, so a stand seeded today opens the Autumn mega sale and
+ * the deals of the day today, as the canvas does on Oct 7. Only the windows move; prices, products and every
+ * other date stay the canvas's.
  */
 internal object CatalogSeed {
     /** 2025-10-07 19:47:23 in New York, a Tuesday: the moment every artboard shows (research §1.6). */
@@ -26,11 +36,18 @@ internal object CatalogSeed {
     /** …and end at the next (research D7). */
     val DEALS_END: OffsetDateTime = OffsetDateTime.parse("2025-10-08T00:00:00-04:00")
 
+    /** The canvas's day in the store's zone, Oct 7, 2025: the day the tests seed the sale for (B-58). */
+    val CANVAS_DAY: LocalDate = NOW.atZoneSameInstant(DeliveryCalendar.STORE).toLocalDate()
+
+    /** The store's day at [now]: the day a stand seeds the sale for. */
+    fun dayOf(now: ZonedDateTime): LocalDate = now.withZoneSameInstant(DeliveryCalendar.STORE).toLocalDate()
+
     private const val RANDOM_SEED = 20251007
     private const val PRODUCTS_PER_LEAF = 15
     private const val GENERATED_SELLERS = 38
 
-    fun generate(): SeedCatalog {
+    /** The catalog, its sale dated from [day] (the canvas's day: [CANVAS_DAY]). */
+    fun generate(day: LocalDate): SeedCatalog {
         val random = Random(RANDOM_SEED)
         val categories = categories()
         val sellers = SampleCatalog.sellers + generatedSellers(random)
@@ -51,17 +68,27 @@ internal object CatalogSeed {
         }
 
         val deals =
-            listOf(SampleCatalog.SONY_DEAL) +
-                DEAL_PICKS.mapIndexed { i, pick ->
-                    val sku = skus.first { it.productId == products[pick].id }
-                    SeedDeal("deal-${i + 2}", sku.id, sku.priceCents * DEAL_PERCENT / 100, DEALS_START, DEALS_END)
-                }
+            (
+                listOf(SampleCatalog.SONY_DEAL) +
+                    DEAL_PICKS.mapIndexed { i, pick ->
+                        val sku = skus.first { it.productId == products[pick].id }
+                        SeedDeal("deal-${i + 2}", sku.id, sku.priceCents * DEAL_PERCENT / 100, DEALS_START, DEALS_END)
+                    }
+            ).map { it.copy(startsAt = it.startsAt.on(day), endsAt = it.endsAt.on(day)) }
+        val campaigns =
+            SampleCatalog.campaigns.map {
+                it.copy(
+                    startsAt = it.startsAt.on(day),
+                    endsAt = it.endsAt.on(day),
+                    plusEarlyAccessAt = it.plusEarlyAccessAt?.on(day),
+                )
+            }
         return SeedCatalog(
             categories,
             sellers,
             products,
             inCampaigns(skus),
-            SampleCatalog.campaigns,
+            campaigns,
             deals,
             SamplePromoCodes.all,
             SampleCustomers.all,
@@ -76,6 +103,17 @@ internal object CatalogSeed {
             openingPoints = SampleCustomers.openingPoints,
             views = SampleViews.mayas,
         )
+    }
+
+    /**
+     * This canvas instant on [day]: moved by the whole store days between [CANVAS_DAY] and [day] at the same
+     * local time, so a midnight stays the store's midnight across a change of clocks (the canvas's October
+     * offset is −04:00, a January day's −05:00). On the canvas's day it is the instant itself.
+     */
+    private fun OffsetDateTime.on(day: LocalDate): OffsetDateTime {
+        val days = ChronoUnit.DAYS.between(CANVAS_DAY, day)
+        if (days == 0L) return this
+        return atZoneSameInstant(DeliveryCalendar.STORE).plusDays(days).toOffsetDateTime()
     }
 
     /**

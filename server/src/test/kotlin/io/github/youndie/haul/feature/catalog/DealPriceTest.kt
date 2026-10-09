@@ -64,7 +64,7 @@ import kotlin.test.assertTrue
  */
 class DealPriceTest {
     private val sam by lazy { ShildikHarness.accessToken(ShildikHarness.person("Sam Ortiz", SampleCustomers.SAM)) }
-    private val seed = CatalogSeed.generate()
+    private val seed = CatalogSeed.generate(CatalogSeed.CANVAS_DAY)
 
     /** The store's «now», which a test moves past the deals' end; the canvas's by default. */
     private class MovingClock(
@@ -85,13 +85,14 @@ class DealPriceTest {
         return haulWireJson.decodeKompotComponent(response.bodyAsText())
     }
 
-    /** The home page's deal cards. */
+    /** The home page's deal cards; none when no deal is live and the section is not drawn (B-58). */
     private suspend fun HttpClient.dealCards(): List<ProductCard> =
         page("/ui/home")
             .all()
             .filterIsInstance<ProductGrid>()
-            .single { it.id == "deals" }
-            .cards
+            .singleOrNull { it.id == "deals" }
+            ?.cards
+            .orEmpty()
 
     private suspend fun HttpClient.dealCard(deal: SeedDeal): ProductCard =
         dealCards().single { it.add?.url == CartPaths.line(deal.skuId) }

@@ -36,7 +36,7 @@ internal object SeededDatabase {
     val dataSource: DataSource by lazy {
         PostgresHarness.freshDatabase().also {
             check(
-                Seeder.seedIfEmpty(Databases.connect(it), CatalogSeed.generate()),
+                Seeder.seedIfEmpty(Databases.connect(it), CatalogSeed.generate(CatalogSeed.CANVAS_DAY)),
             )
         }
     }
@@ -87,7 +87,7 @@ internal fun haulTest(
 /** A database of its own, migrated and seeded: for a test that writes to the catalog. */
 internal fun seededFreshDatabase(): HikariDataSource =
     PostgresHarness.freshDatabase().also {
-        check(Seeder.seedIfEmpty(Databases.connect(it), CatalogSeed.generate()))
+        check(Seeder.seedIfEmpty(Databases.connect(it), CatalogSeed.generate(CatalogSeed.CANVAS_DAY)))
     }
 
 internal suspend fun HttpClient.tree(path: String): KompotComponent {

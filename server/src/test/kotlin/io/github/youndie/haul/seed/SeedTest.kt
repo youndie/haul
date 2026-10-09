@@ -19,8 +19,8 @@ class SeedTest {
         val first = PostgresHarness.freshDatabase()
         val second = PostgresHarness.freshDatabase()
 
-        assertTrue(Seeder.seedIfEmpty(Databases.connect(first), CatalogSeed.generate()))
-        assertTrue(Seeder.seedIfEmpty(Databases.connect(second), CatalogSeed.generate()))
+        assertTrue(Seeder.seedIfEmpty(Databases.connect(first), CatalogSeed.generate(CatalogSeed.CANVAS_DAY)))
+        assertTrue(Seeder.seedIfEmpty(Databases.connect(second), CatalogSeed.generate(CatalogSeed.CANVAS_DAY)))
 
         val digest = SeedDigest.of(first)
         assertEquals(digest, SeedDigest.of(second), "two seeds of a fresh database differ")
@@ -37,17 +37,20 @@ class SeedTest {
     fun `a second seed of the same database inserts nothing`() {
         val dataSource = PostgresHarness.freshDatabase()
         val database = Databases.connect(dataSource)
-        assertTrue(Seeder.seedIfEmpty(database, CatalogSeed.generate()))
+        assertTrue(Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY)))
         val digest = SeedDigest.of(dataSource)
 
-        assertFalse(Seeder.seedIfEmpty(database, CatalogSeed.generate()), "the second seed reported inserting")
+        assertFalse(
+            Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY)),
+            "the second seed reported inserting",
+        )
         assertEquals(digest, SeedDigest.of(dataSource), "the second seed changed the catalog")
     }
 
     /** The sample data of research §6 is what every artboard shows; the generator must not lose it. */
     @Test
     fun `the generated catalog carries the sample products at their canvas prices`() {
-        val catalog = CatalogSeed.generate()
+        val catalog = CatalogSeed.generate(CatalogSeed.CANVAS_DAY)
         val headphones = catalog.skus.first { it.id == "${SampleCatalog.SONY_HEADPHONES}-0" }
         assertEquals(34_900, headphones.priceCents)
         assertEquals(44_900, headphones.oldPriceCents)

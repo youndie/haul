@@ -18,39 +18,39 @@ internal enum class PriceList {
 }
 
 /**
- * When a campaign's prices open: at [startsAt] for everybody, and at [plusEarlyAccessAt] for a Plus
- * member when the campaign has one (the trial dialog's «Early access to sales»).
+ * When a campaign's prices hold: from [startsAt] for everybody, and from [plusEarlyAccessAt] for a Plus
+ * member when the campaign has one (the trial dialog's «Early access to sales»); up to, not including,
+ * [endsAt] for everybody (B-58) — early access opens a sale sooner, it does not keep it longer.
  */
-internal data class CampaignOpening(
+internal data class CampaignWindow(
     val startsAt: OffsetDateTime,
+    val endsAt: OffsetDateTime,
     val plusEarlyAccessAt: OffsetDateTime?,
 ) {
-    fun openFor(
+    fun liveFor(
         prices: PriceList,
         at: OffsetDateTime,
     ): Boolean {
         val opens = if (prices == PriceList.Plus) plusEarlyAccessAt ?: startsAt else startsAt
-        return !at.isBefore(opens)
+        return !at.isBefore(opens) && at.isBefore(endsAt)
     }
 }
 
 /**
- * The one rule every price passes through (B-53, B-57). A SKU of a campaign is stored at the campaign's
- * price, with its regular price as the old one (`skus.campaign_slug`, V26); until the campaign is open for
- * [prices] the SKU is at that regular price, with nothing struck through. A deal live at [at] is a price of
+ * The one rule every price passes through (B-53, B-57, B-58). A SKU of a campaign is stored at the campaign's
+ * price, with its regular price as the old one (`skus.campaign_slug`, V26); outside the campaign's window for
+ * [prices] — before it opens, and from its end on — the SKU is at that regular price, with nothing struck
+ * through. A deal live at [at] is a price of
  * its SKU too: when it is below the price the SKU would otherwise sell at — the campaign's or the regular
  * one — it is the SKU's price, and the price it beats is struck through; a deal at or above that price
  * changes nothing, so a deal and a campaign on one SKU sell at the lower of the two. A card, the product
  * page, the cart and the quote therefore all read the price the viewer may buy at, and placement charges
  * what the quote showed. A SKU in no campaign and with no live deal is as stored.
- *
- * Only a campaign's opening is read, not its end: no item has decided what a campaign's prices do once it
- * is over, and every seeded campaign is over on the stand's clock (B-53's findings, B-58).
  */
 internal object CampaignPricing {
     fun priced(
         sku: Sku,
-        campaign: CampaignOpening?,
+        campaign: CampaignWindow?,
         deals: List<Deal>,
         prices: PriceList,
         at: OffsetDateTime,
@@ -64,11 +64,11 @@ internal object CampaignPricing {
 
     private fun inCampaign(
         sku: Sku,
-        campaign: CampaignOpening?,
+        campaign: CampaignWindow?,
         prices: PriceList,
         at: OffsetDateTime,
     ): Sku {
-        if (campaign == null || campaign.openFor(prices, at)) return sku
+        if (campaign == null || campaign.liveFor(prices, at)) return sku
         val regular = sku.oldPriceCents ?: return sku
         return sku.copy(priceCents = regular, oldPriceCents = null)
     }

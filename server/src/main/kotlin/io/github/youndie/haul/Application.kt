@@ -33,8 +33,12 @@ public fun main() {
     log.info(if (photoStore == null) "no object storage: placeholder tiles only" else "photos in {}", config.photos)
     if (config.seed) {
         val database = Databases.connect(dataSource)
-        val seeded = Seeder.seedIfEmpty(database, CatalogSeed.generate())
-        log.info(if (seeded) "catalog seeded" else "catalog already present, not seeded")
+        // The sale is dated from the store's day (B-58): a stand seeded today has the canvas's sale today.
+        val day = CatalogSeed.dayOf(clock.now())
+        val catalog = CatalogSeed.generate(day)
+        val seeded = Seeder.seedIfEmpty(database, catalog)
+        log.info(if (seeded) "catalog seeded, its sale from {}" else "catalog already present, not seeded", day)
+        if (!seeded && Seeder.redateSale(database, catalog)) log.info("the sample sale had ended: moved to {}", day)
         photoStore?.let { seedPhotos(database, it) }
     }
 

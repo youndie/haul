@@ -24,13 +24,13 @@ class SeedLoyaltyTest {
     fun `a database seeded before the ledger gets Maya's membership and points once`() {
         val dataSource = PostgresHarness.freshDatabase()
         val database = Databases.connect(dataSource)
-        Seeder.seedIfEmpty(database, CatalogSeed.generate())
+        Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY))
         transaction(database) {
             PointsEntriesTable.deleteAll()
             MembershipsTable.deleteAll()
         }
 
-        assertFalse(Seeder.seedIfEmpty(database, CatalogSeed.generate()), "the catalog was there")
+        assertFalse(Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY)), "the catalog was there")
         val ledger = ExposedPointsLedger(database)
         runBlocking {
             assertEquals(2_480, ledger.balance(SampleCustomers.MAYA))
@@ -41,7 +41,7 @@ class SeedLoyaltyTest {
             ledger.redeem(PointsMovement.redeemed(SampleCustomers.MAYA, "HL-1", 2_480, CatalogSeed.NOW))
         }
 
-        Seeder.seedIfEmpty(database, CatalogSeed.generate())
+        Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY))
         assertEquals(0, runBlocking { ledger.balance(SampleCustomers.MAYA) }, "the opening balance is not seeded twice")
     }
 }

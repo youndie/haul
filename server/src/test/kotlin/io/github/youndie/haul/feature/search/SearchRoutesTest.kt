@@ -28,7 +28,7 @@ import kotlin.test.assertTrue
 
 /** feature-search's scenarios, against the seeded catalog in PostgreSQL. */
 class SearchRoutesTest {
-    private val catalog = CatalogSeed.generate()
+    private val catalog = CatalogSeed.generate(CatalogSeed.CANVAS_DAY)
 
     /** Scenario «Typing suggests». */
     @Test

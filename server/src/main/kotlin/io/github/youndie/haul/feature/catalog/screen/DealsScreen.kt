@@ -16,8 +16,9 @@ import io.github.youndie.kompot.KompotComponent
 
 /**
  * `/ui/deals` (B-37): where «Deals», «View all deals», «Shop the sale» and the empty cart's «See today's
- * deals» go. On the first page today's deals with their countdown, as on the home page; then everything
- * on sale — a shown price under its old one — the deepest discount first, paged like a category.
+ * deals» go. On the first page today's deals with their countdown, as on the home page, while a deal is
+ * live (B-58: with none, no section); then everything on sale — a shown price under its old one — the
+ * deepest discount first, paged like a category.
  *
  * Built from the components the other screens draw; no artboard draws this page (B-37's findings).
  */
@@ -43,16 +44,10 @@ internal class DealsScreen(
         val shown = paged(onSale, page)
         val sections = mutableListOf<KompotComponent>()
         sections += PageTitle("title", "Deals", "${count(onSale.size)} items on sale")
-        if (shown.page == 1) {
-            sections +=
-                SectionHeader(
-                    "deals-title",
-                    "Deals of the day",
-                    countdownEndsAt = calendar.midnight(),
-                    accent = "day",
-                )
-            sections +=
-                ProductGrid("deals", dealCards(catalog, calendar, photos, viewer), columns = DEAL_COLUMNS)
+        val deals = if (shown.page == 1) dealsOfTheDay(catalog, calendar, photos, viewer) else null
+        if (deals != null) {
+            sections += SectionHeader("deals-title", "Deals of the day", countdownEndsAt = deals.endsAt, accent = "day")
+            sections += ProductGrid("deals", deals.cards, columns = DEAL_COLUMNS)
         }
         sections += SectionHeader("sale-title", "On sale", accent = "sale")
         sections +=

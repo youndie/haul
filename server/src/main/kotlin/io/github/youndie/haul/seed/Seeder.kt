@@ -22,6 +22,8 @@ import io.github.youndie.haul.feature.reviews.data.ReviewsTable
 import io.github.youndie.haul.feature.saved.data.SavedItemsTable
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.batchInsert
@@ -30,6 +32,7 @@ import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 
 /**
  * Inserts a [SeedCatalog] into an empty catalog, once.
@@ -215,6 +218,52 @@ internal object Seeder {
                 this[QuestionsTable.answeredAt] = it.answeredAt
             }
             seedLoyalty(catalog)
+            true
+        }
+
+    /**
+     * Moves the sample sale to [catalog]'s day on a catalogue seeded on an earlier one (B-58), and returns
+     * whether it did. [seedIfEmpty] writes a fresh catalogue's sale for the day it seeds, but a stand keeps
+     * its database across deploys, and its sale — a day of deals inside an eight-day campaign — would be over
+     * for good a week after the first start.
+     *
+     * The sample sale is the seed's own rows and nothing else: the campaigns by their slug, the deals by
+     * their id **and** their SKU; any other campaign or deal is not read. They move only when every sample
+     * deal has ended by the start of [catalog]'s deals — never in the middle of a live deal, so a price on
+     * screen does not change under a restart, and at most once a day — and then all of them at once, to
+     * exactly the windows a fresh seed on that day writes. Prices, carts and orders are not touched: a cart
+     * line put in at an ended price is a changed price, as any price is (B-11).
+     *
+     * Called by `main` only when it seeds (`HAUL_SEED`): a database that was never seeded is never re-dated.
+     * Takes the seeding lock, so replicas starting together re-date once.
+     */
+    fun redateSale(
+        database: Database,
+        catalog: SeedCatalog,
+    ): Boolean =
+        transaction(database) {
+            exec("SELECT pg_advisory_xact_lock($LOCK_KEY)")
+            val opens = catalog.deals.minOf { it.startsAt }
+            val seeded = catalog.deals.map { it.id to it.skuId }.toSet()
+            val sample =
+                DealsTable
+                    .selectAll()
+                    .where { DealsTable.id inList catalog.deals.map { it.id } }
+                    .filter { (it[DealsTable.id] to it[DealsTable.skuId]) in seeded }
+            if (sample.isEmpty() || sample.any { it[DealsTable.endsAt].isAfter(opens) }) return@transaction false
+            catalog.campaigns.forEach { campaign ->
+                CampaignsTable.update({ CampaignsTable.slug eq campaign.slug }) {
+                    it[startsAt] = campaign.startsAt
+                    it[endsAt] = campaign.endsAt
+                    it[plusEarlyAccessAt] = campaign.plusEarlyAccessAt
+                }
+            }
+            catalog.deals.forEach { deal ->
+                DealsTable.update({ (DealsTable.id eq deal.id) and (DealsTable.skuId eq deal.skuId) }) {
+                    it[startsAt] = deal.startsAt
+                    it[endsAt] = deal.endsAt
+                }
+            }
             true
         }
 

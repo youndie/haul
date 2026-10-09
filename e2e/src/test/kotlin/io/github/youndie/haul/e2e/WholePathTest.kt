@@ -21,6 +21,7 @@ import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HistoryStatusKind
 import io.github.youndie.haul.ui.OrderBody
 import io.github.youndie.haul.ui.ProductDetails
+import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.ReturnForm
 import io.github.youndie.kompot.standard.CloseAction
 import io.github.youndie.kompot.standard.PresentAction
@@ -66,6 +67,15 @@ class WholePathTest {
         val (card, productAddress) =
             step("browse from the home to a category and a product") {
                 val home = shop.page("/")
+                // The image seeds its sale for the store's day it starts on (B-58): on the wall clock the home
+                // page draws live deals, each under the price it beats, as the canvas does on its day. Only a run
+                // that crosses New York's midnight between the seed and this page would find none.
+                val deals =
+                    assertNotNull(
+                        home.all(ProductGrid.serializer()).singleOrNull { it.id == "deals" },
+                        "the stand's home page draws no deal of the day",
+                    )
+                assertTrue(deals.cards.isNotEmpty() && deals.cards.all { it.oldPrice != null }, "a deal beats no price")
                 val tile = home.one(CategoryGrid.serializer()).tiles.first()
                 val category = shop.page(tile.action.deeplink("the home's tile «${tile.name}»"))
                 val grid =
