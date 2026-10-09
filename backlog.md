@@ -40,7 +40,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (7)
+## Open (6)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -48,11 +48,10 @@ A stage is a field on the item, not a directory.
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 | [B-45](docs/backlog/B-45-a-product-s-listing-name.md) `[ ]` | server: a product's listing name, as cards, cart and orders write it | P3 | S | B-18 |
 | [B-53](docs/backlog/B-53-plus-members-see-campaign-prices-early.md) `[ ]` | server: Plus members see campaign prices early | P3 | S | B-23 |
-| [B-54](docs/backlog/B-54-the-filter-sheet-stays-open-while-filtering.md) `[ ]` | client: the filter sheet stays open while filtering | P3 | S | B-49 |
 | [B-55](docs/backlog/B-55-the-order-page-names-the-card-refund.md) `[ ]` | server: the order page names what the card gets back | P3 | S | B-50 |
 | [B-56](docs/backlog/B-56-placement-moves-the-order-page-live.md) `[ ]` | server: placement moves the order page live | P3 | S | B-29 |
 
-## Closed (49)
+## Closed (50)
 
 **Skeleton**
 
@@ -89,6 +88,7 @@ A stage is a field on the item, not a directory.
 - [B-47](docs/backlog/B-47-a-sign-in-that-fails-with-a-js-error.md) `[x]` - client: a sign-in that fails with a browser error ends as not gone through
 - [B-48](docs/backlog/B-48-the-product-page-adds-to-cart-and-buys-now.md) `[x]` - server + client: the product page adds to cart and buys now
 - [B-49](docs/backlog/B-49-the-last-drawn-controls-without-actions.md) `[x]` - server + client: the last drawn controls without actions
+- [B-54](docs/backlog/B-54-the-filter-sheet-stays-open-while-filtering.md) `[x]` - client: the filter sheet stays open while filtering
 
 **Checkout and orders**
 

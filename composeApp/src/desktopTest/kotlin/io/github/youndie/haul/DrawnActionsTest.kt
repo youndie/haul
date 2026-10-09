@@ -50,13 +50,14 @@ import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.PresentAction
 import io.github.youndie.kompot.standard.RefreshAction
 import io.github.youndie.kompot.standard.TextComponent
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.serialization.PolymorphicSerializer
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 /**
- * B-37 and B-49 in the client: each control that the trees used to draw with nothing to follow, pressed, follows
+ * B-37, B-49 and B-54 in the client: each control that the trees used to draw with nothing to follow, pressed, follows
  * the action its tree now carries — a `navigate` opens its address, a command goes to the server and
  * the page (or the suggest panel) is drawn again. A fake transport serves the trees and records what
  * was fetched; fake commands record what was sent.
@@ -67,6 +68,29 @@ class DrawnActionsTest {
     private val answers = mutableMapOf<String, ArrayDeque<KompotComponent>>()
     private val sent = CopyOnWriteArrayList<String>()
     private val history = FakeHistory()
+
+    /** Paths whose answer waits until the test completes the gate: a page still on its way. */
+    private val gates = mutableMapOf<String, CompletableDeferred<Unit>>()
+
+    /** The page with the brand facet unticked, and the pages ticking Ostra, then Lume, open. */
+    private fun filtering() {
+        answer("/ui/home", filtered(applied = 0, show = "Show 60 items", card = "Stoneware Mug"))
+        answer("/ui$BY_OSTRA", filtered(applied = 1, show = "Show 12 items", card = "Ostra Mug", ostra = true))
+        answer(
+            "/ui$BY_BOTH",
+            filtered(applied = 2, show = "Show 5 items", card = "Lume Mug", ostra = true, lume = true),
+        )
+    }
+
+    private fun ComposeUiTest.openSheet() {
+        onNodeWithText("Filters").performClick()
+        waitUntil(
+            timeoutMillis = 5_000,
+        ) { onAllNodes(hasContentDescription(CLOSE_FILTERS)).fetchSemanticsNodes().isNotEmpty() }
+    }
+
+    private fun ComposeUiTest.waitForText(text: String) =
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText(text)).fetchSemanticsNodes().isNotEmpty() }
 
     /** Answers [path] with each of [trees] in turn, the last one from then on. */
     private fun answer(
@@ -79,6 +103,7 @@ class DrawnActionsTest {
     private val transport =
         HaulTransport { path ->
             requests += path
+            gates[path]?.await()
             val queue = answers[path] ?: error("nothing answers $path")
             val tree = if (queue.size > 1) queue.removeFirst() else queue.first()
             HaulResponse(200, haulWireJson.encodeToString(PolymorphicSerializer(KompotComponent::class), tree))
@@ -317,6 +342,98 @@ class DrawnActionsTest {
             assertEquals(listOf("/"), history.entries)
         }
 
+    /**
+     * B-54: every tick in the sheet is a `navigate`, and each address is a page of its own; a sheet the
+     * page remembered closed after each tick, so choosing two filters meant opening it twice. Held by the
+     * shell, it stays open over the pages its ticks open and is drawn from each one's tree — «N applied»
+     * and «Show N items» are the new page's — while the results under it are the new page's too.
+     */
+    @Test
+    fun `ticking two facets keeps the filter sheet open over the new results`() =
+        runDesktopComposeUiTest(PHONE, 1_600) {
+            filtering()
+            storefront(compact = true)
+            openSheet()
+            onNodeWithText("Ostra").performClick()
+            waitForText("1 applied")
+            onNodeWithContentDescription(CLOSE_FILTERS).assertExists()
+            onNodeWithText("Show 12 items").assertExists()
+            onNodeWithText("Ostra Mug").assertExists()
+
+            onNodeWithText("Lume").performClick()
+            waitForText("2 applied")
+            onNodeWithContentDescription(CLOSE_FILTERS).assertExists()
+            onNodeWithText("Show 5 items").assertExists()
+            onNodeWithText("Lume Mug").assertExists()
+            assertEquals(listOf("/", BY_OSTRA, BY_BOTH), history.entries)
+        }
+
+    /** B-54: «Show N items» did nothing; the page under the sheet already has those results, so it closes the sheet. */
+    @Test
+    fun `show N items closes the filter sheet over its results`() =
+        runDesktopComposeUiTest(PHONE, 1_600) {
+            filtering()
+            storefront(compact = true)
+            openSheet()
+            onNodeWithText("Ostra").performClick()
+            waitForText("1 applied")
+            onNodeWithText("Show 12 items").performClick()
+            waitUntil(
+                timeoutMillis = 5_000,
+            ) { onAllNodes(hasContentDescription(CLOSE_FILTERS)).fetchSemanticsNodes().isEmpty() }
+            onNodeWithText("Ostra Mug").assertExists()
+            assertEquals(listOf("/ui/home", "/ui${BY_OSTRA}"), requests, "showing the results asked the server")
+            assertEquals(listOf("/", BY_OSTRA), history.entries)
+        }
+
+    /**
+     * B-54: only the sheet's own presses keep it open. Back, with the sheet open, closes it; and a page
+     * opened from the page itself — «Show 24 more» under the results — does not open a sheet closed by «×».
+     */
+    @Test
+    fun `a page not opened from the filter sheet leaves it closed`() =
+        runDesktopComposeUiTest(PHONE, 1_600) {
+            filtering()
+            answer("/ui$PAGE_2", filtered(applied = 0, show = "Show 60 items", card = "Second Mug"))
+            storefront(compact = true)
+            openSheet()
+            onNodeWithText("Ostra").performClick()
+            waitForText("1 applied")
+            history.back()
+            waitUntil(
+                timeoutMillis = 5_000,
+            ) { onAllNodes(hasContentDescription(CLOSE_FILTERS)).fetchSemanticsNodes().isEmpty() }
+            onNodeWithText("Stoneware Mug").assertExists()
+
+            openSheet()
+            onNodeWithContentDescription(CLOSE_FILTERS).performClick()
+            onNodeWithText("Show 24 more").performClick()
+            waitForText("Second Mug")
+            onNodeWithContentDescription(CLOSE_FILTERS).assertDoesNotExist()
+            assertEquals(listOf("/", PAGE_2), history.entries)
+        }
+
+    /**
+     * B-54: until the page a tick opened arrives, the sheet still shows the old page's facets, whose
+     * addresses lack that tick — a second tick then would open the page without the first. So the facets
+     * follow nothing while the page is on its way, and follow the new page's addresses once it is drawn.
+     */
+    @Test
+    fun `the filter sheet follows nothing while the page its tick opened is on its way`() =
+        runDesktopComposeUiTest(PHONE, 1_600) {
+            filtering()
+            val arriving = CompletableDeferred<Unit>().also { gates["/ui$BY_OSTRA"] = it }
+            storefront(compact = true)
+            openSheet()
+            onNodeWithText("Ostra").performClick()
+            onNodeWithText("Lume").assertHasNoClickAction()
+            onNodeWithContentDescription(CLOSE_FILTERS).assertHasClickAction()
+
+            arriving.complete(Unit)
+            waitForText("1 applied")
+            onNodeWithText("Lume").assertHasClickAction()
+        }
+
     /** B-49: a recent search's row opens the search its tree carries; the client builds no address of its own. */
     @Test
     fun `a recent search's row runs that search`() =
@@ -387,6 +504,8 @@ class DrawnActionsTest {
         const val PAGE_3 = "/c/mugs?brand=Haul&page=3"
         const val BY_PRICE = "/c/mugs?brand=Haul&sort=price-asc"
         const val CLEARED = "/c/mugs"
+        const val BY_OSTRA = "/c/mugs?brand=Ostra"
+        const val BY_BOTH = "/c/mugs?brand=Lume&brand=Ostra"
         const val MUG_LINE = "/api/v1/cart/lines/p-stoneware-mug-0"
         const val RECENT = "/api/v1/me/recent-searches"
 
@@ -508,6 +627,62 @@ class DrawnActionsTest {
             recent = queries,
             clearUrl = clearUrl,
         )
+
+        /**
+         * A phone's category page: the brand facet with Ostra and Lume, each ticked or not, each leading to
+         * the page with it toggled; [applied] filters, the sheet's «Show N items» and one card under it.
+         */
+        fun filtered(
+            applied: Int,
+            show: String,
+            card: String,
+            ostra: Boolean = false,
+            lume: Boolean = false,
+        ): KompotComponent {
+            fun address(
+                ostra: Boolean,
+                lume: Boolean,
+            ) = listOfNotNull("brand=Lume".takeIf { lume }, "brand=Ostra".takeIf { ostra })
+                .joinToString("&")
+                .let { if (it.isEmpty()) CLEARED else "$CLEARED?$it" }
+            val brand =
+                Facet(
+                    "brand",
+                    "Brand",
+                    "checkbox",
+                    options =
+                        listOf(
+                            FacetOption("Ostra", 12, selected = ostra, action = NavigateAction(address(!ostra, lume))),
+                            FacetOption("Lume", 9, selected = lume, action = NavigateAction(address(ostra, !lume))),
+                        ),
+                )
+            return page(
+                header,
+                FilteredResults(
+                    id = "results",
+                    facets = FacetPanel("facets", listOf(brand)),
+                    applied =
+                        AppliedFilters(
+                            id = "applied",
+                            chips = emptyList(),
+                            clearLabel = "Clear all",
+                            sortLabel = "Popular",
+                            filterCount = applied,
+                            clearAction = NavigateAction(CLEARED),
+                        ),
+                    showLabel = show,
+                    grid = ProductGrid("grid", listOf(mug.copy(title = card)), columns = 2),
+                    pagination =
+                        HaulPagination(
+                            id = "pagination",
+                            current = 1,
+                            pages = listOf("1", "2"),
+                            moreLabel = "Show 24 more",
+                            moreAction = NavigateAction(PAGE_2),
+                        ),
+                ),
+            )
+        }
 
         fun page(vararg children: KompotComponent): KompotComponent =
             ColumnComponent(id = "page", children = children.toList())

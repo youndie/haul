@@ -25,6 +25,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.feature.cart.CartCommands
 import io.github.youndie.haul.feature.cart.LocalCartCommands
+import io.github.youndie.haul.feature.catalog.FiltersSheetOverlay
+import io.github.youndie.haul.feature.catalog.FiltersSheetState
+import io.github.youndie.haul.feature.catalog.LocalFiltersSheet
 import io.github.youndie.haul.feature.checkout.CheckoutCommands
 import io.github.youndie.haul.feature.checkout.LocalCheckoutCommands
 import io.github.youndie.haul.feature.home.PLUS_DIALOG_COMPACT_TOP
@@ -104,7 +107,9 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * `close`, a new page or the scrim takes it away; their commands, and «Helpful» on a review (B-43), go to
  * [treeCommands] (B-51). A screen that names a channel — the order's page (B-29) — listens on it through
  * [realtime] while it is shown, and each update redraws its node in place; with no [realtime] — a
- * screenshot — it is drawn as it loaded.
+ * screenshot — it is drawn as it loaded. The phone's filter sheet is held here, above the page
+ * ([FiltersSheetState], B-54): it stays open over the pages its own presses open, and any other new page
+ * closes it.
  */
 @Composable
 public fun Storefront(
@@ -153,7 +158,11 @@ public fun Storefront(
         panel = null
         focus.clearFocus()
     }
-    LaunchedEffect(navigator.address) { dismiss() }
+    val filters = remember { FiltersSheetState() }
+    LaunchedEffect(navigator.address) {
+        dismiss()
+        filters.arrived(navigator.address.value)
+    }
     // «Clear» on recent searches: the panel is asked for again once the server has emptied them.
     val clearUrl = panel?.clearUrl
     val clearRecent =
@@ -181,6 +190,7 @@ public fun Storefront(
         LocalCartCommands provides cartCommands,
         LocalCheckoutCommands provides checkoutCommands,
         LocalTreeCommands provides treeCommands,
+        LocalFiltersSheet provides filters,
     ) {
         SearchSuggestOverlay(panel, highlighted = -1, field = field, onDismiss = dismiss, onClear = clearRecent) {
             val address = navigator.address
@@ -237,6 +247,7 @@ public fun Storefront(
                     }
                 }
             }
+            FiltersSheetOverlay(filters)
         }
     }
 }

@@ -2,6 +2,7 @@ package io.github.youndie.haul.registry
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -9,8 +10,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import io.github.youndie.haul.feature.account.AccountBodyView
 import io.github.youndie.haul.feature.cart.CartBodyView
 import io.github.youndie.haul.feature.cart.CartCommand
@@ -19,7 +18,7 @@ import io.github.youndie.haul.feature.cart.run
 import io.github.youndie.haul.feature.catalog.BreadcrumbsView
 import io.github.youndie.haul.feature.catalog.FilterChipsView
 import io.github.youndie.haul.feature.catalog.FilteredResultsView
-import io.github.youndie.haul.feature.catalog.FiltersSheet
+import io.github.youndie.haul.feature.catalog.LocalFiltersSheet
 import io.github.youndie.haul.feature.catalog.PageTitleView
 import io.github.youndie.haul.feature.catalog.PaginationView
 import io.github.youndie.haul.feature.checkout.CheckoutBodyView
@@ -227,7 +226,11 @@ public class FilterChipsRenderer : KompotComponentRenderer<FilterChips> {
     }
 }
 
-/** The results with their filters; on a phone «Filters» opens the facets as a full-screen sheet. */
+/**
+ * The results with their filters; on a phone «Filters» opens the facets as a full-screen sheet. The
+ * sheet is the shell's ([LocalFiltersSheet], B-54), so it outlives this page when a press in it opens
+ * the next one; each page drawn hands it its results.
+ */
 @KompotComponentMarker
 public class FilteredResultsRenderer : KompotComponentRenderer<FilteredResults> {
     @Composable
@@ -236,16 +239,9 @@ public class FilteredResultsRenderer : KompotComponentRenderer<FilteredResults> 
         actionHandler: KompotActionHandler,
         formController: FormController,
     ) {
-        var sheet by remember { mutableStateOf(false) }
-        FilteredResultsView(component, onOpenFilters = { sheet = true })
-        if (sheet) {
-            Dialog(
-                onDismissRequest = { sheet = false },
-                properties = DialogProperties(usePlatformDefaultWidth = false),
-            ) {
-                FiltersSheet(component.facets, component.applied, component.showLabel, onClose = { sheet = false })
-            }
-        }
+        val sheet = LocalFiltersSheet.current
+        LaunchedEffect(sheet, component, actionHandler) { sheet?.drawn(component, actionHandler) }
+        FilteredResultsView(component, onOpenFilters = sheet?.let { { it.open(component, actionHandler) } })
     }
 }
 
