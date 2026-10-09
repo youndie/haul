@@ -8,6 +8,7 @@ import io.github.youndie.haul.feature.checkout.domain.Slot
 import io.github.youndie.haul.feature.membership.domain.PointsLedger
 import io.github.youndie.haul.feature.membership.domain.PointsMovement
 import io.github.youndie.haul.feature.order.domain.CancelReason
+import io.github.youndie.haul.feature.order.domain.OrderMoves
 import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.domain.StockReservations
 import io.github.youndie.haul.feature.payment.domain.Authorisation
@@ -34,6 +35,10 @@ internal const val ORDER_SAGA = "order"
  * right record of that; the order opens before the payment because a declined card is an order that
  * exists and is cancelled (research §6, #HL-48303). Every member is idempotent and names what it holds
  * by the order — a restart re-runs the member it died in, and a rollback releases by that same name.
+ *
+ * Where the order ends up is told to [moves] (B-56), as the simulators tell theirs: placed by [Confirm],
+ * cancelled by [OpenOrder]'s compensation — so a page that opened while the order was placing is drawn again
+ * where it went, by this process or by the sweeper of the next one.
  */
 internal fun orderSaga(
     stock: StockReservations,
@@ -42,14 +47,15 @@ internal fun orderSaga(
     payments: PaymentProcessor,
     carts: CartRepository,
     points: PointsLedger,
+    moves: OrderMoves = OrderMoves(),
 ): PetichDefinition<OrderPayload> =
     petichDefinition(ORDER_SAGA) {
         step("reserve-stock", ReserveStock(stock))
         step("reserve-slot", ReserveSlot(slots))
         step("redeem-points", RedeemPoints(points))
-        step("open-order", OpenOrder(orders))
+        step("open-order", OpenOrder(orders, moves))
         step("authorise-payment", AuthorisePayment(payments, orders))
-        step("confirm", Confirm(orders))
+        step("confirm", Confirm(orders, moves))
         announce("clear-cart", ClearBoughtLines(carts))
     }
 
@@ -139,9 +145,18 @@ internal class RedeemPoints(
     }
 }
 
-/** The order, its lines and a shipment per seller, written as `placing`; undone, it is cancelled. */
+/**
+ * The order, its lines and a shipment per seller, written as `placing`; undone, it is cancelled.
+ *
+ * **Every cancellation of a placing order comes through [compensate]**, so it is the one place one is told to
+ * [moves]: a declined card's rollback (the order already cancelled `payment_declined` by `authorise-payment`,
+ * which this keeps), a failure further on, and the sweeper carrying on a pass or a rollback a dead process
+ * left. Told once the cancellation is written — [OrderRepository.cancel] is a transaction of its own,
+ * committed when it returns — so a page is never drawn a cancellation that did not happen.
+ */
 internal class OpenOrder(
     private val orders: OrderRepository,
+    private val moves: OrderMoves,
 ) : PetichStep<OrderPayload> {
     override suspend fun execute(
         ctx: PetichStepContext,
@@ -156,6 +171,7 @@ internal class OpenOrder(
         payload: OrderPayload,
     ) {
         orders.cancel(payload.orderId, CancelReason.FAILED)
+        moves.moved(payload.orderId)
     }
 }
 
@@ -194,15 +210,24 @@ internal class AuthorisePayment(
         PaymentMethod.byId(payment) ?: error("the order $orderId pays with «$payment», which is no way to pay")
 }
 
-/** `placing` → `placed`: the last member that can still undo the rest. */
+/**
+ * `placing` → `placed`: the last member that can still undo the rest.
+ *
+ * Told to [moves] once the order is placed (B-56): [OrderRepository.confirm] is a transaction of its own,
+ * committed when it returns, so the page is drawn again from what is written. That is before the saga's row
+ * says `COMPLETED`, and need not wait for it: the page draws the order, not the saga, and a confirmed order
+ * stays placed — this member is undone only when it threw itself.
+ */
 internal class Confirm(
     private val orders: OrderRepository,
+    private val moves: OrderMoves,
 ) : PetichStep<OrderPayload> {
     override suspend fun execute(
         ctx: PetichStepContext,
         payload: OrderPayload,
     ) {
         orders.confirm(payload.orderId)
+        moves.moved(payload.orderId)
     }
 
     /** Only when this member itself threw or timed out — it may have confirmed — and the order is then cancelled. */
