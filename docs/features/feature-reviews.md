@@ -56,7 +56,7 @@ Numbers in these rules (limits, page size) are decisions of the brief, recorded 
 |---|---|
 | haul-shared | `shared/src/commonMain/kotlin/io/github/youndie/haul/feature/reviews/ReviewCommands.kt` — the bodies and the rules; `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/ProductComponents.kt` — `ProductReviews`, `ProductQuestions`, `ReviewForm`, `QuestionForm` |
 | haul-server | `server/src/main/kotlin/io/github/youndie/haul/feature/reviews/` — the commands, storage, the tabs and forms (`screen/ReviewTabs.kt`); `server/src/main/resources/db/migration/V12__reviews.sql`, `server/src/main/resources/db/migration/V15__helpful_votes.sql`; the seed's rows in `server/src/main/kotlin/io/github/youndie/haul/seed/SampleReviews.kt` |
-| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/product/` — `ReviewDialogs.kt`, `ReviewCommandsClient.kt` |
+| haul-web | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/product/` — `ReviewDialogs.kt`; the commands through `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/TreeCommands.kt` (B-51) |
 
 ## 5. Scenarios (BDD / test cases)
 
@@ -113,12 +113,18 @@ Numbers in these rules (limits, page size) are decisions of the brief, recorded 
   Order_Delivered gives #HL-46102 a sweater and a serum ($103). No orders are seeded; the test writes
   its own #HL-46102, and the order fixtures (B-18) pick one of the two.
 * The dialogs' product line is the server's — brand and title, «Sony WH-1000XM6 Wireless Noise
-  Cancelling Headphones» — where the canvas writes «Sony WH-1000XM6».
+  Cancelling Headphones» — where the canvas writes «Sony WH-1000XM6»; it is not the listing name cards
+  write (B-45), which for the duvet would be shorter than «Brooklyn Home Co. Linen Duvet …» — a person's
+  call (B-45's findings).
 * Only the sample product has rows: a generated product keeps its random counts with no reviews, no
   questions and an empty histogram. A database seeded before V12 has the tables empty until it is
   seeded again.
 * With more than ten answered questions a new one would not be listed (answered first, no paging).
 * Reviews stay newest first now that votes are counted; sorting by «most helpful» would change which
   review the artboard draws first and is not built.
-* The return dialog goes through the review dialogs' command seam (`ReviewCommand.Return`); a
-  dialog-wide name is B-51.
+* The review, question, return and Plus trial dialogs and «Helpful» send through one seam,
+  `TreeCommands` (`TreeCommand.Review`, `Ask`, `Return`, `StartTrial`, `Vote` — each with the URL the
+  tree fixed and a contract body; `CommandRefused`, `CommandOutcome`), named for what the tree fixes
+  rather than for dialogs because «Helpful» is a button on the page (B-51). The dialogs' chrome
+  (`DialogFrame`, `Buttons`, `FormProblems`) still lives in `feature/product/ReviewDialogs.kt` and the
+  return dialog imports it (B-51's findings).

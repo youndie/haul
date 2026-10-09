@@ -82,4 +82,6 @@ Tests: `server/src/test/kotlin/io/github/youndie/haul/feature/reviews/ReviewRout
 `server/src/test/kotlin/io/github/youndie/haul/feature/reviews/ReviewFixturesTest.kt`,
 `server/src/test/kotlin/io/github/youndie/haul/feature/reviews/ReviewCountingTest.kt` — PostgreSQL and
 shildik in Testcontainers; the client's half in
-`composeApp/src/desktopTest/kotlin/io/github/youndie/haul/feature/product/ReviewCommandsTest.kt`.
+`composeApp/src/desktopTest/kotlin/io/github/youndie/haul/shell/TreeCommandsTest.kt` (the seam every
+tree-fixed command goes through since B-51) and
+`composeApp/src/desktopTest/kotlin/io/github/youndie/haul/feature/product/ReviewWiringTest.kt`.
