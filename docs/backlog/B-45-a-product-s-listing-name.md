@@ -1,7 +1,7 @@
 ---
 id: B-45
 title: "server: a product's listing name, as cards, cart and orders write it"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-4-cart
