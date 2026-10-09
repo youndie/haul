@@ -40,16 +40,15 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (4)
+## Open (3)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-27](docs/backlog/B-27-helm-chart-tracy-metrik-katcher-wiring.md) `[?]` | ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand | P2 | M | B-03 |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 | [B-59](docs/backlog/B-59-home-s-promo-banners-lead-somewhere.md) `[ ]` | server: home's promo banners lead somewhere | P3 | S | B-58 |
-| [B-61](docs/backlog/B-61-the-sale-s-promo-code-moves-with-it.md) `[~]` | server: the sale's promo code moves with the sale | P3 | S | B-58 |
 
-## Closed (57)
+## Closed (58)
 
 **Skeleton**
 
@@ -90,6 +89,7 @@ A stage is a field on the item, not a directory.
 - [B-54](docs/backlog/B-54-the-filter-sheet-stays-open-while-filtering.md) `[x]` - client: the filter sheet stays open while filtering
 - [B-57](docs/backlog/B-57-a-deal-s-price-is-what-the-cart-charges.md) `[x]` - server: a deal's price is what the cart charges
 - [B-58](docs/backlog/B-58-campaigns-and-deals-end.md) `[x]` - server: campaigns and deals end
+- [B-61](docs/backlog/B-61-the-sale-s-promo-code-moves-with-it.md) `[x]` - server: the sale's promo code moves with the sale
 
 **Checkout and orders**
 
