@@ -1,7 +1,7 @@
 ---
 id: B-60
 title: "server + shared: dialogs write the listing name, one groupedCount"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-7-reviews
