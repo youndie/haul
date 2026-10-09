@@ -1,7 +1,7 @@
 ---
 id: B-27
 title: "ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand"
-status: wip
+status: done
 priority: P2
 size: M
 stage: stage-9-ship
@@ -179,3 +179,23 @@ uses (the checks ran helm 3.17.0).
 `stand.yaml` run publishes the image), and the infrastructure change that pins it — whose merge
 deploys. Then `https://haul.kotlin.website/version` answers `{"commit":"v0.1.0"}`, the AC's last
 clause is checked, and the item closes.
+
+## Done (2026-10-09)
+
+Deployed through the infrastructure repository. The secrets were created in its `stage` environment
+(generated, never printed), the namespace's RBAC applied, the tag `v0.1.0` pushed — its «publish image»
+run built `ghcr.io/youndie/haul-server:v0.1.0`, pulled it anonymously and passed the e2e against it —
+and the infrastructure change merged, whose deploy installed the release and asked the public hosts.
+
+**AC, checked at the public host:** `https://haul.kotlin.website/version` answers `{"commit":"v0.1.0"}`;
+`/` and `/ui/home` answer 200; `/api/v1/sign-in` names the issuer `https://haul-id.kotlin.website/realms/haul`
+and the client `haul-web`; the issuer's discovery answers 200. The server, PostgreSQL and the stand's
+shildik run with no restart; the server seeded its catalog with the sale dated from its day.
+
+**The open risk, closed:** a throwaway pod in the namespace fetched the realm's keys from
+`https://haul-id.kotlin.website/…/jwks` with 200 — the cluster reaches its own public host, so the
+server can verify a sign-in.
+
+Still off, by decision: katcher — no `haul-server` application exists in katcher yet; its key and address
+go in together, in one change to the infrastructure values. Visitors browse as guests; the demo
+customers sign in with a password kept as a secret.
