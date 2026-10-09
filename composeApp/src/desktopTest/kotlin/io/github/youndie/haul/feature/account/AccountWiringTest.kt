@@ -28,6 +28,7 @@ import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotActionHandler
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.KompotScreen
+import io.github.youndie.kompot.commands.LoadAction
 import io.github.youndie.kompot.form.FormController
 import io.github.youndie.kompot.form.FormSchema
 import io.github.youndie.kompot.standard.NavigateAction
@@ -135,7 +136,7 @@ class AccountWiringTest {
             waitForIdle()
             assertEquals(
                 listOf<KompotAction>(
-                    NavigateAction("/account/orders?status=active"),
+                    LoadAction("/ui/parts/account/orders?status=active"),
                     NavigateAction("/account/orders/HL-48211"),
                     NavigateAction("/account"),
                 ),

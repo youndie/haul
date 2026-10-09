@@ -4,7 +4,9 @@ import io.github.youndie.haul.ErrorBody
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.registry.haulJson
 import io.github.youndie.haul.ui.SearchSuggestPanel
+import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.decodeKompotAction
 import io.github.youndie.kompot.realtime.KompotScreenResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -147,6 +149,40 @@ internal suspend fun HaulTransport.screen(path: String): LoadedScreen {
                 decodeScreen(response.body)
             } catch (error: IllegalArgumentException) {
                 // A body this build cannot decode is the server's answer gone wrong, not a missing network.
+                throw ScreenFailed.Refused(path, response.status, null, error)
+            }
+        }
+
+        404 -> {
+            throw ScreenFailed.NotFound(path, errorCode(response.body))
+        }
+
+        else -> {
+            throw ScreenFailed.Refused(path, response.status, errorCode(response.body))
+        }
+    }
+}
+
+/**
+ * The action a `load` endpoint answers at [path] (B-63, kind `load`) — an `update` of the nodes a filter
+ * changes, or `navigate` when the parts cannot say it — or the [ScreenFailed] that says why there is none.
+ * The same `GET` as a screen's, so it carries what every request does (sign-in's headers); only the body differs.
+ */
+internal suspend fun HaulTransport.action(path: String): KompotAction {
+    val response =
+        try {
+            get(path)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Throwable) {
+            // Throwable: a failed fetch in the browser is a JavaScript error (see [screen]).
+            throw ScreenFailed.Unreachable(path, error)
+        }
+    return when (response.status) {
+        in 200..299 -> {
+            try {
+                haulJson.decodeKompotAction(response.body)
+            } catch (error: IllegalArgumentException) {
                 throw ScreenFailed.Refused(path, response.status, null, error)
             }
         }

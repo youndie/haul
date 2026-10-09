@@ -55,6 +55,8 @@ Verified against `youndie/kompot@d35ae36`.
 | `kompot-realtime-server` is jvm-only | `youndie/kompot@d35ae36!/kompot-realtime-server/build.gradle.kts:14` |
 | A tree must be answered through `respondKompotComponent`: `call.respond` drops the `"type"` discriminator on the root | `youndie/kompot@d35ae36!/README.md:103-104` |
 | No module publishes a Linux native target | every `build.gradle.kts` of `youndie/kompot@d35ae36` — none declares `linuxX64` |
+| `update` writes its nodes into the screen's override store and hands its `deeplink` to the application, which keeps the history; `load` GETs an action and runs it down the chain, the last press winning (B-63) | `youndie/kompot@b0d3fb8!/kompot-client/src/commonMain/kotlin/io/github/youndie/kompot/Update.kt:22`, `Load.kt:50` |
+| A tree equal to the one drawn drops no override: back to the address before a filter brings exactly the tree under the filter's `update`, so Haul starts the store over on each page that arrives (B-63) | `youndie/kompot@b0d3fb8!/kompot-client/src/commonMain/kotlin/io/github/youndie/kompot/NodeOverrides.kt:23-24` |
 
 **Consequence 2.** A server built by kompot has to run on the JVM (D1). The browser client and
 the screenshot tests share one renderer: `kompot-client` on wasmJs ships, the same on
@@ -151,7 +153,9 @@ Why:
 ### D2. Every screen is a kompot tree built by the server
 
 Decision: the server answers `GET /ui/...` with a kompot tree for each screen; commands under
-`/api/v1/...` answer a kompot action (refresh, navigate, show a route over the screen) or an error.
+`/api/v1/...` answer a kompot action (refresh, update, navigate, show a route over the screen) or an
+error; a press that only filters, sorts or pages a screen loads its parts from `GET /ui/parts/...`
+(B-63, below).
 The client renders the tree through a registry of Haul components (`HaulHeader`, `ProductCard`,
 `CartLine`, `OrderProgress`, …) declared once in `shared`, and draws `Loading` and `Error` itself.
 
@@ -184,9 +188,9 @@ client alone.
 - A list of choices («Catalog»'s categories, the sort's orders) travels as `Link`s and opens as a
   menu in the client. No artboard draws a menu open; the menu is drawn from the theme's tokens.
 - «Show 24 more» opens the next page, the same address as the page number. Since B-62 the shell keeps
-  the page and its scroll across a new address of the same path, so the next page is drawn in place of
-  the results where the shopper is; appending to the grid instead is still not done — the server sends
-  each page whole.
+  the page and its scroll across a new address of the same path, and since B-63 the press is a `load` whose
+  answer replaces the results where the shopper is; appending to the grid instead is still not done — the
+  server sends each page of results whole.
 - **`/deals` is a screen** (owner's call in B-37): «Deals», «View all deals», «Shop the sale» and the
   empty cart's «See today's deals» all lead there, and the server already had what it needs — today's
   deals with their countdown on the first page, then every product whose shown price is under its old
@@ -210,7 +214,10 @@ trial's dialog for a customer who is not a member, `/account` for a member, sign
   (`composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/catalog/FiltersSheetState.kt`), so
   it stays open over the pages its own presses open and is drawn from each one's tree; any other new
   page closes it. It stays there after B-62 kept the page across a filter: back and forward keep the
-  page too, and only the shell sees whether an arrival came from the sheet.
+  page too, and only the shell sees whether an arrival came from the sheet. Since B-63 the sheet's presses
+  are `load`s, so it stays open by itself and is drawn from the updated results; what the shell still
+  decides is that a page *visited* — a link, back, forward — closes it, and that its facets follow nothing
+  while a `load` of the screen is on its way.
 - **A control with no page behind it is plain text**, not a link that opens nothing: the strip's «Sell
   on HAUL», «Help» and the language, and the footer's links, until a page exists for them.
 
@@ -223,8 +230,40 @@ place, Compose redrawing only what changed (kompot keys `column` children by `id
 arrive keeps the page under a notice with Retry, not the error page. Another path draws its placeholder
 and starts at the top, as before. A customer's page refused within its screen for a lapsed sign-in is the
 exception: it is taken down and asks for the sign-in (B-44), so a guest is not left looking at it. The
-server is unchanged — it still answers each address with the whole tree; answering with only the changed
-nodes is kompot B-82, a later item.
+server still answers each address with the whole tree; the presses that only filter answer with the
+changed nodes since B-63.
+
+**Decided in B-63, a filter answers with the parts that changed** (owner's call; kompot 0.40.0.213, B-82).
+A press that only filters, sorts or pages what a screen already shows carries kompot's `load` of the
+screen's address under `/ui/parts`: one `GET`, answered with an `update` of the nodes the press changes and
+the address they make (`deeplink`, `push`). The parts are cut from the page that address opens
+(`server/.../shell/Parts.kt`), so they cannot drift from it; what is spared is the bytes and the redraw of
+the frame, not the building. The whole page at every address is served as before, so back, a reload and a
+shared link show what the shopper saw. An answer that cannot be partial — the category is gone, or the
+page would gain or lose a section an `update` cannot add or take away — is `navigate` to the address.
+
+| Endpoint (kind `load`, kompot SPEC §16.1) | Tier | Pressed from | The parts |
+|---|---|---|---|
+| `GET /ui/parts/c/{categoryPath}?…` | public | a kind, a facet, «Show N more», an applied chip, «Clear all», a sort, a page | `title`, `kinds` (when the category has kinds), `results` |
+| `GET /ui/parts/search?q=…` | public | a category chip, a page | `categories`, `grid`, `pagination` |
+| `GET /ui/parts/deals?page=…` | public | a page between pages past the first; to or from the first, whose «Deals of the day» the others lack, the press is still `navigate` | `grid`, `pagination` |
+| `GET /ui/parts/account/orders?status=…` | customer (`401`) | a chip of the history | `account` |
+| `GET /ui/parts/account/saved?…` | customer (`401`) | a filter or a page of the Saved list | `account` |
+
+The query is the page's own, refused the same way (`400 validation_failed`); the search's parts do not record
+the search again — a `load` changes nothing. In the client (`shell/Storefront.kt`) an `update` goes into the
+screen's override store and its address into the history without a load (`Navigator.record`); back and forward
+to such an address are visits like any other and load its page, which replaces whatever the updates drew. The
+line under the header is on while a `load` is on its way, and one whose answer does not arrive leaves the page
+under B-62's notice, whose Retry presses it again; of two `load`s the last press wins (kompot's `withLoad`).
+
+**A card's «+» and the product page's «Add to cart» answer an `update` too**: the header (its count) and the
+control pressed (its next quantity), instead of `refresh`. Which node is in the command's own address, written
+by the tree (`?answer=card`, `?answer=details`, and the search the header shows, `&q=`;
+`feature/catalog/screen/LineAnswers.kt`); a card is built the same from its product and SKU on every page, and
+the client draws a grid's cards as nodes of the tree (`LocalCardNodes`), so the `update` of one card reaches it.
+The cart's own lines, «Buy now», the Saved list's cards (whose «Price dropped» mark only that page draws) and every
+other command still answer `refresh`.
 
 **Decided in B-22, a route over the screen.** A dialog the canvas draws over a page («Write a review»,
 «Ask a question») is kompot's `present` of a component the server built — the form, its labels and the
@@ -402,7 +441,7 @@ the account need a shildik token; signing in merges the guest cart.
   server inventing one.
 - The cart's commands keep the methods and JSON bodies of endpoint-cart (`PUT`/`DELETE` with
   `LineChange`, `LinesRemoval`, `PromoEntry` from `shared/.../feature/cart/`) and answer kompot's
-  `refresh`. Their paths are the server's strings: each component of the tree carries the URL its
+  `refresh` — but a card's «+» and «Add to cart», `update` (B-63). Their paths are the server's strings: each component of the tree carries the URL its
   commands go to (`CartLine.url`, `acknowledgeUrl`, `CartSelection.linesUrl`, `PromoField.url`), so
   the client builds none. kompot's own `perform` action was the alternative and was not taken: it is
   sent as a `POST` with a payload of form values, which have no integer and no list and are fixed in
@@ -535,7 +574,8 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   orders (`OrderRepository.orders`, the customer in the filter) as `OrderTracking` reads them, newest first.
 - **The history's filter is the query string**: `?status=active|delivered|returned|cancelled`, none for all; a
   status the history does not have is all of them rather than an error page. The chips count every order and each
-  is a `navigate` to its own address, so a filtered history is a page a reload or a link opens. On the history the
+  loads the parts of its own address (B-63: before, a `navigate` to it), so a filtered history is a page a reload
+  or a link opens. On the history the
   orders on their way come first, then newest first (the canvas's note on `Account_Orders`).
 - **Active** is placed, packed, in transit or waiting at a point; such an order is a card on the overview (at most
   three) drawn by the order page's own builder (`OrderScreen.card`): «Arriving *tomorrow*, 15:00 – 18:00» with the
@@ -573,7 +613,7 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   account's `AccountBody` with «Saved» and the count in its pill, selected in the menu — the address the screen
   document and the canvas's `Saved_Error` name, beside `/account/orders`. Newest first, 24 to a page; the filter and
   the page are the query string, `?filter=price-dropped` and `?page=2` (both: `?filter=price-dropped&page=2`), each
-  chip and page number a `navigate` to its own address. A filter the list does not have is all of them, as the
+  chip and page number a `load` of its own address's parts (B-63). A filter the list does not have is all of them, as the
   history's status is; a page past the last is the last (a link left over after letting products go still lands on
   products); a page that is not a number from 1 is `400 validation_failed`, as the deals' is. Only the page numbers
   are drawn, no «Show 24 more».

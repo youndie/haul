@@ -10,10 +10,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.theme.LocalHaulCompact
+
+/**
+ * How a grid draws a card in the place [Modifier] gives it. The renderers of a screen draw each card as a
+ * node of the tree, so an `update` of one card by its id — what «+» is answered with (B-63) — redraws that
+ * card; `null` — a screenshot of a view on its own — draws [ProductCardView] directly, the same pixels.
+ */
+public val LocalCardNodes: ProvidableCompositionLocal<(@Composable (card: ProductCard, modifier: Modifier) -> Unit)?> =
+    staticCompositionLocalOf { null }
 
 /**
  * Product cards (`ProductGrid` on the wire): [ProductGrid.columns] across at 1440 (24 apart, rows 40
@@ -27,12 +37,14 @@ public fun ProductGridView(
     gutter: Dp = 0.dp,
 ) {
     val compact = LocalHaulCompact.current
+    val nodes = LocalCardNodes.current
+    val card: @Composable (ProductCard, Modifier) -> Unit = nodes ?: { it, modifier -> ProductCardView(it, modifier) }
     if (compact && grid.scroll) {
         Row(
             Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = gutter),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            grid.cards.forEach { ProductCardView(it, Modifier.width(160.dp)) }
+            grid.cards.forEach { card(it, Modifier.width(160.dp)) }
         }
         return
     }
@@ -43,7 +55,7 @@ public fun ProductGridView(
     ) {
         grid.cards.chunked(columns).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(if (compact) 12.dp else 24.dp)) {
-                row.forEach { ProductCardView(it, Modifier.weight(1f)) }
+                row.forEach { card(it, Modifier.weight(1f)) }
                 repeat(columns - row.size) { Box(Modifier.weight(1f)) }
             }
         }

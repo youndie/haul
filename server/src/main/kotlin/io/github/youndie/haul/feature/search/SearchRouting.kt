@@ -9,7 +9,9 @@ import io.github.youndie.haul.feature.search.domain.RecentSearches
 import io.github.youndie.haul.feature.search.screen.SearchRequest
 import io.github.youndie.haul.feature.search.screen.SearchScreen
 import io.github.youndie.haul.haulWireJson
+import io.github.youndie.haul.shell.Parts
 import io.github.youndie.haul.shell.Viewers
+import io.github.youndie.haul.shell.respondParts
 import io.github.youndie.kompot.ktor.respondKompotAction
 import io.github.youndie.kompot.ktor.respondKompotComponent
 import io.github.youndie.kompot.standard.RefreshAction
@@ -34,6 +36,18 @@ internal fun Route.searchRouting() {
             haulWireJson,
             screen.results(searchRequest(call.request.queryParameters), viewers.of(call)),
         )
+    }
+
+    // A category chip or a page of the results loaded in place (B-63, kind `load`), the search not recorded
+    // again. A query that now finds nothing, or a category no longer there, cannot be partial.
+    get("${Parts.PREFIX}/search") {
+        val page =
+            try {
+                screen.results(searchRequest(call.request.queryParameters), viewers.of(call), recorded = false)
+            } catch (_: CatalogError.CategoryNotFound) {
+                null
+            }
+        call.respondParts(page, SearchScreen.PARTS)
     }
 
     get("/ui/search/suggest") {

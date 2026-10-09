@@ -46,7 +46,11 @@ import io.github.youndie.haul.ui.PromoBanner
 import io.github.youndie.haul.ui.SEARCH_FIELD_TAG
 import io.github.youndie.haul.ui.SearchSuggestPanel
 import io.github.youndie.haul.ui.SectionHeader
+import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.commands.LoadAction
+import io.github.youndie.kompot.commands.UpdateHistory
+import io.github.youndie.kompot.commands.kompotUpdate
 import io.github.youndie.kompot.standard.CloseAction
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
@@ -75,14 +79,27 @@ class DrawnActionsTest {
     /** Paths whose answer waits until the test completes the gate: a page still on its way. */
     private val gates = mutableMapOf<String, CompletableDeferred<Unit>>()
 
-    /** The page with the brand facet unticked, and the pages ticking Ostra, then Lume, open. */
+    /** `load` endpoints' answers by path (B-63). */
+    private val parts = mutableMapOf<String, KompotAction>()
+
+    /**
+     * The category with the brand facet unticked, and the results ticking Ostra, then Lume, load in its place
+     * (B-63): each tick a `load`, answered with an `update` of the results and the address they make.
+     */
     private fun filtering() {
-        answer("/ui/home", filtered(applied = 0, show = "Show 60 items", card = "Stoneware Mug"))
-        answer("/ui$BY_OSTRA", filtered(applied = 1, show = "Show 12 items", card = "Ostra Mug", ostra = true))
-        answer(
-            "/ui$BY_BOTH",
-            filtered(applied = 2, show = "Show 5 items", card = "Lume Mug", ostra = true, lume = true),
-        )
+        history.entries[0] = CLEARED
+        answer("/ui$CLEARED", filtered(applied = 0, show = "Show 60 items", card = "Stoneware Mug"))
+        parts(BY_OSTRA, filtered(applied = 1, show = "Show 12 items", card = "Ostra Mug", ostra = true))
+        parts(BY_BOTH, filtered(applied = 2, show = "Show 5 items", card = "Lume Mug", ostra = true, lume = true))
+    }
+
+    /** The parts of [address] — the results of [page] — as its `load` endpoint answers them. */
+    private fun parts(
+        address: String,
+        page: KompotComponent,
+    ) {
+        val results = (page as ColumnComponent).children.single { it.id == "results" }
+        parts[PARTS + address] = kompotUpdate(address, UpdateHistory.PUSH) { addComponent(results) }
     }
 
     private fun ComposeUiTest.openSheet() {
@@ -107,6 +124,12 @@ class DrawnActionsTest {
         HaulTransport { path ->
             requests += path
             gates[path]?.await()
+            parts[path]?.let { action ->
+                return@HaulTransport HaulResponse(
+                    200,
+                    haulWireJson.encodeToString(PolymorphicSerializer(KompotAction::class), action),
+                )
+            }
             val queue = answers[path] ?: error("nothing answers $path")
             val tree = if (queue.size > 1) queue.removeFirst() else queue.first()
             HaulResponse(200, haulWireJson.encodeToString(PolymorphicSerializer(KompotComponent::class), tree))
@@ -365,10 +388,10 @@ class DrawnActionsTest {
         }
 
     /**
-     * B-54: every tick in the sheet is a `navigate`, and each address is a page of its own; a sheet the
-     * page remembered closed after each tick, so choosing two filters meant opening it twice. Held by the
-     * shell, it stays open over the pages its ticks open and is drawn from each one's tree — «N applied»
-     * and «Show N items» are the new page's — while the results under it are the new page's too.
+     * B-54: a sheet the page remembered closed after each tick, so choosing two filters meant opening it
+     * twice. Since B-63 a tick is a `load` answered with an `update` of the results: the page is not left,
+     * the sheet stays open and is drawn from the updated results — «N applied» and «Show N items» are the
+     * new ones — while the results under it are the new ones too, and the address is each tick's.
      */
     @Test
     fun `ticking two facets keeps the filter sheet open over the new results`() =
@@ -387,7 +410,12 @@ class DrawnActionsTest {
             onNodeWithContentDescription(CLOSE_FILTERS).assertExists()
             onNodeWithText("Show 5 items").assertExists()
             onNodeWithText("Lume Mug").assertExists()
-            assertEquals(listOf("/", BY_OSTRA, BY_BOTH), history.entries)
+            assertEquals(listOf(CLEARED, BY_OSTRA, BY_BOTH), history.entries)
+            assertEquals(
+                listOf("/ui$CLEARED", "$PARTS$BY_OSTRA", "$PARTS$BY_BOTH"),
+                requests,
+                "a tick asked for a page",
+            )
         }
 
     /** B-54: «Show N items» did nothing; the page under the sheet already has those results, so it closes the sheet. */
@@ -404,13 +432,14 @@ class DrawnActionsTest {
                 timeoutMillis = 5_000,
             ) { onAllNodes(hasContentDescription(CLOSE_FILTERS)).fetchSemanticsNodes().isEmpty() }
             onNodeWithText("Ostra Mug").assertExists()
-            assertEquals(listOf("/ui/home", "/ui${BY_OSTRA}"), requests, "showing the results asked the server")
-            assertEquals(listOf("/", BY_OSTRA), history.entries)
+            assertEquals(listOf("/ui$CLEARED", "$PARTS$BY_OSTRA"), requests, "showing the results asked the server")
+            assertEquals(listOf(CLEARED, BY_OSTRA), history.entries)
         }
 
     /**
-     * B-54: only the sheet's own presses keep it open. Back, with the sheet open, closes it; and a page
-     * opened from the page itself — «Show 24 more» under the results — does not open a sheet closed by «×».
+     * B-54: only the sheet's own presses keep it open. Back, with the sheet open, closes it — and draws the
+     * page before the tick, not the tick's update over it (B-63) — and a page opened from the page itself
+     * («Show 24 more» under the results) does not open a sheet closed by «×».
      */
     @Test
     fun `a page not opened from the filter sheet leaves it closed`() =
@@ -425,26 +454,28 @@ class DrawnActionsTest {
             waitUntil(
                 timeoutMillis = 5_000,
             ) { onAllNodes(hasContentDescription(CLOSE_FILTERS)).fetchSemanticsNodes().isEmpty() }
-            onNodeWithText("Stoneware Mug").assertExists()
+            waitForText("Stoneware Mug")
+            onNodeWithText("Ostra Mug").assertDoesNotExist()
 
             openSheet()
             onNodeWithContentDescription(CLOSE_FILTERS).performClick()
             onNodeWithText("Show 24 more").performClick()
             waitForText("Second Mug")
             onNodeWithContentDescription(CLOSE_FILTERS).assertDoesNotExist()
-            assertEquals(listOf("/", PAGE_2), history.entries)
+            assertEquals(listOf(CLEARED, PAGE_2), history.entries)
         }
 
     /**
-     * B-54: until the page a tick opened arrives, the sheet still shows the old page's facets, whose
-     * addresses lack that tick — a second tick then would open the page without the first. So the facets
-     * follow nothing while the page is on its way, and follow the new page's addresses once it is drawn.
+     * B-54: until a tick's answer arrives, the sheet still shows the facets before it, whose addresses lack
+     * that tick — a second tick then would load the results without the first, and win (B-63: the last
+     * press does). So the facets follow nothing while the `load` is on its way, and follow the updated
+     * results once they are drawn.
      */
     @Test
     fun `the filter sheet follows nothing while the page its tick opened is on its way`() =
         runDesktopComposeUiTest(PHONE, 1_600) {
             filtering()
-            val arriving = CompletableDeferred<Unit>().also { gates["/ui$BY_OSTRA"] = it }
+            val arriving = CompletableDeferred<Unit>().also { gates["$PARTS$BY_OSTRA"] = it }
             storefront(compact = true)
             openSheet()
             onNodeWithText("Ostra").performClick()
@@ -526,6 +557,7 @@ class DrawnActionsTest {
         const val PAGE_3 = "/c/mugs?brand=Haul&page=3"
         const val BY_PRICE = "/c/mugs?brand=Haul&sort=price-asc"
         const val CLEARED = "/c/mugs"
+        const val PARTS = "/ui/parts"
         const val BY_OSTRA = "/c/mugs?brand=Ostra"
         const val BY_BOTH = "/c/mugs?brand=Lume&brand=Ostra"
         const val MUG_LINE = "/api/v1/cart/lines/p-stoneware-mug-0"
@@ -706,8 +738,13 @@ class DrawnActionsTest {
                     "checkbox",
                     options =
                         listOf(
-                            FacetOption("Ostra", 12, selected = ostra, action = NavigateAction(address(!ostra, lume))),
-                            FacetOption("Lume", 9, selected = lume, action = NavigateAction(address(ostra, !lume))),
+                            FacetOption(
+                                "Ostra",
+                                12,
+                                selected = ostra,
+                                action = LoadAction(PARTS + address(!ostra, lume)),
+                            ),
+                            FacetOption("Lume", 9, selected = lume, action = LoadAction(PARTS + address(ostra, !lume))),
                         ),
                 )
             return page(

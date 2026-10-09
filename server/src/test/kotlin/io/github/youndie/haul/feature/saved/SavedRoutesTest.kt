@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.saved
 
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.feature.account.AccountPaths
+import io.github.youndie.haul.feature.account.screen.AccountScreen
 import io.github.youndie.haul.feature.cart.CartPaths
 import io.github.youndie.haul.feature.saved.screen.SavedFilter
 import io.github.youndie.haul.haulWireJson
@@ -10,10 +11,14 @@ import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.testing.ShildikHarness
+import io.github.youndie.haul.testing.after
 import io.github.youndie.haul.testing.all
+import io.github.youndie.haul.testing.answer
 import io.github.youndie.haul.testing.assertError
 import io.github.youndie.haul.testing.assertRefresh
 import io.github.youndie.haul.testing.haulTest
+import io.github.youndie.haul.testing.json
+import io.github.youndie.haul.testing.loads
 import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.ui.AccountBody
@@ -24,6 +29,8 @@ import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.haul.ui.SavedList
 import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.commands.LoadAction
+import io.github.youndie.kompot.commands.UpdateAction
 import io.github.youndie.kompot.decodeKompotComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import io.ktor.client.HttpClient
@@ -180,6 +187,28 @@ class SavedRoutesTest {
             )
         }
 
+    /** B-63: a filter or a page of the list loads the account's body in place: the body of the page it opens. */
+    @Test
+    fun `the list's filters and pages load the body of the page they open`() =
+        world {
+            val page = tree(maya, SavedPaths.SCREEN)
+            val loads = page.loads()
+            assertEquals(
+                setOf(
+                    "/ui/parts/account/saved",
+                    "/ui/parts/account/saved?filter=price-dropped",
+                    "/ui/parts/account/saved?page=2",
+                ),
+                loads.toSet(),
+            )
+            loads.forEach { url ->
+                val update = assertNotNull(answer(url) { bearerAuth(maya) } as? UpdateAction, url)
+                assertEquals(AccountScreen.PARTS, update.updates.map { it.componentId }, url)
+                assertEquals(tree(maya, "/ui" + update.deeplink).json(), page.after(update), url)
+            }
+            assertEquals(HttpStatusCode.Unauthorized, get("/ui/parts/account/saved").status)
+        }
+
     /**
      * The page is the account's (screen-saved): «Saved» with the count, selected in the menu; 24 newest
      * first to a page, the pages by `?page=`, the filter by `?filter=price-dropped` — each chip and each
@@ -200,8 +229,8 @@ class SavedRoutesTest {
             assertEquals(24, list.cards.size)
             assertEquals(
                 listOf(
-                    Triple("All", "48", NavigateAction("/account/saved")),
-                    Triple("Price dropped", "6", NavigateAction("/account/saved?filter=price-dropped")),
+                    Triple("All", "48", LoadAction("/ui/parts/account/saved")),
+                    Triple("Price dropped", "6", LoadAction("/ui/parts/account/saved?filter=price-dropped")),
                 ),
                 list.filters.map { Triple(it.label, it.count, it.action) },
             )
@@ -211,7 +240,7 @@ class SavedRoutesTest {
             val pagination = checkNotNull(list.pagination)
             assertEquals(listOf("1", "2"), pagination.pages)
             assertNull(pagination.moreLabel)
-            assertEquals(listOf(NavigateAction("/account/saved?page=2")), pagination.links.map { it.action })
+            assertEquals(listOf(LoadAction("/ui/parts/account/saved?page=2")), pagination.links.map { it.action })
 
             val second = saved(maya, "${SavedPaths.SCREEN}?page=2").list()
             assertEquals(24, second.cards.size)

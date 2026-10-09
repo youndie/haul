@@ -21,6 +21,7 @@ import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.ui.HaulPagination
 import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.ProductCard
+import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.standard.NavigateAction
 
 /**
@@ -28,6 +29,11 @@ import io.github.youndie.kompot.standard.NavigateAction
  * photo if stored, «+», which puts one more of [sku] into the cart — given how many of each SKU the
  * viewer's cart already holds (`Viewer.inCart`) — and the heart, filled when the product is in the
  * viewer's Saved list (`Viewer.saved`, B-20).
+ *
+ * «+» is answered with the header and this card again (B-63, [LineAnswers]) when [inPlace]: the card is
+ * built the same from the product and the SKU wherever it is drawn, and [query] is the search the page's
+ * header shows. A card the page draws its own way (the Saved list's mark) is not, and «+» there redraws
+ * the page.
  */
 internal fun card(
     item: Listed,
@@ -35,6 +41,8 @@ internal fun card(
     photos: ProductPhotos,
     viewer: Viewer,
     sku: Sku = item.shown,
+    query: String? = null,
+    inPlace: Boolean = true,
 ): ProductCard {
     val saved = item.product.id in viewer.saved
     val priceCents = sku.priceCents
@@ -53,7 +61,7 @@ internal fun card(
         label = item.product.label,
         image = photos.url(item.product),
         action = productLink(item.product.id),
-        add = addToCart(sku, viewer.inCart),
+        add = addToCart(sku, viewer.inCart, if (inPlace) LineAnswers.cardAnswer(query) else ""),
         saved = saved,
         heartCommand = heart(item.product.id, saved, viewer),
         heartAction = heartAction(viewer),
@@ -84,14 +92,16 @@ internal fun heartAction(viewer: Viewer): NavigateAction? =
  * «+»: the line [sku] will have with one more in it (endpoint-cart, `PUT` `LineChange`) — or nothing to
  * send when the cart already holds as many as can be bought (ten, or the stock), or there is no stock.
  * The quantity is the line's next one rather than «add one», so a press sent twice puts in one, not two.
+ * [answer] is the query that says which node the answer redraws ([LineAnswers]); empty, the page.
  */
 internal fun addToCart(
     sku: Sku,
     inCart: Map<String, Int>,
+    answer: String = "",
 ): LineCommand? {
     val next = (inCart[sku.id] ?: 0) + 1
     if (next > minOf(CartCommands.MAX_QUANTITY, sku.stock)) return null
-    return LineCommand(CartPaths.line(sku.id), LineChange(quantity = next))
+    return LineCommand(CartPaths.line(sku.id) + answer, LineChange(quantity = next))
 }
 
 /**
@@ -140,11 +150,13 @@ internal fun categoryLink(slug: String): NavigateAction = NavigateAction("/c/$sl
 
 /**
  * The pages under a grid: «Show 24 more» goes to the next page, and every page number but the current
- * one to its own; [address] is the page's address at page n (`?page=` is left out for the first).
+ * one to its own; [address] is the page's address at page n (`?page=` is left out for the first), and
+ * [press] what a press on one does — opens it, or loads its parts (B-63).
  */
 internal fun pagination(
     page: Page,
     address: (page: Int) -> String,
+    press: (address: String) -> KompotAction = ::NavigateAction,
 ): HaulPagination {
     val pages = pageNumbers(page.pages)
     val more = page.page < page.pages
@@ -153,10 +165,10 @@ internal fun pagination(
         current = page.page,
         pages = pages,
         moreLabel = if (more) "Show ${Browse.PAGE_SIZE} more" else null,
-        moreAction = if (more) NavigateAction(address(page.page + 1)) else null,
+        moreAction = if (more) press(address(page.page + 1)) else null,
         links =
             pages.mapNotNull { label ->
-                label.toIntOrNull()?.takeIf { it != page.page }?.let { Link(label, NavigateAction(address(it))) }
+                label.toIntOrNull()?.takeIf { it != page.page }?.let { Link(label, press(address(it))) }
             },
     )
 }

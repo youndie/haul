@@ -23,7 +23,8 @@ import kotlin.coroutines.cancellation.CancellationException
 // The cart's commands as the client sends them (endpoint-cart) — and the Saved list's (endpoint-saved,
 // B-20), which go through the same seam: each goes where the tree's component says — `CartLine.url`,
 // `CartSelection.linesUrl`, `PromoField.url`, a card's heart — with a body from the contract, and the
-// server answers kompot's `refresh`, which the renderer hands to the screen's action handler.
+// server answers kompot's `refresh` — or `update`, for a card's «+» and «Add to cart» (B-63) — which the
+// renderer hands to the screen's action handler.
 
 /** One command, with the URL the tree gave it and its body. */
 public sealed interface CartCommand {

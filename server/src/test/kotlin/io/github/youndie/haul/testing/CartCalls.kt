@@ -10,6 +10,7 @@ import io.github.youndie.haul.feature.identity.GUESTS
 import io.github.youndie.haul.feature.identity.GUEST_HEADER
 import io.github.youndie.haul.feature.identity.GuestDto
 import io.github.youndie.haul.haulWireJson
+import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.decodeKompotAction
 import io.github.youndie.kompot.decodeKompotComponent
@@ -87,6 +88,12 @@ internal suspend fun HttpClient.cart(guest: String): KompotComponent {
 internal suspend fun HttpResponse.assertRefresh() {
     assertEquals(HttpStatusCode.OK, status, bodyAsText())
     assertEquals(RefreshAction, haulWireJson.decodeKompotAction(bodyAsText()))
+}
+
+/** A command's answer, `200` (B-63: `update` as well as `refresh`). */
+internal suspend fun HttpResponse.action(): KompotAction {
+    assertEquals(HttpStatusCode.OK, status, bodyAsText())
+    return haulWireJson.decodeKompotAction(bodyAsText())
 }
 
 /** A command or a screen refused with [status] and [code]. */

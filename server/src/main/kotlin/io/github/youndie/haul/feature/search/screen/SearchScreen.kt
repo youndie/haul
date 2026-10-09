@@ -20,6 +20,7 @@ import io.github.youndie.haul.feature.search.domain.Query
 import io.github.youndie.haul.feature.search.domain.RecentSearches
 import io.github.youndie.haul.feature.search.domain.SearchRepository
 import io.github.youndie.haul.shell.Frame
+import io.github.youndie.haul.shell.Parts
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.ui.CategoryGrid
 import io.github.youndie.haul.ui.CategorySuggestion
@@ -105,13 +106,18 @@ internal class SearchScreen(
         )
     }
 
-    /** The results page, grouped by category with counts; or the page for a query that found nothing. */
+    /**
+     * The results page, grouped by category with counts; or the page for a query that found nothing. A
+     * category chip and a page load their [PARTS] in place (B-63). A customer's search is recorded unless
+     * [recorded] is `false`: the parts a `load` asks for, which changes nothing.
+     */
     suspend fun results(
         request: SearchRequest,
         viewer: Viewer,
+        recorded: Boolean = true,
     ): KompotComponent {
         val query = Query.of(request.query)
-        viewer.customerId?.let { recent.record(it, query.text, clock.now().toOffsetDateTime()) }
+        if (recorded) viewer.customerId?.let { recent.record(it, query.text, clock.now().toOffsetDateTime()) }
         val categories = catalog.categories()
         val matches = search.matching(query)
         if (matches.isEmpty()) return noResults(query, categories, viewer)
@@ -140,18 +146,22 @@ internal class SearchScreen(
                 FilterChips(
                     id = "categories",
                     chips =
-                        listOf(Chip("All", request.category == null, searchLink(query.text), count(all.size))) +
+                        listOf(Chip("All", request.category == null, parts(query.text), count(all.size))) +
                             byLeaf.mapNotNull { (slug, n) ->
                                 val leaf = categories.firstOrNull { it.slug == slug } ?: return@mapNotNull null
-                                Chip(leaf.name, request.category == slug, searchLink(query.text, slug), count(n))
+                                Chip(leaf.name, request.category == slug, parts(query.text, slug), count(n))
                             },
                 ),
                 ProductGrid(
                     "grid",
-                    page.items.map { card(it, calendar, photos, viewer) },
+                    page.items.map { card(it, calendar, photos, viewer, query = query.text) },
                     columns = GRID_COLUMNS,
                 ),
-                pagination(page) { searchLink(query.text, request.category, request.sort, it).deeplink },
+                pagination(
+                    page,
+                    { searchLink(query.text, request.category, request.sort, it).deeplink },
+                    Parts::load,
+                ),
             )
         return Frame.page("search", viewer, navigation(categories), sections, query = query.text)
     }
@@ -213,6 +223,12 @@ internal class SearchScreen(
         return if (top.slug == leaf.slug) leaf.name else "${top.name} › ${leaf.name}"
     }
 
+    /** A category chip: the parts of the results in it, loaded in place (B-63). */
+    private fun parts(
+        query: String,
+        category: String? = null,
+    ) = Parts.load(searchLink(query, category).deeplink)
+
     private fun searchLink(
         query: String,
         category: String? = null,
@@ -229,6 +245,9 @@ internal class SearchScreen(
     }
 
     companion object {
+        /** What a category chip or a page changes on the results (B-63): the chips, the grid and the pages. */
+        val PARTS = listOf("categories", "grid", "pagination")
+
         /** Where «Clear» on recent searches sends its `DELETE` (endpoint-search, the customer tier). */
         const val RECENT_SEARCHES = "/api/v1/me/recent-searches"
 

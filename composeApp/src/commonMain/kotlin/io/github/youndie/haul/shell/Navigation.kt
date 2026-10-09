@@ -2,6 +2,7 @@ package io.github.youndie.haul.shell
 
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.youndie.haul.StorefrontPage
@@ -83,16 +84,30 @@ public interface BrowserHistory {
     /** A new entry, so back returns to the one before. */
     public fun push(location: String)
 
+    /** The entry the page is at says [location] now; back goes where it went before. */
+    public fun replace(location: String)
+
     /** Calls [listener] with the address the browser arrived at on back or forward; returns how to stop. */
     public fun listen(listener: (location: String) -> Unit): () -> Unit
 }
 
-/** The address being shown, kept in step with [history] in both directions. */
+/**
+ * The address being shown, kept in step with [history] in both directions.
+ *
+ * Two ways to a new address (B-63). A [visit] — a link followed, back or forward — means the page of that
+ * address has to be loaded. A [record]ed address is one the page already shows: an `update` replaced the
+ * nodes a filter changes and named the address they make, so the history takes the entry and nothing is
+ * loaded. [visits] counts the first kind only, which is what the shell loads on.
+ */
 @Stable
 internal class Navigator(
     private val history: BrowserHistory,
 ) {
     var address: Address by mutableStateOf(Address(history.location))
+        private set
+
+    /** How many addresses were visited — opened or arrived at — rather than recorded; each is a page to load. */
+    var visits: Int by mutableIntStateOf(0)
         private set
 
     /**
@@ -102,11 +117,29 @@ internal class Navigator(
     fun open(location: String) {
         if (!location.startsWith("/") || location == address.value) return
         history.push(location)
-        address = Address(location)
+        visit(location)
     }
 
     /** Back or forward: the browser has already moved, the page follows. */
     fun arrived(location: String) {
+        visit(location)
+    }
+
+    /**
+     * The page drawn is the one at [location] already — an `update` made it so (B-63): a new entry, or the
+     * entry it is at when [replace], and no load. An address outside the storefront is not recorded.
+     */
+    fun record(
+        location: String,
+        replace: Boolean,
+    ) {
+        if (!location.startsWith("/") || location == address.value) return
+        if (replace) history.replace(location) else history.push(location)
         address = Address(location)
+    }
+
+    private fun visit(location: String) {
+        address = Address(location)
+        visits += 1
     }
 }

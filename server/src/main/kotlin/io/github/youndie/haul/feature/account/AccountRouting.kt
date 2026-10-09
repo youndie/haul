@@ -8,7 +8,9 @@ import io.github.youndie.haul.feature.identity.Callers
 import io.github.youndie.haul.feature.identity.domain.IdentityError
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.shell.Frame
+import io.github.youndie.haul.shell.Parts
 import io.github.youndie.haul.shell.Viewers
+import io.github.youndie.haul.shell.respondParts
 import io.github.youndie.kompot.ktor.respondKompotComponent
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.routing.Route
@@ -44,6 +46,16 @@ internal fun Route.accountRouting() {
         call.respondKompotComponent(
             haulWireJson,
             screen.build(caller.customer, AccountPage.Orders(filter), viewers.of(caller)),
+        )
+    }
+
+    // A chip of the history loaded in place (B-63, kind `load`): the account's body, under the same header.
+    get(Parts.PREFIX + Frame.ORDERS) {
+        val caller = call.caller()
+        val filter = HistoryFilterKey.of(call.request.queryParameters[AccountPaths.STATUS])
+        call.respondParts(
+            screen.build(caller.customer, AccountPage.Orders(filter), viewers.of(caller)),
+            AccountScreen.PARTS,
         )
     }
 }

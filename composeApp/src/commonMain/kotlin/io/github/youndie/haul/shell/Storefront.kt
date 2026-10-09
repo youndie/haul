@@ -53,12 +53,18 @@ import io.github.youndie.haul.ui.PlusTrialDialog
 import io.github.youndie.haul.ui.SearchFieldState
 import io.github.youndie.haul.ui.SearchInput
 import io.github.youndie.haul.ui.SearchSuggestPanel
+import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotActionHandler
 import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.KompotLoadState
+import io.github.youndie.kompot.KompotNodeOverrides
 import io.github.youndie.kompot.KompotRealtimeProvider
 import io.github.youndie.kompot.KompotRegistry
 import io.github.youndie.kompot.KompotScreen
 import io.github.youndie.kompot.KompotScreenLoader
+import io.github.youndie.kompot.LocalKompotNodeOverrides
+import io.github.youndie.kompot.commands.LoadAction
+import io.github.youndie.kompot.commands.UpdateHistory
 import io.github.youndie.kompot.form.FormController
 import io.github.youndie.kompot.form.FormSchema
 import io.github.youndie.kompot.realtime.KompotRealtimeSource
@@ -68,7 +74,9 @@ import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.PresentAction
 import io.github.youndie.kompot.standard.SequenceAction
+import io.github.youndie.kompot.withLoad
 import io.github.youndie.kompot.withRefresh
+import io.github.youndie.kompot.withUpdates
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
@@ -109,7 +117,8 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * screen is drawn again, signed in or not. A page refused for want of a sign-in (`401`: a guest on a
  * customer's page, or a sign-in lapsed past renewing) asks for one ([SignInPrompt], B-44) and is loaded
  * again once it has gone through. The cart's presses — the cart's own and a card's «+» — go
- * to [cartCommands] (B-13, B-37), whose answer, `refresh`, draws the screen again. «Clear» on recent
+ * to [cartCommands] (B-13, B-37), whose answer, `refresh`, draws the screen again — or, for «+» and «Add to
+ * cart», `update`, which redraws the header and the control (B-63). «Clear» on recent
  * searches goes through [commands] (B-37), and the suggest panel is asked for again once the server
  * has answered. The checkout's go to [checkoutCommands] (B-15), whose `refresh` draws it again the
  * same way. A tree's `present` draws its component over the page — the product page's review and
@@ -127,6 +136,14 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * arrive leaves the page as it was under a [NotUpdatedNotice] with Retry. An address on another path
  * draws its placeholder and starts at the top. A customer's page refused for a lapsed sign-in is not
  * kept: it is taken down and asks for the sign-in as above.
+ *
+ * A press that only filters, sorts or pages the screen is a `load` (B-63): one `GET`, answered with an
+ * `update` of the nodes it changes, which go into the screen's override store, and the address they make,
+ * which the history takes without a load ([Navigator.record]). The line under the header is on while it
+ * is on its way; one that does not arrive leaves the page under the same notice, whose Retry presses it
+ * again. A cart command answers `update` the same way — the header's count and the control pressed. Back
+ * and forward to an address recorded so load its page as any visit does, and the page that arrives
+ * replaces whatever the updates drew.
  */
 @Composable
 public fun Storefront(
@@ -176,9 +193,11 @@ public fun Storefront(
         focus.clearFocus()
     }
     val filters = remember { FiltersSheetState() }
-    LaunchedEffect(navigator.address) {
+    // A page visited closes the panel and the filter sheet; an address an update recorded (B-63) is the
+    // page already drawn, and closes neither — the sheet's own presses are such updates.
+    LaunchedEffect(navigator.visits) {
         dismiss()
-        filters.arrived(navigator.address.value)
+        filters.close()
     }
     // «Clear» on recent searches: the panel is asked for again once the server has emptied them.
     val clearUrl = panel?.clearUrl
@@ -212,22 +231,35 @@ public fun Storefront(
     ) {
         SearchSuggestOverlay(panel, highlighted = -1, field = field, onDismiss = dismiss, onClear = clearRecent) {
             val address = navigator.address
+            val visit = navigator.visits
             // A screen is a path (B-62): `/c/mugs?brand=Ostra` loads behind the drawn `/c/mugs`, which keeps
             // its scroll and whatever its nodes hold open; another path is another screen, drawn from its
             // placeholder at the top. [signedOut] counts the pages a lapsed sign-in took down: a customer's
             // page is not kept for a shopper who is a guest now.
             val screen = address.path to signedOut
+            // The screen's `load`s (B-63): whether one is on its way, and which press is the last — the only
+            // one whose answer is run. Held above the screen, so the filter sheet over it reads it too.
+            val loading = remember(screen) { KompotLoadState() }
             key(screen) {
                 // Where the screen's loads are: the tree drawn, a load on its way, why the last one failed.
                 val loader = rememberKompotScreenLoaderState()
                 val scroll = rememberScrollState()
                 // What a `present` put over the page; a new address starts without one.
                 var presented by remember(address) { mutableStateOf<Presented?>(null) }
-                // A page refused for want of a sign-in asks for one (B-44); [loads] counts the address's loads
+                // A page refused for want of a sign-in asks for one (B-44); [loads] counts the visit's loads
                 // after a sign-in, and [signedInFor] is the load a sign-in from here asked for — refused again,
-                // that one is an error page, not another prompt.
-                var loads by remember(address) { mutableIntStateOf(0) }
-                var signedInFor by remember(address) { mutableIntStateOf(-1) }
+                // that one is an error page, not another prompt. Per visit, not per address: an address an
+                // update recorded (B-63) is no new page to load.
+                var loads by remember(visit) { mutableIntStateOf(0) }
+                var signedInFor by remember(visit) { mutableIntStateOf(-1) }
+                // The pages that arrived for this screen. Each is the truth for its address, so each starts the
+                // override store over that updates and the order's channel write into (B-63): kompot keeps the
+                // overrides when a tree equal to the one drawn arrives, and back to the address before a filter
+                // brings exactly that tree, under the filter's updates.
+                var arrivals by remember { mutableIntStateOf(0) }
+                val overrides = remember(arrivals) { KompotNodeOverrides() }
+                // A `load` whose answer did not arrive, and how to press it again; a new press or visit forgets it.
+                var unanswered by remember(visit) { mutableStateOf<Unanswered?>(null) }
                 // The channel the page's tree named, when it named one (B-29).
                 var topic by remember { mutableStateOf<String?>(null) }
                 val live = remember(topic, realtime) { realtime?.let { source -> topic?.let { Live(it, source) } } }
@@ -237,10 +269,17 @@ public fun Storefront(
                 Box(Modifier.fillMaxSize()) {
                     CompositionLocalProvider(LocalHeaderMeasured provides measured) {
                         KompotScreenLoader(
-                            key = address to loads,
+                            key = visit to loads,
                             screenKey = screen,
                             state = loader,
-                            load = { transport.screen(address.screen).also { topic = it.realtimeTopic }.tree },
+                            load = {
+                                transport
+                                    .screen(address.screen)
+                                    .also {
+                                        topic = it.realtimeTopic
+                                        arrivals += 1
+                                    }.tree
+                            },
                             loading = { Scrolled(scroll) { Box(Modifier.testTag(LOADING_TAG)) { Loading(address) } } },
                             failed = { cause, retry ->
                                 when {
@@ -262,7 +301,6 @@ public fun Storefront(
                                     }
 
                                     else -> {
-                                        LaunchedEffect(cause) { filters.settled() }
                                         Box(
                                             Modifier.fillMaxSize().padding(16.dp),
                                             contentAlignment = Alignment.BottomCenter,
@@ -282,6 +320,7 @@ public fun Storefront(
                                     registry,
                                     signIn,
                                     live,
+                                    InPlace(overrides, loading) { unanswered = it },
                                     { header = it },
                                     { signedOut += 1 },
                                 ) {
@@ -291,8 +330,13 @@ public fun Storefront(
                             }
                         }
                     }
-                    if (loader.isLoading && loader.screen != null) {
+                    if ((loader.isLoading || loading.isLoading) && loader.screen != null) {
                         LoadingLine(Modifier.offset { IntOffset(0, (headerHeight - scroll.value).coerceAtLeast(0)) })
+                    }
+                    unanswered?.let { press ->
+                        Box(Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.BottomCenter) {
+                            NotUpdatedNotice(press.cause, press.retry)
+                        }
                     }
                     presented?.let { shown ->
                         val forms = remember { FormController(FormSchema(formId = "none", fields = emptyList())) }
@@ -303,7 +347,7 @@ public fun Storefront(
                     }
                 }
             }
-            FiltersSheetOverlay(filters)
+            FiltersSheetOverlay(filters, loading.isLoading)
         }
     }
 }
@@ -323,6 +367,26 @@ internal class Live(
     val source: KompotRealtimeSource,
 )
 
+/**
+ * What a screen's presses change in place (B-63): the store [overrides] its `update`s go into, its `load`s
+ * ([loading]), and where a `load` whose answer did not arrive is told ([unanswered]; `null` when the next
+ * one starts).
+ */
+internal class InPlace(
+    val overrides: KompotNodeOverrides,
+    val loading: KompotLoadState,
+    val unanswered: (Unanswered?) -> Unit,
+)
+
+/** A `load` whose answer did not arrive: why, and the same press again. */
+internal class Unanswered(
+    val cause: Throwable,
+    val retry: () -> Unit,
+)
+
+/** A `load` answered with nothing to do: it failed, and the shell has said so. */
+private val NOTHING: KompotAction = SequenceAction(emptyList())
+
 /** A component a tree's `present` shows over the page, and the screen's handler its actions go to. */
 internal class Presented(
     val content: KompotComponent,
@@ -332,7 +396,10 @@ internal class Presented(
 /**
  * A screen's tree, following its actions: `/sign-in` is sign-in's, any other `navigate` opens its
  * deeplink, and `refresh` — kompot's action, or [LocalScreenRefresh] — draws the screen again in place;
- * a refresh refused for want of a sign-in (a lapsed one, B-44) is [onSignedOut]'s.
+ * a refresh refused for want of a sign-in (a lapsed one, B-44) is [onSignedOut]'s. A `load` GETs its
+ * answer, and an `update` — a load's or a command's — replaces its nodes in [inPlace]'s store and hands
+ * the address it names to the history without a load (B-63); a load refused for a lapsed sign-in is
+ * [onSignedOut]'s too, any other failure [InPlace.unanswered]'s.
  * `present` and `close` are [onPresent]'s, and a `sequence` is each of its actions in turn. A [live] screen
  * listens on its channel while it is shown, and an update redraws the node it names (B-29); a refresh starts it
  * over from the tree it brought, so an update older than the tree never covers it.
@@ -346,6 +413,7 @@ private fun Shown(
     registry: KompotRegistry,
     signIn: suspend () -> Unit,
     live: Live?,
+    inPlace: InPlace,
     onHeader: (HaulHeader) -> Unit,
     onSignedOut: () -> Unit,
     onPresent: (Presented?) -> Unit,
@@ -358,22 +426,32 @@ private fun Shown(
             ScreenRefresh { scope.launch { transport.treeOrNull(address.screen, onSignedOut)?.let { tree = it } } }
         }
     val actions =
-        remember(address) {
+        remember(address, inPlace.overrides) {
             // A sign-in that returns to the page already shown draws it again: opening it would do nothing.
             val signInActions =
                 SignInActions(signIn = signIn, redraw = refresh::refresh) { next ->
                     if (next == address.value) refresh.refresh() else navigator.open(next)
                 }
             val navigate = navigating(navigator)
-            presenting(
-                KompotActionHandler { action ->
-                    scope.launch { if (!signInActions.handle(action)) navigate.handle(action) }
-                }.withRefresh(scope) { refresh.refresh() },
-                onPresent,
-            )
+            lateinit var top: KompotActionHandler
+            top =
+                presenting(
+                    KompotActionHandler { action ->
+                        scope.launch { if (!signInActions.handle(action)) navigate.handle(action) }
+                    }.withRefresh(scope) { refresh.refresh() }
+                        .withUpdates(inPlace.overrides) { deeplink, history ->
+                            navigator.record(deeplink, replace = history == UpdateHistory.REPLACE)
+                        }
+                        // Above `withUpdates`: a load's answer goes down the chain from here.
+                        .withLoad(scope, inPlace.loading) { url ->
+                            transport.parts(url, onSignedOut, inPlace.unanswered) { top.handle(LoadAction(url)) }
+                        },
+                    onPresent,
+                )
+            top
         }
     val forms = remember { FormController(FormSchema(formId = "none", fields = emptyList())) }
-    CompositionLocalProvider(LocalScreenRefresh provides refresh) {
+    CompositionLocalProvider(LocalScreenRefresh provides refresh, LocalKompotNodeOverrides provides inPlace.overrides) {
         if (live == null) {
             KompotScreen(tree, registry, forms, actions)
         } else {
@@ -426,6 +504,27 @@ internal fun presenting(
 /** Follows `navigate` to its deeplink; anything else is somebody else's to handle. */
 private fun navigating(navigator: Navigator): KompotActionHandler =
     KompotActionHandler { action -> if (action is NavigateAction) navigator.open(action.deeplink) }
+
+/**
+ * The answer of the `load` endpoint at [url] (B-63), or [NOTHING] when it did not arrive — after telling
+ * [signedOut] when that was a `401`, or [unanswered] why, with [retry]. A new press forgets the last failure.
+ */
+private suspend fun HaulTransport.parts(
+    url: String,
+    signedOut: () -> Unit,
+    unanswered: (Unanswered?) -> Unit,
+    retry: () -> Unit,
+): KompotAction {
+    unanswered(null)
+    return try {
+        action(url)
+    } catch (cancelled: CancellationException) {
+        throw cancelled
+    } catch (failed: ScreenFailed) {
+        if (failed.asksForSignIn) signedOut() else unanswered(Unanswered(failed, retry))
+        NOTHING
+    }
+}
 
 /** The tree at [path], or `null` when it did not arrive — after telling [signedOut] when that was a `401`. */
 private suspend fun HaulTransport.treeOrNull(

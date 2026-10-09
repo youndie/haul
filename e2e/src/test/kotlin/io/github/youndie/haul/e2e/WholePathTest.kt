@@ -23,6 +23,8 @@ import io.github.youndie.haul.ui.OrderBody
 import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.ReturnForm
+import io.github.youndie.kompot.commands.LoadAction
+import io.github.youndie.kompot.commands.UpdateAction
 import io.github.youndie.kompot.standard.CloseAction
 import io.github.youndie.kompot.standard.PresentAction
 import io.github.youndie.kompot.standard.RefreshAction
@@ -78,6 +80,25 @@ class WholePathTest {
                 assertTrue(deals.cards.isNotEmpty() && deals.cards.all { it.oldPrice != null }, "a deal beats no price")
                 val tile = home.one(CategoryGrid.serializer()).tiles.first()
                 val category = shop.page(tile.action.deeplink("the home's tile «${tile.name}»"))
+                // A brand ticked loads the category's parts in place (B-63): one `GET` answered with an
+                // `update` of the results and the address they make, which opens the same results whole.
+                val brand =
+                    category
+                        .one(FilteredResults.serializer())
+                        .facets.facets
+                        .single { it.key == "brand" }
+                        .options
+                        .first()
+                val tick = assertNotNull(brand.action as? LoadAction, "the brand «${brand.label}» is not a load")
+                val update =
+                    assertNotNull(shop.send("GET", tick.url).action() as? UpdateAction, "${tick.url} is not an update")
+                val ticked = assertNotNull(update.deeplink, "${tick.url} names no address")
+                assertEquals(
+                    shop.page(ticked).one(FilteredResults.serializer()),
+                    update.updates.single { it.componentId == "results" }.component,
+                    "the results «${brand.label}» loaded are not the page at $ticked",
+                )
+                assertTrue(update.updates.none { it.componentId == "header" }, "a tick sent the header again")
                 val grid =
                     assertNotNull(category.one(FilteredResults.serializer()).grid, "«${tile.name}» shows no products")
                 // A card that offers «+» is a product in stock: the one worth opening to buy.
@@ -98,12 +119,21 @@ class WholePathTest {
             val product = shop.page(productAddress).one(ProductDetails.serializer())
             val add = assertNotNull(product.add, "the product page offers no «Add to cart» for «${product.title}»")
             val answer = shop.send("PUT", add.url, haulWireJson.encodeToString(LineChange.serializer(), add.change))
-            assertEquals(RefreshAction, answer.action())
+            // Answered with the header and the buy box (B-63), not the page again.
+            val update = assertNotNull(answer.action() as? UpdateAction, "«Add to cart» is not answered with an update")
+            assertEquals(
+                1,
+                update.updates
+                    .map { it.component }
+                    .filterIsInstance<HaulHeader>()
+                    .single()
+                    .cartCount,
+            )
             val line = cartLines().single()
             assertEquals(product.productId, line.productId)
             assertEquals(1, line.quantity)
             assertEquals(product.price, line.price, "the cart charges another price than the product page showed")
-            // `refresh` draws the page again: the header counts the line, and «Add to cart» offers one more.
+            // The page drawn again agrees: the header counts the line, and «Add to cart» offers one more.
             val again = shop.page(productAddress)
             assertEquals(1, again.one(HaulHeader.serializer()).cartCount, "the header does not count the line")
             assertEquals(

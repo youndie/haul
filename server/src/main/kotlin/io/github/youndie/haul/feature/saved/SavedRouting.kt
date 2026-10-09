@@ -13,7 +13,10 @@ import io.github.youndie.haul.feature.saved.domain.SavedCommands
 import io.github.youndie.haul.feature.saved.screen.SavedFilter
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.shell.Frame
+import io.github.youndie.haul.shell.Parts
 import io.github.youndie.haul.shell.Viewers
+import io.github.youndie.haul.shell.respondParts
+import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.ktor.respondKompotAction
 import io.github.youndie.kompot.ktor.respondKompotComponent
 import io.github.youndie.kompot.standard.RefreshAction
@@ -43,20 +46,22 @@ internal fun Route.savedRouting() {
 
     suspend fun ApplicationCall.refresh() = respondKompotAction(haulWireJson, RefreshAction)
 
-    get(SavedPaths.SCREEN) {
-        val caller = call.caller()
-        val parameters = call.request.queryParameters
+    suspend fun ApplicationCall.savedPage(): KompotComponent {
+        val caller = caller()
+        val parameters = request.queryParameters
         val page =
             parameters[SavedPaths.PAGE]?.let {
                 it.toIntOrNull()?.takeIf { p -> p >= 1 }
                     ?: throw CatalogError.Invalid(SavedPaths.PAGE, "Pages start at 1, not «$it»")
             } ?: 1
         val filter = SavedFilter.of(parameters[SavedPaths.FILTER])
-        call.respondKompotComponent(
-            haulWireJson,
-            screen.build(caller.customer, AccountPage.Saved(filter, page), viewers.of(caller)),
-        )
+        return screen.build(caller.customer, AccountPage.Saved(filter, page), viewers.of(caller))
     }
+
+    get(SavedPaths.SCREEN) { call.respondKompotComponent(haulWireJson, call.savedPage()) }
+
+    // A filter or a page of the list loaded in place (B-63, kind `load`): the account's body.
+    get(Parts.PREFIX + Frame.SAVED) { call.respondParts(call.savedPage(), AccountScreen.PARTS) }
 
     put(SavedPaths.ITEM) {
         val customer = call.caller().customer

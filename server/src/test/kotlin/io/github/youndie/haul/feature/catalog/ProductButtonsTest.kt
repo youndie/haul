@@ -10,6 +10,7 @@ import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
 import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
 import io.github.youndie.haul.testing.ShildikHarness
+import io.github.youndie.haul.testing.action
 import io.github.youndie.haul.testing.all
 import io.github.youndie.haul.testing.assertRefresh
 import io.github.youndie.haul.testing.cart
@@ -22,6 +23,7 @@ import io.github.youndie.haul.ui.CheckoutSummary
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.commands.UpdateAction
 import io.github.youndie.kompot.decodeKompotComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import io.ktor.client.HttpClient
@@ -63,9 +65,10 @@ class ProductButtonsTest {
             val travel = "$SONY_HEADPHONES-1"
             val add =
                 assertNotNull(details(guest, travel).add, "the travel-case bundle in stock offers no «Add to cart»")
-            assertEquals(LineCommand(CartPaths.line(travel), LineChange(quantity = 1)), add)
+            assertEquals(LineCommand(CartPaths.line(travel) + "?answer=details", LineChange(quantity = 1)), add)
 
-            send(guest, add).assertRefresh()
+            // Answered with the header and the buy box (B-63, `LineAnswersTest`), the page as it now is.
+            assertTrue(send(guest, add).action() is UpdateAction, "«Add to cart» is not answered with an update")
             val after = page(guest, travel)
             assertEquals(1, after.only<HaulHeader>().cartCount, "«Add to cart» did not reach the header's count")
             assertEquals(listOf(travel to 1), lines(guest), "the cart holds another SKU than the page showed")

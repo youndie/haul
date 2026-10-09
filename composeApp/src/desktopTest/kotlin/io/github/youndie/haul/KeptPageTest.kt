@@ -4,18 +4,13 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.assertHasClickAction
-import androidx.compose.ui.test.assertHasNoClickAction
-import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
-import io.github.youndie.haul.feature.catalog.CLOSE_FILTERS
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
 import io.github.youndie.haul.shell.LOADING_LINE_TAG
@@ -54,7 +49,8 @@ import kotlin.test.assertTrue
  * no placeholder comes in between, and a line under the header says a load is on its way — while another
  * path is another screen, drawn from its placeholder at the top. A load that does not arrive keeps the
  * page under a notice with Retry. A fake transport serves the trees, gated where a page has to be caught
- * on its way.
+ * on its way. The trees here carry `navigate`, which B-63 turned the server's filters into `load`
+ * (`InPlaceAnswersTest`); a `navigate` within a screen still keeps the page, and back and forward are visits.
  */
 @OptIn(ExperimentalTestApi::class)
 class KeptPageTest {
@@ -246,58 +242,8 @@ class KeptPageTest {
             onNodeWithTag(NOT_UPDATED_TAG).assertDoesNotExist()
         }
 
-    /**
-     * B-54 over a kept page: between a tick in the phone's filter sheet and the page it opens the page's
-     * handler is already the new address's, but its facets are still the old page's — the sheet follows
-     * nothing until the new results are drawn.
-     */
-    @Test
-    fun `the filter sheet follows nothing while a tick on the same screen loads`() =
-        runDesktopComposeUiTest(PHONE, HEIGHT) {
-            answer("/ui$MUGS", ok(catalog(ostra = false)))
-            answer("/ui$BY_OSTRA", ok(catalog(ostra = true)))
-            val arriving = gate("/ui$BY_OSTRA")
-            storefront(compact = true)
-            openSheet()
-
-            onNodeWithText("Ostra").performClick()
-            waitUntil(timeoutMillis = 5_000) { "/ui$BY_OSTRA" in requests }
-            waitForIdle()
-            onNodeWithText("Lume").assertHasNoClickAction()
-
-            arriving.complete(Unit)
-            waitForText("1 applied")
-            onNodeWithText("Lume").assertHasClickAction()
-            onNodeWithTag(LOADING_TAG).assertDoesNotExist()
-        }
-
-    /** A tick in the sheet whose page did not arrive leaves the old page drawn, and its facets are true again. */
-    @Test
-    fun `the filter sheet follows the kept page again when a tick's page does not arrive`() =
-        runDesktopComposeUiTest(PHONE, HEIGHT) {
-            answer("/ui$MUGS", ok(catalog(ostra = false)))
-            answer("/ui$BY_OSTRA", SERVER_ERROR)
-            storefront(compact = true)
-            openSheet()
-
-            onNodeWithText("Ostra").performClick()
-            waitUntil(timeoutMillis = 5_000) { tagged(NOT_UPDATED_TAG) }
-            waitForIdle()
-            onNodeWithContentDescription(CLOSE_FILTERS).assertExists()
-            onNodeWithText("Lume").assertHasClickAction()
-        }
-
-    private fun ComposeUiTest.openSheet() {
-        waitForText("Filters")
-        onNodeWithText("Filters").performClick()
-        waitUntil(timeoutMillis = 5_000) {
-            onAllNodes(hasContentDescription(CLOSE_FILTERS)).fetchSemanticsNodes().isNotEmpty()
-        }
-    }
-
     private companion object {
         const val WIDTH = 1440
-        const val PHONE = 390
         const val HEIGHT = 1000
         const val SCROLL = 240f
         const val MUGS = "/c/mugs"

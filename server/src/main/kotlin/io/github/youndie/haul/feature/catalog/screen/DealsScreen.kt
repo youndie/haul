@@ -8,11 +8,13 @@ import io.github.youndie.haul.feature.catalog.domain.Page
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.shell.Frame
+import io.github.youndie.haul.shell.Parts
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.SectionHeader
 import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.standard.NavigateAction
 
 /**
  * `/ui/deals` (B-37): where «Deals», «View all deals», «Shop the sale» and the empty cart's «See today's
@@ -46,13 +48,18 @@ internal class DealsScreen(
         sections += PageTitle("title", "Deals", "${count(onSale.size)} items on sale")
         val deals = if (shown.page == 1) dealsOfTheDay(catalog, calendar, photos, viewer) else null
         if (deals != null) {
-            sections += SectionHeader("deals-title", "Deals of the day", countdownEndsAt = deals.endsAt, accent = "day")
+            sections += SectionHeader(TODAY, "Deals of the day", countdownEndsAt = deals.endsAt, accent = "day")
             sections += ProductGrid("deals", deals.cards, columns = DEAL_COLUMNS)
         }
         sections += SectionHeader("sale-title", "On sale", accent = "sale")
         sections +=
             ProductGrid("grid", shown.items.map { card(it, calendar, photos, viewer) }, columns = GRID_COLUMNS)
-        sections += pagination(shown) { if (it > 1) "${Frame.DEALS}?page=$it" else Frame.DEALS }
+        // A page loads in place (B-63) unless either side of the press has the deals of the day: an `update`
+        // replaces nodes, it cannot take them away or add a section the page drawn does not have.
+        sections +=
+            pagination(shown, { if (it > 1) "${Frame.DEALS}?page=$it" else Frame.DEALS }) { to ->
+                if (deals == null && to != Frame.DEALS) Parts.load(to) else NavigateAction(to)
+            }
         return Frame.page("deals", viewer, navigation(categories), sections, footer = true)
     }
 
@@ -71,6 +78,15 @@ internal class DealsScreen(
     }
 
     companion object {
+        /**
+         * The header of today's deals, drawn with their grid on the first page only — the page's own id is
+         * `deals`, so the section is told by its header.
+         */
+        const val TODAY = "deals-title"
+
+        /** What a page of the deals changes when it loads in place (B-63): the grid and the pages. */
+        val PARTS = listOf("grid", "pagination")
+
         private const val DEAL_COLUMNS = 6
         private const val GRID_COLUMNS = 5
     }

@@ -8,8 +8,9 @@
 sborka = "0.5.0.113"
 # A snapshot of kompot's main; kompot-core is what the contract's components are built on. Ahead of the
 # sibling reference service's pin (research §1.1) since B-62: 0.40.0.212 is the first whose screen loader
-# keeps a screen's tree while the next address of it loads (kompot B-81).
-kompot = "0.40.0.212"
+# keeps a screen's tree while the next address of it loads (kompot B-81); 0.40.0.213 the first with `load`
+# and `update`, answers that replace nodes by id (kompot B-82, B-63).
+kompot = "0.40.0.213"
 logback = "1.5.20"
 # PostgreSQL through Exposed over JDBC, the pair petich-postgres runs on (research D3); the versions are
 # the sibling reference service's (research §1.1).
@@ -55,6 +56,8 @@ ktor-server-testHost = { module = "io.ktor:ktor-server-test-host" }
 ktor-server-sse = { module = "io.ktor:ktor-server-sse" }
 kompot-core = { module = "io.github.youndie.kompot:kompot-core", version.ref = "kompot" }
 kompot-standard = { module = "io.github.youndie.kompot:kompot-standard", version.ref = "kompot" }
+# `load` and `update` (B-63): the contract's JSON registers them, so a tree can carry a `load`.
+kompot-commands = { module = "io.github.youndie.kompot:kompot-commands", version.ref = "kompot" }
 kompot-ktor = { module = "io.github.youndie.kompot:kompot-ktor", version.ref = "kompot" }
 kompot-client = { module = "io.github.youndie.kompot:kompot-client", version.ref = "kompot" }
 # Live updates (B-29, research consequence 3): delivery to this process's subscribers, jvm only; the frame
