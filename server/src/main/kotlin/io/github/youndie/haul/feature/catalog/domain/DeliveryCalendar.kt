@@ -40,14 +40,6 @@ internal class DeliveryCalendar(
         return "Order within ${left.toHours()} h ${left.toMinutesPart()} min"
     }
 
-    /** The instant deals of the day end: the next local midnight, ISO-8601. */
-    fun midnight(): String =
-        today()
-            .plusDays(1)
-            .atStartOfDay(STORE)
-            .toOffsetDateTime()
-            .toString()
-
     companion object {
         val STORE: ZoneId = ZoneId.of("America/New_York")
         val CUTOFF: LocalTime = LocalTime.of(23, 30)

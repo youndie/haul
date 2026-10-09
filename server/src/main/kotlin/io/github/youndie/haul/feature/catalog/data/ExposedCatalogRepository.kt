@@ -2,8 +2,8 @@ package io.github.youndie.haul.feature.catalog.data
 
 import io.github.youndie.haul.StoreClock
 import io.github.youndie.haul.feature.catalog.domain.Campaign
-import io.github.youndie.haul.feature.catalog.domain.CampaignOpening
 import io.github.youndie.haul.feature.catalog.domain.CampaignPricing
+import io.github.youndie.haul.feature.catalog.domain.CampaignWindow
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.Deal
@@ -27,8 +27,8 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 /**
  * The catalog over Exposed. JDBC blocks, so every read runs on the IO dispatcher. SKUs are read with
- * their campaign's opening and their deals, and priced for the caller's [PriceList] at the store's
- * [clock] (B-53, B-57), here and nowhere else, so every screen and command that reads a SKU reads the
+ * their campaign's window and their deals, and priced for the caller's [PriceList] at the store's
+ * [clock] (B-53, B-57, B-58), here and nowhere else, so every screen and command that reads a SKU reads the
  * same price — a deal card's included.
  */
 internal class ExposedCatalogRepository(
@@ -162,7 +162,7 @@ internal class ExposedCatalogRepository(
             rows
                 .map { row ->
                     val sku = sku(row)
-                    CampaignPricing.priced(sku, opening(row), deals[sku.id].orEmpty(), prices, at)
+                    CampaignPricing.priced(sku, window(row), deals[sku.id].orEmpty(), prices, at)
                 }.groupBy { it.productId }
         return products.mapNotNull { product ->
             skus[product.id]?.sortedBy { it.position }?.let { Listed(product, it) }
@@ -207,10 +207,14 @@ internal class ExposedCatalogRepository(
             endsAt = row[DealsTable.endsAt],
         )
 
-    /** The opening of the SKU's campaign, from the joined row; none for a SKU in no campaign. */
-    private fun opening(row: ResultRow): CampaignOpening? =
+    /** The window of the SKU's campaign, from the joined row; none for a SKU in no campaign. */
+    private fun window(row: ResultRow): CampaignWindow? =
         row[SkusTable.campaignSlug]?.let {
-            CampaignOpening(row[CampaignsTable.startsAt], row[CampaignsTable.plusEarlyAccessAt])
+            CampaignWindow(
+                startsAt = row[CampaignsTable.startsAt],
+                endsAt = row[CampaignsTable.endsAt],
+                plusEarlyAccessAt = row[CampaignsTable.plusEarlyAccessAt],
+            )
         }
 
     private fun sku(row: ResultRow): Sku =

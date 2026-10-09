@@ -200,26 +200,32 @@ internal class CartScreen(
         // The owner's prices rather than the viewer's: a cart drawn for a command's answer has a viewer
         // without the customer, and the picks must be at the prices the cart would charge (B-53).
         val picks = catalog.listed(deals.map { it.skuId.substringBeforeLast('-') }.distinct(), owner.prices)
-        return listOf(
-            title(count = null),
-            EmptyState(
-                id = "empty",
-                title = "Your cart is empty",
-                accent = "empty",
-                text = "Today’s deals end at midnight — up to −70 % in the Autumn mega sale.",
-                actionLabel = "See today’s deals",
-                action = NavigateAction(Frame.DEALS),
-                primary = true,
-            ),
-            // The picks are the day's deals, not recommendations (feature-recommendations), so the
-            // subtitle says so rather than the canvas's «Based on your recent views».
-            SectionHeader("picked-title", "Picked for you", subtitle = "From today’s deals", accent = "you"),
-            ProductGrid(
-                "picked",
-                picks.take(PICKS).map { card(it, calendar, photos, viewer) },
-                columns = PICKS,
-            ),
-        )
+        val empty =
+            listOf(
+                title(count = null),
+                EmptyState(
+                    id = "empty",
+                    title = "Your cart is empty",
+                    accent = "empty",
+                    text = "Today’s deals end at midnight — up to −70 % in the Autumn mega sale.",
+                    actionLabel = "See today’s deals",
+                    action = NavigateAction(Frame.DEALS),
+                    primary = true,
+                ),
+            )
+        // With no live deal there is nothing to pick from, and the section is not drawn (B-58).
+        if (picks.isEmpty()) return empty
+        return empty +
+            listOf(
+                // The picks are the day's deals, not recommendations (feature-recommendations), so the
+                // subtitle says so rather than the canvas's «Based on your recent views».
+                SectionHeader("picked-title", "Picked for you", subtitle = "From today’s deals", accent = "you"),
+                ProductGrid(
+                    "picked",
+                    picks.take(PICKS).map { card(it, calendar, photos, viewer) },
+                    columns = PICKS,
+                ),
+            )
     }
 
     companion object {

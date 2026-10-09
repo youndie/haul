@@ -695,8 +695,7 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   not compile. Cards, the product page, search, the Saved list's drops, the cart, the quote and placement therefore
   read one price; a membership that starts mid-checkout changes the line's price, which the cart marks as changed and
   the quote's fingerprint turns into `409 cart_changed`.
-- **Only the opening is read.** What a campaign's prices do after its `ends_at` is not decided, and every seeded
-  campaign is over on the stand's wall clock, so the stand's prices did not move.
+- **Only the opening was read** until B-58, which decided the end (below).
 - **Nothing is cached between viewers**: every tree is built per request for its caller, and none is marked for a
   shared cache.
 
@@ -716,6 +715,37 @@ The canvas contradicted itself in three places and left one promise unbacked; th
 - **An ended deal is gone**: `CatalogRepository.deals()` returns the deals live on the store's clock, so its card
   leaves the home page, the deals page and the empty cart's picks, and its SKU sells at its campaign or regular price
   again; a line put into a cart at the deal's price is then a changed price (B-11's rule).
+
+**Decided in B-58, campaigns and deals end.**
+
+- **A campaign's prices end at its `ends_at`** (`CampaignWindow.liveFor`, `feature/catalog/domain/CampaignPricing.kt`):
+  from that instant the SKU is at its regular price with nothing struck through, for everybody — early access opens a
+  sale sooner for a member and keeps it no longer. Every read that prices a SKU passes through it, so the card, the
+  product page, search, Saved, the cart, the quote and placement all return to the regular price together, and a line
+  put into a cart at the sale's price is a changed price (B-11's rule). A deal that outlives its campaign beats the
+  regular price. The home page's banners are not ended here (B-59).
+- **No deals, no section.** «Deals of the day» on home and on the deals page, and the empty cart's «Picked for you»
+  (made from the same deals), are drawn only while a deal is live; with none the header, its countdown and the grid
+  are all left out, rather than a header over nothing.
+- **The countdown runs to the soonest live deal's `ends_at`**, in the store's zone (`dealsOfTheDay`,
+  `feature/catalog/screen/Cards.kt`). A seeded deal of the day ends at the store's midnight (D7), so the countdown is
+  the one it was, `DeliveryCalendar.midnight()` is gone, and a deal written with another end is counted down to that
+  end instead of to a midnight it outlives or misses.
+- **The seed dates its sale from the day it seeds** (`CatalogSeed.generate(day)`): the campaigns' and the deals'
+  windows are the canvas's, moved by whole store days to `day` and kept on New York's local midnights across a change
+  of clocks; nothing else moves. Tests and fixtures seed `CatalogSeed.CANVAS_DAY` and get the canvas's rows exactly;
+  `main` seeds the store's day at start (`CatalogSeed.dayOf`), so a stand seeded today sells what the canvas sells on
+  Oct 7.
+- **A running stand's sale is moved at start, not by a migration** (`Seeder.redateSale`): a stand keeps its database
+  across deploys and `seedIfEmpty` seeds only an empty catalogue, so on every start that seeds (`HAUL_SEED`) the
+  sample sale — the seed's campaigns by slug and its deals by id **and** SKU, nothing else — is moved to the store's
+  day, to exactly the windows a fresh seed of that day writes, once every sample deal has ended by that day's start.
+  Never under a live deal, at most once a day, and never on a database that is not seeded. A migration (V28) was
+  refused: it would re-date once, at the version's deploy, and the stand's sale would be over again a week later; and
+  it would run on every database, seeded or not. A stand that runs for days without a restart still sees its deals
+  end at midnight and the sale end on its eighth day — the next start brings them back.
+- **Not moved**: promo codes keep the canvas's windows (`SamplePromoCodes`, `AUTUMN10` to Oct 15, 2025), so on the
+  stand's wall clock the canvas's code is expired; no item asks for it.
 
 **How the stand is built (B-27).** One image serves the page and the API: the server's distribution
 carries the browser bundle and serves it at `/`, so the two cannot be deployed at different versions

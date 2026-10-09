@@ -50,7 +50,7 @@ import kotlin.test.assertTrue
  * is sent as the client sends it, from the tree, never built by the test.
  */
 class ProductButtonsTest {
-    private val seed = CatalogSeed.generate()
+    private val seed = CatalogSeed.generate(CatalogSeed.CANVAS_DAY)
 
     /**
      * Scenario «Variant changes the price», its last clause: «Add to cart» adds the SKU the page shows,

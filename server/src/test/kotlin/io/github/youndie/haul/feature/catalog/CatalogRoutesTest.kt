@@ -21,7 +21,7 @@ import kotlin.test.assertTrue
 
 /** feature-browse's scenarios, against the seeded catalog. */
 class CatalogRoutesTest {
-    private val catalog = CatalogSeed.generate()
+    private val catalog = CatalogSeed.generate(CatalogSeed.CANVAS_DAY)
 
     /** Scenario «Facets narrow the list»: every product shown matches all four filters, and the count is theirs. */
     @Test

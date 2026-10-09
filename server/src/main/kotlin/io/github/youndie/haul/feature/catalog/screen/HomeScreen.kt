@@ -25,7 +25,7 @@ import java.util.Locale
 
 /**
  * `/ui/home` (screen-home). Everybody sees the campaign, the banners, the categories, the deals of the
- * day and the Plus block: the offer to a guest and a non-member — whose «Try 30 days free» is sign-in or
+ * day — while a deal is live: with none, the section is not drawn (B-58) — and the Plus block: the offer to a guest and a non-member — whose «Try 30 days free» is sign-in or
  * the trial's dialog — and a member's savings and renewal (feature-membership, [PlusOffer]). A customer
  * sees «Picked for you» ([PickedSection], feature-recommendations) after it, where the canvas puts it.
  */
@@ -62,22 +62,18 @@ internal class HomeScreen(
                         CategoryTile("tile-${it.slug}", it.name, it.tone, it.label, categoryLink(it.slug))
                     },
             )
-        sections +=
-            SectionHeader(
-                "deals-title",
-                "Deals of the day",
-                linkLabel = "View all deals",
-                countdownEndsAt = calendar.midnight(),
-                action = NavigateAction(Frame.DEALS),
-                accent = "day",
-            )
-        sections +=
-            ProductGrid(
-                id = "deals",
-                columns = DEAL_COLUMNS,
-                scroll = true,
-                cards = dealCards(catalog, calendar, photos, viewer),
-            )
+        dealsOfTheDay(catalog, calendar, photos, viewer)?.let { deals ->
+            sections +=
+                SectionHeader(
+                    "deals-title",
+                    "Deals of the day",
+                    linkLabel = "View all deals",
+                    countdownEndsAt = deals.endsAt,
+                    action = NavigateAction(Frame.DEALS),
+                    accent = "day",
+                )
+            sections += ProductGrid(id = "deals", columns = DEAL_COLUMNS, scroll = true, cards = deals.cards)
+        }
         sections += PlusOffer.block(viewer, viewer.customer?.let { loyalty.standing(it) })
         sections += picked.build(viewer)
         return Frame.page("home", viewer, navigation(categories), sections, footer = true)

@@ -49,7 +49,7 @@ import kotlin.test.assertTrue
  * the «HAUL PLUS» pill of a customer `MembershipRoutesTest`'s, both against a running shildik.
  */
 class DrawnActionsTest {
-    private val seed = CatalogSeed.generate()
+    private val seed = CatalogSeed.generate(CatalogSeed.CANVAS_DAY)
 
     @Test
     fun `the header links every top-level category and its deals cart and orders`() =

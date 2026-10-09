@@ -95,23 +95,43 @@ internal fun addToCart(
 }
 
 /**
- * The cards of the deals live on the store's clock (feature-browse): each the deal's SKU at the price the
- * catalog reads for it — the deal's, over the campaign or regular price it beats, or the campaign's when
- * that is as low (B-57, `CampaignPricing`) — which is what «+» puts into the cart and the cart charges. A
- * deal whose SKU is gone is left out, and an ended one is not read at all.
+ * «Deals of the day» as home and the deals page draw it: the [cards] of the deals live on the store's clock
+ * and the instant the section's countdown runs to, [endsAt] — the soonest end among the drawn deals (B-58),
+ * ISO-8601 in the store's zone. A seeded deal of the day ends at the store's next midnight (research D7),
+ * which is what the countdown read before; a deal written with another end is counted down to that end
+ * rather than to a midnight it outlives or misses.
  */
-internal suspend fun dealCards(
+internal class DealsOfTheDay(
+    val cards: List<ProductCard>,
+    val endsAt: String,
+)
+
+/**
+ * The deals live on the store's clock (feature-browse), or `null` when there are none — no deal is live, or
+ * no live deal's SKU is left — so a screen draws no «Deals of the day» at all rather than its header over an
+ * empty grid (B-58). Each card is the deal's SKU at the price the catalog reads for it — the deal's, over the
+ * campaign or regular price it beats, or the campaign's when that is as low (B-57, `CampaignPricing`) — which
+ * is what «+» puts into the cart and the cart charges. An ended deal is not read at all.
+ */
+internal suspend fun dealsOfTheDay(
     catalog: CatalogRepository,
     calendar: DeliveryCalendar,
     photos: ProductPhotos,
     viewer: Viewer,
-): List<ProductCard> {
+): DealsOfTheDay? {
     val deals = catalog.deals()
     val items = catalog.listed(deals.map { deal -> deal.skuId.substringBeforeLast('-') }, viewer.prices)
-    return deals.mapNotNull { deal ->
-        val item = items.firstOrNull { item -> item.skus.any { it.id == deal.skuId } } ?: return@mapNotNull null
-        card(item, calendar, photos, viewer, sku = item.skus.first { it.id == deal.skuId })
-    }
+    val drawn =
+        deals.mapNotNull { deal ->
+            val item = items.firstOrNull { item -> item.skus.any { it.id == deal.skuId } } ?: return@mapNotNull null
+            deal to card(item, calendar, photos, viewer, sku = item.skus.first { it.id == deal.skuId })
+        }
+    if (drawn.isEmpty()) return null
+    val endsAt = drawn.minOf { (deal, _) -> deal.endsAt.toInstant() }
+    return DealsOfTheDay(
+        cards = drawn.map { (_, card) -> card },
+        endsAt = endsAt.atZone(DeliveryCalendar.STORE).toOffsetDateTime().toString(),
+    )
 }
 
 internal fun productLink(productId: String): NavigateAction = NavigateAction("/p/$productId")
