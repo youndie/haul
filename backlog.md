@@ -40,7 +40,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (6)
+## Open (5)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -48,10 +48,9 @@ A stage is a field on the item, not a directory.
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 | [B-45](docs/backlog/B-45-a-product-s-listing-name.md) `[ ]` | server: a product's listing name, as cards, cart and orders write it | P3 | S | B-18 |
 | [B-53](docs/backlog/B-53-plus-members-see-campaign-prices-early.md) `[ ]` | server: Plus members see campaign prices early | P3 | S | B-23 |
-| [B-55](docs/backlog/B-55-the-order-page-names-the-card-refund.md) `[~]` | server: the order page names what the card gets back | P3 | S | B-50 |
 | [B-56](docs/backlog/B-56-placement-moves-the-order-page-live.md) `[ ]` | server: placement moves the order page live | P3 | S | B-29 |
 
-## Closed (50)
+## Closed (51)
 
 **Skeleton**
 
@@ -110,6 +109,7 @@ A stage is a field on the item, not a directory.
 - [B-21](docs/backlog/B-21-returns-and-refunds.md) `[x]` - server + client: returns and refunds
 - [B-50](docs/backlog/B-50-the-return-dialog-names-the-points-share.md) `[x]` - server + client: the return dialog names the points share of a refund
 - [B-51](docs/backlog/B-51-dialog-commands-are-not-review-commands.md) `[x]` - client: dialog commands are not review commands
+- [B-55](docs/backlog/B-55-the-order-page-names-the-card-refund.md) `[x]` - server: the order page names what the card gets back
 
 **Reviews**
 
