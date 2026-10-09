@@ -250,6 +250,11 @@ page would gain or lose a section an `update` cannot add or take away — is `na
 | `GET /ui/parts/account/orders?status=…` | customer (`401`) | a chip of the history | `account` |
 | `GET /ui/parts/account/saved?…` | customer (`401`) | a filter or a page of the Saved list | `account` |
 
+A part is found by its id, so an id names one node of a page (kompot SPEC §4.2) — the order's live frame and the
+override store rely on it too. `server/.../shell/UniqueIdsTest.kt` holds it over every page a guest and a customer
+open and every `update` above, the nodes sent and the page after them; a page whose section already carries the
+page's name has the root `<name>-page` (B-65: until then the account's parts were its whole page, root included).
+
 The query is the page's own, refused the same way (`400 validation_failed`); the search's parts do not record
 the search again — a `load` changes nothing. In the client (`shell/Storefront.kt`) an `update` goes into the
 screen's override store and its address into the history without a load (`Navigator.record`); back and forward
