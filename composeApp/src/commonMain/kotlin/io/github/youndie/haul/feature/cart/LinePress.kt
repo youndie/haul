@@ -8,8 +8,8 @@ import kotlinx.coroutines.launch
 /**
  * The press of a control that carries a line change fixed in the tree — a card's «+» (B-37), «Add to
  * cart» and «Buy now» (B-48): [command] goes to the storefront's cart commands, and the screen's
- * handler follows what comes back — `refresh`, or the command's own `next` once the server accepted
- * it. `null`, nothing to press, when the tree gave no command or nobody sends one (a screenshot).
+ * handler follows what comes back — `update` of the header and the control (B-63), `refresh`, or the
+ * command's own `next` once the server accepted it. `null`, nothing to press, when the tree gave no command or nobody sends one (a screenshot).
  */
 @Composable
 internal fun linePress(command: LineCommand?): (() -> Unit)? {

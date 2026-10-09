@@ -117,7 +117,8 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * screen is drawn again, signed in or not. A page refused for want of a sign-in (`401`: a guest on a
  * customer's page, or a sign-in lapsed past renewing) asks for one ([SignInPrompt], B-44) and is loaded
  * again once it has gone through. The cart's presses — the cart's own and a card's «+» — go
- * to [cartCommands] (B-13, B-37), whose answer, `refresh`, draws the screen again. «Clear» on recent
+ * to [cartCommands] (B-13, B-37), whose answer, `refresh`, draws the screen again — or, for «+» and «Add to
+ * cart», `update`, which redraws the header and the control (B-63). «Clear» on recent
  * searches goes through [commands] (B-37), and the suggest panel is asked for again once the server
  * has answered. The checkout's go to [checkoutCommands] (B-15), whose `refresh` draws it again the
  * same way. A tree's `present` draws its component over the page — the product page's review and

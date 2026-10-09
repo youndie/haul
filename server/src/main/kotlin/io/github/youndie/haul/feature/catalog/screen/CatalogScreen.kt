@@ -419,7 +419,7 @@ internal class CatalogScreen(
 
 /**
  * A category page's address with its filters and sort, the form every facet's, sort's and page's action
- * navigates to. A change of filters or sort starts again from the first page. An expanded brand facet
+ * loads the parts of (B-63). A change of filters or sort starts again from the first page. An expanded brand facet
  * ([expanded], `expand=brand`) stays expanded on every address the page links to: it is how the shopper
  * is looking at the facets, as the sort is how they look at the grid.
  */
