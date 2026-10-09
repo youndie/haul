@@ -60,8 +60,17 @@ Verified against `youndie/kompot@d35ae36`.
 the screenshot tests share one renderer: `kompot-client` on wasmJs ships, the same on
 `jvm("desktop")` draws the references the parity check compares against.
 
-**Consequence 3.** Live order tracking through `kompot-realtime-server` is available on the JVM;
-it is still a later item (B-29), because v1 refreshes the order screen on open.
+**Consequence 3.** Live order tracking through `kompot-realtime-server` is available on the JVM,
+and B-29 built it on kompot's own pieces at the pinned version: the order's tree comes in
+`KompotScreenResponse` naming its channel, `KompotUpdateBroadcaster` (its in-memory bus) hands each
+move's `UpdateComponentMessage` to the pages on that channel, and `KompotRealtimeProvider` swaps the
+node by its id in the browser. kompot leaves the transport to the application; Haul's is kompot's
+reference one, server-sent events at `GET /ui/updates?topic=` (kompot SPEC §16.6). **Decided in
+B-29:** a channel is one customer's — delivered by the order and its customer, refused like the page
+(`404 order_not_found`) to anybody else; every stream opens with the order as it is, so a move made
+while the page loaded or reconnected is not lost, and the browser reconnects by itself (a second,
+doubling to thirty) rather than reloading the page. The bus is in memory: one process serves the
+pages and runs the simulated world, and a second replica would need kompot's Redis bus.
 
 ### 1.3 petich storage
 

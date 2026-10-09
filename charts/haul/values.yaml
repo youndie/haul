@@ -15,6 +15,8 @@ server:
   # Any number is safe today: nothing is held in process (the screens are built from the database on
   # every request), and Flyway serialises concurrent migrations on its own lock. Revisit when the
   # order saga and the fulfilment simulator land (B-16, B-17): a simulator on a clock must run once.
+  # The order page's live updates (B-29) are held in process too: a move reaches the pages connected to
+  # the pod that made it, and a second replica's pages only catch up when they reconnect.
   replicas: 1
   # Seed the catalog on the first start, when the database is empty. Off by default, as in the server:
   # a production database is not a demo.
