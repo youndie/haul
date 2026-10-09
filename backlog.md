@@ -40,7 +40,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (5)
+## Open (7)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -49,6 +49,8 @@ A stage is a field on the item, not a directory.
 | [B-45](docs/backlog/B-45-a-product-s-listing-name.md) `[ ]` | server: a product's listing name, as cards, cart and orders write it | P3 | S | B-18 |
 | [B-53](docs/backlog/B-53-plus-members-see-campaign-prices-early.md) `[ ]` | server: Plus members see campaign prices early | P3 | S | B-23 |
 | [B-54](docs/backlog/B-54-the-filter-sheet-stays-open-while-filtering.md) `[ ]` | client: the filter sheet stays open while filtering | P3 | S | B-49 |
+| [B-55](docs/backlog/B-55-the-order-page-names-the-card-refund.md) `[ ]` | server: the order page names what the card gets back | P3 | S | B-50 |
+| [B-56](docs/backlog/B-56-placement-moves-the-order-page-live.md) `[ ]` | server: placement moves the order page live | P3 | S | B-29 |
 
 ## Closed (49)
 
