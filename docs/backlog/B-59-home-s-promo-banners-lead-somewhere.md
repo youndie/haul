@@ -1,7 +1,7 @@
 ---
 id: B-59
 title: "server: home's promo banners lead somewhere"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-2-browse
