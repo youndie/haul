@@ -36,6 +36,7 @@ import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.petich.PetichClock
 import kotlinx.coroutines.runBlocking
 import org.koin.core.Koin
+import org.koin.core.module.Module
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import java.time.Instant
@@ -65,14 +66,17 @@ internal val MAYA: CartOwner.Customer = CartOwner.Customer(SampleCustomers.MAYA,
  * The production graph over [dataSource] — placement, the saga, the payment simulator and the fulfilment
  * simulator — with [clock] as the saga's and the world's clock and [pace] as the world's pace. Nothing runs
  * by itself: a test places through [place] and moves the world through [advance], one pass at a time.
+ * [overrides] replace bindings of the graph — a card processor that holds its answer, say.
  */
 internal class FulfilmentWorld(
     private val dataSource: DataSource,
     val clock: TestClock = TestClock(),
     pace: FulfilmentPace = FulfilmentPace.STORE,
+    overrides: Module = module { },
 ) : AutoCloseable {
     private val application =
         koinApplication {
+            allowOverride(true)
             modules(
                 module {
                     single { Databases.connect(dataSource) }
@@ -96,6 +100,7 @@ internal class FulfilmentWorld(
                 accountModule,
                 returnsModule,
                 membershipModule,
+                overrides,
             )
         }
     val koin: Koin get() = application.koin

@@ -21,8 +21,8 @@ import org.koin.dsl.module
  * The order saga's graph: its storage, the engine with the one definition it runs, the sweeper that
  * carries on a saga whose process died, and placement; then the order's page and its reorder (B-18). The
  * saga's `PetichClock` comes from the application, which reads the wall clock once (`Application.kt`). The
- * order's live page (B-29): the moves the simulators tell, and kompot's broadcaster over its in-memory bus,
- * which [LiveOrders] draws them through; the application starts it.
+ * order's live page (B-29): the moves the simulators and the saga's last steps (B-56) tell, and kompot's
+ * broadcaster over its in-memory bus, which [LiveOrders] draws them through; the application starts it.
  */
 internal val orderModule =
     module {
@@ -42,6 +42,7 @@ internal val orderModule =
                             payments = get(),
                             carts = get(),
                             points = get(),
+                            moves = get(),
                         ),
                     ),
             )

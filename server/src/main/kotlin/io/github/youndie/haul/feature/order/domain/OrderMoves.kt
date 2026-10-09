@@ -7,8 +7,9 @@ import kotlinx.coroutines.flow.asSharedFlow
 
 /**
  * The orders the simulated world moved away from their customer's requests (B-29): a shipment a step on,
- * a return collected or refunded, a Haul Pay payment taken. The simulators say so through [moved] once a
- * pass has made the move; the order's live page is drawn again from it
+ * a return collected or refunded, a Haul Pay payment taken — and the placement saga's ending (B-56), the
+ * order placed or cancelled. The simulators say so through [moved] once a pass has made the move, the
+ * saga's members once their write is committed; the order's live page is drawn again from it
  * ([io.github.youndie.haul.feature.order.LiveOrders]).
  *
  * **Telling never holds a move up and never fails it.** [moved] only offers the id: with nobody listening

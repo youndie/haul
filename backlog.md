@@ -40,16 +40,15 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (4)
+## Open (3)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-27](docs/backlog/B-27-helm-chart-tracy-metrik-katcher-wiring.md) `[?]` | ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand | P2 | M | B-03 |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 | [B-53](docs/backlog/B-53-plus-members-see-campaign-prices-early.md) `[ ]` | server: Plus members see campaign prices early | P3 | S | B-23 |
-| [B-56](docs/backlog/B-56-placement-moves-the-order-page-live.md) `[ ]` | server: placement moves the order page live | P3 | S | B-29 |
 
-## Closed (52)
+## Closed (53)
 
 **Skeleton**
 
@@ -129,6 +128,7 @@ A stage is a field on the item, not a directory.
 - [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[x]` - live order tracking through kompot-realtime
 - [B-30](docs/backlog/B-30-product-images-through-object-storage.md) `[x]` - product images through object storage
 - [B-34](docs/backlog/B-34-the-stand-serves-the-bundle-uncompressed.md) `[x]` - ops: the stand serves the wasm bundle uncompressed
+- [B-56](docs/backlog/B-56-placement-moves-the-order-page-live.md) `[x]` - server: placement moves the order page live
 
 <!-- END INDEX -->
 
