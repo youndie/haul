@@ -23,8 +23,9 @@ import kotlin.random.Random
  * **The one exception is the sale's calendar** (B-58): the campaigns' and the deals' windows are the
  * canvas's, moved to the day [generate] is given — the canvas's day [CANVAS_DAY] in every test, so each row
  * is the canvas's, and the store's day on a stand, so a stand seeded today opens the Autumn mega sale and
- * the deals of the day today, as the canvas does on Oct 7. Only the windows move; prices, products and every
- * other date stay the canvas's.
+ * the deals of the day today, as the canvas does on Oct 7. The sale's promo code moves with it (B-61):
+ * `AUTUMN10` names its campaign, `SUMMER5` names none and stays expired. Only the windows move; prices,
+ * products and every other date stay the canvas's.
  */
 internal object CatalogSeed {
     /** 2025-10-07 19:47:23 in New York, a Tuesday: the moment every artboard shows (research §1.6). */
@@ -83,6 +84,10 @@ internal object CatalogSeed {
                     plusEarlyAccessAt = it.plusEarlyAccessAt?.on(day),
                 )
             }
+        val promoCodes =
+            SamplePromoCodes.all.map {
+                if (it.campaignSlug == null) it else it.copy(startsAt = it.startsAt.on(day), endsAt = it.endsAt.on(day))
+            }
         return SeedCatalog(
             categories,
             sellers,
@@ -90,7 +95,7 @@ internal object CatalogSeed {
             inCampaigns(skus),
             campaigns,
             deals,
-            SamplePromoCodes.all,
+            promoCodes,
             SampleCustomers.all,
             SampleCustomers.carts,
             SampleCheckout.pickupPoints,

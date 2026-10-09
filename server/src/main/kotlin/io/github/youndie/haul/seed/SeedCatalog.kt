@@ -122,6 +122,13 @@ internal data class SeedPromoCode(
     val capCents: Int?,
     val startsAt: OffsetDateTime,
     val endsAt: OffsetDateTime,
+    /**
+     * The sample campaign this code is the sale's code of, dated with it (B-61); `null` for a code of no sale,
+     * whose window is the canvas's on every day. The seed's word only: `promo_codes` has no campaign column,
+     * because nothing but the seed would read one — a code's validity is its own window — and a column would
+     * not tell the seed's code from a store's own code of the same sale, which the seed must never move.
+     */
+    val campaignSlug: String?,
 )
 
 internal data class SeedCustomer(

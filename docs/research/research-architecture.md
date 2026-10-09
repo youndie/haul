@@ -744,8 +744,13 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   refused: it would re-date once, at the version's deploy, and the stand's sale would be over again a week later; and
   it would run on every database, seeded or not. A stand that runs for days without a restart still sees its deals
   end at midnight and the sale end on its eighth day — the next start brings them back.
-- **Not moved**: promo codes keep the canvas's windows (`SamplePromoCodes`, `AUTUMN10` to Oct 15, 2025), so on the
-  stand's wall clock the canvas's code is expired; no item asks for it.
+- **The sale's promo code moves with the sale** (B-61): a seeded code that names its campaign
+  (`SeedPromoCode.campaignSlug`, `seed/SamplePromoCodes.kt`) — `AUTUMN10`, the Autumn mega sale's — is moved by the
+  same whole store days in `generate(day)` and by `redateSale`, which recognises it by its code **and** its terms, so
+  a stand takes it while its sale runs and answers `promo_expired` from the sale's last midnight. `SUMMER5` names no
+  campaign and keeps the canvas's window, expired on every stand as on the canvas; a store's own code is never read.
+  The link is the seed's, not a column: nothing but the seed would read a `promo_codes.campaign_slug`, a code's
+  validity is its own window, and a column would not tell the seed's code from a store's own code of the same sale.
 
 **How the stand is built (B-27).** One image serves the page and the API: the server's distribution
 carries the browser bundle and serves it at `/`, so the two cannot be deployed at different versions
