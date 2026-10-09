@@ -49,7 +49,7 @@ client while it has no tree or after a failed request; every other state is a tr
 returns. The list is held against the real state when the code exists.
 
 - [x] **Loading:** header, placeholder blocks for hero, categories and two product rows
-- [x] **Content:** Maya signed in: campaign «Autumn mega sale», «Tech week», «Free delivery» banners, 8 categories, 6 deals with the countdown, the Plus block **in its member form** («You saved $186 on delivery this year · renews Nov 2», B-23), «Picked for you» 6 products («Based on your recent views», B-25), footer. The server builds both for a customer; the fixture's body (`composeApp/src/desktopTest/resources/bodies/home_content.json`) keeps the canvas's picked cards, its header held to the server's (`PickedSectionTest`)
+- [x] **Content:** Maya signed in: campaign «Autumn mega sale», «Tech week», «Free delivery» banners, 8 categories, 6 deals with the countdown (to the store's midnight), cards writing each product's listing name (B-45), the Plus block **in its member form** («You saved $186 on delivery this year · renews Nov 2», B-23), «Picked for you» 6 products («Based on your recent views», B-25), footer. The server builds both for a customer; the fixture's body (`composeApp/src/desktopTest/resources/bodies/home_content.json`) keeps the canvas's picked cards, its header held to the server's (`PickedSectionTest`)
 - [x] **Guest:** header «Sign in»; Plus block offers the trial («Try 30 days free» → `/sign-in`); no «Picked for you»
 - [x] **PlusTrialDialog:** Sam signed in, dialog over Content: the benefits, «30 days free, then $4.99/month», Start trial / Not now — kompot's `present` of `PlusTrialDialog` from «Try 30 days free» (B-23; Sam's picks read «Popular right now»)
 - [x] **Error:** header, message that the page could not load, Retry
@@ -78,7 +78,10 @@ The server builds each target as an action in the tree and the shell follows it 
 - «+» on a card → `PUT /api/v1/cart/lines/{skuId}` with the line's next quantity for the card's SKU — on a deal card the deal's SKU, otherwise the cheapest in stock; absent at ten, at the stock limit and out of stock; the page is drawn again in place
 - «Shop the sale», «View all deals», the header's «Deals» → [screen-deals](screen-deals.md) (`/deals`)
 - the header's «Catalog» and category row → screen-catalog; the cart button → screen-cart (`/cart`); «Sign in» → sign-in (feature-identity), a customer's name → `/account`
+- the header's «HAUL PLUS» pill (`HaulHeader.plus`, on every page with the header, B-49) → PlusTrialDialog for a customer who is not a member, `/account` for a member, `/sign-in` for a guest
+- «All N categories» (on a phone «All N») → the catalog's root `/c` (B-49): «Catalog · 32 categories», every top-level category as these tiles, no artboard
 - heart → `PUT` / `DELETE /api/v1/me/saved/{productId}`, then the page drawn again; a guest's → `/sign-in` (B-20)
 - «Try 30 days free» → PlusTrialDialog for a customer, `/sign-in` for a guest; «Start trial» → `POST /api/v1/me/plus/trial`, answered `201` with `close` then `refresh` — the page drawn again with the member's block; «Not now» closes it and sends nothing (B-23)
-- «All N categories», the promo banners, the footer → nothing yet (B-37's findings; B-49)
+- «Help», «Sell on HAUL», the language and the footer's links → nothing: drawn as plain text, with no click action, until a page exists for them (research D2, «Decided in B-49»)
+- the promo banners → nothing: they carry no action, and no item gives them one
 - search field → screen-search

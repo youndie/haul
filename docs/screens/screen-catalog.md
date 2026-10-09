@@ -37,7 +37,7 @@ design:
 
 ## 0. Entry point and visibility
 
-- **Entry point:** `/c/{categoryPath}` in the browser.
+- **Entry point:** `/c/{categoryPath}` in the browser. The catalog's root `/c` (`StorefrontPage.Categories`, `GET /ui/c`, B-49) — every top-level category as home's tiles — is a page of its own with no artboard, drawn as `PageKind.Other`; it has no states of this document's.
 - **Shown when:** always; guests included.
 
 ## 1. Screen states
@@ -47,9 +47,9 @@ client while it has no tree or after a failed request; every other state is a tr
 returns. The list is held against the real state when the code exists.
 
 - [x] **Loading:** breadcrumbs and title, placeholder facet column and 12 card placeholders
-- [x] **Content:** Headphones, 12,408 items, facets with Sony + Bose + $80–$400 + Noise cancelling applied, chips, sort «Popular», 12 cards, «Show 24 more», pages 1 2 3 … 517
+- [x] **Content:** Headphones, 12,408 items, facets with Sony + Bose + $80–$400 + Noise cancelling applied, chips, sort «Popular», 12 cards (each writing its listing name, B-45), «Show 24 more», pages 1 2 3 … 517
 - [x] **Empty:** same filters plus Marshall + Pink: «No items match these filters», Clear all, facets still visible
-- [x] **FiltersSheet:** **phone only**: the facet column as a full-height sheet with «Show 48 items»
+- [x] **FiltersSheet:** **phone only**: the facet column as a full-height sheet with «Show 48 items». «Filters» opens it; it is the client's own state, held by the shell above the keyed page (`FiltersSheetState`, `LocalFiltersSheet`, `FiltersSheetOverlay`, B-54), so it stays open across the navigations its own presses cause and is drawn from each new page («N applied», the ticks, «Show N items»)
 - [x] **Error:** header, message, Retry
 
 ### Artboards and sizes
@@ -79,4 +79,14 @@ Every control below is an action the server puts in the tree; the shell follows 
 - «+» on a card → `PUT /api/v1/cart/lines/{skuId}` with the line's next quantity; absent at ten, at the stock limit and out of stock; the page is drawn again in place
 - crumb → that category or home
 - heart → `PUT` / `DELETE /api/v1/me/saved/{productId}`, then the page drawn again; a guest's → `/sign-in` (B-20)
-- the brand facet's «Show N more», the filter sheet's × → nothing yet (B-37's findings; B-49)
+- the brand facet's «Show N more» → the same page with `expand=brand` (`Facet.moreAction`), filters, sort and page kept; the expansion stays on every address the page builds, so the list does not fold after a tick (B-49)
+- «Filters» (phone) → opens the filter sheet, in the client, with no request (B-49)
+- in the sheet: a facet tick, «Show N more», «Clear all» → their pages as above, **the sheet staying open** over the new results; until the page a tick opened arrives the facets follow nothing (the old page's addresses lack that tick), «×» still works (B-54)
+- the sheet's «Show N items» (`FilteredResults.showLabel`), «×» and the scrim → close the sheet over the results, with no request and the address unchanged (B-49, B-54)
+- back, forward, a link outside the sheet → the sheet closes; a page drawn while it is closed never opens it (B-54)
+
+Tests: `composeApp/src/desktopTest/kotlin/io/github/youndie/haul/DrawnActionsTest.kt` — `show more on the brand facet opens the page with the facet expanded`, `the filter sheet's close closes it without asking the server`, `ticking two facets keeps the filter sheet open over the new results`, `show N items closes the filter sheet over its results`, `a page not opened from the filter sheet leaves it closed`, `the filter sheet follows nothing while the page its tick opened is on its way`; the server's `server/src/test/kotlin/io/github/youndie/haul/feature/catalog/DrawnActionsTest.kt` — `show more lists every brand with the filters the sort and the page kept`, `a facet other than the brand's does not expand`.
+
+## 6. Quirks
+
+- A page that fails to load after a tick leaves the sheet open and inert over the error until «×» closes it (B-54).

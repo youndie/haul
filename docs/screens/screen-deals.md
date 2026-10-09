@@ -18,7 +18,10 @@ source: haul/server/src/main/kotlin/io/github/youndie/haul/feature/catalog/scree
 > Built in B-37 as the place «Deals», «View all deals», «Shop the sale» and the empty cart's picks
 > lead to (research D2, «Decided in B-37»). **No artboard draws it**: it is assembled from components
 > other screens draw, so it has no `design` block, no parity reference and no golden. It stays a
-> draft until the canvas draws it or the owner accepts it as built.
+> draft until the canvas draws it or the owner accepts it as built, and until its deals are what they
+> say: a deal card's price is what the cart charges (B-57, in progress) and an ended deal leaves the
+> page (B-58) — today a deal card draws `deals.price_cents` while «+» adds the SKU at its own price, and
+> every seeded deal is drawn whatever its `ends_at` ([feature-browse](../features/feature-browse.md)).
 
 ## 0a. Code anchors
 
@@ -39,7 +42,7 @@ source: haul/server/src/main/kotlin/io/github/youndie/haul/feature/catalog/scree
 No artboard, so the states are the tree's and the shell's:
 
 - [x] **Loading:** the shell's generic placeholder — the header pending, nothing below (`PageKind.Other`)
-- [x] **Content, page 1:** «Deals» over «N items on sale», «Deals of the *day*» with the countdown to midnight and the day's deal cards (six across), «On *sale*» and 24 cards of everything whose shown price is under its old one, deepest discount first, the pages, the footer
+- [x] **Content, page 1:** «Deals» over «N items on sale», «Deals of the *day*» with the countdown to the store's midnight and the deal cards (six across, every seeded deal), «On *sale*» and 24 cards of everything whose shown price is under its old one, deepest discount first, the pages, the footer
 - [x] **Content, page 2 on:** the same without the day's deals
 - [x] **Error:** «This page didn’t *load*» with Retry (`ErrorShell`); the reason reads «We couldn’t reach Haul…» when nothing answered
 
@@ -52,7 +55,7 @@ No artboard, so the states are the tree's and the shell's:
 
 ## 5. Navigation (summary)
 
-- card → screen-product (`/p/{productId}`)
+- card (writing the product's listing name, B-45) → screen-product (`/p/{productId}`)
 - «+» on a card → `PUT /api/v1/cart/lines/{skuId}` with the line's next quantity (a deal card's deal SKU), then the page drawn again in place
 - a card's heart → `PUT` / `DELETE /api/v1/me/saved/{productId}`, then the page drawn again; a guest's → `/sign-in` (B-20, [endpoint-saved](../api/endpoint-saved.md))
 - page number, «Show 24 more» → `/deals?page=n`
