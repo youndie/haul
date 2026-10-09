@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.order
 
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Listed
+import io.github.youndie.haul.feature.catalog.domain.PriceList
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.checkout.DeliveryMethod
 import io.github.youndie.haul.feature.fulfilment.domain.FulfilmentPace
@@ -107,7 +108,13 @@ class OrderFixturesTest {
 
                     // The canvas's own products, written as the catalog would hold them, so «Write a review» on a
                     // delivered line is the same dialog the route draws for a product it sells.
-                    val sony = checkNotNull(world.koin.get<CatalogRepository>().product(SampleCatalog.SONY_HEADPHONES))
+                    val sony =
+                        checkNotNull(
+                            world.koin.get<CatalogRepository>().product(
+                                SampleCatalog.SONY_HEADPHONES,
+                                PriceList.Public,
+                            ),
+                        )
                     val tabs = world.koin.get<ReviewTabs>()
 
                     fun bought(

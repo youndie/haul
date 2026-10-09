@@ -31,7 +31,7 @@ internal class CartCommands(
         change.quantity?.let {
             if (it !in 1..MAX_QUANTITY) throw CartError.Invalid("quantity", "A quantity is 1 to $MAX_QUANTITY, not $it")
         }
-        val (_, sku) = sku(skuId)
+        val (_, sku) = sku(skuId, owner)
         val existing = carts.cart(owner).line(skuId)
         val quantity = change.quantity ?: existing?.quantity ?: 1
         if (sku.stock <= 0 && (existing == null || change.quantity != null)) {
@@ -72,7 +72,7 @@ internal class CartCommands(
         skuId: String,
     ) {
         val line = carts.cart(owner).line(skuId) ?: throw CartError.LineNotFound(skuId)
-        val (_, sku) = sku(skuId)
+        val (_, sku) = sku(skuId, owner)
         val inStock = sku.stock > 0
         carts.putLine(owner, line.copy(seenPriceCents = sku.priceCents, seenInStock = inStock, selected = inStock))
     }
@@ -101,7 +101,7 @@ internal class CartCommands(
             !now.isBefore(promo.endsAt) -> refuse(owner, code, ErrorCode.PromoExpired)
             now.isBefore(promo.startsAt) -> refuse(owner, code, ErrorCode.PromoNotApplicable)
         }
-        if (priced(cart).none { it.counted }) {
+        if (priced(owner, cart).none { it.counted }) {
             refuse(owner, code, ErrorCode.PromoNotApplicable)
         }
         carts.setPromo(owner, code)
@@ -126,7 +126,7 @@ internal class CartCommands(
         val into = carts.cart(customer)
         val stock =
             catalog
-                .listedBySkus(from.lines.map { it.skuId }.toSet())
+                .listedBySkus(from.lines.map { it.skuId }.toSet(), customer.prices)
                 .flatMap { it.skus }
                 .associate { it.id to it.stock }
         val lines =
@@ -137,9 +137,15 @@ internal class CartCommands(
         carts.merge(guest, customer, lines, into.promoCode ?: from.promoCode)
     }
 
-    /** The stored lines with their SKUs as the catalog has them now, in the cart's order. */
-    suspend fun priced(cart: StoredCart): List<PricedLine> {
-        val items = catalog.listedBySkus(cart.lines.map { it.skuId }.toSet())
+    /**
+     * The stored lines of [owner]'s [cart] with their SKUs as the catalog has them now, at the owner's
+     * prices (B-53), in the cart's order.
+     */
+    suspend fun priced(
+        owner: CartOwner,
+        cart: StoredCart,
+    ): List<PricedLine> {
+        val items = catalog.listedBySkus(cart.lines.map { it.skuId }.toSet(), owner.prices)
         return cart.lines
             .mapNotNull { line ->
                 val item =
@@ -148,8 +154,11 @@ internal class CartCommands(
             }
     }
 
-    private suspend fun sku(skuId: String): Pair<Listed, Sku> {
-        val item = catalog.listedBySkus(setOf(skuId)).singleOrNull() ?: throw CartError.SkuNotFound(skuId)
+    private suspend fun sku(
+        skuId: String,
+        owner: CartOwner,
+    ): Pair<Listed, Sku> {
+        val item = catalog.listedBySkus(setOf(skuId), owner.prices).singleOrNull() ?: throw CartError.SkuNotFound(skuId)
         return item to item.skus.first { it.id == skuId }
     }
 

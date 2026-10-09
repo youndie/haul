@@ -105,7 +105,7 @@ internal suspend fun dealCards(
     viewer: Viewer,
 ): List<ProductCard> {
     val deals = catalog.deals()
-    val items = catalog.listed(deals.map { deal -> deal.skuId.substringBeforeLast('-') })
+    val items = catalog.listed(deals.map { deal -> deal.skuId.substringBeforeLast('-') }, viewer.prices)
     return deals.mapNotNull { deal ->
         val item = items.firstOrNull { item -> item.skus.any { it.id == deal.skuId } } ?: return@mapNotNull null
         val sku = item.skus.first { it.id == deal.skuId }

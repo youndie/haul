@@ -38,7 +38,7 @@ internal class Reorder(
                 .mapValues { (_, lines) -> lines.sumOf { it.quantity } }
         val stock =
             catalog
-                .listedBySkus(wanted.keys)
+                .listedBySkus(wanted.keys, customer.prices)
                 .flatMap { it.skus }
                 .associate { it.id to it.stock }
         val cart = carts.cart(customer)

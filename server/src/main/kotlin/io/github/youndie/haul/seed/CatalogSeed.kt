@@ -57,7 +57,7 @@ internal object CatalogSeed {
             categories,
             sellers,
             products,
-            skus,
+            inCampaigns(skus),
             SampleCatalog.campaigns,
             deals,
             SamplePromoCodes.all,
@@ -74,6 +74,18 @@ internal object CatalogSeed {
             views = SampleViews.mayas,
         )
     }
+
+    /**
+     * Every markdown of the seed is the Autumn mega sale's — its hero says so, «1.2 million items marked
+     * down» — so a SKU whose old price is above its price is that campaign's (B-53): a Plus member sees it
+     * from the sale's early-access start, everybody else from its start. Applied after generation, so the
+     * random stream and every other row stay as they were.
+     */
+    private fun inCampaigns(skus: List<SeedSku>): List<SeedSku> =
+        skus.map { sku ->
+            val markdown = sku.oldPriceCents?.let { it > sku.priceCents } == true
+            if (markdown) sku.copy(campaignSlug = SampleCatalog.AUTUMN_MEGA_SALE) else sku
+        }
 
     /** 32 top-level categories, two subcategories each, two leaves under each subcategory. */
     private fun categories(): List<SeedCategory> {

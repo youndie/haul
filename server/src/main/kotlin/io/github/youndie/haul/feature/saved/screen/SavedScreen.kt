@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.saved.screen
 
 import io.github.youndie.haul.feature.catalog.domain.Browse
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
+import io.github.youndie.haul.feature.catalog.domain.PriceList
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.money
@@ -33,13 +34,17 @@ internal class SavedScreen(
     private val calendar: DeliveryCalendar,
     private val photos: ProductPhotos,
 ) {
-    /** The list of [customerId] under [filter], at [page] — or its last page, when there are fewer. */
+    /**
+     * The list of [customerId] at their [prices] under [filter], at [page] — or its last page, when there
+     * are fewer.
+     */
     suspend fun list(
         customerId: String,
+        prices: PriceList,
         filter: SavedFilter,
         page: Int,
         viewer: Viewer,
-    ): SavedList = list(listing.entries(customerId), filter, page, viewer)
+    ): SavedList = list(listing.entries(customerId, prices), filter, page, viewer)
 
     /** The list drawn from [entries], newest first; everything it shows is in them. */
     fun list(

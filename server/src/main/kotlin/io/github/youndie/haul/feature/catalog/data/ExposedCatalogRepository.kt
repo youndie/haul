@@ -1,10 +1,14 @@
 package io.github.youndie.haul.feature.catalog.data
 
+import io.github.youndie.haul.StoreClock
 import io.github.youndie.haul.feature.catalog.domain.Campaign
+import io.github.youndie.haul.feature.catalog.domain.CampaignOpening
+import io.github.youndie.haul.feature.catalog.domain.CampaignPricing
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.Deal
 import io.github.youndie.haul.feature.catalog.domain.Listed
+import io.github.youndie.haul.feature.catalog.domain.PriceList
 import io.github.youndie.haul.feature.catalog.domain.Product
 import io.github.youndie.haul.feature.catalog.domain.Seller
 import io.github.youndie.haul.feature.catalog.domain.Sku
@@ -12,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
@@ -20,9 +25,14 @@ import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
-/** The catalog over Exposed. JDBC blocks, so every read runs on the IO dispatcher. */
+/**
+ * The catalog over Exposed. JDBC blocks, so every read runs on the IO dispatcher. SKUs are read with
+ * their campaign's opening and priced for the caller's [PriceList] at the store's [clock] (B-53), here
+ * and nowhere else, so every screen and command that reads a SKU reads the same price.
+ */
 internal class ExposedCatalogRepository(
     private val database: Database,
+    private val clock: StoreClock,
 ) : CatalogRepository {
     private suspend fun <T> read(block: () -> T): T = withContext(Dispatchers.IO) { transaction(database) { block() } }
 
@@ -40,14 +50,21 @@ internal class ExposedCatalogRepository(
             }
         }
 
-    override suspend fun listedIn(categorySlugs: Set<String>): List<Listed> =
+    override suspend fun listedIn(
+        categorySlugs: Set<String>,
+        prices: PriceList,
+    ): List<Listed> =
         read {
             withSkus(
                 ProductsTable.selectAll().where { ProductsTable.categorySlug inList categorySlugs }.map(::product),
+                prices,
             )
         }
 
-    override suspend fun listed(productIds: List<String>): List<Listed> =
+    override suspend fun listed(
+        productIds: List<String>,
+        prices: PriceList,
+    ): List<Listed> =
         read {
             val byId =
                 withSkus(
@@ -56,11 +73,15 @@ internal class ExposedCatalogRepository(
                         .where {
                             ProductsTable.id inList productIds
                         }.map(::product),
+                    prices,
                 ).associateBy { it.product.id }
             productIds.mapNotNull(byId::get)
         }
 
-    override suspend fun listedBySkus(skuIds: Set<String>): List<Listed> =
+    override suspend fun listedBySkus(
+        skuIds: Set<String>,
+        prices: PriceList,
+    ): List<Listed> =
         read {
             if (skuIds.isEmpty()) return@read emptyList()
             val productIds =
@@ -69,11 +90,16 @@ internal class ExposedCatalogRepository(
                     .where { SkusTable.id inList skuIds }
                     .map { it[SkusTable.productId] }
                     .distinct()
-            withSkus(ProductsTable.selectAll().where { ProductsTable.id inList productIds }.map(::product))
+            withSkus(ProductsTable.selectAll().where { ProductsTable.id inList productIds }.map(::product), prices)
         }
 
-    override suspend fun product(id: String): Listed? =
-        read { withSkus(ProductsTable.selectAll().where { ProductsTable.id eq id }.map(::product)).singleOrNull() }
+    override suspend fun product(
+        id: String,
+        prices: PriceList,
+    ): Listed? =
+        read {
+            withSkus(ProductsTable.selectAll().where { ProductsTable.id eq id }.map(::product), prices).singleOrNull()
+        }
 
     override suspend fun seller(id: String): Seller? =
         read {
@@ -110,13 +136,18 @@ internal class ExposedCatalogRepository(
             }
         }
 
-    private fun withSkus(products: List<Product>): List<Listed> {
+    private fun withSkus(
+        products: List<Product>,
+        prices: PriceList,
+    ): List<Listed> {
         if (products.isEmpty()) return emptyList()
+        val at = clock.now().toOffsetDateTime()
         val skus =
             SkusTable
+                .join(CampaignsTable, JoinType.LEFT, SkusTable.campaignSlug, CampaignsTable.slug)
                 .selectAll()
                 .where { SkusTable.productId inList products.map { it.id } }
-                .map(::sku)
+                .map { row -> CampaignPricing.priced(sku(row), opening(row), prices, at) }
                 .groupBy { it.productId }
         return products.mapNotNull { product ->
             skus[product.id]?.sortedBy { it.position }?.let { Listed(product, it) }
@@ -151,6 +182,12 @@ internal class ExposedCatalogRepository(
             boughtBase = row[ProductsTable.boughtBase],
             listingName = row[ProductsTable.listingName] ?: row[ProductsTable.title],
         )
+
+    /** The opening of the SKU's campaign, from the joined row; none for a SKU in no campaign. */
+    private fun opening(row: ResultRow): CampaignOpening? =
+        row[SkusTable.campaignSlug]?.let {
+            CampaignOpening(row[CampaignsTable.startsAt], row[CampaignsTable.plusEarlyAccessAt])
+        }
 
     private fun sku(row: ResultRow): Sku =
         Sku(

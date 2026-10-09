@@ -1,5 +1,6 @@
 package io.github.youndie.haul.feature.account.domain
 
+import io.github.youndie.haul.feature.catalog.domain.PriceList
 import io.github.youndie.haul.feature.identity.domain.Customer
 import java.time.LocalDate
 
@@ -38,5 +39,9 @@ internal data class SavedSummary(
  * `feature/saved/domain/Saved.kt`'s `SavedListing`).
  */
 internal fun interface SavedLists {
-    suspend fun summary(customerId: String): SavedSummary
+    /** [customerId]'s counts, a price drop measured at their own [prices] (B-53). */
+    suspend fun summary(
+        customerId: String,
+        prices: PriceList,
+    ): SavedSummary
 }

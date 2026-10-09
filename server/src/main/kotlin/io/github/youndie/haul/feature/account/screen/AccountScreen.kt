@@ -8,6 +8,7 @@ import io.github.youndie.haul.feature.account.domain.Standing
 import io.github.youndie.haul.feature.cart.screen.CartScreen
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
+import io.github.youndie.haul.feature.catalog.domain.PriceList
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.money
 import io.github.youndie.haul.feature.catalog.screen.navigation
@@ -70,7 +71,10 @@ internal class AccountScreen(
         viewer: Viewer,
     ): KompotComponent {
         val tracked = orders.orders(customer.id).map { tracking.of(it) }
-        val list = (page as? AccountPage.Saved)?.let { savedScreen.list(customer.id, it.filter, it.page, viewer) }
+        val list =
+            (page as? AccountPage.Saved)?.let {
+                savedScreen.list(customer.id, PriceList.of(customer.plus), it.filter, it.page, viewer)
+            }
         return page(page, view(customer, tracked).copy(list = list), viewer)
     }
 
@@ -97,7 +101,8 @@ internal class AccountScreen(
                 }.toSet()
         val tones =
             catalog
-                .listedBySkus(skus)
+                // Tones only: no price is drawn from this read.
+                .listedBySkus(skus, PriceList.Public)
                 .flatMap { listed -> listed.skus.map { it.id to listed.product.tone } }
                 .toMap()
         val orders =
@@ -119,7 +124,12 @@ internal class AccountScreen(
                         },
                 )
             }
-        return AccountView(customer, loyalty.standing(customer), saved.summary(customer.id), orders)
+        return AccountView(
+            customer,
+            loyalty.standing(customer),
+            saved.summary(customer.id, PriceList.of(customer.plus)),
+            orders,
+        )
     }
 
     companion object {

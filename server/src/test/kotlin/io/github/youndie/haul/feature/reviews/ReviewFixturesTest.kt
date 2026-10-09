@@ -49,7 +49,7 @@ class ReviewFixturesTest {
     fun `the client's review and question bodies hold the trees the server builds`() =
         runBlocking {
             val database = Databases.connect(SeededDatabase.dataSource)
-            val catalog = ExposedCatalogRepository(database)
+            val catalog = ExposedCatalogRepository(database, CANVAS_NOW)
             val screen =
                 ProductScreen(
                     catalog,

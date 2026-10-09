@@ -57,7 +57,8 @@ internal val SAGA_CLOCK: PetichClock = PetichClock { System.currentTimeMillis() 
 internal val CANVAS_NOW: StoreClock = StoreClock { CatalogSeed.NOW.toZonedDateTime() }
 
 /**
- * The application exactly as `main` assembles it, at the canvas's «now», over the shared seeded
+ * The application exactly as `main` assembles it, at the canvas's «now» — or at [clock]'s, for a test
+ * that has to stand somewhere else in the calendar (B-53's early-access window) — over the shared seeded
  * database — or over [dataSource], for a test that has to change the catalog under the routes — with
  * no object storage unless a test hands it [photoStore] (B-30). Sign-in is off unless [signIn] names a
  * realm (`ShildikHarness.signIn` for a running shildik).
@@ -67,12 +68,13 @@ internal fun haulTest(
     photoStore: PhotoStore? = null,
     signIn: SignInConfig? = null,
     sagaClock: PetichClock = SAGA_CLOCK,
+    clock: StoreClock = CANVAS_NOW,
     block: suspend HttpClient.() -> Unit,
 ) = testApplication {
     application {
         haulModule(
             dataSource,
-            CANVAS_NOW,
+            clock,
             commit = "test",
             photoStore = photoStore,
             signIn = signIn,

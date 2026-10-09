@@ -26,7 +26,7 @@ class CartMergeTest {
     private val dataSource = seededFreshDatabase()
     private val database = Databases.connect(dataSource)
     private val carts = ExposedCartRepository(database)
-    private val commands = CartCommands(carts, ExposedCatalogRepository(database), CANVAS_NOW)
+    private val commands = CartCommands(carts, ExposedCatalogRepository(database, CANVAS_NOW), CANVAS_NOW)
     private val mug = "${SampleCatalog.STONEWARE_MUG}-0"
     private val duvet = "${SampleCatalog.DUVET_COVER}-0"
 

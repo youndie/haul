@@ -3,6 +3,7 @@ package io.github.youndie.haul.feature.recommendations
 import io.github.youndie.haul.db.Databases
 import io.github.youndie.haul.feature.catalog.data.ExposedCatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
+import io.github.youndie.haul.feature.catalog.domain.PriceList
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.recommendations.data.ExposedPickSources
 import io.github.youndie.haul.feature.recommendations.domain.PickedForYou
@@ -34,10 +35,10 @@ import kotlin.test.assertEquals
  */
 class PickedSectionTest {
     private val database = Databases.connect(SeededDatabase.dataSource)
-    private val catalog = ExposedCatalogRepository(database)
+    private val catalog = ExposedCatalogRepository(database, CANVAS_NOW)
     private val customer = Viewer(firstName = "Rita", customerId = "c-rita")
     private val headphones =
-        runBlocking { catalog.listedIn(setOf("headphones")) }
+        runBlocking { catalog.listedIn(setOf("headphones"), PriceList.Public) }
             .sortedBy { it.product.id }
             .take(3)
             .map { ProductView(it.product.id, it.product.categorySlug) }

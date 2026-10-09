@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.reviews.domain
 
 import io.github.youndie.haul.StoreClock
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
+import io.github.youndie.haul.feature.catalog.domain.PriceList
 import io.github.youndie.haul.feature.identity.domain.Customer
 import io.github.youndie.haul.feature.reviews.HelpfulVote
 import io.github.youndie.haul.feature.reviews.QuestionEntry
@@ -29,7 +30,7 @@ internal class ReviewCommands(
         productId: String,
         entry: ReviewEntry,
     ): StoredReview {
-        catalog.product(productId) ?: throw ReviewError.ProductNotFound(productId)
+        catalog.product(productId, PriceList.Public) ?: throw ReviewError.ProductNotFound(productId)
         reviewProblems(entry).takeIf { it.isNotEmpty() }?.let { throw ReviewError.Refused(it) }
         if (reviews.hasReviewed(customer.id, productId)) throw ReviewError.Exists()
         val review =
@@ -57,7 +58,7 @@ internal class ReviewCommands(
         productId: String,
         entry: QuestionEntry,
     ): StoredQuestion {
-        catalog.product(productId) ?: throw ReviewError.ProductNotFound(productId)
+        catalog.product(productId, PriceList.Public) ?: throw ReviewError.ProductNotFound(productId)
         questionProblems(entry).takeIf { it.isNotEmpty() }?.let { throw ReviewError.Refused(it) }
         val question =
             StoredQuestion(

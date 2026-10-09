@@ -9,6 +9,7 @@ import io.github.youndie.haul.feature.cart.domain.CartRepository
 import io.github.youndie.haul.feature.catalog.domain.CatalogError
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Listed
+import io.github.youndie.haul.feature.catalog.domain.PriceList
 import java.time.OffsetDateTime
 
 // The Saved list (B-20, feature-account): one list per customer of the products they hearted — on a card
@@ -73,14 +74,15 @@ internal class SavedCommands(
 ) {
     /**
      * Keeps [productId] in the customer's list at its price now — the cheapest SKU in stock, as its card
-     * shows it — or, when it is there already, changes nothing. A product the catalog does not have is
-     * `404 product_not_found`.
+     * shows it to them at [prices] — or, when it is there already, changes nothing. A product the catalog
+     * does not have is `404 product_not_found`.
      */
     suspend fun save(
         customerId: String,
         productId: String,
+        prices: PriceList,
     ) {
-        val item = catalog.product(productId) ?: throw CatalogError.ProductNotFound(productId)
+        val item = catalog.product(productId, prices) ?: throw CatalogError.ProductNotFound(productId)
         saved.save(customerId, productId, item.shown.priceCents, clock.now().toOffsetDateTime())
     }
 
@@ -101,8 +103,9 @@ internal class SavedCommands(
         skuId: String,
     ) {
         carts.cart(owner).line(skuId) ?: throw CartError.LineNotFound(skuId)
-        val item = catalog.listedBySkus(setOf(skuId)).singleOrNull() ?: throw CartError.LineNotFound(skuId)
-        save(owner.id, item.product.id)
+        val item =
+            catalog.listedBySkus(setOf(skuId), owner.prices).singleOrNull() ?: throw CartError.LineNotFound(skuId)
+        save(owner.id, item.product.id, owner.prices)
         carts.removeLines(owner, setOf(skuId))
     }
 }
@@ -116,16 +119,23 @@ internal class SavedListing(
     private val saved: SavedRepository,
     private val catalog: CatalogRepository,
 ) : SavedLists {
-    suspend fun entries(customerId: String): List<SavedEntry> {
+    /** The list against the catalog at [prices], the customer's own (B-53): a drop is against what they would pay. */
+    suspend fun entries(
+        customerId: String,
+        prices: PriceList,
+    ): List<SavedEntry> {
         val items = saved.items(customerId)
-        val listed = catalog.listed(items.map { it.productId }).associateBy { it.product.id }
+        val listed = catalog.listed(items.map { it.productId }, prices).associateBy { it.product.id }
         return items.mapNotNull { item ->
             listed[item.productId]?.let { SavedEntry(it, item.savedPriceCents, item.savedAt) }
         }
     }
 
-    override suspend fun summary(customerId: String): SavedSummary {
-        val entries = entries(customerId)
+    override suspend fun summary(
+        customerId: String,
+        prices: PriceList,
+    ): SavedSummary {
+        val entries = entries(customerId, prices)
         return SavedSummary(saved = entries.size, priceDrops = entries.count { it.dropCents != null })
     }
 }

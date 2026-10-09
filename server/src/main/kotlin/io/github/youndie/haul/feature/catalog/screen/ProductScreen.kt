@@ -72,7 +72,7 @@ internal class ProductScreen(
         tab: ProductTab,
         viewer: Viewer,
     ): KompotComponent {
-        val item = catalog.product(productId) ?: throw CatalogError.ProductNotFound(productId)
+        val item = catalog.product(productId, viewer.prices) ?: throw CatalogError.ProductNotFound(productId)
         val sku =
             skuId?.let { id ->
                 item.skus.firstOrNull { it.id == id }

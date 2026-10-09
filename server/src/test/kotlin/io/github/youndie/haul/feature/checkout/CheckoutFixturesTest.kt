@@ -56,7 +56,7 @@ class CheckoutFixturesTest {
                         ExposedCheckoutRepository(database),
                         ExposedDeliverySlots(database),
                         carts,
-                        CartCommands(carts, ExposedCatalogRepository(database), CANVAS_NOW),
+                        CartCommands(carts, ExposedCatalogRepository(database, CANVAS_NOW), CANVAS_NOW),
                         ExposedPointsLedger(database),
                         CANVAS_NOW,
                     )

@@ -29,7 +29,7 @@ internal class PickedSection(
         val customerId = viewer.customerId ?: return emptyList()
         val picks =
             try {
-                pickedForYou(customerId)
+                pickedForYou(customerId, viewer.prices)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

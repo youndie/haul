@@ -4,6 +4,7 @@ import io.github.youndie.haul.StoreClock
 import io.github.youndie.haul.feature.cart.screen.CartScreen
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
+import io.github.youndie.haul.feature.catalog.domain.PriceList
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.money
 import io.github.youndie.haul.feature.catalog.screen.navigation
@@ -98,7 +99,8 @@ internal class OrderScreen(
         firstName: String?,
     ): OrderView {
         val placed = tracked.order.placed
-        val listed = catalog.listedBySkus(placed.lines.map { it.skuId }.toSet())
+        // The options, the tone and the review button: an order draws its own prices, not the catalog's.
+        val listed = catalog.listedBySkus(placed.lines.map { it.skuId }.toSet(), PriceList.Public)
         val products =
             placed.lines
                 .mapNotNull { line ->

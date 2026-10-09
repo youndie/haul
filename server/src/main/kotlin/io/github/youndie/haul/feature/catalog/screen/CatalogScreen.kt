@@ -62,7 +62,7 @@ internal class CatalogScreen(
         val categories = catalog.categories()
         val slug = request.path.trimEnd('/').substringAfterLast('/')
         val category = categories.firstOrNull { it.slug == slug } ?: throw CatalogError.CategoryNotFound(slug)
-        val all = catalog.listedIn(descendants(category, categories))
+        val all = catalog.listedIn(descendants(category, categories), viewer.prices)
         val page = browse.page(all, request.filters, request.sort, request.page)
         val url = CatalogUrl(category.slug, request.filters, request.sort, request.page, request.brandsExpanded)
 
