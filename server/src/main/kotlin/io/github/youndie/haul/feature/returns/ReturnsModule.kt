@@ -23,6 +23,7 @@ internal val returnsModule =
                 points = get(),
                 clock = get(),
                 pace = get(),
+                moves = get(),
             )
         }
     }

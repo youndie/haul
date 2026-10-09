@@ -4,6 +4,7 @@ import io.github.youndie.haul.feature.identity.domain.Customer
 import io.github.youndie.haul.feature.identity.domain.Customers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
@@ -29,13 +30,27 @@ internal class ExposedCustomers(
                 it[plus] = false
                 it[createdAt] = at
             }
-            CustomersTable.selectAll().where { CustomersTable.id eq id }.single().let {
-                Customer(
-                    it[CustomersTable.id],
-                    it[CustomersTable.name],
-                    it[CustomersTable.plus],
-                    it[CustomersTable.createdAt],
-                )
-            }
+            CustomersTable
+                .selectAll()
+                .where { CustomersTable.id eq id }
+                .single()
+                .toCustomer()
         }
+
+    override suspend fun customer(id: String): Customer? =
+        tx {
+            CustomersTable
+                .selectAll()
+                .where { CustomersTable.id eq id }
+                .singleOrNull()
+                ?.toCustomer()
+        }
+
+    private fun ResultRow.toCustomer(): Customer =
+        Customer(
+            this[CustomersTable.id],
+            this[CustomersTable.name],
+            this[CustomersTable.plus],
+            this[CustomersTable.createdAt],
+        )
 }

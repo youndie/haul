@@ -40,18 +40,17 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (6)
+## Open (5)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-27](docs/backlog/B-27-helm-chart-tracy-metrik-katcher-wiring.md) `[?]` | ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand | P2 | M | B-03 |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
-| [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
 | [B-45](docs/backlog/B-45-a-product-s-listing-name.md) `[ ]` | server: a product's listing name, as cards, cart and orders write it | P3 | S | B-18 |
 | [B-53](docs/backlog/B-53-plus-members-see-campaign-prices-early.md) `[ ]` | server: Plus members see campaign prices early | P3 | S | B-23 |
 | [B-54](docs/backlog/B-54-the-filter-sheet-stays-open-while-filtering.md) `[ ]` | client: the filter sheet stays open while filtering | P3 | S | B-49 |
 
-## Closed (48)
+## Closed (49)
 
 **Skeleton**
 
@@ -125,6 +124,7 @@ A stage is a field on the item, not a directory.
 
 - [B-26](docs/backlog/B-26-the-whole-path-over-http-against.md) `[x]` - e2e: the whole path over HTTP against the composed stack
 - [B-28](docs/backlog/B-28-first-load-size-and-time-of.md) `[x]` - measure: first-load size and time of the wasm bundle
+- [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[x]` - live order tracking through kompot-realtime
 - [B-30](docs/backlog/B-30-product-images-through-object-storage.md) `[x]` - product images through object storage
 - [B-34](docs/backlog/B-34-the-stand-serves-the-bundle-uncompressed.md) `[x]` - ops: the stand serves the wasm bundle uncompressed
 

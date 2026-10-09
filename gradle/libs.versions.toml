@@ -50,10 +50,15 @@ ktor-server-cio = { module = "io.ktor:ktor-server-cio" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 ktor-server-statusPages = { module = "io.ktor:ktor-server-status-pages" }
 ktor-server-testHost = { module = "io.ktor:ktor-server-test-host" }
+# The order page's live updates (B-29): the stream kompot's update frames travel on, from Ktor's BOM.
+ktor-server-sse = { module = "io.ktor:ktor-server-sse" }
 kompot-core = { module = "io.github.youndie.kompot:kompot-core", version.ref = "kompot" }
 kompot-standard = { module = "io.github.youndie.kompot:kompot-standard", version.ref = "kompot" }
 kompot-ktor = { module = "io.github.youndie.kompot:kompot-ktor", version.ref = "kompot" }
 kompot-client = { module = "io.github.youndie.kompot:kompot-client", version.ref = "kompot" }
+# Live updates (B-29, research consequence 3): delivery to this process's subscribers, jvm only; the frame
+# contract it brings, `kompot-realtime`, is what `kompot-client` already depends on.
+kompot-realtimeServer = { module = "io.github.youndie.kompot:kompot-realtime-server", version.ref = "kompot" }
 kompot-registryAnnotations = { module = "io.github.youndie.kompot:kompot-registry-annotations", version.ref = "kompot" }
 kompot-registryProcessor = { module = "io.github.youndie.kompot:kompot-registry-processor", version.ref = "kompot" }
 exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }

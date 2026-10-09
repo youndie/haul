@@ -14,10 +14,15 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import java.net.URI
+import java.net.URLEncoder
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
+import java.util.stream.Stream
+import kotlin.concurrent.thread
 
 /**
  * The storefront as its client sees it: an origin, the trees it draws, the commands it sends. Every path
@@ -48,6 +53,23 @@ internal class Storefront(
         return Tree(screen, haulWireJson.parseToJsonElement(response.body))
     }
 
+    /**
+     * Listens on [topic] — the channel a live page's tree names (B-29) — where the client listens: the stream
+     * at `/ui/updates`, `?topic=` the channel. Every event's data is kept, in order, until [LiveStream.close].
+     */
+    fun listen(topic: String): LiveStream {
+        val request =
+            HttpRequest
+                .newBuilder(URI("$origin/ui/updates?topic=" + URLEncoder.encode(topic, Charsets.UTF_8)))
+                .timeout(Duration.ofSeconds(30))
+                .apply { token?.let { header("Authorization", "Bearer $it") } }
+                .GET()
+                .build()
+        val response = http.send(request, HttpResponse.BodyHandlers.ofLines())
+        check(response.statusCode() == 200) { "the stream of $topic answered ${response.statusCode()}" }
+        return LiveStream(topic, response.body())
+    }
+
     /** A command: [method] to [url] — the server's string, from a tree — with [body] already encoded. */
     fun send(
         method: String,
@@ -71,6 +93,51 @@ internal class Storefront(
         val response = http.send(request, HttpResponse.BodyHandlers.ofString())
         return Answer("$method $url", response.statusCode(), response.body())
     }
+}
+
+/**
+ * A live page's stream as it arrives: a thread reads its lines, and each event's data waits in [frames] for
+ * [await]. A stream that ended or broke stops adding; [close] stops reading.
+ */
+internal class LiveStream(
+    private val topic: String,
+    lines: Stream<String>,
+) : AutoCloseable {
+    private val frames = LinkedBlockingQueue<String>()
+    private val stream = lines
+
+    init {
+        thread(isDaemon = true, name = "live $topic") {
+            var data: String? = null
+            stream.forEach { line ->
+                when {
+                    line.startsWith("data:") -> data = line.removePrefix("data:").trim()
+                    line.isEmpty() -> data?.let(frames::put).also { data = null }
+                }
+            }
+        }
+    }
+
+    /** The first frame from now holding a [T] for which [done] holds, within [within]; frames before it are spent. */
+    fun <T : KompotComponent> await(
+        serializer: KSerializer<T>,
+        within: kotlin.time.Duration,
+        done: (T) -> Boolean,
+    ): T {
+        val deadline = System.nanoTime() + within.inWholeNanoseconds
+        val seen = mutableListOf<T>()
+        while (true) {
+            val left = deadline - System.nanoTime()
+            val frame =
+                frames.poll(left.coerceAtLeast(0), TimeUnit.NANOSECONDS)
+                    ?: error("no frame of $topic for which it holds within $within; it carried $seen")
+            val component = Tree(topic, haulWireJson.parseToJsonElement(frame)).one(serializer)
+            if (done(component)) return component
+            seen += component
+        }
+    }
+
+    override fun close() = stream.close()
 }
 
 /** What a request was answered with. */
@@ -102,6 +169,10 @@ internal class Tree(
     val screen: String,
     private val root: JsonElement,
 ) {
+    /** The channel the screen names for its updates (kompot's `realtimeTopic`, B-29); `null` for a page with none. */
+    val realtimeTopic: String?
+        get() = ((root as? JsonObject)?.get("realtimeTopic") as? JsonPrimitive)?.takeIf { it.isString }?.content
+
     fun <T : KompotComponent> all(serializer: KSerializer<T>): List<T> {
         val name = serializer.descriptor.serialName
         val found = mutableListOf<JsonObject>()

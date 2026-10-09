@@ -28,4 +28,10 @@ internal interface Customers {
         name: String,
         at: OffsetDateTime,
     ): Customer
+
+    /**
+     * The customer [id] names, or `null` for one the server has never seen. For what happens away from their
+     * requests — an order of theirs that moved while they watch it (B-29) is drawn greeting them as the page does.
+     */
+    suspend fun customer(id: String): Customer?
 }

@@ -1,6 +1,7 @@
 package io.github.youndie.haul.feature.payment.domain
 
 import io.github.youndie.haul.feature.order.domain.Order
+import io.github.youndie.haul.feature.order.domain.OrderMoves
 import io.github.youndie.petich.PetichClock
 import org.slf4j.LoggerFactory
 import java.time.Instant
@@ -31,6 +32,9 @@ private val log = LoggerFactory.getLogger("io.github.youndie.haul.payment")
  *
  * **A return takes its refund off what is still owed first** ([refund]): the last payment first, then the one
  * before it; only what is left over is given back through the processor, out of what was paid.
+ *
+ * Each order whose plan [advance] moved is told to [moves] (B-29), so a page watching it is drawn again; a
+ * payment [ship] takes is told with the shipment that waited for it.
  */
 internal class HaulPayPlans(
     private val plans: InstalmentRepository,
@@ -38,6 +42,7 @@ internal class HaulPayPlans(
     private val clock: PetichClock,
     private val interval: Duration,
     private val retry: Duration,
+    private val moves: OrderMoves = OrderMoves(),
 ) {
     init {
         require(
@@ -48,7 +53,7 @@ internal class HaulPayPlans(
     /** One pass over the plans with a payment due by now; the number of payments it took or gave up on. */
     suspend fun advance(): Int {
         val now = Instant.ofEpochMilli(clock.nowEpochMs())
-        return plans.due(now).sumOf { collect(it, now) }
+        return plans.due(now).sumOf { orderId -> collect(orderId, now).also { if (it > 0) moves.moved(orderId) } }
     }
 
     /**

@@ -26,6 +26,10 @@ dependencies {
     implementation(libs.ktor.server.cio)
     implementation(libs.ktor.server.statusPages)
     implementation(libs.kompot.ktor)
+    // The order page's live updates (B-29): kompot's broadcaster hands each move's frame to the pages
+    // watching that order, over Ktor's server-sent events.
+    implementation(libs.kompot.realtimeServer)
+    implementation(libs.ktor.server.sse)
     implementation(wip.kotlinx.serialization.json)
     implementation(platform(wip.koin.bom))
     implementation(wip.koin.core)

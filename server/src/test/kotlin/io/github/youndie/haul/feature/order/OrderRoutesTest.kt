@@ -14,6 +14,7 @@ import io.github.youndie.haul.testing.ShildikHarness
 import io.github.youndie.haul.testing.all
 import io.github.youndie.haul.testing.assertError
 import io.github.youndie.haul.testing.haulTest
+import io.github.youndie.haul.testing.liveTree
 import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.ui.CartLine
@@ -91,6 +92,16 @@ class OrderRoutesTest {
         return haulWireJson.decodeKompotComponent(response.bodyAsText())
     }
 
+    /** The order's page as [token]'s customer gets it: the tree, out of its envelope naming the order's channel. */
+    private suspend fun HttpClient.order(
+        token: String,
+        orderId: String,
+    ): KompotComponent {
+        val response = page(token, orderId)
+        assertEquals(HttpStatusCode.OK, response.status, response.bodyAsText())
+        return liveTree(response.bodyAsText(), "order:$orderId")
+    }
+
     private suspend fun HttpClient.reorder(
         token: String,
         url: String,
@@ -111,7 +122,7 @@ class OrderRoutesTest {
     @Test
     fun `the page placement lands on is the order just placed`() =
         placed { orderId, _ ->
-            val tree = tree(maya, "/ui" + OrderPaths.page(orderId))
+            val tree = order(maya, orderId)
             val body = tree.only<OrderBody>()
             assertEquals("Thanks, Maya — order #$orderId is placed", body.title)
             assertEquals(listOf("Account", "Orders", "#$orderId"), body.crumbs.map { it.label })
@@ -140,7 +151,7 @@ class OrderRoutesTest {
                     )
                 }
             assertEquals(HttpStatusCode.OK, edit.status, edit.bodyAsText())
-            val body = tree(maya, "/ui" + OrderPaths.page(orderId)).only<OrderBody>()
+            val body = order(maya, orderId).only<OrderBody>()
             val place = body.summary.facts.single { it.kind == OrderFactKind.Place }
             assertEquals("148 Wythe Avenue, Apt 4F", place.title)
             assertEquals("Brooklyn, NY 11211 · courier", place.detail)
@@ -174,7 +185,7 @@ class OrderRoutesTest {
     @Test
     fun `reorder puts a delivered order back into the cart and twice is once`() =
         placed(moved = 10.days) { orderId, _ ->
-            val body = tree(maya, "/ui" + OrderPaths.page(orderId)).only<OrderBody>()
+            val body = order(maya, orderId).only<OrderBody>()
             assertEquals(listOf("Delivered", "Delivered"), body.shipments.map { it.status })
             val url = assertNotNull(body.summary.reorderUrl, "a delivered order offers no reorder")
             val reviews = body.shipments.flatMap { it.items }.map { it.review?.action }
@@ -199,7 +210,7 @@ class OrderRoutesTest {
     @Test
     fun `a declined order says so and leads back to the cart`() =
         placed(CheckoutChoice(slotId = "2025-10-08T15", payment = "card-0002")) { orderId, _ ->
-            val body = tree(maya, "/ui" + OrderPaths.page(orderId)).only<OrderBody>()
+            val body = order(maya, orderId).only<OrderBody>()
             assertEquals("Order cancelled", body.title)
             assertEquals("Your card ···· 0002 was declined", body.notice?.title)
             assertEquals(Link("Back to cart", NavigateAction(Frame.CART)), body.summary.back)

@@ -13,6 +13,7 @@ import io.github.youndie.haul.feature.identity.PopupSignInFlow
 import io.github.youndie.haul.feature.identity.SIGN_IN_WINDOW
 import io.github.youndie.haul.shell.WindowHistory
 import io.github.youndie.haul.shell.ktorCommands
+import io.github.youndie.haul.shell.ktorRealtime
 import io.github.youndie.haul.shell.ktorTransport
 import io.github.youndie.haul.shell.ktorTreeCommands
 import io.github.youndie.haul.ui.coilPhotoLoader
@@ -25,8 +26,9 @@ import kotlinx.browser.window
  * The bundle's entry point: the whole page is the storefront. The server serves the page, so every
  * request — the photos, the screens' trees, the cart's, the checkout's and the dialogs' commands, sign-in's merge —
  * goes over one client, the browser's fetch, to this origin; the screens' and the commands' through [Identity.send],
- * which adds the bearer token or the guest id. The sign-in returns to `signed-in.html` beside the bundle, the address the realm's client
- * registers, from a popup the storefront watches itself (B-46).
+ * which adds the bearer token or the guest id; so does the order page's stream of live updates (B-29). The
+ * sign-in returns to `signed-in.html` beside the bundle, the address the realm's client registers, from a popup
+ * the storefront watches itself (B-46).
  */
 @OptIn(ExperimentalComposeUiApi::class)
 public fun main() {
@@ -48,6 +50,7 @@ public fun main() {
     val commands = ktorCommands(http, origin, identity::send)
     val checkoutCommands = ktorCheckoutCommands(http, origin, identity::send)
     val treeCommands = ktorTreeCommands(http, origin, identity::send)
+    val realtime = ktorRealtime(http, origin, identity::send)
     ComposeViewport(document.body!!) {
         App(
             photos,
@@ -58,6 +61,7 @@ public fun main() {
             commands = commands,
             checkoutCommands = checkoutCommands,
             treeCommands = treeCommands,
+            realtime = realtime,
         )
     }
 }
