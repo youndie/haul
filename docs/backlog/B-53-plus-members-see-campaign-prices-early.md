@@ -59,9 +59,9 @@ so a membership that ends mid-checkout redraws as `cart_changed`.
   `CartOwner.Customer.prices` always `Public` — 2 failures (the member's charge, the trial).
 - **Where it ran**: the WSL box — `:composeApp:wasmJsBrowserDistribution`, then `check :server:installDist`, then
   `scripts/e2e.sh` against an image of this branch (`WholePathTest`), each green on the branch as first written and
-  again after the rebases onto B-50, B-52 and B-29 (last: server 68 classes, 334 tests; desktop 173; `viddikVerify`
-  136; the wasm browser tests skipped there for want of a browser). After the migration was renumbered V26,
-  `:server:test :server:installDist` again (334, green).
+  again after every rebase (onto B-50 and B-52, B-29, then B-45 and B-55 with the migration numbered V26; last:
+  server 70 classes, 341 tests; desktop 173; `viddikVerify` 136; the wasm browser tests skipped there for want of a
+  browser).
 - **Goldens and fixtures**: the canvas's «now» (Oct 7, 19:47) is after the sale's start, so every seeded viewer's prices
   on it are the ones they were; `viddikVerify` green (136), the fixture tests that compare server-built bodies with the
   client's (`CartFixturesTest`, `CheckoutFixturesTest`, `SavedFixturesTest`, `OrderFixturesTest`…) unchanged.
