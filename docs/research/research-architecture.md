@@ -774,8 +774,48 @@ carries the browser bundle and serves it at `/`, so the two cannot be deployed a
 and the client needs no base URL. The chart (`charts/haul/`) holds the server, its PostgreSQL as one
 pod with one volume, and Traefik IngressRoutes for the host, the shape the sibling reference services
 are deployed in; metrik, tracy and katcher are wired in the server and each switched on by an endpoint
-and a key. The host, `haul.kotlin.website`, is the siblings' convention and an assumption until the
-first deploy.
+and a key.
+
+**Decided in B-27, the public stand (2026-10-09).**
+
+- **The stand is deployed from the owner's infrastructure repository, as the sibling stands are**: it
+  holds the stand's values, its secrets and the release tag the stand runs, and deploys when that tag
+  changes there. This repository publishes the image — `ghcr.io/youndie/haul-server:<tag>` from a
+  pushed tag `v*`, after the image check and the whole e2e path walked through the image pulled back
+  from the registry (`.github/workflows/stand.yaml`) — and holds the chart, which the deploy takes at
+  the same tag, so the variables the chart renders always meet the binary they were written for.
+- **The host is `haul.kotlin.website`, its sign-in `haul-id.kotlin.website`.** One label under the
+  domain: the existing wildcard record covers it whatever else is ever recorded under
+  `haul.kotlin.website`, which a wildcard stops covering below a name that exists.
+- **The stand has a shildik of its own** (`charts/haul/templates/shildik.yaml`, on `shildik.enabled`): the
+  provider's published SQLite image at the release the server's suite signs in against (0.4.1), one pod
+  and one volume kept on uninstall, written in the chart rather than taken as the provider's
+  `shildik-sqlite` subchart — that chart publishes a plain Ingress where the cluster routes by
+  IngressRoute, and a subchart would make the deploy fetch a second chart. A public storefront signing
+  in through a platform's private provider would tie the two together; its own provider ties nothing.
+- **A hook makes the realm** (`charts/haul/files/shildik-bootstrap.py`, a post-install/post-upgrade Job through
+  the management API, the one way in — the deploy may not exec into a pod and the provider's image has
+  no shell): the realm `haul`, closed to strangers; the public client `haul-web` with the one return
+  page `https://<hostname>/signed-in.html`; the sample customers `maya` and `sam`; and a check that
+  discovery names the issuer the server is configured with. Every step converges, so each deploy runs
+  it again harmlessly, and a failed one fails the release.
+- **A visitor browses and shops as a guest; Maya and Sam sign in with a password the owner keeps.**
+  shildik's password method has no sign-up, and a sign-in that creates people needs an external
+  provider or mail, so the realm holds the seed's two customers (their ids are the seed's, so they sign
+  in as the seeded rows — Maya with Plus, her points and her cart) under a password passed as a secret
+  and published nowhere. Opening sign-in to visitors is a decision of its own: shared demo credentials
+  printed on the stand, or a sign-up the provider does not have yet.
+- **The simulated world runs 288 times the store's pace** (`server.fulfilmentSpeed`), a day in five
+  minutes: a courier order is packed in under a minute, leaves within five and arrives within fifteen,
+  so it moves while a visitor watches its page; the server's suggested 1,440 delivers it before the
+  visitor has opened the page.
+- **One replica, refused above one at render**: the order page's live updates go through a bus held in
+  the process (B-29).
+- **NetworkPolicies** (`networkPolicy`, on by default): the database admits only the server, the
+  provider's management port only the hook; the provider's public port is open, since Traefik and the
+  server's key fetches reach it from outside the namespace.
+- **The stand's metrik, tracy and katcher are the cluster's own, by their in-cluster Services**;
+  katcher waits for the app to be registered in it, since its key is an app's, issued there.
 
 ### D7. Numbers the canvas implies, fixed here
 

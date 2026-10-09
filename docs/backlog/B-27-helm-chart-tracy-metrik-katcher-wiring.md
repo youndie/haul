@@ -1,7 +1,7 @@
 ---
 id: B-27
 title: "ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand"
-status: question
+status: wip
 priority: P2
 size: M
 stage: stage-9-ship
@@ -15,8 +15,9 @@ The chart, observability and the public stand (research D6).
 - Not covered: synthetic traffic (B-31).
 
 - AC: the chart installs on a clean namespace, the server turns ready, the stand answers at its public host.
-- Anchors: `charts/haul/`, `server/src/main/kotlin/io/github/youndie/haul/ops/Observability.kt`,
-  `scripts/chart-check.sh`, `.github/workflows/stand.yaml`.
+- Anchors: `charts/haul/`, `charts/haul/files/shildik-bootstrap.py`,
+  `server/src/main/kotlin/io/github/youndie/haul/ops/Observability.kt`, `scripts/chart-check.sh`,
+  `scripts/stand-kind.sh`, `.github/workflows/stand.yaml`.
 
 ## Iteration 1 (2026-10-08)
 
@@ -105,3 +106,76 @@ Everything but the deploy is merged; the item waits for the owner, who decides:
 
 On a yes the item goes back to `wip`, the workflow runs with `deploy: true`, and the AC's last clause
 is checked against the public host.
+
+**Answered (2026-10-09):** deploy it, through the owner's infrastructure repository, the way the
+sibling stands are deployed. Iteration 2 below.
+
+## Iteration 2 (2026-10-09)
+
+The owner decided: the stand is deployed, and from the infrastructure repository that deploys the
+sibling stands — it keeps the stand's values, its secrets and the release tag, and deploys when the
+tag changes there. Everything on this side is built; the item stays `wip` until the first deploy
+answers at the public host (the AC's last clause).
+
+**Decided** (research D6, «Decided in B-27»):
+
+- **Publishing, not deploying, here.** `.github/workflows/stand.yaml` («publish image») runs on a
+  pushed tag `v*` (or by hand against a tag ref, refusing any other ref): `scripts/image-check.sh`,
+  refusal of a tag already published, push of `ghcr.io/youndie/haul-server:<tag>`, then a second job
+  pulls it back **without credentials** — as the cluster will — and walks the e2e path through it
+  (`E2E_SKIP_BUILD=true scripts/e2e.sh <image>`). Its deploy step and inputs are gone, and with them
+  every secret it read (`STAND_KUBECONFIG`, `STAND_PG_PASSWORD`, `STAND_TRACY_KEY`,
+  `STAND_KATCHER_KEY`, `STAND_METRIK_KEY`): none was ever created, and none is needed now.
+- **`values-stand.yaml` is removed.** The stand's values are the infrastructure repository's; a copy
+  here would be a second list of the same choices. `scripts/chart-check.sh` renders the stand's
+  *shape* instead — every part on, placeholder secrets — and asserts what that render says.
+- **Hosts**: `haul.kotlin.website` and, for sign-in, `haul-id.kotlin.website` (one label: the
+  existing wildcard covers it whatever is recorded under `haul.kotlin.website`).
+- **Sign-in: a shildik of the stand's own** in the chart (`shildik.enabled`), the published SQLite
+  image 0.4.1, written as templates rather than the provider's `shildik-sqlite` subchart (a plain
+  Ingress where the cluster uses IngressRoutes, and a second chart for the deploy to fetch). A
+  post-install/post-upgrade hook (`files/shildik-bootstrap.py`) converges the realm `haul` (closed),
+  the public client `haul-web` returning to `https://<hostname>/signed-in.html` (re-created when it
+  differs), the people `maya` and `sam` with the password `shildik.demoPassword`, and checks that
+  discovery names the issuer the server is given. Secrets — `shildik.masterKeys`,
+  `shildik.bootstrapToken`, `shildik.demoPassword` — come from the deploy, never from a values file.
+- **Who signs in**: a visitor browses and shops as a guest; Maya and Sam sign in with the owner's
+  password, which is published nowhere. shildik's password method has no sign-up. Opening sign-in
+  to visitors (shared demo credentials shown on the stand, or a sign-up) is not decided here.
+- **`server.fulfilmentSpeed`** reaches the server as `HAUL_FULFILMENT_SPEED` (B-17 found the chart
+  did not pass it); the stand runs 288, a day in five minutes. Anything but a positive number is
+  refused at render.
+- **One replica**: `server.replicas` other than 1 is refused at render (the live-update bus is in the
+  process, B-29).
+- **NetworkPolicies** (`networkPolicy`, default on): PostgreSQL admits only the server; the
+  provider's management port admits only the hook; its public port is open.
+- **Observability** by the cluster's in-cluster Services, environment `stage`; katcher is left out of
+  the first deploy, since `haul-server` is not an app in katcher yet and its key is an app's.
+- The chart is **0.2.0**: a refusal added (replicas) and a values file removed.
+
+**Verified, on the Linux build machine.** `scripts/chart-check.sh`: 32 lines ok — two lints, six
+renders, ten assertions on the stand-shaped render, thirteen refusals, the hook's script parses.
+`scripts/image-check.sh`: ready, 1,047 of 1,047 server classes from the AOT cache, page 200,
+`application/wasm`, the bundle precompressed. `scripts/stand-kind.sh` on a throwaway kind cluster
+(deleted after), the image loaded and the stand's shape installed with random secrets: installed with
+the realm made in 53 s, no pod restarted; the hook said «realm haul: created, closed to strangers»,
+«client haul-web: created», both people present, discovery naming the server's issuer; an upgrade with
+the same values took 7 s and the hook said «exists», «as wanted»; the script run by hand once more
+changed nothing. From a pod in the namespace: `/readyz`, `/` and `/version` 200; `GET /api/v1/sign-in`
+named the issuer and `haul-web`; discovery 200; Maya signed in through `haul-web` by the browser's flow
+(the provider's page, its form, `302` back to `https://haul.example/signed-in.html`, the code
+exchanged), and `/ui/account` with her token answered 200 as Maya, a forged one 401; the provider's
+public port reachable from that pod while its management port and the database were not (kindnet
+enforces NetworkPolicy; the hook, labelled for it, did reach the management port).
+
+Not proven there: the public hosts, Traefik and the certificates (no ingress in kind, so the issuer was
+the provider's Service), and **whether the server's pod reaches `https://haul-id.kotlin.website`** for
+the realm's keys — on the cluster that goes out to the public address and back through Traefik. If it
+cannot, every sign-in on the stand ends in a `401`; the deploy's last step asks discovery from outside
+only. Not run: the e2e (`stand.yaml` runs it on the published image) and helm 4.3.0, which the deploy
+uses (the checks ran helm 3.17.0).
+
+**What remains** is the owner's, in order: the secrets, the namespace's RBAC, the tag `v0.1.0` (whose
+`stand.yaml` run publishes the image), and the infrastructure change that pins it — whose merge
+deploys. Then `https://haul.kotlin.website/version` answers `{"commit":"v0.1.0"}`, the AC's last
+clause is checked, and the item closes.

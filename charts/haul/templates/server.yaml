@@ -6,7 +6,10 @@ metadata:
     {{- include "haul.labels" . | nindent 4 }}
     app.kubernetes.io/name: haul-server
 spec:
-  replicas: {{ .Values.server.replicas }}
+  {{- if ne (int .Values.server.replicas) 1 }}
+  {{- fail (printf "haul: server.replicas is %v and must be 1 — the order page's live updates go through a bus held in the process (B-29), so a page connected to one pod never hears a move made on another and stays quietly stale. More replicas come with a bus every replica shares" .Values.server.replicas) }}
+  {{- end }}
+  replicas: 1
   {{- /*
   Rolled, one extra pod at a time and never one fewer: the old pod serves until the new one is ready,
   and Traefik follows readiness. The price is that a migration must leave the running version working
@@ -82,6 +85,22 @@ spec:
               value: {{ .Values.server.dbPoolSize | quote }}
             - name: HAUL_SEED
               value: {{ .Values.server.seed | quote }}
+            {{- with .Values.server.fulfilmentSpeed }}
+            {{- if not (regexMatch "^[0-9]+(\\.[0-9]+)?$" (toString .)) }}
+            {{- fail (printf "haul: server.fulfilmentSpeed=%v is not a positive number — the server would refuse to start on it" .) }}
+            {{- end }}
+            {{- if not (gt (float64 .) 0.0) }}
+            {{- fail (printf "haul: server.fulfilmentSpeed=%v is not a positive number — at 0 no order would ever move" .) }}
+            {{- end }}
+            - name: HAUL_FULFILMENT_SPEED
+              value: {{ . | toString | quote }}
+            {{- end }}
+            {{- if .Values.shildik.enabled }}
+            - name: HAUL_OIDC_ISSUER
+              value: {{ include "haul.realmIssuer" . | quote }}
+            - name: HAUL_OIDC_CLIENT_ID
+              value: {{ .Values.shildik.clientId | quote }}
+            {{- end }}
             - name: HAUL_COMMIT
               value: {{ .Values.server.version | quote }}
             - name: HAUL_ENVIRONMENT
