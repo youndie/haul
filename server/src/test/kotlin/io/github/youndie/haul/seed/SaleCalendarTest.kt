@@ -224,8 +224,8 @@ class SaleCalendarTest {
             )
             // The store ran SUMMER5 again for a day: its window now, not the seed's.
             dataSource.sql(
-                "UPDATE promo_codes SET starts_at = '${CatalogSeed.DEALS_START}', ends_at = '${CatalogSeed.DEALS_END}' " +
-                    "WHERE code = '$SUMMER5'",
+                "UPDATE promo_codes SET starts_at = '${CatalogSeed.DEALS_START}', " +
+                    "ends_at = '${CatalogSeed.DEALS_END}' WHERE code = '$SUMMER5'",
             )
             assertTrue(Seeder.redateSale(database, next), "the control: the rest of the sale has ended")
             assertEquals(
