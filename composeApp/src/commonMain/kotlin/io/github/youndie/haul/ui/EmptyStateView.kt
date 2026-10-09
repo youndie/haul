@@ -13,7 +13,7 @@ import io.github.youndie.haul.theme.LocalHaulCompact
 
 /**
  * An empty or no-results state (`EmptyState` on the wire): the title, balanced as the canvas balances
- * it (`text-wrap: balance`), the sentence, and the way out — outlined, or filled in Cobalt when it is
+ * it (`text-wrap: balance`), the sentence when there is one, and the way out — outlined, or filled in Cobalt when it is
  * the page's [EmptyState.primary] one.
  */
 @Composable
@@ -34,16 +34,18 @@ public fun EmptyStateView(
                     lineHeight = 0.95f,
                 ),
         )
-        Text(
-            empty.text,
-            HaulType
-                .text(
-                    if (compact) 16f else 18f,
-                    lineHeight = 1.5f,
-                ).browserLeading()
-                .copy(color = HaulColors.onSurfaceVariant),
-            Modifier.widthIn(max = 560.dp),
-        )
+        empty.text?.let {
+            Text(
+                it,
+                HaulType
+                    .text(
+                        if (compact) 16f else 18f,
+                        lineHeight = 1.5f,
+                    ).browserLeading()
+                    .copy(color = HaulColors.onSurfaceVariant),
+                Modifier.widthIn(max = 560.dp),
+            )
+        }
         empty.actionLabel?.let {
             HaulButton(
                 it,

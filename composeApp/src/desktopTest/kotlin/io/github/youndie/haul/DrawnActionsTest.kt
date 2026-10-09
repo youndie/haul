@@ -26,6 +26,8 @@ import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.ui.ADD_TO_CART
 import io.github.youndie.haul.ui.AppliedFilters
+import io.github.youndie.haul.ui.CampaignHero
+import io.github.youndie.haul.ui.CampaignRow
 import io.github.youndie.haul.ui.Facet
 import io.github.youndie.haul.ui.FacetOption
 import io.github.youndie.haul.ui.FacetPanel
@@ -40,6 +42,7 @@ import io.github.youndie.haul.ui.PlusBenefit
 import io.github.youndie.haul.ui.PlusTrialDialog
 import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductGrid
+import io.github.youndie.haul.ui.PromoBanner
 import io.github.youndie.haul.ui.SEARCH_FIELD_TAG
 import io.github.youndie.haul.ui.SearchSuggestPanel
 import io.github.youndie.haul.ui.SectionHeader
@@ -57,9 +60,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 /**
- * B-37, B-49 and B-54 in the client: each control that the trees used to draw with nothing to follow, pressed, follows
- * the action its tree now carries — a `navigate` opens its address, a command goes to the server and
- * the page (or the suggest panel) is drawn again. A fake transport serves the trees and records what
+ * B-37, B-49, B-54 and B-59 in the client: each control that the trees used to draw with nothing to follow,
+ * pressed, follows the action its tree now carries — a `navigate` opens its address, a command goes to the
+ * server and the page (or the suggest panel) is drawn again. A fake transport serves the trees and records what
  * was fetched; fake commands record what was sent.
  */
 @OptIn(ExperimentalTestApi::class)
@@ -254,6 +257,25 @@ class DrawnActionsTest {
             onNodeWithText("View all deals").performClick()
             onNodeWithText(NEXT).assertExists()
             assertEquals(listOf("/", "/deals"), history.entries)
+        }
+
+    /** B-59: each of home's banners opens the address it carries — the deals page — as «Shop the sale» does. */
+    @Test
+    fun `the tech week banner opens the deals page`() = bannerOpensTheDealsPage("Laptops from $399")
+
+    /** B-59: the second banner, the free-delivery weekend's, the same. */
+    @Test
+    fun `the free delivery banner opens the deals page`() = bannerOpensTheDealsPage("Free delivery on everything")
+
+    private fun bannerOpensTheDealsPage(title: String) =
+        runDesktopComposeUiTest(WIDTH, 1_000) {
+            answer("/ui/home", page(header, campaigns))
+            destinations("/deals")
+            storefront()
+            onNodeWithText(title).performClick()
+            onNodeWithText(NEXT).assertExists()
+            assertEquals(listOf("/", "/deals"), history.entries, title)
+            assertEquals(listOf("/ui/home", "/ui/deals"), requests, title)
         }
 
     @Test
@@ -590,6 +612,38 @@ class DrawnActionsTest {
                             moreAction = NavigateAction(PAGE_2),
                             links = listOf(Link("2", NavigateAction(PAGE_2)), Link("3", NavigateAction(PAGE_3))),
                         ),
+                ),
+            )
+
+        /** Home's campaign row as the server draws it at the canvas's «now» (B-59): each banner to the deals page. */
+        val campaigns =
+            CampaignRow(
+                "campaigns",
+                CampaignHero(
+                    id = "campaign-autumn-mega-sale",
+                    eyebrow = "Autumn mega sale · Oct 7 — 14",
+                    title = "Up to −70%",
+                    subtitle = "1.2 million items marked down across 32 categories",
+                    actionLabel = "Shop the sale",
+                    tone = "#2F2BFF",
+                    label = "campaign image",
+                    action = NavigateAction("/deals"),
+                ),
+                listOf(
+                    PromoBanner(
+                        id = "banner-tech-week",
+                        eyebrow = "Tech week",
+                        title = "Laptops from $399",
+                        tone = "#E6E4FF",
+                        action = NavigateAction("/deals"),
+                    ),
+                    PromoBanner(
+                        id = "banner-free-delivery-weekend",
+                        eyebrow = "600K items from local sellers",
+                        title = "Free delivery on everything",
+                        tone = "#DFFF3A",
+                        action = NavigateAction("/deals"),
+                    ),
                 ),
             )
 

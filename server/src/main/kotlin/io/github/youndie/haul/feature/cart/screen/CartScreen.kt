@@ -13,6 +13,7 @@ import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.count
+import io.github.youndie.haul.feature.catalog.domain.liveSale
 import io.github.youndie.haul.feature.catalog.domain.money
 import io.github.youndie.haul.feature.catalog.screen.card
 import io.github.youndie.haul.feature.catalog.screen.navigation
@@ -200,6 +201,10 @@ internal class CartScreen(
         // The owner's prices rather than the viewer's: a cart drawn for a command's answer has a viewer
         // without the customer, and the picks must be at the prices the cart would charge (B-53).
         val picks = catalog.listed(deals.map { it.skuId.substringBeforeLast('-') }.distinct(), owner.prices)
+        // The line names both today's deals and the sale, so it is drawn only while both are live (B-59):
+        // before, it promised deals and −70 % on a stand that had neither left.
+        val at = clock.now().toOffsetDateTime()
+        val sale = deals.isNotEmpty() && liveSale(catalog.campaigns(), owner.prices, at) != null
         val empty =
             listOf(
                 title(count = null),
@@ -207,7 +212,7 @@ internal class CartScreen(
                     id = "empty",
                     title = "Your cart is empty",
                     accent = "empty",
-                    text = "Today’s deals end at midnight — up to −70 % in the Autumn mega sale.",
+                    text = if (sale) SALE_LINE else null,
                     actionLabel = "See today’s deals",
                     action = NavigateAction(Frame.DEALS),
                     primary = true,
@@ -230,6 +235,9 @@ internal class CartScreen(
 
     companion object {
         private const val PICKS = 6
+
+        /** The empty cart's sale line, the canvas's (Cart_Empty). */
+        const val SALE_LINE = "Today’s deals end at midnight — up to −70 % in the Autumn mega sale."
 
         /** Checkout asks a guest to sign in first (feature-cart); the client opens the provider's page. */
         const val SIGN_IN = "${Frame.SIGN_IN}?next=%2Fcheckout"

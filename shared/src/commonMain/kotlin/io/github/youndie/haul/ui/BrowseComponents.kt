@@ -314,6 +314,8 @@ public data class HaulPagination(
 /**
  * An empty, a no-results or a not-found state: a title, a sentence and what to do instead — an
  * outlined button, or a filled one when it is the page's [primary] way on (the empty cart's deals).
+ * The sentence may be absent: the empty cart's names today's deals and the sale, and is left out while
+ * either is over (B-59).
  */
 @Serializable
 @SerialName("haul_empty_state")
@@ -321,7 +323,7 @@ public data class HaulPagination(
 public data class EmptyState(
     override val id: String,
     val title: String,
-    val text: String,
+    val text: String? = null,
     val actionLabel: String? = null,
     val action: @Polymorphic KompotAction? = null,
     val accent: String? = null,

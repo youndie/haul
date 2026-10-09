@@ -17,6 +17,7 @@ import io.github.youndie.haul.testing.putLine
 import io.github.youndie.haul.testing.tree
 import io.github.youndie.haul.ui.AppliedFilters
 import io.github.youndie.haul.ui.CampaignHero
+import io.github.youndie.haul.ui.CampaignRow
 import io.github.youndie.haul.ui.CategoryGrid
 import io.github.youndie.haul.ui.Facet
 import io.github.youndie.haul.ui.FacetPanel
@@ -190,6 +191,22 @@ class DrawnActionsTest {
                     .mapNotNull { it.add?.url }
             assertTrue(adds.isNotEmpty(), "no deal offers «+»")
             assertTrue(dealLines.containsAll(adds), "a deal's «+» adds another SKU: $adds")
+        }
+
+    /**
+     * B-59: home's banners led nowhere. Each now opens the deals page — neither banner's campaign has a SKU
+     * of its own to filter the page by — and following it draws that page.
+     */
+    @Test
+    fun `each of home's banners opens the deals page`() =
+        haulTest {
+            val banners = tree("/ui/home").only<CampaignRow>().banners
+            assertEquals(listOf("banner-tech-week", "banner-free-delivery-weekend"), banners.map { it.id })
+            assertTrue(seed.skus.none { it.campaignSlug in banners.map { b -> b.id.removePrefix("banner-") } })
+            banners.forEach { banner ->
+                assertEquals(NavigateAction("/deals"), banner.action, banner.id)
+                assertEquals("Deals", follow(banner.action).only<PageTitle>().title, banner.id)
+            }
         }
 
     @Test
