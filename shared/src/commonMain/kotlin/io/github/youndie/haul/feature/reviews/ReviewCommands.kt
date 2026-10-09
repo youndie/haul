@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.reviews
 
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.FieldError
+import io.github.youndie.haul.groupedCount
 import kotlinx.serialization.Serializable
 
 // The bodies of feature-reviews' commands (endpoint-reviews) and the rules both are held to. Where
@@ -89,15 +90,6 @@ public fun questionProblems(entry: QuestionEntry): List<FieldError> =
             text.length > ReviewRules.QUESTION_MAX -> add(tooLong("text", ReviewRules.QUESTION_MAX))
         }
     }
-
-/** «1,000», the way the dialogs write a limit. */
-public fun groupedCount(value: Int): String =
-    value
-        .toString()
-        .reversed()
-        .chunked(3)
-        .joinToString(",")
-        .reversed()
 
 private fun tooLong(
     field: String,

@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.reviews
 
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.haulWireJson
+import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
 import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
 import io.github.youndie.haul.seed.SampleCatalog.SONY_STORE
 import io.github.youndie.haul.seed.SampleCustomers
@@ -132,6 +133,23 @@ class ReviewRoutesTest {
             val silver =
                 assertIs<PresentAction>(customerTree(token, "$reviewsTab&sku=$sony-4").only<ProductReviews>().action)
             assertEquals("Silver · + Travel case", assertIs<ReviewForm>(silver.content).product.detail)
+        }
+
+    /**
+     * The dialogs name a product by its listing name, as its card, cart line and order line do (B-60). They
+     * wrote brand and title before, which for the duvet put its seller's name in front — «Brooklyn Home Co.
+     * Linen Duvet Cover Set, Queen» — where everything else writes the title it is listed under. The
+     * headphones cannot tell the two apart: their brand and title are their listing name.
+     */
+    @Test
+    fun `both dialogs name the product by its listing name and not by brand and title`() =
+        signedIn { token ->
+            val reviews = customerTree(token, "/ui/p/$DUVET_COVER?tab=reviews").only<ProductReviews>()
+            val review = assertIs<ReviewForm>(assertIs<PresentAction>(reviews.action).content)
+            assertEquals("Linen Duvet Cover Set, Queen", review.product.name)
+            val questions = customerTree(token, "/ui/p/$DUVET_COVER?tab=questions").only<ProductQuestions>()
+            val ask = assertIs<QuestionForm>(assertIs<PresentAction>(questions.action).content)
+            assertEquals("Linen Duvet Cover Set, Queen", ask.product.name)
         }
 
     /** feature-reviews, «A verified review»: Maya with delivered order #HL-46102 holding the product. */
