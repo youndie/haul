@@ -24,7 +24,8 @@ One field in the header searches everything; while typing, a panel suggests quer
 ## 2. Business rules
 
 * suggestions start at 2 characters; up to 5 query suggestions, 3 categories with counts, 3 top products;
-* a search is recorded in the customer's recent searches (last 10, de-duplicated, newest first); a guest has none;
+* a query matches a product by its words in any order — full text over its listing name (its title when it has none), its brand and its kind — or by a piece cut from inside its title or its listing name (B-45: `coalesce(listing_name, title)` in `products_search`, rebuilt by V25 with a trigram index on the listing name, so a product with a listing name does not count its words twice); cards and the panel's product rows write the listing name;
+* a search is recorded in the customer's recent searches (last 10, de-duplicated, newest first); a guest has none; a recent search's row runs that search again — the panel carries it as a `Link` with its `/search?q=` already encoded, and the client builds nothing (B-49);
 * «Clear» empties the customer's recent searches (`DELETE /api/v1/me/recent-searches`, customer tier); it is offered only when there is something to clear;
 * results group by category with counts (the chips above the grid) and use the catalog's card, sort and pages;
 * no results → the page says so and offers the suggestions for the query, or three tips when there are none, above eight popular categories.
@@ -54,6 +55,12 @@ Numbers in these rules (fees, thresholds, limits) are decisions of the brief, re
 * **When:** another customer opens the suggestions
 * **Then:** «wireless earbuds» is not in their recent list.
 * Not automated over HTTP: no route test signs two customers in. The storage half is `RecentSearchesTest.one customer's searches are not another's`; that a customer's search is recorded and «Clear» empties it is `RecentSearchesRoutesTest.clear empties a customer's recent searches and the panel no longer offers it`.
+
+### Scenario: The listing name is searched
+* **Given:** a product whose listing name holds words its title does not
+* **When:** the client searches those words in any order, or a piece cut from inside the listing name
+* **Then:** the product is found.
+* **Automated:** `SearchRoutesTest.words only the listing name holds find the product in any order`, `SearchRoutesTest.a piece of the listing name finds the product`
 
 ### Scenario: Too short
 * **When:** the client asks for suggestions for «r»

@@ -74,9 +74,16 @@ the server puts in them (`feature/search/screen/SearchScreen.kt`):
   `QuerySuggestion` split into `prefix` (what the term adds before the typed part), `typed` and
   `completion` («running sh» + «oes», «running » + «shoes»; a corrected spelling is all
   `completion`); up to three `categories` with counts, labelled «Sports › Running shoes»; up to three
-  `products`; `allResultsLabel` «All N results» and its action. `recent` is filled for a signed-in
-  customer only; `clearUrl` (`/api/v1/me/recent-searches`) is set only when `recent` is not empty,
-  so a guest is offered nothing to clear.
+  `products` (each writing its listing name, B-45); `allResultsLabel` «All N results» and its action.
+  `recent` is filled for a signed-in customer only, as `List<Link>` — the query and its encoded
+  `/search?q=`, which the client follows (B-49; it was `List<String>`); `clearUrl`
+  (`/api/v1/me/recent-searches`) is set only when `recent` is not empty, so a guest is offered nothing
+  to clear.
+* **Matching** (`server/src/main/kotlin/io/github/youndie/haul/feature/search/data/PostgresSearchRepository.kt`)
+  — full text over `coalesce(listing_name, title)`, the brand and the kind, and the substring match
+  over the title and the listing name (`products_search` rebuilt and `products_listing_name_trgm`
+  added by `server/src/main/resources/db/migration/V25__listing_name.sql`, B-45). Prices are the
+  viewer's (`Viewer.prices`, B-53, [endpoint-catalog](endpoint-catalog.md)).
 
 ## Quirks
 

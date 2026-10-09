@@ -46,7 +46,7 @@ client while it has no tree or after a failed request; every other state is a tr
 returns. The list is held against the real state when the code exists.
 
 - [x] **Loading:** header with «running shoes» in the field, placeholders for the count, the title, six chips and ten cards
-- [x] **Results:** «14,870 results» above «“Running shoes”» (`PageTitle.quoted`), category chips with counts, 10 cards; no panel. The artboard draws no pagination, and neither does its fixture body; the server's tree has `HaulPagination` under the grid, whose numbers and «Show 24 more» open their pages
+- [x] **Results:** «14,870 results» above «“Running shoes”» (`PageTitle.quoted`), category chips with counts, 10 cards (each writing its listing name, B-45); no panel. The artboard draws no pagination, and neither does its fixture body; the server's tree has `HaulPagination` under the grid, whose numbers and «Show 24 more» open their pages
 - [x] **Autocomplete:** Results with the panel open over a scrim: suggestions, «In categories», «Recent», «Top products», «All 14,870 results ↵». «Recent» is drawn only when the panel carries recent searches, which the server fills for a signed-in customer only; its «Clear» sends `DELETE` to `SearchSuggestPanel.clearUrl` and asks for the panel again
 - [x] **NoResults:** «0 results» above «Nothing found for “xqzt”», the three tips, «Popular *categories*» with eight tiles. The tips are shown when there are no query suggestions; when there are, the queries to try take their place (no artboard draws that form)
 - [x] **Error:** header with the query still in the field, «Search didn’t *respond*», Retry
@@ -77,7 +77,7 @@ focus and closes on the scrim, an emptied field or a new page.
 - page number, «Show 24 more» → the same query at that page (`/search?q=&page=`), category and sort kept
 - a card's «+» → `PUT /api/v1/cart/lines/{skuId}` with the line's next quantity, then the page drawn again in place
 - «Clear» → `DELETE /api/v1/me/recent-searches` (customer only; a guest is offered none), then the panel fetched again
-- a recent search's own row → nothing: it carries no action (B-37's findings)
+- a recent search's own row → Results for that search: `SearchSuggestPanel.recent` carries each as a `Link` with its encoded `/search?q=` (B-49; `RecentSearchesRoutesTest.a recent search's row runs that search again`, the client's `DrawnActionsTest.a recent search's row runs that search`)
 
 ## 6. Quirks
 
