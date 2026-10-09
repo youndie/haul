@@ -1,7 +1,7 @@
 ---
 id: B-61
 title: "server: the sale's promo code moves with the sale"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-4-cart
