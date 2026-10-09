@@ -42,7 +42,7 @@ internal fun card(
     return ProductCard(
         id = "card-${item.product.id}",
         productId = item.product.id,
-        title = item.product.title,
+        title = item.product.listingName,
         price = money(priceCents),
         oldPrice = oldCents?.takeIf { it > priceCents }?.let(::money),
         badge = discount(priceCents, oldCents),

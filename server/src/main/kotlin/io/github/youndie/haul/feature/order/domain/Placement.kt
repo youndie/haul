@@ -166,7 +166,8 @@ internal class Placement(
                     OrderPayload.Line(
                         skuId = it.sku.id,
                         sellerId = it.item.product.sellerId,
-                        title = it.item.product.title,
+                        // The listing name it is bought under, kept by the order line (B-45).
+                        title = it.item.product.listingName,
                         quantity = it.stored.quantity,
                         priceCents = it.priceCents,
                         listCents = it.listCents,

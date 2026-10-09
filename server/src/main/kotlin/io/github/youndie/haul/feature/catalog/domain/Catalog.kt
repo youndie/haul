@@ -26,6 +26,7 @@ internal data class Product(
     val id: String,
     val sellerId: String,
     val categorySlug: String,
+    /** What the product page writes under [brand] («WH-1000XM6 Wireless Noise Cancelling Headphones»). */
     val title: String,
     val brand: String,
     val description: String,
@@ -49,6 +50,13 @@ internal data class Product(
      * (B-52, V23): the seed's stand-in for the sample products, 0 for every other product.
      */
     val boughtBase: Int = 0,
+    /**
+     * What a card, a cart line, the checkout's summary and an order line write (B-45, V25): «Sony
+     * WH-1000XM6 Wireless Noise Cancelling Headphones», where the product page writes [brand] above
+     * [title]. The title when the catalogue names none; never «brand + title», which the duvet, whose
+     * brand is its seller's, shows to be no rule.
+     */
+    val listingName: String = title,
 )
 
 internal data class Sku(

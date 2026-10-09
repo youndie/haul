@@ -25,12 +25,17 @@ import kotlin.test.assertEquals
  */
 class SchemaTest {
     /**
-     * V3's search indexes on `products` are over expressions (a `tsvector`, `lower(title)` with trigram
-     * ops) that Exposed cannot declare, so it proposes dropping them; they belong to the migration and
-     * to the search repository, which writes the same expressions. Only these two are let through.
+     * V3's and V25's search indexes on `products` are over expressions (a `tsvector`, `lower(title)` and
+     * `lower(listing_name)` with trigram ops) that Exposed cannot declare, so it proposes dropping them;
+     * they belong to the migrations and to the search repository, which writes the same expressions. Only
+     * these three are let through.
      */
     private val searchIndexesOnProducts =
-        setOf("DROP INDEX IF EXISTS products_search", "DROP INDEX IF EXISTS products_title_trgm")
+        setOf(
+            "DROP INDEX IF EXISTS products_search",
+            "DROP INDEX IF EXISTS products_title_trgm",
+            "DROP INDEX IF EXISTS products_listing_name_trgm",
+        )
 
     @Test
     fun `the migrated schema needs no further DDL for the catalog tables`() {

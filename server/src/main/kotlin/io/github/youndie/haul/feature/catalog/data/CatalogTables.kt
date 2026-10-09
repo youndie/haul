@@ -9,6 +9,7 @@ import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.isNull
+import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.javatime.timestampWithTimeZone
 import org.jetbrains.exposed.v1.json.jsonb
@@ -67,6 +68,9 @@ internal object ProductsTable : Table("products") {
     // V23: the month of sales the store holds no orders for, added to the live count (B-52); 0 but for the
     // sample products.
     val boughtBase = integer("bought_base").default(0).check("products_bought_base_check") { it greaterEq 0 }
+
+    // V25: what cards, cart lines and order lines write (B-45); null is the title.
+    val listingName = text("listing_name").nullable().check("products_listing_name_check") { it neq "" }
     override val primaryKey = PrimaryKey(id)
 
     init {

@@ -124,6 +124,7 @@ class OrderFixturesTest {
                                     id = productId,
                                     brand = brand,
                                     title = title,
+                                    listingName = title,
                                     tone = tone,
                                     dispatchDays = 0,
                                 ),

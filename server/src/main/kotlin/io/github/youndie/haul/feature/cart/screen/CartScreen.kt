@@ -115,7 +115,7 @@ internal class CartScreen(
             id = "line-${line.sku.id}",
             skuId = line.sku.id,
             productId = line.item.product.id,
-            title = line.item.product.title,
+            title = line.item.product.listingName,
             // `jsonb` does not keep the keys' order; the colour leads, as on the product page.
             options =
                 line.sku.options.entries

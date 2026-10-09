@@ -90,7 +90,7 @@ internal class SearchScreen(
                 products.map {
                     ProductSuggestion(
                         productId = it.product.id,
-                        title = it.product.title,
+                        title = it.product.listingName,
                         price = money(it.shown.priceCents),
                         tone = it.product.tone,
                         label = it.product.label,
