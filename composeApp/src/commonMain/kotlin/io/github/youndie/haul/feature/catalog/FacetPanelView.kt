@@ -302,8 +302,9 @@ public const val CLOSE_FILTERS: String = "Close filters"
  * The phone's filter sheet over the category page (Catalog_FiltersSheet_Phone): the title with how
  * many filters are applied and «Clear all», the facets scrolling between, the button that shows the
  * result pinned at the bottom. «×» is [onClose] (B-49): the sheet is the client's own, opened by
- * «Filters» without asking the server, so closing it asks nothing either; `null` — a screenshot — leaves
- * it unpressable.
+ * «Filters» without asking the server, so closing it asks nothing either. «Show N items» is [onShow]
+ * (B-54): the page under the sheet already shows those results — each press in the sheet opened them —
+ * so it only closes the sheet. `null` — a screenshot — leaves either unpressable.
  */
 @Composable
 public fun FiltersSheet(
@@ -312,6 +313,7 @@ public fun FiltersSheet(
     showLabel: String,
     modifier: Modifier = Modifier,
     onClose: (() -> Unit)? = null,
+    onShow: (() -> Unit)? = null,
 ) {
     Column(modifier.fillMaxSize().background(HaulColors.background)) {
         Row(
@@ -364,6 +366,7 @@ public fun FiltersSheet(
                 radius = 18.dp,
                 fill = HaulColors.primary,
                 content = HaulColors.onPrimary,
+                onClick = onShow,
             )
         }
     }
