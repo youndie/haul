@@ -64,7 +64,8 @@ the screenshot tests share one renderer: `kompot-client` on wasmJs ships, the sa
 and B-29 built it on kompot's own pieces at the pinned version: the order's tree comes in
 `KompotScreenResponse` naming its channel, `KompotUpdateBroadcaster` (its in-memory bus) hands each
 move's `UpdateComponentMessage` to the pages on that channel, and `KompotRealtimeProvider` swaps the
-node by its id in the browser. kompot leaves the transport to the application; Haul's is kompot's
+node by its id in the browser — since kompot 0.40.0 through the screen's override store, which a newer
+tree of the screen drops (B-62), so a refresh no longer has to start the listening over. kompot leaves the transport to the application; Haul's is kompot's
 reference one, server-sent events at `GET /ui/updates?topic=` (kompot SPEC §16.6). **Decided in
 B-29:** a channel is one customer's — delivered by the order and its customer, refused like the page
 (`404 order_not_found`) to anybody else; every stream opens with the order as it is, so a move made
@@ -182,8 +183,10 @@ client alone.
   directly). At the line's limit «Buy now» only selects the line; out of stock neither is offered.
 - A list of choices («Catalog»'s categories, the sort's orders) travels as `Link`s and opens as a
   menu in the client. No artboard draws a menu open; the menu is drawn from the theme's tokens.
-- «Show 24 more» opens the next page, the same address as the page number. Appending to the grid in
-  place would need the shell to keep the scroll across an address change, which it does not (B-35).
+- «Show 24 more» opens the next page, the same address as the page number. Since B-62 the shell keeps
+  the page and its scroll across a new address of the same path, so the next page is drawn in place of
+  the results where the shopper is; appending to the grid instead is still not done — the server sends
+  each page whole.
 - **`/deals` is a screen** (owner's call in B-37): «Deals», «View all deals», «Shop the sale» and the
   empty cart's «See today's deals» all lead there, and the server already had what it needs — today's
   deals with their countdown on the first page, then every product whose shown price is under its old
@@ -203,12 +206,25 @@ trial's dialog for a customer who is not a member, `/account` for a member, sign
   in the tree, drawn over the page on a phone; «Filters» opens it and «×» closes it without asking the
   server, because there is nothing for the server to decide and no address to change. «Show N items»
   closes it too (B-54): each press inside the sheet already opened the page those results are on. The
-  sheet is held by the shell above the page keyed on its address
+  sheet is held by the shell above the page
   (`composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/catalog/FiltersSheetState.kt`), so
   it stays open over the pages its own presses open and is drawn from each one's tree; any other new
-  page closes it.
+  page closes it. It stays there after B-62 kept the page across a filter: back and forward keep the
+  page too, and only the shell sees whether an arrival came from the sheet.
 - **A control with no page behind it is plain text**, not a link that opens nothing: the strip's «Sell
   on HAUL», «Help» and the language, and the footer's links, until a page exists for them.
+
+**Decided in B-62, a screen is a path** (owner's call). `/c/mugs?brand=Ostra` and `/c/mugs` are one
+screen, `/c/mugs` and `/p/…` two. A new address of the same path — a facet, a sort, a page of results, a
+product's tab or SKU, back and forward between two of them — is loaded behind the page that is drawn
+(kompot's `KompotScreenLoader(screenKey = …)`, 0.40.0.212): the page keeps its scroll and whatever its
+nodes hold open, a thin line under the header says a load is on its way, and the new tree is drawn in
+place, Compose redrawing only what changed (kompot keys `column` children by `id`). A load that does not
+arrive keeps the page under a notice with Retry, not the error page. Another path draws its placeholder
+and starts at the top, as before. A customer's page refused within its screen for a lapsed sign-in is the
+exception: it is taken down and asks for the sign-in (B-44), so a guest is not left looking at it. The
+server is unchanged — it still answers each address with the whole tree; answering with only the changed
+nodes is kompot B-82, a later item.
 
 **Decided in B-22, a route over the screen.** A dialog the canvas draws over a page («Write a review»,
 «Ask a question») is kompot's `present` of a component the server built — the form, its labels and the

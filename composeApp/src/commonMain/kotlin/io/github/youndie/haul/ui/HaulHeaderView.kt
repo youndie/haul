@@ -45,6 +45,7 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
@@ -119,6 +120,19 @@ public val LocalSearchInput: ProvidableCompositionLocal<SearchInput?> = staticCo
 
 /** Where pressing the logo goes — the home page, which is the app's own; none leaves the logo inert. */
 public val LocalLogoAction: ProvidableCompositionLocal<(() -> Unit)?> = staticCompositionLocalOf { null }
+
+/**
+ * Told the height a page's header is drawn at, in pixels: the shell draws the line of a load on its way
+ * under it (B-62). None outside the storefront.
+ */
+public val LocalHeaderMeasured: ProvidableCompositionLocal<((height: Int) -> Unit)?> = staticCompositionLocalOf { null }
+
+/** [this], reporting its height to [LocalHeaderMeasured] when the shell asks for it. */
+@Composable
+internal fun Modifier.headerMeasured(): Modifier {
+    val report = LocalHeaderMeasured.current ?: return this
+    return onSizeChanged { report(it.height) }
+}
 
 /**
  * The header, at the width the page is drawn at (`HaulHeader` on the wire). [pending] is the client's
