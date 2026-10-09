@@ -26,10 +26,11 @@ so a membership that ends mid-checkout redraws as `cart_changed`.
 ## Done (2026-10-09)
 
 - **Decisions** (recorded in research D6, «Decided in B-53»): a SKU names its campaign (`skus.campaign_slug`,
-  `V24__sku_campaigns.sql`, a foreign key and a check that a campaign's price is a markdown); its stored price is the
-  campaign's and its old price the regular one. The seed puts every markdown into the Autumn mega sale
+  `V26__sku_campaigns.sql`, a foreign key and a check that a campaign's price is a markdown; V24 is left unused, since
+  B-45's V25 merges first and Flyway refuses a lower version after it); its stored price is the campaign's and its old
+  price the regular one. The seed puts every markdown into the Autumn mega sale
   (`CatalogSeed.inCampaigns`, after generation, so the random stream and every other row are as they were); a
-  catalogue seeded before V24 keeps no links. Only the opening is read, not `ends_at` (below).
+  catalogue seeded before V26 keeps no links. Only the opening is read, not `ends_at` (below).
 - **One pricing path.** `CampaignPricing.priced` (`feature/catalog/domain/CampaignPricing.kt`) is applied by
   `ExposedCatalogRepository` to every read that returns SKUs, at the store's clock; `listedIn`, `listed`,
   `listedBySkus` and `product` take a `PriceList` (`Public` / `Plus`) with no default, so every caller says whose
@@ -56,10 +57,11 @@ so a membership that ends mid-checkout redraws as `cart_changed`.
   trial); `priced` returning the stored SKU — 7 failures (three of the rule's edges, and every route test but the
   member's charge, which reads the stored price either way); `Viewer.prices` always `Plus` (the leak) — 2 failures (the early-window pages, «from the start»);
   `CartOwner.Customer.prices` always `Public` — 2 failures (the member's charge, the trial).
-- **Where it ran**: the WSL box — `:composeApp:wasmJsBrowserDistribution`, then `check :server:installDist` (server 67
-  classes, 332 tests; desktop 163; `viddikVerify` 136; all green, the wasm browser tests skipped there for want of a
-  browser), then `scripts/e2e.sh` against an image of this branch (`WholePathTest`, green) — before and again after
-  the rebase onto B-50 and B-52.
+- **Where it ran**: the WSL box — `:composeApp:wasmJsBrowserDistribution`, then `check :server:installDist`, then
+  `scripts/e2e.sh` against an image of this branch (`WholePathTest`), each green on the branch as first written and
+  again after the rebases onto B-50, B-52 and B-29 (last: server 68 classes, 334 tests; desktop 173; `viddikVerify`
+  136; the wasm browser tests skipped there for want of a browser). After the migration was renumbered V26,
+  `:server:test :server:installDist` again (334, green).
 - **Goldens and fixtures**: the canvas's «now» (Oct 7, 19:47) is after the sale's start, so every seeded viewer's prices
   on it are the ones they were; `viddikVerify` green (136), the fixture tests that compare server-built bodies with the
   client's (`CartFixturesTest`, `CheckoutFixturesTest`, `SavedFixturesTest`, `OrderFixturesTest`…) unchanged.

@@ -36,7 +36,7 @@ internal data class CampaignOpening(
 
 /**
  * The one rule every price passes through (B-53). A SKU of a campaign is stored at the campaign's price,
- * with its regular price as the old one (`skus.campaign_slug`, V24); until the campaign is open for
+ * with its regular price as the old one (`skus.campaign_slug`, V26); until the campaign is open for
  * [prices] the SKU is at that regular price, with nothing struck through — so a card, the product page,
  * the cart and the quote all read the price the viewer may buy at, and placement charges what the
  * quote showed. A SKU in no campaign is as stored.

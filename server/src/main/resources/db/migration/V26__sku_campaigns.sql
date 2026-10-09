@@ -4,7 +4,9 @@
 -- price, which is every SKU of a catalogue seeded before this migration: only a fresh seed carries the
 -- links the seed gives, as V6 did with the headlines.
 --
--- V24 because V22 and V23 are taken by B-29 and B-52 on parallel branches.
+-- V26, not V24: V22, V23 and V25 belong to B-29, B-52 and B-45, and Flyway refuses a version below the
+-- highest applied one, so a V24 landing after B-45's V25 would stop every database at V25 from starting.
+-- V24 stays unused.
 
 ALTER TABLE skus ADD COLUMN campaign_slug TEXT;
 ALTER TABLE skus ADD CONSTRAINT fk_skus_campaign_slug__slug

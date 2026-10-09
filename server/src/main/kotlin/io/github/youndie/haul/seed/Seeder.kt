@@ -95,7 +95,7 @@ internal object Seeder {
                 this[ProductsTable.boughtBase] = it.boughtBase
                 this[ProductsTable.listingName] = it.listingName
             }
-            // Campaigns before the SKUs, which name them (V24).
+            // Campaigns before the SKUs, which name them (V26).
             CampaignsTable.batchInsert(catalog.campaigns) {
                 this[CampaignsTable.slug] = it.slug
                 this[CampaignsTable.title] = it.title

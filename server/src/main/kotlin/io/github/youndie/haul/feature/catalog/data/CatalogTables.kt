@@ -91,8 +91,8 @@ internal object SkusTable : Table("skus") {
     val oldPriceCents = integer("old_price_cents").nullable()
     val stock = integer("stock")
 
-    // V24 (B-53): the campaign whose price [priceCents] is, [oldPriceCents] being the regular one; null
-    // for a SKU at its own price. The check is V24's: a campaign's price is a markdown.
+    // V26 (B-53): the campaign whose price [priceCents] is, [oldPriceCents] being the regular one; null
+    // for a SKU at its own price. The check is V26's: a campaign's price is a markdown.
     val campaignSlug = text("campaign_slug").references(CampaignsTable.slug).nullable()
     override val primaryKey = PrimaryKey(id)
 

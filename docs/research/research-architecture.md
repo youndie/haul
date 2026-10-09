@@ -683,9 +683,9 @@ The canvas contradicted itself in three places and left one promise unbacked; th
 
 **Decided in B-53, Plus early access to campaign prices.**
 
-- **A SKU names its campaign** (`skus.campaign_slug`, V24): its stored price is the campaign's, its old price the
+- **A SKU names its campaign** (`skus.campaign_slug`, V26): its stored price is the campaign's, its old price the
   regular one, and the database refuses a campaign price that is not a markdown. The seed puts every markdown into the
-  Autumn mega sale, whose hero names them («1.2 million items marked down»); a catalogue seeded before V24 has no
+  Autumn mega sale, whose hero names them («1.2 million items marked down»); a catalogue seeded before V26 has no
   links, as V6 left old rows without headlines.
 - **One rule prices every SKU** (`CampaignPricing`, `feature/catalog/domain/CampaignPricing.kt`): until the campaign
   opens for the viewer — at `plus_early_access_at` for a member, a trial included, at `starts_at` for a guest or a
