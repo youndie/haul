@@ -40,7 +40,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (5)
+## Open (4)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -48,9 +48,8 @@ A stage is a field on the item, not a directory.
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 | [B-58](docs/backlog/B-58-campaigns-and-deals-end.md) `[ ]` | server: campaigns and deals end | P2 | S | B-57 |
 | [B-59](docs/backlog/B-59-home-s-promo-banners-lead-somewhere.md) `[ ]` | server: home's promo banners lead somewhere | P3 | S | B-58 |
-| [B-60](docs/backlog/B-60-dialogs-write-the-listing-name.md) `[~]` | server + shared: dialogs write the listing name, one groupedCount | P3 | S | B-45 |
 
-## Closed (55)
+## Closed (56)
 
 **Skeleton**
 
@@ -117,6 +116,7 @@ A stage is a field on the item, not a directory.
 
 - [B-22](docs/backlog/B-22-reviews-and-questions-the-two-dialog.md) `[x]` - server + client: reviews and questions, the two dialog routes and forms
 - [B-43](docs/backlog/B-43-helpful-votes-on-reviews.md) `[x]` - server + client: «Helpful» votes on reviews
+- [B-60](docs/backlog/B-60-dialogs-write-the-listing-name.md) `[x]` - server + shared: dialogs write the listing name, one groupedCount
 
 **Loyalty**
 
