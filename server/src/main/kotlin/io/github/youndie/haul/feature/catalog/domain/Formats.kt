@@ -22,3 +22,26 @@ internal fun discount(
     priceCents: Int,
     oldCents: Int?,
 ): String? = oldCents?.takeIf { it > priceCents }?.let { "−" + ((it - priceCents) * 100.0 / it).roundToInt() + "%" }
+
+/**
+ * A count the way the canvas abbreviates it (B-52): «840», «1.2K», «12K», «600K», «1.2M». Below a thousand
+ * the number itself; under ten of a unit one decimal, a trailing «.0» dropped; from ten whole units.
+ * Always truncated, never rounded: 12,999 is «12K» and 999 is «999», so the label never claims a unit
+ * more than there is.
+ */
+internal fun compactCount(value: Int): String {
+    require(value >= 0) { "a count is never negative: $value" }
+    val (unit, suffix) =
+        when {
+            value >= MILLION -> MILLION to "M"
+            value >= THOUSAND -> THOUSAND to "K"
+            else -> return value.toString()
+        }
+    val whole = value / unit
+    if (whole >= 10) return "$whole$suffix"
+    val tenth = value % unit / (unit / 10)
+    return if (tenth == 0) "$whole$suffix" else "$whole.$tenth$suffix"
+}
+
+private const val THOUSAND = 1_000
+private const val MILLION = 1_000_000

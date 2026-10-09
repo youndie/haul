@@ -89,6 +89,24 @@ class ProductRoutesTest {
             assertEquals(drawn.copy(text = description.text, facts = description.facts), description)
         }
 
+    /**
+     * B-52: the headphones say what every Product_* artboard says under the rating, «12K bought this month»,
+     * and it is what the client's parity fixture draws — the seed's 12,340 under whatever orders the suite
+     * placed. A server that stopped sending it would leave the fixture drawing a line the running app does not.
+     */
+    @Test
+    fun `the headphones carry the bought line the canvas draws`() =
+        haulTest {
+            val details = tree("/ui/p/$sony").only<ProductDetails>()
+            val bodies = File(System.getProperty("haul.clientBodies") ?: error("haul.clientBodies is not set"))
+            val drawn =
+                haulWireJson
+                    .decodeKompotComponent(File(bodies, "product_description.json").readText())
+                    .only<ProductDetails>()
+            assertEquals("12K bought this month", drawn.bought, "the fixture no longer draws the canvas's line")
+            assertEquals(drawn.bought, details.bought)
+        }
+
     /** Scenario «Unknown product». */
     @Test
     fun `an unknown product is 404 product_not_found`() =

@@ -4,6 +4,7 @@ import io.github.youndie.haul.feature.cart.CartPaths
 import io.github.youndie.haul.feature.cart.LineChange
 import io.github.youndie.haul.feature.cart.LineCommand
 import io.github.youndie.haul.feature.cart.screen.CartScreen
+import io.github.youndie.haul.feature.catalog.domain.BoughtThisMonth
 import io.github.youndie.haul.feature.catalog.domain.CatalogError
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Category
@@ -56,13 +57,14 @@ internal enum class ProductTab(
  * stock; everything in the buy box follows it — feature-product, «Variant changes the price». A SKU
  * with no stock is `Product_OutOfStock`: the details say so and the client keeps only «Save».
  * «Add to cart» and «Buy now» carry their line changes for that SKU (B-48), drawn for the [Viewer]'s
- * cart as a card's «+» is.
+ * cart as a card's «+» is. «12K bought this month» under the rating is [BoughtThisMonth]'s (B-52).
  */
 internal class ProductScreen(
     private val catalog: CatalogRepository,
     private val calendar: DeliveryCalendar,
     private val photos: ProductPhotos,
     private val reviewTabs: ReviewTabs,
+    private val boughtThisMonth: BoughtThisMonth,
 ) {
     suspend fun build(
         productId: String,
@@ -83,7 +85,7 @@ internal class ProductScreen(
         val sections =
             listOf(
                 Breadcrumbs("breadcrumbs", crumbs(item, categories)),
-                details(item, sku, seller, viewer),
+                details(item, sku, seller, viewer, boughtThisMonth.label(item.product)),
                 ProductTabs(
                     id = "tabs",
                     tabs =
@@ -140,6 +142,7 @@ internal class ProductScreen(
         sku: Sku,
         seller: Seller,
         viewer: Viewer,
+        bought: String?,
     ): ProductDetails {
         val inStock = sku.stock > 0
         val saved = item.product.id in viewer.saved
@@ -163,6 +166,7 @@ internal class ProductScreen(
             title = item.product.title,
             rating = item.product.rating.toPlainString(),
             reviews = "${count(item.product.reviewsCount)} reviews",
+            bought = bought,
             variants = variants(item, sku),
             highlights = highlights(item),
             price = money(sku.priceCents),

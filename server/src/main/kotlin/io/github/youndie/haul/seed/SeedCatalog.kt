@@ -70,6 +70,8 @@ internal data class SeedProduct(
     val dispatchDays: Int = 0,
     val headline: String,
     val headlineAccent: String? = null,
+    /** The month of sales no seeded order holds (B-52, V23): the sample products' «bought this month». */
+    val boughtBase: Int = 0,
 ) {
     init {
         // The same rule V6 checks, failing at generation instead of at the insert.

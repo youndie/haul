@@ -647,6 +647,26 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   built from the summary's rows and facts, with goldens of its own (`Order_HaulPay*`) and no design reference. The
   account does not show the next payment (no document asks for it).
 
+**Decided in B-52, «bought this month».**
+
+- **The rule** (`feature/catalog/domain/BoughtThisMonth.kt`): the units of the product, over all its SKUs, in the
+  orders placed in the last 30 days by the store's clock (`placed_at` after now − 30 days, up to now) whose status is
+  `placed` — a `cancelled` order bought nothing, and one still `placing` may yet be declined. A **returned order still
+  counts**: it was bought, and the line says no more than that. Below 50 the product page sends no line at all.
+- **The abbreviation** (`compactCount`, as the canvas writes «12K» and «600K»): the number itself below 1,000 («840»);
+  under ten of a unit one decimal with «.0» dropped («1.2K», «1K»); from ten whole units («12K», «600K»); millions
+  alike («1.2M»). Always truncated, never rounded, so 12,999 is «12K» and 999 is «999» — the label never claims a unit
+  more than there is.
+- **The seed's base is a column, not seeded orders.** `products.bought_base` (V23) is added to the live count: 12,340
+  for the headphones («12K», every `Product_*` artboard), 2,180 for the duvet cover set, 840 for the mug, 0 for every
+  other product. It stands in for a month of sales the store holds no orders for and does not age out of the window.
+  Seeded orders were refused: §6 seeds no orders, an order needs a customer, a saga and shipments, and orders dated at
+  the canvas's «now» would leave the window on the stand's wall clock within a month. V23 also writes the three bases
+  into a catalogue seeded before it, so the running stand reads like a fresh one (`BoughtBaseMigrationTest` holds the
+  migration and `SampleCatalog` together).
+- **One aggregate per product page**: a `SUM` over the product's order lines through its SKUs (`skus_product`, then
+  V23's `order_lines_sku_id`), joined to their orders by key. Cards do not show the line, so lists cost nothing.
+
 **How the stand is built (B-27).** One image serves the page and the API: the server's distribution
 carries the browser bundle and serves it at `/`, so the two cannot be deployed at different versions
 and the client needs no base URL. The chart (`charts/haul/`) holds the server, its PostgreSQL as one
@@ -1064,7 +1084,7 @@ for fixtures, not a target for the database.
 | `PaymentMethod` | Card ···· 4821, expires 08/28 (approves); test card ···· 0002 (declines) |
 | `PickupPoint` | 214 Bedford Ave, 240 m, open until 21:00; 96 N 6th St, 650 m, open until 22:00; 315 Grand St, 900 m, open until 20:00; lockers «Wythe & N 7th», 180 m, and «Bedford Ave station», 700 m, 24/7 |
 | `Seller` | Sony Official Store — 4.9, 98 %, 6 yrs; Brooklyn Home Co. — 4.8, 97 %, 3 yrs |
-| `Product` | Sony WH-1000XM6 — $349, was $449, −22 %, 4.8, 2,341 reviews, 86 questions; Midnight Black, Silver (out of stock); bundles Headphones only / + Travel case / + 2-year care; description headline «Silence, tuned to you», accent «to you» |
+| `Product` | Sony WH-1000XM6 — $349, was $449, −22 %, 4.8, 2,341 reviews, 86 questions; Midnight Black, Silver (out of stock); bundles Headphones only / + Travel case / + 2-year care; description headline «Silence, tuned to you», accent «to you»; «12K bought this month» from a seeded base of 12,340 (B-52) |
 | `Cart` (Maya) | the headphones $349, Linen Duvet Cover Set Queen Oat $139 (was $179), Stoneware Mug 12 oz Sage set of 2 $24; Items $652.00, Discount −$140.00, Delivery Free, Total $512, 1,024 points; with points −$24.80 → $487.20 |
 | `PromoCode` | `AUTUMN10` — 10 % off items up to $50, 2025-10-07…14; `SUMMER5` — expired 2025-08-31 |
 | `Order` | #HL-48211 (Oct 5, $512.00, in transit); #HL-47960 (Oct 3, $58.00, ready for pickup, code 4821, held until Oct 10); #HL-46102 (Sep 24, $103.00), #HL-45277 (Sep 11, $299.00), #HL-42860 (Aug 12, $42.00) delivered; #HL-44019 (Aug 30, $87.50) returned; #HL-48302 placed from the checkout fixture; #HL-48303 cancelled, card ···· 0002; Sam's #HL-45890 (Sep 18, $103.00) delivered. None is seeded: the fixture tests write them (`server/src/test/kotlin/io/github/youndie/haul/testing/SampleOrders.kt`) |

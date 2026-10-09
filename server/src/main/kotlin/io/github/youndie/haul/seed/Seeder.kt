@@ -92,6 +92,7 @@ internal object Seeder {
                 this[ProductsTable.dispatchDays] = it.dispatchDays
                 this[ProductsTable.headline] = it.headline
                 this[ProductsTable.headlineAccent] = it.headlineAccent
+                this[ProductsTable.boughtBase] = it.boughtBase
             }
             SkusTable.batchInsert(catalog.skus) {
                 this[SkusTable.id] = it.id
