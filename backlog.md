@@ -40,17 +40,16 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (5)
+## Open (4)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-27](docs/backlog/B-27-helm-chart-tracy-metrik-katcher-wiring.md) `[?]` | ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand | P2 | M | B-03 |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
-| [B-45](docs/backlog/B-45-a-product-s-listing-name.md) `[~]` | server: a product's listing name, as cards, cart and orders write it | P3 | S | B-18 |
 | [B-53](docs/backlog/B-53-plus-members-see-campaign-prices-early.md) `[ ]` | server: Plus members see campaign prices early | P3 | S | B-23 |
 | [B-56](docs/backlog/B-56-placement-moves-the-order-page-live.md) `[ ]` | server: placement moves the order page live | P3 | S | B-29 |
 
-## Closed (51)
+## Closed (52)
 
 **Skeleton**
 
@@ -83,6 +82,7 @@ A stage is a field on the item, not a directory.
 - [B-12](docs/backlog/B-12-shildik-sign-in-in-the-browser.md) `[x]` - server + client: shildik sign-in in the browser, customer creation, cart merge, header states
 - [B-13](docs/backlog/B-13-cart-renderers.md) `[x]` - design refs + client: Cart renderers
 - [B-37](docs/backlog/B-37-actions-the-trees-draw-but-do-not-carry.md) `[x]` - server + client: actions the trees draw but do not carry
+- [B-45](docs/backlog/B-45-a-product-s-listing-name.md) `[x]` - server: a product's listing name, as cards, cart and orders write it
 - [B-46](docs/backlog/B-46-a-closed-sign-in-popup-settles.md) `[x]` - client: a closed sign-in popup settles the sign-in
 - [B-47](docs/backlog/B-47-a-sign-in-that-fails-with-a-js-error.md) `[x]` - client: a sign-in that fails with a browser error ends as not gone through
 - [B-48](docs/backlog/B-48-the-product-page-adds-to-cart-and-buys-now.md) `[x]` - server + client: the product page adds to cart and buys now

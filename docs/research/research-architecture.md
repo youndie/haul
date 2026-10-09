@@ -1013,11 +1013,13 @@ cache; that is a number for when there is a hot path worth timing.
 number about petich, tracy or metrik can be taken on them. Mitigation: synthetic shoppers (B-31).
 
 **Open question 1. Search quality on PostgreSQL full text with `pg_trgm`.** *Settled for the seed in
-B-09; open beyond it.* Search matches a product when its `to_tsvector('english', title, brand, kind)`
-matches every typed word as a prefix (`running:* & sh:*`) or its lower-cased title contains the query
-(`LIKE`, under a trigram index); query suggestions are category, brand and kind names that start with
-the query, then those with a word that does, then the ones `similarity()` finds (a misspelling —
-«heaphones» is offered «headphones»). Both indexes are in `V3__search.sql`.
+B-09; open beyond it.* Search matches a product when its `to_tsvector('english', listing name, brand,
+kind)` — the listing name being the title when the product has none (B-45) — matches every typed word as
+a prefix (`running:* & sh:*`), or its lower-cased title or listing name contains the query (`LIKE`, under
+trigram indexes); query suggestions are category, brand and kind names that start with the query, then
+those with a word that does, then the ones `similarity()` finds (a misspelling — «heaphones» is offered
+«headphones»). The indexes are in `V3__search.sql` and `V25__listing_name.sql`
+(`server/src/main/kotlin/io/github/youndie/haul/feature/search/data/PostgresSearchRepository.kt`).
 
 Measured with `scripts/suggest-latency.sh` on 2026-10-08: the server from `installDist` on the JVM
 (JDK 25.0.4, no AOT cache, CIO) and PostgreSQL 18.6 (`postgres:18-alpine`, default configuration) in
@@ -1059,7 +1061,7 @@ The names go into the code unchanged.
 |---|---|---|---|
 | `Category` | slug (`headphones`) | — | a tree, three levels; 32 top-level |
 | `Seller` | server id | — | seed data; rating, positive share, years on Haul |
-| `Product` | server id | `Seller` | title, brand, category, description, specifications, rating summary |
+| `Product` | server id | `Seller` | title, brand, listing name (what cards, cart lines and order lines write; the title when unset, B-45), category, description, specifications, rating summary |
 | `Sku` | server id | `Product` | one combination of options (colour × bundle); price, old price, stock |
 | `Campaign` | slug | — | home banners and sale windows; a Plus early-access start |
 | `Deal` | server id | `Sku` | a price that ends at a fixed instant |
@@ -1098,7 +1100,7 @@ for fixtures, not a target for the database.
 | `PaymentMethod` | Card ···· 4821, expires 08/28 (approves); test card ···· 0002 (declines) |
 | `PickupPoint` | 214 Bedford Ave, 240 m, open until 21:00; 96 N 6th St, 650 m, open until 22:00; 315 Grand St, 900 m, open until 20:00; lockers «Wythe & N 7th», 180 m, and «Bedford Ave station», 700 m, 24/7 |
 | `Seller` | Sony Official Store — 4.9, 98 %, 6 yrs; Brooklyn Home Co. — 4.8, 97 %, 3 yrs |
-| `Product` | Sony WH-1000XM6 — $349, was $449, −22 %, 4.8, 2,341 reviews, 86 questions; Midnight Black, Silver (out of stock); bundles Headphones only / + Travel case / + 2-year care; description headline «Silence, tuned to you», accent «to you»; «12K bought this month» from a seeded base of 12,340 (B-52) |
+| `Product` | Sony WH-1000XM6 — listed as «Sony WH-1000XM6 Wireless Noise Cancelling Headphones» on cards, in the cart and on the order, «WH-1000XM6 Wireless Noise Cancelling Headphones» under the brand on its page (B-45); $349, was $449, −22 %, 4.8, 2,341 reviews, 86 questions; Midnight Black, Silver (out of stock); bundles Headphones only / + Travel case / + 2-year care; description headline «Silence, tuned to you», accent «to you»; «12K bought this month» from a seeded base of 12,340 (B-52) |
 | `Cart` (Maya) | the headphones $349, Linen Duvet Cover Set Queen Oat $139 (was $179), Stoneware Mug 12 oz Sage set of 2 $24; Items $652.00, Discount −$140.00, Delivery Free, Total $512, 1,024 points; with points −$24.80 → $487.20 |
 | `PromoCode` | `AUTUMN10` — 10 % off items up to $50, 2025-10-07…14; `SUMMER5` — expired 2025-08-31 |
 | `Order` | #HL-48211 (Oct 5, $512.00, in transit); #HL-47960 (Oct 3, $58.00, ready for pickup, code 4821, held until Oct 10); #HL-46102 (Sep 24, $103.00), #HL-45277 (Sep 11, $299.00), #HL-42860 (Aug 12, $42.00) delivered; #HL-44019 (Aug 30, $87.50) returned; #HL-48302 placed from the checkout fixture; #HL-48303 cancelled, card ···· 0002; Sam's #HL-45890 (Sep 18, $103.00) delivered. None is seeded: the fixture tests write them (`server/src/test/kotlin/io/github/youndie/haul/testing/SampleOrders.kt`) |
