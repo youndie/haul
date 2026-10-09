@@ -14,14 +14,17 @@ publishes:
 
 # Haul web storefront
 
-> Describes the module as it stands after B-48: the app loads its screens from the server and
+> Describes the module as it stands after B-56: the app loads its screens from the server and
 > navigates between them (B-35), signs in through shildik and keeps the guest id (B-12), returning to
 > the page sign-in was asked from (B-41), asking a guest on a customer page to sign in (B-44), watching
 > its own sign-in popup (B-46, B-47), draws product photos (B-30), the cart (B-13), the checkout (B-15),
 > the order page with reorder and the return dialog (B-18, B-21), the account and its history (B-19),
 > the Saved list and the hearts (B-20), the review and question dialogs and helpful votes (B-22, B-43),
-> the Plus trial dialog and the points toggle (B-23), the product page's buy box (B-48), and follows the
-> controls' actions (B-37); every screen's renderers are checked against the canvas.
+> the Plus trial dialog and the points toggle (B-23), the product page's buy box (B-48), Haul Pay's
+> schedule (B-24), the return dialog's points back (B-50), the order page moving by itself (B-29),
+> follows the controls' actions (B-37) — the last of them given an action or drawn as plain text
+> (B-49) — keeps the filter sheet open while filtering (B-54) and sends every tree-fixed command through
+> one seam (B-51); every screen's renderers with an artboard are checked against the canvas.
 
 ## 1. Responsibility
 
@@ -47,17 +50,20 @@ fee or a delivery date, or keep any state the server owns.
 
 | File | What is there |
 |---|---|
-| `composeApp/src/wasmJsMain/kotlin/io/github/youndie/haul/Main.kt` | the bundle's entry point: one Ktor `HttpClient(Js)` to this origin, the photo loader, `Identity` over `PopupSignInFlow(BrowserSignInPopup::open, OidcSignInFlow(...))`, the screen transport and the command seams (`ktorCartCommands`, `ktorCommands`, `ktorCheckoutCommands`, `ktorReviewCommands`) |
+| `composeApp/src/wasmJsMain/kotlin/io/github/youndie/haul/Main.kt` | the bundle's entry point: one Ktor `HttpClient(Js)` to this origin, the photo loader, `Identity` over `PopupSignInFlow(BrowserSignInPopup::open, OidcSignInFlow(...))`, the screen transport, the command seams (`ktorCartCommands`, `ktorCommands`, `ktorCheckoutCommands`, `ktorTreeCommands`) and the live stream (`ktorRealtime`) |
 | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/App.kt` | the root: the theme at the page's width around `Storefront` |
 | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Storefront.kt` | the shell: the address, history, each page's Loading and failure, the search field and its suggest panel, the one ticking clock, `LocalScreenRefresh` |
 | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Navigation.kt` | `Address` (the address ↔ the tree under `/ui`), `PageKind` read off `StorefrontPage`, `BrowserHistory` |
-| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Transport.kt` | `HaulTransport` (trees, suggest) and `HaulCommands` («Clear» on recent searches) over Ktor |
+| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Transport.kt` | `HaulTransport` (trees — a bare tree or kompot's `KompotScreenResponse`, read by shape — and suggest) and `HaulCommands` («Clear» on recent searches) over Ktor |
+| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/TreeCommands.kt` | `TreeCommands`: the one seam for a command whose URL the tree fixed — `TreeCommand.Review`, `Ask`, `Return`, `StartTrial`, `Vote`; `CommandRefused`, `CommandOutcome`, `LocalTreeCommands`, `ktorTreeCommands` (B-51) |
+| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/LiveUpdates.kt` | `ktorRealtime`: a page's channel as server-sent events through `Identity.send`, reopened after 1 s doubling to 30 s, ended by a `401` or `404` (B-29) |
+| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/catalog/FiltersSheetState.kt` | the phone's filter sheet, held by the shell above the keyed page (`LocalFiltersSheet`, `FiltersSheetOverlay`, B-54) |
 | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Shell.kt` | the Loading, Error and NotFound pages a screen shows before or instead of its tree (the order's, the account's and the Saved list's among them) |
 | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/SignInPrompt.kt` | what a guest's `401` on a storefront page draws: «… needs a sign-in», «Sign in to continue» (B-44) |
 | `composeApp/src/wasmJsMain/kotlin/io/github/youndie/haul/shell/WindowHistory.kt` | `history.pushState` / `popstate` |
 | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/theme/` | colour roles and the four bundled fonts (`composeApp/src/commonMain/composeResources/font/`) |
 | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/registry/` | the renderer registry (`haulRegistry()`, which also provides `LocalHaulActions` around every Haul renderer) |
-| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/` | the renderers of `catalog/`, `home/` (with the Plus trial dialog, `PlusTrialDialog.kt`), `product/` (the buy box, the review and question dialogs `ReviewDialogs.kt`, `ReviewCommandsClient.kt`), `search/`, `cart/` (with `CartCommands` and `LinePress.kt`, the one press of a fixed line change), `checkout/` (`CheckoutViews.kt`, with `CheckoutCommandsClient.kt`), `order/` (the page, its not-found page, the return dialog `ReturnDialog.kt`), `account/` (`AccountViews.kt`), `saved/` (`SavedViews.kt`); `identity/` |
+| `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/` | the renderers of `catalog/`, `home/` (with the Plus trial dialog, `PlusTrialDialog.kt`), `product/` (the buy box, the review and question dialogs `ReviewDialogs.kt`), `search/`, `cart/` (with `CartCommands` and `LinePress.kt`, the one press of a fixed line change), `checkout/` (`CheckoutViews.kt`, with `CheckoutCommandsClient.kt`), `order/` (the page with Haul Pay's schedule, its not-found page, the return dialog `ReturnDialog.kt`), `account/` (`AccountViews.kt`), `saved/` (`SavedViews.kt`); `identity/` |
 | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/ui/` | shared views: the header, cards, `Links.kt` (following an action), `LinkMenu.kt` (the sort and «Catalog» menus), `ProductPhoto.kt` (the photo over the placeholder tile), `CssLayout.kt` (columns laid out on the browser's fractional line boxes, B-18, B-19) |
 | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/` | `Identity`, `IdentityApi`, `SignInActions`, `Session`, `PopupSignInFlow` (watches the popup, B-46) |
 | `composeApp/src/wasmJsMain/kotlin/io/github/youndie/haul/feature/identity/` | `OidcSignInFlow` (kotlin-multiplatform-oidc, told to reuse the storefront's popup), `BrowserSignInPopup` (opens `haul-sign-in` and marks the return page's answer) and `BrowserSessionStore` (guest id in `localStorage`, tokens in `sessionStorage`) |
@@ -76,7 +82,7 @@ fee or a delivery date, or keep any state the server owns.
   with retry), `KompotScreen` draws it, `withRefresh` answers kompot's `refresh`. The browser's
   address is the navigation state and is what a `NavigateAction` carries (`/`, `/c/…`, `/p/…`,
   `/search?q=…`, `/cart`, `/deals`, `/checkout`, `/account`, `/account/orders`, `/account/orders/{id}`,
-  `/account/saved`); the tree is the same address under `/ui` (`/` is `/ui/home`).
+  `/account/saved`, and the catalog's root `/c`, B-49); the tree is the same address under `/ui` (`/` is `/ui/home`).
   The one URL the client builds is its own search submit, `/search?q=`. `navigate` pushes a history
   entry; back and forward load that address again and open it at the top.
 * **Links**: a component's action reaches the views inside its renderer through `LocalHaulActions`;
@@ -105,11 +111,21 @@ fee or a delivery date, or keep any state the server owns.
   is followed only once the change was accepted), the hearts and «Save for later» (`CartCommand.Heart`,
   `CartCommand.SaveForLater`) and an order's «Reorder» (`CartCommand.Reorder`) too; the checkout's are
   `CheckoutCommand`s (`feature/checkout/CheckoutCommandsClient.kt`: `Choose` — the points toggle
-  included — `SaveAddress`, `Place` under one idempotency key per quote); the dialogs' are
-  `ReviewCommand.Post` / `Ask` / `Vote` / `Return` (`feature/product/ReviewCommandsClient.kt`), sent
-  only once the contract's rules pass; «Clear» on recent searches and «Start trial» are `HaulCommands`
-  (`LocalHaulCommands`). All go through `Identity.send`, and the answer (`refresh`, a refusal included)
-  redraws the screen; placement's and reorder's `navigate` are followed.
+  included — `SaveAddress`, `Place` under one idempotency key per quote); a command whose URL the tree
+  fixed — the review, question, return and Plus trial dialogs and «Helpful» — is a `TreeCommand`
+  (`shell/TreeCommands.kt`, B-51), the dialogs' sent only once the contract's rules pass, a refusal a
+  `CommandRefused`; «Clear» on recent searches is the one `HaulCommands` left (a request the tree names
+  by method and path, its answer not followed). All go through `Identity.send`, and the answer
+  (`refresh`, a refusal included) redraws the screen; placement's and reorder's `navigate` are followed.
+* **The live page** (B-29): a tree that names a channel (`KompotScreenResponse.realtimeTopic`, the order
+  page's `order:<id>`) is drawn inside kompot's `KompotRealtimeProvider` while it is shown, fed by
+  `ktorRealtime` from `GET /ui/updates?topic=`; a frame swaps the node with its id in place; leaving the
+  page stops listening; `key(tree)` makes a refresh start over from the new tree.
+* **The filter sheet** (B-49, B-54) is the one control wired in the client alone: «Filters» opens it
+  over the facets already in the tree; its own presses navigate and it stays open, redrawn from each new
+  page; «Show N items», «×» and the scrim close it; arriving at any other address closes it.
+* **Plain text**: «Help», «Sell on HAUL», the language and the footer's links have no click action until
+  a page exists for them (B-49; the client's `DrawnActionsTest.help sell on haul the language and the footer are plain text`).
 * **Dialogs**: the shell draws kompot's `present` over the page (`DialogOverlay`, `presenting` in
   `shell/Storefront.kt`) and follows `close` and `sequence`, so a dialog's `201` — `close` then
   `refresh` — takes the dialog away and draws the page again. A refusal is drawn in the dialog, under
@@ -158,14 +174,16 @@ it draws no screen; to see screens, serve the distribution from a running server
 * Between 768 and about 1,150 px the wide header's search field is narrower than the suggest panel's
   products column, and the panel's suggestions column collapses (B-35's findings); the canvas draws
   1440 and 390 only.
-* Several drawn controls carry no action yet: home's «All N categories», the brand facet's «Show N
-  more», the filter sheet's ×, a recent search's own row, the header strip's links and the footer —
-  B-37's findings, B-49's to finish.
-* `/deals` is `PageKind.Other`: a pending header while loading, the generic error page on failure.
+* Home's promo banners carry no action, and no item gives them one.
+* While the page a filter-sheet tick opened is on its way, the sheet's facets follow nothing; a page
+  that fails to arrive leaves the sheet open and inert over the error until «×» (B-54).
+* `/deals` and `/c` are `PageKind.Other`: a pending header while loading, the generic error page on failure.
   `/checkout`, the account's pages (`PageKind.Account`), the Saved list (`PageKind.Saved`) and an
   order (`PageKind.Order`) have their own Loading and Error pages.
-* The return goes through the review dialogs' seam (`ReviewCommand.Return`) and the Plus trial through
-  `LocalHaulCommands`: two seams for the commands a server-built dialog sends; one dialog seam is B-51.
+* The dialogs' chrome (`DialogFrame`, `Buttons`, `FormProblems`) still lives in
+  `feature/product/ReviewDialogs.kt`, and the return dialog imports it from there (B-51's findings).
+* Streaming through Ktor's JS engine in wasm is proven by its parts, not by a browser drawing the live
+  page (B-29's findings).
 * The header's «Sign in» is inert on shell-drawn pages (not found, the sign-in prompt).
 * The desktop app's own browser pane opens the sign-in popup in the same tab, so the flow cannot
   finish there.
