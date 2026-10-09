@@ -681,6 +681,25 @@ The canvas contradicted itself in three places and left one promise unbacked; th
 - **One aggregate per product page**: a `SUM` over the product's order lines through its SKUs (`skus_product`, then
   V23's `order_lines_sku_id`), joined to their orders by key. Cards do not show the line, so lists cost nothing.
 
+**Decided in B-53, Plus early access to campaign prices.**
+
+- **A SKU names its campaign** (`skus.campaign_slug`, V24): its stored price is the campaign's, its old price the
+  regular one, and the database refuses a campaign price that is not a markdown. The seed puts every markdown into the
+  Autumn mega sale, whose hero names them («1.2 million items marked down»); a catalogue seeded before V24 has no
+  links, as V6 left old rows without headlines.
+- **One rule prices every SKU** (`CampaignPricing`, `feature/catalog/domain/CampaignPricing.kt`): until the campaign
+  opens for the viewer — at `plus_early_access_at` for a member, a trial included, at `starts_at` for a guest or a
+  non-member — the SKU sells at its regular price with nothing struck through; from that instant, at the campaign's.
+  The catalog repository applies it to every read that returns SKUs, at the store's clock, and each such read takes
+  the `PriceList` it draws for **with no default**, so a screen or a command that forgot whose prices it draws does
+  not compile. Cards, the product page, search, the Saved list's drops, the cart, the quote and placement therefore
+  read one price; a membership that starts mid-checkout changes the line's price, which the cart marks as changed and
+  the quote's fingerprint turns into `409 cart_changed`.
+- **Only the opening is read.** What a campaign's prices do after its `ends_at` is not decided, and every seeded
+  campaign is over on the stand's wall clock, so the stand's prices did not move.
+- **Nothing is cached between viewers**: every tree is built per request for its caller, and none is marked for a
+  shared cache.
+
 **How the stand is built (B-27).** One image serves the page and the API: the server's distribution
 carries the browser bundle and serves it at `/`, so the two cannot be deployed at different versions
 and the client needs no base URL. The chart (`charts/haul/`) holds the server, its PostgreSQL as one
@@ -1062,7 +1081,7 @@ The names go into the code unchanged.
 | `Category` | slug (`headphones`) | — | a tree, three levels; 32 top-level |
 | `Seller` | server id | — | seed data; rating, positive share, years on Haul |
 | `Product` | server id | `Seller` | title, brand, listing name (what cards, cart lines and order lines write; the title when unset, B-45), category, description, specifications, rating summary |
-| `Sku` | server id | `Product` | one combination of options (colour × bundle); price, old price, stock |
+| `Sku` | server id | `Product` | one combination of options (colour × bundle); price, old price, stock; the campaign whose price it is (B-53) |
 | `Campaign` | slug | — | home banners and sale windows; a Plus early-access start |
 | `Deal` | server id | `Sku` | a price that ends at a fixed instant |
 | `Customer` | the shildik `sub` claim | — | name, Plus membership, points balance |

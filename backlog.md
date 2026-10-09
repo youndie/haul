@@ -40,15 +40,14 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (3)
+## Open (2)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-27](docs/backlog/B-27-helm-chart-tracy-metrik-katcher-wiring.md) `[?]` | ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand | P2 | M | B-03 |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
-| [B-53](docs/backlog/B-53-plus-members-see-campaign-prices-early.md) `[~]` | server: Plus members see campaign prices early | P3 | S | B-23 |
 
-## Closed (53)
+## Closed (54)
 
 **Skeleton**
 
@@ -120,6 +119,7 @@ A stage is a field on the item, not a directory.
 - [B-23](docs/backlog/B-23-haul-plus-trial-and-benefits-points.md) `[x]` - server + client: Haul Plus trial and benefits, points ledger, redemption at checkout, delivery savings
 - [B-24](docs/backlog/B-24-haul-pay-4-payments-two-weeks.md) `[x]` - server + client: Haul Pay, 4 payments two weeks apart
 - [B-25](docs/backlog/B-25-recommendations-from-views-in-the-home.md) `[x]` - server: recommendations from views in the Home tree
+- [B-53](docs/backlog/B-53-plus-members-see-campaign-prices-early.md) `[x]` - server: Plus members see campaign prices early
 
 **Ship**
 
