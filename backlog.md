@@ -40,7 +40,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (7)
+## Open (6)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -48,11 +48,10 @@ A stage is a field on the item, not a directory.
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 | [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[ ]` | live order tracking through kompot-realtime | P3 | M | B-18 |
 | [B-45](docs/backlog/B-45-a-product-s-listing-name.md) `[ ]` | server: a product's listing name, as cards, cart and orders write it | P3 | S | B-18 |
-| [B-50](docs/backlog/B-50-the-return-dialog-names-the-points-share.md) `[~]` | server + client: the return dialog names the points share of a refund | P3 | S | B-21, B-23 |
 | [B-53](docs/backlog/B-53-plus-members-see-campaign-prices-early.md) `[ ]` | server: Plus members see campaign prices early | P3 | S | B-23 |
 | [B-54](docs/backlog/B-54-the-filter-sheet-stays-open-while-filtering.md) `[ ]` | client: the filter sheet stays open while filtering | P3 | S | B-49 |
 
-## Closed (47)
+## Closed (48)
 
 **Skeleton**
 
@@ -108,6 +107,7 @@ A stage is a field on the item, not a directory.
 - [B-19](docs/backlog/B-19-account-overview-and-orders-history.md) `[x]` - server + client: Account overview and orders history
 - [B-20](docs/backlog/B-20-saved-list-save-for-later-price.md) `[x]` - server + client: Saved list, save for later, price drops
 - [B-21](docs/backlog/B-21-returns-and-refunds.md) `[x]` - server + client: returns and refunds
+- [B-50](docs/backlog/B-50-the-return-dialog-names-the-points-share.md) `[x]` - server + client: the return dialog names the points share of a refund
 - [B-51](docs/backlog/B-51-dialog-commands-are-not-review-commands.md) `[x]` - client: dialog commands are not review commands
 
 **Reviews**
