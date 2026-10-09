@@ -40,14 +40,13 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (2)
+## Open (1)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-63](docs/backlog/B-63-answers-replace-what-changed.md) `[~]` | server + client: a filter answers with the parts that changed | P1 | M | B-62 |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 
-## Closed (61)
+## Closed (62)
 
 **Skeleton**
 
@@ -136,6 +135,7 @@ A stage is a field on the item, not a directory.
 - [B-34](docs/backlog/B-34-the-stand-serves-the-bundle-uncompressed.md) `[x]` - ops: the stand serves the wasm bundle uncompressed
 - [B-56](docs/backlog/B-56-placement-moves-the-order-page-live.md) `[x]` - server: placement moves the order page live
 - [B-62](docs/backlog/B-62-the-page-keeps-its-tree.md) `[x]` - client: a filter or a sort redraws the results, not the page
+- [B-63](docs/backlog/B-63-answers-replace-what-changed.md) `[x]` - server + client: a filter answers with the parts that changed
 
 <!-- END INDEX -->
 
