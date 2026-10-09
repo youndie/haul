@@ -228,11 +228,13 @@ internal object Seeder {
      * for good a week after the first start.
      *
      * The sample sale is the seed's own rows and nothing else: the campaigns by their slug, the deals by
-     * their id **and** their SKU; any other campaign or deal is not read. They move only when every sample
-     * deal has ended by the start of [catalog]'s deals — never in the middle of a live deal, so a price on
-     * screen does not change under a restart, and at most once a day — and then all of them at once, to
-     * exactly the windows a fresh seed on that day writes. Prices, carts and orders are not touched: a cart
-     * line put in at an ended price is a changed price, as any price is (B-11).
+     * their id **and** their SKU, and the sale's promo codes (B-61: those naming a campaign, `AUTUMN10`) by
+     * their code **and** their terms; any other campaign, deal or code is not read, so `SUMMER5` and a store's
+     * own code of the sale keep their windows. They move only when every sample deal has ended by the start of
+     * [catalog]'s deals — never in the middle of a live deal, so a price on screen does not change under a
+     * restart, and at most once a day — and then all of them at once, to exactly the windows a fresh seed on that
+     * day writes. Prices, carts and orders are not touched: a cart line put in at an ended price is a changed
+     * price, as any price is (B-11).
      *
      * Called by `main` only when it seeds (`HAUL_SEED`): a database that was never seeded is never re-dated.
      * Takes the seeding lock, so replicas starting together re-date once.
@@ -262,6 +264,16 @@ internal object Seeder {
                 DealsTable.update({ (DealsTable.id eq deal.id) and (DealsTable.skuId eq deal.skuId) }) {
                     it[startsAt] = deal.startsAt
                     it[endsAt] = deal.endsAt
+                }
+            }
+            catalog.promoCodes.filter { it.campaignSlug != null }.forEach { promo ->
+                PromoCodesTable.update({
+                    (PromoCodesTable.code eq promo.code) and
+                        (PromoCodesTable.percentOff eq promo.percentOff) and
+                        (PromoCodesTable.capCents eq promo.capCents)
+                }) {
+                    it[startsAt] = promo.startsAt
+                    it[endsAt] = promo.endsAt
                 }
             }
             true
