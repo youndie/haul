@@ -41,7 +41,9 @@ history, its share, what was captured and, only while it waits at a point, the p
 is held until. Placed, InTransit, ReadyForPickup, Delivered, Returned and Cancelled have artboards;
 `packed` is drawn as Placed with its step reached, `picked_up` as Delivered, and a partly returned order
 or a return in flight («Return requested», «Return picked up») with no artboard of its own, from the
-Returned artboard's pieces (B-21). A courier order's address is the order's own copy (B-40). The
+Returned artboard's pieces (B-21). A Haul Pay order draws its plan under the payment fact (B-24, no
+artboard: built from the summary's own pieces; goldens `Order_HaulPay` / `Order_HaulPay_Phone` from the
+server's tree of #HL-48230, no parity reference). A courier order's address is the order's own copy (B-40). The
 sample orders of these states are fixtures (`server/src/test/kotlin/io/github/youndie/haul/testing/SampleOrders.kt`),
 not seeded; #HL-48302 is the first number a fresh store gives, placed through placement itself.
 
@@ -50,6 +52,7 @@ not seeded; #HL-48302 is the first number a fresh store gives, placed through pl
 | What | File |
 |---|---|
 | Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/order/OrderViews.kt`, the return dialog `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/order/ReturnDialog.kt` |
+| The live page | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/LiveUpdates.kt` (`ktorRealtime`), kompot's `KompotRealtimeProvider` around the page in `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Storefront.kt`; the server's `server/src/main/kotlin/io/github/youndie/haul/feature/order/LiveOrders.kt` |
 | Client shell: Loading, NotFound and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Shell.kt` (`OrderLoading`), `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/order/OrderNotFound.kt` |
 | The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/order/screen/OrderScreen.kt` |
 | The contract | `shared/src/commonMain/kotlin/io/github/youndie/haul/ui/OrderComponents.kt` |
@@ -73,8 +76,8 @@ returns. The list is held against the real state when the code exists.
 - [x] **InTransit:** #HL-48211: progress Placed · Packed · **In transit** · Delivered, «Arriving tomorrow, 15:00–18:00»
 - [x] **ReadyForPickup:** #HL-47960: point, hours, «kept until Oct 10», pickup code 4821
 - [x] **Delivered:** #HL-46102: delivered, per line «Write a review» (the review dialog), «Return items» (presents the return dialog while a line is inside its window, then «Returns closed on …»), «Reorder»
-- [x] **ReturnDialog:** dialog over Delivered: lines with checkboxes, reason, the refund the ticked lines add up to, «Request return»; the rules are checked before sending and a refusal is drawn over the buttons
-- [x] **Returned:** #HL-44019: return refunded, $87.50 back to the card, «−174 points»
+- [x] **ReturnDialog:** dialog over Delivered: lines with checkboxes, reason, the refund the ticked lines add up to, «Request return»; the rules are checked before sending and a refusal is drawn over the buttons. For an order paid partly with points the box reads the card amount and beneath it «+ N points back», both summed from the ticked lines' `refundCents` and `pointsBack` (B-50; `order_delivered_with_points.json`, no artboard); a Haul Pay order reads «Refund $x to your Haul Pay plan»
+- [x] **Returned:** #HL-44019: return refunded, $87.50 back to the card, «−174 points»; for a points-paid order the heading, the payment fact and «Refunded» name the card's money and «+ N points back» (B-55, server-built, no artboard)
 - [x] **Cancelled:** #HL-48303 cancelled: «Your card ···· 0002 was declined», nothing charged, «Back to cart»
 - [x] **NotFound:** «Order not found»; «Go to your orders» follows the last drawn header's «Orders» to `/account/orders`
 - [x] **Error:** header, «This order didn't load», Retry
@@ -98,16 +101,16 @@ The server builds every target and the shell follows it; a command's refusal dra
 - «Write a review» → the review dialog (kompot `present`, [feature-reviews](../features/feature-reviews.md))
 - «Return items» → the return dialog (`OrderTotals.returnAction`, kompot `present`); «Request return» → `POST /api/v1/me/orders/{id}/returns`, answered `201` with `close` then `refresh`
 - «Back to cart» on a cancelled order → `/cart`
+- nothing pressed: while the page is shown the client listens to `GET /ui/updates?topic=order:<id>` (the channel the tree names) and swaps the order's body in place on each frame (B-29); leaving the page stops listening
 - the «Orders» crumb, «Go to your orders» → `/account/orders` (screen-account)
 
 ## 6. Quirks
 
-- `Order_Placed_Phone` reads 5.11 % in parity, over the 5 % tolerance (B-18): the title breaks where
-  `BalancedText` puts the narrowest balanced break and Chrome's `text-wrap: balance` keeps a wider one,
-  and the Sony line's name differs from the canvas's (B-45).
+- `Order_Placed_Phone` reads 4.83 % in parity, inside the 5 % tolerance since the Sony line writes its
+  listing name as the canvas does (B-45; 5.11 % before); the title still breaks where `BalancedText` puts
+  the narrowest balanced break and Chrome's `text-wrap: balance` keeps a wider one.
 - «Go to your orders» on an order reloaded at a missing number has no header drawn yet, so it does
   nothing (as Product_NotFound's link).
-- The page shows where the order is when it is loaded; it does not move by itself (live tracking, B-29,
-  not in v1).
-- The return dialog's refund is the lines' value; for an order paid partly in points it does not say
-  that part comes back as points (B-50).
+- The live page has not been walked in a browser: streaming through Ktor's JS engine is proven by the
+  server's test on a real port, the client's on the desktop and the e2e (B-29's findings).
+- The Haul Pay schedule has no artboard; its look is the summary's own pieces (B-24).
