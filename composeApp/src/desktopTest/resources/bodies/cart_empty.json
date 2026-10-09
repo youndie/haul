@@ -1,6 +1,6 @@
 {
     "type": "column",
-    "id": "cart",
+    "id": "cart-page",
     "children": [
         {
             "type": "haul_header",

@@ -48,8 +48,8 @@ internal class DealsScreen(
         sections += PageTitle("title", "Deals", "${count(onSale.size)} items on sale")
         val deals = if (shown.page == 1) dealsOfTheDay(catalog, calendar, photos, viewer) else null
         if (deals != null) {
-            sections += SectionHeader(TODAY, "Deals of the day", countdownEndsAt = deals.endsAt, accent = "day")
-            sections += ProductGrid("deals", deals.cards, columns = DEAL_COLUMNS)
+            sections += SectionHeader("deals-title", "Deals of the day", countdownEndsAt = deals.endsAt, accent = "day")
+            sections += ProductGrid(TODAY, deals.cards, columns = DEAL_COLUMNS)
         }
         sections += SectionHeader("sale-title", "On sale", accent = "sale")
         sections +=
@@ -60,7 +60,7 @@ internal class DealsScreen(
             pagination(shown, { if (it > 1) "${Frame.DEALS}?page=$it" else Frame.DEALS }) { to ->
                 if (deals == null && to != Frame.DEALS) Parts.load(to) else NavigateAction(to)
             }
-        return Frame.page("deals", viewer, navigation(categories), sections, footer = true)
+        return Frame.page("deals-page", viewer, navigation(categories), sections, footer = true)
     }
 
     /** How far the shown price is under the old one, as a fraction of the old; 0 when it is not. */
@@ -78,11 +78,8 @@ internal class DealsScreen(
     }
 
     companion object {
-        /**
-         * The header of today's deals, drawn with their grid on the first page only — the page's own id is
-         * `deals`, so the section is told by its header.
-         */
-        const val TODAY = "deals-title"
+        /** Today's deals, the grid the first page draws while a deal is live and no other page draws. */
+        const val TODAY = "deals"
 
         /** What a page of the deals changes when it loads in place (B-63): the grid and the pages. */
         val PARTS = listOf("grid", "pagination")

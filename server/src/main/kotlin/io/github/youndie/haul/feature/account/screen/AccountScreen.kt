@@ -84,7 +84,7 @@ internal class AccountScreen(
         page: AccountPage,
         view: AccountView,
         viewer: Viewer,
-    ): KompotComponent = Frame.page("account", viewer, navigation(catalog.categories()), listOf(body(page, view)))
+    ): KompotComponent = Frame.page("account-page", viewer, navigation(catalog.categories()), listOf(body(page, view)))
 
     /**
      * What the account of [customer] draws, given their orders as tracking reads them, newest first: each

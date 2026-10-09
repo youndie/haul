@@ -1,6 +1,6 @@
 {
     "type": "column",
-    "id": "account",
+    "id": "account-page",
     "children": [
         {
             "type": "haul_header",

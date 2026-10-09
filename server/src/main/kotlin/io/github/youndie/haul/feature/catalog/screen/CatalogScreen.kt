@@ -156,7 +156,7 @@ internal class CatalogScreen(
                         },
                 ),
             )
-        return Frame.page("categories", viewer, navigation(categories), sections, footer = true)
+        return Frame.page("categories-page", viewer, navigation(categories), sections, footer = true)
     }
 
     private fun descendants(

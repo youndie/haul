@@ -1,6 +1,6 @@
 {
     "type": "column",
-    "id": "order",
+    "id": "order-page",
     "children": [
         {
             "type": "haul_header",
