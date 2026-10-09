@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.returns
 
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.FieldError
+import io.github.youndie.haul.groupedCount
 import kotlinx.serialization.Serializable
 
 // The body of feature-orders' return (endpoint-orders, B-21) and the rules both sides hold it to. Where it is
@@ -34,17 +35,5 @@ public fun returnProblems(entry: ReturnEntry): List<FieldError> =
  */
 public fun exactDollars(cents: Int): String =
     "$" + groupedCount(cents / CENTS) + "." + (cents % CENTS).toString().padStart(2, '0')
-
-/**
- * «1,926»: a count the way the pages write one, in threes. The return dialog adds up the points the ticked
- * lines give back («+ 1,926 points back», B-50) and writes the sum itself.
- */
-public fun groupedCount(value: Int): String =
-    value
-        .toString()
-        .reversed()
-        .chunked(3)
-        .joinToString(",")
-        .reversed()
 
 private const val CENTS = 100

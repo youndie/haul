@@ -12,7 +12,7 @@ import io.github.youndie.haul.feature.reviews.ReviewRules
 import io.github.youndie.haul.feature.reviews.domain.ReviewRepository
 import io.github.youndie.haul.feature.reviews.domain.StoredQuestion
 import io.github.youndie.haul.feature.reviews.domain.StoredReview
-import io.github.youndie.haul.feature.reviews.groupedCount
+import io.github.youndie.haul.groupedCount
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.ui.FormProduct

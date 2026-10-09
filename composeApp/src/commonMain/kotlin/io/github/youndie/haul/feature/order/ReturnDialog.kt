@@ -31,8 +31,8 @@ import io.github.youndie.haul.feature.product.settle
 import io.github.youndie.haul.feature.product.without
 import io.github.youndie.haul.feature.returns.ReturnEntry
 import io.github.youndie.haul.feature.returns.exactDollars
-import io.github.youndie.haul.feature.returns.groupedCount
 import io.github.youndie.haul.feature.returns.returnProblems
+import io.github.youndie.haul.groupedCount
 import io.github.youndie.haul.shell.LocalTreeCommands
 import io.github.youndie.haul.shell.TreeCommand
 import io.github.youndie.haul.shell.run

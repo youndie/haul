@@ -31,6 +31,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.youndie.haul.groupedCount
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.ui.AppliedFilters
@@ -102,7 +103,7 @@ private fun FacetBlock(
 
                             "checkbox" -> {
                                 option.count?.let {
-                                    Text(it.formatted(), HaulType.text(15f).copy(color = HaulColors.outlineMuted))
+                                    Text(groupedCount(it), HaulType.text(15f).copy(color = HaulColors.outlineMuted))
                                 }
                             }
                         }
@@ -116,14 +117,6 @@ private fun FacetBlock(
         }
     }
 }
-
-/** «1,204»: a count as the canvas writes it. */
-private fun Int.formatted(): String =
-    toString()
-        .reversed()
-        .chunked(3)
-        .joinToString(",")
-        .reversed()
 
 @Composable
 private fun PriceRange(facet: Facet) {
