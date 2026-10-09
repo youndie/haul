@@ -30,6 +30,8 @@ The cart groups lines by seller, each group with its delivery day; it shows what
 * totals, over the selected lines that count (ticked, in stock, unchanged): Items = Σ old price (or price when no old) × qty, labelled «Items (N)» with N the counted units; Discount = Σ (old − price) × qty + promo — the promo is part of the discount, and also shown as a row of its own under it («Promo · AUTUMN10»); Delivery per research D7; Total = Items − Discount + Delivery, written as a price tag («$512»); the same rows at checkout;
 * delivery is free from $35 of the selected items at their price, before the promo, or for Plus; otherwise $5.99, one fee per cart rather than per seller group (research D5, «Decided in B-11»);
 * one promo code per cart; an invalid, expired or inapplicable code is refused with its reason, and the refused code and its reason stay in the promo field until the next command; the code already applied, sent again, is not a refusal;
+* a line writes the product's listing name (its title unless it has one, B-45), as cards and order lines do;
+* a line's price is the cart owner's (`CartOwner.prices`, B-53): a Plus member's, a trial included, opens a campaign at its early-access time, a guest's and a non-member's at its start ([feature-browse](feature-browse.md)); a trial started with lines in the cart changes their price, which the next rule marks;
 * a line whose `Sku` went out of stock or changed price since it was added is marked and excluded from selection until the shopper acknowledges it;
 * «You'll earn N points on this order»: whole dollars of the total, ×2 for Plus (Maya: $512 → 1,024); a guest is shown no points;
 * a guest sees the cart; «Sign in to check out» (`/sign-in?next=%2Fcheckout`) runs sign-in (feature-identity) and lands on `/checkout`; a sign-in that does not go through draws the cart again (B-41); a customer's «Checkout» goes to `/checkout`;
@@ -96,8 +98,10 @@ cart bodies are the server's trees).
 * **The discount against the canvas, unresolved.** Cart_PromoApplied draws «Discount −$140.00» and
   the promo as its own row beside it; the rule above (B-11, tested) folds the promo into the
   discount, so the server sends «−$190.00». B-13 kept the server's rule; the owner decides.
-* The canvas names the headphones «Sony WH-1000XM6 …»; the seed's title has no brand, and the server
-  sends the title (B-13's findings).
+* The duvet's line reads «Linen Duvet Cover Set, Queen», as the 16 Cart and Order artboards draw it;
+  the 8 card artboards append «, Oat», which only the hand-written card bodies keep (B-45's findings).
+* The empty cart's deal cards draw the deal's price, but «+» adds the SKU at its own price — the
+  generated deals' lines are dearer than their cards until B-57.
 * The empty cart's picks are the day's deals, so the server says «From today’s deals» where the
   canvas says «Based on your recent views».
 * «Select all» on a cart with a changed line: the server's `allSelected` speaks for the selectable
