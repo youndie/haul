@@ -44,7 +44,7 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-57](docs/backlog/B-57-a-deal-s-price-is-what-the-cart-charges.md) `[ ]` | server: a deal's price is what the cart charges | P1 | S | B-53 |
+| [B-57](docs/backlog/B-57-a-deal-s-price-is-what-the-cart-charges.md) `[~]` | server: a deal's price is what the cart charges | P1 | S | B-53 |
 | [B-27](docs/backlog/B-27-helm-chart-tracy-metrik-katcher-wiring.md) `[?]` | ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand | P2 | M | B-03 |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 | [B-58](docs/backlog/B-58-campaigns-and-deals-end.md) `[ ]` | server: campaigns and deals end | P2 | S | B-57 |

@@ -1,7 +1,7 @@
 ---
 id: B-57
 title: "server: a deal's price is what the cart charges"
-status: open
+status: wip
 priority: P1
 size: S
 stage: stage-4-cart
