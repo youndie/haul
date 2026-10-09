@@ -9,8 +9,9 @@ sborka = "0.5.0.113"
 # A snapshot of kompot's main; kompot-core is what the contract's components are built on. Ahead of the
 # sibling reference service's pin (research §1.1) since B-62: 0.40.0.212 is the first whose screen loader
 # keeps a screen's tree while the next address of it loads (kompot B-81); 0.40.0.213 the first with `load`
-# and `update`, answers that replace nodes by id (kompot B-82, B-63).
-kompot = "0.40.0.213"
+# and `update`, answers that replace nodes by id (kompot B-82, B-63); 0.40.0.215 the first whose arriving
+# tree drops the overrides even when it is equal to the one drawn (kompot B-84, B-64).
+kompot = "0.40.0.215"
 logback = "1.5.20"
 # PostgreSQL through Exposed over JDBC, the pair petich-postgres runs on (research D3); the versions are
 # the sibling reference service's (research §1.1).

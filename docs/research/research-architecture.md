@@ -56,7 +56,7 @@ Verified against `youndie/kompot@d35ae36`.
 | A tree must be answered through `respondKompotComponent`: `call.respond` drops the `"type"` discriminator on the root | `youndie/kompot@d35ae36!/README.md:103-104` |
 | No module publishes a Linux native target | every `build.gradle.kts` of `youndie/kompot@d35ae36` — none declares `linuxX64` |
 | `update` writes its nodes into the screen's override store and hands its `deeplink` to the application, which keeps the history; `load` GETs an action and runs it down the chain, the last press winning (B-63) | `youndie/kompot@b0d3fb8!/kompot-client/src/commonMain/kotlin/io/github/youndie/kompot/Update.kt:22`, `Load.kt:50` |
-| A tree equal to the one drawn drops no override: back to the address before a filter brings exactly the tree under the filter's `update`, so Haul starts the store over on each page that arrives (B-63) | `youndie/kompot@b0d3fb8!/kompot-client/src/commonMain/kotlin/io/github/youndie/kompot/NodeOverrides.kt:23-24` |
+| A tree that arrives drops the overrides even when it is equal to the one drawn — back to the address before a filter brings exactly the tree under the filter's `update`: each load `KompotScreenLoader` completes is an arrival, and a screen drawn without it is told by `arrival`, which Haul's own refresh passes; one store per screen (kompot 0.40.0.215, B-84; B-63 worked around the earlier «an equal tree is not news», B-64 dropped it) | `youndie/kompot@0895da8!/kompot-client/src/commonMain/kotlin/io/github/youndie/kompot/NodeOverrides.kt:23-29`, `ScreenLoader.kt:115`, `Components.kt:769` |
 
 **Consequence 2.** A server built by kompot has to run on the JVM (D1). The browser client and
 the screenshot tests share one renderer: `kompot-client` on wasmJs ships, the same on

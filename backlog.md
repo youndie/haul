@@ -46,7 +46,7 @@ A stage is a field on the item, not a directory.
 |---|---|---|---|---|
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 
-## Closed (62)
+## Closed (63)
 
 **Skeleton**
 
@@ -136,6 +136,7 @@ A stage is a field on the item, not a directory.
 - [B-56](docs/backlog/B-56-placement-moves-the-order-page-live.md) `[x]` - server: placement moves the order page live
 - [B-62](docs/backlog/B-62-the-page-keeps-its-tree.md) `[x]` - client: a filter or a sort redraws the results, not the page
 - [B-63](docs/backlog/B-63-answers-replace-what-changed.md) `[x]` - server + client: a filter answers with the parts that changed
+- [B-64](docs/backlog/B-64-drop-the-override-workaround.md) `[x]` - client: back after a filter draws the address's page with kompot's own reset
 
 <!-- END INDEX -->
 

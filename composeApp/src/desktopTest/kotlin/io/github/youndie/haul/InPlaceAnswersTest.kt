@@ -46,6 +46,7 @@ import io.github.youndie.kompot.commands.UpdateHistory
 import io.github.youndie.kompot.commands.kompotUpdate
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
+import io.github.youndie.kompot.standard.RefreshAction
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.serialization.PolymorphicSerializer
 import java.util.concurrent.CopyOnWriteArrayList
@@ -159,8 +160,8 @@ class InPlaceAnswersTest {
 
     /**
      * Back after a tick is a visit: the page before it is loaded and drawn — the very tree the screen started
-     * from, which kompot would take for no news and leave under the tick's update — and forward loads the
-     * tick's address whole.
+     * from, which kompot before 0.40.0.215 took for no news and left under the tick's update (B-64) — and
+     * forward loads the tick's address whole.
      */
     @Test
     fun `back after a tick draws the page before it and forward the page of the tick`() =
@@ -261,6 +262,27 @@ class InPlaceAnswersTest {
                 },
             )
             assertEquals(listOf("/ui$MUGS"), requests.toList(), "«+» asked for a page")
+        }
+
+    /**
+     * A refresh is an arrival even when the page it brings is the one drawn (B-64): the count an `update` wrote
+     * into the header goes with it, and the page's own is drawn again.
+     */
+    @Test
+    fun `a refresh that brings the page drawn drops what an update wrote over it`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            mugs()
+            cartAnswer = kompotUpdate { addComponent(header.copy(cartCount = 7)) }
+            storefront()
+            waitForText(card("Stoneware", 0))
+            onAllNodes(hasContentDescription(ADD_TO_CART))[0].performClick()
+            waitForText("7")
+
+            cartAnswer = RefreshAction
+            onAllNodes(hasContentDescription(ADD_TO_CART))[0].performClick()
+            waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
+            waitUntil(timeoutMillis = 5_000) { !exists("7") }
+            assertEquals(listOf("/ui$MUGS", "/ui$MUGS"), requests.toList(), "a refresh asked for another page")
         }
 
     /**
