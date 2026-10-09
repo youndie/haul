@@ -1,0 +1,59 @@
+{{- if .Values.networkPolicy }}
+{{/*
+Who may open a connection to what the release keeps behind the server. A NetworkPolicy that selects a
+pod makes its ingress deny-by-default, so each one below both opens its one route and closes the rest.
+
+Enforced by the CNI and by nothing else (values.yaml, `networkPolicy`). The kubelet's probes come from
+the node and are not what these select.
+*/}}
+# The database: only this release's server, whose pod also runs the init container that waits for it.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-postgres
+  labels: {{- include "haul.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/name: postgres
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: {{ .Release.Name }}
+              app.kubernetes.io/name: haul-server
+      ports:
+        - protocol: TCP
+          port: 5432
+{{- if .Values.shildik.enabled }}
+---
+# The provider: its public port from anywhere (Traefik lives in another namespace, and the server reads
+# the realm's keys through the public host), its management port — the admin API, behind nothing but a
+# bearer token — only from the bootstrap hook.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-shildik
+  labels: {{- include "haul.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/name: shildik
+  policyTypes: ["Ingress"]
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 8080
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: {{ .Release.Name }}
+              app.kubernetes.io/name: shildik-bootstrap
+      ports:
+        - protocol: TCP
+          port: 9000
+{{- end }}
+{{- end }}

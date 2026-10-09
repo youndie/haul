@@ -3,6 +3,9 @@ haul {{ .Values.server.version }} is installed as {{ .Release.Name }} in {{ .Rel
 {{ if .Values.traefik.enabled -}}
 The storefront: https://{{ .Values.hostname }}/
 The version:    https://{{ .Values.hostname }}/version
+{{- if .Values.shildik.enabled }}
+Sign-in:        {{ include "haul.realmIssuer" . }}/.well-known/openid-configuration
+{{- end }}
 {{- else -}}
 No public address (traefik.enabled=false). Reach it with:
   kubectl -n {{ .Release.Namespace }} port-forward svc/{{ .Release.Name }} 8080:80
@@ -12,5 +15,7 @@ What this installation does NOT have, each of which the server also logs at star
 {{ if not .Values.observability.metrik.endpoint }}  * no metrik — nothing counts the routes
 {{ end }}{{ if not .Values.observability.tracy.endpoint }}  * no tracy — no trace, no shipped log
 {{ end }}{{ if not .Values.observability.katcher.endpoint }}  * no katcher — a 500 is a log line and nothing else
+{{ end }}{{ if not .Values.shildik.enabled }}  * no sign-in — every bearer token is refused, GET /api/v1/sign-in says unavailable
+{{ else if not .Values.shildik.demoPassword }}  * no sample customers — the realm holds nobody to sign in as
 {{ end }}{{ if not .Values.server.seed }}  * no seed — an empty database serves empty screens
 {{ end }}

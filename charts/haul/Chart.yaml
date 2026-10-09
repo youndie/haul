@@ -1,11 +1,11 @@
 apiVersion: v2
 name: haul
-description: Haul, an open end-to-end marketplace storefront — the server with the web bundle it serves, and the PostgreSQL it owns
+description: Haul, an open end-to-end marketplace storefront — the server with the web bundle it serves, the PostgreSQL it owns, and optionally a shildik of its own for sign-in
 type: application
 # The chart's own version. While this is 0.x, a change that can break an existing render — a value
 # removed, renamed or newly required, a refusal added — moves the minor; an additive one moves the patch.
-version: 0.1.0
-# No default image tag: `server.version` is required, and names a commit (see values.yaml).
+version: 0.2.0
+# No default image tag: `server.version` is required, and names a release tag (see values.yaml).
 appVersion: ""
 home: https://github.com/youndie/haul
 sources:

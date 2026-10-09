@@ -1,26 +1,35 @@
 # The chart's defaults: everything a deployment must decide is empty and refused at render, so a
 # missing value stops `helm template` rather than arriving as a green deploy and a server that is down.
-# The public demo stand's choices are in values-stand.yaml, beside this file.
+#
+# The public demo stand's values are not in this repository: they live beside its deploy, with the
+# secrets it passes (B-27, Iteration 2). A copy here would be a second list of the same choices, and
+# the two would drift. `scripts/chart-check.sh` renders the stand's shape with every part switched on.
 
 # The public host the IngressRoute matches. Required while `traefik.enabled`: an empty one renders
-# Host(``), a rule that matches nothing while looking like a working ingress.
+# Host(``), a rule that matches nothing while looking like a working ingress. Also required while
+# `shildik.enabled`, which registers `https://<hostname>/signed-in.html` as the storefront's return page.
 hostname: ""
 
 server:
   image: ghcr.io/youndie/haul-server
-  # **Required, and a commit, not `latest`.** A tag that moves leaves helm nothing to notice, so a
-  # green deploy keeps the previous binary. It is also what `/version` and every agent's release name.
+  # **Required, and a release, not `latest`.** A tag that moves leaves helm nothing to notice, so a
+  # green deploy keeps the previous binary. It is also what `/version` says and every agent's release.
   version: ""
   imagePullSecrets: []
-  # Any number is safe today: nothing is held in process (the screens are built from the database on
-  # every request), and Flyway serialises concurrent migrations on its own lock. Revisit when the
-  # order saga and the fulfilment simulator land (B-16, B-17): a simulator on a clock must run once.
-  # The order page's live updates (B-29) are held in process too: a move reaches the pages connected to
-  # the pod that made it, and a second replica's pages only catch up when they reconnect.
+  # **One, and more is refused at render.** The order page's live updates (B-29) go through a bus held
+  # in the process: a move reaches the pages connected to the pod that made it, and a second replica's
+  # pages would only catch up when they reconnect — a live page that is quietly not live. The
+  # fulfilment simulator alone would be safe on two (a move is a conditional update under a row lock,
+  # B-17). Raise this together with a bus every replica shares, not before.
   replicas: 1
   # Seed the catalog on the first start, when the database is empty. Off by default, as in the server:
-  # a production database is not a demo.
+  # a production database is not a demo. A seeded start also moves an ended sample sale to the store's
+  # day (B-58), so a stand that restarts sells what the canvas sells.
   seed: false
+  # `HAUL_FULFILMENT_SPEED`: the simulated world's pace, times the store's own (research D4). Empty is
+  # the server's 1 — a courier order in about two days. A positive number, quoted; anything else is
+  # refused here, as the server refuses it at start.
+  fulfilmentSpeed: ""
   dbPoolSize: 10
   # Handed to the start script as JAVA_OPTS, after the AOT cache flag it adds itself. The heap follows
   # the container's limit rather than a number that drifts away from it.
@@ -39,8 +48,8 @@ postgres:
   image: postgres:18-alpine
   user: haul
   database: haul
-  # Required. Passed with --set from where the deploy keeps its secrets, never written into a values
-  # file: anything in one is readable by every reader of the repository.
+  # Required. Passed with --set-literal from where the deploy keeps its secrets, never written into a
+  # values file: anything in one is readable by every reader of the repository.
   password: ""
   # Empty means the cluster's default storage class.
   storageClass: ""
@@ -52,11 +61,74 @@ postgres:
     limits:
       memory: 512Mi
 
+# Where customers sign in: a shildik of the release's own (templates/shildik.yaml) — the provider's
+# published SQLite image, one pod, one volume — with a realm, the storefront's public client and,
+# optionally, the two sample customers, all created by a hook after every install and upgrade.
+#
+# Off, the server runs with sign-in off: every bearer token is refused and `GET /api/v1/sign-in` says
+# `unavailable` (B-12), which a shopper sees at once.
+shildik:
+  enabled: false
+  image: ghcr.io/youndie/shildik-sqlite
+  # The provider's release — the one the server's suite and the e2e sign in against.
+  version: "0.4.1"
+  # The provider's public host. Required while enabled: the browser opens its page and exchanges the
+  # code with it, and the server reads the realm's keys from it.
+  hostname: ""
+  # What the provider writes into every token and serves in discovery. Empty is `https://<hostname>`,
+  # the only right value behind the ingress; a cluster without one (a kind check) names an address its
+  # pods reach instead.
+  issuer: ""
+  realm: haul
+  # The storefront's public client (PKCE, no secret); its one return page is
+  # `https://<hostname>/signed-in.html`.
+  clientId: haul-web
+  # Required while enabled, passed with --set-literal, never written here:
+  #   masterKeys      SHILDIK_MASTER_KEYS — encrypts the realm's signing keys in the database;
+  #                   comma-separated, the first encrypts. Lose it and every key is unreadable.
+  #   bootstrapToken  SHILDIK_BOOTSTRAP_TOKEN — the management API's credential while no admin client
+  #                   exists, which is always here: the hook uses it and creates none.
+  masterKeys: ""
+  bootstrapToken: ""
+  # The password the sample customers sign in with. Empty: they are not created (and ones created
+  # before keep the password they had). Passed with --set-literal like the two above.
+  demoPassword: ""
+  # The people of the seed (`SampleCustomers`): a shildik subject is a customer's id, so these ids
+  # sign in as the seeded rows — Maya with Plus, her points and her cart; Sam with none.
+  demoPeople:
+    - id: maya
+      name: Maya Kowalski
+      email: maya@example.com
+    - id: sam
+      name: Sam Ortiz
+      email: sam@example.com
+  # Empty means the cluster's default storage class.
+  storageClass: ""
+  size: 1Gi
+  # The provider chart's numbers (youndie/shildik `charts/shildik-sqlite`), not measured here.
+  resources:
+    requests:
+      cpu: 30m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+  # The hook that creates the realm, the client and the people: a Python script (files/) on the
+  # interpreter's own image, because the provider's image is one binary on `scratch`, with no shell.
+  bootstrap:
+    image: python:3.13.16-alpine3.24
+
+# Who may reach the release's PostgreSQL and the provider's management port: NetworkPolicies that
+# admit the server to the database and the bootstrap hook to the management API, and nothing else.
+# The provider's public port stays open to every pod — Traefik is in another namespace. Enforced by
+# the cluster's CNI, or by nothing: a cluster whose CNI ignores policies renders them and is protected
+# by none, so this is a value. The deploy account needs `networkpolicies` in its role.
+networkPolicy: true
+
 # Who watches it. An agent is on when its endpoint and key are both set; one without the other is
-# refused here and again by the server at start. Keys are passed with --set, like the password.
+# refused here and again by the server at start. Keys are passed with --set-literal, like the password.
 #
 # The endpoints are not the same kind of address: metrik ingests over UDP and takes `host:port`
-# (reachable only inside the cluster metrik runs in), tracy and katcher take an HTTPS origin.
+# (reachable only inside the cluster metrik runs in), tracy and katcher take an HTTP(S) origin.
 observability:
   # What katcher files a report under; the release is `server.version`.
   environment: stand
@@ -74,8 +146,9 @@ observability:
     key: ""
 
 # The ingress, as the cluster's other public services have it: Traefik IngressRoutes on `web` and
-# `websecure`, plain HTTP redirected, a certificate from the named resolver. Off, the release has no
-# public address — what a throwaway cluster without Traefik's CRDs needs.
+# `websecure`, plain HTTP redirected, a certificate from the named resolver — for the storefront's host
+# and, with `shildik.enabled`, the provider's. Off, the release has no public address — what a
+# throwaway cluster without Traefik's CRDs needs.
 traefik:
   enabled: true
   # Empty means Traefik's default certificate.

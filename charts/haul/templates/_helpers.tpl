@@ -46,3 +46,29 @@ names a value somebody can edit, before the server refuses it in a pod that is a
       key: {{ .name }}-key
 {{- end }}
 {{- end }}
+
+{{/*
+The provider's address (`SHILDIK_ISSUER`): what it writes into every token and serves in discovery.
+Behind the ingress it is the public host and nothing else — the browser and the server must reach the
+same name — so it is spelled from `shildik.hostname` unless a cluster without an ingress names its own.
+*/}}
+{{- define "haul.shildikIssuer" -}}
+{{- if .Values.shildik.issuer -}}
+{{- .Values.shildik.issuer | trimSuffix "/" -}}
+{{- else -}}
+https://{{ include "haul.require" (dict "name" "shildik.hostname" "because" "the browser opens the provider's page there and the server reads the realm's keys from it" "value" .Values.shildik.hostname) }}
+{{- end -}}
+{{- end }}
+
+{{/* The realm's issuer, `{base}/realms/{realm}` — what the server is configured with (`HAUL_OIDC_ISSUER`). */}}
+{{- define "haul.realmIssuer" -}}
+{{ include "haul.shildikIssuer" . }}/realms/{{ .Values.shildik.realm }}
+{{- end }}
+
+{{/*
+The storefront's one return page, registered on its public client: `signed-in.html` beside the bundle,
+on the storefront's own host (the client builds `<origin>/signed-in.html`, `Main.kt`).
+*/}}
+{{- define "haul.redirectUri" -}}
+https://{{ include "haul.require" (dict "name" "hostname" "because" "the storefront's public client registers https://<hostname>/signed-in.html as its return page" "value" .Values.hostname) }}/signed-in.html
+{{- end }}

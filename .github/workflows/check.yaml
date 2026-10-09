@@ -140,8 +140,8 @@ jobs:
       - if: steps.scope.outputs.code == 'true'
         run: scripts/e2e.sh
 
-  # B-27's chart, rendered with the defaults and the stand's values, and every refusal it promises
-  # made to fire. No cluster: whether it installs is a deploy, not a pull request's check.
+  # B-27's chart, rendered with the defaults and in the stand's shape, and every refusal it promises
+  # made to fire. No cluster: an install is `scripts/stand-kind.sh`, by hand, and the stand's deploy.
   chart:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest

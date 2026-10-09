@@ -39,4 +39,33 @@ spec:
     {{- with .Values.traefik.certResolver }}
     certResolver: {{ . | quote }}
     {{- end }}
+{{- if .Values.shildik.enabled }}
+---
+{{/*
+The provider's public port on its own host — the page the browser signs in on, discovery, the keys and
+the token endpoint. A host of its own rather than a path under the storefront's: the issuer is an
+origin, and the provider builds every address from it. The management port is not routed at all.
+*/}}
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ .Release.Name }}-shildik
+  labels: {{- include "haul.labels" . | nindent 4 }}
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - match: Host(`{{ include "haul.require" (dict "name" "shildik.hostname" "because" "the browser opens the provider's page there and the server reads the realm's keys from it" "value" .Values.shildik.hostname) }}`)
+      kind: Rule
+      middlewares:
+        - name: {{ .Release.Name }}-redirect-to-https
+      services:
+        - name: {{ .Release.Name }}-shildik
+          port: 8080
+  tls:
+    {{- with .Values.traefik.certResolver }}
+    certResolver: {{ . | quote }}
+    {{- end }}
+{{- end }}
 {{- end }}

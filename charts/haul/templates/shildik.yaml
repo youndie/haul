@@ -1,0 +1,246 @@
+{{- if .Values.shildik.enabled }}
+{{- $name := printf "%s-shildik" .Release.Name }}
+{{/*
+The stand's own identity provider: shildik's published SQLite image, the shape of the provider's own
+`charts/shildik-sqlite` (one pod, `Recreate`, one volume kept on uninstall, probes on the management
+port), written here rather than taken as a subchart — the siblings' shape (no subchart), an
+IngressRoute rather than that chart's plain Ingress, and no chart repository for the deploy to fetch.
+
+Its secrets are a Secret of their own, so a change to them restarts the provider and not the server.
+*/}}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $name }}
+  labels: {{- include "haul.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  master-keys: {{ include "haul.require" (dict "name" "shildik.masterKeys" "because" "it encrypts the realm's signing keys; one written into the chart is one every reader of the repository holds" "value" .Values.shildik.masterKeys) | quote }}
+  bootstrap-token: {{ include "haul.require" (dict "name" "shildik.bootstrapToken" "because" "the hook reaches the management API with it; without it the provider prints a random one to its log and the realm is never made" "value" .Values.shildik.bootstrapToken) | quote }}
+  {{- with .Values.shildik.demoPassword }}
+  demo-password: {{ . | quote }}
+  {{- end }}
+---
+{{/*
+Everything the provider has — realms, clients, people, signing keys — in one file on this volume. Kept
+on `helm uninstall`, like the database's: deleting a release must not delete who can sign in.
+*/}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $name }}-data
+  labels: {{- include "haul.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  accessModes: ["ReadWriteOnce"]
+  {{- with .Values.shildik.storageClass }}
+  storageClassName: {{ . }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.shildik.size }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "haul.labels" . | nindent 4 }}
+    app.kubernetes.io/name: shildik
+spec:
+  # One, and Recreate: a SQLite file has one writer, and a rolling update would start the new pod
+  # beside the old one on a volume it cannot mount. The price is a few seconds nobody can sign in.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/name: shildik
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/name: shildik
+      annotations:
+        checksum/keys: {{ printf "%s/%s" .Values.shildik.masterKeys .Values.shildik.bootstrapToken | sha256sum }}
+    spec:
+      enableServiceLinks: false
+      # The provider's shutdown plan fits 30 seconds (its own chart says why); this is that number.
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: shildik
+          image: "{{ .Values.shildik.image }}:{{ include "haul.require" (dict "name" "shildik.version" "because" "a tag that moves leaves helm nothing to notice" "value" .Values.shildik.version) }}"
+          env:
+            - name: SHILDIK_ISSUER
+              value: {{ include "haul.shildikIssuer" . | quote }}
+            - name: SHILDIK_PORT
+              value: "8080"
+            - name: SHILDIK_MANAGEMENT_PORT
+              value: "9000"
+            - name: SHILDIK_DB_PATH
+              value: /data/shildik.db
+            - name: SHILDIK_RELEASE
+              value: {{ .Values.shildik.version | quote }}
+            - name: SHILDIK_MASTER_KEYS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $name }}
+                  key: master-keys
+            - name: SHILDIK_BOOTSTRAP_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $name }}
+                  key: bootstrap-token
+          ports:
+            - name: public
+              containerPort: 8080
+            - name: management
+              containerPort: 9000
+          {{- /*
+          The provider's own probes: start-up and readiness on `/ready` (the storage answers), liveness
+          on `/health` (the process only — a locked file must not restart the pod holding the lock).
+          */}}
+          startupProbe:
+            httpGet:
+              path: /ready
+              port: management
+            periodSeconds: 1
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: management
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: management
+            periodSeconds: 5
+            timeoutSeconds: 2
+          resources: {{- toYaml .Values.shildik.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ $name }}-data
+---
+{{/*
+Both ports in the Service, only the public one in the IngressRoute (templates/ingress.yaml): the
+management API does not exist on the public network, and inside the cluster the NetworkPolicy admits
+only the bootstrap hook to it.
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels: {{- include "haul.labels" . | nindent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: shildik
+  ports:
+    - name: public
+      port: 8080
+      targetPort: public
+    - name: management
+      port: 9000
+      targetPort: management
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $name }}-bootstrap
+  labels: {{- include "haul.labels" . | nindent 4 }}
+data:
+  bootstrap.py: |-
+{{ .Files.Get "files/shildik-bootstrap.py" | indent 4 }}
+---
+{{/*
+The realm, the storefront's client and the sample customers, made to match the values after every
+install and upgrade (files/shildik-bootstrap.py says how each step converges). A hook rather than a
+step of the deploy: the deploy account may not exec into a pod, and the management port is reachable
+only from inside the namespace. A hook that fails fails the release, so `--rollback-on-failure` takes
+the deploy back rather than leaving a storefront whose sign-in names a client that does not exist.
+
+Deleted once it succeeds; a failed one stays until the next run, with its log.
+*/}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $name }}-bootstrap
+  labels: {{- include "haul.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 300
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/name: shildik-bootstrap
+    spec:
+      restartPolicy: Never
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+      containers:
+        - name: bootstrap
+          image: {{ .Values.shildik.bootstrap.image | quote }}
+          command: ["python3", "-B", "/bootstrap/bootstrap.py"]
+          env:
+            - name: SHILDIK_MANAGEMENT
+              value: "http://{{ $name }}:9000"
+            - name: SHILDIK_PUBLIC
+              value: "http://{{ $name }}:8080"
+            - name: SHILDIK_ISSUER
+              value: {{ include "haul.shildikIssuer" . | quote }}
+            - name: SHILDIK_REALM
+              value: {{ .Values.shildik.realm | quote }}
+            - name: SHILDIK_CLIENT_ID
+              value: {{ .Values.shildik.clientId | quote }}
+            - name: SHILDIK_REDIRECT_URI
+              value: {{ include "haul.redirectUri" . | quote }}
+            - name: DEMO_PEOPLE
+              value: {{ .Values.shildik.demoPeople | toJson | quote }}
+            - name: SHILDIK_BOOTSTRAP_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $name }}
+                  key: bootstrap-token
+            {{- if .Values.shildik.demoPassword }}
+            - name: DEMO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $name }}
+                  key: demo-password
+            {{- end }}
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: script
+              mountPath: /bootstrap
+              readOnly: true
+      volumes:
+        - name: script
+          configMap:
+            name: {{ $name }}-bootstrap
+{{- end }}
