@@ -40,10 +40,11 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (1)
+## Open (2)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
+| [B-62](docs/backlog/B-62-the-page-keeps-its-tree.md) `[~]` | client: a filter or a sort redraws the results, not the page | P1 | M | - |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 
 ## Closed (60)
