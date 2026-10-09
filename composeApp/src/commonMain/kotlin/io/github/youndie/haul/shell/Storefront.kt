@@ -252,12 +252,11 @@ public fun Storefront(
                 // update recorded (B-63) is no new page to load.
                 var loads by remember(visit) { mutableIntStateOf(0) }
                 var signedInFor by remember(visit) { mutableIntStateOf(-1) }
-                // The pages that arrived for this screen. Each is the truth for its address, so each starts the
-                // override store over that updates and the order's channel write into (B-63): kompot keeps the
-                // overrides when a tree equal to the one drawn arrives, and back to the address before a filter
-                // brings exactly that tree, under the filter's updates.
-                var arrivals by remember { mutableIntStateOf(0) }
-                val overrides = remember(arrivals) { KompotNodeOverrides() }
+                // The store the screen's updates and the order's channel write into (B-63), one per screen. A
+                // page that arrives is the truth for its address and drops what they wrote, even when it is
+                // equal to the page drawn — back to the address before a filter brings exactly that page: each
+                // load the loader completes is an arrival (kompot §4.4, B-64).
+                val overrides = remember { KompotNodeOverrides() }
                 // A `load` whose answer did not arrive, and how to press it again; a new press or visit forgets it.
                 var unanswered by remember(visit) { mutableStateOf<Unanswered?>(null) }
                 // The channel the page's tree named, when it named one (B-29).
@@ -275,10 +274,8 @@ public fun Storefront(
                             load = {
                                 transport
                                     .screen(address.screen)
-                                    .also {
-                                        topic = it.realtimeTopic
-                                        arrivals += 1
-                                    }.tree
+                                    .also { topic = it.realtimeTopic }
+                                    .tree
                             },
                             loading = { Scrolled(scroll) { Box(Modifier.testTag(LOADING_TAG)) { Loading(address) } } },
                             failed = { cause, retry ->
@@ -419,11 +416,21 @@ private fun Shown(
     onPresent: (Presented?) -> Unit,
 ) {
     var tree by remember(loaded) { mutableStateOf(loaded) }
+    // The trees a refresh brought: fetched here, not by the loader, so the screen is told of each one — an
+    // arrival drops the overrides even when the tree is equal to the one drawn (kompot §4.4, B-64).
+    var refreshed by remember { mutableIntStateOf(0) }
     LaunchedEffect(tree) { tree.header()?.let(onHeader) }
     val scope = rememberCoroutineScope()
     val refresh =
         remember(address) {
-            ScreenRefresh { scope.launch { transport.treeOrNull(address.screen, onSignedOut)?.let { tree = it } } }
+            ScreenRefresh {
+                scope.launch {
+                    transport.treeOrNull(address.screen, onSignedOut)?.let {
+                        tree = it
+                        refreshed += 1
+                    }
+                }
+            }
         }
     val actions =
         remember(address, inPlace.overrides) {
@@ -453,9 +460,13 @@ private fun Shown(
     val forms = remember { FormController(FormSchema(formId = "none", fields = emptyList())) }
     CompositionLocalProvider(LocalScreenRefresh provides refresh, LocalKompotNodeOverrides provides inPlace.overrides) {
         if (live == null) {
-            KompotScreen(tree, registry, forms, actions)
+            KompotScreen(tree, registry, forms, actions, arrival = refreshed)
         } else {
-            KompotRealtimeProvider(live.topic, live.source, { KompotScreen(tree, registry, forms, actions) })
+            KompotRealtimeProvider(
+                live.topic,
+                live.source,
+                { KompotScreen(tree, registry, forms, actions, arrival = refreshed) },
+            )
         }
     }
 }
