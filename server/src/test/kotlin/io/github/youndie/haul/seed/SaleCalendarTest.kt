@@ -198,8 +198,8 @@ class SaleCalendarTest {
     /**
      * Only the seed's own rows move, and only when every one of them has ended: a deal of the seed still live —
      * the third, ending a day later — keeps the whole sale where it is, its code included; a deal under a sample
-     * id on another SKU, a deal of the store's own and a promo code of the store's own for the same sale are not
-     * the seed's and never move.
+     * id on another SKU, a deal of the store's own, a promo code of the store's own for the same sale and
+     * `SUMMER5`, which names no sale, are not the sale's and never move — not even back to the seed's window.
      */
     @Test
     fun `a live sample deal and rows that are not the seed's are left alone`() =
@@ -222,6 +222,11 @@ class SaleCalendarTest {
                 "INSERT INTO promo_codes (code, percent_off, cap_cents, starts_at, ends_at) VALUES ('OWN10', 10, " +
                     "5000, '${CatalogSeed.DEALS_START}', '${CatalogSeed.DEALS_START.plusDays(SALE_DAYS)}')",
             )
+            // The store ran SUMMER5 again for a day: its window now, not the seed's.
+            dataSource.sql(
+                "UPDATE promo_codes SET starts_at = '${CatalogSeed.DEALS_START}', ends_at = '${CatalogSeed.DEALS_END}' " +
+                    "WHERE code = '$SUMMER5'",
+            )
             assertTrue(Seeder.redateSale(database, next), "the control: the rest of the sale has ended")
             assertEquals(
                 next.promoCodes
@@ -232,6 +237,7 @@ class SaleCalendarTest {
                 "the control: the sale's code moved",
             )
             assertEquals(canvasStart, dataSource.promoStart("OWN10"), "the store's own code moved")
+            assertEquals(canvasStart, dataSource.promoStart(SUMMER5), "a code of no sale was written")
             assertEquals(
                 next.deals
                     .single { it.id == "deal-2" }
