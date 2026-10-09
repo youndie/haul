@@ -1,7 +1,10 @@
 package io.github.youndie.haul.shell
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
@@ -19,9 +22,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.feature.cart.CartCommands
 import io.github.youndie.haul.feature.cart.LocalCartCommands
@@ -41,6 +46,7 @@ import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HaulHeaderView
 import io.github.youndie.haul.ui.LocalHaulActions
 import io.github.youndie.haul.ui.LocalHaulNow
+import io.github.youndie.haul.ui.LocalHeaderMeasured
 import io.github.youndie.haul.ui.LocalLogoAction
 import io.github.youndie.haul.ui.LocalSearchInput
 import io.github.youndie.haul.ui.PlusTrialDialog
@@ -56,6 +62,7 @@ import io.github.youndie.kompot.KompotScreenLoader
 import io.github.youndie.kompot.form.FormController
 import io.github.youndie.kompot.form.FormSchema
 import io.github.youndie.kompot.realtime.KompotRealtimeSource
+import io.github.youndie.kompot.rememberKompotScreenLoaderState
 import io.github.youndie.kompot.standard.CloseAction
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
@@ -75,6 +82,9 @@ import kotlin.time.Instant
 
 /** The tag around a page still on its way, for the tests that tell loading from loaded. */
 public const val LOADING_TAG: String = "page-loading"
+
+/** The tag on the page's scroll, for the tests that tell a kept page's scroll from a new one's. */
+public const val PAGE_SCROLL_TAG: String = "page-scroll"
 
 /** How long typing has to pause before the suggest panel is asked for. */
 internal const val SUGGEST_DELAY_MS: Long = 250
@@ -110,6 +120,13 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * screenshot — it is drawn as it loaded. The phone's filter sheet is held here, above the page
  * ([FiltersSheetState], B-54): it stays open over the pages its own presses open, and any other new page
  * closes it.
+ *
+ * A screen is a path (B-62). A new address on the same path — a facet, a sort, a page of results, back
+ * or forward between two of them — loads behind the page that is drawn, which keeps its scroll and what
+ * its nodes hold open, with a [LoadingLine] under the header until the tree arrives; one that does not
+ * arrive leaves the page as it was under a [NotUpdatedNotice] with Retry. An address on another path
+ * draws its placeholder and starts at the top. A customer's page refused for a lapsed sign-in is not
+ * kept: it is taken down and asks for the sign-in as above.
  */
 @Composable
 public fun Storefront(
@@ -179,6 +196,7 @@ public fun Storefront(
 
     // The header the client last drew: a page that is not there is drawn under it (Product_NotFound).
     var header by remember { mutableStateOf<HaulHeader?>(null) }
+    var signedOut by remember { mutableIntStateOf(0) }
     val home = remember(navigator) { { navigator.open("/") } }
     // The suggest panel is drawn by the shell, not by a renderer, so its links are followed here.
     val panelActions = remember(navigator) { navigating(navigator) }
@@ -194,49 +212,87 @@ public fun Storefront(
     ) {
         SearchSuggestOverlay(panel, highlighted = -1, field = field, onDismiss = dismiss, onClear = clearRecent) {
             val address = navigator.address
-            key(address) {
-                // What a `present` put over the page; a new page starts without one.
-                var presented by remember { mutableStateOf<Presented?>(null) }
-                // A page refused for want of a sign-in asks for one (B-44); [loads] counts the page's loads
-                // after a sign-in or a lapsed one, and [signedInFor] is the load a sign-in from here asked
-                // for — refused again, that one is an error page, not another prompt.
-                var loads by remember { mutableIntStateOf(0) }
-                var signedInFor by remember { mutableIntStateOf(-1) }
+            // A screen is a path (B-62): `/c/mugs?brand=Ostra` loads behind the drawn `/c/mugs`, which keeps
+            // its scroll and whatever its nodes hold open; another path is another screen, drawn from its
+            // placeholder at the top. [signedOut] counts the pages a lapsed sign-in took down: a customer's
+            // page is not kept for a shopper who is a guest now.
+            val screen = address.path to signedOut
+            key(screen) {
+                // Where the screen's loads are: the tree drawn, a load on its way, why the last one failed.
+                val loader = rememberKompotScreenLoaderState()
+                val scroll = rememberScrollState()
+                // What a `present` put over the page; a new address starts without one.
+                var presented by remember(address) { mutableStateOf<Presented?>(null) }
+                // A page refused for want of a sign-in asks for one (B-44); [loads] counts the address's loads
+                // after a sign-in, and [signedInFor] is the load a sign-in from here asked for — refused again,
+                // that one is an error page, not another prompt.
+                var loads by remember(address) { mutableIntStateOf(0) }
+                var signedInFor by remember(address) { mutableIntStateOf(-1) }
                 // The channel the page's tree named, when it named one (B-29).
                 var topic by remember { mutableStateOf<String?>(null) }
                 val live = remember(topic, realtime) { realtime?.let { source -> topic?.let { Live(it, source) } } }
+                // How tall the page's header is drawn: the line of a load on its way sits under it.
+                var headerHeight by remember { mutableIntStateOf(0) }
+                val measured = remember { { height: Int -> headerHeight = height } }
                 Box(Modifier.fillMaxSize()) {
-                    Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                    CompositionLocalProvider(LocalHeaderMeasured provides measured) {
                         KompotScreenLoader(
                             key = address to loads,
+                            screenKey = screen,
+                            state = loader,
                             load = { transport.screen(address.screen).also { topic = it.realtimeTopic }.tree },
-                            loading = { Box(Modifier.testTag(LOADING_TAG)) { Loading(address) } },
+                            loading = { Scrolled(scroll) { Box(Modifier.testTag(LOADING_TAG)) { Loading(address) } } },
                             failed = { cause, retry ->
-                                if (cause.asksForSignIn && signedInFor != loads) {
-                                    SignInPrompt(address, header ?: SHELL_HEADER, signIn, navigator) {
-                                        loads += 1
-                                        signedInFor = loads
+                                when {
+                                    loader.screen == null -> {
+                                        Scrolled(scroll) {
+                                            if (cause.asksForSignIn && signedInFor != loads) {
+                                                SignInPrompt(address, header ?: SHELL_HEADER, signIn, navigator) {
+                                                    loads += 1
+                                                    signedInFor = loads
+                                                }
+                                            } else {
+                                                Failed(address, cause, header ?: SHELL_HEADER, retry, home)
+                                            }
+                                        }
                                     }
-                                } else {
-                                    Failed(address, cause, header ?: SHELL_HEADER, retry, home)
+
+                                    cause.asksForSignIn -> {
+                                        LaunchedEffect(cause) { signedOut += 1 }
+                                    }
+
+                                    else -> {
+                                        LaunchedEffect(cause) { filters.settled() }
+                                        Box(
+                                            Modifier.fillMaxSize().padding(16.dp),
+                                            contentAlignment = Alignment.BottomCenter,
+                                        ) {
+                                            NotUpdatedNotice(cause, retry)
+                                        }
+                                    }
                                 }
                             },
                         ) { tree ->
-                            Shown(
-                                tree,
-                                address,
-                                transport,
-                                navigator,
-                                registry,
-                                signIn,
-                                live,
-                                { header = it },
-                                { loads += 1 },
-                            ) {
-                                presented =
-                                    it
+                            Scrolled(scroll) {
+                                Shown(
+                                    tree,
+                                    address,
+                                    transport,
+                                    navigator,
+                                    registry,
+                                    signIn,
+                                    live,
+                                    { header = it },
+                                    { signedOut += 1 },
+                                ) {
+                                    presented =
+                                        it
+                                }
                             }
                         }
+                    }
+                    if (loader.isLoading && loader.screen != null) {
+                        LoadingLine(Modifier.offset { IntOffset(0, (headerHeight - scroll.value).coerceAtLeast(0)) })
                     }
                     presented?.let { shown ->
                         val forms = remember { FormController(FormSchema(formId = "none", fields = emptyList())) }
@@ -250,6 +306,15 @@ public fun Storefront(
             FiltersSheetOverlay(filters)
         }
     }
+}
+
+/** The page's own scroll: one per screen, so a new address of the screen keeps it and another path starts at the top. */
+@Composable
+private fun Scrolled(
+    scroll: ScrollState,
+    content: @Composable () -> Unit,
+) {
+    Box(Modifier.testTag(PAGE_SCROLL_TAG).fillMaxSize().verticalScroll(scroll)) { content() }
 }
 
 /** The channel a screen named ([topic]) and where its updates come from. */
@@ -312,9 +377,7 @@ private fun Shown(
         if (live == null) {
             KompotScreen(tree, registry, forms, actions)
         } else {
-            key(tree) {
-                KompotRealtimeProvider(live.topic, live.source, { KompotScreen(tree, registry, forms, actions) })
-            }
+            KompotRealtimeProvider(live.topic, live.source, { KompotScreen(tree, registry, forms, actions) })
         }
     }
 }

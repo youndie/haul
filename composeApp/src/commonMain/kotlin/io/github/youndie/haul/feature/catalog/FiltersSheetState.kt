@@ -18,14 +18,19 @@ import io.github.youndie.kompot.standard.NavigateAction
 
 /**
  * The phone's filter sheet, held by the shell rather than by the page under it (B-54). Every press in
- * the sheet — a facet, «Show N more», «Clear all» — is a `navigate`, and the shell draws each address
- * as a page of its own, so a sheet the page remembered closed after every press. Held here, it stays
- * open across the navigations its own presses cause and is drawn again from each new page's results
+ * the sheet — a facet, «Show N more», «Clear all» — is a `navigate`. Held here, the sheet stays open
+ * across the navigations its own presses cause and is drawn again from each new page's results
  * ([drawn]); any other arrival — back, forward, a link outside the sheet — closes it ([arrived]).
+ *
+ * Since B-62 the page under the sheet is kept while the next address of its screen loads, so a sheet
+ * the page remembered would no longer close after every press — but it would stay open on back and
+ * forward too, which keep the page as well; only the shell sees where an arrival came from. That is why
+ * the sheet is still held here.
  *
  * Between a press and the page it opens the sheet still shows the old page's facets, whose addresses
  * do not carry the press just made: a second tick then would open the page without the first. So until
- * the new page is drawn the sheet's facets follow nothing ([following]); «×» still closes it.
+ * the new page is drawn the sheet's facets follow nothing ([following]); «×» still closes it. A page
+ * that does not arrive leaves the old one drawn, whose facets are true again ([settled]).
  */
 @Stable
 public class FiltersSheetState {
@@ -62,6 +67,11 @@ public class FiltersSheetState {
     ) {
         if (shown == null) return
         shown = results to actions
+        following = false
+    }
+
+    /** The page its press asked for did not arrive and the page under the sheet stayed: its facets are followed again. */
+    public fun settled() {
         following = false
     }
 

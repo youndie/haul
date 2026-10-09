@@ -1,5 +1,6 @@
 package io.github.youndie.haul.registry
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -7,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -80,6 +82,7 @@ import io.github.youndie.haul.ui.SearchNoResults
 import io.github.youndie.haul.ui.SectionHeader
 import io.github.youndie.haul.ui.SpecificationList
 import io.github.youndie.haul.ui.gutter
+import io.github.youndie.haul.ui.headerMeasured
 import io.github.youndie.kompot.KompotActionHandler
 import io.github.youndie.kompot.KompotComponentRenderer
 import io.github.youndie.kompot.form.FormController
@@ -97,7 +100,11 @@ public class HaulHeaderRenderer : KompotComponentRenderer<HaulHeader> {
         actionHandler: KompotActionHandler,
         formController: FormController,
     ) {
-        HaulHeaderView(component, onAccount = component.account?.let { action -> { actionHandler.handle(action) } })
+        HaulHeaderView(
+            component,
+            Modifier.headerMeasured(),
+            onAccount = component.account?.let { action -> { actionHandler.handle(action) } },
+        )
     }
 }
 
@@ -229,7 +236,9 @@ public class FilterChipsRenderer : KompotComponentRenderer<FilterChips> {
 /**
  * The results with their filters; on a phone «Filters» opens the facets as a full-screen sheet. The
  * sheet is the shell's ([LocalFiltersSheet], B-54), so it outlives this page when a press in it opens
- * the next one; each page drawn hands it its results.
+ * the next one; each page drawn hands it its results. Only new results do: the page's handler changes
+ * with the address, before the tree of that address has arrived (B-62), and the sheet must go on
+ * following nothing until it has.
  */
 @KompotComponentMarker
 public class FilteredResultsRenderer : KompotComponentRenderer<FilteredResults> {
@@ -240,7 +249,8 @@ public class FilteredResultsRenderer : KompotComponentRenderer<FilteredResults> 
         formController: FormController,
     ) {
         val sheet = LocalFiltersSheet.current
-        LaunchedEffect(sheet, component, actionHandler) { sheet?.drawn(component, actionHandler) }
+        val actions by rememberUpdatedState(actionHandler)
+        LaunchedEffect(sheet, component) { sheet?.drawn(component, actions) }
         FilteredResultsView(component, onOpenFilters = sheet?.let { { it.open(component, actionHandler) } })
     }
 }
@@ -455,7 +465,9 @@ public class CheckoutHeaderRenderer : KompotComponentRenderer<CheckoutHeader> {
         actionHandler: KompotActionHandler,
         formController: FormController,
     ) {
-        CheckoutHeaderView(component, onHome = component.home?.let { home -> { actionHandler.handle(home) } })
+        Box(Modifier.headerMeasured()) {
+            CheckoutHeaderView(component, onHome = component.home?.let { home -> { actionHandler.handle(home) } })
+        }
     }
 }
 
