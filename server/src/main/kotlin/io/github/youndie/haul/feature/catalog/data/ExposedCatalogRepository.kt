@@ -126,6 +126,7 @@ internal class ExposedCatalogRepository(
                     it[CampaignsTable.tone],
                     it[CampaignsTable.startsAt],
                     it[CampaignsTable.endsAt],
+                    it[CampaignsTable.plusEarlyAccessAt],
                 )
             }
         }

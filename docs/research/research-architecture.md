@@ -723,7 +723,7 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   sale sooner for a member and keeps it no longer. Every read that prices a SKU passes through it, so the card, the
   product page, search, Saved, the cart, the quote and placement all return to the regular price together, and a line
   put into a cart at the sale's price is a changed price (B-11's rule). A deal that outlives its campaign beats the
-  regular price. The home page's banners are not ended here (B-59).
+  regular price. What announces the sale on home and in the empty cart ends with it too (B-59, below).
 - **No deals, no section.** «Deals of the day» on home and on the deals page, and the empty cart's «Picked for you»
   (made from the same deals), are drawn only while a deal is live; with none the header, its countdown and the grid
   are all left out, rather than a header over nothing.
@@ -751,6 +751,23 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   campaign and keeps the canvas's window, expired on every stand as on the canvas; a store's own code is never read.
   The link is the seed's, not a column: nothing but the seed would read a `promo_codes.campaign_slug`, a code's
   validity is its own window, and a column would not tell the seed's code from a store's own code of the same sale.
+
+**Decided in B-59, home's promo banners lead somewhere.**
+
+- **A campaign's banner opens the deals page** (`HomeScreen.banner`, `PromoBanner.action`, `/deals`). The decision
+  was the deals page filtered to the campaign, or the deals page itself when the campaign has no page of its own; a
+  campaign has SKUs only through `skus.campaign_slug`, and in the seed only the sale names any, so neither banner's
+  campaign (Tech week, the free-delivery weekend) has a page and `/deals` takes no campaign filter. A filter
+  (`/deals?campaign=<slug>`) is for the first banner whose campaign sells SKUs of its own. No seeded banner is for
+  Haul Plus, so the Plus clause of the decision (the header pill's action, B-49) has nothing to apply to yet.
+- **The sale is the first campaign by position** (`liveSale`, `feature/catalog/domain/Catalog.kt`): home's hero
+  announces it and the empty cart's line names it. The hero is drawn while the sale is live for the viewer
+  (`CampaignWindow.liveFor` — a Plus member's from its early access); the campaign row is the hero's, so without it
+  the banners are not drawn either. Each banner is drawn until its campaign ends — not only while it is live, since
+  the canvas draws the free-delivery weekend days before it opens.
+- **The empty cart's line** («Today's deals end at midnight — up to −70 % in the Autumn mega sale.») names today's
+  deals and the sale, so it is drawn only while a deal is live and the sale is live for the cart's owner; otherwise
+  `EmptyState.text` is left out (it became optional on the wire), and the title and «See today's deals» stay.
 
 **How the stand is built (B-27).** One image serves the page and the API: the server's distribution
 carries the browser bundle and serves it at `/`, so the two cannot be deployed at different versions

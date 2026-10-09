@@ -75,6 +75,10 @@ internal data class Sku(
     val stock: Int,
 )
 
+/**
+ * A campaign as home draws it (B-59): the first by [position] is the sale its hero announces, drawn while
+ * the sale is live for the viewer ([window]); the others are its banners, drawn until they end.
+ */
 internal data class Campaign(
     val slug: String,
     val title: String,
@@ -83,7 +87,26 @@ internal data class Campaign(
     val tone: String,
     val startsAt: OffsetDateTime,
     val endsAt: OffsetDateTime,
-)
+    val plusEarlyAccessAt: OffsetDateTime?,
+) {
+    /** When its prices hold — the rule a SKU of it is priced by ([CampaignPricing]). */
+    val window: CampaignWindow get() = CampaignWindow(startsAt, endsAt, plusEarlyAccessAt)
+
+    /** From its [endsAt] on nothing of it is drawn — not even for a Plus member, whose early access ends there too. */
+    fun endedAt(at: OffsetDateTime): Boolean = !at.isBefore(endsAt)
+}
+
+/**
+ * The sale home's hero announces and the empty cart's line names («up to −70 % in the Autumn mega sale»):
+ * the first of [campaigns] by position, while it is live for [prices] at [at] — a Plus member's from its
+ * early access — else `null`, and then neither is drawn (B-59). Before, both were drawn for good: past the
+ * sale's end the hero announced a sale whose prices were gone (B-58's findings).
+ */
+internal fun liveSale(
+    campaigns: List<Campaign>,
+    prices: PriceList,
+    at: OffsetDateTime,
+): Campaign? = campaigns.minByOrNull { it.position }?.takeIf { it.window.liveFor(prices, at) }
 
 /**
  * A price of one SKU for a window (B-57): live from [startsAt] up to, not including, [endsAt] on the
