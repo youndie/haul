@@ -2,7 +2,7 @@
 id: feature-product
 title: Product page
 type: feature
-status: draft
+status: active
 owner: unassigned
 involved_services:
   - haul-shared
@@ -24,19 +24,21 @@ tags: []
 
 Everything needed to decide: photos (a stored photo when there is one, placeholder tiles otherwise — B-30), variants, price, delivery options with dates, returns, the seller, description, specifications, reviews and questions — and the buttons that buy it («Add to cart», «Buy now», B-48) or keep it (the heart and «Save», B-20).
 
-> Still not built, which keeps this document a draft: «12K bought this month», which the server does
-> not send (`ProductDetails.bought` is never set; no backlog item builds it yet).
+> Described as built, «12K bought this month» included (B-52, research D6 «Decided in B-52»). The page's
+> price is the viewer's: a Plus member's opens a campaign at its early-access time (B-53,
+> [feature-browse](feature-browse.md)).
 
 ## 2. Business rules
 
 * choosing a colour and a bundle selects one `Sku`; price, old price, discount and stock follow it;
+* the page writes the brand above the product's **title**; cards, cart lines and order lines write its listing name instead (B-45, [feature-browse](feature-browse.md));
 * delivery estimate per method for the customer's default address: courier «tomorrow» when ordered before the seller's cut-off (23:30 local) and in stock, otherwise the day after; pickup point and locker one day later than courier; free over $35 or for Plus (§8);
 * «Order within 3 h 42 min» counts down to the cut-off;
 * a `Sku` with stock 0 cannot be added to the cart; the page says «Out of stock», draws «Add to cart» and «Buy now» greyed with no command, and keeps «Save»;
 * **«Add to cart»** (`ProductDetails.add`) is the card's «+» for the SKU the page shows: one more of it, through the cart's `PUT /api/v1/cart/lines/{skuId}`, the line's selection left alone; the page redraws with the header's count; it is absent at the line's limit (ten, or the whole stock);
 * **«Buy now»** (`ProductDetails.buy`) is the same line with `selected = true` — checkout takes the selected lines only — then a navigate fixed in the tree (`LineCommand.next`): `/checkout` for a customer, **`/sign-in?next=%2Fcheckout` for a guest** (the cart's «Sign in to check out» address, so both ways into checkout run one sign-in and one cart merge; decided as product owner, B-48); at the line's limit it only selects and goes on; the client follows `next` only when the change was accepted — a refused «Buy now» redraws the page and goes nowhere;
 * the heart and «Save» keep the product in the customer's Saved list (`ProductDetails.heartCommand`: `PUT` to keep, `DELETE` to let go) and are drawn filled when it is there; a guest's lead to `/sign-in` ([feature-account](feature-account.md));
-* *not built*: «12K bought this month» is the count of delivered and in-transit units in the last 30 days, rounded down to thousands above 1,000;
+* **«12K bought this month»** (`ProductDetails.bought`, B-52) counts the product's units across its SKUs in orders whose status is `placed`, placed within the last 30 store days up to now on the store clock — `cancelled` orders and orders still `placing` are out, a returned order still counts — plus the seed's base (`products.bought_base`, V23: the headphones 12,340, the duvet cover set 2,180, the mug 840); below 50 there is no line; the number is truncated, never rounded up (`compactCount`): «840», «1K», «1.2K», «12K», «600K», «1.2M»; one aggregate query per page, cards do not show it;
 * opening the page as a customer records a view for «Picked for you» (B-25, [feature-recommendations](feature-recommendations.md)): beside the page's reads, never failing the page; a guest's views are not kept;
 * under the price, for prices between $50 and $2,000: «or 4 payments of $87.25 with Haul Pay» (the price ÷ 4, rounded to cents).
 
@@ -83,6 +85,12 @@ code, not observed, until this document goes `active`.
 * **Given:** the colour «Silver», out of stock
 * **Then:** neither «Add to cart» nor «Buy now» carries a command, and pressing them sends nothing.
 * **Automated:** `ProductButtonsTest.out of stock neither add to cart nor buy now is offered`, `BuyBoxWiringTest.out of stock neither button sends anything`
+
+### Scenario: Bought this month
+* **Given:** orders of a product inside and outside the last 30 days, cancelled, still placing, and of another product
+* **When:** the product page is drawn
+* **Then:** only the placed units inside the window count, a refunded order included; at 49 there is no line, at 50 «50 bought this month»; the headphones read «12K bought this month», as the canvas draws.
+* **Automated:** `BoughtThisMonthTest.only placed orders of the product inside the last thirty days count`, `BoughtThisMonthTest.below fifty the page says nothing`, `BoughtThisMonthTest.orders add to the base the seed gives` (`server/src/test/kotlin/io/github/youndie/haul/feature/catalog/BoughtThisMonthTest.kt`), `CompactCountTest.counts abbreviate as the canvas writes them`, `ProductRoutesTest.the headphones carry the bought line the canvas draws`
 
 ### Scenario: Unknown product
 * **When:** the client asks for a product id that does not exist

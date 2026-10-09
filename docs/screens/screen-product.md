@@ -38,7 +38,7 @@ design:
 | Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/product/` |
 | Client shell: Loading and Error | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` |
 | The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/`; the reviews and questions tabs and their dialogs in `server/src/main/kotlin/io/github/youndie/haul/feature/reviews/screen/ReviewTabs.kt` |
-| The dialogs and their commands | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/product/ReviewDialogs.kt`, `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/product/ReviewCommandsClient.kt`; the shell draws a `present` over the page (`presenting` in `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Storefront.kt`) |
+| The dialogs and their commands | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/product/ReviewDialogs.kt`, the one seam for the commands a tree fixes `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/TreeCommands.kt` (B-51); the shell draws a `present` over the page (`presenting` in `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Storefront.kt`) |
 | Reference PNGs, one per artboard | `composeApp/src/desktopTest/snapshots/design/` |
 | Parity fixtures, one per artboard | `composeApp/src/desktopTest/kotlin/io/github/youndie/haul/ProductFixtures.kt` |
 
@@ -92,8 +92,11 @@ Desktop artboards are named as in `design.states`; each has a phone twin with th
 
 ## 6. Quirks
 
-- «12K bought this month» under the title is drawn from the fixture bodies only: the server does not
-  send `ProductDetails.bought`, so the page on the stand has no such line ([feature-product](../features/feature-product.md)).
+- «12K bought this month» is the server's since B-52; on the stand the seed's base makes the headphones
+  read as the canvas does ([feature-product](../features/feature-product.md)).
+- The review and question dialogs write the product as «brand + title», not its listing name: equal for
+  the headphones, «Brooklyn Home Co. Linen Duvet …» for the duvet where the canvas writes the shorter
+  form (B-45's findings; a person's call).
 - The client's product fixture bodies carry no `add` or `buy`: the commands draw nothing, and the bodies
   are held equal to the server only in their tabs and reviews (`ReviewFixturesTest`).
 - «Helpful» has no pressed look — the canvas draws one state; after a vote only the count says so.
