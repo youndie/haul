@@ -444,6 +444,10 @@ internal class FakeHistory(
         index = entries.lastIndex
     }
 
+    override fun replace(location: String) {
+        entries[index] = location
+    }
+
     override fun listen(listener: (location: String) -> Unit): () -> Unit {
         listeners += listener
         return { listeners -= listener }
@@ -452,6 +456,12 @@ internal class FakeHistory(
     /** The back button: the browser moves first, then tells the page where it arrived. */
     fun back() {
         index -= 1
+        listeners.toList().forEach { it(location) }
+    }
+
+    /** The forward button, the same way. */
+    fun forward() {
+        index += 1
         listeners.toList().forEach { it(location) }
     }
 }

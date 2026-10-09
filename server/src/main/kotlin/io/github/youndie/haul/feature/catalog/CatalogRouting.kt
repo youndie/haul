@@ -13,7 +13,10 @@ import io.github.youndie.haul.feature.catalog.screen.ProductScreen
 import io.github.youndie.haul.feature.catalog.screen.ProductTab
 import io.github.youndie.haul.feature.recommendations.domain.RecordView
 import io.github.youndie.haul.haulWireJson
+import io.github.youndie.haul.shell.Parts
 import io.github.youndie.haul.shell.Viewers
+import io.github.youndie.haul.shell.node
+import io.github.youndie.haul.shell.respondParts
 import io.github.youndie.kompot.ktor.respondKompotComponent
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -46,12 +49,17 @@ internal fun Route.catalogRouting() {
     get("/ui/home") { call.respondKompotComponent(haulWireJson, home.build(viewers.of(call))) }
 
     get("/ui/deals") {
-        val page =
-            call.request.queryParameters["page"]?.let {
-                it.toIntOrNull()?.takeIf { p -> p >= 1 }
-                    ?: throw CatalogError.Invalid("page", "Pages start at 1, not «$it»")
-            } ?: 1
-        call.respondKompotComponent(haulWireJson, deals.build(page, viewers.of(call)))
+        call.respondKompotComponent(
+            haulWireJson,
+            deals.build(dealsPage(call.request.queryParameters), viewers.of(call)),
+        )
+    }
+
+    // A page of the deals loaded in place (B-63, kind `load`): the grid and the pages. A page with the deals
+    // of the day — the first — cannot be partial, since the page drawn may not have them, nor they a page.
+    get("${Parts.PREFIX}/deals") {
+        val page = deals.build(dealsPage(call.request.queryParameters), viewers.of(call))
+        call.respondParts(page.takeIf { it.node(DealsScreen.TODAY) == null }, DealsScreen.PARTS)
     }
 
     // `/ui/c` itself — no category in the path — is the catalog's root (B-49), every top-level category.
@@ -69,6 +77,25 @@ internal fun Route.catalogRouting() {
             haulWireJson,
             catalog.build(catalogRequest(path, call.request.queryParameters), viewers.of(call)),
         )
+    }
+
+    // A filter, a sort or a page of a category loaded in place (B-63, kind `load`): its title, kinds and
+    // results. A category that is no longer there cannot be partial: the answer opens the address, whose
+    // page says so. The root has no filters, so nothing loads its parts.
+    get("${Parts.PREFIX}/c/{path...}") {
+        val path =
+            call.parameters
+                .getAll("path")
+                .orEmpty()
+                .joinToString("/")
+        val request = catalogRequest(path, call.request.queryParameters)
+        val page =
+            try {
+                if (path.isEmpty()) null else catalog.build(request, viewers.of(call))
+            } catch (_: CatalogError.CategoryNotFound) {
+                null
+            }
+        call.respondParts(page, CatalogScreen.PARTS, CatalogScreen.OPTIONAL_PARTS)
     }
 
     // Opening a product page is the view «Picked for you» is made from (B-25): the tree is what a shopper
@@ -117,6 +144,13 @@ private fun photoType(stored: String): ContentType =
         .getOrNull()
         ?.takeIf { it.match(ContentType.Image.Any) }
         ?: ContentType.Application.OctetStream
+
+/** The deals' page number, `1` when the query names none. */
+private fun dealsPage(query: Parameters): Int =
+    query["page"]?.let {
+        it.toIntOrNull()?.takeIf { p -> p >= 1 }
+            ?: throw CatalogError.Invalid("page", "Pages start at 1, not «$it»")
+    } ?: 1
 
 /** The category page's query, refused field by field (`validation_failed`) rather than ignored. */
 internal fun catalogRequest(

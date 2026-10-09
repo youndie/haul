@@ -29,6 +29,9 @@ import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.SectionHeader
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.commands.LoadAction
+import io.github.youndie.kompot.commands.UpdateAction
+import io.github.youndie.kompot.decodeKompotAction
 import io.github.youndie.kompot.decodeKompotComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import io.ktor.client.HttpClient
@@ -45,8 +48,8 @@ import kotlin.test.assertTrue
 
 /**
  * B-37 and B-49: the controls the screens drew without anything to follow now carry an action in the
- * tree — a `navigate` to an address the client maps to a screen route, or a cart command — and following
- * it answers the page the control promises. A recent search's row is `RecentSearchesRoutesTest`'s and
+ * tree — a `navigate` to an address the client maps to a screen route, a `load` of the parts of one
+ * (B-63), or a cart command — and following it answers the page the control promises. A recent search's row is `RecentSearchesRoutesTest`'s and
  * the «HAUL PLUS» pill of a customer `MembershipRoutesTest`'s, both against a running shildik.
  */
 class DrawnActionsTest {
@@ -83,7 +86,7 @@ class DrawnActionsTest {
             val first = tree("/ui/c/electronics?rating=4.0&sort=price-asc")
             val pagination = first.only<HaulPagination>()
             assertTrue(pagination.pages.size > 1, "one page of electronics rated 4 and up — nothing to page through")
-            assertEquals(NavigateAction("/c/electronics?rating=4.0&sort=price-asc&page=2"), pagination.moreAction)
+            assertEquals(LoadAction("/ui/parts/c/electronics?rating=4.0&sort=price-asc&page=2"), pagination.moreAction)
             assertEquals(pagination.pages.filter { it != "1" && it != "…" }, pagination.links.map { it.label })
 
             val second = follow(pagination.moreAction)
@@ -94,7 +97,7 @@ class DrawnActionsTest {
             assertEquals(1, second.only<AppliedFilters>().filterCount, "the rating was lost on the way")
             // Back to the first page from the second: no `page` in the address.
             val back = second.only<HaulPagination>().links.single { it.label == "1" }
-            assertEquals(NavigateAction("/c/electronics?rating=4.0&sort=price-asc"), back.action)
+            assertEquals(LoadAction("/ui/parts/c/electronics?rating=4.0&sort=price-asc"), back.action)
 
             val last = tree("/ui/c/electronics?rating=4.0&page=${pagination.pages.last()}").only<HaulPagination>()
             assertNull(last.moreAction, "«Show 24 more» on the last page")
@@ -109,7 +112,7 @@ class DrawnActionsTest {
                 applied.sorts.map { it.label },
             )
             val cheapest = applied.sorts.single { it.label == "Price: low to high" }
-            assertEquals(NavigateAction("/c/headphones?brand=Sony&sort=price-asc"), cheapest.action)
+            assertEquals(LoadAction("/ui/parts/c/headphones?brand=Sony&sort=price-asc"), cheapest.action)
             val sorted = follow(cheapest.action)
             assertEquals("Price: low to high", sorted.only<AppliedFilters>().sortLabel)
             val prices = sorted.only<ProductGrid>().cards.map(::dollars)
@@ -121,7 +124,7 @@ class DrawnActionsTest {
     fun `clear all drops every filter and keeps the sort`() =
         haulTest {
             val applied = tree("/ui/c/headphones?brand=Sony&colour=Black&sort=rating").only<AppliedFilters>()
-            assertEquals(NavigateAction("/c/headphones?sort=rating"), applied.clearAction)
+            assertEquals(LoadAction("/ui/parts/c/headphones?sort=rating"), applied.clearAction)
             val cleared = follow(applied.clearAction).only<AppliedFilters>()
             assertEquals(0, cleared.filterCount)
             assertEquals("Rating", cleared.sortLabel)
@@ -132,7 +135,7 @@ class DrawnActionsTest {
         haulTest {
             val pagination = tree("/ui/search?q=everyday").only<HaulPagination>()
             assertTrue(pagination.pages.size > 1, "one page of «everyday» — nothing to page through")
-            assertEquals(NavigateAction("/search?q=everyday&page=2"), pagination.moreAction)
+            assertEquals(LoadAction("/ui/parts/search?q=everyday&page=2"), pagination.moreAction)
             assertEquals(2, follow(pagination.moreAction).only<HaulPagination>().current)
         }
 
@@ -142,7 +145,8 @@ class DrawnActionsTest {
             val guest = guest()
             val mug = "${SampleCatalog.STONEWARE_MUG}-0"
             val add = assertNotNull(mugCard(guest).add, "a mug in stock has no «+»")
-            assertEquals(CartPaths.line(mug), add.url)
+            // Answered with the header and the card again (B-63, `LineAnswersTest`).
+            assertEquals(CartPaths.line(mug) + "?answer=card", add.url)
             assertEquals(LineChange(quantity = 1), add.change)
 
             putLine(guest, mug, add.change).assertRefresh()
@@ -188,7 +192,7 @@ class DrawnActionsTest {
                     .filterIsInstance<ProductGrid>()
                     .single { it.id == "deals" }
                     .cards
-                    .mapNotNull { it.add?.url }
+                    .mapNotNull { it.add?.url?.substringBefore('?') }
             assertTrue(adds.isNotEmpty(), "no deal offers «+»")
             assertTrue(dealLines.containsAll(adds), "a deal's «+» adds another SKU: $adds")
         }
@@ -279,7 +283,7 @@ class DrawnActionsTest {
             val more = assertNotNull(shown.moreLabel, "electronics shows every brand — nothing to expand")
             val hidden = more.removePrefix("Show ").removeSuffix(" more").toInt()
             assertEquals(
-                NavigateAction("/c/electronics?rating=4.0&expand=brand&sort=price-asc&page=2"),
+                LoadAction("/ui/parts/c/electronics?rating=4.0&expand=brand&sort=price-asc&page=2"),
                 shown.moreAction,
             )
 
@@ -349,10 +353,36 @@ class DrawnActionsTest {
         return haulWireJson.decodeKompotComponent(response.bodyAsText())
     }
 
-    /** Where the client goes for a `navigate`: the same address under `/ui`, `/` being `/ui/home`. */
+    /**
+     * Where the client goes for a `navigate`: the same address under `/ui`, `/` being `/ui/home`. A `load`
+     * (B-63) is answered with the address its parts make, and the page there is what the shopper then sees.
+     */
     private suspend fun HttpClient.follow(action: KompotAction?): KompotComponent {
-        val deeplink = assertNotNull(action as? NavigateAction, "$action is not a navigate").deeplink
+        val deeplink =
+            when (action) {
+                is NavigateAction -> {
+                    action.deeplink
+                }
+
+                is LoadAction -> {
+                    assertNotNull(
+                        answer(action.url) as? UpdateAction,
+                        "${action.url} is no update",
+                    ).deeplink
+                }
+
+                else -> {
+                    null
+                }
+            }
+        assertNotNull(deeplink, "$action leads nowhere")
         return tree(if (deeplink == "/") "/ui/home" else "/ui$deeplink")
+    }
+
+    private suspend fun HttpClient.answer(url: String): KompotAction {
+        val response = get(url)
+        assertEquals(HttpStatusCode.OK, response.status, response.bodyAsText())
+        return haulWireJson.decodeKompotAction(response.bodyAsText())
     }
 
     private fun dollars(card: ProductCard): Double =

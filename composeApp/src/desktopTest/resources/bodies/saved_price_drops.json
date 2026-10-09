@@ -317,8 +317,8 @@
                         "label": "All",
                         "count": "48",
                         "action": {
-                            "type": "navigate",
-                            "deeplink": "/account/saved"
+                            "type": "load",
+                            "url": "/ui/parts/account/saved"
                         }
                     },
                     {
@@ -326,8 +326,8 @@
                         "count": "6",
                         "selected": true,
                         "action": {
-                            "type": "navigate",
-                            "deeplink": "/account/saved?filter=price-dropped"
+                            "type": "load",
+                            "url": "/ui/parts/account/saved?filter=price-dropped"
                         }
                     }
                 ],

@@ -27,6 +27,9 @@ kotlin {
             api(libs.kompot.core)
             // The containers and text the trees are laid out with (column, row, box, tabs, text).
             api(libs.kompot.standard)
+            // `load` and `update` (B-63): a tree carries `load` on a filter, a command answers `update`, and
+            // the wire JSON has to know both to write them.
+            api(libs.kompot.commands)
             implementation(libs.kompot.registryAnnotations)
         }
         commonTest.dependencies {

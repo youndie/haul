@@ -4,6 +4,7 @@ import io.github.youndie.haul.feature.cart.domain.CartCommands
 import io.github.youndie.haul.feature.cart.domain.CartError
 import io.github.youndie.haul.feature.cart.domain.CartOwner
 import io.github.youndie.haul.feature.cart.screen.CartScreen
+import io.github.youndie.haul.feature.catalog.screen.LineAnswers
 import io.github.youndie.haul.feature.identity.Caller
 import io.github.youndie.haul.feature.identity.Callers
 import io.github.youndie.haul.feature.identity.domain.IdentityError
@@ -26,14 +27,16 @@ import org.koin.ktor.ext.inject
  * The cart (endpoint-cart), in the public tier: the caller is a customer by a verified bearer token,
  * or else a guest named by `X-Haul-Guest`; a request with neither — or naming a guest the server never
  * issued — is `401 unauthenticated`. A token and a guest id together are the customer (feature-identity).
- * Every command answers `refresh`, which redraws the cart and the header's count; every refusal is a
- * [CartError] or an [IdentityError].
+ * Every command answers `refresh`, which redraws the cart and the header's count — but a card's «+» and the
+ * product page's «Add to cart», whose address names the node they redraw, answer `update` of the header and
+ * that node ([LineAnswers], B-63). Every refusal is a [CartError] or an [IdentityError].
  */
 internal fun Route.cartRouting() {
     val screen by inject<CartScreen>()
     val commands by inject<CartCommands>()
     val callers by inject<Callers>()
     val viewers by inject<Viewers>()
+    val answers by inject<LineAnswers>()
 
     suspend fun ApplicationCall.caller(): Caller = callers.of(this)
 
@@ -48,9 +51,11 @@ internal fun Route.cartRouting() {
     }
 
     put(CartPaths.LINE) {
-        val owner = call.owner()
-        commands.changeLine(owner, call.parameters["skuId"]!!, call.body(LineChange.serializer()))
-        call.refresh()
+        val caller = call.caller()
+        val owner = caller.owner() ?: throw IdentityError.Unauthenticated()
+        val skuId = call.parameters["skuId"]!!
+        commands.changeLine(owner, skuId, call.body(LineChange.serializer()))
+        call.respondKompotAction(haulWireJson, answers.after(call.request.queryParameters, skuId, viewers.of(caller)))
     }
 
     delete(CartPaths.LINES) {

@@ -3,6 +3,7 @@ package io.github.youndie.haul.registry
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -62,6 +63,7 @@ import io.github.youndie.haul.ui.HaulFooterView
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HaulHeaderView
 import io.github.youndie.haul.ui.HaulPagination
+import io.github.youndie.haul.ui.LocalCardNodes
 import io.github.youndie.haul.ui.OrderBody
 import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.PlusBlock
@@ -85,6 +87,7 @@ import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.headerMeasured
 import io.github.youndie.kompot.KompotActionHandler
 import io.github.youndie.kompot.KompotComponentRenderer
+import io.github.youndie.kompot.LocalKompotRegistry
 import io.github.youndie.kompot.form.FormController
 import io.github.youndie.kompot.registry.KompotComponentMarker
 import io.github.youndie.kompot.standard.NavigateAction
@@ -167,8 +170,31 @@ public class ProductGridRenderer : KompotComponentRenderer<ProductGrid> {
         actionHandler: KompotActionHandler,
         formController: FormController,
     ) {
-        ProductGridView(component, gutter = gutter())
+        CardNodes(actionHandler, formController) { ProductGridView(component, gutter = gutter()) }
     }
+}
+
+/**
+ * The cards of a grid drawn below as nodes of the tree ([LocalCardNodes]): each through the registry, so the
+ * override an `update` writes for a card's id is what is drawn (B-63), filling the place the grid gives it.
+ */
+@Composable
+private fun CardNodes(
+    actionHandler: KompotActionHandler,
+    formController: FormController,
+    content: @Composable () -> Unit,
+) {
+    val registry = LocalKompotRegistry.current
+    val nodes: @Composable (ProductCard, Modifier) -> Unit =
+        remember(registry, actionHandler, formController) {
+            { card, modifier ->
+                Box(
+                    modifier,
+                    propagateMinConstraints = true,
+                ) { registry.RenderNode(card, actionHandler, formController) }
+            }
+        }
+    CompositionLocalProvider(LocalCardNodes provides nodes) { content() }
 }
 
 @KompotComponentMarker
@@ -235,10 +261,9 @@ public class FilterChipsRenderer : KompotComponentRenderer<FilterChips> {
 
 /**
  * The results with their filters; on a phone «Filters» opens the facets as a full-screen sheet. The
- * sheet is the shell's ([LocalFiltersSheet], B-54), so it outlives this page when a press in it opens
- * the next one; each page drawn hands it its results. Only new results do: the page's handler changes
- * with the address, before the tree of that address has arrived (B-62), and the sheet must go on
- * following nothing until it has.
+ * sheet is the shell's ([LocalFiltersSheet], B-54), and each results drawn — the page's, or an `update`
+ * of them a press in the sheet loaded (B-63) — hand it what it shows. Only new results do: the page's
+ * handler also changes with an address visited, before the tree of that address has arrived (B-62).
  */
 @KompotComponentMarker
 public class FilteredResultsRenderer : KompotComponentRenderer<FilteredResults> {
@@ -251,7 +276,9 @@ public class FilteredResultsRenderer : KompotComponentRenderer<FilteredResults> 
         val sheet = LocalFiltersSheet.current
         val actions by rememberUpdatedState(actionHandler)
         LaunchedEffect(sheet, component) { sheet?.drawn(component, actions) }
-        FilteredResultsView(component, onOpenFilters = sheet?.let { { it.open(component, actionHandler) } })
+        CardNodes(actionHandler, formController) {
+            FilteredResultsView(component, onOpenFilters = sheet?.let { { it.open(component, actionHandler) } })
+        }
     }
 }
 

@@ -317,40 +317,40 @@
                         "count": "6",
                         "selected": true,
                         "action": {
-                            "type": "navigate",
-                            "deeplink": "/account/orders"
+                            "type": "load",
+                            "url": "/ui/parts/account/orders"
                         }
                     },
                     {
                         "label": "Active",
                         "count": "2",
                         "action": {
-                            "type": "navigate",
-                            "deeplink": "/account/orders?status=active"
+                            "type": "load",
+                            "url": "/ui/parts/account/orders?status=active"
                         }
                     },
                     {
                         "label": "Delivered",
                         "count": "3",
                         "action": {
-                            "type": "navigate",
-                            "deeplink": "/account/orders?status=delivered"
+                            "type": "load",
+                            "url": "/ui/parts/account/orders?status=delivered"
                         }
                     },
                     {
                         "label": "Returned",
                         "count": "1",
                         "action": {
-                            "type": "navigate",
-                            "deeplink": "/account/orders?status=returned"
+                            "type": "load",
+                            "url": "/ui/parts/account/orders?status=returned"
                         }
                     },
                     {
                         "label": "Cancelled",
                         "count": "0",
                         "action": {
-                            "type": "navigate",
-                            "deeplink": "/account/orders?status=cancelled"
+                            "type": "load",
+                            "url": "/ui/parts/account/orders?status=cancelled"
                         }
                     }
                 ],

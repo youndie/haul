@@ -137,6 +137,19 @@ internal class ProductScreen(
         return Frame.page("product", viewer, navigation(categories), sections)
     }
 
+    /**
+     * The buy box of [item] at [sku] for [viewer], as the page at that SKU draws it: what «Add to cart»
+     * answers with besides the header (B-63, [LineAnswers]).
+     */
+    suspend fun details(
+        item: Listed,
+        sku: Sku,
+        viewer: Viewer,
+    ): ProductDetails {
+        val seller = catalog.seller(item.product.sellerId) ?: error("product ${item.product.id} names no seller")
+        return details(item, sku, seller, viewer, boughtThisMonth.label(item.product))
+    }
+
     private fun details(
         item: Listed,
         sku: Sku,
@@ -205,7 +218,7 @@ internal class ProductScreen(
             saved = saved,
             heartCommand = heart(item.product.id, saved, viewer),
             heartAction = heartAction(viewer),
-            add = addToCart(sku, viewer.inCart),
+            add = addToCart(sku, viewer.inCart, LineAnswers.DETAILS_ANSWER),
             buy = buyNow(sku, viewer),
         )
     }

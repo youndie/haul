@@ -1,6 +1,7 @@
 package io.github.youndie.haul.feature.account
 
 import io.github.youndie.haul.ErrorCode
+import io.github.youndie.haul.feature.account.screen.AccountScreen
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.membership.screen.PlusOffer
 import io.github.youndie.haul.feature.order.OrderPaths
@@ -12,8 +13,11 @@ import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.testing.FulfilmentWorld
 import io.github.youndie.haul.testing.ShildikHarness
 import io.github.youndie.haul.testing.TestClock
+import io.github.youndie.haul.testing.after
+import io.github.youndie.haul.testing.answer
 import io.github.youndie.haul.testing.assertError
 import io.github.youndie.haul.testing.haulTest
+import io.github.youndie.haul.testing.json
 import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.ui.AccountBody
@@ -22,6 +26,8 @@ import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HistoryRow
 import io.github.youndie.haul.ui.HistoryStatusKind
 import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.commands.LoadAction
+import io.github.youndie.kompot.commands.UpdateAction
 import io.github.youndie.kompot.decodeKompotComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.PresentAction
@@ -33,6 +39,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
@@ -145,15 +152,24 @@ class AccountRoutesTest {
             )
             assertEquals(
                 listOf(
-                    NavigateAction("/account/orders"),
-                    NavigateAction("/account/orders?status=active"),
-                    NavigateAction("/account/orders?status=delivered"),
-                    NavigateAction("/account/orders?status=returned"),
-                    NavigateAction("/account/orders?status=cancelled"),
+                    LoadAction("/ui/parts/account/orders"),
+                    LoadAction("/ui/parts/account/orders?status=active"),
+                    LoadAction("/ui/parts/account/orders?status=delivered"),
+                    LoadAction("/ui/parts/account/orders?status=returned"),
+                    LoadAction("/ui/parts/account/orders?status=cancelled"),
                 ),
                 all.filters.map { it.action },
             )
             assertEquals(setOf(declined, delivered), all.rows.map { it.id }.toSet())
+
+            // A chip loads the account's body in place (B-63), and the page after it is the page its address opens.
+            val page = account(maya, AccountPaths.ORDERS)
+            all.filters.mapNotNull { (it.action as? LoadAction)?.url }.forEach { url ->
+                val update = assertNotNull(answer(url) { bearerAuth(maya) } as? UpdateAction, url)
+                assertEquals(AccountScreen.PARTS, update.updates.map { it.componentId }, url)
+                assertEquals(account(maya, "/ui" + update.deeplink).json(), page.after(update), url)
+            }
+            assertEquals(HttpStatusCode.Unauthorized, get("/ui/parts/account/orders").status)
 
             val cancelled =
                 checkNotNull(account(maya, "${AccountPaths.ORDERS}?status=cancelled").only<AccountBody>().history)

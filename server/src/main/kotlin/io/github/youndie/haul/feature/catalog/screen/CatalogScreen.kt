@@ -12,6 +12,7 @@ import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.Sort
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.shell.Frame
+import io.github.youndie.haul.shell.Parts
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.ui.AppliedFilters
 import io.github.youndie.haul.ui.Breadcrumbs
@@ -28,6 +29,7 @@ import io.github.youndie.haul.ui.FilteredResults
 import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.ProductGrid
+import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import java.math.BigDecimal
@@ -48,6 +50,10 @@ internal data class CatalogRequest(
  * `/ui/c/{categoryPath}` (screen-catalog): the category's products filtered, counted per facet, sorted
  * and paged. A filter set that matches nothing is `Catalog_Empty`, answered `200` with its facets —
  * feature-browse, «A filter set with no products».
+ *
+ * Every press that only filters, sorts or pages the category — a kind, a facet, «Show N more», an applied
+ * chip, «Clear all», a sort, a page — loads the [PARTS] of its address rather than opening it (B-63): the
+ * title, the kinds and the results are all a filter changes.
  */
 internal class CatalogScreen(
     private val catalog: CatalogRepository,
@@ -84,8 +90,8 @@ internal class CatalogScreen(
                 clearLabel = "Clear all",
                 sortLabel = request.sort.label,
                 filterCount = request.filters.count,
-                clearAction = NavigateAction(url.cleared()),
-                sorts = Sort.entries.map { Link(it.label, NavigateAction(url.sorted(it))) },
+                clearAction = Parts.load(url.cleared()),
+                sorts = Sort.entries.map { Link(it.label, Parts.load(url.sorted(it))) },
             )
         // One component for the facets and the results, because a wide page puts them side by side and
         // a phone moves the facets into a sheet (B-07).
@@ -102,7 +108,7 @@ internal class CatalogScreen(
                             "No items match these filters",
                             "Try removing a filter or two.",
                             "Clear all",
-                            NavigateAction(url.cleared()),
+                            Parts.load(url.cleared()),
                             accent = "filters",
                         ),
                 )
@@ -118,7 +124,7 @@ internal class CatalogScreen(
                             page.items.map { card(it, calendar, photos, viewer) },
                             columns = GRID_COLUMNS,
                         ),
-                    pagination = pagination(page, url::page),
+                    pagination = pagination(page, url::page, Parts::load),
                 )
             }
         return Frame.page("catalog", viewer, navigation(categories), sections)
@@ -185,14 +191,14 @@ internal class CatalogScreen(
                     Chip(
                         "All",
                         request.filters.kind == null,
-                        NavigateAction(url.with(request.filters.copy(kind = null))),
+                        Parts.load(url.with(request.filters.copy(kind = null))),
                     ),
                 ) +
                     kinds.map {
                         Chip(
                             it,
                             request.filters.kind == it,
-                            NavigateAction(url.with(request.filters.copy(kind = it))),
+                            Parts.load(url.with(request.filters.copy(kind = it))),
                         )
                     },
         )
@@ -254,7 +260,7 @@ internal class CatalogScreen(
                                 )
                             },
                         moreLabel = hiddenBrands.takeIf { it > 0 }?.let { "Show $it more" },
-                        moreAction = if (hiddenBrands > 0) NavigateAction(url.brandsExpanded()) else null,
+                        moreAction = if (hiddenBrands > 0) Parts.load(url.brandsExpanded()) else null,
                     ),
                     Facet(
                         key = "delivery",
@@ -372,11 +378,18 @@ internal class CatalogScreen(
         url: CatalogUrl,
         filters: Filters,
         change: Filters.() -> Filters,
-    ): NavigateAction = NavigateAction(url.with(filters.change()))
+    ): KompotAction = Parts.load(url.with(filters.change()))
 
     private fun Set<String>.toggle(value: String): Set<String> = if (value in this) this - value else this + value
 
     companion object {
+        /**
+         * What a filter, a sort or a page changes on a category page (B-63): the title's count, the kinds'
+         * selection, and the facets with the results. A category without kinds has no `kinds`.
+         */
+        val PARTS = listOf("title", "kinds", "results")
+        val OPTIONAL_PARTS = setOf("kinds")
+
         private const val GRID_COLUMNS = 4
         private const val BRANDS_SHOWN = 6
         private const val ROOT_TITLE = "Catalog"

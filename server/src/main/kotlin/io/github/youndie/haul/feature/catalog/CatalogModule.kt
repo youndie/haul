@@ -9,6 +9,7 @@ import io.github.youndie.haul.feature.catalog.domain.ProductSales
 import io.github.youndie.haul.feature.catalog.screen.CatalogScreen
 import io.github.youndie.haul.feature.catalog.screen.DealsScreen
 import io.github.youndie.haul.feature.catalog.screen.HomeScreen
+import io.github.youndie.haul.feature.catalog.screen.LineAnswers
 import io.github.youndie.haul.feature.catalog.screen.ProductScreen
 import org.koin.dsl.module
 
@@ -22,4 +23,5 @@ internal val catalogModule =
         single { BoughtThisMonth(get(), get()) }
         single { ProductScreen(get(), get(), get(), get(), get()) }
         single { DealsScreen(get(), get(), get()) }
+        single { LineAnswers(get(), get(), get(), get()) }
     }

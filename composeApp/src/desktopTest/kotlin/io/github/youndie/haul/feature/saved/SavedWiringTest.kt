@@ -34,6 +34,7 @@ import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotActionHandler
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.KompotScreen
+import io.github.youndie.kompot.commands.LoadAction
 import io.github.youndie.kompot.form.FormController
 import io.github.youndie.kompot.form.FormSchema
 import io.github.youndie.kompot.standard.NavigateAction
@@ -99,8 +100,8 @@ class SavedWiringTest {
             waitForIdle()
             assertEquals(
                 listOf<KompotAction>(
-                    NavigateAction("/account/saved?filter=price-dropped"),
-                    NavigateAction("/account/saved?page=2"),
+                    LoadAction("/ui/parts/account/saved?filter=price-dropped"),
+                    LoadAction("/ui/parts/account/saved?page=2"),
                 ),
                 followed.toList(),
             )

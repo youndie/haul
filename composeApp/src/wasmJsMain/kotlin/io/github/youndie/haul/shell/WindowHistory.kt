@@ -3,7 +3,7 @@
 package io.github.youndie.haul.shell
 
 /**
- * The page's own history: `pushState` out, `popstate` in. The listener hears the
+ * The page's own history: `pushState` and `replaceState` out, `popstate` in. The listener hears the
  * address the browser arrived at — back and forward both — not an instruction to pop.
  */
 internal object WindowHistory : BrowserHistory {
@@ -13,6 +13,8 @@ internal object WindowHistory : BrowserHistory {
     override val location: String get() = currentLocation()
 
     override fun push(location: String) = pushLocation(location)
+
+    override fun replace(location: String) = replaceLocation(location)
 
     override fun listen(listener: (location: String) -> Unit): () -> Unit {
         if (!listening) {
@@ -29,6 +31,9 @@ private external fun currentLocation(): String
 
 @JsFun("(location) => window.history.pushState(null, '', location)")
 private external fun pushLocation(location: String)
+
+@JsFun("(location) => window.history.replaceState(null, '', location)")
+private external fun replaceLocation(location: String)
 
 @JsFun(
     "(listener) => window.addEventListener('popstate', () => listener(window.location.pathname + window.location.search))",

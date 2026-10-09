@@ -50,7 +50,11 @@ internal object Frame {
                 listOf(header(viewer, navigation, query)) + sections + (if (footer) listOf(FOOTER) else emptyList()),
         )
 
-    private fun header(
+    /**
+     * The header of every page but checkout, [query] the search it shows: a node of its own (`header`), which
+     * «+» and «Add to cart» answer with (B-63).
+     */
+    fun header(
         viewer: Viewer,
         navigation: List<Link>,
         query: String?,

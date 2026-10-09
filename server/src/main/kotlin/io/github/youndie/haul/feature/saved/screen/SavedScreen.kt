@@ -12,6 +12,7 @@ import io.github.youndie.haul.feature.saved.SavedPaths
 import io.github.youndie.haul.feature.saved.domain.SavedEntry
 import io.github.youndie.haul.feature.saved.domain.SavedListing
 import io.github.youndie.haul.shell.Frame
+import io.github.youndie.haul.shell.Parts
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.ui.EmptyState
 import io.github.youndie.haul.ui.HaulPagination
@@ -64,7 +65,7 @@ internal class SavedScreen(
                         label = key.label,
                         count = count(entries.count(key::matches)),
                         selected = key == filter,
-                        action = NavigateAction(SavedPaths.page(key)),
+                        action = Parts.load(SavedPaths.page(key)),
                     )
                 },
             cards =
@@ -82,10 +83,13 @@ internal class SavedScreen(
         entry: SavedEntry,
         viewer: Viewer,
     ): ProductCard =
-        card(entry.item, calendar, photos, viewer.copy(saved = viewer.saved + entry.item.product.id))
+        card(entry.item, calendar, photos, viewer.copy(saved = viewer.saved + entry.item.product.id), inPlace = false)
             .copy(drop = entry.dropCents?.let { "Price dropped −" + money(it) })
 
-    /** The page numbers, each to its own address under the same filter; no «Show more», as the canvas draws it. */
+    /**
+     * The page numbers, each to its own address under the same filter; no «Show more», as the canvas draws it.
+     * A page, like a filter, loads the account's body in place (B-63).
+     */
     private fun pagination(
         filter: SavedFilter,
         current: Int,
@@ -99,7 +103,7 @@ internal class SavedScreen(
             links =
                 numbers.mapNotNull { label ->
                     label.toIntOrNull()?.takeIf { it != current }?.let {
-                        Link(label, NavigateAction(SavedPaths.page(filter, it)))
+                        Link(label, Parts.load(SavedPaths.page(filter, it)))
                     }
                 },
         )

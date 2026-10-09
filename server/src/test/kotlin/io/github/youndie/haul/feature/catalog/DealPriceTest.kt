@@ -19,6 +19,7 @@ import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.seed.SeedDeal
 import io.github.youndie.haul.testing.Ledger
 import io.github.youndie.haul.testing.ShildikHarness
+import io.github.youndie.haul.testing.action
 import io.github.youndie.haul.testing.all
 import io.github.youndie.haul.testing.assertRefresh
 import io.github.youndie.haul.testing.haulTest
@@ -30,6 +31,7 @@ import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.commands.UpdateAction
 import io.github.youndie.kompot.decodeKompotComponent
 import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
@@ -95,7 +97,7 @@ class DealPriceTest {
             .orEmpty()
 
     private suspend fun HttpClient.dealCard(deal: SeedDeal): ProductCard =
-        dealCards().single { it.add?.url == CartPaths.line(deal.skuId) }
+        dealCards().single { it.add?.url?.substringBefore('?') == CartPaths.line(deal.skuId) }
 
     /** The product page of [skuId]'s product with that SKU chosen: its price and the struck-through one. */
     private suspend fun HttpClient.productPrice(skuId: String): Pair<String, String?> =
@@ -103,13 +105,16 @@ class DealPriceTest {
             "/ui/p/${skuId.substringBeforeLast('-')}?sku=$skuId",
         ).only<ProductDetails>().let { it.price to it.oldPrice }
 
-    /** What a press on a card's «+» sends. */
+    /** What a press on a card's «+» sends; answered with the header and the card (B-63, `LineAnswersTest`). */
     private suspend fun HttpClient.press(add: LineCommand) =
-        put(add.url) {
-            bearerAuth(sam)
-            contentType(ContentType.Application.Json)
-            setBody(haulWireJson.encodeToString(LineChange.serializer(), add.change))
-        }.assertRefresh()
+        assertTrue(
+            put(add.url) {
+                bearerAuth(sam)
+                contentType(ContentType.Application.Json)
+                setBody(haulWireJson.encodeToString(LineChange.serializer(), add.change))
+            }.action() is UpdateAction,
+            "«+» on ${add.url} is not answered with an update",
+        )
 
     private suspend fun HttpClient.cartLine(skuId: String): CartLine =
         page(CartPaths.SCREEN).all().filterIsInstance<CartLine>().single { it.skuId == skuId }
@@ -186,7 +191,12 @@ class DealPriceTest {
             press(assertNotNull(dealCard(deal).add))
 
             clock.at = CatalogSeed.DEALS_END
-            assertTrue(dealCards().none { it.add?.url == CartPaths.line(deal.skuId) }, "an ended deal is still drawn")
+            assertTrue(
+                dealCards().none {
+                    it.add?.url?.substringBefore('?') == CartPaths.line(deal.skuId)
+                },
+                "an ended deal is still drawn",
+            )
             val regular = money(skuOf(deal).priceCents)
             assertEquals(regular to null, productPrice(deal.skuId), "an ended deal still prices the product page")
             assertEquals("Price changed: now $regular", cartLine(deal.skuId).change)

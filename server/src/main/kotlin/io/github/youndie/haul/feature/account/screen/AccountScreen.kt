@@ -25,6 +25,7 @@ import io.github.youndie.haul.feature.reviews.domain.ReviewCommands
 import io.github.youndie.haul.feature.saved.screen.SavedFilter
 import io.github.youndie.haul.feature.saved.screen.SavedScreen
 import io.github.youndie.haul.shell.Frame
+import io.github.youndie.haul.shell.Parts
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.ui.AccountBody
 import io.github.youndie.haul.ui.AccountMenuItem
@@ -133,6 +134,12 @@ internal class AccountScreen(
     }
 
     companion object {
+        /**
+         * What a chip of the orders' history, or a filter or a page of the Saved list, changes (B-63): the
+         * account's body, one node with the menu, the chips and the list.
+         */
+        val PARTS = listOf("account")
+
         /** The account's body as the server draws it from [view] on [page]: everything it needs is in the view. */
         fun body(
             page: AccountPage,
@@ -458,7 +465,8 @@ private class AccountPageBuilder(
                         label = key.label,
                         count = count(view.orders.count { key.matches(it.state) }),
                         selected = key == filter,
-                        action = NavigateAction(AccountPaths.orders(key)),
+                        // A chip filters the page it is on: its parts load in place (B-63).
+                        action = Parts.load(AccountPaths.orders(key)),
                     )
                 },
             rows = rows.map(::row),
