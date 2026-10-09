@@ -3,6 +3,7 @@ package io.github.youndie.haul.feature.returns
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.fulfilment.domain.OrderProgress
+import io.github.youndie.haul.feature.membership.domain.PointsKind
 import io.github.youndie.haul.feature.membership.domain.PointsLedger
 import io.github.youndie.haul.feature.order.OrderPaths
 import io.github.youndie.haul.feature.returns.domain.ReturnRefunds
@@ -295,6 +296,81 @@ class ReturnRoutesTest {
                 "the card got another amount",
             )
             assertEquals(listOf(ticked.sumOf { it.pointsBack }), returned, "other points came back")
+        }
+
+    /**
+     * B-55: the order's page names the dialog's split at every step of the return. Maya pays her $512.00 with her
+     * 2,480 points and sends back the duvet cover and the mugs: their value is $163.00, but $155.10 goes back to
+     * her card and 790 points come back. The page said $163.00 in the heading and the payment fact — more money
+     * than the card ever got. Requested, picked up and refunded, it now reads $155.10 «+ 790 points back»: the
+     * amount the processor refunded and the points the ledger gave back, not numbers of its own. The summary's
+     * «Refunded» row is the money too, so the rows add up to «Paid» $332.10: $487.20 paid less $155.10 given back.
+     */
+    @Test
+    fun `a points-paid order's page names what the card and the points get back at every step of its return`() =
+        delivered(choice = CheckoutChoice(slotId = "2025-10-08T15", usePoints = true)) { orderId, database ->
+            val ledger = Ledger(database)
+            val inFlight = "$155.10 goes back to your card ···· 4821 once the seller has it · + 790 points back"
+            http(database, 72.hours) {
+                requestReturn(maya, orderId, ReturnEntry(listOf(1, 2), "changed_mind")).assertAccepted()
+                val requested = page(orderId)
+                assertEquals("Return requested", requested.title)
+                assertEquals("A courier picks it up for free. $inFlight", requested.lead)
+            }
+            assertEquals(ReturnStatus.REQUESTED to 16_300, ledger.storedReturn(orderId)?.let { it.first to it.second })
+
+            world(database) { it.advanceReturns(96.hours) }
+            assertEquals(ReturnStatus.PICKED_UP, ledger.storedReturn(orderId)?.first)
+            http(database, 96.hours) {
+                val pickedUp = page(orderId)
+                assertEquals("Return picked up", pickedUp.title)
+                assertEquals(inFlight, pickedUp.lead)
+            }
+
+            val movements =
+                world(database) { world ->
+                    world.advanceReturns(120.hours)
+                    runBlocking { world.koin.get<PointsLedger>().movements(SampleCustomers.MAYA) }
+                        .filter { it.orderId == orderId }
+                }
+            assertEquals(ReturnStatus.REFUNDED, ledger.storedReturn(orderId)?.first)
+            // What the card and the ledger got: the page below names these and nothing else.
+            val card = ledger.refunds(orderId).values.sum()
+            val back = movements.filter { it.kind == PointsKind.Returned }.sumOf { it.points }
+            val reversed = -movements.filter { it.kind == PointsKind.Reversed }.sumOf { it.points }
+            assertEquals(listOf(15_510, 790), listOf(card, back))
+            assertTrue(reversed > 0, "the points the returned lines earned were not taken back")
+
+            http(database, 120.hours) {
+                val refunded = page(orderId)
+                assertEquals("Return refunded", refunded.title)
+                assertEquals(
+                    "${exactDollars(card)} is back on your card ···· 4821 · + ${groupedCount(back)} points back",
+                    refunded.lead,
+                )
+                val summary = refunded.summary
+                // $652.00 − $140.00 − $24.80 − $155.10 = $332.10, the «Paid» below.
+                assertEquals(
+                    listOf(
+                        "Items (3)" to "$652.00",
+                        "Discount" to "−$140.00",
+                        "Points" to "−$24.80",
+                        "Delivery" to "Free",
+                        "Refunded" to "−$155.10",
+                    ),
+                    summary.rows.map { it.label to it.value },
+                    "the rows do not add up to what was paid and kept",
+                )
+                assertEquals("Paid" to exactDollars(48_720 - card), summary.totalLabel to summary.total)
+                assertEquals(
+                    listOf(
+                        OrderFactKind.Card to "$155.10 refunded Oct 12 · + 790 points back",
+                        OrderFactKind.Points to "Points earned on the returned lines were reversed",
+                    ),
+                    summary.facts.map { it.kind to it.detail },
+                )
+                assertEquals("−${groupedCount(reversed)} points", summary.facts.last().title)
+            }
         }
 
     /**

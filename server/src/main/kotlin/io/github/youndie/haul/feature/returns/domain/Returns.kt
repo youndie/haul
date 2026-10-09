@@ -171,6 +171,16 @@ internal object ReturnRefunds {
         return positions.sumOf { shares.getValue(it) }
     }
 
+    /**
+     * What [orderReturn] of [order] gives back in money — its value less the points that come back as points
+     * ([pointsBack] of its lines): what the card, the Haul Pay plan or the courier gets. The refund
+     * ([ReturnSimulator]) pays this and the order's page names it (B-55), so the two cannot disagree.
+     */
+    fun moneyBack(
+        order: Order,
+        orderReturn: OrderReturn,
+    ): Int = orderReturn.refundCents - pointsBack(order, orderReturn.lines.map { it.position })
+
     /** The points [refundCents] of [order] takes back. */
     fun points(
         order: Order,
