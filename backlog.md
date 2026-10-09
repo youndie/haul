@@ -46,7 +46,7 @@ A stage is a field on the item, not a directory.
 |---|---|---|---|---|
 | [B-27](docs/backlog/B-27-helm-chart-tracy-metrik-katcher-wiring.md) `[?]` | ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand | P2 | M | B-03 |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
-| [B-58](docs/backlog/B-58-campaigns-and-deals-end.md) `[ ]` | server: campaigns and deals end | P2 | S | B-57 |
+| [B-58](docs/backlog/B-58-campaigns-and-deals-end.md) `[~]` | server: campaigns and deals end | P2 | S | B-57 |
 | [B-59](docs/backlog/B-59-home-s-promo-banners-lead-somewhere.md) `[ ]` | server: home's promo banners lead somewhere | P3 | S | B-58 |
 
 ## Closed (56)

@@ -1,7 +1,7 @@
 ---
 id: B-58
 title: "server: campaigns and deals end"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-4-cart
