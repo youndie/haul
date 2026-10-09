@@ -44,8 +44,13 @@ Not copied here; what the server does: the trial writes a `memberships` row (fre
 store's days on, then «renewing» monthly at $4.99, never charged) and sets `customers.plus`, in one
 transaction; a member is refused by the store's conditional update, so two requests racing start one
 membership. The dialog («30 days free», four `PlusBenefit`s, «30 days free, then $4.99/month», «Start
-trial», «Not now») is presented by the home page's «Try 30 days free» and the account's PlusOffer tile
-for a customer; a guest's «Try 30 days free» is a `navigate` to `/sign-in`.
+trial», «Not now») is presented by the home page's «Try 30 days free», the account's PlusOffer tile
+and the header's «HAUL PLUS» pill (`HaulHeader.plus`, on every page with the header, B-49) for a
+customer who is not a member; a guest's «Try 30 days free» and pill are a `navigate` to `/sign-in`, and a
+member's pill a `navigate` to `/account`, where the membership is drawn
+(`MembershipRoutesTest.the plus pill offers the trial to a non-member and the account to a member`).
+A membership, a trial included, also opens a campaign's prices at its early-access time (B-53,
+[endpoint-catalog](endpoint-catalog.md)).
 
 ## Errors
 

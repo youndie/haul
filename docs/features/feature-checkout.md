@@ -2,7 +2,7 @@
 id: feature-checkout
 title: Checkout
 type: feature
-status: draft
+status: active
 owner: unassigned
 involved_services:
   - haul-shared
@@ -25,8 +25,9 @@ One page: how to receive, the address or the point, the delivery window, the pay
 > Built: the quote, windows with capacity, points and lockers, ways to pay and the address form
 > (B-14), placement through the order saga (B-16), the client's renderers, commands and key per quote
 > (B-15), placement held with the button (B-39, B-42), capture per shipment at ship time (B-17), the
-> address saved in place (B-40), the order page placement lands on (B-18), points redeemed (B-23).
-> Still planned, which keeps this document a draft: Haul Pay's four payments two weeks apart (B-24).
+> address saved in place (B-40), the order page placement lands on (B-18), points redeemed (B-23),
+> Haul Pay's four payments two weeks apart (B-24) and a member's early campaign prices through to the
+> charge (B-53).
 
 ## 2. Business rules
 
@@ -37,7 +38,7 @@ One page: how to receive, the address or the point, the delivery window, the pay
 * slots: the next 5 days from tomorrow, 4 windows a day (09, 12, 15, 18; three hours), 20 orders each; a slot at capacity is shown and not selectable (`409 slot_unavailable`); the default is the first with room;
 * a window's place is taken at placement, not held by the quote (research D5, «Decided in B-14»): a chosen window that filled since is cleared, the page says so, and placing it is refused (`409 slot_unavailable`);
 * pay on delivery is not offered for parcel lockers (`422 payment_method_not_allowed`); a method that no longer allows the chosen way to pay falls back to the card;
-* Haul Pay is offered for totals between $50 and $2,000 (`HaulPay` in `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/domain/HaulPay.kt`), drawn as 4 equal payments; today it is authorised as one payment and captured per shipment like a card; *planned* (B-24): two weeks apart, the first when the first shipment ships;
+* Haul Pay is offered for totals between $50 and $2,000 (`HaulPay` in `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/domain/HaulPay.kt`), drawn as «4 payments of $128» (`HaulPay.paymentCents`, the total after points ÷ 4); placement authorises the whole total, and the plan's four payments are taken out of it — the first when the first shipment ships, the rest two weeks apart, the last taking the rounding (B-24, [feature-membership](feature-membership.md));
 * every customer is offered the simulator's two cards, ···· 4821 (approved) and the test card ···· 0002 (declined); there is no card form;
 * a promo code that expired after it was applied is not in the quote, and a notice says so;
 * the address form edits **the address being delivered to in place** (B-40): the checkout's chosen address while it is still the customer's, else the newest — the rule the quote uses (`CheckoutCommands.delivered`); a customer with none gets their first; a form equal to a saved address (every field after the form's trimming, an empty field equal to an absent one) makes that address the checkout's and writes nothing; the wire carries no address id;
@@ -45,7 +46,8 @@ One page: how to receive, the address or the point, the delivery window, the pay
 * placing is idempotent by an `Idempotency-Key` the client generates **once per quote it places** — the same key with another quote is `409 idempotency_key_reused` — and a placement refused before the saga (`slot_unavailable`, `cart_changed`, `checkout_held`, an incomplete quote) does not spend the key, so the same request under the same key places once the reason is gone; a key whose order was placed answers that order, whatever the checkout holds now;
 * placement places only the quote the shopper saw: a fingerprint that is no longer the checkout's is `409 cart_changed`; the fingerprint names the courier address's fields, not only its id (an address edited from another tab changes it), and the points only when some are taken; points spent elsewhere since the quote are `409 cart_changed` too;
 * placement answers `202` with kompot's `navigate` to the order page `/account/orders/{id}` ([feature-orders](feature-orders.md)), the order `placed` — or `cancelled` with `payment_declined` when the card was declined; the rest happens in the saga (feature-orders);
-* «Your card is charged when the order ships» — the total is authorised at placement; each shipment's share is captured when it ships (B-17, feature-orders).
+* «Your card is charged when the order ships» — the total is authorised at placement; each shipment's share is captured when it ships (B-17, feature-orders); a Haul Pay order's first payment is taken then instead;
+* the cart's and the quote's prices are the viewer's (`CartOwner.prices`, B-53): a Plus member, a trial included, pays a campaign's price from its early-access time, everyone else from its start ([feature-browse](feature-browse.md)); a trial started mid-checkout changes the line's price, the cart marks it changed, and the old page's quote is `409 cart_changed`.
 
 Numbers in these rules are decisions of the brief, recorded in
 [research-architecture](../research/research-architecture.md) D5–D7, and checked against the code
@@ -109,6 +111,12 @@ Numbers in these rules are decisions of the brief, recorded in
 * **Given:** a $24 order
 * **Then:** Haul Pay is not offered, and choosing it is `422` with `payment_method_not_allowed`.
 * **Automated:** `CheckoutRoutesTest.Haul Pay is refused for a total under fifty dollars`
+
+### Scenario: Early campaign prices are charged to a member
+* **Given:** Oct 6 at noon, inside the Autumn mega sale's early window
+* **When:** Maya (a member) and Sam (not one) check out and place
+* **Then:** Maya's cart is $512 through checkout and placement authorises $512.00; Sam's is charged the regular price ($473); Sam starting a trial mid-checkout gets «Price changed: now $349», the old page's placement is `409 cart_changed`, and accepted it authorises $373.
+* **Automated:** `PlusEarlyAccessTest.a member is charged the sale price on the early-access day`, `PlusEarlyAccessTest.a non-member is charged the regular price on the early-access day`, `PlusEarlyAccessTest.a trial started mid-checkout redraws the quote at the member price` (`server/src/test/kotlin/io/github/youndie/haul/feature/catalog/PlusEarlyAccessTest.kt`)
 
 ### Scenario: The address form is refused field by field
 * **When:** a customer with no address saves the form with the street and the ZIP empty
