@@ -1,7 +1,7 @@
 ---
 id: B-54
 title: "client: the filter sheet stays open while filtering"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-4-cart
