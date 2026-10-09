@@ -59,6 +59,11 @@ internal data class Product(
     val listingName: String = title,
 )
 
+/**
+ * A SKU at the prices one [PriceList] draws: [priceCents] is what a card shows and the cart charges,
+ * [oldPriceCents] what is struck through. A SKU of a campaign the list does not see open yet is at its
+ * regular price with nothing struck through (B-53, [CampaignPricing]).
+ */
 internal data class Sku(
     val id: String,
     val productId: String,
@@ -97,19 +102,37 @@ internal data class Listed(
     val colours: Set<String> get() = skus.mapNotNull { it.options["colour"] }.toSet()
 }
 
-/** The catalog's port. Reads only; every method is a whole read the screen needs. */
+/**
+ * The catalog's port. Reads only; every method is a whole read the screen needs.
+ *
+ * Every read that returns SKUs takes the [PriceList] their prices are drawn for, with no default: a
+ * caller that forgot whose prices it draws would otherwise get somebody's, and a member's early campaign
+ * price drawn for a non-member is the one mistake B-53 must not make.
+ */
 internal interface CatalogRepository {
     suspend fun categories(): List<Category>
 
     /** The listed products of these categories, with all their SKUs. */
-    suspend fun listedIn(categorySlugs: Set<String>): List<Listed>
+    suspend fun listedIn(
+        categorySlugs: Set<String>,
+        prices: PriceList,
+    ): List<Listed>
 
-    suspend fun listed(productIds: List<String>): List<Listed>
+    suspend fun listed(
+        productIds: List<String>,
+        prices: PriceList,
+    ): List<Listed>
 
     /** The listed products that own these SKUs, each with all its SKUs; an unknown id matches nothing. */
-    suspend fun listedBySkus(skuIds: Set<String>): List<Listed>
+    suspend fun listedBySkus(
+        skuIds: Set<String>,
+        prices: PriceList,
+    ): List<Listed>
 
-    suspend fun product(id: String): Listed?
+    suspend fun product(
+        id: String,
+        prices: PriceList,
+    ): Listed?
 
     suspend fun seller(id: String): Seller?
 

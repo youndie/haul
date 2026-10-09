@@ -3,6 +3,7 @@ package io.github.youndie.haul.feature.saved
 import io.github.youndie.haul.feature.account.domain.SavedSummary
 import io.github.youndie.haul.feature.account.screen.AccountPage
 import io.github.youndie.haul.feature.account.screen.AccountScreen
+import io.github.youndie.haul.feature.catalog.domain.PriceList
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.identity.domain.Customer
 import io.github.youndie.haul.feature.saved.screen.SavedFilter
@@ -78,9 +79,9 @@ class SavedFixturesTest {
                     val looking =
                         Viewer(firstName = "Maya", cartCount = 3, customerId = SampleCustomers.MAYA, customer = maya)
 
-                    val all = saved.list(SampleCustomers.MAYA, SavedFilter.All, 1, looking)
+                    val all = saved.list(SampleCustomers.MAYA, PriceList.Plus, SavedFilter.All, 1, looking)
                     check(CONTENT, screen.page(AccountPage.Saved(), view.copy(list = all), looking))
-                    val dropped = saved.list(SampleCustomers.MAYA, SavedFilter.PriceDropped, 1, looking)
+                    val dropped = saved.list(SampleCustomers.MAYA, PriceList.Plus, SavedFilter.PriceDropped, 1, looking)
                     check(
                         PRICE_DROPS,
                         screen.page(AccountPage.Saved(SavedFilter.PriceDropped), view.copy(list = dropped), looking),

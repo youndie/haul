@@ -90,10 +90,17 @@ internal object SkusTable : Table("skus") {
     val priceCents = integer("price_cents")
     val oldPriceCents = integer("old_price_cents").nullable()
     val stock = integer("stock")
+
+    // V26 (B-53): the campaign whose price [priceCents] is, [oldPriceCents] being the regular one; null
+    // for a SKU at its own price. The check is V26's: a campaign's price is a markdown.
+    val campaignSlug = text("campaign_slug").references(CampaignsTable.slug).nullable()
     override val primaryKey = PrimaryKey(id)
 
     init {
         index("skus_product", false, productId)
+        check("skus_campaign_price_is_a_markdown") {
+            campaignSlug.isNull() or (oldPriceCents greater priceCents)
+        }
     }
 }
 
@@ -119,4 +126,4 @@ internal object DealsTable : Table("deals") {
 
 /** Every catalog table, parents before children: the order a seed inserts in. */
 internal val catalogTables: List<Table> =
-    listOf(CategoriesTable, SellersTable, ProductsTable, SkusTable, CampaignsTable, DealsTable)
+    listOf(CategoriesTable, SellersTable, ProductsTable, CampaignsTable, SkusTable, DealsTable)

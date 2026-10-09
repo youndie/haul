@@ -14,7 +14,7 @@ import org.koin.dsl.module
 
 internal val catalogModule =
     module {
-        single<CatalogRepository> { ExposedCatalogRepository(get()) }
+        single<CatalogRepository> { ExposedCatalogRepository(get(), get()) }
         single { Browse(get()) }
         single { HomeScreen(get(), get(), get(), get(), get()) }
         single { CatalogScreen(get(), get(), get(), get()) }

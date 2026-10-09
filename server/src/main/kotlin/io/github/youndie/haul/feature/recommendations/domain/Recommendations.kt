@@ -3,6 +3,7 @@ package io.github.youndie.haul.feature.recommendations.domain
 import io.github.youndie.haul.StoreClock
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Listed
+import io.github.youndie.haul.feature.catalog.domain.PriceList
 import io.github.youndie.haul.shell.Viewer
 import org.slf4j.LoggerFactory
 import java.time.OffsetDateTime
@@ -82,15 +83,19 @@ internal class PickedForYou(
     private val sources: PickSources,
     private val catalog: CatalogRepository,
 ) {
-    suspend operator fun invoke(customerId: String): Picks {
+    /** [customerId]'s picks, their prices drawn for [prices] (B-53). */
+    suspend operator fun invoke(
+        customerId: String,
+        prices: PriceList,
+    ): Picks {
         val viewed = views.recent(customerId)
         val excluded = viewed.map { it.productId }.toSet() + sources.bought(customerId)
-        if (viewed.size < MIN_VIEWS) return Picks(PickBasis.Popular, popular(excluded, emptyList()))
+        if (viewed.size < MIN_VIEWS) return Picks(PickBasis.Popular, popular(excluded, emptyList(), prices))
 
         val picks = mutableListOf<Listed>()
         for (window in ranked(viewed).chunked(TOTAL / PER_CATEGORY)) {
             if (picks.size >= TOTAL) break
-            val inWindow = catalog.listedIn(window.toSet()).groupBy { it.product.categorySlug }
+            val inWindow = catalog.listedIn(window.toSet(), prices).groupBy { it.product.categorySlug }
             for (category in window) {
                 picks +=
                     inWindow[category]
@@ -100,8 +105,8 @@ internal class PickedForYou(
                         .take(minOf(PER_CATEGORY, TOTAL - picks.size))
             }
         }
-        if (picks.isEmpty()) return Picks(PickBasis.Popular, popular(excluded, emptyList()))
-        return Picks(PickBasis.RecentViews, picks + popular(excluded, picks))
+        if (picks.isEmpty()) return Picks(PickBasis.Popular, popular(excluded, emptyList(), prices))
+        return Picks(PickBasis.RecentViews, picks + popular(excluded, picks, prices))
     }
 
     /** The viewed categories, most viewed first; a tie goes to the one viewed last, then to its slug. */
@@ -120,12 +125,13 @@ internal class PickedForYou(
     private suspend fun popular(
         excluded: Set<String>,
         already: List<Listed>,
+        prices: PriceList,
     ): List<Listed> {
         val room = TOTAL - already.size
         if (room <= 0) return emptyList()
         val perCategory = already.groupingBy { it.product.categorySlug }.eachCount().toMutableMap()
         val candidates =
-            catalog.listed(sources.popular(excluded + already.map { it.product.id }, POPULAR_CANDIDATES))
+            catalog.listed(sources.popular(excluded + already.map { it.product.id }, POPULAR_CANDIDATES), prices)
         return buildList {
             for (item in candidates) {
                 if (size == room) break

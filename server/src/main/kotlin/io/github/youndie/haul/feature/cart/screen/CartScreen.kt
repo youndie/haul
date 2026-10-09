@@ -53,11 +53,11 @@ internal class CartScreen(
         viewer: Viewer = Viewer(customerId = (owner as? CartOwner.Customer)?.id),
     ): KompotComponent {
         val cart = carts.cart(owner)
-        val lines = commands.priced(cart)
+        val lines = commands.priced(owner, cart)
         val categories = catalog.categories()
         val units = lines.sumOf { it.stored.quantity }
         val frame = viewer.copy(cartCount = units)
-        if (lines.isEmpty()) return Frame.page("cart", frame, navigation(categories), empty(frame))
+        if (lines.isEmpty()) return Frame.page("cart", frame, navigation(categories), empty(frame, owner))
 
         val plus = (owner as? CartOwner.Customer)?.plus ?: false
         val promo = cart.promoCode?.let { carts.promo(it) }
@@ -192,9 +192,14 @@ internal class CartScreen(
         )
     }
 
-    private suspend fun empty(viewer: Viewer): List<KompotComponent> {
+    private suspend fun empty(
+        viewer: Viewer,
+        owner: CartOwner,
+    ): List<KompotComponent> {
         val deals = catalog.deals()
-        val picks = catalog.listed(deals.map { it.skuId.substringBeforeLast('-') }.distinct())
+        // The owner's prices rather than the viewer's: a cart drawn for a command's answer has a viewer
+        // without the customer, and the picks must be at the prices the cart would charge (B-53).
+        val picks = catalog.listed(deals.map { it.skuId.substringBeforeLast('-') }.distinct(), owner.prices)
         return listOf(
             title(count = null),
             EmptyState(

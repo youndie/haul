@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.recommendations
 
 import io.github.youndie.haul.db.Databases
 import io.github.youndie.haul.feature.catalog.data.ExposedCatalogRepository
+import io.github.youndie.haul.feature.catalog.domain.PriceList
 import io.github.youndie.haul.feature.recommendations.data.ExposedPickSources
 import io.github.youndie.haul.feature.recommendations.data.ExposedProductViews
 import io.github.youndie.haul.feature.recommendations.domain.ProductView
@@ -10,6 +11,7 @@ import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
 import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
 import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
+import io.github.youndie.haul.testing.CANVAS_NOW
 import io.github.youndie.haul.testing.seededFreshDatabase
 import kotlinx.coroutines.runBlocking
 import javax.sql.DataSource
@@ -27,7 +29,7 @@ class ProductViewsTest {
     private val database = Databases.connect(dataSource)
     private val views = ExposedProductViews(database)
     private val sources = ExposedPickSources(database)
-    private val catalog = ExposedCatalogRepository(database)
+    private val catalog = ExposedCatalogRepository(database, CANVAS_NOW)
     private val now = CatalogSeed.NOW
 
     @AfterTest
@@ -67,7 +69,7 @@ class ProductViewsTest {
             customer("c-bo")
             val products =
                 catalog
-                    .listedIn(setOf("headphones", "mugs"))
+                    .listedIn(setOf("headphones", "mugs"), PriceList.Public)
                     .map { it.product.id }
                     .sorted()
                     .take(22)
@@ -129,7 +131,7 @@ class ProductViewsTest {
         runBlocking {
             val all = sources.popular(emptySet(), 10)
             assertEquals(10, all.size)
-            val listed = catalog.listed(all)
+            val listed = catalog.listed(all, PriceList.Public)
             assertTrue(listed.all { it.inStock }, "an out-of-stock product is popular")
             assertEquals(listed.sortedByDescending { it.product.reviewsCount }.map { it.product.id }, all)
             assertEquals(all.drop(1).take(9), sources.popular(setOf(all.first()), 9))

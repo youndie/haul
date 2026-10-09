@@ -34,7 +34,7 @@ import kotlin.test.assertNull
 class CheckoutQuoteTest {
     private val database = Databases.connect(SeededDatabase.dataSource)
     private val carts = ExposedCartRepository(database)
-    private val catalog = ExposedCatalogRepository(database)
+    private val catalog = ExposedCatalogRepository(database, CANVAS_NOW)
     private val customers = ExposedCustomers(database)
 
     private fun commands(clock: StoreClock) =

@@ -32,7 +32,7 @@ import kotlin.test.assertEquals
  */
 class CustomerCartTest {
     private val database = Databases.connect(SeededDatabase.dataSource)
-    private val catalog = ExposedCatalogRepository(database)
+    private val catalog = ExposedCatalogRepository(database, CANVAS_NOW)
     private val carts = ExposedCartRepository(database)
     private val commands = CartCommands(carts, catalog, CANVAS_NOW)
     private val screen =

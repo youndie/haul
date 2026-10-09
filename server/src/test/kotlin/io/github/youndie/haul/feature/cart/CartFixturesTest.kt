@@ -56,7 +56,7 @@ import kotlin.test.assertTrue
 class CartFixturesTest {
     private val dataSource: DataSource = seededFreshDatabase()
     private val database = Databases.connect(dataSource)
-    private val catalog = ExposedCatalogRepository(database)
+    private val catalog = ExposedCatalogRepository(database, CANVAS_NOW)
     private val carts = ExposedCartRepository(database)
     private val commands = CartCommands(carts, catalog, CANVAS_NOW)
     private val screen =

@@ -1,21 +1,29 @@
 package io.github.youndie.haul.feature.cart.domain
 
 import io.github.youndie.haul.ErrorCode
+import io.github.youndie.haul.feature.catalog.domain.PriceList
 import java.time.OffsetDateTime
 
 /**
  * Whose cart (research §5: a cart is owned by a customer or a guest). [Customer.plus] doubles the
- * points.
+ * points, frees delivery and opens a campaign's prices early ([prices], B-53).
  */
 internal sealed interface CartOwner {
+    /** The prices the cart's lines are at: a member's, or everybody's for a guest and a non-member. */
+    val prices: PriceList
+
     data class Guest(
         val id: String,
-    ) : CartOwner
+    ) : CartOwner {
+        override val prices: PriceList get() = PriceList.Public
+    }
 
     data class Customer(
         val id: String,
         val plus: Boolean,
-    ) : CartOwner
+    ) : CartOwner {
+        override val prices: PriceList get() = PriceList.of(plus)
+    }
 }
 
 /** What a cart command can refuse with; the application answers each with its status and body. */

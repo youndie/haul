@@ -93,6 +93,8 @@ internal data class SeedSku(
     val priceCents: Int,
     val oldPriceCents: Int?,
     val stock: Int,
+    /** The campaign whose price [priceCents] is, [oldPriceCents] the regular one (B-53, V26). */
+    val campaignSlug: String? = null,
 )
 
 internal data class SeedCampaign(

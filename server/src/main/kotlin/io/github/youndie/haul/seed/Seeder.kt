@@ -95,15 +95,7 @@ internal object Seeder {
                 this[ProductsTable.boughtBase] = it.boughtBase
                 this[ProductsTable.listingName] = it.listingName
             }
-            SkusTable.batchInsert(catalog.skus) {
-                this[SkusTable.id] = it.id
-                this[SkusTable.productId] = it.productId
-                this[SkusTable.position] = it.position
-                this[SkusTable.optionValues] = it.options
-                this[SkusTable.priceCents] = it.priceCents
-                this[SkusTable.oldPriceCents] = it.oldPriceCents
-                this[SkusTable.stock] = it.stock
-            }
+            // Campaigns before the SKUs, which name them (V26).
             CampaignsTable.batchInsert(catalog.campaigns) {
                 this[CampaignsTable.slug] = it.slug
                 this[CampaignsTable.title] = it.title
@@ -113,6 +105,16 @@ internal object Seeder {
                 this[CampaignsTable.startsAt] = it.startsAt
                 this[CampaignsTable.endsAt] = it.endsAt
                 this[CampaignsTable.plusEarlyAccessAt] = it.plusEarlyAccessAt
+            }
+            SkusTable.batchInsert(catalog.skus) {
+                this[SkusTable.id] = it.id
+                this[SkusTable.productId] = it.productId
+                this[SkusTable.position] = it.position
+                this[SkusTable.optionValues] = it.options
+                this[SkusTable.priceCents] = it.priceCents
+                this[SkusTable.oldPriceCents] = it.oldPriceCents
+                this[SkusTable.stock] = it.stock
+                this[SkusTable.campaignSlug] = it.campaignSlug
             }
             DealsTable.batchInsert(catalog.deals) {
                 this[DealsTable.id] = it.id

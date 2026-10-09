@@ -69,7 +69,7 @@ internal class SearchScreen(
         val query = Query.of(raw)
         val matches = search.matching(query)
         val categories = catalog.categories()
-        val products = catalog.listed(matches.take(TOP_PRODUCTS).map { it.productId })
+        val products = catalog.listed(matches.take(TOP_PRODUCTS).map { it.productId }, viewer.prices)
         val recentSearches = viewer.customerId?.let { recent.list(it) }.orEmpty()
         return SearchSuggestPanel(
             id = "suggest",
@@ -116,7 +116,7 @@ internal class SearchScreen(
         val matches = search.matching(query)
         if (matches.isEmpty()) return noResults(query, categories, viewer)
 
-        val all = catalog.listed(matches.map { it.productId })
+        val all = catalog.listed(matches.map { it.productId }, viewer.prices)
         request.category?.let { slug ->
             if (categories.none { it.slug == slug }) throw CatalogError.CategoryNotFound(slug)
         }

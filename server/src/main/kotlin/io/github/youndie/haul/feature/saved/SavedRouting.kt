@@ -5,6 +5,7 @@ import io.github.youndie.haul.feature.account.screen.AccountScreen
 import io.github.youndie.haul.feature.cart.CartPaths
 import io.github.youndie.haul.feature.cart.domain.CartOwner
 import io.github.youndie.haul.feature.catalog.domain.CatalogError
+import io.github.youndie.haul.feature.catalog.domain.PriceList
 import io.github.youndie.haul.feature.identity.Caller
 import io.github.youndie.haul.feature.identity.Callers
 import io.github.youndie.haul.feature.identity.domain.IdentityError
@@ -58,7 +59,8 @@ internal fun Route.savedRouting() {
     }
 
     put(SavedPaths.ITEM) {
-        commands.save(call.caller().customer.id, call.parameters["productId"]!!)
+        val customer = call.caller().customer
+        commands.save(customer.id, call.parameters["productId"]!!, PriceList.of(customer.plus))
         call.refresh()
     }
 

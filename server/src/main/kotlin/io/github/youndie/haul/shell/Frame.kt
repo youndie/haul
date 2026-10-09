@@ -1,5 +1,6 @@
 package io.github.youndie.haul.shell
 
+import io.github.youndie.haul.feature.catalog.domain.PriceList
 import io.github.youndie.haul.feature.identity.domain.Customer
 import io.github.youndie.haul.feature.membership.screen.PlusOffer
 import io.github.youndie.haul.ui.FooterColumn
@@ -24,7 +25,10 @@ internal data class Viewer(
     val inCart: Map<String, Int> = emptyMap(),
     val saved: Set<String> = emptySet(),
     val customer: Customer? = null,
-)
+) {
+    /** Whose prices the viewer's screens draw: a member's — a trial included — or everybody's (B-53). */
+    val prices: PriceList get() = PriceList.of(customer?.plus == true)
+}
 
 /**
  * The frame every screen but checkout sits in: the header above, the screen's sections, the footer.

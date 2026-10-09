@@ -33,7 +33,7 @@ internal class DealsScreen(
         val categories = catalog.categories()
         val onSale =
             catalog
-                .listedIn(categories.map { it.slug }.toSet())
+                .listedIn(categories.map { it.slug }.toSet(), viewer.prices)
                 .filter { markdown(it) > 0.0 }
                 .sortedWith(
                     compareByDescending<Listed> { markdown(it) }

@@ -184,7 +184,7 @@ internal class CheckoutCommands(
     /** The cart's side of the quote, which every command needs: the lines, the code, the totals, the windows. */
     private suspend fun basis(owner: CartOwner.Customer): Basis {
         val cart = carts.cart(owner)
-        val lines = cartCommands.priced(cart).filter { it.counted }
+        val lines = cartCommands.priced(owner, cart).filter { it.counted }
         if (lines.isEmpty()) throw CheckoutError.CartEmpty()
         val now = clock.now().toOffsetDateTime()
         val applied = cart.promoCode?.let { carts.promo(it) }

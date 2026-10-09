@@ -3,10 +3,12 @@ package io.github.youndie.haul.feature.recommendations
 import io.github.youndie.haul.db.Databases
 import io.github.youndie.haul.feature.catalog.data.ExposedCatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Listed
+import io.github.youndie.haul.feature.catalog.domain.PriceList
 import io.github.youndie.haul.feature.identity.GUEST_HEADER
 import io.github.youndie.haul.feature.recommendations.screen.PickedSection
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.SampleCustomers
+import io.github.youndie.haul.testing.CANVAS_NOW
 import io.github.youndie.haul.testing.SeededDatabase
 import io.github.youndie.haul.testing.ShildikHarness
 import io.github.youndie.haul.testing.all
@@ -35,13 +37,13 @@ import kotlin.test.assertTrue
  * a customer opened, and the block is in the home page's tree.
  */
 class RecommendationsRoutesTest {
-    private val catalog = ExposedCatalogRepository(Databases.connect(SeededDatabase.dataSource))
+    private val catalog = ExposedCatalogRepository(Databases.connect(SeededDatabase.dataSource), CANVAS_NOW)
     private val headphones =
-        runBlocking { catalog.listedIn(setOf("headphones")) }.map { it.product.id }.sorted()
+        runBlocking { catalog.listedIn(setOf("headphones"), PriceList.Public) }.map { it.product.id }.sorted()
 
     /** The headphones in stock, best rated first: the three a test views are the ones the rule would pick first. */
     private val bestHeadphones =
-        runBlocking { catalog.listedIn(setOf("headphones")) }
+        runBlocking { catalog.listedIn(setOf("headphones"), PriceList.Public) }
             .filter { it.inStock }
             .sortedWith(
                 compareByDescending<Listed> { it.product.rating }
@@ -49,7 +51,7 @@ class RecommendationsRoutesTest {
                     .thenBy { it.product.id },
             ).map { it.product.id }
     private val categoryOf: Map<String, String> =
-        runBlocking { catalog.listedIn(setOf("headphones", "duvet-covers", "mugs")) }
+        runBlocking { catalog.listedIn(setOf("headphones", "duvet-covers", "mugs"), PriceList.Public) }
             .associate { it.product.id to it.product.categorySlug }
 
     private suspend fun HttpClient.page(
