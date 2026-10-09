@@ -23,6 +23,7 @@ import io.github.youndie.haul.feature.returns.domain.RequestReturn
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.testing.FulfilmentWorld
 import io.github.youndie.haul.testing.seededFreshDatabase
+import io.github.youndie.haul.ui.OrderBody
 import io.github.youndie.haul.ui.OrderTotals
 import io.github.youndie.haul.ui.PlanPayment
 import io.github.youndie.haul.ui.PlanPaymentState
@@ -60,11 +61,13 @@ class HaulPayPlanTest {
     private fun FulfilmentWorld.placeOnHaulPay(choice: CheckoutChoice = CheckoutChoice()): String =
         place(choice.copy(payment = PaymentMethod.HaulPayPlan.id))
 
-    private fun FulfilmentWorld.summary(order: String): OrderTotals =
+    private fun FulfilmentWorld.summary(order: String): OrderTotals = body(order).summary
+
+    private fun FulfilmentWorld.body(order: String): OrderBody =
         runBlocking {
             val screen = koin.get<OrderScreen>()
             val tracked = assertNotNull(track(order))
-            OrderScreen.body(screen.view(SampleCustomers.MAYA, tracked, "Maya")).summary
+            OrderScreen.body(screen.view(SampleCustomers.MAYA, tracked, "Maya"))
         }
 
     private fun key(
@@ -526,7 +529,8 @@ class HaulPayPlanTest {
      * headphones back as «Refund $332.10 to your Haul Pay plan» and «+ 1,690 points back». Returned after three
      * payments, the $332.10 is what the plan and the processor give back together: the fourth payment, $121.80,
      * covered, and $210.30 refunded. The dialog says the one amount, not the split, because what the plan still
-     * owes when the parcel is back is not known when the dialog is drawn.
+     * owes when the parcel is back is not known when the dialog is drawn. The order's page names the same (B-55):
+     * $332.10 to the plan and «+ 1,690 points back», not the headphones' $349.00, before and after the refund.
      */
     @Test
     fun `a points-paid return gives back through the plan what the dialog said`() =
@@ -546,10 +550,23 @@ class HaulPayPlanTest {
                 world.advancePlans(first + twoWeeks * 2)
                 world.clock.at(first + twoWeeks * 2 + 1.hours)
                 world.returnSony(order)
+                // B-55: the page names the plan and the dialog's one amount, the points beside it.
+                assertEquals(
+                    "A courier picks it up for free. $332.10 goes back to your Haul Pay plan once the seller has it" +
+                        " · + 1,690 points back",
+                    world.body(order).lead,
+                )
                 world.advanceReturns(first + twoWeeks * 2 + 3.days)
 
                 assertEquals(Triple(COVERED, 0, 0), world.ledger.instalments(order)[4])
                 assertEquals(mapOf("refund:$order" to money - 12_180), world.ledger.refunds(order))
+                val refunded = world.body(order)
+                assertEquals("$332.10 is back on your Haul Pay plan · + 1,690 points back", refunded.lead)
+                assertEquals(
+                    "Paid" to "$155.10",
+                    refunded.summary.totalLabel to refunded.summary.total,
+                    "paid and kept: $487.20 less the payment covered and the refund",
+                )
             }
         }
 

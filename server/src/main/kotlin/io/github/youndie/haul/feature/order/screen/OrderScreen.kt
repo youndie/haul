@@ -202,6 +202,18 @@ private class OrderPage(
     private val returned = view.tracked.returned
     private val refunded = returned?.status == ReturnStatus.REFUNDED
 
+    /**
+     * What the return gives back in money and as points (B-55): the split the return dialog drew (B-50) and the
+     * refund pays, the returned lines' shares of the points the order was paid with coming back as points. An
+     * order paid without points gives back its whole value in money and no points, and reads as before.
+     */
+    private val moneyBack = returned?.let { ReturnRefunds.moneyBack(order, it) } ?: 0
+    private val pointsBack =
+        returned?.let { ret -> ReturnRefunds.pointsBack(order, ret.lines.map { it.position }) } ?: 0
+
+    /** «+ 790 points back» beside the money, as the dialog writes it under its amount — nothing when none come back. */
+    private val pointsBackNote = if (pointsBack > 0) " · + ${count(pointsBack)} points back" else ""
+
     fun body(): OrderBody {
         val (title, accent, lead) = heading()
         return OrderBody(
@@ -272,24 +284,31 @@ private class OrderPage(
 
     /**
      * A return's title, by where it is, and where the money goes: «Return refunded», «$87.50 is back on your
-     * card ···· 4821.» (`Order_Returned`); before that, when it will be.
+     * card ···· 4821.» (`Order_Returned`); before that, when it will be. The amount is the money the refund
+     * pays, not the lines' value: an order paid partly with points reads «$155.10 goes back to your card ····
+     * 4821 once the seller has it · + 790 points back» (B-55), the dialog's split.
      */
     private fun returnHeading(): Triple<String, String?, String?> {
-        val amount = exact(returned?.refundCents ?: 0)
+        val amount = exact(moneyBack)
+        val sentence: (String) -> String = { text -> if (pointsBackNote.isEmpty()) "$text." else text + pointsBackNote }
         return when (returned?.status) {
             ReturnStatus.REFUNDED -> {
-                Triple("Return refunded", "refunded", "$amount is back ${refundedTo()}.")
+                Triple("Return refunded", "refunded", sentence("$amount is back ${refundedTo()}"))
             }
 
             ReturnStatus.PICKED_UP -> {
-                Triple("Return picked up", "picked up", "$amount goes back ${refundTo()} once the seller has it.")
+                Triple(
+                    "Return picked up",
+                    "picked up",
+                    sentence("$amount goes back ${refundTo()} once the seller has it"),
+                )
             }
 
             else -> {
                 Triple(
                     "Return requested",
                     "requested",
-                    "${collection()} $amount goes back ${refundTo()} once the seller has it.",
+                    "${collection()} " + sentence("$amount goes back ${refundTo()} once the seller has it"),
                 )
             }
         }
@@ -632,10 +651,10 @@ private class OrderPage(
                     add(SummaryRow("Points", "−" + exact(placed.pointsRedeemed), saving = true))
                 }
                 add(SummaryRow("Delivery", if (placed.deliveryCents == 0) "Free" else exact(placed.deliveryCents)))
-                returned?.takeIf { refunded }?.let {
-                    add(
-                        SummaryRow("Refunded", "−" + exact(it.refundCents), saving = true),
-                    )
+                // The money given back (B-55): the rows then add up to «Paid», which is what was paid in money
+                // and kept — the points that came back are the payment fact's «+ N points back», not money.
+                if (refunded) {
+                    add(SummaryRow("Refunded", "−" + exact(moneyBack), saving = true))
                 }
             }
         val cancelled = progress == OrderProgress.Cancelled
@@ -644,7 +663,7 @@ private class OrderPage(
             title = "Summary",
             rows = rows,
             totalLabel = if (refunded) "Paid" else "Total",
-            total = exact(placed.totalCents - if (refunded) returned?.refundCents ?: 0 else 0),
+            total = exact(placed.totalCents - if (refunded) moneyBack else 0),
             voided = cancelled,
             facts =
                 listOfNotNull(
@@ -820,14 +839,17 @@ private class OrderPage(
         )
     }
 
-    /** How it was paid, and how much of it has been charged so far — or, once a return is refunded, given back. */
+    /**
+     * How it was paid, and how much of it has been charged so far — or, once a return is refunded, the money given
+     * back and, beside it, the points that came back («$155.10 refunded Oct 12 · + 790 points back», B-55).
+     */
     private fun paid(): OrderFact {
         returned?.takeIf { refunded }?.let { ret ->
             val on = ret.history[ReturnStatus.REFUNDED]?.let { " " + MONTH_DAY.format(day(it)) }.orEmpty()
             return OrderFact(
                 OrderFactKind.Card,
                 payment?.label ?: placed.payment,
-                "${exact(ret.refundCents)} refunded$on",
+                "${exact(moneyBack)} refunded$on$pointsBackNote",
             )
         }
         val total = placed.totalCents

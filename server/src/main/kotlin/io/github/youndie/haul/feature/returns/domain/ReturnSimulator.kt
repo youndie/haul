@@ -112,7 +112,7 @@ internal class ReturnSimulator(
         val order = orders.order(orderReturn.orderId) ?: error("the return of ${orderReturn.orderId} has no order")
         // What the order was paid with in points comes back as points, not money — the returned lines' shares,
         // the numbers the return dialog added up (B-50).
-        val money = orderReturn.refundCents - ReturnRefunds.pointsBack(order, orderReturn.lines.map { it.position })
+        val money = ReturnRefunds.moneyBack(order, orderReturn)
         if (money <= 0) return true
         val method =
             PaymentMethod.byId(order.placed.payment)
