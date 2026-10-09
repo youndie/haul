@@ -34,6 +34,11 @@ internal data class Viewer(
  * The frame every screen but checkout sits in: the header above, the screen's sections, the footer.
  * [navigation] is every top-level category with its link: the header's «Catalog» menu, and the first
  * [ROW] of them its category row.
+ *
+ * A page's `id` is its root's, and every id appears once in a page (kompot SPEC §4.2: an update, the live
+ * channel and the override store find a node by it). Where a section already carries the page's name — the
+ * cart's body `cart`, the account's `account`, the order's `order`, the grid of every category `categories`,
+ * today's deals `deals` — the root is `<name>-page` (B-65, `UniqueIdsTest`).
  */
 internal object Frame {
     fun page(

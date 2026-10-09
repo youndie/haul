@@ -90,7 +90,7 @@ internal class OrderScreen(
     suspend fun page(
         view: OrderView,
         viewer: Viewer,
-    ): KompotComponent = Frame.page("order", viewer, navigation(catalog.categories()), listOf(body(view)))
+    ): KompotComponent = Frame.page("order-page", viewer, navigation(catalog.categories()), listOf(body(view)))
 
     /** What [tracked] — [customerId]'s order — names, read from the catalog and the customer's checkout. */
     suspend fun view(

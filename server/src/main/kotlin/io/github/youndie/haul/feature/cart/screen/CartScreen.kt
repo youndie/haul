@@ -58,7 +58,7 @@ internal class CartScreen(
         val categories = catalog.categories()
         val units = lines.sumOf { it.stored.quantity }
         val frame = viewer.copy(cartCount = units)
-        if (lines.isEmpty()) return Frame.page("cart", frame, navigation(categories), empty(frame, owner))
+        if (lines.isEmpty()) return Frame.page("cart-page", frame, navigation(categories), empty(frame, owner))
 
         val plus = (owner as? CartOwner.Customer)?.plus ?: false
         val promo = cart.promoCode?.let { carts.promo(it) }
@@ -85,7 +85,7 @@ internal class CartScreen(
                         plus = plus,
                     ),
             )
-        return Frame.page("cart", frame, navigation(categories), listOf(title(items(units)), body))
+        return Frame.page("cart-page", frame, navigation(categories), listOf(title(items(units)), body))
     }
 
     private suspend fun groups(
