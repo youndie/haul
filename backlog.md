@@ -40,14 +40,13 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (2)
+## Open (1)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-27](docs/backlog/B-27-helm-chart-tracy-metrik-katcher-wiring.md) `[~]` | ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand | P2 | M | B-03 |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 
-## Closed (59)
+## Closed (60)
 
 **Skeleton**
 
@@ -129,6 +128,7 @@ A stage is a field on the item, not a directory.
 **Ship**
 
 - [B-26](docs/backlog/B-26-the-whole-path-over-http-against.md) `[x]` - e2e: the whole path over HTTP against the composed stack
+- [B-27](docs/backlog/B-27-helm-chart-tracy-metrik-katcher-wiring.md) `[x]` - ops: Helm chart, tracy / metrik / katcher wiring, the public demo stand
 - [B-28](docs/backlog/B-28-first-load-size-and-time-of.md) `[x]` - measure: first-load size and time of the wasm bundle
 - [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[x]` - live order tracking through kompot-realtime
 - [B-30](docs/backlog/B-30-product-images-through-object-storage.md) `[x]` - product images through object storage
