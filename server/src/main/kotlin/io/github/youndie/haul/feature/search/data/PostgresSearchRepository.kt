@@ -10,8 +10,8 @@ import javax.sql.DataSource
 
 /**
  * Search over PostgreSQL full text and `pg_trgm` (research, open question 1), in plain SQL: the
- * expressions are the ones `V3__search.sql` indexes, character for character, or the planner does
- * not use the index.
+ * expressions are the ones `V3__search.sql` and `V25__listing_name.sql` index, character for character,
+ * or the planner does not use the index.
  */
 internal class PostgresSearchRepository(
     private val dataSource: DataSource,
@@ -22,7 +22,8 @@ internal class PostgresSearchRepository(
             connection.prepareStatement(MATCHING).use { statement ->
                 statement.setString(1, tsQuery(query))
                 statement.setString(2, "%${like(query.text)}%")
-                statement.setString(3, tsQuery(query))
+                statement.setString(3, "%${like(query.text)}%")
+                statement.setString(4, tsQuery(query))
                 statement.executeQuery().use { rows ->
                     buildList { while (rows.next()) add(Match(rows.getString(1), rows.getString(2))) }
                 }
@@ -67,13 +68,15 @@ internal class PostgresSearchRepository(
     private fun like(text: String): String = text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
     private companion object {
-        const val DOCUMENT = "to_tsvector('english', p.title || ' ' || p.brand || ' ' || coalesce(p.kind, ''))"
+        // What the cards write (B-45, V25): the listing name, the title when there is none.
+        const val DOCUMENT =
+            "to_tsvector('english', coalesce(p.listing_name, p.title) || ' ' || p.brand || ' ' || coalesce(p.kind, ''))"
 
         val MATCHING =
             """
             SELECT p.id, p.category_slug
             FROM products p
-            WHERE $DOCUMENT @@ to_tsquery('english', ?) OR lower(p.title) LIKE ?
+            WHERE $DOCUMENT @@ to_tsquery('english', ?) OR lower(p.title) LIKE ? OR lower(p.listing_name) LIKE ?
             ORDER BY ts_rank($DOCUMENT, to_tsquery('english', ?)) DESC, p.reviews_count DESC, p.id
             """.trimIndent()
 

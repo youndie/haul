@@ -245,7 +245,7 @@ internal class CheckoutScreen(
             items =
                 quote.lines.map {
                     SummaryItem(
-                        title = it.item.product.title,
+                        title = it.item.product.listingName,
                         options =
                             it.sku.options.entries
                                 .sortedBy { option -> option.key != "colour" }

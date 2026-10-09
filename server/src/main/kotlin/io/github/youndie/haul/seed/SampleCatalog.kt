@@ -71,6 +71,9 @@ internal object SampleCatalog {
                 headlineAccent = "to you",
                 // «12K bought this month», as every Product_* artboard writes it (B-52).
                 boughtBase = 12_340,
+                // Cards, the cart and the order write the brand into the name; the product page writes it above
+                // the title (B-45). V25 gives a catalogue seeded before it the same name.
+                listingName = "Sony WH-1000XM6 Wireless Noise Cancelling Headphones",
             ),
             SeedProduct(
                 id = DUVET_COVER,

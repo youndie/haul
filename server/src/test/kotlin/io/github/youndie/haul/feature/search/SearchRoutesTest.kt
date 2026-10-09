@@ -4,9 +4,11 @@ import io.github.youndie.haul.ErrorBody
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.CatalogSeed
+import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
 import io.github.youndie.haul.testing.all
 import io.github.youndie.haul.testing.haulTest
 import io.github.youndie.haul.testing.only
+import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.testing.tree
 import io.github.youndie.haul.ui.CategoryGrid
 import io.github.youndie.haul.ui.FilterChips
@@ -19,6 +21,7 @@ import io.github.youndie.haul.ui.SearchSuggestPanel
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import javax.sql.DataSource
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -174,4 +177,53 @@ class SearchRoutesTest {
                 "no «headphones» for «heaphones»",
             )
         }
+
+    /**
+     * Search reads what the cards write (B-45): the full text is over the listing name, so words only the
+     * listing name holds find the product typed in any order and unfinished. The document over the title
+     * found nothing here, and a shopper who types what a card says («Sony …») is answered by the brand alone.
+     */
+    @Test
+    fun `words only the listing name holds find the product in any order`() =
+        withListingName("Sony Zephyrine Quietude Headphones") { database ->
+            haulTest(database) {
+                val panel = tree("/ui/search/suggest?q=quietude%20zephyr") as SearchSuggestPanel
+                assertTrue(
+                    panel.products.any { it.productId == SONY_HEADPHONES },
+                    "the listing name's words found ${panel.products.map { it.title }}",
+                )
+            }
+        }
+
+    /**
+     * The substring half reads the listing name too (B-45): a piece cut out of the middle of its words is no
+     * word to full text, and only `lower(listing_name) LIKE` finds it.
+     */
+    @Test
+    fun `a piece of the listing name finds the product`() =
+        withListingName("Sony Zephyrine Quietude Headphones") { database ->
+            haulTest(database) {
+                val panel = tree("/ui/search/suggest?q=phyrine%20qui") as SearchSuggestPanel
+                assertTrue(
+                    panel.products.any { it.productId == SONY_HEADPHONES },
+                    "a piece of the listing name found ${panel.products.map { it.title }}",
+                )
+            }
+        }
+
+    /** The headphones under [listingName], in a database of their own. */
+    private fun withListingName(
+        listingName: String,
+        block: (DataSource) -> Unit,
+    ) = seededFreshDatabase().use { database ->
+        database.connection.use { connection ->
+            connection.prepareStatement("UPDATE products SET listing_name = ? WHERE id = ?").use {
+                it.setString(1, listingName)
+                it.setString(2, SONY_HEADPHONES)
+                check(it.executeUpdate() == 1)
+            }
+            connection.commit()
+        }
+        block(database)
+    }
 }

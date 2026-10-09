@@ -72,8 +72,11 @@ internal data class SeedProduct(
     val headlineAccent: String? = null,
     /** The month of sales no seeded order holds (B-52, V23): the sample products' «bought this month». */
     val boughtBase: Int = 0,
+    /** What cards, cart lines and order lines write (B-45, V25), as the canvas writes it; null is the title. */
+    val listingName: String? = null,
 ) {
     init {
+        require(listingName == null || listingName.isNotEmpty()) { "$id has an empty listing name" }
         // The same rule V6 checks, failing at generation instead of at the insert.
         require(headline.isNotBlank()) { "$id has a blank headline" }
         require(headlineAccent == null || headlineAccent in headline) {
