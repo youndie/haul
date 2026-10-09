@@ -178,16 +178,17 @@ internal class ReviewTabs(
         )
 
     /**
-     * The product as a dialog names it: brand and title, the chosen SKU's options — the colour first, as
-     * the canvas writes «Midnight Black · Headphones only»; `jsonb` keeps an object's keys in its own
-     * order — and its tile.
+     * The product as a dialog names it: its listing name, as its card, cart line and order line write it
+     * (B-45, B-60) — not brand and title, which named the duvet «Brooklyn Home Co. Linen Duvet …» after its
+     * seller — then the chosen SKU's options, the colour first, as the canvas writes «Midnight Black ·
+     * Headphones only» (`jsonb` keeps an object's keys in its own order), and its tile.
      */
     private fun formProduct(
         item: Listed,
         sku: Sku,
     ): FormProduct =
         FormProduct(
-            name = "${item.product.brand} ${item.product.title}",
+            name = item.product.listingName,
             detail =
                 sku.options.entries
                     .sortedBy { if (it.key == COLOUR) 0 else 1 }
