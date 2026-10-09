@@ -1,7 +1,7 @@
 ---
 id: B-55
 title: "server: the order page names what the card gets back"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-6-account
