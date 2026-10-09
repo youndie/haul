@@ -1,7 +1,7 @@
 ---
 id: B-53
 title: "server: Plus members see campaign prices early"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-8-loyalty
