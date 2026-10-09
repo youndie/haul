@@ -16,13 +16,16 @@ publishes:
 
 # Haul server
 
-> Describes the server as it stands after B-25: catalog with photos and the deals page, search,
+> Describes the server as it stands after B-56: catalog with photos, the deals page and the catalog's
+> root (B-49), listing names (B-45), «bought this month» (B-52), a member's early campaign prices (B-53), search,
 > identity (guests, shildik sign-in, customers), the cart, checkout, placement through the order saga
 > and the payment simulator, the fulfilment simulator with capture per shipment (B-17), the order page
 > and reorder (B-18), the account and its history (B-19), the Saved list (B-20), returns and refunds
-> (B-21), reviews, questions and helpful votes (B-22, B-43), Haul Plus and the points ledger (B-23),
-> «Picked for you» (B-25), the probes, the precompressed web bundle with its storefront addresses, the
-> agents. Still planned: Haul Pay's instalments (B-24).
+> (B-21) with the points shared per line (B-50, B-55), reviews, questions and helpful votes (B-22, B-43),
+> Haul Plus and the points ledger (B-23), Haul Pay's plans (B-24), «Picked for you» (B-25), the order
+> page's live stream (B-29, B-56), the probes, the precompressed web bundle with its storefront
+> addresses, the agents. Still planned in the catalog: deal prices the cart charges (B-57) and the end
+> of campaigns and deals (B-58).
 
 ## 1. Responsibility
 
@@ -32,8 +35,8 @@ every command, runs the order saga, and simulates the outside world — the card
 fulfilment of each seller's shipment. Today it holds the catalog, search, guests and customers,
 carts, checkouts and addresses, orders with their own copy of the address, their shipments and each
 shipment's history, the saga's state, the payment simulator's ledger with its captures and refunds,
-returns, reviews, questions and helpful votes, saved lists, memberships, the points ledger and product
-views (`server/src/main/kotlin/io/github/youndie/haul/feature/`). Product photos live in object storage, which the
+Haul Pay's plans, returns, reviews, questions and helpful votes, saved lists, memberships, the points
+ledger and product views (`server/src/main/kotlin/io/github/youndie/haul/feature/`). Product photos live in object storage, which the
 server reads and serves from its own origin.
 
 It also serves the browser bundle at `/` (section 5), so the page and the API come from one image
@@ -58,6 +61,8 @@ data); send e-mail or push notifications.
     so do the Saved list's, and a helpful vote (`200`); placement answers `202` with `navigate` to the
     order, reorder `navigate` to the cart; a review, a question, a return and the Plus trial answer
     `201` with kompot's `sequence` of `close` and `refresh` (the dialog goes, the page is drawn again);
+  - the order page's tree comes wrapped in kompot's `KompotScreenResponse`, naming its live channel;
+    `GET /ui/updates?topic=` streams that channel as server-sent events (B-29, [endpoint-orders](../api/endpoint-orders.md));
   - JSON is `haulWireJson` (`shared/src/commonMain/kotlin/io/github/youndie/haul/HaulWire.kt`):
     discriminator `type`, `explicitNulls = false`, unknown keys ignored. Prices and dates travel as
     the strings the screen shows, formatted by the server; the deals' countdown is an ISO-8601
@@ -83,7 +88,7 @@ data); send e-mail or push notifications.
   |---|---|---|
   | public | none, or an optional bearer — one that does not verify is `401`, not ignored; `X-Haul-Guest` for the header's cart count | catalog (photos included), deals, search, `POST /api/v1/guests`, `GET /api/v1/sign-in` |
   | public, cart owner | a customer's bearer or `X-Haul-Guest: <guest id>` the server issued (a token wins), otherwise `401 unauthenticated` | the cart |
-  | customer | `Authorization: Bearer <shildik access token>`: signature against the realm's JWKS, lifetime and issuer checked by shildik's `oidc-auth-server` (`configureAuth`), and `azp` must be the storefront's client (`installSignIn` in `feature/identity/SignIn.kt`) | the merge, «Clear» on recent searches, the account, its history and the Saved list, checkout and placement, the order page, reorder and returns, writing a review or a question, a helpful vote, the Plus trial |
+  | customer | `Authorization: Bearer <shildik access token>`: signature against the realm's JWKS, lifetime and issuer checked by shildik's `oidc-auth-server` (`configureAuth`), and `azp` must be the storefront's client (`installSignIn` in `feature/identity/SignIn.kt`) | the merge, «Clear» on recent searches, the account, its history and the Saved list, checkout and placement, the order page and its live stream, reorder and returns, writing a review or a question, a helpful vote, the Plus trial |
   | infra | none, not in the public schema | `/healthz`, `/readyz`, `/version` ([endpoint-ops](../api/endpoint-ops.md)) |
 
   The tiers are decided at the mount in `HaulModule.kt` (`authenticate(JWT_AUTH_OIDC, optional =
@@ -91,7 +96,10 @@ data); send e-mail or push notifications.
   `ErrorBody` `unauthenticated`. A route that needs a customer also resolves one itself
   (`Callers`), so a guest is `401` there whatever the mount. With sign-in off every bearer is
   refused. There are no roles inside a tier; a Plus membership changes prices and benefits, not
-  access.
+  access: every catalog read names whose prices it draws (`PriceList.Public` or `Plus`, no default,
+  `feature/catalog/domain/CampaignPricing.kt`, B-53) — screens from `Viewer.prices`, the cart, the quote
+  and placement from `CartOwner.prices` — and no `/ui/*` answer carries a `Cache-Control`, so nothing is
+  cached between viewers.
 
 ## 2a. Code anchors
 
@@ -105,11 +113,11 @@ data); send e-mail or push notifications.
 | `server/src/main/kotlin/io/github/youndie/haul/WebBundle.kt` | the bundle at `/`: precompressed variants, cache headers, the page at the storefront's addresses |
 | `server/src/main/kotlin/io/github/youndie/haul/feature/` | `catalog/` (with photos and `/ui/deals`), `search/`, `identity/`, `cart/`, `checkout/`, `order/`, `payment/`, `fulfilment/`, `returns/`, `reviews/`, `account/`, `saved/`, `membership/`, `recommendations/` — each with its routing, use cases, storage and screens |
 | `server/src/main/kotlin/io/github/youndie/haul/shell/` | `Frame` (the header and footer every screen but checkout sits in) and `Viewers` (who is looking: first name, cart count, what the cart holds) |
-| `server/src/main/resources/db/migration/` | migrations (Flyway), V1 to V20 with no V13 or V16; Flyway runs with `validateOnMigrate` and without `outOfOrder`, so a number below one already merged refuses the start of a migrated database — a new migration takes a number above the highest merged |
+| `server/src/main/resources/db/migration/` | migrations (Flyway), V1 to V26 with no V5, V13, V16, V22 or V24; Flyway runs with `validateOnMigrate` and without `outOfOrder`, so a number below one already merged refuses the start of a migrated database — a new migration takes a number above the highest merged |
 | `server/src/main/kotlin/io/github/youndie/haul/seed/` | the generated catalog and the sample-data fixtures, promo codes included |
 | `server/build.gradle.kts` | the `application` plugin, zavarnik, and the browser bundle copied into the distribution |
-| `server/src/main/kotlin/io/github/youndie/haul/feature/order/` | placement and the order saga, the sweeper's engine (`saga/SagaEngine.kt`) |
-| `server/src/main/kotlin/io/github/youndie/haul/feature/payment/` | the payment simulator |
+| `server/src/main/kotlin/io/github/youndie/haul/feature/order/` | placement and the order saga, the sweeper's engine (`saga/SagaEngine.kt`), the live page (`LiveOrders.kt`, `domain/OrderMoves.kt`, B-29) |
+| `server/src/main/kotlin/io/github/youndie/haul/feature/payment/` | the payment simulator and Haul Pay's plans (`domain/HaulPayPlans.kt`, B-24) |
 | `server/src/main/kotlin/io/github/youndie/haul/feature/fulfilment/` | the fulfilment simulator (`domain/FulfilmentSimulator.kt`), its pace (`domain/Fulfilment.kt`), pickup codes, `OrderTracking`, the runner (`FulfilmentRunner.kt`), B-17 |
 | `server/src/main/kotlin/io/github/youndie/haul/feature/returns/` | the return (`domain/RequestReturn.kt`) and its simulator (`domain/ReturnSimulator.kt`), run with the fulfilment pass, B-21 |
 | `server/src/main/kotlin/io/github/youndie/haul/feature/membership/` | the Plus trial and standing, the points ledger (`domain/Points.kt`), the Plus block and dialog, B-23 |
@@ -128,12 +136,16 @@ data); send e-mail or push notifications.
 * **The order is a petich saga** (`feature/order/saga/OrderSaga.kt`, B-16) — reserve stock → reserve
   the window → redeem points (B-23) → open the order (with its own copy of the address, B-40) →
   authorise payment → confirm, then the announcement that clears the bought lines — that compensates in reverse when a member refuses or fails; placement's
-  `Idempotency-Key` is petich-idempotency's. It runs inside the placement request. A
+  `Idempotency-Key` is petich-idempotency's. It runs inside the placement request; `confirm` and
+  `open-order`'s compensation tell `OrderMoves` once their transaction is committed, so a live order
+  page hears «placed» or the cancellation (B-56). A
   `SuspendedPetichSweeper`, started with the application in its own scope, carries on a saga left
   `PROCESSING` or `COMPENSATING` for 60 s by a process that died. Capture is per shipment, taken by
   the fulfilment simulator just before a shipment moves to `in_transit` — «your card is charged when
-  the order ships» (B-17, feature-orders); the points a shipment earns are credited just before it
-  moves to `delivered` or `picked_up` (B-23).
+  the order ships» (B-17, feature-orders) — except for Haul Pay, whose plan's four payments are
+  captures out of the same authorisation, the first before the first shipment moves to `in_transit`
+  (B-24); the points a shipment earns are credited just before it moves to `delivered` or `picked_up`
+  (B-23).
 * **The outside world is in-process**: a payment simulator (`feature/payment/`, a ledger; every way
   to pay approves except the test card ending `0002`; pay on delivery holds nothing; a capture takes a
   part of an authorisation, keyed, never more than it) and a fulfilment simulator (`feature/fulfilment/`,
@@ -143,7 +155,18 @@ data); send e-mail or push notifications.
   min); the tests get `FulfilmentSettings.MANUAL` and call the pass themselves on a clock they hold.
   The return simulator (`feature/returns/domain/ReturnSimulator.kt`, B-21) runs beside the pass: a
   return is collected a day after it is asked and refunded a day later, the refund (keyed
-  `refund:<order>`) and the points' settlement before the move to `refunded`.
+  `refund:<order>`, the lines' value less their points shares, `ReturnRefunds.moneyBack`) and the
+  points' settlement before the move to `refunded`; on a Haul Pay order the refund first reduces the
+  payments still owed (`HaulPayPlans.refund`). Haul Pay's plans are the runner's third pass
+  (`HaulPayPlans.advance`), after the shipments' and the returns', two weeks between payments at the
+  store's pace.
+* **The live page** (B-29): the fulfilment and return simulators, Haul Pay's plans and the order saga
+  tell `OrderMoves` (a bounded shared flow; telling never holds a move up) which order moved;
+  `LiveOrders` draws that order's body again with `OrderScreen` for its customer and broadcasts it
+  through kompot-realtime's `KompotUpdateBroadcaster`, keyed by customer and order, only when this
+  process has a listener. The bus is in memory, so the chart runs one replica (`charts/haul/values.yaml`
+  says why); a second would need kompot's Redis bus. No kompot-ktor helper answers a
+  `KompotScreenResponse`, so the order route writes it with `respondText`.
 * **Two clocks are injected.** `StoreClock`, so the seed and the fixtures can run at the canvas's
   «now», 2025-10-07 19:47:23 America/New_York; and the saga's `PetichClock` (`sagaClock` in
   `haulModule`), a wall clock apart from it, because what it stamps is compared across processes; the
@@ -162,6 +185,7 @@ data); send e-mail or push notifications.
 | Kind | Name | What for |
 |---|---|---|
 | Database | PostgreSQL | everything the server owns, the saga's state included |
+| Library | kompot-realtime-server, Ktor's `ktor-server-sse` | the order page's live stream (B-29) |
 | Module | [haul-shared](haul-shared.md) | the contract |
 | Module | [haul-web](haul-web.md) | the browser bundle it serves at `/` |
 | External | shildik | the issuer whose tokens the customer tier accepts; its discovery and JWKS are read from `HAUL_OIDC_ISSUER` |
@@ -226,7 +250,10 @@ needs Docker on Linux (B-26). Without `-Phaul.e2e.image`, `:e2e:test` is skipped
 does not need the image. The seed adds Maya (Plus) and Sam as customers with ids `maya` and `sam`,
 Maya's cart and address, three pickup points and two lockers (B-15), the sample product's reviews,
 histogram and questions (B-22), Maya's membership and 2,480 points (B-23), her 48 saved products
-(`seed/SampleSaved.kt`, B-20) and five product views (`seed/SampleViews.kt`, B-25); a realm for a local
+(`seed/SampleSaved.kt`, B-20), five product views (`seed/SampleViews.kt`, B-25), the headphones' listing
+name (B-45), the sample products' «bought this month» bases (B-52) and every markdown in the Autumn mega
+sale with its early access for members (`CatalogSeed.inCampaigns`, B-53); V23, V25 and V26 write the
+same into a catalogue seeded before them, except the campaign links; a realm for a local
 shildik imports the customers by those ids. The orders of research §6 are not seeded (feature-orders).
 
 ## 7. Configuration
