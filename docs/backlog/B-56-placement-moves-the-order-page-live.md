@@ -1,7 +1,7 @@
 ---
 id: B-56
 title: "server: placement moves the order page live"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-9-ship
