@@ -50,8 +50,9 @@ import kotlin.time.toJavaDuration
  * `Order_Placed` is Maya's cart placed by courier for Wed 8, 15:00–18:00 — #HL-48302, the first order a
  * fresh store gives — through placement itself, at the canvas's «now». The other orders are research §6's
  * history, which no seed holds: #HL-48211 in transit, #HL-47960 waiting at 214 Bedford Ave, #HL-46102
- * delivered (its «Return items» the return dialog, B-21), #HL-48303 declined, #HL-44019 returned — and
- * #HL-48230 on Haul Pay with its schedule (B-24), which no artboard draws. Each is written as the order it is
+ * delivered (its «Return items» the return dialog, B-21) and again as if paid partly with points (the
+ * dialog's «+ N points back», B-50), #HL-48303 declined, #HL-44019 returned — and
+ * #HL-48230 on Haul Pay with its schedule (B-24); no artboard draws these two. Each is written as the order it is
  * ([SampleOrders]: its lines, its shipments and where they are) and drawn by the same builder the route uses ([OrderScreen.page]), over the seeded
  * catalog, Maya's address and the points. Three of them bought products the seed does not sell (the yoga
  * mat, the sweater, the serum), so their tiles, options and sellers are given with the order.
@@ -190,6 +191,17 @@ class OrderFixturesTest {
                             ),
                         ),
                     )
+                    check(
+                        DELIVERED_WITH_POINTS,
+                        page(
+                            SampleOrders.deliveredWithPoints(mayas),
+                            sweater + serum,
+                            mapOf(
+                                SampleOrders.NORTHLINE to "Northline Knitwear",
+                                SampleOrders.CLEAR_SKIN to "Clear Skin Lab",
+                            ),
+                        ),
+                    )
                     check(CANCELLED, page(SampleOrders.cancelled(mayas)))
 
                     val returnedItems =
@@ -231,6 +243,7 @@ class OrderFixturesTest {
         const val HAUL_PAY = "order_haul_pay.json"
         const val READY_FOR_PICKUP = "order_ready_for_pickup.json"
         const val DELIVERED = "order_delivered.json"
+        const val DELIVERED_WITH_POINTS = "order_delivered_with_points.json"
         const val CANCELLED = "order_cancelled.json"
         const val RETURNED = "order_returned.json"
 

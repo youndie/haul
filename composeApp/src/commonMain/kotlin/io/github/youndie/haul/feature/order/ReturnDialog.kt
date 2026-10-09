@@ -31,6 +31,7 @@ import io.github.youndie.haul.feature.product.settle
 import io.github.youndie.haul.feature.product.without
 import io.github.youndie.haul.feature.returns.ReturnEntry
 import io.github.youndie.haul.feature.returns.exactDollars
+import io.github.youndie.haul.feature.returns.groupedCount
 import io.github.youndie.haul.feature.returns.returnProblems
 import io.github.youndie.haul.shell.LocalTreeCommands
 import io.github.youndie.haul.shell.TreeCommand
@@ -259,8 +260,11 @@ private fun ReasonField(
 }
 
 /**
- * What the ticked lines give back, on Paper: «Refund $80.00 to card ···· 4821», then how it goes back and,
- * when the order earned points, that they are taken back. Nothing ticked, nothing to say.
+ * What the ticked lines give back, on Paper: «Refund $80.00 to card ···· 4821» — the money, each line's refund
+ * less the part the order paid with points — and, for an order paid partly with points, «+ 1,926 points back»
+ * under it (B-50); then how it goes back and, when the order earned points, that they are taken back. Both
+ * numbers are sums of the server's per-line shares, so they are what the refund gives back for these lines.
+ * Nothing ticked, nothing to say.
  */
 @Composable
 private fun Refund(
@@ -269,7 +273,8 @@ private fun Refund(
 ) {
     val ticked = form.lines.filter { it.position in draft.lines }
     if (ticked.isEmpty()) return
-    val amount = exactDollars(ticked.sumOf { it.refundCents })
+    val amount = exactDollars(ticked.sumOf { it.refundCents - it.pointsBack })
+    val back = ticked.sumOf { it.pointsBack }
     val points = if (ticked.size == 1) form.pointsOne else form.pointsMany
     Column(
         Modifier
@@ -283,6 +288,13 @@ private fun Refund(
             HaulType.text(15f, 600, lineHeight = REFUND_LEADING),
             Modifier.testTag(REFUND_TAG),
         )
+        form.pointsBack?.takeIf { back > 0 }?.let {
+            Text(
+                it.replace("{points}", groupedCount(back)),
+                HaulType.text(15f, 600, lineHeight = REFUND_LEADING),
+                Modifier.testTag(POINTS_BACK_TAG),
+            )
+        }
         Text(
             listOfNotNull(form.note, points).joinToString(" "),
             HaulType.text(14f, lineHeight = REFUND_LEADING).copy(color = HaulColors.outline),
@@ -302,3 +314,4 @@ internal fun reasonTag(id: String): String = "return-reason:$id"
 
 internal const val REASON_TAG: String = "return-reason"
 internal const val REFUND_TAG: String = "return-refund"
+internal const val POINTS_BACK_TAG: String = "return-points-back"

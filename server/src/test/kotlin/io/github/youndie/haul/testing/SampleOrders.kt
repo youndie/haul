@@ -135,7 +135,18 @@ internal object SampleOrders {
     }
 
     /** #HL-46102: Northline Knitwear's sweater and Clear Skin Lab's serum, by courier, both delivered on Friday the 26th. */
-    fun delivered(mayas: NewOrder): TrackedOrder =
+    fun delivered(mayas: NewOrder): TrackedOrder = delivered(mayas, pointsRedeemed = 0)
+
+    /**
+     * #HL-46102 as if Maya had paid it partly with her 2,480 points (B-50) — $78.20 to the card — which no artboard
+     * draws: the return dialog's money and «+ N points back» as the shopper ticks.
+     */
+    fun deliveredWithPoints(mayas: NewOrder): TrackedOrder = delivered(mayas, pointsRedeemed = 2_480)
+
+    private fun delivered(
+        mayas: NewOrder,
+        pointsRedeemed: Int,
+    ): TrackedOrder =
         deliveredOrder(
             mayas,
             "HL-46102",
@@ -145,6 +156,7 @@ internal object SampleOrders {
                 OrderLine(SWEATER_SKU, NORTHLINE, "Merino Wool Crewneck Sweater, Unisex", 1, 8_000, 8_000),
                 OrderLine(SERUM_SKU, CLEAR_SKIN, "Vitamin C Brightening Serum, 30 ml", 1, 2_300, 2_300),
             ),
+            pointsRedeemed,
         )
 
     /** #HL-48303: Maya's three things paid with the test card ···· 0002, declined and undone. */
@@ -242,15 +254,20 @@ internal object SampleOrders {
             ),
         )
 
-    /** A courier order of [lines], every shipment delivered at [deliveredAt]; the rest is Maya's order's. */
+    /**
+     * A courier order of [lines], every shipment delivered at [deliveredAt], [pointsRedeemed] points off its
+     * items; the rest is Maya's order's.
+     */
     private fun deliveredOrder(
         base: NewOrder,
         id: String,
         placedAt: String,
         deliveredAt: String,
         lines: List<OrderLine>,
+        pointsRedeemed: Int = 0,
     ): TrackedOrder {
         val items = lines.sumOf { it.priceCents * it.quantity }
+        val total = items - pointsRedeemed
         val order =
             Order(
                 base.copy(
@@ -261,8 +278,9 @@ internal object SampleOrders {
                     itemsCents = items,
                     discountCents = 0,
                     deliveryCents = 0,
-                    totalCents = items,
-                    points = items / 100 * 2,
+                    totalCents = total,
+                    points = total / 100 * 2,
+                    pointsRedeemed = pointsRedeemed,
                     placedAt = OffsetDateTime.parse(placedAt),
                     lines = lines,
                 ),

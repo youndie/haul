@@ -33,9 +33,9 @@ private val log = LoggerFactory.getLogger("io.github.youndie.haul.returns")
  *
  * **The points move with the refund** (B-23), before the move as well and each once by its key: the points the
  * returned lines earned are taken back (`reversed:<order>`, the return's [OrderReturn.points]), and the points
- * the order was paid with come back in proportion to the refund ([ReturnRefunds.pointsBack], `returned:<order>`
- * — kept apart from the cancellation's give-back, which an order that was delivered never had); that part of the
- * refund is not paid in money.
+ * the order was paid with come back as the returned lines' shares of them ([ReturnRefunds.pointsBack],
+ * `returned:<order>` — kept apart from the cancellation's give-back, which an order that was delivered never
+ * had); that part of the refund is not paid in money, and the rest is what the return dialog said (B-50).
  *
  * Every move is conditional on the status it leaves, so two passes at once move a return once.
  */
@@ -91,7 +91,7 @@ internal class ReturnSimulator(
         if (orderReturn.points > 0) {
             points.record(PointsMovement.reversed(customer, order.id, order.id, orderReturn.points, stamp))
         }
-        val back = ReturnRefunds.pointsBack(order, orderReturn.refundCents)
+        val back = ReturnRefunds.pointsBack(order, orderReturn.lines.map { it.position })
         if (back >
             0
         ) {
@@ -105,8 +105,9 @@ internal class ReturnSimulator(
         at: Instant,
     ): Boolean {
         val order = orders.order(orderReturn.orderId) ?: error("the return of ${orderReturn.orderId} has no order")
-        // What the order was paid with in points comes back as points, not money.
-        val money = orderReturn.refundCents - ReturnRefunds.pointsBack(order, orderReturn.refundCents)
+        // What the order was paid with in points comes back as points, not money — the returned lines' shares,
+        // the numbers the return dialog added up (B-50).
+        val money = orderReturn.refundCents - ReturnRefunds.pointsBack(order, orderReturn.lines.map { it.position })
         if (money <= 0) return true
         val method =
             PaymentMethod.byId(order.placed.payment)

@@ -766,13 +766,14 @@ private class OrderPage(
 
     /**
      * «Return items» (`Order_ReturnDialog`): the lines of an order that has arrived, each still inside its 30
-     * days, with what returning it gives back; `null` — no button — once nothing can go back any more. One
-     * return per order, so an order with a return has none.
+     * days, with what returning it gives back and the part of that which comes back as points (B-50); `null` —
+     * no button — once nothing can go back any more. One return per order, so an order with a return has none.
      */
     private fun returnForm(): ReturnForm? {
         if (!arrived || returned != null) return null
         val now = view.now.toInstant()
         val refunds = ReturnRefunds.of(order)
+        val pointsBack = ReturnRefunds.pointsBack(order)
         val lines =
             placed.lines.withIndex().mapNotNull { (position, line) ->
                 val shipment = view.tracked.shipments.firstOrNull { it.sellerId == line.sellerId }
@@ -784,6 +785,7 @@ private class OrderPage(
                     details(line),
                     view.products[line.skuId]?.tone.orEmpty(),
                     refunds.getValue(position),
+                    pointsBack.getValue(position),
                 )
             }
         if (lines.isEmpty()) return null
@@ -806,6 +808,8 @@ private class OrderPage(
                     PaymentMethod.HaulPayPlan -> "Refund {amount} to your Haul Pay plan"
                     else -> "Refund {amount} to ${paymentName()}"
                 },
+            // Paid partly with points (B-50): the box reads the money and, under it, the points that come back.
+            pointsBack = "+ {points} points back".takeIf { placed.pointsRedeemed > 0 },
             note = collection(),
             pointsOne = "Points earned on this line are reversed.".takeIf { points },
             pointsMany = "Points earned on these lines are reversed.".takeIf { points },

@@ -200,9 +200,11 @@ public data class OrderTotals(
  * «Return items» (`Order_ReturnDialog`), presented over a delivered order: the [title], the [meta] line
  * («#HL-46102 · delivered Sep 26 · returns until Oct 26»), the [lines] that can go back with a checkbox
  * each, the [reasons] under [reasonLabel] ([reasonHint] until one is chosen), and the refund the ticked lines
- * come to — [refund] with `{amount}` standing for their sum («Refund {amount} to card ···· 4821»), then
- * [note] and, when the order earned points, [pointsOne] or [pointsMany] by how many lines are ticked. Sent
- * as a `ReturnEntry` to [url]; [close] is what «×» and [cancelLabel] do.
+ * come to — [refund] with `{amount}` standing for the money they give back, each line's `refundCents` less its
+ * `pointsBack` («Refund {amount} to card ···· 4821»); for an order paid partly with points, [pointsBack] under
+ * it with `{points}` standing for the ticked lines' points («+ {points} points back», B-50); then [note] and,
+ * when the order earned points, [pointsOne] or [pointsMany] by how many lines are ticked. Sent as a
+ * `ReturnEntry` to [url]; [close] is what «×» and [cancelLabel] do.
  */
 @Serializable
 @SerialName("haul_return_form")
@@ -216,6 +218,7 @@ public data class ReturnForm(
     val reasonHint: String,
     val reasons: List<ReturnReason>,
     val refund: String,
+    val pointsBack: String? = null,
     val note: String,
     val pointsOne: String? = null,
     val pointsMany: String? = null,
@@ -228,7 +231,10 @@ public data class ReturnForm(
 
 /**
  * A line the shopper may return, whole: its [position] in the order (what `ReturnEntry.lines` names), its
- * tile, [title] and [details] as the order draws them, and [refundCents] — what returning it gives back.
+ * tile, [title] and [details] as the order draws them, [refundCents] — what returning it gives back — and
+ * [pointsBack], the part of that the order paid with points and that comes back as points, a point a cent
+ * (B-50; `0` for an order paid without points). Both are the server's per-line shares, so the dialog only adds
+ * up the ticked lines: the money is the sum of `refundCents − pointsBack`, which is what the refund gives back.
  */
 @Serializable
 public data class ReturnLine(
@@ -237,6 +243,7 @@ public data class ReturnLine(
     val details: String,
     val tone: String,
     val refundCents: Int,
+    val pointsBack: Int = 0,
 )
 
 /** A reason to return, by its [id] (what `ReturnEntry.reason` names) and its [label] («Doesn’t fit»). */

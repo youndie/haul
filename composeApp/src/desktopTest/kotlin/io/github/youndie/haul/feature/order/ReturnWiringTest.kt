@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.order
 
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -34,7 +35,8 @@ import kotlin.time.Instant
 /**
  * «Return items» in the storefront, over the server's own tree of a delivered order (`resources/bodies/
  * order_delivered.json`, #HL-46102: the $80.00 sweater and the $23.00 serum, B-21): the button presents the
- * dialog the tree carries; what is ticked is added up into the refund as the shopper ticks; a form at fault by
+ * dialog the tree carries; what is ticked is added up into the refund as the shopper ticks — and, for an order
+ * paid partly with points, into the card amount and the points back (B-50); a form at fault by
  * the server's rules sends nothing; a filled one is sent where the form says, and its answer — close, then
  * refresh — takes the dialog away and fetches the order again. A refusal is drawn in the dialog.
  */
@@ -44,11 +46,11 @@ class ReturnWiringTest {
     private val requests = CopyOnWriteArrayList<String>()
     private var answer: (TreeCommand) -> KompotAction = { CLOSED }
 
-    private fun ComposeUiTest.delivered() {
+    private fun ComposeUiTest.delivered(body: String = "order_delivered.json") {
         val transport =
             HaulTransport { path ->
                 requests += path
-                HaulResponse(200, read("order_delivered.json"))
+                HaulResponse(200, read(body))
             }
         val commands =
             TreeCommands { command ->
@@ -73,6 +75,7 @@ class ReturnWiringTest {
             onNodeWithTag(REFUND_TAG).assertDoesNotExist()
             onNodeWithTag(lineTag(0)).performClick()
             onNodeWithText("Refund $80.00 to card ···· 4821").assertExists()
+            onNodeWithTag(POINTS_BACK_TAG).assertDoesNotExist()
             onNodeWithText("A courier picks it up for free. Points earned on this line are reversed.").assertExists()
             onNodeWithTag(lineTag(1)).performClick()
             onNodeWithText("Refund $103.00 to card ···· 4821").assertExists()
@@ -80,6 +83,30 @@ class ReturnWiringTest {
             onNodeWithTag(lineTag(0)).performClick()
             onNodeWithTag(lineTag(1)).performClick()
             onNodeWithTag(REFUND_TAG).assertDoesNotExist()
+        }
+
+    /**
+     * B-50: #HL-46102 as if Maya had paid it partly with her 2,480 points (`order_delivered_with_points.json`, the
+     * server's tree). Each tick redraws both numbers from the server's per-line shares: the sweater alone is
+     * $60.74 to the card and 1,926 points back, both lines $78.20 and 2,480, the serum alone $17.46 and 554 —
+     * not the lines' $80.00, $103.00 and $23.00, which the card would never see.
+     */
+    @Test
+    fun `ticking lines updates the card amount and the points back`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            delivered("order_delivered_with_points.json")
+            onNodeWithTag(lineTag(0)).performClick()
+            onNodeWithTag(REFUND_TAG, useUnmergedTree = true).assertTextEquals("Refund $60.74 to card ···· 4821")
+            onNodeWithTag(POINTS_BACK_TAG, useUnmergedTree = true).assertTextEquals("+ 1,926 points back")
+            onNodeWithTag(lineTag(1)).performClick()
+            onNodeWithTag(REFUND_TAG, useUnmergedTree = true).assertTextEquals("Refund $78.20 to card ···· 4821")
+            onNodeWithTag(POINTS_BACK_TAG, useUnmergedTree = true).assertTextEquals("+ 2,480 points back")
+            onNodeWithTag(lineTag(0)).performClick()
+            onNodeWithTag(REFUND_TAG, useUnmergedTree = true).assertTextEquals("Refund $17.46 to card ···· 4821")
+            onNodeWithTag(POINTS_BACK_TAG, useUnmergedTree = true).assertTextEquals("+ 554 points back")
+            onNodeWithTag(lineTag(1)).performClick()
+            onNodeWithTag(REFUND_TAG).assertDoesNotExist()
+            onNodeWithTag(POINTS_BACK_TAG).assertDoesNotExist()
         }
 
     /** The lines ticked and the reason chosen are the command, sent where the form says; the answer closes and redraws. */
