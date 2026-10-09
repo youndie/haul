@@ -66,28 +66,28 @@ The list below is **checked** against the files on disk.
 
 ### Services (3/3)
 
-- [ ] [haul-server](services/haul-server.md) — owns all data; builds every screen as a kompot tree; the order saga and the simulators (draft)
-- [ ] [haul-web](services/haul-web.md) — the browser storefront: renderers, navigation, Loading/Error, sign-in, cart commands (draft)
-- [ ] [haul-shared](services/haul-shared.md) — the contract: components on the wire, command bodies, error codes (draft)
+- [ ] [haul-server](services/haul-server.md) — owns all data; builds every screen as a kompot tree; the order saga and the simulators (draft: deal prices B-57, campaign and deal ends B-58)
+- [x] [haul-web](services/haul-web.md) — the browser storefront: renderers, navigation, Loading/Error, sign-in, cart commands
+- [x] [haul-shared](services/haul-shared.md) — the contract: components on the wire, command bodies, error codes
 
 ### Features (11)
 
 Browsing:
-- [ ] [feature-browse](features/feature-browse.md) — Home and category catalog (draft)
+- [ ] [feature-browse](features/feature-browse.md) — Home and category catalog (draft: deal prices B-57, campaign and deal ends B-58)
 - [x] [feature-search](features/feature-search.md) — Search and autocomplete
-- [ ] [feature-product](features/feature-product.md) — Product page (draft)
+- [x] [feature-product](features/feature-product.md) — Product page
 - [x] [feature-reviews](features/feature-reviews.md) — Reviews and questions
 - [x] [feature-recommendations](features/feature-recommendations.md) — Picked for you
 
 Buying:
 - [x] [feature-identity](features/feature-identity.md) — Sign-in, guests and the guest cart
 - [x] [feature-cart](features/feature-cart.md) — Cart
-- [ ] [feature-checkout](features/feature-checkout.md) — Checkout (draft)
+- [x] [feature-checkout](features/feature-checkout.md) — Checkout
 - [x] [feature-orders](features/feature-orders.md) — Order lifecycle, tracking and returns
 
 Account and loyalty:
 - [x] [feature-account](features/feature-account.md) — Account overview and the Saved list
-- [ ] [feature-membership](features/feature-membership.md) — Haul Plus, points and Haul Pay (draft)
+- [x] [feature-membership](features/feature-membership.md) — Haul Plus, points and Haul Pay
 
 ### Screens / flows (10)
 
@@ -95,7 +95,7 @@ Account and loyalty:
 - [x] [screen-cart](screens/screen-cart.md) — Cart, 8 states
 - [x] [screen-catalog](screens/screen-catalog.md) — Category, 5 states
 - [x] [screen-checkout](screens/screen-checkout.md) — Checkout, 9 states
-- [ ] [screen-deals](screens/screen-deals.md) — Deals, no artboard (draft)
+- [ ] [screen-deals](screens/screen-deals.md) — Deals, no artboard (draft: B-57, B-58, and no artboard)
 - [x] [screen-home](screens/screen-home.md) — Home, 5 states
 - [x] [screen-order](screens/screen-order.md) — Order, 10 states
 - [x] [screen-product](screens/screen-product.md) — Product, 10 states
