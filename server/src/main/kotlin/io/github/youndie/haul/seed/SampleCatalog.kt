@@ -149,7 +149,8 @@ internal object SampleCatalog {
     }
 
     /** The headphones in Midnight Black, headphones only, are a deal of the day at their $349. */
-    val SONY_DEAL: SeedDeal = SeedDeal("deal-1", "$SONY_HEADPHONES-0", 34_900, CatalogSeed.DEALS_END)
+    val SONY_DEAL: SeedDeal =
+        SeedDeal("deal-1", "$SONY_HEADPHONES-0", 34_900, CatalogSeed.DEALS_START, CatalogSeed.DEALS_END)
 
     /**
      * The campaign on the home page's hero, open from Oct 7 and to Plus members from Oct 6; every

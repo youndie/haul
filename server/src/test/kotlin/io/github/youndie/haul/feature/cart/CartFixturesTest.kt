@@ -141,10 +141,14 @@ class CartFixturesTest {
                         PICKED
                 }.jsonObject
         val ours = picks().getValue("cards").jsonArray.map { it.jsonObject }
+        // A card writes `oldPrice` and `badge` together, and only for a product under its old price (`card` in
+        // Cards.kt). Since B-57 every pick, a live deal, is under one, so the shape of the same card at its own
+        // price — the canvas's picks are — is the server's shape without the two.
+        val shapes = ours.map { it.keys } + ours.map { it.keys - setOf("oldPrice", "badge") }
         val theirs = body.picks().getValue("cards").jsonArray
         theirs.forEach { card ->
             val keys = card.jsonObject.keys
-            assertTrue(ours.any { it.keys == keys }, "a pick no server card is shaped like: $card")
+            assertTrue(keys in shapes, "a pick no server card is shaped like: $card")
         }
         val children =
             jsonObject.getValue("children").jsonArray.map { child ->

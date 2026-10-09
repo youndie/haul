@@ -112,6 +112,7 @@ internal data class SeedDeal(
     val id: String,
     val skuId: String,
     val priceCents: Int,
+    val startsAt: OffsetDateTime,
     val endsAt: OffsetDateTime,
 )
 

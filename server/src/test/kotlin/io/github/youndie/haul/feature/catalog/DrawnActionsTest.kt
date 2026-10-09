@@ -299,10 +299,22 @@ class DrawnActionsTest {
 
     /**
      * How far a product's shown SKU — the cheapest in stock, else the cheapest, as the cards price it —
-     * is under its old price, as a fraction of the old; 0 when it is not on sale.
+     * is under its old price, as a fraction of the old; 0 when it is not on sale. A deal of the canvas's day
+     * below a SKU's price is that SKU's price, over the price it beats (B-57): the store prices it so on
+     * every card, so a generated deal outside the sale is on sale too.
      */
     private fun markdown(productId: String): Double {
-        val skus = seed.skus.filter { it.productId == productId }
+        val skus =
+            seed.skus.filter { it.productId == productId }.map { sku ->
+                val deal = seed.deals.filter { it.skuId == sku.id }.minOfOrNull { it.priceCents }
+                if (deal == null ||
+                    deal >= sku.priceCents
+                ) {
+                    sku
+                } else {
+                    sku.copy(priceCents = deal, oldPriceCents = sku.priceCents)
+                }
+            }
         val shown = skus.filter { it.stock > 0 }.minByOrNull { it.priceCents } ?: skus.minBy { it.priceCents }
         val old = shown.oldPriceCents ?: return 0.0
         return if (old > shown.priceCents) (old - shown.priceCents).toDouble() / old else 0.0

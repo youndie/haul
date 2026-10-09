@@ -35,10 +35,10 @@ internal fun card(
     photos: ProductPhotos,
     viewer: Viewer,
     sku: Sku = item.shown,
-    priceCents: Int = sku.priceCents,
-    oldCents: Int? = sku.oldPriceCents,
 ): ProductCard {
     val saved = item.product.id in viewer.saved
+    val priceCents = sku.priceCents
+    val oldCents = sku.oldPriceCents
     return ProductCard(
         id = "card-${item.product.id}",
         productId = item.product.id,
@@ -95,8 +95,10 @@ internal fun addToCart(
 }
 
 /**
- * The cards of today's deals (feature-browse): each at its deal price over the SKU's own, which is
- * what «+» puts into the cart; a deal whose SKU is gone is left out.
+ * The cards of the deals live on the store's clock (feature-browse): each the deal's SKU at the price the
+ * catalog reads for it — the deal's, over the campaign or regular price it beats, or the campaign's when
+ * that is as low (B-57, `CampaignPricing`) — which is what «+» puts into the cart and the cart charges. A
+ * deal whose SKU is gone is left out, and an ended one is not read at all.
  */
 internal suspend fun dealCards(
     catalog: CatalogRepository,
@@ -108,9 +110,7 @@ internal suspend fun dealCards(
     val items = catalog.listed(deals.map { deal -> deal.skuId.substringBeforeLast('-') }, viewer.prices)
     return deals.mapNotNull { deal ->
         val item = items.firstOrNull { item -> item.skus.any { it.id == deal.skuId } } ?: return@mapNotNull null
-        val sku = item.skus.first { it.id == deal.skuId }
-        val old = if (deal.priceCents < sku.priceCents) sku.priceCents else sku.oldPriceCents
-        card(item, calendar, photos, viewer, sku = sku, priceCents = deal.priceCents, oldCents = old)
+        card(item, calendar, photos, viewer, sku = item.skus.first { it.id == deal.skuId })
     }
 }
 

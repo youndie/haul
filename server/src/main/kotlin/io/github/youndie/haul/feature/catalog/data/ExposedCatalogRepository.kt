@@ -27,8 +27,9 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 /**
  * The catalog over Exposed. JDBC blocks, so every read runs on the IO dispatcher. SKUs are read with
- * their campaign's opening and priced for the caller's [PriceList] at the store's [clock] (B-53), here
- * and nowhere else, so every screen and command that reads a SKU reads the same price.
+ * their campaign's opening and their deals, and priced for the caller's [PriceList] at the store's
+ * [clock] (B-53, B-57), here and nowhere else, so every screen and command that reads a SKU reads the
+ * same price — a deal card's included.
  */
 internal class ExposedCatalogRepository(
     private val database: Database,
@@ -131,9 +132,12 @@ internal class ExposedCatalogRepository(
 
     override suspend fun deals(): List<Deal> =
         read {
-            DealsTable.selectAll().orderBy(DealsTable.id).map {
-                Deal(it[DealsTable.id], it[DealsTable.skuId], it[DealsTable.priceCents], it[DealsTable.endsAt])
-            }
+            val at = clock.now().toOffsetDateTime()
+            DealsTable
+                .selectAll()
+                .orderBy(DealsTable.id)
+                .map(::deal)
+                .filter { it.liveAt(at) }
         }
 
     private fun withSkus(
@@ -142,13 +146,24 @@ internal class ExposedCatalogRepository(
     ): List<Listed> {
         if (products.isEmpty()) return emptyList()
         val at = clock.now().toOffsetDateTime()
-        val skus =
+        val rows =
             SkusTable
                 .join(CampaignsTable, JoinType.LEFT, SkusTable.campaignSlug, CampaignsTable.slug)
                 .selectAll()
                 .where { SkusTable.productId inList products.map { it.id } }
-                .map { row -> CampaignPricing.priced(sku(row), opening(row), prices, at) }
-                .groupBy { it.productId }
+                .toList()
+        val deals =
+            DealsTable
+                .selectAll()
+                .where { DealsTable.skuId inList rows.map { it[SkusTable.id] } }
+                .map(::deal)
+                .groupBy { it.skuId }
+        val skus =
+            rows
+                .map { row ->
+                    val sku = sku(row)
+                    CampaignPricing.priced(sku, opening(row), deals[sku.id].orEmpty(), prices, at)
+                }.groupBy { it.productId }
         return products.mapNotNull { product ->
             skus[product.id]?.sortedBy { it.position }?.let { Listed(product, it) }
         }
@@ -181,6 +196,15 @@ internal class ExposedCatalogRepository(
             imageKey = row[ProductsTable.imageKey],
             boughtBase = row[ProductsTable.boughtBase],
             listingName = row[ProductsTable.listingName] ?: row[ProductsTable.title],
+        )
+
+    private fun deal(row: ResultRow): Deal =
+        Deal(
+            id = row[DealsTable.id],
+            skuId = row[DealsTable.skuId],
+            priceCents = row[DealsTable.priceCents],
+            startsAt = row[DealsTable.startsAt],
+            endsAt = row[DealsTable.endsAt],
         )
 
     /** The opening of the SKU's campaign, from the joined row; none for a SKU in no campaign. */

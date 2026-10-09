@@ -62,7 +62,8 @@ internal data class Product(
 /**
  * A SKU at the prices one [PriceList] draws: [priceCents] is what a card shows and the cart charges,
  * [oldPriceCents] what is struck through. A SKU of a campaign the list does not see open yet is at its
- * regular price with nothing struck through (B-53, [CampaignPricing]).
+ * regular price with nothing struck through (B-53), and a SKU with a live deal below that price is at the
+ * deal's, over the price it beats (B-57, [CampaignPricing]).
  */
 internal data class Sku(
     val id: String,
@@ -84,12 +85,20 @@ internal data class Campaign(
     val endsAt: OffsetDateTime,
 )
 
+/**
+ * A price of one SKU for a window (B-57): live from [startsAt] up to, not including, [endsAt] on the
+ * store's clock. While it is live, [CampaignPricing] makes it the SKU's price wherever the SKU is read,
+ * unless a campaign already sells the SKU at or below it; outside the window it is nothing.
+ */
 internal data class Deal(
     val id: String,
     val skuId: String,
     val priceCents: Int,
+    val startsAt: OffsetDateTime,
     val endsAt: OffsetDateTime,
-)
+) {
+    fun liveAt(at: OffsetDateTime): Boolean = !at.isBefore(startsAt) && at.isBefore(endsAt)
+}
 
 /** A product with its SKUs: what a card and a facet count need. */
 internal data class Listed(
@@ -138,5 +147,6 @@ internal interface CatalogRepository {
 
     suspend fun campaigns(): List<Campaign>
 
+    /** The deals live on the store's clock, by id; an ended or a future deal is not among them. */
     suspend fun deals(): List<Deal>
 }
