@@ -201,7 +201,12 @@ trial's dialog for a customer who is not a member, `/account` for a member, sign
 
 - **The one control wired in the client alone is the filter sheet's.** The sheet is the facets already
   in the tree, drawn over the page on a phone; «Filters» opens it and «×» closes it without asking the
-  server, because there is nothing for the server to decide and no address to change.
+  server, because there is nothing for the server to decide and no address to change. «Show N items»
+  closes it too (B-54): each press inside the sheet already opened the page those results are on. The
+  sheet is held by the shell above the page keyed on its address
+  (`composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/catalog/FiltersSheetState.kt`), so
+  it stays open over the pages its own presses open and is drawn from each one's tree; any other new
+  page closes it.
 - **A control with no page behind it is plain text**, not a link that opens nothing: the strip's «Sell
   on HAUL», «Help» and the language, and the footer's links, until a page exists for them.
 
