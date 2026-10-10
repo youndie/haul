@@ -1,7 +1,7 @@
 ---
 id: B-70
 title: "server: a running stand keeps its deals of the day"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-10-review
