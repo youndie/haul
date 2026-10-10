@@ -73,8 +73,9 @@ class DrawnActionsTest {
                 }
                 assertEquals(NavigateAction("/deals"), header.deals, path)
                 assertEquals(NavigateAction("/cart"), header.cart, path)
-                // A guest's «Orders» is sign-in, as the account shortcut is (B-18).
-                assertEquals(NavigateAction("/sign-in"), header.orders, path)
+                // A guest's «Orders» is sign-in (B-18) that lands on the orders once it has gone through (B-66).
+                assertEquals(NavigateAction("/sign-in?next=%2Faccount%2Forders"), header.orders, path)
+                assertEquals(NavigateAction("/sign-in?next=%2Faccount%2Fsaved"), header.saved, path)
             }
             // Followed: a word of the row is that category's page.
             val electronics = tree("/ui/home").only<HaulHeader>().catalog.first { it.label == "Electronics" }

@@ -23,12 +23,15 @@ import kotlinx.coroutines.sync.withLock
  * - A `401` on a request ([send]) is answered once: a signed-in customer's token is renewed, or the
  *   customer is signed out when it cannot be; a guest the server no longer knows is replaced. Then
  *   the request is sent again.
+ * - When the browser blocks the popup, the sign-in can run in this tab instead ([here], B-66): it leaves
+ *   for the provider's page and is finished, the same way, when the tab comes back to `/sign-in`.
  */
 public class Identity(
     private val api: IdentityApi,
     private val flow: SignInFlow,
     private val store: SessionStore,
-) {
+    private val here: SignInHere? = null,
+) : SessionControls {
     private val state = MutableStateFlow(store.load())
     private val guestLock = Mutex()
     private var settings: SignInSettings? = null
@@ -57,16 +60,47 @@ public class Identity(
      * with sign-in off; a flow the shopper abandoned throws what the flow throws, and nothing changes.
      */
     public suspend fun signIn() {
+        var asked: SignInSettings? = null
+        val tokens = flow.signIn { (settings() ?: throw SignInUnavailable()).also { asked = it } }
+        keep(checkNotNull(asked) { "the sign-in flow answered without asking where to sign in" }, tokens)
+    }
+
+    override val signedIn: Boolean get() = state.value.signedIn
+
+    /** Forgets the customer's tokens; the shopper is the guest they were, with an empty cart. */
+    override fun signOut() {
+        update { it.copy(tokens = null) }
+    }
+
+    override val canSignInHere: Boolean get() = here != null
+
+    /** Leaves for the provider's page in this tab. Throws [SignInUnavailable] where there is none, or no sign-in. */
+    override suspend fun signInHere(next: String?) {
+        val here = here ?: throw SignInUnavailable()
+        here.leave(settings() ?: throw SignInUnavailable(), next)
+    }
+
+    override val returnedFromSignIn: Boolean get() = here?.returned == true
+
+    /**
+     * Finishes the sign-in in this tab that came back: the tokens kept and the guest cart merged, as a
+     * popup's are; answers the address it was asked to return to. Throws what [SignInHere.finish] throws.
+     */
+    override suspend fun finishSignInHere(): String? {
+        val here = here ?: throw SignInUnavailable()
         val settings = settings() ?: throw SignInUnavailable()
-        val tokens = flow.signIn(settings)
+        val signedIn = here.finish(settings)
+        keep(settings, signedIn.tokens)
+        return signedIn.next
+    }
+
+    private suspend fun keep(
+        settings: SignInSettings,
+        tokens: Tokens,
+    ) {
         val guest = state.value.guestId
         update { it.copy(tokens = tokens) }
         if (guest != null) api.merge(settings.mergeUrl, guest, tokens.accessToken)
-    }
-
-    /** Forgets the customer's tokens; the shopper is the guest they were, with an empty cart. */
-    public fun signOut() {
-        update { it.copy(tokens = null) }
     }
 
     private suspend fun guest(): String =

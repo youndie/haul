@@ -17,7 +17,9 @@ import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /**
  * The storefront's identity against a server played by a mock engine and a provider played by a
@@ -72,7 +74,7 @@ class IdentityTest {
         var renewed: Tokens? = Tokens("access-2", "refresh-2")
         val refreshedWith = mutableListOf<String>()
 
-        override suspend fun signIn(settings: SignInSettings): Tokens = next
+        override suspend fun signIn(settings: suspend () -> SignInSettings): Tokens = next.also { settings() }
 
         override suspend fun refresh(
             settings: SignInSettings,
@@ -184,6 +186,82 @@ class IdentityTest {
 
             assertEquals(Session(guestId = "g-1"), store.load())
         }
+
+    /**
+     * B-66, a browser that blocks the popup: the sign-in leaves for the provider in this tab with its
+     * `next`, and the page it comes back to finishes it as a popup's is finished — the tokens kept, the
+     * guest cart merged with them — and answers that `next`.
+     */
+    @Test
+    fun `a sign-in in this tab comes back signed in with the cart merged and its next`() =
+        runBlocking {
+            home()
+            // A page load later: the guest is the one the store kept.
+            val here = Here()
+            val identity = Identity(IdentityApi(http), provider, store, here)
+            assertTrue(identity.canSignInHere)
+            assertFalse(identity.returnedFromSignIn)
+
+            identity.signInHere("/account/orders")
+            assertEquals(listOf<String?>("/account/orders"), here.left)
+            assertFalse(identity.signedIn, "leaving for the provider is not a sign-in yet")
+
+            here.comesBack(SignedInHere(Tokens("access-here", "refresh-here"), "/account/orders"))
+            assertTrue(identity.returnedFromSignIn)
+            assertEquals("/account/orders", identity.finishSignInHere())
+
+            assertTrue(identity.signedIn)
+            assertEquals(Session("g-1", Tokens("access-here", "refresh-here")), store.load())
+            val merge = requests.single { it.url.encodedPath == settings.mergeUrl }
+            assertEquals("Bearer access-here", merge.headers[HttpHeaders.Authorization])
+            assertEquals("g-1", merge.headers[GUEST_HEADER])
+        }
+
+    /** One that did not go through leaves the shopper the guest they were. */
+    @Test
+    fun `a sign-in in this tab that did not go through changes nothing`() =
+        runBlocking {
+            home()
+            // A page load later: the guest is the one the store kept.
+            val here = Here()
+            val identity = Identity(IdentityApi(http), provider, store, here)
+
+            assertFailsWith<IllegalStateException> { identity.finishSignInHere() }
+
+            assertFalse(identity.signedIn)
+            assertEquals(Session(guestId = "g-1"), store.load())
+            assertTrue(requests.none { it.url.encodedPath == settings.mergeUrl })
+        }
+
+    @Test
+    fun `an identity without a sign-in in this tab offers none`() =
+        runBlocking {
+            assertFailsWith<SignInUnavailable> { identity.signInHere("/checkout") }
+            assertFalse(identity.canSignInHere)
+            assertFalse(identity.returnedFromSignIn)
+        }
+
+    /** The provider's page in this tab, as far as the identity sees it: where it was sent, and what came back. */
+    private class Here : SignInHere {
+        val left = mutableListOf<String?>()
+        private var back: SignedInHere? = null
+
+        fun comesBack(signedIn: SignedInHere) {
+            back = signedIn
+        }
+
+        override val returned: Boolean get() = back != null
+
+        override suspend fun leave(
+            settings: SignInSettings,
+            next: String?,
+        ) {
+            left += next
+        }
+
+        override suspend fun finish(settings: SignInSettings): SignedInHere =
+            checkNotNull(back) { "no sign-in in this tab came back" }.also { back = null }
+    }
 
     private companion object {
         val JSON = headersOf(HttpHeaders.ContentType, "application/json")

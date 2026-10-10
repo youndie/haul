@@ -17,7 +17,25 @@ import io.ktor.http.parseQueryString
 // (B-62) are the server's own and a filter's address is the page's path.
 
 /** Which page an address is, for what the shell draws before its tree arrives and when it does not. */
-public enum class PageKind { Home, Catalog, Product, Search, Cart, Checkout, Account, Saved, Order, Other }
+public enum class PageKind {
+    Home,
+    Catalog,
+    Product,
+    Search,
+    Cart,
+    Checkout,
+    Account,
+    Saved,
+    Order,
+
+    /** `/sign-in`: the client's own page, with no tree behind it (B-66). */
+    SignIn,
+    Other,
+    ;
+
+    /** A customer's page: the server refuses it to a guest, so a shopper who signs out is not left on it. */
+    public val isCustomers: Boolean get() = this == Checkout || this == Account || this == Saved || this == Order
+}
 
 /** An address in the storefront: a path and its query, as a `NavigateAction` carries it. */
 public data class Address(
@@ -50,9 +68,10 @@ public data class Address(
 
             StorefrontPage.Order -> PageKind.Order
 
+            StorefrontPage.SignIn -> PageKind.SignIn
+
             StorefrontPage.Categories,
             StorefrontPage.Deals,
-            StorefrontPage.SignIn,
             null,
             -> PageKind.Other
         }
@@ -124,6 +143,21 @@ internal class Navigator(
 
     /** Back or forward: the browser has already moved, the page follows. */
     fun arrived(location: String) {
+        visit(location)
+    }
+
+    /** The page shown, loaded again: what was drawn before a sign-in or a sign-out is not who is looking now. */
+    fun reload() {
+        visit(address.value)
+    }
+
+    /**
+     * A page that is only a way to another — `/sign-in` once the shopper is signed in (B-66) — gives its
+     * entry to [location], so back goes to the page before it rather than to it again.
+     */
+    fun redirect(location: String) {
+        if (!location.startsWith("/")) return
+        history.replace(location)
         visit(location)
     }
 

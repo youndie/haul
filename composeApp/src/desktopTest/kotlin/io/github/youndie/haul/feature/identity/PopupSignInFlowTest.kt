@@ -33,15 +33,19 @@ class PopupSignInFlowTest {
     private val library = LibraryFlow()
     private var redraws = 0
     private var cancelled = 0
+    private val blocked = mutableListOf<String>()
     private val opened = mutableListOf<String>()
 
-    private fun actions(flow: PopupSignInFlow) =
-        SignInActions(
-            signIn = { flow.signIn(settings) },
-            redraw = { redraws++ },
-            cancelled = { cancelled++ },
-            open = { opened += it },
-        )
+    private fun actions(
+        flow: PopupSignInFlow,
+        settings: suspend () -> SignInSettings = { this.settings },
+    ) = SignInActions(
+        signIn = { flow.signIn(settings) },
+        redraw = { redraws++ },
+        cancelled = { cancelled++ },
+        blocked = { blocked += it },
+        open = { opened += it },
+    )
 
     private fun flow(pollEvery: Duration = PopupSignInFlow.POLL) =
         PopupSignInFlow(open = { FakePopup().also { popups += it } }, delegate = library, pollEvery = pollEvery)
@@ -103,17 +107,50 @@ class PopupSignInFlowTest {
             assertEquals(2, popups.size)
         }
 
-    /** A browser that blocks the popup ends the sign-in at once, and the provider is never asked. */
+    /**
+     * A browser that blocks the popup ends the sign-in at once, and neither the server nor the provider
+     * is asked. It is not a sign-in the shopper abandoned (B-66): it is told as blocked, with the press's
+     * own address, for the page that says so and offers the sign-in in this tab.
+     */
     @Test
-    fun `a blocked popup ends the sign-in as cancelled without starting the provider`() =
+    fun `a blocked popup ends the sign-in as blocked without asking the server or the provider`() =
         walk {
-            val press = press(actions(PopupSignInFlow(open = { null }, delegate = library)))
+            var asked = 0
+            val flow = PopupSignInFlow(open = { null }, delegate = library)
+            val press = press(actions(flow) { settings.also { asked++ } })
 
             withTimeout(1.seconds) { press.join() }
 
-            assertEquals(1, cancelled)
+            assertEquals(listOf("/sign-in?next=%2Fcheckout"), blocked)
+            assertEquals(0, cancelled)
+            assertEquals(0, asked, "the server was asked for the settings before the popup")
             assertEquals(0, library.started)
             assertEquals(emptyList(), opened)
+        }
+
+    /**
+     * B-66: the popup is opened inside the press, before the wait for the server's settings — a browser
+     * blocks a popup opened after a wait it saw no click for, and the first press of a page load waits for
+     * them. Settings that fail close the popup, and the sign-in did not go through.
+     */
+    @Test
+    fun `the popup opens before the settings are asked for, and closes when they fail`() =
+        walk {
+            val popupsWhenAsked = mutableListOf<Int>()
+            val press =
+                press(
+                    actions(flow()) {
+                        popupsWhenAsked += popups.size
+                        throw SignInUnavailable()
+                    },
+                )
+
+            withTimeout(1.seconds) { press.join() }
+
+            assertEquals(listOf(1), popupsWhenAsked)
+            assertTrue(popups.single().closed, "the popup outlived a sign-in that could not start")
+            assertEquals(1, cancelled)
+            assertEquals(0, library.started)
         }
 
     /**
@@ -226,7 +263,8 @@ class PopupSignInFlowTest {
         var started = 0
         private var waiting: Continuation<Tokens>? = null
 
-        override suspend fun signIn(settings: SignInSettings): Tokens {
+        override suspend fun signIn(settings: suspend () -> SignInSettings): Tokens {
+            settings()
             started++
             return suspendCoroutine { waiting = it }
         }

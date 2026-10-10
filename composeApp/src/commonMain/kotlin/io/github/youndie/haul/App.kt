@@ -60,6 +60,7 @@ public fun App(
                     checkoutCommands,
                     treeCommands,
                     realtime,
+                    session = identity,
                 )
             }
         }

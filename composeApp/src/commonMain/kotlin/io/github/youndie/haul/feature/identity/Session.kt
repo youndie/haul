@@ -44,7 +44,12 @@ public class MemorySessionStore(
  * kotlin-multiplatform-oidc (`OidcSignInFlow`); a test's answers what it is told to.
  */
 public interface SignInFlow {
-    public suspend fun signIn(settings: SignInSettings): Tokens
+    /**
+     * Signs in against the realm [settings] names. They are asked for, not given: a flow that opens a
+     * window opens it first, inside the press that asked for it, and only then waits for the server's
+     * answer (B-66) — a browser blocks a popup opened after a wait it did not see a click for.
+     */
+    public suspend fun signIn(settings: suspend () -> SignInSettings): Tokens
 
     public suspend fun refresh(
         settings: SignInSettings,

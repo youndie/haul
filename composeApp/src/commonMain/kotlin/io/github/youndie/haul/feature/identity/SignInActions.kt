@@ -17,32 +17,48 @@ import kotlinx.coroutines.CancellationException
  * [redraw]. A sign-in that did not go through — a popup closed, a server without sign-in, a request
  * that failed in the browser (B-47) — is [cancelled]'s, which draws the screen again too unless the
  * caller has somewhere else to be: a page that asked for the sign-in itself (B-44) has nothing to draw
- * for a guest, and goes home. A press while a sign-in is already under way ([SignInPending], B-46) does
- * none of these: that sign-in's own press answers when it ends. [handle] says whether the action was
- * sign-in's, so the navigation that owns every other `navigate` can hand it the rest.
+ * for a guest, and goes home. A popup the browser blocked ([SignInPopupBlocked]) is not a shopper's
+ * choice and is not left unsaid (B-66): it is [blocked]'s, with the sign-in's own address, and the shell
+ * draws the sign-in page that says why and signs in in this tab instead. A press while a sign-in is
+ * already under way ([SignInPending], B-46) does none of these: that sign-in's own press answers when it
+ * ends.
+ *
+ * [SIGN_OUT] is the client's own address for the header's «Sign out» (B-66): [signOut] forgets the
+ * customer, then [signedOut] draws what a guest sees. [handle] says whether the action was sign-in's or
+ * sign-out's, so the navigation that owns every other `navigate` can hand it the rest.
  */
 public class SignInActions(
     private val signIn: suspend () -> Unit,
     private val redraw: () -> Unit,
     private val cancelled: () -> Unit = redraw,
+    private val blocked: (deeplink: String) -> Unit = { cancelled() },
+    private val signOut: () -> Unit = {},
+    private val signedOut: () -> Unit = redraw,
     private val open: (address: String) -> Unit,
 ) {
     public suspend fun handle(action: KompotAction): Boolean {
-        if (action !is NavigateAction || action.deeplink.substringBefore('?') != SIGN_IN) return false
+        if (!claims(action)) return false
+        val deeplink = (action as NavigateAction).deeplink
+        if (deeplink == SIGN_OUT) {
+            signOut()
+            signedOut()
+            return true
+        }
         when (attempt()) {
-            Outcome.SignedIn -> next(action.deeplink).let { next -> if (next == null) redraw() else open(next) }
+            Outcome.SignedIn -> next(deeplink).let { next -> if (next == null) redraw() else open(next) }
             Outcome.NotSignedIn -> cancelled()
+            Outcome.Blocked -> blocked(deeplink)
             Outcome.AlreadyUnderWay -> Unit // the press that started it answers when it ends
         }
         return true
     }
 
-    private enum class Outcome { SignedIn, NotSignedIn, AlreadyUnderWay }
+    private enum class Outcome { SignedIn, NotSignedIn, Blocked, AlreadyUnderWay }
 
     /** How the shopper came back. */
     @Suppress(
         "ktlint:kapkan:swallowed-failure",
-        "A closed or blocked popup is the shopper's or the browser's choice, a server without sign-in is the deployment's and a failed request is the network's; either way the shopper stays the guest they were, which the redrawn header shows.",
+        "A closed popup is the shopper's choice, a server without sign-in is the deployment's and a failed request is the network's; either way the shopper stays the guest they were, which the redrawn header shows.",
     )
     private suspend fun attempt(): Outcome =
         try {
@@ -52,6 +68,8 @@ public class SignInActions(
             throw e
         } catch (_: SignInPending) {
             Outcome.AlreadyUnderWay
+        } catch (_: SignInPopupBlocked) {
+            Outcome.Blocked
         } catch (_: Throwable) {
             // Throwable, not Exception: in the browser a fetch that fails during the token exchange is a
             // JavaScript error, which is no `Exception` on Wasm — caught narrower, it escaped the press
@@ -63,6 +81,17 @@ public class SignInActions(
     public companion object {
         /** The server's word for «sign in here» (`Frame.SIGN_IN` on the server). */
         public const val SIGN_IN: String = "/sign-in"
+
+        /**
+         * The client's own word for «sign out»: the header's control (B-66). Signing out forgets the
+         * tokens in the browser and asks the server for nothing, so no tree carries it and no page is there.
+         */
+        public const val SIGN_OUT: String = "/sign-out"
+
+        /** Whether [action] is sign-in's or sign-out's to answer rather than a page to open. */
+        public fun claims(action: KompotAction): Boolean =
+            action is NavigateAction &&
+                (action.deeplink.substringBefore('?') == SIGN_IN || action.deeplink == SIGN_OUT)
 
         /** The sign-in that returns to [address] once it has gone through — what the server writes as `next`. */
         public fun returningTo(address: String): String = "$SIGN_IN?next=" + address.encodeURLParameter()

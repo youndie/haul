@@ -11,11 +11,25 @@
   exchanges them (kotlin-multiplatform-oidc's popup flow), so this page only hands the address back
   — to its own origin, never `*` — and closes. Loading the whole bundle here to do the same would
   cost the shopper a second wasm start for four lines.
+
+  A sign-in in the tab itself (B-66, when the browser blocked the popup) returns here too, with no
+  opener and its request waiting in the tab's session storage (`BrowserSignInHere`): the address is
+  kept beside the request and the tab goes on to `/sign-in`, where the storefront exchanges it. The
+  replace keeps this page, and its code, out of the history.
 -->
 <script>
     if (window.opener) {
         window.opener.postMessage(window.location.href, window.location.origin);
         window.close();
+    } else {
+        try {
+            if (sessionStorage.getItem("haul.sign-in.request")) {
+                sessionStorage.setItem("haul.sign-in.answer", window.location.href);
+                window.location.replace("/sign-in");
+            }
+        } catch (e) {
+            // Storage that refuses kept no request: there is nothing to come back to.
+        }
     }
 </script>
 </body>

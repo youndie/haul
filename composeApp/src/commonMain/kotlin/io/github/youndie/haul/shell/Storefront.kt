@@ -36,6 +36,7 @@ import io.github.youndie.haul.feature.catalog.LocalFiltersSheet
 import io.github.youndie.haul.feature.checkout.CheckoutCommands
 import io.github.youndie.haul.feature.checkout.LocalCheckoutCommands
 import io.github.youndie.haul.feature.home.PLUS_DIALOG_COMPACT_TOP
+import io.github.youndie.haul.feature.identity.SessionControls
 import io.github.youndie.haul.feature.identity.SignInActions
 import io.github.youndie.haul.feature.order.OrderNotFound
 import io.github.youndie.haul.feature.product.DialogOverlay
@@ -114,11 +115,15 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
 
 /**
  * The storefront at the address [history] is at: every page from [transport], «now» from [clock] — one
- * clock, ticking each second, that every countdown reads. A tree's `navigate` to `/sign-in` is
- * sign-in's ([SignInActions]): [signIn] runs, then the page its `next` names opens (B-41), or the
- * screen is drawn again, signed in or not. A page refused for want of a sign-in (`401`: a guest on a
- * customer's page, or a sign-in lapsed past renewing) asks for one ([SignInPrompt], B-44) and is loaded
- * again once it has gone through. The cart's presses — the cart's own and a card's «+» — go
+ * clock, ticking each second, that every countdown reads. A `navigate` to `/sign-in` is sign-in's
+ * ([SignInActions]) wherever it is pressed — a tree, the shell's own header, a prompt ([Signing], B-66):
+ * [signIn] runs, then the page its `next` names opens (B-41), or the screen is drawn again, signed in or
+ * not; a popup the browser blocked opens the sign-in page, which says so and signs in in this tab
+ * through [session]. `/sign-in` itself — a reload, a shared link, back or forward — is that page
+ * ([SignInPage]), drawn by the client. The header's «Sign out» (`/sign-out`) forgets the customer
+ * through [session] and draws the page again for a guest, or goes home from a customer's page. A page
+ * refused for want of a sign-in (`401`: a guest on a customer's page, or a sign-in lapsed past
+ * renewing) asks for one ([SignInPrompt], B-44) and is loaded again once it has gone through. The cart's presses — the cart's own and a card's «+» — go
  * to [cartCommands] (B-13, B-37), whose answer, `refresh`, draws the screen again — or, for «+» and «Add to
  * cart», `update`, which redraws the header and the control (B-63). «Clear» on recent
  * searches goes through [commands] (B-37), and the suggest panel is asked for again once the server
@@ -158,6 +163,7 @@ public fun Storefront(
     checkoutCommands: CheckoutCommands? = null,
     treeCommands: TreeCommands? = null,
     realtime: KompotRealtimeSource? = null,
+    session: SessionControls? = null,
 ) {
     val navigator = remember(history) { Navigator(history) }
     DisposableEffect(navigator) {
@@ -222,8 +228,23 @@ public fun Storefront(
     var header by remember { mutableStateOf<HaulHeader?>(null) }
     var signedOut by remember { mutableIntStateOf(0) }
     val home = remember(navigator) { { navigator.open("/") } }
-    // The suggest panel is drawn by the shell, not by a renderer, so its links are followed here.
-    val panelActions = remember(navigator) { navigating(navigator) }
+    // The sign-in page a blocked popup led to: it says why (B-66).
+    var blockedAt by remember { mutableStateOf<String?>(null) }
+    val signing = remember(navigator, signIn, session) { Signing(signIn, session, navigator) { blockedAt = it } }
+    // The suggest panel and the header of a page the shell draws itself — loading, an error, a page that is
+    // not there, a prompt, the sign-in page — are not a renderer's, so their links are followed here; sign-in's
+    // and sign-out's as everywhere else (B-66), the page loaded again for who is looking once they are done.
+    val panelActions =
+        remember(navigator, signing) {
+            val navigate = navigating(navigator)
+            KompotActionHandler { action ->
+                if (SignInActions.claims(action)) {
+                    scope.launch { signing.actions(navigator.address, redraw = navigator::reload).handle(action) }
+                } else {
+                    navigate.handle(action)
+                }
+            }
+        }
     CompositionLocalProvider(
         LocalHaulNow provides now,
         LocalSearchInput provides search,
@@ -243,6 +264,16 @@ public fun Storefront(
             // placeholder at the top. [signedOut] counts the pages a lapsed sign-in took down: a customer's
             // page is not kept for a shopper who is a guest now.
             val screen = address.path to signedOut
+            if (address.kind == PageKind.SignIn) {
+                // The client's own page (B-66): no tree to load, and no filter sheet over it; one per visit.
+                key(visit) {
+                    Scrolled(rememberScrollState()) {
+                        val blocked = blockedAt == address.value
+                        SignInPage(address, header ?: SHELL_HEADER, signing, navigator, blocked)
+                    }
+                }
+                return@SearchSuggestOverlay
+            }
             // The screen's `load`s (B-63): whether one is on its way, and which press is the last — the only
             // one whose answer is run. Held above the screen, so the filter sheet over it reads it too.
             val loading = remember(screen) { KompotLoadState() }
@@ -289,7 +320,7 @@ public fun Storefront(
                                     loader.screen == null -> {
                                         Scrolled(scroll) {
                                             if (cause.asksForSignIn && signedInFor != loads) {
-                                                SignInPrompt(address, header ?: SHELL_HEADER, signIn, navigator) {
+                                                SignInPrompt(address, header ?: SHELL_HEADER, signing, navigator) {
                                                     loads += 1
                                                     signedInFor = loads
                                                 }
@@ -321,7 +352,7 @@ public fun Storefront(
                                     transport,
                                     navigator,
                                     registry,
-                                    signIn,
+                                    signing,
                                     live,
                                     InPlace(overrides, loading) { unanswered = it },
                                     { header = it },
@@ -414,7 +445,7 @@ private fun Shown(
     transport: HaulTransport,
     navigator: Navigator,
     registry: KompotRegistry,
-    signIn: suspend () -> Unit,
+    signing: Signing,
     live: Live?,
     inPlace: InPlace,
     onHeader: (HaulHeader) -> Unit,
@@ -442,7 +473,7 @@ private fun Shown(
         remember(address, inPlace.overrides) {
             // A sign-in that returns to the page already shown draws it again: opening it would do nothing.
             val signInActions =
-                SignInActions(signIn = signIn, redraw = refresh::refresh) { next ->
+                signing.actions(address, redraw = refresh::refresh) { next ->
                     if (next == address.value) refresh.refresh() else navigator.open(next)
                 }
             val navigate = navigating(navigator)
@@ -577,7 +608,7 @@ private fun Loading(address: Address) {
         PageKind.Account -> AccountLoading()
         PageKind.Saved -> SavedLoading()
         PageKind.Order -> OrderLoading()
-        PageKind.Other -> HaulHeaderView(SHELL_HEADER, pending = true)
+        PageKind.SignIn, PageKind.Other -> HaulHeaderView(SHELL_HEADER, pending = true)
     }
 }
 
@@ -658,6 +689,7 @@ private val PageKind.subject: String
             PageKind.Checkout,
             PageKind.Account,
             PageKind.Saved,
+            PageKind.SignIn,
             PageKind.Other,
             -> "This page"
         }
