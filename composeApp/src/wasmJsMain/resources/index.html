@@ -8,9 +8,62 @@
     <title>Haul</title>
     <style>
         html, body { margin: 0; height: 100%; background: #F5F3EE; overscroll-behavior: none; }
+        /* The page before the bundle runs (B-80): the header's shape and a line sweeping under it, the
+           measures of HaulHeaderView, the colours of HaulColors. Shapes only — the words need the fonts, which
+           arrive after the bundle. Main.kt removes it in the frame Compose first draws. */
+        #haul-frame { position: fixed; inset: 0 0 auto 0; z-index: 1; background: #FFF; }
+        #haul-frame i { display: block; flex: none; background: #E9E6E0; border-radius: 5px; }
+        #haul-frame .strip { height: 36px; background: #0F0F0F; }
+        #haul-frame .row { display: flex; align-items: center; gap: 20px; height: 96px; padding: 0 48px; }
+        #haul-frame .logo { position: relative; width: 104px; height: 36px; margin-right: 28px; border-radius: 8px; }
+        #haul-frame .logo::after { content: ""; position: absolute; top: -4px; right: -14px; width: 11px; height: 11px;
+            border-radius: 50%; background: #2F2BFF; }
+        #haul-frame .catalog { width: 128px; height: 56px; border-radius: 16px; background: #2F2BFF; }
+        #haul-frame .search { flex: 1; height: 56px; box-sizing: border-box; border: 2px solid #0F0F0F; border-radius: 16px; background: none; }
+        #haul-frame .shortcut { display: flex; flex-direction: column; align-items: center; gap: 7px; width: 76px;
+            margin-left: -14px; background: none; }
+        #haul-frame .shortcut::before, #haul-frame .shortcut::after { content: ""; background: #E9E6E0; }
+        #haul-frame .shortcut::before { width: 24px; height: 24px; border-radius: 7px; }
+        #haul-frame .shortcut::after { width: 40px; height: 10px; border-radius: 5px; }
+        #haul-frame .cart { width: 127px; height: 56px; border-radius: 16px; background: #0F0F0F; }
+        #haul-frame .menu, #haul-frame .heart, #haul-frame .account { display: none; }
+        #haul-frame .words { display: flex; align-items: center; gap: 28px; height: 52px; padding: 0 48px;
+            border-bottom: 1px solid #E2DED6; overflow: hidden; }
+        #haul-frame .words i { width: 72px; height: 12px; }
+        #haul-frame svg { display: block; width: 100%; height: 3px; }
+        #haul-frame .sweep { animation: haul-sweep 1.2s linear infinite; }
+        @keyframes haul-sweep { from { transform: translateX(-30px); } to { transform: translateX(100px); } }
+        @media (max-width: 767.98px) {
+            #haul-frame .strip { height: 32px; }
+            #haul-frame .row { flex-wrap: wrap; gap: 4px; height: auto; padding: 0 16px 12px; }
+            #haul-frame .menu, #haul-frame .heart, #haul-frame .account { display: block; }
+            #haul-frame .menu { width: 24px; height: 18px; margin: 23px 16px 23px 0; }
+            #haul-frame .logo { width: 76px; height: 30px; margin-right: 0; }
+            #haul-frame .logo::after { top: -3px; right: -12px; width: 9px; height: 9px; }
+            #haul-frame .catalog, #haul-frame .shortcut { display: none; }
+            #haul-frame .heart { width: 24px; height: 22px; margin: 0 10px 0 auto; }
+            #haul-frame .account { width: 44px; height: 20px; border-radius: 6px; }
+            #haul-frame .cart { width: 48px; height: 44px; margin-left: 4px; border-radius: 14px; }
+            #haul-frame .search { order: 1; flex-basis: 100%; height: 50px; border-radius: 14px; }
+            #haul-frame .words { gap: 22px; height: 46px; padding: 0 16px; border-top: 1px solid #E2DED6; }
+        }
+        @media (prefers-reduced-motion: reduce) { #haul-frame .sweep { animation: none; } }
     </style>
 </head>
 <body>
+<div id="haul-frame" role="progressbar" aria-label="Loading Haul">
+    <div class="strip"></div>
+    <div class="row">
+        <i class="menu"></i><i class="logo"></i><i class="catalog"></i><i class="search"></i>
+        <i class="shortcut"></i><i class="shortcut"></i><i class="shortcut"></i>
+        <i class="heart"></i><i class="account"></i><i class="cart"></i>
+    </div>
+    <div class="words"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <svg viewBox="0 0 100 3" preserveAspectRatio="none" aria-hidden="true">
+        <rect width="100" height="3" fill="#2F2BFF" fill-opacity="0.16"/>
+        <rect class="sweep" width="30" height="3" fill="#2F2BFF"/>
+    </svg>
+</div>
 <script src="composeApp.js"></script>
 </body>
 </html>

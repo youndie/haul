@@ -16,11 +16,24 @@ The first call is the first time Compose draws; the first requestAnimationFrame 
 frame that carries it to the screen. "First frame" is that rAF's time since navigation start;
 "settled" is the same for the last GL frame before the page has been quiet for QUIET seconds.
 
+The static frame (B-80): `index.html` draws the header's shape before the bundle runs, and the entry
+point removes it in the first frame Compose draws. The probe counts animation frames (a tick at the
+start of each), records the tick and time of the first GL call and of the frame element's removal, and
+whether the frame was ever hidden before its removal; "first paint" is the browser's own
+first-contentful-paint (Paint Timing), which a page with only a background colour does not report.
+The frame's removal and Compose's first GL call in the same tick is what "no flash of both, no gap"
+means: the browser presents both changes in one rendering update.
+
 Controls in the same log: a run with every .wasm blocked must report no frame, and the profiles
 must come out in their known order with Slow 4G above its bandwidth floor. A run with every font
 blocked shows what the first frame looks like before the fonts arrive (its screenshot).
 
     scripts/measure-first-load.py DIST_DIR OUT_DIR [--rounds 7] [--label main] [--identity] [--url URL]
+                                  [--stop-after SECONDS]
+
+--stop-after ends a run that many seconds after the first frame instead of waiting for the page to go
+quiet (B-80): a storefront that draws from a live server never goes quiet — the deals' countdowns tick —
+so «settled» is not measured then, and only the first paint and the first frame are.
 
 --url measures a server that is already running (B-34: the image, which sends the `.br`/`.gz` it
 carries) instead of serving DIST_DIR; DIST_DIR is then only read for the size table, and a `.br` or
@@ -60,7 +73,28 @@ INCOMPRESSIBLE = (".png", ".jpg", ".jpeg", ".webp", ".woff2", ".gz", ".br")
 
 PROBE = r"""
 (() => {
-  const P = window.__probe = { calls: 0, firstGl: null, lastGl: null, frames: [], contexts: [] };
+  const P = window.__probe = { calls: 0, firstGl: null, lastGl: null, frames: [], contexts: [],
+    tick: 0, firstGlTick: null, staticFrame: null };
+  // B-80: the static frame, by the id `STATIC_FRAME_ID` names. Ticks count animation frames until the frame
+  // is gone and Compose has drawn; `remove` is wrapped to stamp the moment the entry point takes it away.
+  const FRAME_ID = "haul-frame";
+  const remove = Element.prototype.remove;
+  Element.prototype.remove = function () {
+    if (this.id === FRAME_ID && P.staticFrame) {
+      P.staticFrame.removed = performance.now();
+      P.staticFrame.removedTick = P.tick;
+    }
+    return remove.call(this);
+  };
+  const tick = () => {
+    P.tick++;
+    const f = document.getElementById(FRAME_ID);
+    if (f && !P.staticFrame) P.staticFrame = { seen: performance.now(), removed: null, removedTick: null, hiddenTicks: 0 };
+    if (f && !f.checkVisibility()) P.staticFrame.hiddenTicks++;
+    if (P.staticFrame && !f && P.staticFrame.goneTick == null) P.staticFrame.goneTick = P.tick;
+    if (P.firstGl === null || f) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
   const getContext = HTMLCanvasElement.prototype.getContext;
   HTMLCanvasElement.prototype.getContext = function (type, ...rest) {
     const ctx = getContext.call(this, type, ...rest);
@@ -70,7 +104,7 @@ PROBE = r"""
   let pending = false;
   const mark = () => {
     const t = performance.now();
-    if (P.firstGl === null) P.firstGl = t;
+    if (P.firstGl === null) { P.firstGl = t; P.firstGlTick = P.tick; }
     P.lastGl = t;
     P.calls++;
     if (!pending) {
@@ -99,6 +133,7 @@ JSON.stringify({
     name: e.name, start: e.startTime, responseEnd: e.responseEnd, transferSize: e.transferSize,
     encodedBodySize: e.encodedBodySize, decodedBodySize: e.decodedBodySize })),
   canvas: Array.from(document.querySelectorAll("canvas")).map(c => [c.width, c.height]),
+  paints: Object.fromEntries(performance.getEntriesByType("paint").map(e => [e.name, e.startTime])),
 })
 """
 
@@ -375,7 +410,7 @@ def stand():
     return {"nproc": os.cpu_count(), "loadavg": [float(x) for x in load], "mem_available_mb": mem // 1024}
 
 
-def run_once(chrome, url, profile_name, blocked, timeout, shot=None):
+def run_once(chrome, url, profile_name, blocked, timeout, shot=None, stop_after=None):
     proc, profile_dir, cdp = launch(chrome)
     inflight, responses, finished, failed, accepts = set(), {}, {}, [], set()
     state = {"load": False, "last_net": time.time()}
@@ -422,7 +457,7 @@ def run_once(chrome, url, profile_name, blocked, timeout, shot=None):
         before = stand()
         started = time.time()
         cdp.call("Page.navigate", url=url)
-        last_calls, quiet_since, timed_out = -1, time.time(), False
+        last_calls, quiet_since, timed_out, drawn_at = -1, time.time(), False, None
         while True:
             time.sleep(0.2)
             try:
@@ -433,6 +468,10 @@ def run_once(chrome, url, profile_name, blocked, timeout, shot=None):
             if v != last_calls or inflight:
                 last_calls, quiet_since = v, time.time()
             now = time.time()
+            if stop_after is not None and v > 0:
+                drawn_at = drawn_at or now
+                if now - drawn_at >= stop_after:
+                    break
             if state["load"] and not inflight and now - quiet_since >= QUIET and now - state["last_net"] >= QUIET:
                 break
             if now - started > timeout:
@@ -461,8 +500,11 @@ def run_once(chrome, url, profile_name, blocked, timeout, shot=None):
     return {
         "profile": profile_name, "blocked": blocked, "timed_out": timed_out, "stand": before,
         "first_frame_ms": frames[0] if frames else None,
-        "settled_ms": frames[-1] if frames else None,
+        "settled_ms": frames[-1] if frames and stop_after is None else None,
         "first_gl_ms": probe.get("firstGl"), "gl_calls": probe.get("calls", 0), "gl_frames": len(frames),
+        "first_paint_ms": data["paints"].get("first-paint"),
+        "first_contentful_paint_ms": data["paints"].get("first-contentful-paint"),
+        "first_gl_tick": probe.get("firstGlTick"), "static_frame": probe.get("staticFrame"),
         "contexts": probe.get("contexts"), "canvas": data["canvas"],
         "html_end_ms": (data["nav"] or {}).get("responseEnd"), "nav_transfer": (data["nav"] or {}).get("transferSize"), "load_event_ms": (data["nav"] or {}).get("load"),
         "last_byte_ms": bundle_end,
@@ -522,6 +564,7 @@ def main():
     ap.add_argument("--identity", action="store_true", help="serve uncompressed")
     ap.add_argument("--profiles", default="none,fast4g,slow4g")
     ap.add_argument("--url", help="measure this running server instead of serving DIST (B-34)")
+    ap.add_argument("--stop-after", type=float, help="end a run this many seconds after the first frame (B-80)")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     chrome = chromium()
@@ -556,12 +599,16 @@ def main():
         order = profiles[r % len(profiles):] + profiles[: r % len(profiles)]
         for p in order:
             timeout = 60 if p == "none" else 240
-            res = run_once(chrome, url, p, False, timeout, os.path.join(a.out, f"{a.label}-r{r}-{p}.png"))
+            res = run_once(chrome, url, p, False, timeout, os.path.join(a.out, f"{a.label}-r{r}-{p}.png"),
+                           a.stop_after)
             res["round"] = r
             raw.write(json.dumps(res) + "\n")
             raw.flush()
             runs.append(res)
-            print(f"round {r} {p:7s} first={res['first_frame_ms']} settled={res['settled_ms']} "
+            sf = res["static_frame"] or {}
+            print(f"round {r} {p:7s} fcp={res['first_contentful_paint_ms']} first={res['first_frame_ms']} "
+                  f"settled={res['settled_ms']} frame_removed={sf.get('removed')} "
+                  f"ticks(removed/gl)={sf.get('removedTick')}/{res['first_gl_tick']} "
                   f"last_byte={res['last_byte_ms']} bytes={res['transferred_bytes']} gl={res['gl_calls']} "
                   f"timeout={res['timed_out']} load={res['stand']['loadavg']} mem={res['stand']['mem_available_mb']}",
                   flush=True)
@@ -587,14 +634,16 @@ def main():
              "## Time (ms since navigation start; median (min–max) of the counted rounds)", "",
              f"Rounds {a.rounds}, round 1 discarded; counted per profile: "
              f"{ {p: sum(1 for x in counted if x['profile'] == p) for p in profiles} }", "",
-             "| Profile | HTML end | Last byte | First GL call | First frame | Settled | Transferred KiB | GL frames |",
-             "|---|---:|---:|---:|---:|---:|---:|---:|"]
+             "| Profile | HTML end | First contentful paint | Last byte | First GL call | First frame | Settled "
+             "| Transferred KiB | GL frames |",
+             "|---|---:|---:|---:|---:|---:|---:|---:|---:|"]
     med = {}
     for p in profiles:
         xs = [x for x in counted if x["profile"] == p]
         med[p] = statistics.median([x["first_frame_ms"] for x in xs if x["first_frame_ms"] is not None] or [0])
         lines.append(
-            f"| {p} | {spread([x['html_end_ms'] for x in xs])} | {spread([x['last_byte_ms'] for x in xs])} "
+            f"| {p} | {spread([x['html_end_ms'] for x in xs])} | {spread([x['first_contentful_paint_ms'] for x in xs])} "
+            f"| {spread([x['last_byte_ms'] for x in xs])} "
             f"| {spread([x['first_gl_ms'] for x in xs])} | {spread([x['first_frame_ms'] for x in xs])} "
             f"| {spread([x['settled_ms'] for x in xs])} | {spread([x['transferred_bytes'] / 1024 for x in xs])} "
             f"| {spread([x['gl_frames'] for x in xs])} |")
@@ -623,14 +672,30 @@ def main():
         slow_bytes = statistics.median([x["transferred_bytes"] for x in slow])
         floor_ms = 1000 * slow_bytes / PROFILES["slow4g"]["down"]
         floor_ok = med["slow4g"] >= floor_ms
-        # The bytes the first frame can have waited for: everything but the fonts, which Compose
-        # fetches in parallel and draws without (the no-fonts control shows what that frame is).
+        # The bytes the first frame can have waited for: the bundle's files but the fonts, which Compose
+        # fetches in parallel and draws without (the no-fonts control shows what that frame is). What is not
+        # a bundle file — a screen's tree, a photo, from a live server (B-80) — is asked for by the app once
+        # it runs, after its first frame.
         frame_bytes = statistics.median([
             sum(r["transferSize"] for r in x["resources"]
-                if files.get(r["name"][len(url):], {}).get("bucket") != "fonts") + (x["nav_transfer"] or 0)
+                if files.get(r["name"][len(url):], {}).get("bucket") not in ("fonts", None)) + (x["nav_transfer"] or 0)
             for x in slow])
         frame_floor_ms = 1000 * frame_bytes / PROFILES["slow4g"]["down"]
         frame_floor_ok = med["slow4g"] >= frame_floor_ms
+    # B-80: the static frame, where the page has one — removed in the tick Compose first drew, never hidden before.
+    framed = [x for x in counted if x["static_frame"]]
+    swap_ok = all(x["static_frame"]["removedTick"] is not None
+                  and x["static_frame"]["removedTick"] == x["first_gl_tick"]
+                  and x["static_frame"]["hiddenTicks"] == 0 for x in framed)
+    if framed:
+        lines += ["", "The static frame (B-80): removed in the animation frame of Compose's first GL call, "
+                  "never hidden before it, in "
+                  f"{sum(1 for x in framed if x['static_frame']['removedTick'] == x['first_gl_tick'])} of "
+                  f"{len(framed)} runs; on screen (first contentful paint → removal), ms:", "",
+                  "| Profile | Frame on screen |", "|---|---:|"]
+        for p in profiles:
+            xs = [x for x in framed if x["profile"] == p]
+            lines.append(f"| {p} | {spread([x['static_frame']['removed'] - x['first_contentful_paint_ms'] for x in xs if x['static_frame']['removed'] is not None and x['first_contentful_paint_ms'] is not None])} |")
     lines += ["", "## Controls", "",
               f"- blocked `.wasm`: GL calls {ctl['gl_calls']}, first frame {ctl['first_frame_ms']} — "
               f"{'PASS' if probe_ok else 'FAIL'}",
@@ -642,6 +707,10 @@ def main():
               f"{'PASS' if frame_floor_ok else 'FAIL'}",
               f"- fonts blocked: first frame {nofont['first_frame_ms']}, settled {nofont['settled_ms']}, "
               f"GL frames {nofont['gl_frames']} (screenshot {a.label}-control-no-fonts.png)",
+              f"- static frame swapped in the tick of the first GL call, never hidden before: "
+              f"{('PASS' if swap_ok else 'FAIL') if framed else 'no static frame on the page'}",
+              f"- blocked `.wasm` with a static frame: it stays on screen — "
+              f"{'—' if not ctl['static_frame'] else ('PASS' if ctl['static_frame']['removed'] is None and ctl['first_contentful_paint_ms'] is not None else 'FAIL')}",
               f"- void runs (timed out, no frame or a failed request): {len(void)}",
               f"- stand load average per run: {sorted({tuple(x['stand']['loadavg']) for x in runs})[:3]} … "
               f"max 1-min {max(x['stand']['loadavg'][0] for x in runs):.2f}; "
@@ -649,7 +718,7 @@ def main():
     summary = "\n".join(lines) + "\n"
     open(os.path.join(a.out, f"{a.label}-summary.md"), "w").write(summary)
     print(summary)
-    return 0 if probe_ok and order_ok and frame_floor_ok and not void else 1
+    return 0 if probe_ok and order_ok and frame_floor_ok and swap_ok and not void else 1
 
 
 if __name__ == "__main__":
