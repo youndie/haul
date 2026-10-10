@@ -173,6 +173,28 @@ class LineAnswersTest {
         }
 
     /**
+     * B-81: on every page that draws cards — home, the deals, a category, a search — the first card of each grid
+     * that can be added says so when its «+» is pressed, each by a guest of its own, so every press is a cart's
+     * first line. «Picked for you» is a customer's, pressed in `RecommendationsRoutesTest`.
+     */
+    @Test
+    fun `a card's plus says the item was added on every page that draws cards`() =
+        haulTest {
+            val pages = listOf("/ui/home", "/ui/deals", "/ui/c/home-kitchen/kitchen/mugs", "/ui/search?q=everyday")
+            val pressed =
+                pages.flatMap { path ->
+                    page(path, guest()).grids().mapNotNull { grid ->
+                        val buyer = guest()
+                        val cards = page(path, buyer).grids().single { it.id == grid.id }.cards
+                        val card = cards.firstOrNull { it.add != null } ?: return@mapNotNull null
+                        pressedOn(path, buyer, assertNotNull(card.add), card.id)
+                        "$path ${grid.id}"
+                    }
+                }
+            assertEquals(pages, pressed.map { it.substringBefore(' ') }.distinct(), "pressed only $pressed")
+        }
+
+    /**
      * B-81: the press that takes the last one in stock still says so, and the card it answers with has nothing
      * left to add — no command, so a press on it is answered with nothing and says nothing.
      */
@@ -209,6 +231,8 @@ class LineAnswersTest {
             c.commit()
         }
     }
+
+    private fun KompotComponent.grids(): List<ProductGrid> = all().filterIsInstance<ProductGrid>()
 
     private fun mug(page: KompotComponent): ProductCard =
         page.only<ProductGrid>().cards.single { it.productId == SampleCatalog.STONEWARE_MUG }

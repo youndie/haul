@@ -1,6 +1,7 @@
 package io.github.youndie.haul.feature.recommendations
 
 import io.github.youndie.haul.db.Databases
+import io.github.youndie.haul.feature.cart.LineChange
 import io.github.youndie.haul.feature.catalog.data.ExposedCatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Listed
 import io.github.youndie.haul.feature.catalog.domain.PriceList
@@ -11,24 +12,37 @@ import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.testing.CANVAS_NOW
 import io.github.youndie.haul.testing.SeededDatabase
 import io.github.youndie.haul.testing.ShildikHarness
+import io.github.youndie.haul.testing.action
+import io.github.youndie.haul.testing.after
 import io.github.youndie.haul.testing.all
 import io.github.youndie.haul.testing.guest
 import io.github.youndie.haul.testing.haulTest
+import io.github.youndie.haul.testing.json
 import io.github.youndie.haul.testing.seededFreshDatabase
+import io.github.youndie.haul.testing.update
+import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.SectionHeader
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.decodeKompotComponent
+import io.github.youndie.kompot.standard.NavigateAction
+import io.github.youndie.kompot.standard.SequenceAction
+import io.github.youndie.kompot.standard.ShowMessageAction
 import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.put
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -140,6 +154,35 @@ class RecommendationsRoutesTest {
                     grid.cards.map { categoryOf[it.productId] },
                 )
             }
+        }
+    }
+
+    /**
+     * B-81: «+» on a pick is answered as on every page that draws cards (`LineAnswersTest`): the header's count
+     * and the card, with no page, then «Added to your cart» with «View cart».
+     */
+    @Test
+    fun `a pick's plus answers the header and the card and says the item was added`() {
+        val token = ShildikHarness.accessToken(ShildikHarness.person("Ada Adder"))
+        haulTest(signIn = ShildikHarness.signIn) {
+            val before = page("/ui/home") { bearerAuth(token) }
+            val card = assertNotNull(before.picked(), "no «Picked for you»").second.cards.first { it.add != null }
+            val add = assertNotNull(card.add)
+            val answer =
+                put(add.url) {
+                    bearerAuth(token)
+                    contentType(ContentType.Application.Json)
+                    setBody(haulWireJson.encodeToString(LineChange.serializer(), add.change))
+                }.action()
+            val sequence = assertIs<SequenceAction>(answer, "«+» on a pick says nothing")
+            val update = assertNotNull(sequence.update())
+            assertEquals(listOf("header", card.id), update.updates.map { it.componentId })
+            assertEquals(1, (update.updates.first().component as HaulHeader).cartCount)
+            assertEquals(
+                ShowMessageAction("Added to your cart", actionLabel = "View cart", action = NavigateAction("/cart")),
+                sequence.actions.last(),
+            )
+            assertEquals(page("/ui/home") { bearerAuth(token) }.json(), before.after(update))
         }
     }
 }
