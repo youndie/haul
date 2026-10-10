@@ -401,6 +401,10 @@
                         "status": "Delivered",
                         "statusKind": "done",
                         "actionLabel": "Reorder",
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/account/orders/HL-46102"
+                        },
                         "reorderUrl": "/api/v1/me/orders/HL-46102/reorder"
                     },
                     {
@@ -414,6 +418,10 @@
                         "status": "Delivered",
                         "statusKind": "done",
                         "actionLabel": "Reorder",
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/account/orders/HL-45277"
+                        },
                         "reorderUrl": "/api/v1/me/orders/HL-45277/reorder"
                     },
                     {
@@ -445,6 +453,10 @@
                         "status": "Delivered",
                         "statusKind": "done",
                         "actionLabel": "Reorder",
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/account/orders/HL-42860"
+                        },
                         "reorderUrl": "/api/v1/me/orders/HL-42860/reorder"
                     }
                 ]

@@ -328,7 +328,11 @@
                     "kind": "price_drops",
                     "label": "Price drops",
                     "figure": "6",
-                    "text": "Items in your Saved list got cheaper"
+                    "text": "Items in your Saved list got cheaper",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/account/saved?filter=price-dropped"
+                    }
                 }
             ],
             "active": {
@@ -403,6 +407,10 @@
                         "status": "Delivered",
                         "statusKind": "done",
                         "actionLabel": "Reorder",
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/account/orders/HL-46102"
+                        },
                         "reorderUrl": "/api/v1/me/orders/HL-46102/reorder"
                     },
                     {
@@ -416,6 +424,10 @@
                         "status": "Delivered",
                         "statusKind": "done",
                         "actionLabel": "Reorder",
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/account/orders/HL-45277"
+                        },
                         "reorderUrl": "/api/v1/me/orders/HL-45277/reorder"
                     },
                     {
@@ -447,6 +459,10 @@
                         "status": "Delivered",
                         "statusKind": "done",
                         "actionLabel": "Reorder",
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/account/orders/HL-42860"
+                        },
                         "reorderUrl": "/api/v1/me/orders/HL-42860/reorder"
                     }
                 ]

@@ -119,6 +119,11 @@ class AccountRoutesTest {
                 ),
                 mayas.tiles.map { Triple(it.kind, it.figure, it.text) },
             )
+            // Only the price drops have a page: the Saved list under its filter; the rest are read (B-74).
+            assertEquals(
+                listOf(null, null, NavigateAction("/account/saved?filter=price-dropped")),
+                mayas.tiles.map { it.action },
+            )
             assertEquals("Plus member since 2023", mayas.profile.subtitle)
             assertEquals("48", mayas.menu.single { it.label == "Saved" }.count)
 
@@ -127,13 +132,18 @@ class AccountRoutesTest {
             assertEquals("Try 30 days free", offer.button?.label)
             assertEquals(PresentAction(PlusOffer.dialog, PlusOffer.DIALOG), offer.button?.action)
             assertEquals(listOf("0", "30 days free", "0"), sams.tiles.map { it.figure })
+            assertEquals(
+                listOf(null, null, NavigateAction("/account/saved?filter=price-dropped")),
+                sams.tiles.map { it.action },
+                "the offer is pressed on its button, not as a tile",
+            )
         }
 
     /**
      * The history's filter is the address's `status` (screen-account, Orders): the chips count every order
      * and go to their own addresses, each address draws only its orders, and a `status` the history does not
-     * have is all of them. A delivered order reorders through the order page's command (B-18); a declined
-     * one leads to its page.
+     * have is all of them. A delivered order reorders through the order page's command (B-18); every row,
+     * delivered or declined, leads to its page (B-74).
      */
     @Test
     fun `the history filters by the status in its address`() =
@@ -191,6 +201,8 @@ class AccountRoutesTest {
                 Triple(arrived.status, arrived.statusKind, arrived.actionLabel),
             )
             assertEquals(OrderPaths.reorder(delivered), arrived.reorderUrl)
+            // A delivered row opens its page too, beside its «Reorder» (B-74).
+            assertEquals(NavigateAction(OrderPaths.page(delivered)), arrived.action)
 
             val active = checkNotNull(account(maya, "${AccountPaths.ORDERS}?status=active").only<AccountBody>().history)
             assertEquals(emptyList(), active.rows)

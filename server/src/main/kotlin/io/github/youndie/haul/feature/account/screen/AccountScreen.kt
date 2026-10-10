@@ -22,6 +22,7 @@ import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.screen.OrderCard
 import io.github.youndie.haul.feature.order.screen.OrderScreen
 import io.github.youndie.haul.feature.reviews.domain.ReviewCommands
+import io.github.youndie.haul.feature.saved.SavedPaths
 import io.github.youndie.haul.feature.saved.screen.SavedFilter
 import io.github.youndie.haul.feature.saved.screen.SavedScreen
 import io.github.youndie.haul.shell.Frame
@@ -349,6 +350,11 @@ private class AccountPageBuilder(
             .takeIf { it > 0 }
             ?.let(::count)
 
+    /**
+     * Points, Haul Plus and the price drops. Only the price drops have a page of their own — the Saved list
+     * under «Price dropped» — so only that tile is pressed (B-74); the points and a member's savings are
+     * explained nowhere else in the store, and read as text. The trial's offer is pressed on its button.
+     */
     private fun tiles(): List<AccountTile> {
         val standing = view.standing
         val membership = standing.membership
@@ -396,6 +402,7 @@ private class AccountPageBuilder(
                     1 -> "An item in your Saved list got cheaper"
                     else -> "Items in your Saved list got cheaper"
                 },
+                action = NavigateAction(SavedPaths.page(SavedFilter.PriceDropped)),
             )
         return listOf(points, plus, dropped)
     }
@@ -493,7 +500,8 @@ private class AccountPageBuilder(
             status = state.label,
             statusKind = state.kind,
             actionLabel = label,
-            action = if (reorder) null else NavigateAction(OrderPaths.page(order.id)),
+            // The row opens the order's page whatever its way on says, «Reorder» included (B-74).
+            action = NavigateAction(OrderPaths.page(order.id)),
             reorderUrl = if (reorder) OrderPaths.reorder(order.id) else null,
         )
     }

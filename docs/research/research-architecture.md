@@ -634,10 +634,16 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   steps and its lines' tiles, or «Ready for *pickup*» with the point, how long it is kept and the code. The overview's
   history is the last four of the rest, with «All orders» whenever that leaves one out. A row's way on is «Track»
   (on its way), «Details» (waiting, returned, cancelled) or «Reorder» (delivered or picked up) — B-18's reorder.
+  Since B-74 the row itself opens the order's page, whatever its way on says: a delivered order is opened from the
+  history like any other, and a press on «Reorder» sends only the reorder.
 - **What the account cannot store yet is read through ports**: the points and the membership (`Loyalty`), bound
   since B-23 to feature-membership's ledger and membership (`PlusCommands`), and the Saved list's counts
   (`SavedLists`), read from the list itself since B-20 (below). The tree carries the tiles either way, so each item
   changed the source, not the account.
+- **A tile is pressed only where it has a page** (B-74): «Price drops» opens the Saved list under «Price dropped»
+  (`/account/saved?filter=price-dropped`); the points and a member's «Haul Plus» are explained on no page of the
+  store, so they are read, not pressed; the trial's offer is pressed on its button. The Saved list's empty state
+  draws a card's saved heart as its illustration, and that tile goes where «Browse deals» does.
 - **Returned** is a state of the history (the chip, the filter), derived since B-21 from the order's return: a
   refunded one reads «Returned», one asked for and not refunded yet «Returning» — Blush like it, under the same
   «Returned» filter, with «Details» rather than «Reorder».

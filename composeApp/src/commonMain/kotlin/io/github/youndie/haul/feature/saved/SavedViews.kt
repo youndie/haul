@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.feature.account.Chip
 import io.github.youndie.haul.feature.account.Note
@@ -34,9 +35,11 @@ import io.github.youndie.haul.ui.ProductGridView
 import io.github.youndie.haul.ui.SavedList
 import io.github.youndie.haul.ui.SavedStep
 import io.github.youndie.haul.ui.Text
+import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.hatching
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.toneColor
+import io.github.youndie.kompot.KompotAction
 
 // The Saved list (screen-saved, B-20) under the account's title «Saved 48»: the filter, four cards to a row
 // at 1440 and two on a phone, the page numbers; or nothing saved, the empty state and how the heart works.
@@ -56,26 +59,31 @@ internal fun SavedListView(list: SavedList) {
     list.none?.let { Note(it) }
     list.pagination?.let { PaginationView(it) }
     list.empty?.let { EmptyStateView(it) }
-    if (list.steps.isNotEmpty()) Steps(list.steps)
+    if (list.steps.isNotEmpty()) Steps(list.steps, list.empty?.action)
 }
 
 /**
  * How the heart works: a tile with a saved heart beside three cards at 1440, as tall as the tile; on a
- * phone the tile and the cards one under another.
+ * phone the tile and the cards one under another. The tile's heart is drawn as a card's, so it is pressed
+ * like one would be: it goes where the empty state's own way on does ([browse], «Browse deals»), to the
+ * products whose hearts fill this list (B-74).
  */
 @Composable
-private fun Steps(steps: List<SavedStep>) {
+private fun Steps(
+    steps: List<SavedStep>,
+    browse: KompotAction?,
+) {
     val compact = LocalHaulCompact.current
     if (compact) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Illustration(Modifier.width(160.dp))
+            Illustration(Modifier.width(160.dp).testTag(SAVED_ILLUSTRATION_TAG).follows(browse))
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 steps.forEach { Step(it, Modifier.fillMaxWidth()) }
             }
         }
     } else {
         Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Illustration(Modifier.width(200.dp))
+            Illustration(Modifier.width(200.dp).testTag(SAVED_ILLUSTRATION_TAG).follows(browse))
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 steps.forEach { Step(it, Modifier.weight(1f).fillMaxHeight()) }
             }
@@ -146,3 +154,6 @@ private const val COLUMNS = 4
 private const val ILLUSTRATION_TONE = "#E6E4FF"
 
 private val RING = 3.dp
+
+/** The empty list's illustration, the tile with the saved heart, for the tests that press it. */
+internal const val SAVED_ILLUSTRATION_TAG: String = "saved-illustration"

@@ -119,6 +119,20 @@ class SavedWiringTest {
         }
 
     /**
+     * The empty list's illustration — a tile with a card's saved heart — goes where «Browse deals» does,
+     * rather than looking pressable and doing nothing (B-74).
+     */
+    @Test
+    fun `the empty list's heart sends the shopper to the deals`() =
+        runDesktopComposeUiTest(WIDTH, 1_200) {
+            draw(decode("saved_empty.json"))
+            onNodeWithTag(SAVED_ILLUSTRATION_TAG).performClick()
+            waitForIdle()
+            assertEquals(listOf<KompotAction>(NavigateAction("/deals")), followed.toList())
+            assertEquals(emptyList(), sent.toList())
+        }
+
+    /**
      * A card not saved keeps its product — `PUT` — and a guest's heart, which carries no command, follows the
      * tree to sign-in instead of sending anything.
      */
