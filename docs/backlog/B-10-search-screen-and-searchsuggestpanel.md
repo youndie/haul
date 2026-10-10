@@ -5,6 +5,7 @@ status: done
 priority: P1
 size: M
 stage: stage-3-search
+epic: feature-search
 blocked_by: [B-01, B-07, B-09]
 ---
 

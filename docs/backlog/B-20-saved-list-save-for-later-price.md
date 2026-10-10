@@ -5,6 +5,7 @@ status: done
 priority: P2
 size: M
 stage: stage-6-account
+epic: feature-account
 blocked_by: [B-01, B-13, B-19]
 ---
 

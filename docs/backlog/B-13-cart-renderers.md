@@ -5,6 +5,7 @@ status: done
 priority: P1
 size: M
 stage: stage-4-cart
+epic: feature-cart
 blocked_by: [B-01, B-11, B-12]
 ---
 

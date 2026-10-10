@@ -5,6 +5,7 @@ status: done
 priority: P1
 size: L
 stage: stage-2-browse
+epic: feature-browse
 blocked_by: [B-03, B-04]
 ---
 

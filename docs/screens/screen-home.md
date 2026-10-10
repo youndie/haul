@@ -1,0 +1,87 @@
+---
+id: screen-home
+title: Home
+type: client_screen
+platform: [web]
+status: active
+entry:
+  web: "/"
+parent_feature: feature-browse
+calls_api:
+  - endpoint-catalog
+  - endpoint-recommendations
+  - endpoint-membership
+  - endpoint-saved
+  - endpoint-cart
+source: haul/composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/home
+design:
+  canvas: https://claude.ai/design/p/d306660f-831e-43aa-8911-ca02a3397c59 (page canvas/Home)
+  references: haul/composeApp/src/desktopTest/snapshots/design
+  states:
+    Loading: Home_Loading
+    Content: Home_Content
+    Guest: Home_Guest
+    PlusTrialDialog: Home_PlusTrialDialog
+    Error: Home_Error
+---
+
+# Screen: Home
+
+## 0a. Code anchors
+
+| What | File |
+|---|---|
+| Renderers of this screen's components | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/home/` |
+| Client shell: Loading and Error, navigation | `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/` (`Storefront.kt`, `Shell.kt`) |
+| The server tree for this screen | `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/` |
+| Reference PNGs, one per artboard | `composeApp/src/desktopTest/snapshots/design/` |
+| Parity fixtures, one per artboard | `composeApp/src/desktopTest/kotlin/io/github/youndie/haul/ScreenFixtures.kt` |
+
+## 0. Entry point and visibility
+
+- **Entry point:** `/` in the browser.
+- **Shown when:** always; guests included.
+
+## 1. Screen states
+
+The names are the artboard names without the screen prefix. `Loading` and `Error` are drawn by the
+client while it has no tree or after a failed request; every other state is a tree the server
+returns. The list is held against the real state when the code exists.
+
+- [x] **Loading:** header, placeholder blocks for hero, categories and two product rows
+- [x] **Content:** Maya signed in: campaign «Autumn mega sale», «Tech week», «Free delivery» banners, 8 categories, 6 deals with the countdown (to the store's midnight), cards writing each product's listing name (B-45), the Plus block **in its member form** («You saved $186 on delivery this year · renews Nov 2», B-23), «Picked for you» 6 products («Based on your recent views», B-25), footer. The server builds both for a customer; the fixture's body (`composeApp/src/desktopTest/resources/bodies/home_content.json`) keeps the canvas's picked cards, its header held to the server's (`PickedSectionTest`)
+- [x] **Guest:** header «Sign in»; Plus block offers the trial («Try 30 days free» → `/sign-in`); no «Picked for you»
+- [x] **PlusTrialDialog:** Sam signed in, dialog over Content: the benefits, «30 days free, then $4.99/month», Start trial / Not now — kompot's `present` of `PlusTrialDialog` from «Try 30 days free» (B-23; Sam's picks read «Popular right now»)
+- [x] **Error:** header, message that the page could not load, Retry
+
+### Artboards and sizes
+
+Desktop artboards are named as in `design.states`; each has a phone twin with the suffix
+`_Phone`, which the parity task looks up in the same directory. Heights, desktop / phone: Loading 2129 / 2010; Content 3263 / 3875; Guest 2627 / 2721; PlusTrialDialog 3134 / 3850; Error 900 / 692.
+
+## 2. API integration
+
+| Call | Endpoint document |
+| :--- | :--- |
+| endpoint-catalog | [endpoint-catalog](../api/endpoint-catalog.md) |
+| endpoint-recommendations | [endpoint-recommendations](../api/endpoint-recommendations.md) |
+| endpoint-membership | [endpoint-membership](../api/endpoint-membership.md) |
+| endpoint-saved | [endpoint-saved](../api/endpoint-saved.md) |
+| endpoint-cart | [endpoint-cart](../api/endpoint-cart.md) |
+
+## 5. Navigation (summary)
+
+The server builds each target as an action in the tree and the shell follows it (B-35, B-37).
+
+- category tile → screen-catalog (`/c/{slug}`)
+- card → screen-product (`/p/{productId}`)
+- «+» on a card → `PUT /api/v1/cart/lines/{skuId}` with the line's next quantity for the card's SKU — on a deal card the deal's SKU, otherwise the cheapest in stock; absent at ten, at the stock limit and out of stock; the page is drawn again in place
+- «Shop the sale», «View all deals», the header's «Deals» → [screen-deals](screen-deals.md) (`/deals`)
+- the header's «Catalog» and category row → screen-catalog; the cart button → screen-cart (`/cart`); «Sign in» → sign-in (feature-identity), a customer's name → `/account`
+- the header's «HAUL PLUS» pill (`HaulHeader.plus`, on every page with the header, B-49) → PlusTrialDialog for a customer who is not a member, `/account` for a member, `/sign-in` for a guest
+- «All N categories» (on a phone «All N») → the catalog's root `/c` (B-49): «Catalog · 32 categories», every top-level category as these tiles, no artboard
+- heart → `PUT` / `DELETE /api/v1/me/saved/{productId}`, then the page drawn again; a guest's → `/sign-in` (B-20)
+- «Try 30 days free» → PlusTrialDialog for a customer, `/sign-in` for a guest; «Start trial» → `POST /api/v1/me/plus/trial`, answered `201` with `close` then `refresh` — the page drawn again with the member's block; «Not now» closes it and sends nothing (B-23)
+- «Help», «Sell on HAUL», the language and the footer's links → nothing: drawn as plain text, with no click action, until a page exists for them (research D2, «Decided in B-49»)
+- the promo banners → nothing: they carry no action, and no item gives them one
+- search field → screen-search

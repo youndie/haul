@@ -5,6 +5,7 @@ status: done
 priority: P2
 size: M
 stage: stage-8-loyalty
+epic: feature-recommendations
 blocked_by: [B-07, B-19]
 ---
 

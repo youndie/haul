@@ -5,6 +5,7 @@ status: done
 priority: P1
 size: L
 stage: stage-5-order
+epic: feature-checkout
 blocked_by: [B-01, B-13, B-14]
 ---
 

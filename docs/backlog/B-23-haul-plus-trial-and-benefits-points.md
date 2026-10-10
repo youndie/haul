@@ -5,6 +5,7 @@ status: done
 priority: P2
 size: M
 stage: stage-8-loyalty
+epic: feature-membership
 blocked_by: [B-15, B-17, B-19]
 ---
 

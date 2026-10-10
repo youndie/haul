@@ -5,6 +5,7 @@ status: done
 priority: P3
 size: M
 stage: stage-9-ship
+epic: feature-product
 blocked_by: [B-08]
 ---
 
