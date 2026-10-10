@@ -1,7 +1,7 @@
 ---
 id: B-68
 title: "server + client: the first filter on a category does not reload the page"
-status: open
+status: wip
 priority: P1
 size: S
 stage: stage-10-review

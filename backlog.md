@@ -46,7 +46,7 @@ A stage is a field on the item, not a directory.
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-66](docs/backlog/B-66-sign-in-reachable-from-everywhere.md) `[ ]` | client: sign-in and sign-out work from every page and every way in | P1 | M | - |
-| [B-68](docs/backlog/B-68-first-filter-reloads-the-page.md) `[ ]` | server + client: the first filter on a category does not reload the page | P1 | S | - |
+| [B-68](docs/backlog/B-68-first-filter-reloads-the-page.md) `[~]` | server + client: the first filter on a category does not reload the page | P1 | S | - |
 | [B-69](docs/backlog/B-69-price-facet-does-nothing.md) `[ ]` | client + server: the price filter can be used | P1 | M | - |
 | [B-70](docs/backlog/B-70-deals-vanish-at-midnight.md) `[ ]` | server: a running stand keeps its deals of the day | P1 | M | - |
 | [B-73](docs/backlog/B-73-phone-cannot-reach-catalog-and-orders.md) `[ ]` | client: on a phone every part of the store is reachable | P1 | M | - |
