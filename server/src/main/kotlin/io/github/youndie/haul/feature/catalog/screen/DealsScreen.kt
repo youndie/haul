@@ -1,6 +1,5 @@
 package io.github.youndie.haul.feature.catalog.screen
 
-import io.github.youndie.haul.feature.catalog.domain.Browse
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.Listed
@@ -29,8 +28,9 @@ internal class DealsScreen(
     private val calendar: DeliveryCalendar,
     private val photos: ProductPhotos,
 ) {
+    /** The deals page whose grid holds [pages]: one page, or those «Show N more» appended (B-77). */
     suspend fun build(
-        page: Int,
+        pages: IntRange,
         viewer: Viewer,
     ): KompotComponent {
         val categories = catalog.categories()
@@ -43,10 +43,10 @@ internal class DealsScreen(
                         .thenByDescending { it.product.reviewsCount }
                         .thenBy { it.product.id },
                 )
-        val shown = paged(onSale, page)
+        val shown = Page.of(onSale, pages.last, pages.first)
         val sections = mutableListOf<KompotComponent>()
         sections += PageTitle("title", "Deals", "${count(onSale.size)} items on sale")
-        val deals = if (shown.page == 1) dealsOfTheDay(catalog, calendar, photos, viewer) else null
+        val deals = if (shown.from == 1) dealsOfTheDay(catalog, calendar, photos, viewer) else null
         if (deals != null) {
             sections += SectionHeader("deals-title", "Deals of the day", countdownEndsAt = deals.endsAt, accent = "day")
             sections += ProductGrid(TODAY, deals.cards, columns = DEAL_COLUMNS)
@@ -54,11 +54,13 @@ internal class DealsScreen(
         sections += SectionHeader("sale-title", "On sale", accent = "sale")
         sections +=
             ProductGrid("grid", shown.items.map { card(it, calendar, photos, viewer) }, columns = GRID_COLUMNS)
-        // A page loads in place (B-63) unless either side of the press has the deals of the day: an `update`
-        // replaces nodes, it cannot take them away or add a section the page drawn does not have.
+        // A page loads in place (B-63) unless either side of the press has the deals of the day — a grid from
+        // the first page: an `update` replaces nodes, it cannot take them away or add a section the page drawn
+        // does not have. «Show N more» from the first page opens its address, the same screen (B-62): the page
+        // is kept while it loads, and the cards above stay where they were.
         sections +=
-            pagination(shown, { if (it > 1) "${Frame.DEALS}?page=$it" else Frame.DEALS }) { to ->
-                if (deals == null && to != Frame.DEALS) Parts.load(to) else NavigateAction(to)
+            pagination(shown, ::address) { to, address ->
+                if (deals == null && to.first > 1) Parts.load(address) else NavigateAction(address)
             }
         return Frame.page("deals-page", viewer, navigation(categories), sections, footer = true)
     }
@@ -69,12 +71,14 @@ internal class DealsScreen(
         return if (old > item.shown.priceCents) (old - item.shown.priceCents).toDouble() / old else 0.0
     }
 
-    private fun paged(
-        all: List<Listed>,
-        page: Int,
-    ): Page {
-        val pages = maxOf(1, (all.size + Browse.PAGE_SIZE - 1) / Browse.PAGE_SIZE)
-        return Page(all.drop((page - 1) * Browse.PAGE_SIZE).take(Browse.PAGE_SIZE), all.size, page, pages)
+    /** The deals' address with the grid holding [pages]. */
+    private fun address(pages: IntRange): String {
+        val query =
+            listOfNotNull(
+                if (pages.last > 1) "page=${pages.last}" else null,
+                if (pages.first < pages.last) "${CatalogUrl.FROM}=${pages.first}" else null,
+            )
+        return Frame.DEALS + if (query.isEmpty()) "" else "?" + query.joinToString("&")
     }
 
     companion object {

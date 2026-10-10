@@ -39,7 +39,8 @@ import java.math.BigDecimal
 
 /**
  * What a category page was asked for, as the route parsed it. [brandsExpanded] is the brand facet
- * listing every brand rather than the first six (`expand=brand`, «Show N more», B-49).
+ * listing every brand rather than the first six (`expand=brand`, «Show N more», B-49). The grid holds the
+ * pages [from] to [page] (`from=`, «Show N more» under the grid, B-77).
  */
 internal data class CatalogRequest(
     val path: String,
@@ -47,6 +48,7 @@ internal data class CatalogRequest(
     val sort: Sort,
     val page: Int,
     val brandsExpanded: Boolean = false,
+    val from: Int = page,
 )
 
 /**
@@ -72,9 +74,15 @@ internal class CatalogScreen(
         val slug = request.path.trimEnd('/').substringAfterLast('/')
         val category = categories.firstOrNull { it.slug == slug } ?: throw CatalogError.CategoryNotFound(slug)
         val all = catalog.listedIn(descendants(category, categories), viewer.prices)
-        val page = browse.page(all, request.filters, request.sort, request.page)
+        val page = browse.page(all, request.filters, request.sort, request.page, request.from)
         val url =
-            CatalogUrl(categories.pathOf(category), request.filters, request.sort, request.page, request.brandsExpanded)
+            CatalogUrl(
+                categories.pathOf(category),
+                request.filters,
+                request.sort,
+                page.from..page.page,
+                request.brandsExpanded,
+            )
 
         val sections = mutableListOf<KompotComponent>()
         sections +=
@@ -128,7 +136,7 @@ internal class CatalogScreen(
                             page.items.map { card(it, calendar, photos, viewer) },
                             columns = GRID_COLUMNS,
                         ),
-                    pagination = pagination(page, url::page, Parts::load),
+                    pagination = pagination(page, url::pages) { _, to -> Parts.load(to) },
                 )
             }
         return Frame.page("catalog", viewer, navigation(categories), sections)
@@ -434,13 +442,14 @@ internal class CatalogScreen(
  * loads the parts of (B-63). [path] is the category's one address (B-68, `pathOf`): the parts a press loads
  * name the path the page was opened at, so the shell takes them for the same screen and loads nothing else. A change of filters or sort starts again from the first page. An expanded brand facet
  * ([expanded], `expand=brand`) stays expanded on every address the page links to: it is how the shopper
- * is looking at the facets, as the sort is how they look at the grid.
+ * is looking at the facets, as the sort is how they look at the grid. [shown] are the pages the grid holds
+ * (B-77), which only the brand facet's «Show N more» keeps.
  */
 internal class CatalogUrl(
     private val path: String,
     private val filters: Filters,
     private val sort: Sort,
-    private val page: Int = 1,
+    private val shown: IntRange = 1..1,
     private val expanded: Boolean = false,
 ) {
     fun with(next: Filters): String = render(next)
@@ -451,21 +460,21 @@ internal class CatalogUrl(
      */
     fun priced(): String = render(filters, priceTemplate = true)
 
-    /** The page as it is — filters, sort and page — with the brand facet listing every brand: «Show N more». */
-    fun brandsExpanded(): String = render(filters, sort, page, expanded = true)
+    /** The page as it is — filters, sort and pages — with the brand facet listing every brand: «Show N more». */
+    fun brandsExpanded(): String = render(filters, sort, shown, expanded = true)
 
     /** No filters, the sort kept: «Clear all». */
     fun cleared(): String = render(Filters())
 
     fun sorted(next: Sort): String = render(filters, next)
 
-    /** The same filters and sort at page [n]. */
-    fun page(n: Int): String = render(filters, sort, n)
+    /** The same filters and sort with the grid holding [pages] (B-77): one page, or the pages «Show N more» appends to. */
+    fun pages(pages: IntRange): String = render(filters, sort, pages)
 
     private fun render(
         f: Filters,
         sort: Sort = this.sort,
-        page: Int = 1,
+        pages: IntRange = 1..1,
         expanded: Boolean = this.expanded,
         priceTemplate: Boolean = false,
     ): String {
@@ -481,7 +490,8 @@ internal class CatalogUrl(
                     f.ratingAtLeast?.let { "rating=${it.toPlainString()}" },
                     if (expanded) "$EXPAND=$EXPAND_BRANDS" else null,
                     if (sort != Sort.Popular) "sort=${sort.key}" else null,
-                    if (page > 1) "page=$page" else null,
+                    if (pages.last > 1) "page=${pages.last}" else null,
+                    if (pages.first < pages.last) "$FROM=${pages.first}" else null,
                 )
         val query = params.joinToString("&") { it.replace(" ", "%20") }
         return "${Frame.CATALOG}/$path" + if (query.isEmpty()) "" else "?$query"
@@ -491,5 +501,8 @@ internal class CatalogUrl(
         /** The query parameter that expands a facet, and its one value: the brand facet. */
         const val EXPAND = "expand"
         const val EXPAND_BRANDS = "brand"
+
+        /** The query parameter naming the first page a grid holds when «Show N more» appended to it (B-77). */
+        const val FROM = "from"
     }
 }

@@ -3,6 +3,7 @@ package io.github.youndie.haul.feature.catalog
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.feature.cart.CartPaths
 import io.github.youndie.haul.feature.cart.LineChange
+import io.github.youndie.haul.feature.catalog.domain.Sort
 import io.github.youndie.haul.feature.identity.GUEST_HEADER
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.CatalogSeed
@@ -22,6 +23,7 @@ import io.github.youndie.haul.ui.CategoryGrid
 import io.github.youndie.haul.ui.Facet
 import io.github.youndie.haul.ui.FacetPanel
 import io.github.youndie.haul.ui.FacetRange
+import io.github.youndie.haul.ui.FilterChips
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HaulPagination
 import io.github.youndie.haul.ui.PageTitle
@@ -83,26 +85,84 @@ class DrawnActionsTest {
         }
 
     @Test
-    fun `pages and show more go to the next page with the filters kept`() =
+    fun `show more appends the next page and a page number opens its page alone with the filters kept`() =
         haulTest {
             val first = tree("/ui/c/electronics?rating=4.0&sort=price-asc")
             val pagination = first.only<HaulPagination>()
             assertTrue(pagination.pages.size > 1, "one page of electronics rated 4 and up — nothing to page through")
-            assertEquals(LoadAction("/ui/parts/c/electronics?rating=4.0&sort=price-asc&page=2"), pagination.moreAction)
+            // B-77: «Show 24 more» appends — its address holds the pages the grid has and the next one.
+            assertEquals(
+                LoadAction("/ui/parts/c/electronics?rating=4.0&sort=price-asc&page=2&from=1"),
+                pagination.moreAction,
+            )
             assertEquals(pagination.pages.filter { it != "1" && it != "…" }, pagination.links.map { it.label })
+            val two = pagination.links.single { it.label == "2" }.action
+            assertEquals(LoadAction("/ui/parts/c/electronics?rating=4.0&sort=price-asc&page=2"), two)
 
-            val second = follow(pagination.moreAction)
-            assertEquals(2, second.only<HaulPagination>().current)
             val firstCards = first.only<ProductGrid>().cards.map { it.productId }
+            val more = follow(pagination.moreAction)
+            val moreCards = more.only<ProductGrid>().cards.map { it.productId }
+            val second = follow(two)
             val secondCards = second.only<ProductGrid>().cards.map { it.productId }
+            assertEquals(firstCards + secondCards, moreCards, "«Show 24 more» is not page 1 and then page 2")
             assertTrue(secondCards.none { it in firstCards }, "page 2 repeats page 1")
-            assertEquals(1, second.only<AppliedFilters>().filterCount, "the rating was lost on the way")
-            // Back to the first page from the second: no `page` in the address.
-            val back = second.only<HaulPagination>().links.single { it.label == "1" }
-            assertEquals(LoadAction("/ui/parts/c/electronics?rating=4.0&sort=price-asc"), back.action)
+            assertEquals(1, more.only<AppliedFilters>().filterCount, "the rating was lost on the way")
+            // The grid of pages 1–2 goes on to page 3, still from page 1; its page numbers open one page each.
+            val after = more.only<HaulPagination>()
+            assertEquals(2, after.current)
+            assertEquals(
+                LoadAction("/ui/parts/c/electronics?rating=4.0&sort=price-asc&page=3&from=1")
+                    .takeIf { pagination.pages.last().toInt() > 2 },
+                after.moreAction,
+            )
+            // Back to the first page alone: no `page` in the address.
+            assertEquals(
+                LoadAction("/ui/parts/c/electronics?rating=4.0&sort=price-asc"),
+                after.links.single { it.label == "1" }.action,
+            )
 
             val last = tree("/ui/c/electronics?rating=4.0&page=${pagination.pages.last()}").only<HaulPagination>()
             assertNull(last.moreAction, "«Show 24 more» on the last page")
+        }
+
+    /**
+     * B-77: page 7 of the search's eight is drawn with its neighbours, each one press away, and «Show 24 more»
+     * keeps it. The longer listings — the canvas's 517 pages — are `PaginationTest`'s: the seed has none.
+     */
+    @Test
+    fun `page seven of a long search shows its neighbours and the ends`() =
+        haulTest {
+            val pages =
+                tree("/ui/search?q=everyday")
+                    .only<HaulPagination>()
+                    .pages
+                    .last()
+                    .toInt()
+            assertEquals(8, pages, "«everyday» is no longer eight pages: the expected numbers below are")
+            val seventh = tree("/ui/search?q=everyday&page=7").only<HaulPagination>()
+            assertEquals(7, seventh.current)
+            assertEquals(listOf("1", "…", "6", "7", "8"), seventh.pages)
+            assertEquals(
+                listOf("", "&page=6", "&page=8").map { LoadAction("/ui/parts/search?q=everyday$it") },
+                seventh.links.map { it.action },
+            )
+            assertEquals(6, follow(seventh.links.single { it.label == "6" }.action).only<HaulPagination>().current)
+            assertEquals(LoadAction("/ui/parts/search?q=everyday&page=8&from=7"), seventh.moreAction)
+            val seventhCards = tree("/ui/search?q=everyday&page=7").only<ProductGrid>().cards.map { it.productId }
+            val more = follow(seventh.moreAction).only<ProductGrid>().cards.map { it.productId }
+            val eighth = tree("/ui/search?q=everyday&page=8").only<ProductGrid>().cards.map { it.productId }
+            assertEquals(seventhCards + eighth, more, "«Show 24 more» from page 7 is not pages 7 and 8")
+        }
+
+    @Test
+    fun `a grid's first page outside its pages is refused`() =
+        haulTest {
+            listOf(
+                "/ui/c/electronics?page=2&from=3",
+                "/ui/c/electronics?page=2&from=0",
+                "/ui/search?q=everyday&from=x",
+                "/ui/deals?page=2&from=3",
+            ).forEach { assertEquals(HttpStatusCode.BadRequest, get(it).status, it) }
         }
 
     @Test
@@ -224,8 +284,34 @@ class DrawnActionsTest {
         haulTest {
             val pagination = tree("/ui/search?q=everyday").only<HaulPagination>()
             assertTrue(pagination.pages.size > 1, "one page of «everyday» — nothing to page through")
-            assertEquals(LoadAction("/ui/parts/search?q=everyday&page=2"), pagination.moreAction)
+            assertEquals(LoadAction("/ui/parts/search?q=everyday&page=2&from=1"), pagination.moreAction)
             assertEquals(2, follow(pagination.moreAction).only<HaulPagination>().current)
+        }
+
+    /** B-77: the search has the sort the server parses, and a category chip keeps it. */
+    @Test
+    fun `the search's sort offers every order and the chips keep it`() =
+        haulTest {
+            val chips = tree("/ui/search?q=everyday").only<FilterChips>()
+            assertEquals("Popular", chips.sortLabel)
+            assertEquals(Sort.entries.map { it.label }, chips.sorts.map { it.label })
+            val cheapest = chips.sorts.single { it.label == Sort.PriceAscending.label }.action
+            assertEquals(LoadAction("/ui/parts/search?q=everyday&sort=price-asc"), cheapest)
+            val sorted = follow(cheapest)
+            assertEquals(Sort.PriceAscending.label, sorted.only<FilterChips>().sortLabel)
+            val prices =
+                sorted.only<ProductGrid>().cards.map {
+                    it.price
+                        .filter { c ->
+                            c.isDigit() || c == '.'
+                        }.toBigDecimal()
+                }
+            assertEquals(prices.sorted(), prices, "«Price: low to high» is not cheapest first")
+            val chip = sorted.only<FilterChips>().chips.first { it.label != "All" }
+            assertTrue(
+                "sort=price-asc" in (chip.action as LoadAction).url,
+                "a category chip dropped the sort: ${chip.action}",
+            )
         }
 
     @Test
@@ -319,8 +405,18 @@ class DrawnActionsTest {
             assertEquals("%,d items on sale".format(discounted), page.only<PageTitle>().count)
 
             val pagination = page.only<HaulPagination>()
-            assertEquals(NavigateAction("/deals?page=2"), pagination.moreAction)
-            val second = follow(pagination.moreAction)
+            // «Show 24 more» appends (B-77): today's deals stay above, so it opens the address, a kept page (B-62).
+            assertEquals(NavigateAction("/deals?page=2&from=1"), pagination.moreAction)
+            val more = follow(pagination.moreAction)
+            assertEquals(
+                6,
+                more
+                    .all()
+                    .filterIsInstance<ProductGrid>()
+                    .single { it.id == "deals" }
+                    .cards.size,
+            )
+            val second = follow(pagination.links.single { it.label == "2" }.action)
             assertTrue(second.all().filterIsInstance<ProductGrid>().none { it.id == "deals" }, "today's deals again")
             assertNotEquals(
                 onSale.first().productId,
@@ -329,6 +425,15 @@ class DrawnActionsTest {
                     .cards
                     .first()
                     .productId,
+            )
+            assertEquals(
+                onSale.map { it.productId } + second.only<ProductGrid>().cards.map { it.productId },
+                more
+                    .all()
+                    .filterIsInstance<ProductGrid>()
+                    .single { it.id == "grid" }
+                    .cards
+                    .map { it.productId },
             )
         }
 

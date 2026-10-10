@@ -55,8 +55,8 @@ internal fun Route.catalogRouting() {
         )
     }
 
-    // A page of the deals loaded in place (B-63, kind `load`): the grid and the pages. A page with the deals
-    // of the day — the first — cannot be partial, since the page drawn may not have them, nor they a page.
+    // A page of the deals loaded in place (B-63, kind `load`): the grid and the pages. A grid from the first
+    // page, which has the deals of the day, cannot be partial: the page drawn may not have them, nor they a page.
     get("${Parts.PREFIX}/deals") {
         val page = deals.build(dealsPage(call.request.queryParameters), viewers.of(call))
         call.respondParts(page.takeIf { it.node(DealsScreen.TODAY) == null }, DealsScreen.PARTS)
@@ -145,12 +145,15 @@ private fun photoType(stored: String): ContentType =
         ?.takeIf { it.match(ContentType.Image.Any) }
         ?: ContentType.Application.OctetStream
 
-/** The deals' page number, `1` when the query names none. */
-private fun dealsPage(query: Parameters): Int =
-    query["page"]?.let {
-        it.toIntOrNull()?.takeIf { p -> p >= 1 }
-            ?: throw CatalogError.Invalid("page", "Pages start at 1, not «$it»")
-    } ?: 1
+/** The deals' pages the grid holds: the page number, `1` when the query names none, from its `from` (B-77). */
+private fun dealsPage(query: Parameters): IntRange {
+    val page =
+        query["page"]?.let {
+            it.toIntOrNull()?.takeIf { p -> p >= 1 }
+                ?: throw CatalogError.Invalid("page", "Pages start at 1, not «$it»")
+        } ?: 1
+    return firstPage(query, page)..page
+}
 
 /** The category page's query, refused field by field (`validation_failed`) rather than ignored. */
 internal fun catalogRequest(
@@ -186,13 +189,28 @@ internal fun catalogRequest(
         )
     val sort = query["sort"]?.let { Sort.of(it) ?: throw CatalogError.Invalid("sort", "No sort «$it»") } ?: Sort.Popular
     val page = int("page")?.also { if (it < 1) throw CatalogError.Invalid("page", "Pages start at 1") } ?: 1
+    val from = firstPage(query, page)
     val expanded =
         when (val e = query[CatalogUrl.EXPAND]) {
             null -> false
             CatalogUrl.EXPAND_BRANDS -> true
             else -> throw CatalogError.Invalid(CatalogUrl.EXPAND, "Only «brand» expands, not «$e»")
         }
-    return CatalogRequest(path, filters, sort, page, expanded)
+    return CatalogRequest(path, filters, sort, page, expanded, from)
 }
+
+/**
+ * The first page a grid holds, `from` (B-77): «Show N more» appends the next page to the grid, so an address
+ * may draw the pages `from` to [page]. Absent, the grid holds [page] alone; one that is not a page from 1 to
+ * [page] is `400 validation_failed`, as a page that is not a number is.
+ */
+internal fun firstPage(
+    query: Parameters,
+    page: Int,
+): Int =
+    query[CatalogUrl.FROM]?.let {
+        it.toIntOrNull()?.takeIf { from -> from in 1..page }
+            ?: throw CatalogError.Invalid(CatalogUrl.FROM, "The grid starts at a page from 1 to $page, not «$it»")
+    } ?: page
 
 private val RATINGS = setOf(BigDecimal("4.5"), BigDecimal("4.0"))

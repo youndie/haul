@@ -155,36 +155,58 @@ internal fun categoryLink(
 ): NavigateAction = NavigateAction("${Frame.CATALOG}/${categories.pathOf(category)}")
 
 /**
- * The pages under a grid: «Show 24 more» goes to the next page, and every page number but the current
- * one to its own; [address] is the page's address at page n (`?page=` is left out for the first), and
- * [press] what a press on one does — opens it, or loads its parts (B-63).
+ * The pages under a grid. «Show N more» appends the next page to the grid (B-77): it goes to the pages
+ * the grid holds and the next one, `?page=<next>&from=<first>`, an address that draws every one of them, so
+ * the press keeps the cards above where the shopper is, and a reload or a shared link shows the same grid.
+ * Every page number but the current one goes to that page alone. [address] is the page's address showing
+ * the pages in the range (`?page=` is left out for the first alone), and [press] what a press on one does —
+ * opens it, or loads its parts (B-63) — given the pages it shows and its address.
  */
 internal fun pagination(
     page: Page,
-    address: (page: Int) -> String,
-    press: (address: String) -> KompotAction = ::NavigateAction,
+    address: (pages: IntRange) -> String,
+    press: (pages: IntRange, address: String) -> KompotAction = { _, to -> NavigateAction(to) },
 ): HaulPagination {
-    val pages = pageNumbers(page.pages)
+    val pages = pageNumbers(page.page, page.pages)
     val more = page.page < page.pages
+    val next = page.from..page.page + 1
     return HaulPagination(
         id = "pagination",
         current = page.page,
         pages = pages,
-        moreLabel = if (more) "Show ${Browse.PAGE_SIZE} more" else null,
-        moreAction = if (more) press(address(page.page + 1)) else null,
+        moreLabel = if (more) "Show ${page.next} more" else null,
+        moreAction = if (more) press(next, address(next)) else null,
         links =
             pages.mapNotNull { label ->
-                label.toIntOrNull()?.takeIf { it != page.page }?.let { Link(label, press(address(it))) }
+                label.toIntOrNull()?.takeIf { it != page.page }?.let { Link(label, press(it..it, address(it..it))) }
             },
     )
 }
 
-/** «1 2 3 … 517»: the first three pages, and the last after an ellipsis when there are more. */
-internal fun pageNumbers(pages: Int): List<String> =
-    if (pages <= PAGES_SHOWN + 1) {
-        (1..pages).map { "$it" }
-    } else {
-        (1..PAGES_SHOWN).map { "$it" } + "…" + "$pages"
+/**
+ * The page numbers drawn for page [current] of [pages] (B-77): the first and the last, the current page with
+ * its neighbours, and «…» for each run of pages left out — «1 … 6 7 8 … 517». A run of one page is drawn as
+ * its number, since «…» would take as much room. At either end the window is the three pages there, so the
+ * first page reads «1 2 3 … 517», as the canvas draws it.
+ */
+internal fun pageNumbers(
+    current: Int,
+    pages: Int,
+): List<String> {
+    val start = (current - 1).coerceAtMost(pages - WINDOW + 1).coerceAtLeast(1)
+    val end = (start + WINDOW - 1).coerceAtMost(pages)
+    val shown = (setOf(1, pages) + (start..end)).sorted()
+    return buildList {
+        shown.forEachIndexed { index, n ->
+            val gap = if (index == 0) 0 else n - shown[index - 1] - 1
+            when {
+                gap == 1 -> add("${n - 1}")
+                gap > 1 -> add("…")
+            }
+            add("$n")
+        }
     }
+}
 
-private const val PAGES_SHOWN = 3
+/** How many page numbers stand around the current one: it and a neighbour on either side. */
+private const val WINDOW = 3
