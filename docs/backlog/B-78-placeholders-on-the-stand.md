@@ -2,7 +2,7 @@
 id: B-78
 title: "server + client: the stand shows pictures, not placeholder labels"
 status: open
-priority: P2
+priority: P3
 size: M
 stage: stage-10-review
 ---
@@ -18,3 +18,8 @@ Every product, category tile and campaign is a tinted box with a caption: «STUD
   only describe a missing picture are not drawn.
 - AC: per the decision; the first-load numbers (B-28) re-measured with images.
 - Anchors: `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/screen/HomeScreen.kt`, `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/screen/ProductScreen.kt`.
+
+## Deferred (2026-10-10)
+
+The owner put the pictures off. The item stays open, last in the queue; nothing here is taken until the owner
+says where the pictures come from.
