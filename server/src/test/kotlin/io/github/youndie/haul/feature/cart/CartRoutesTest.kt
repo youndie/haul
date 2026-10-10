@@ -2,7 +2,9 @@ package io.github.youndie.haul.feature.cart
 
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.feature.identity.GUEST_HEADER
+import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.SampleCatalog
+import io.github.youndie.haul.testing.ShildikHarness
 import io.github.youndie.haul.testing.acknowledge
 import io.github.youndie.haul.testing.all
 import io.github.youndie.haul.testing.applyPromo
@@ -26,13 +28,19 @@ import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.PromoField
 import io.github.youndie.haul.ui.SummaryRow
 import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.decodeKompotComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import io.ktor.client.HttpClient
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -272,6 +280,47 @@ class CartRoutesTest {
             removeLines(guest, headphones, mug).assertRefresh()
             assertEquals("Your cart is empty", cart(guest).only<EmptyState>().title)
             removeLines(guest).assertError(HttpStatusCode.BadRequest, ErrorCode.ValidationFailed)
+        }
+
+    /**
+     * B-76: a customer's code goes through the same route as a guest's, with the bearer token in place of
+     * the guest id — the promo row under the discount, then why a refused code is refused.
+     */
+    @Test
+    fun `a customer applies a code and sees why another is refused`() =
+        haulTest(signIn = ShildikHarness.signIn) {
+            val customer = ShildikHarness.accessToken(ShildikHarness.person("Test Customer"))
+
+            suspend fun send(
+                path: String,
+                body: String,
+            ) = put(path) {
+                bearerAuth(customer)
+                contentType(ContentType.Application.Json)
+                setBody(body)
+            }
+
+            suspend fun tree(): KompotComponent {
+                val response = get(CartPaths.SCREEN) { bearerAuth(customer) }
+                assertEquals(HttpStatusCode.OK, response.status, response.bodyAsText())
+                return haulWireJson.decodeKompotComponent(response.bodyAsText())
+            }
+            send(CartPaths.line(mug), haulWireJson.encodeToString(LineChange.serializer(), LineChange(quantity = 1)))
+                .assertRefresh()
+
+            send(CartPaths.PROMO, haulWireJson.encodeToString(PromoEntry.serializer(), PromoEntry("AUTUMN10")))
+                .assertRefresh()
+            val applied = tree()
+            assertTrue(applied.only<PromoField>().applied, "the field: ${applied.only<PromoField>()}")
+            assertEquals("−$2.40", applied.rows()["Promo · AUTUMN10"], "the rows: ${applied.rows()}")
+
+            delete(CartPaths.PROMO) { bearerAuth(customer) }.assertRefresh()
+            send(CartPaths.PROMO, haulWireJson.encodeToString(PromoEntry.serializer(), PromoEntry("SUMMER5")))
+                .assertError(HttpStatusCode.UnprocessableEntity, ErrorCode.PromoExpired)
+            assertEquals(
+                PromoField("promo", CartPaths.PROMO, code = "SUMMER5", error = "This code has expired"),
+                tree().only<PromoField>(),
+            )
         }
 
     @Test
