@@ -4,13 +4,16 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertHasNoClickAction
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -34,6 +37,7 @@ import io.github.youndie.haul.shell.HaulTransport
 import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.ui.ADD_TO_CART
+import io.github.youndie.haul.ui.ALL_CATEGORIES
 import io.github.youndie.haul.ui.AppliedFilters
 import io.github.youndie.haul.ui.CATEGORY_ROW_TAG
 import io.github.youndie.haul.ui.CampaignHero
@@ -55,7 +59,9 @@ import io.github.youndie.haul.ui.PlusTrialDialog
 import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.PromoBanner
+import io.github.youndie.haul.ui.SCOPE_PICKER_TAG
 import io.github.youndie.haul.ui.SEARCH_FIELD_TAG
+import io.github.youndie.haul.ui.SearchScope
 import io.github.youndie.haul.ui.SearchSuggestPanel
 import io.github.youndie.haul.ui.SectionHeader
 import io.github.youndie.kompot.KompotAction
@@ -559,19 +565,74 @@ class DrawnActionsTest {
         }
 
     /**
-     * B-49: «Sell on HAUL», «Help», the language and the footer's links have no page to open, so they are
-     * drawn as plain text — nothing to press, not links that do nothing.
+     * B-72: the strip says where the store delivers and nothing it has no page for — no «Sell on HAUL», «Help»
+     * or language — and the place is text; a footer word with a page opens it, one without is text.
      */
     @Test
-    fun `help sell on haul the language and the footer are plain text`() =
+    fun `the strip names no page it lacks and the footer's words lead where they say`() =
         runDesktopComposeUiTest(WIDTH, 1_600) {
             answer("/ui/home", page(header.copy(plus = NavigateAction("/account")), footer))
+            destinations("/account/orders", "/account")
             storefront()
-            listOf("SELL ON HAUL", "HELP", "EN · USD").forEach { onNodeWithText(it).assertHasNoClickAction() }
-            footer.columns.flatMap { it.links }.forEach {
-                onNodeWithText(it, substring = true).assertHasNoClickAction()
-            }
+            listOf("SELL ON HAUL", "EN · USD").forEach { onNodeWithText(it).assertDoesNotExist() }
+            // The one «HELP» left is the footer's column title.
+            onAllNodesWithText("HELP").assertCountEquals(1)
+            onNodeWithText("DELIVERING TO BROOKLYN, NY 11211").assertHasNoClickAction()
+            onNodeWithText("Gift cards").assertHasNoClickAction()
             onNodeWithText("HAUL PLUS").assertHasClickAction()
+
+            onNodeWithText("Track an order").performClick()
+            onNodeWithText(NEXT).assertExists()
+            assertEquals(listOf("/", "/account/orders"), history.entries)
+            history.back()
+            onNodeWithText("Haul Plus").performClick()
+            onNodeWithText(NEXT).assertExists()
+            assertEquals(listOf("/", "/account"), history.entries)
+        }
+
+    /**
+     * B-72: the search field's picker chooses a top-level category, and the search the shopper then submits is
+     * in it; the picker opens nothing else.
+     */
+    @Test
+    fun `the search picker scopes the next search to its category`() =
+        runDesktopComposeUiTest(WIDTH, 1_000) {
+            answer("/ui/home", page(scoped))
+            answer("/ui/search/suggest?q=mug", recent(emptyList(), null))
+            destinations("/search?q=mug&category=home-kitchen")
+            storefront()
+            onNodeWithTag(SCOPE_PICKER_TAG).assertTextContains(ALL_CATEGORIES).performClick()
+            onNode(hasText("Home & Kitchen") and hasAnyAncestor(hasTestTag(LINK_MENU_TAG))).performClick()
+            onNodeWithTag(LINK_MENU_TAG).assertDoesNotExist()
+            onNodeWithTag(SCOPE_PICKER_TAG).assertTextContains("Home & Kitchen")
+            assertEquals(listOf("/"), history.entries, "choosing a category opened a page")
+
+            onNodeWithTag(SEARCH_FIELD_TAG).performClick()
+            onNodeWithTag(SEARCH_FIELD_TAG).performTextInput("mug")
+            onNodeWithTag(SEARCH_FIELD_TAG).performKeyInput { pressKey(Key.Enter) }
+            onNodeWithText(NEXT).assertExists()
+            assertEquals(listOf("/", "/search?q=mug&category=home-kitchen"), history.entries)
+        }
+
+    /**
+     * B-72: a page searched in a category shows it in the picker, and «All categories» searches everywhere again.
+     * Without the categories on the wire the picker opens nothing.
+     */
+    @Test
+    fun `the picker reads the page's scope and all categories leaves it`() =
+        runDesktopComposeUiTest(WIDTH, 1_000) {
+            answer("/ui/home", page(scoped.copy(scope = "electronics", query = "tv")))
+            answer("/ui/search/suggest?q=tv", recent(emptyList(), null))
+            destinations("/search?q=tv")
+            storefront()
+            onNodeWithTag(SCOPE_PICKER_TAG).assertTextContains("Electronics").performClick()
+            onNode(hasText(ALL_CATEGORIES) and hasAnyAncestor(hasTestTag(LINK_MENU_TAG))).performClick()
+            onNodeWithTag(SCOPE_PICKER_TAG).assertTextContains(ALL_CATEGORIES)
+            onNodeWithTag(SEARCH_FIELD_TAG).performClick()
+            onNodeWithTag(SEARCH_FIELD_TAG).performKeyInput { pressKey(Key.Enter) }
+            onNodeWithText(NEXT).assertExists()
+            assertEquals(listOf("/", "/search?q=tv"), history.entries)
+            onNodeWithTag(SCOPE_PICKER_TAG).assertHasNoClickAction()
         }
 
     /**
@@ -847,12 +908,35 @@ class DrawnActionsTest {
                 close = CloseAction,
             )
 
+        /** A footer as the server sends it (B-72), and a word the client is told nothing about. */
         val footer =
             HaulFooter(
                 id = "footer",
-                columns = listOf(FooterColumn("Company", listOf("About", "Careers"))),
+                columns =
+                    listOf(
+                        FooterColumn(
+                            "Shop",
+                            listOf("Gift cards", "Haul Plus"),
+                            listOf(Link("Haul Plus", NavigateAction("/account"))),
+                        ),
+                        FooterColumn(
+                            "Help",
+                            listOf("Track an order"),
+                            listOf(Link("Track an order", NavigateAction("/account/orders"))),
+                        ),
+                    ),
                 appTitle = "Get the app",
                 appText = "Order tracking.",
+            )
+
+        /** The header with the search picker's choices (B-72). */
+        val scoped =
+            header.copy(
+                scopes =
+                    listOf(
+                        SearchScope("Electronics", "electronics"),
+                        SearchScope("Home & Kitchen", "home-kitchen"),
+                    ),
             )
 
         fun recent(

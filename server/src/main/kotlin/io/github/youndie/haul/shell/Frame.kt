@@ -7,6 +7,7 @@ import io.github.youndie.haul.ui.FooterColumn
 import io.github.youndie.haul.ui.HaulFooter
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.Link
+import io.github.youndie.haul.ui.SearchScope
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.ColumnComponent
@@ -48,21 +49,26 @@ internal object Frame {
         sections: List<KompotComponent>,
         query: String? = null,
         footer: Boolean = false,
+        scope: String? = null,
     ): KompotComponent =
         ColumnComponent(
             id = id,
             children =
-                listOf(header(viewer, navigation, query)) + sections + (if (footer) listOf(FOOTER) else emptyList()),
+                listOf(header(viewer, navigation, query, scope)) + sections +
+                    (if (footer) listOf(footer(viewer)) else emptyList()),
         )
 
     /**
-     * The header of every page but checkout, [query] the search it shows: a node of its own (`header`), which
-     * «+» and «Add to cart» answer with (B-63).
+     * The header of every page but checkout, [query] the search it shows and [scope] the category it is
+     * searched in: a node of its own (`header`), which «+» and «Add to cart» answer with (B-63). The search
+     * picker offers every top-level category (B-72); a [scope] that is not one of them — a leaf's chip — reads
+     * as «All categories».
      */
     fun header(
         viewer: Viewer,
         navigation: List<Link>,
         query: String?,
+        scope: String? = null,
     ) = HaulHeader(
         id = "header",
         deliverTo = DEFAULT_PLACE,
@@ -79,7 +85,19 @@ internal object Frame {
         orders = NavigateAction(if (viewer.customerId == null) SIGN_IN_TO_ORDERS else ORDERS),
         saved = NavigateAction(if (viewer.customerId == null) SIGN_IN_TO_SAVED else SAVED),
         plus = plus(viewer),
+        scopes = scopes(navigation),
+        scope = scope?.takeIf { s -> scopes(navigation).any { it.category == s } },
     )
+
+    /**
+     * The search picker's choices: the top-level categories of [navigation], each with its slug — a top-level
+     * category's address is `/c/<slug>` (`pathOf`), so the slug is what follows [CATALOG].
+     */
+    private fun scopes(navigation: List<Link>): List<SearchScope> =
+        navigation.mapNotNull { link ->
+            val path = (link.action as? NavigateAction)?.deeplink?.removePrefix("$CATALOG/") ?: return@mapNotNull null
+            path.takeIf { it.isNotEmpty() && '/' !in it }?.let { SearchScope(link.label, it) }
+        }
 
     /**
      * The «HAUL PLUS» pill (B-49): the Plus offer as the home page makes it — the trial's dialog to a
@@ -129,17 +147,26 @@ internal object Frame {
     /** The store's default place, until a customer's address says otherwise (feature-browse). */
     private const val DEFAULT_PLACE = "Brooklyn, NY 11211"
 
-    private val FOOTER =
-        HaulFooter(
+    /**
+     * The footer (B-72): only the words that have a page, each leading there — «Deals» to today's deals,
+     * «Haul Plus» to the Plus offer as the header's pill makes it, «Track an order» to the orders (a guest's
+     * sign-in, returning to them). The canvas's other twelve — «New arrivals», «Gift cards», the «Sell» and
+     * «Company» columns, «Returns», «Delivery», «Contact us» — had none and are left out, not drawn as links
+     * that open nothing; a word comes back with its page.
+     */
+    fun footer(viewer: Viewer): HaulFooter {
+        val shop = listOf(Link("Deals", NavigateAction(DEALS)), Link("Haul Plus", plus(viewer)))
+        val help =
+            listOf(Link("Track an order", NavigateAction(if (viewer.customerId == null) SIGN_IN_TO_ORDERS else ORDERS)))
+        return HaulFooter(
             id = "footer",
             columns =
                 listOf(
-                    FooterColumn("Shop", listOf("Deals", "New arrivals", "Gift cards", "Haul Plus")),
-                    FooterColumn("Sell", listOf("Open a store", "Seller center", "Fulfillment", "Ads")),
-                    FooterColumn("Help", listOf("Track an order", "Returns", "Delivery", "Contact us")),
-                    FooterColumn("Company", listOf("About", "Careers", "Press", "Privacy")),
+                    FooterColumn("Shop", shop.map { it.label }, shop),
+                    FooterColumn("Help", help.map { it.label }, help),
                 ),
             appTitle = "Get the app",
             appText = "Order tracking, price drop alerts and app-only deals.",
         )
+    }
 }

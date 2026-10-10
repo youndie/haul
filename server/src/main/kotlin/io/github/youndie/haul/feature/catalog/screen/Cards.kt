@@ -34,7 +34,7 @@ import io.github.youndie.kompot.standard.NavigateAction
  *
  * «+» is answered with the header and this card again (B-63, [LineAnswers]) when [inPlace]: the card is
  * built the same from the product and the SKU wherever it is drawn, and [query] is the search the page's
- * header shows. A card the page draws its own way (the Saved list's mark) is not, and «+» there redraws
+ * header shows, [scope] the category its picker reads (B-72). A card the page draws its own way (the Saved list's mark) is not, and «+» there redraws
  * the page.
  */
 internal fun card(
@@ -45,6 +45,7 @@ internal fun card(
     sku: Sku = item.shown,
     query: String? = null,
     inPlace: Boolean = true,
+    scope: String? = null,
 ): ProductCard {
     val saved = item.product.id in viewer.saved
     val priceCents = sku.priceCents
@@ -63,7 +64,7 @@ internal fun card(
         label = item.product.label,
         image = photos.url(item.product),
         action = productLink(item.product.id),
-        add = addToCart(sku, viewer.inCart, if (inPlace) LineAnswers.cardAnswer(query) else ""),
+        add = addToCart(sku, viewer.inCart, if (inPlace) LineAnswers.cardAnswer(query, scope) else ""),
         saved = saved,
         heartCommand = heart(item.product.id, saved, viewer),
         heartAction = heartAction(viewer),

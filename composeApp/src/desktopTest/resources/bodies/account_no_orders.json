@@ -303,7 +303,137 @@
                     }
                 },
                 "kind": "dialog"
-            }
+            },
+            "scopes": [
+                {
+                    "label": "Electronics",
+                    "category": "electronics"
+                },
+                {
+                    "label": "Home & Kitchen",
+                    "category": "home-kitchen"
+                },
+                {
+                    "label": "Fashion",
+                    "category": "fashion"
+                },
+                {
+                    "label": "Beauty",
+                    "category": "beauty"
+                },
+                {
+                    "label": "Kids & Toys",
+                    "category": "kids-toys"
+                },
+                {
+                    "label": "Sports",
+                    "category": "sports"
+                },
+                {
+                    "label": "Grocery",
+                    "category": "grocery"
+                },
+                {
+                    "label": "Auto",
+                    "category": "auto"
+                },
+                {
+                    "label": "Books",
+                    "category": "books"
+                },
+                {
+                    "label": "Pets",
+                    "category": "pets"
+                },
+                {
+                    "label": "Garden",
+                    "category": "garden"
+                },
+                {
+                    "label": "Office",
+                    "category": "office"
+                },
+                {
+                    "label": "Health",
+                    "category": "health"
+                },
+                {
+                    "label": "Music",
+                    "category": "music"
+                },
+                {
+                    "label": "Movies",
+                    "category": "movies"
+                },
+                {
+                    "label": "Games",
+                    "category": "games"
+                },
+                {
+                    "label": "Tools",
+                    "category": "tools"
+                },
+                {
+                    "label": "Baby",
+                    "category": "baby"
+                },
+                {
+                    "label": "Jewelry",
+                    "category": "jewelry"
+                },
+                {
+                    "label": "Shoes",
+                    "category": "shoes"
+                },
+                {
+                    "label": "Luggage",
+                    "category": "luggage"
+                },
+                {
+                    "label": "Crafts",
+                    "category": "crafts"
+                },
+                {
+                    "label": "Outdoors",
+                    "category": "outdoors"
+                },
+                {
+                    "label": "Party",
+                    "category": "party"
+                },
+                {
+                    "label": "Furniture",
+                    "category": "furniture"
+                },
+                {
+                    "label": "Lighting",
+                    "category": "lighting"
+                },
+                {
+                    "label": "Appliances",
+                    "category": "appliances"
+                },
+                {
+                    "label": "Computers",
+                    "category": "computers"
+                },
+                {
+                    "label": "Phones",
+                    "category": "phones"
+                },
+                {
+                    "label": "Cameras",
+                    "category": "cameras"
+                },
+                {
+                    "label": "Watches",
+                    "category": "watches"
+                },
+                {
+                    "label": "Bags",
+                    "category": "bags"
+                }
+            ]
         },
         {
             "type": "haul_account_body",

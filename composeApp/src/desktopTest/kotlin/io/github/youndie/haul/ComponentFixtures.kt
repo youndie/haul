@@ -21,6 +21,7 @@ import io.github.youndie.haul.ui.HeaderMenuSheet
 import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.LocalSearchField
 import io.github.youndie.haul.ui.SearchFieldState
+import io.github.youndie.haul.ui.SearchScope
 import io.github.youndie.kompot.KompotActionHandler
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.KompotScreen
@@ -54,6 +55,22 @@ internal fun HeaderSearch() =
         CompositionLocalProvider(LocalSearchField provides remember { SearchFieldState(focused = true) }) {
             Body("haul_header_search.json")
         }
+    }
+
+/**
+ * B-72: a search in a top-level category — the field's picker reads the scope instead of «All categories». No
+ * artboard draws a scope, so it has no parity reference.
+ */
+@ViddikScreenshot(name = "Search_Scoped", group = "HaulHeader", width = 1440, height = 186)
+@Composable
+internal fun HeaderSearchScoped() =
+    Fixture(compact = false) {
+        Render(
+            (decode("haul_header_search.json") as HaulHeader).copy(
+                scopes = TOP_LEVEL.map { SearchScope(it, it.lowercase().replace(" & ", "-")) },
+                scope = "home-kitchen",
+            ),
+        )
     }
 
 @ViddikScreenshot(name = "SignedIn_Phone", group = "HaulHeader", width = 390, height = 206)

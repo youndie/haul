@@ -124,6 +124,19 @@ class LineAnswersTest {
             assertEquals("everyday", (update.updates.first().component as HaulHeader).query)
         }
 
+    /** B-72: on a search in a top-level category the header answered keeps the picker's scope too. */
+    @Test
+    fun `a card's plus on a scoped search keeps the header's scope`() =
+        haulTest {
+            val guest = guest()
+            val path = "/ui/search?q=running%20shoes&category=sports"
+            val card = page(path, guest).only<ProductGrid>().cards.first { it.add != null }
+            val update = pressedOn(path, guest, assertNotNull(card.add), card.id)
+            val header = update.updates.first().component as HaulHeader
+            assertEquals("running shoes", header.query)
+            assertEquals("sports", header.scope)
+        }
+
     @Test
     fun `a deal's plus on the home page answers the header and the deal`() =
         haulTest {

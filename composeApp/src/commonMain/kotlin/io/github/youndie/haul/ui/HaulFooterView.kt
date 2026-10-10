@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -25,10 +26,12 @@ import io.github.youndie.haul.theme.HaulType.browserLeading
 import io.github.youndie.haul.theme.LocalHaulCompact
 
 /**
- * The footer (`HaulFooter` on the wire), with the gap the page leaves above it: four link columns and
- * «Get the app» at 1440, two columns and no app block at 390, the wordmark cut off by the page's end.
- * The links are plain text: no page exists for any of them yet (B-49), and a link that opens nothing
- * would be worse than none.
+ * The footer (`HaulFooter` on the wire), with the gap the page leaves above it: up to four link columns and
+ * «Get the app» at 1440, two columns a row and no app block at 390, the wordmark cut off by the page's end.
+ * A word follows its entry in `FooterColumn.linked` (B-72); one without is drawn as text, nothing to press.
+ * The footer keeps the canvas's frame with fewer words in it: four column places at 1440 («Get the app» stays
+ * at the end), two rows of two on a phone, four lines to a column — so it is as tall as the canvas draws it and
+ * the wordmark is cut where it was.
  */
 @Composable
 public fun HaulFooterView(footer: HaulFooter) {
@@ -48,16 +51,20 @@ public fun HaulFooterView(footer: HaulFooter) {
         ) {
             if (compact) {
                 Column(verticalArrangement = Arrangement.spacedBy(28.dp)) {
-                    footer.columns.chunked(2).forEach { pair ->
+                    val rows = footer.columns.chunked(2)
+                    rows.forEach { pair ->
                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             pair.forEach { LinkColumn(it, compact = true, Modifier.weight(1f)) }
                             repeat(2 - pair.size) { Box(Modifier.weight(1f)) }
                         }
                     }
+                    // A row of columns the canvas has and the wire does not: its height, empty.
+                    repeat(COLUMNS / 2 - rows.size) { Spacer(Modifier.height(columnHeight(compact = true))) }
                 }
             } else {
                 Row(horizontalArrangement = Arrangement.spacedBy(32.dp)) {
                     footer.columns.forEach { LinkColumn(it, compact = false, Modifier.weight(1f)) }
+                    repeat(COLUMNS - footer.columns.size) { Box(Modifier.weight(1f)) }
                     Column(Modifier.weight(1.4f)) {
                         ColumnTitle(footer.appTitle, compact = false)
                         Text(
@@ -99,19 +106,29 @@ private fun LinkColumn(
     compact: Boolean,
     modifier: Modifier,
 ) {
-    Column(modifier) {
+    val style =
+        HaulType
+            .text(
+                if (compact) 14f else 15f,
+                lineHeight = 2f,
+            ).browserLeading()
+            .copy(color = HaulColors.inverseOnSurface)
+    Column(modifier.heightIn(min = columnHeight(compact))) {
         ColumnTitle(column.title, compact)
-        Text(
-            column.links.joinToString("\n"),
-            HaulType
-                .text(
-                    if (compact) 14f else 15f,
-                    lineHeight = 2f,
-                ).browserLeading()
-                .copy(color = HaulColors.inverseOnSurface),
-        )
+        column.links.forEach { word ->
+            Text(word, style, Modifier.follows(column.linked.firstOrNull { it.label == word }?.action))
+        }
     }
 }
+
+/** How many link columns the canvas lays out: in a row at 1440, two rows of two on a phone. */
+private const val COLUMNS = 4
+
+/** How many words the canvas puts in a column. */
+private const val ROWS = 4
+
+/** A column of the canvas: its title's line and gap ([ColumnTitle]) and [ROWS] words at line height 2. */
+private fun columnHeight(compact: Boolean) = if (compact) (28 + 12 + 28 * ROWS).dp else (30 + 16 + 30 * ROWS).dp
 
 /**
  * A column's title: an inline 11 px label in a block whose line is the footer's (15 px at line height

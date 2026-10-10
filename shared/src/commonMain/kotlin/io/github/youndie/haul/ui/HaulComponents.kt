@@ -32,8 +32,12 @@ import kotlinx.serialization.Serializable
  *
  * [plus] is what the «HAUL PLUS» pill does (B-49): presents the trial's dialog to a customer who is not
  * a member — the same `present` as the home page's «Try 30 days free» (B-23) — opens `/account`, where
- * the membership is drawn, for a member, and asks a guest to sign in. The strip's «Sell on HAUL»,
- * «Help» and the language carry nothing: no page exists for them, so they are drawn as plain text.
+ * the membership is drawn, for a member, and asks a guest to sign in.
+ *
+ * [scopes] are what the search field's picker offers besides «All categories» (B-72): every top-level
+ * category, each with the `category` the search takes; [scope] is the one the page's search is in, `null`
+ * for all of them or off the search page. The strip says where the store delivers and for how much, and
+ * nothing else: «Sell on HAUL», «Help» and the language had no page behind them and are gone (B-72).
  */
 @Serializable
 @SerialName("haul_header")
@@ -54,8 +58,21 @@ public data class HaulHeader(
     val orders: @Polymorphic KompotAction? = null,
     val saved: @Polymorphic KompotAction? = null,
     val plus: @Polymorphic KompotAction? = null,
+    val scopes: List<SearchScope> = emptyList(),
+    val scope: String? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
+
+/**
+ * A choice of the header's search picker (B-72): what it reads ([label]) and the value of the search's
+ * `category` parameter it sets ([category], a category's slug). The picker changes no page by itself: the
+ * search the shopper then submits is the one the client builds, `/search?q=…&category=…`.
+ */
+@Serializable
+public data class SearchScope(
+    val label: String,
+    val category: String,
+)
 
 /** Something drawn with a [label] that goes somewhere: a menu entry, a word of a row, a page number. */
 @Serializable

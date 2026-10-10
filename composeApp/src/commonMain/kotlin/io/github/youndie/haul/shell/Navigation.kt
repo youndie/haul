@@ -89,8 +89,15 @@ public data class Address(
             ?.let { parseQueryString(it)[name] }
 
     public companion object {
-        /** The results for what the shopper typed — the one address the client builds, from its own field. */
-        public fun search(query: String): String = "/search?q=" + query.encodeURLParameter()
+        /**
+         * The results for what the shopper typed — the one address the client builds, from its own field — in
+         * the [category] the field's picker chose (B-72), all of them when `null`.
+         */
+        public fun search(
+            query: String,
+            category: String? = null,
+        ): String =
+            "/search?q=" + query.encodeURLParameter() + (category?.let { "&category=" + it.encodeURLParameter() } ?: "")
 
         /** The suggest panel for what the shopper has typed so far. */
         public fun suggest(query: String): String = "/ui/search/suggest?q=" + query.encodeURLParameter()

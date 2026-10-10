@@ -41,17 +41,16 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (5)
+## Open (4)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
-| [B-72](docs/backlog/B-72-header-and-footer-dead-words.md) `[ ]` | client + server: the header strip and the footer do not pretend to be links | P2 | S | - |
 | [B-78](docs/backlog/B-78-placeholders-on-the-stand.md) `[ ]` | server + client: the stand shows pictures, not placeholder labels | P2 | M | - |
 | [B-80](docs/backlog/B-80-blank-first-load.md) `[ ]` | client: the first load shows something before the app starts | P2 | S | - |
 | [B-79](docs/backlog/B-79-checkout-step-indicator-and-links.md) `[ ]` | client + server: checkout's step indicator and summary tell the truth | P3 | S | - |
 
-## Closed (75)
+## Closed (76)
 
 **Skeleton**
 
@@ -152,6 +151,7 @@ A stage is a field on the item, not a directory.
 - [B-69](docs/backlog/B-69-price-facet-does-nothing.md) `[x]` - client + server: the price filter can be used
 - [B-70](docs/backlog/B-70-deals-vanish-at-midnight.md) `[x]` - server: a running stand keeps its deals of the day
 - [B-71](docs/backlog/B-71-product-page-dead-links.md) `[x]` - client + server: what looks pressable on the product page does something
+- [B-72](docs/backlog/B-72-header-and-footer-dead-words.md) `[x]` - client + server: the header strip and the footer do not pretend to be links
 - [B-73](docs/backlog/B-73-phone-cannot-reach-catalog-and-orders.md) `[x]` - client: on a phone every part of the store is reachable
 - [B-74](docs/backlog/B-74-account-tiles-lead-nowhere.md) `[x]` - client + server: the account page's tiles and old orders open
 - [B-75](docs/backlog/B-75-feedback-after-a-press.md) `[x]` - client: a press shows that it worked

@@ -146,10 +146,16 @@ public data class PlusBlock(
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
+/**
+ * A column of the footer: its [title] and its words, [links]. A word that has a page goes there: the entry
+ * of [linked] with its label (B-72), as the header's category row follows `HaulHeader.catalog`; a word with
+ * no entry is drawn as text.
+ */
 @Serializable
 public data class FooterColumn(
     val title: String,
     val links: List<String>,
+    val linked: List<Link> = emptyList(),
 )
 
 @Serializable
