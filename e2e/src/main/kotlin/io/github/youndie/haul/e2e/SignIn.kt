@@ -41,18 +41,7 @@ internal class SignIn(
         settings: SignInSettings,
         login: String,
         password: String,
-    ): String = tokens(settings, login, password).access
-
-    /**
-     * Signs [login] in where [settings] say and returns both tokens: the access token lives five minutes
-     * (shildik's), and the refresh token — issued because the storefront's scope asks for `offline_access` —
-     * gets the next one ([refresh]), as the storefront does when a request comes back `401`.
-     */
-    fun tokens(
-        settings: SignInSettings,
-        login: String,
-        password: String,
-    ): Tokens {
+    ): String {
         val discovery = json(get("${settings.issuer}/.well-known/openid-configuration"))
         val origin = URI(settings.issuer).let { "${it.scheme}://${it.authority}" }
         val verifier = random(32)
@@ -119,45 +108,8 @@ internal class SignIn(
             )
         // The body carries the tokens, so a refusal is told by its status alone.
         check(tokens.statusCode() == 200) { "the token endpoint answered ${tokens.statusCode()}" }
-        return tokens(json(tokens.body()), previous = null)
+        return json(tokens.body()).text("access_token")
     }
-
-    /**
-     * The next tokens for [refreshToken], from the token endpoint [settings] lead to. shildik rotates: the
-     * answer carries a new refresh token and the one given is spent, so the caller keeps the new one.
-     */
-    fun refresh(
-        settings: SignInSettings,
-        refreshToken: String,
-    ): Tokens {
-        val discovery = json(get("${settings.issuer}/.well-known/openid-configuration"))
-        val tokens =
-            send(
-                HttpRequest
-                    .newBuilder(URI(discovery.text("token_endpoint")))
-                    .header("Content-Type", "application/x-www-form-urlencoded")
-                    .POST(
-                        HttpRequest.BodyPublishers.ofString(
-                            form(
-                                "grant_type" to "refresh_token",
-                                "refresh_token" to refreshToken,
-                                "client_id" to settings.clientId,
-                            ),
-                        ),
-                    ).build(),
-            )
-        check(tokens.statusCode() == 200) { "refreshing the sign-in answered ${tokens.statusCode()}" }
-        return tokens(json(tokens.body()), previous = refreshToken)
-    }
-
-    private fun tokens(
-        answer: JsonObject,
-        previous: String?,
-    ): Tokens =
-        Tokens(
-            access = answer.text("access_token"),
-            refresh = answer["refresh_token"]?.jsonPrimitive?.content ?: previous,
-        )
 
     private fun get(url: String): String =
         send(HttpRequest.newBuilder(URI(url)).GET().build())
@@ -178,15 +130,6 @@ internal class SignIn(
         val FORM_ACTION = Regex("""<form method="post" action="([^"]+)"""")
         val PARKED_STATE = Regex("""name="state" value="([^"]+)"""")
     }
-}
-
-/** What a sign-in hands back: the bearer, and the token that gets the next one when the provider issued it. */
-internal class Tokens(
-    val access: String,
-    val refresh: String?,
-) {
-    /** Both are secrets: printed, they say nothing. */
-    override fun toString(): String = "Tokens(<hidden>)"
 }
 
 internal fun form(vararg pairs: Pair<String, String>): String =

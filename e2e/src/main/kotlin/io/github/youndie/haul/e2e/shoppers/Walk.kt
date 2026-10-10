@@ -2,7 +2,6 @@ package io.github.youndie.haul.e2e.shoppers
 
 import io.github.youndie.haul.e2e.SignIn
 import io.github.youndie.haul.e2e.Storefront
-import io.github.youndie.haul.e2e.Transport
 import io.github.youndie.haul.e2e.Tree
 import io.github.youndie.haul.e2e.deeplink
 import io.github.youndie.haul.feature.cart.LineChange
@@ -44,11 +43,6 @@ import kotlin.time.TimeSource
  * Every address after `/` comes from a tree or an answer, as in the test, so a walk that still completes
  * is the storefront still working end to end. A step that fails throws [WalkFailed] naming the step.
  *
- * **The sign-in is kept alive** while the walk waits: shildik's access token lives five minutes and a walk at the
- * stand's speed (288) waits about ten for its delivery and ten more for its refund, so a refused bearer is
- * renewed with the refresh token, as the storefront's client does ([Storefront.renew]). Before that, every walk
- * on the stand stopped at its first read of the order page past the token's life (B-31).
- *
  * **One walk per person between the sign-in and the placement** ([cart]): the cart is the customer's, and
  * a second walk of the same person merging its line in between would have it placed by the first.
  */
@@ -62,9 +56,8 @@ internal class Walk(
     private val poll: Duration,
     private val wait: Duration,
     private val random: Random = Random.Default,
-    transport: Transport = Transport.DIRECT,
 ) {
-    private val shop = Storefront(origin, transport)
+    private val shop = Storefront(origin)
     private val started = TimeSource.Monotonic.markNow()
 
     fun take(): Walked {
@@ -90,7 +83,7 @@ internal class Walk(
         }
         val refundedAfter = started.elapsedNow()
         step("find the order returned in the history") { history(placed) }
-        return Walked(number, login, product, placed, placedAfter, deliveredAfter, refundedAfter, shop.renewals)
+        return Walked(number, login, product, placed, placedAfter, deliveredAfter, refundedAfter)
     }
 
     /** A category tile and a buyable card on it, at random; the product's own page adds it. */
@@ -114,10 +107,7 @@ internal class Walk(
         val answer = shop.send("GET", SIGN_IN_SETTINGS)
         check(answer.status == 200) { "${answer.request} answered ${answer.status}: ${answer.body.take(300)}" }
         val settings = haulWireJson.decodeFromString(SignInSettings.serializer(), answer.body)
-        val tokens = signIn.tokens(settings, login, password.value)
-        shop.token = tokens.access
-        var refresh = checkNotNull(tokens.refresh) { "the provider issued no refresh token for «${settings.scope}»" }
-        shop.renew = { signIn.refresh(settings, refresh).also { next -> next.refresh?.let { refresh = it } }.access }
+        shop.token = signIn.accessToken(settings, login, password.value)
         check(shop.send("POST", settings.mergeUrl).action() == RefreshAction) { "the merge did not refresh" }
         // Merged: the cart is the customer's now, found by the token alone.
         shop.guest = null
@@ -244,8 +234,6 @@ internal data class Walked(
     val placedAfter: Duration,
     val deliveredAfter: Duration,
     val refundedAfter: Duration,
-    /** How many times the walk's bearer was refused and renewed on the way. */
-    val renewals: Int,
 )
 
 /** A walk that stopped at [step]; the message names the step and what went wrong there. */

@@ -124,7 +124,7 @@ internal class Shoppers(
             log(
                 "walk ${done.number} as ${done.login}: «${done.product}», order $order " +
                     "placed after ${done.placedAfter.short()}, delivered after ${done.deliveredAfter.short()}, " +
-                    "refunded after ${done.refundedAfter.short()}, sign-in renewed ${done.renewals} times",
+                    "refunded after ${done.refundedAfter.short()}",
             )
         } catch (e: WalkFailed) {
             failed.incrementAndGet()
