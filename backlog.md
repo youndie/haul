@@ -41,11 +41,12 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (11)
+## Open (12)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[?]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
+| [B-81](docs/backlog/B-81-card-plus-says-added.md) `[ ]` | server + client: a card's «+» says the item was added | P2 | S | - |
 | [B-82](docs/backlog/B-82-tablet-widths.md) `[ ]` | client: the store reads well between a phone and 1440 | P2 | M | - |
 | [B-83](docs/backlog/B-83-typed-input-before-every-press.md) `[ ]` | client: every press that reads a field sees what was typed | P2 | S | - |
 | [B-88](docs/backlog/B-88-a-return-restocks.md) `[ ]` | server: a returned unit goes back to stock | P2 | S | - |
