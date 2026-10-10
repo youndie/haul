@@ -1,7 +1,7 @@
 ---
 id: B-80
 title: "client: the first load shows something before the app starts"
-status: wip
+status: done
 priority: P2
 size: S
 stage: stage-10-review
@@ -38,3 +38,47 @@ skeletons appear only once the app runs. On a slow connection the shopper sees n
   and stays. (2) The profiles in their known order. (3) The swap check can fail: a copy of the after bundle whose
   page removes the frame on a timer, 300 ms after the HTML is parsed, must fail it. (4) B-28's floor over the
   bundle's non-font bytes on Slow 4G.
+
+## Done (2026-10-10)
+
+- `index.html` draws the header's shape — strip, logo's place and dot, «Catalog», the search field, the shortcuts,
+  the cart, the category row — and the sweeping progress line under it, inline HTML and CSS at the header's
+  measures (185 px at 1440, 206 below 768), shapes only: no words, so no font is needed. No new request; 4,726
+  bytes, 1,175 brotli. `role="progressbar"` with a label, and no motion under `prefers-reduced-motion`.
+- The app replaces it: `Main.kt` puts the frame back over Compose's mount (which replaces the body's children)
+  and removes it from a `drawWithContent` around the app, in the animation frame of Compose's first picture.
+  `STATIC_FRAME_ID` (`shell/StaticFrame.kt`) is the id both sides name.
+- Measured, before and after, on images that differ only in the bundle (research D9, «Measured in B-80»):
+  first contentful paint 4.8 s → 0.3 s on Fast 4G, 24.0 s → 0.7 s on Slow 4G, 0.67 s → 0.33 s on loopback;
+  Compose's first frame unchanged (±0.1 %); the frame removed in the animation frame of Compose's first GL call
+  in every run the probe saw it (17 of 18), and a page that removes it on a timer fails that check.
+- CSP and headers: none restricts the page — `WebBundle.kt` sets cache and encoding headers only, the chart's
+  `IngressRoute` only the HTTPS redirect; the frame uses inline styles and no inline script.
+- `StaticFrameTest` holds the page to the id, the frame before the loader's script, the loader as its one request
+  and the size under a first TCP window; `desktopTest` now has the page as an input, without which a changed page
+  left the test up to date.
+- The harness: `scripts/measure-first-load.py` reports the first contentful paint and the frame's swap, and
+  `--stop-after` (`STOP_AFTER` in the shell script) ends a run after the first frame for a page that never goes
+  quiet.
+- Anchors: `composeApp/src/wasmJsMain/resources/index.html`,
+  `composeApp/src/wasmJsMain/kotlin/io/github/youndie/haul/Main.kt`,
+  `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/StaticFrame.kt`,
+  `composeApp/src/desktopTest/kotlin/io/github/youndie/haul/shell/StaticFrameTest.kt`,
+  `scripts/measure-first-load.py`.
+
+## Findings (2026-10-10)
+
+- **Compose replaces the body's children when it mounts.** `ComposeViewport(document.body)` (Compose
+  Multiplatform 1.12.1) leaves only its own host `<div>` in the body — the frame and the loader's `<script>` go
+  with it — and its canvas sits in that div's shadow root. A frame left where it was would vanish at the mount,
+  a composition before the first picture: on loopback a 180 ms blank between the two. Hence the put-back.
+- **The probe misses a frame that is never painted.** On loopback the bundle can run and draw before the
+  browser's second animation frame; the probe only follows the frame once a tick has seen it, so one counted run
+  reports no frame at all (its first contentful paint is the canvas). Stamping the frame in the `remove` wrapper
+  too would close it; the numbers were taken without that.
+- **B-28's `wired` arm no longer builds**: its patch asserts `{ App() }` in `Main.kt`, which has taken arguments
+  since the root started drawing screens. The `image` arm measures the storefront as it ships, and is what this
+  item used; `main` served as static files now draws the error page (no server) and never goes quiet, so its
+  «settled» would time out without `--stop-after`.
+- **One frame for every address**: a cold `/checkout` shows the storefront's header shape, then the checkout's
+  own header. Not in the item; the page cannot know the address's header without script.
