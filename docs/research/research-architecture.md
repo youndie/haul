@@ -233,6 +233,17 @@ exception: it is taken down and asks for the sign-in (B-44), so a guest is not l
 server still answers each address with the whole tree; the presses that only filter answer with the
 changed nodes since B-63.
 
+**Decided in B-68, a category has one address** (owner's call): the slugs from its top-level category down
+to it, `/c/electronics/audio/headphones` — a top-level category's is its slug. A screen being a path, two
+forms of one category were two screens: links named the last slug alone while the route answered any path
+by its last slug, so a page opened at the whole path loaded again on its first filter. Every link — the
+header, tiles, breadcrumbs, a search's suggestions — and every address a category page names is the whole
+path (`pathOf`, `feature/catalog/domain/Catalog.kt`); any other form whose last slug is a category — the
+slug alone, a path that skips a level — answers `301` to it, query kept, at the page (`/c/…`), its tree
+(`/ui/c/…`) and its parts (`/ui/parts/c/…`) alike (`feature/catalog/OneCategoryAddress.kt`). A tab drawn
+before the change follows its old links into a redirect and draws the right page at the old address; its
+first filter then loads the page once, at the whole path, and from there the addresses agree.
+
 **Decided in B-63, a filter answers with the parts that changed** (owner's call; kompot 0.40.0.213, B-82).
 A press that only filters, sorts or pages what a screen already shows carries kompot's `load` of the
 screen's address under `/ui/parts`: one `GET`, answered with an `update` of the nodes the press changes and
@@ -244,7 +255,7 @@ page would gain or lose a section an `update` cannot add or take away — is `na
 
 | Endpoint (kind `load`, kompot SPEC §16.1) | Tier | Pressed from | The parts |
 |---|---|---|---|
-| `GET /ui/parts/c/{categoryPath}?…` | public | a kind, a facet, «Show N more», an applied chip, «Clear all», a sort, a page | `title`, `kinds` (when the category has kinds), `results` |
+| `GET /ui/parts/c/{categoryPath}?…` (the whole path, B-68) | public | a kind, a facet, «Show N more», an applied chip, «Clear all», a sort, a page | `title`, `kinds` (when the category has kinds), `results` |
 | `GET /ui/parts/search?q=…` | public | a category chip, a page | `categories`, `grid`, `pagination` |
 | `GET /ui/parts/deals?page=…` | public | a page between pages past the first; to or from the first, whose «Deals of the day» the others lack, the press is still `navigate` | `grid`, `pagination` |
 | `GET /ui/parts/account/orders?status=…` | customer (`401`) | a chip of the history | `account` |
