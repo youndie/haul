@@ -47,7 +47,7 @@ A stage is a field on the item, not a directory.
 |---|---|---|---|---|
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[?]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 | [B-78](docs/backlog/B-78-placeholders-on-the-stand.md) `[ ]` | server + client: the stand shows pictures, not placeholder labels | P2 | M | - |
-| [B-80](docs/backlog/B-80-blank-first-load.md) `[ ]` | client: the first load shows something before the app starts | P2 | S | - |
+| [B-80](docs/backlog/B-80-blank-first-load.md) `[~]` | client: the first load shows something before the app starts | P2 | S | - |
 
 ## Closed (77)
 
