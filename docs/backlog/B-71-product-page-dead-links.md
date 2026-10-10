@@ -1,7 +1,7 @@
 ---
 id: B-71
 title: "client + server: what looks pressable on the product page does something"
-status: open
+status: wip
 priority: P2
 size: M
 stage: stage-10-review
