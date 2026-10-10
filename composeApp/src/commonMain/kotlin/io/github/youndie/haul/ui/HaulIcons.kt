@@ -50,6 +50,9 @@ public object HaulIcons {
     public val spinnerTrack: ImageVector = stroked("spinner-track", 3f, circle(12f, 12f, 9f))
     public val spinnerArc: ImageVector = stroked("spinner-arc", 3f, "M12 3a9 9 0 0 1 9 9")
     public val filters: ImageVector = stroked("filters", 2.4f, "M4 6h16M7 12h10M10 18h4")
+
+    /** The phone header's menu (B-73): the canvas draws none, so it is the filters glyph's stroke, three equal bars. */
+    public val menu: ImageVector = stroked("menu", 2.2f, "M4 6h16M4 12h16M4 18h16")
     public val share: ImageVector = stroked("share", 2f, "M12 15V3M7 8l5-5 5 5M5 14v6h14v-6")
     public val chevronRight: ImageVector = stroked("chevron-right", 2.4f, "M9 6l6 6-6 6")
     public val bolt: ImageVector = filled("bolt", "M13 2L4 14h7l-1 8 9-12h-7l1-8z")

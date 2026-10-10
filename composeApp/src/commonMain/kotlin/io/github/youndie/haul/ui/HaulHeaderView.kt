@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -30,7 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
@@ -48,6 +49,8 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
@@ -59,6 +62,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
@@ -162,7 +167,11 @@ public fun HaulHeaderView(
                 },
             ),
     ) {
-        if (compact) CompactHeader(header, pending, account) else WideHeader(header, pending, account)
+        if (compact) {
+            CompactHeader(header, pending, account, if (pending) null else onAccount)
+        } else {
+            WideHeader(header, pending, account)
+        }
         Box(Modifier.fillMaxWidth().height(1.dp).background(HaulColors.outlineVariant))
     }
 }
@@ -290,21 +299,36 @@ private fun WideHeader(
     }
 }
 
+/**
+ * The phone's header (B-73): what the 1440 header has no room for here — the catalog's every category,
+ * «Orders», «HAUL PLUS» — is behind the menu button, left of the logo; no artboard draws one, and the
+ * canvas's phone header is otherwise kept as it is drawn. The menu opens only with somebody to follow its
+ * entries and a header that is the viewer's own, not the placeholder before a tree arrives.
+ */
 @Composable
 private fun CompactHeader(
     header: HaulHeader,
     pending: Boolean,
     account: Modifier,
+    onAccount: (() -> Unit)?,
 ) {
     Strip(height = 32.dp, padding = 16.dp, size = 10f, spacing = 0.04f) { style ->
         DeliverTo(header.deliverTo, style)
         Text("HELP", style)
     }
+    val menu = LocalHeaderMenu.current?.takeUnless { pending || LocalHaulActions.current == null }
     Row(
         Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        Box(
+            Modifier
+                .size(width = 40.dp, height = 44.dp)
+                .semantics { contentDescription = OPEN_MENU }
+                .pressable(menu?.let { it::open }),
+            contentAlignment = Alignment.CenterStart,
+        ) { Icon(HaulIcons.menu, 24.dp, HaulColors.onSurface) }
         Logo(size = 34f, dot = 9.dp, dotMargin = 2.dp, modifier = Modifier.pressable(LocalLogoAction.current))
         Spacer(Modifier.weight(1f))
         Box(
@@ -368,20 +392,30 @@ private fun CompactHeader(
         }
     }
     Box(Modifier.fillMaxWidth().height(1.dp).background(HaulColors.outlineVariant))
+    // The row scrolls sideways (B-73): the canvas cuts it at the edge, which is the sign that there is more.
     Row(
         Modifier
             .fillMaxWidth()
             // `height: 46px` with a 1 px top border outside it: 47 in all.
             .height(46.dp)
-            .padding(horizontal = 16.dp)
-            .clipToBounds(),
+            .testTag(CATEGORY_ROW_TAG)
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(22.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Deals(size = 14f, Modifier.follows(header.deals))
         SpacedWords(header.categories, 22.dp, HaulType.text(14f, 500), links = header.catalog)
     }
+    if (menu != null && menu.isOpen) {
+        Dialog(onDismissRequest = menu::close, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+            HeaderMenuSheet(header, onAccount = onAccount, onClose = menu::close)
+        }
+    }
 }
+
+/** The tag of the phone header's category row, for the tests that scroll it. */
+public const val CATEGORY_ROW_TAG: String = "category-row"
 
 @Composable
 private fun Strip(

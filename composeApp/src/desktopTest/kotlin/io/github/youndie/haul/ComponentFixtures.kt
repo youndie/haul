@@ -16,6 +16,9 @@ import io.github.youndie.haul.registry.haulJson
 import io.github.youndie.haul.registry.haulRegistry
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulTheme
+import io.github.youndie.haul.ui.HaulHeader
+import io.github.youndie.haul.ui.HeaderMenuSheet
+import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.LocalSearchField
 import io.github.youndie.haul.ui.SearchFieldState
 import io.github.youndie.kompot.KompotActionHandler
@@ -56,6 +59,70 @@ internal fun HeaderSearch() =
 @ViddikScreenshot(name = "SignedIn_Phone", group = "HaulHeader", width = 390, height = 206)
 @Composable
 internal fun HeaderSignedInPhone() = Fixture(compact = true) { Body("haul_header_signed_in.json") }
+
+/**
+ * B-73: the narrowest phone the store is drawn for, with a guest's «Sign in» — the widest account slot —
+ * and the menu button: everything in the top row still fits, the category row runs past the edge.
+ */
+@ViddikScreenshot(name = "Guest_Phone375", group = "HaulHeader", width = 375, height = 206)
+@Composable
+internal fun HeaderGuestPhone375() = Fixture(compact = true) { Body("haul_header_guest.json") }
+
+/**
+ * B-73: the phone header's menu, open, for a customer: the account, «Orders», «Saved», «Deals», «HAUL PLUS»
+ * and every top-level category of the seed. No artboard draws it, so it has no parity reference.
+ */
+@ViddikScreenshot(name = "Menu_Phone", group = "HaulHeader", width = 390, height = 844)
+@Composable
+internal fun HeaderMenuPhone() = Fixture(compact = true) { HeaderMenuSheet(menuHeader("Maya")) }
+
+/** B-73: the same for a guest, whose account entry is «Sign in». */
+@ViddikScreenshot(name = "Menu_Guest_Phone", group = "HaulHeader", width = 390, height = 844)
+@Composable
+internal fun HeaderMenuGuestPhone() = Fixture(compact = true) { HeaderMenuSheet(menuHeader(null)) }
+
+/** The header as the server sends it, with the catalog: the seed's 32 top-level categories (`CatalogSeed`). */
+private fun menuHeader(customerName: String?): HaulHeader =
+    (decode("haul_header_signed_in.json") as HaulHeader).copy(
+        customerName = customerName,
+        catalog = TOP_LEVEL.map { Link(it) },
+    )
+
+private val TOP_LEVEL =
+    listOf(
+        "Electronics",
+        "Home & Kitchen",
+        "Fashion",
+        "Beauty",
+        "Kids & Toys",
+        "Sports",
+        "Grocery",
+        "Auto",
+        "Books",
+        "Pets",
+        "Garden",
+        "Office",
+        "Health",
+        "Music",
+        "Movies",
+        "Games",
+        "Tools",
+        "Baby",
+        "Jewelry",
+        "Shoes",
+        "Luggage",
+        "Crafts",
+        "Outdoors",
+        "Party",
+        "Furniture",
+        "Lighting",
+        "Appliances",
+        "Computers",
+        "Phones",
+        "Cameras",
+        "Watches",
+        "Bags",
+    )
 
 @ViddikScreenshot(name = "Grid", group = "ProductCard", width = 1016, height = 400)
 @Composable
