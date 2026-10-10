@@ -42,6 +42,10 @@ guest cart, or the press itself.
   of the AC over HTTP with a shildik token (promo row `−$2.40` on the mug, then `SUMMER5` → `422 promo_expired` and
   the field with «This code has expired»); the guest half was already `a promo applies once` and `an expired promo
   is 422 …`.
+- **In the browser, the fixed build**: this branch's `wasmJsBrowserDistribution` served from the Mac with `/ui` and
+  `/api` passed through to the stand, a new guest, the mug in the cart, the same pane hidden, the same sequence that
+  failed — click, type `AUTUMN10`, «Apply» at once: `PUT /api/v1/cart/promo` `200` on the first press, the promo
+  row `−$2.40` and the applied pill; `SUMMER5` the same way: `422` and «This code has expired» under the field.
 - **Mutation**: the press reading the field at once (the old `CartViews.kt`) — the wiring test red, `expected
   [ApplyPromo(…AUTUMN10)] but was []`; the route skipping `applyPromo` for a customer — the route test red (the field
   not applied); restored, green.
