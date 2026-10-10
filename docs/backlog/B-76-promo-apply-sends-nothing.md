@@ -1,7 +1,7 @@
 ---
 id: B-76
 title: "client: «Apply» on the cart's promo code is applied"
-status: open
+status: wip
 priority: P1
 size: S
 stage: stage-10-review
