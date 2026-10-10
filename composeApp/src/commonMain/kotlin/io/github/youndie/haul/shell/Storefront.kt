@@ -44,9 +44,11 @@ import io.github.youndie.haul.feature.search.SearchSuggestOverlay
 import io.github.youndie.haul.registry.haulRegistry
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HaulHeaderView
+import io.github.youndie.haul.ui.HeaderMenuState
 import io.github.youndie.haul.ui.LocalHaulActions
 import io.github.youndie.haul.ui.LocalHaulNow
 import io.github.youndie.haul.ui.LocalHeaderMeasured
+import io.github.youndie.haul.ui.LocalHeaderMenu
 import io.github.youndie.haul.ui.LocalLogoAction
 import io.github.youndie.haul.ui.LocalSearchInput
 import io.github.youndie.haul.ui.PlusTrialDialog
@@ -128,7 +130,7 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * [realtime] while it is shown, and each update redraws its node in place; with no [realtime] — a
  * screenshot — it is drawn as it loaded. The phone's filter sheet is held here, above the page
  * ([FiltersSheetState], B-54): it stays open over the pages its own presses open, and any other new page
- * closes it.
+ * closes it. So is the phone header's menu ([HeaderMenuState], B-73), which any new page closes.
  *
  * A screen is a path (B-62). A new address on the same path — a facet, a sort, a page of results, back
  * or forward between two of them — loads behind the page that is drawn, which keeps its scroll and what
@@ -193,11 +195,14 @@ public fun Storefront(
         focus.clearFocus()
     }
     val filters = remember { FiltersSheetState() }
-    // A page visited closes the panel and the filter sheet; an address an update recorded (B-63) is the
-    // page already drawn, and closes neither — the sheet's own presses are such updates.
+    val menu = remember { HeaderMenuState() }
+    // A page visited closes the panel, the filter sheet and the phone header's menu (B-73); an address an
+    // update recorded (B-63) is the page already drawn, and closes none — the sheet's own presses are such
+    // updates.
     LaunchedEffect(navigator.visits) {
         dismiss()
         filters.close()
+        menu.close()
     }
     // «Clear» on recent searches: the panel is asked for again once the server has emptied them.
     val clearUrl = panel?.clearUrl
@@ -228,6 +233,7 @@ public fun Storefront(
         LocalCheckoutCommands provides checkoutCommands,
         LocalTreeCommands provides treeCommands,
         LocalFiltersSheet provides filters,
+        LocalHeaderMenu provides menu,
     ) {
         SearchSuggestOverlay(panel, highlighted = -1, field = field, onDismiss = dismiss, onClear = clearRecent) {
             val address = navigator.address

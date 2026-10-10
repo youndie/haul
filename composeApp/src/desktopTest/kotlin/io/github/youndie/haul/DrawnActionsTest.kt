@@ -1,9 +1,12 @@
 package io.github.youndie.haul
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertHasNoClickAction
+import androidx.compose.ui.test.click
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
@@ -12,7 +15,10 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
+import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.feature.cart.CartCommand
 import io.github.youndie.haul.feature.cart.CartCommands
 import io.github.youndie.haul.feature.cart.LineChange
@@ -26,6 +32,7 @@ import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.ui.ADD_TO_CART
 import io.github.youndie.haul.ui.AppliedFilters
+import io.github.youndie.haul.ui.CATEGORY_ROW_TAG
 import io.github.youndie.haul.ui.CampaignHero
 import io.github.youndie.haul.ui.CampaignRow
 import io.github.youndie.haul.ui.Facet
@@ -33,11 +40,13 @@ import io.github.youndie.haul.ui.FacetOption
 import io.github.youndie.haul.ui.FacetPanel
 import io.github.youndie.haul.ui.FilteredResults
 import io.github.youndie.haul.ui.FooterColumn
+import io.github.youndie.haul.ui.HEADER_MENU_TAG
 import io.github.youndie.haul.ui.HaulFooter
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HaulPagination
 import io.github.youndie.haul.ui.LINK_MENU_TAG
 import io.github.youndie.haul.ui.Link
+import io.github.youndie.haul.ui.OPEN_MENU
 import io.github.youndie.haul.ui.PlusBenefit
 import io.github.youndie.haul.ui.PlusTrialDialog
 import io.github.youndie.haul.ui.ProductCard
@@ -547,9 +556,129 @@ class DrawnActionsTest {
             onNodeWithText("HAUL PLUS").assertHasClickAction()
         }
 
+    /**
+     * B-73: on a phone the header's menu reaches what the 1440 header does — every category the catalog
+     * carries, not only the row's — and an entry pressed opens its page with the menu closed.
+     */
+    @Test
+    fun `on a phone the menu opens a category the row does not show`() =
+        runDesktopComposeUiTest(PHONE, 1_000) {
+            answer("/ui/home", page(phoneHeader))
+            destinations("/c/home-kitchen")
+            storefront(compact = true)
+            onNodeWithText("Home & Kitchen").assertDoesNotExist()
+            openMenu()
+            inMenu("Home & Kitchen").performClick()
+            onNodeWithText(NEXT).assertExists()
+            onNodeWithTag(HEADER_MENU_TAG).assertDoesNotExist()
+            assertEquals(listOf("/", "/c/home-kitchen"), history.entries)
+        }
+
+    /** B-73: the account, «Orders», «Saved» and «Deals» in the phone's menu each open where the header says. */
+    @Test
+    fun `on a phone the menu opens the account orders saved and deals`() =
+        runDesktopComposeUiTest(PHONE, 1_000) {
+            answer("/ui/home", page(phoneHeader))
+            val entries =
+                listOf(
+                    "Maya" to "/account",
+                    "Orders" to "/account/orders",
+                    "Saved" to "/account/saved",
+                    "Deals" to "/deals",
+                )
+            destinations(*entries.map { it.second }.toTypedArray())
+            storefront(compact = true)
+            entries.forEach { (entry, address) ->
+                openMenu()
+                inMenu(entry).performClick()
+                onNodeWithText(NEXT).assertExists()
+                onNodeWithTag(HEADER_MENU_TAG).assertDoesNotExist()
+                assertEquals(listOf("/", address), history.entries, entry)
+                history.back()
+                waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText(NEXT)).fetchSemanticsNodes().isEmpty() }
+            }
+        }
+
+    /** B-73: «HAUL PLUS» in the phone's menu presents the trial's dialog, over the page, with the menu closed. */
+    @Test
+    fun `on a phone the menu's haul plus presents the trial's dialog`() =
+        runDesktopComposeUiTest(PHONE, 1_000) {
+            answer("/ui/home", page(phoneHeader.copy(plus = PresentAction(trial, "dialog"))))
+            storefront(compact = true)
+            openMenu()
+            inMenu("HAUL PLUS").performClick()
+            waitUntil(
+                timeoutMillis = 5_000,
+            ) { onAllNodes(hasTestTag(PLUS_START_TAG)).fetchSemanticsNodes().isNotEmpty() }
+            onNodeWithTag(HEADER_MENU_TAG).assertDoesNotExist()
+            assertEquals(listOf("/"), history.entries, "the dialog opened a page")
+        }
+
+    /** B-73: like the filter sheet, the menu is the shell's — back, with the menu open, closes it. */
+    @Test
+    fun `on a phone a page visited closes the menu`() =
+        runDesktopComposeUiTest(PHONE, 1_000) {
+            answer("/ui/home", page(phoneHeader))
+            destinations("/c/electronics")
+            storefront(compact = true)
+            onNodeWithText("Electronics").performClick()
+            onNodeWithText(NEXT).assertExists()
+            openMenu()
+            history.back()
+            waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText(NEXT)).fetchSemanticsNodes().isEmpty() }
+            waitForIdle()
+            onNodeWithTag(HEADER_MENU_TAG).assertDoesNotExist()
+            assertEquals(listOf("/ui/home", "/ui/c/electronics", "/ui/home"), requests)
+        }
+
+    /**
+     * B-73: at 375 px the category row runs past the edge, and it scrolls: swiped to its end, its last
+     * category is under the finger and opens its page.
+     */
+    @Test
+    fun `on a phone the category row scrolls to its last category`() =
+        runDesktopComposeUiTest(NARROW_PHONE, 1_000) {
+            val names =
+                listOf(
+                    "Electronics",
+                    "Home & Kitchen",
+                    "Fashion",
+                    "Beauty",
+                    "Kids & Toys",
+                    "Sports",
+                    "Grocery",
+                    "Auto",
+                    "Books",
+                    "Pets",
+                )
+            val row =
+                phoneHeader.copy(
+                    categories = names,
+                    catalog = names.map { Link(it, NavigateAction("/c/${it.lowercase()}")) },
+                )
+            answer("/ui/home", page(row))
+            destinations("/c/pets")
+            storefront(compact = true)
+            onNodeWithTag(CATEGORY_ROW_TAG).performTouchInput { repeat(3) { swipeLeft() } }
+            // «Pets» ends 16 px short of the edge: the row's padding, scrolled into view with the rest.
+            onNodeWithTag(CATEGORY_ROW_TAG).performTouchInput { click(Offset(width - 26.dp.toPx(), centerY)) }
+            onNodeWithText(NEXT).assertExists()
+            assertEquals(listOf("/", "/c/pets"), history.entries)
+        }
+
+    private fun ComposeUiTest.openMenu() {
+        onNodeWithTag(HEADER_MENU_TAG).assertDoesNotExist()
+        onNodeWithContentDescription(OPEN_MENU).performClick()
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasTestTag(HEADER_MENU_TAG)).fetchSemanticsNodes().isNotEmpty() }
+    }
+
+    private fun ComposeUiTest.inMenu(text: String) =
+        onNode(hasText(text) and hasAnyAncestor(hasTestTag(HEADER_MENU_TAG)))
+
     private companion object {
         const val WIDTH = 1440
         const val PHONE = 390
+        const val NARROW_PHONE = 375
         const val EXPANDED = "/c/mugs?brand=Haul&expand=brand"
         const val MUGS = "/search?q=mugs"
         const val NEXT = "The next page"
@@ -583,6 +712,14 @@ class DrawnActionsTest {
                 deals = NavigateAction("/deals"),
                 cart = NavigateAction("/cart"),
                 orders = NavigateAction("/account/orders"),
+            )
+
+        /** The header as a customer's page carries it on a phone (B-73): every entry of the menu leads somewhere. */
+        val phoneHeader =
+            header.copy(
+                account = NavigateAction("/account"),
+                saved = NavigateAction("/account/saved"),
+                plus = NavigateAction("/account"),
             )
 
         val mug =
