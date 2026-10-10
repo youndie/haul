@@ -1,10 +1,10 @@
 package io.github.youndie.haul.feature.identity
 
-import io.github.youndie.haul.registry.haulJson
 import io.ktor.http.Url
 import kotlinx.browser.sessionStorage
 import kotlinx.browser.window
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.serialization.json.Json
 import org.publicvalue.multiplatform.oidc.ExperimentalOpenIdConnect
 import org.publicvalue.multiplatform.oidc.flows.continueLogin
 import org.publicvalue.multiplatform.oidc.types.AuthCodeRequest
@@ -32,7 +32,7 @@ internal class BrowserSignInHere(
     ) {
         val request = oidcClient(settings, redirectUri).createAuthorizationCodeRequest()
         sessionStorage.removeItem(ANSWER)
-        sessionStorage.setItem(REQUEST, haulJson.encodeToString(AuthCodeRequest.serializer(), request))
+        sessionStorage.setItem(REQUEST, REQUEST_JSON.encodeToString(AuthCodeRequest.serializer(), request))
         if (next == null) sessionStorage.removeItem(NEXT) else sessionStorage.setItem(NEXT, next)
         window.location.assign(request.url.toString())
         // The page is on its way out; nothing after this runs in it.
@@ -48,7 +48,7 @@ internal class BrowserSignInHere(
         check(request != null && answer != null) { "no sign-in in this tab came back" }
         val response =
             oidcClient(settings, redirectUri)
-                .continueLogin(haulJson.decodeFromString(AuthCodeRequest.serializer(), request), Url(answer))
+                .continueLogin(REQUEST_JSON.decodeFromString(AuthCodeRequest.serializer(), request), Url(answer))
         return SignedInHere(Tokens(response.access_token, response.refresh_token), next)
     }
 
@@ -76,6 +76,12 @@ internal class BrowserSignInHere(
     }
 
     private companion object {
+        /**
+         * The library's request as the library's types write it: not the wire's `haulJson`, which leaves a
+         * `null` out — and `AuthCodeRequest.nonce` has no default to read one back as.
+         */
+        val REQUEST_JSON = Json { ignoreUnknownKeys = true }
+
         // `signed-in.html` reads and writes the same three keys.
         const val REQUEST = "haul.sign-in.request"
         const val NEXT = "haul.sign-in.next"
