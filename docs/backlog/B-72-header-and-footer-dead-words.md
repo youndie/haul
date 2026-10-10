@@ -1,7 +1,7 @@
 ---
 id: B-72
 title: "client + server: the header strip and the footer do not pretend to be links"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-10-review
