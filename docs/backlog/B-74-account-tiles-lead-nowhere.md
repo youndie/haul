@@ -1,7 +1,7 @@
 ---
 id: B-74
 title: "client + server: the account page's tiles and old orders open"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-10-review
