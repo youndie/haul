@@ -98,7 +98,13 @@
       "min": "$80",
       "max": "$400",
       "rangeStart": 0.16,
-      "rangeEnd": 0.8
+      "rangeEnd": 0.8,
+      "range": {
+       "low": 80,
+       "high": 400,
+       "top": 500,
+       "template": "/ui/parts/c/electronics/audio/headphones?brand=Bose&brand=Sony&feature=Noise%20cancelling&price_min={min}&price_max={max}"
+      }
      },
      {
       "key": "brand",

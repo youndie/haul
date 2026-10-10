@@ -21,6 +21,7 @@ import io.github.youndie.haul.ui.CampaignRow
 import io.github.youndie.haul.ui.CategoryGrid
 import io.github.youndie.haul.ui.Facet
 import io.github.youndie.haul.ui.FacetPanel
+import io.github.youndie.haul.ui.FacetRange
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HaulPagination
 import io.github.youndie.haul.ui.PageTitle
@@ -135,6 +136,87 @@ class DrawnActionsTest {
             assertEquals(0, cleared.filterCount)
             assertEquals("Rating", cleared.sortLabel)
         }
+
+    /**
+     * B-69: the price facet carried nothing, so a range could only be typed into the address. Its [FacetRange]
+     * is the address of the `load` that applies one — the category's one address, every other filter and the
+     * sort kept, from the first page — completed with the two bounds; a bound left empty is left out, and the
+     * applied range is a chip that removes it.
+     */
+    @Test
+    fun `the price range applies with a load and its chip removes it`() =
+        haulTest {
+            val page = tree("/ui/c/electronics/audio/headphones?brand=Sony&sort=price-asc&page=2")
+            val range =
+                assertNotNull(
+                    page
+                        .only<FacetPanel>()
+                        .facets
+                        .single { it.key == "price" }
+                        .range,
+                )
+            assertEquals(null to null, range.low to range.high)
+            assertEquals(
+                "/ui/parts/c/electronics/audio/headphones?brand=Sony&price_min={min}&price_max={max}&sort=price-asc",
+                range.template,
+            )
+            // The track ends past the category's dearest product, whatever the other filters are.
+            val dearest =
+                dollars(
+                    tree("/ui/c/electronics/audio/headphones?sort=price-desc")
+                        .only<ProductGrid>()
+                        .cards
+                        .first(),
+                )
+            assertTrue(range.top >= dearest, "the track ends at $${range.top}, under a $dearest card")
+
+            val both = range.applying(80, 400)
+            assertEquals(
+                LoadAction(
+                    "/ui/parts/c/electronics/audio/headphones?brand=Sony&price_min=80&price_max=400&sort=price-asc",
+                ),
+                both,
+            )
+            val ranged = follow(both)
+            val prices = ranged.only<ProductGrid>().cards.map(::dollars)
+            assertTrue(prices.isNotEmpty(), "no Sony headphones between $80 and $400 — nothing to see filtered")
+            assertTrue(prices.all { it in 80.0..400.99 }, "outside $80 – $400: $prices")
+            assertEquals(prices.sorted(), prices, "the sort was lost on the way")
+            val applied = ranged.only<AppliedFilters>()
+            assertEquals(2, applied.filterCount, "the brand and the range")
+            val chip = applied.chips.single { it.label == "$80 – $400" }
+            val after =
+                assertNotNull(
+                    ranged
+                        .only<FacetPanel>()
+                        .facets
+                        .single { it.key == "price" }
+                        .range,
+                )
+            assertEquals(80 to 400, after.low to after.high)
+
+            // One bound: the other is left out of the address, and the chip names the one set.
+            assertEquals(
+                LoadAction("/ui/parts/c/electronics/audio/headphones?brand=Sony&price_min=150&sort=price-asc"),
+                range.applying(150, null),
+            )
+            assertEquals(listOf("From $150"), follow(range.applying(150, null)).only<AppliedFilters>().priceChips())
+            assertEquals(listOf("Up to $90"), follow(range.applying(null, 90)).only<AppliedFilters>().priceChips())
+
+            val removed = follow(chip.action)
+            assertEquals(1, removed.only<AppliedFilters>().filterCount, "the chip removed more than the range")
+            val open =
+                assertNotNull(
+                    removed
+                        .only<FacetPanel>()
+                        .facets
+                        .single { it.key == "price" }
+                        .range,
+                )
+            assertEquals(null to null, open.low to open.high)
+        }
+
+    private fun AppliedFilters.priceChips(): List<String> = chips.map { it.label }.filter { "$" in it }
 
     @Test
     fun `search results page with the query kept`() =

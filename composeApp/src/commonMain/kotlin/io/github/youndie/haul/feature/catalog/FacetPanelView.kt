@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.catalog
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,13 +24,37 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.groupedCount
@@ -38,13 +64,19 @@ import io.github.youndie.haul.ui.AppliedFilters
 import io.github.youndie.haul.ui.Facet
 import io.github.youndie.haul.ui.FacetOption
 import io.github.youndie.haul.ui.FacetPanel
+import io.github.youndie.haul.ui.FacetRange
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Icon
+import io.github.youndie.haul.ui.LocalHaulActions
 import io.github.youndie.haul.ui.Text
+import io.github.youndie.haul.ui.awaitTypedInput
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.toneColor
+import kotlinx.coroutines.launch
+import kotlin.math.abs
+import kotlin.math.roundToInt
 
 /**
  * The facet column (`FacetPanel` on the wire): price, then one block per facet kind, hairlines
@@ -118,15 +150,109 @@ private fun FacetBlock(
     }
 }
 
+/** The tags of the price facet's fields and slider, for the tests that type into and drag them (B-69). */
+public const val PRICE_FROM_TAG: String = "price-from"
+public const val PRICE_TO_TAG: String = "price-to"
+public const val PRICE_SLIDER_TAG: String = "price-slider"
+
+/**
+ * The price facet: «from» and «to», and the slider under them (B-69). A bound typed and confirmed — Enter,
+ * the keyboard's «Done», or leaving the field — or a thumb released applies the range: the `load` the
+ * facet's [FacetRange] makes of the two bounds, unless they are the ones applied. An empty field, or a
+ * thumb taken to its end of the track, is no bound. A facet without a [FacetRange] (a screenshot of an
+ * older body) is drawn as it is, with nothing to edit.
+ */
 @Composable
 private fun PriceRange(facet: Facet) {
-    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        PriceField("from", facet.min.orEmpty(), Modifier.weight(1f))
-        PriceField("to", facet.max.orEmpty(), Modifier.weight(1f))
+    val range = facet.range
+    val handler by rememberUpdatedState(LocalHaulActions.current)
+    val scope = rememberCoroutineScope()
+    var low by remember(range) { mutableStateOf(range?.low?.toString().orEmpty()) }
+    var high by remember(range) { mutableStateOf(range?.high?.toString().orEmpty()) }
+    // The thumbs while one is held, as fractions of the track; `null` draws them where the tree puts them.
+    var held by remember(facet) { mutableStateOf<Pair<Float, Float>?>(null) }
+
+    // Whether a `load` went: not for the bounds already applied, nor while the sheet follows nothing (B-54).
+    fun apply(
+        from: Int?,
+        to: Int?,
+    ): Boolean {
+        val actions = handler
+        if (range == null || actions == null || (from == range.low && to == range.high)) return false
+        actions.handle(range.applying(from, to))
+        return true
     }
-    val start = facet.rangeStart ?: 0f
-    val end = facet.rangeEnd ?: 1f
-    BoxWithConstraints(Modifier.fillMaxWidth().height(20.dp)) {
+
+    // What was typed just before Enter or a press elsewhere may not be in the field yet (B-76).
+    val confirm: () -> Unit = {
+        scope.launch {
+            awaitTypedInput()
+            apply(low.toIntOrNull(), high.toIntOrNull())
+        }
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        if (range == null) {
+            PriceField("from", facet.min.orEmpty(), Modifier.weight(1f))
+            PriceField("to", facet.max.orEmpty(), Modifier.weight(1f))
+        } else {
+            PriceInput("from", low, "0", PRICE_FROM_TAG, { low = it }, confirm, Modifier.weight(1f))
+            PriceInput("to", high, range.top.toString(), PRICE_TO_TAG, { high = it }, confirm, Modifier.weight(1f))
+        }
+    }
+    val (start, end) = held ?: ((facet.rangeStart ?: 0f) to (facet.rangeEnd ?: 1f))
+    BoxWithConstraints(
+        Modifier
+            .fillMaxWidth()
+            .height(20.dp)
+            .testTag(PRICE_SLIDER_TAG)
+            .then(
+                if (range == null) {
+                    Modifier
+                } else {
+                    Modifier.pointerInput(range) {
+                        val track = size.width.toFloat()
+                        // The thumb nearer the press is the one dragged, and it does not pass the other.
+                        var lower = true
+                        detectHorizontalDragGestures(
+                            onDragStart = { at ->
+                                val (s, e) = held ?: ((facet.rangeStart ?: 0f) to (facet.rangeEnd ?: 1f))
+                                val x = at.x / track
+                                lower = abs(x - s) < abs(x - e) || (x < s && s == e)
+                                held = s to e
+                            },
+                            // The held thumb is where the pointer is, within its end of the track.
+                            onHorizontalDrag = { change, _ ->
+                                change.consume()
+                                val (s, e) = held ?: return@detectHorizontalDragGestures
+                                val x = change.position.x / track
+                                held = if (lower) x.coerceIn(0f, e) to e else s to x.coerceIn(s, 1f)
+                                held?.let { (ns, ne) ->
+                                    low = bound(ns, range.top, atEnd = ns <= 0f)
+                                    high = bound(ne, range.top, atEnd = ne >= 1f)
+                                }
+                            },
+                            onDragEnd = {
+                                val applied =
+                                    held?.let { (s, e) ->
+                                        apply(dollars(s, range.top, s <= 0f), dollars(e, range.top, e >= 1f))
+                                    } ?: false
+                                // Nothing went: the thumbs and the fields go back to the range applied.
+                                if (!applied) {
+                                    held = null
+                                    low = range.low?.toString().orEmpty()
+                                    high = range.high?.toString().orEmpty()
+                                }
+                            },
+                            onDragCancel = {
+                                held = null
+                                low = range.low?.toString().orEmpty()
+                                high = range.high?.toString().orEmpty()
+                            },
+                        )
+                    }
+                },
+            ),
+    ) {
         val track = maxWidth
         Box(
             Modifier
@@ -148,11 +274,85 @@ private fun PriceRange(facet: Facet) {
     }
 }
 
+/** The whole dollars at [fraction] of a track that ends at [top]; `null` — no bound — at the track's end. */
+private fun dollars(
+    fraction: Float,
+    top: Int,
+    atEnd: Boolean,
+): Int? = if (atEnd) null else (fraction * top).roundToInt()
+
+private fun bound(
+    fraction: Float,
+    top: Int,
+    atEnd: Boolean,
+): String = dollars(fraction, top, atEnd)?.toString().orEmpty()
+
 @Composable
 private fun PriceField(
     prefix: String,
     value: String,
     modifier: Modifier,
+) {
+    PriceBox(prefix, modifier) { Text(value, HaulType.text(15f, 600), softWrap = false) }
+}
+
+/**
+ * A bound the shopper types: whole dollars, drawn after a «$» ([DOLLARS]); [placeholder] in the muted ink
+ * while it is empty. [onConfirm] on Enter, «Done», and on leaving the field.
+ */
+@Composable
+private fun PriceInput(
+    prefix: String,
+    value: String,
+    placeholder: String,
+    tag: String,
+    onValue: (String) -> Unit,
+    onConfirm: () -> Unit,
+    modifier: Modifier,
+) {
+    var focused by remember { mutableStateOf(false) }
+    PriceBox(prefix, modifier) {
+        BasicTextField(
+            value,
+            { typed -> onValue(typed.filter(Char::isDigit).take(MAX_DIGITS)) },
+            Modifier
+                .weight(1f)
+                .testTag(tag)
+                .onFocusChanged {
+                    if (focused && !it.isFocused) onConfirm()
+                    focused = it.isFocused
+                }.onPreviewKeyEvent {
+                    val enter = it.key == Key.Enter || it.key == Key.NumPadEnter
+                    if (enter && it.type == KeyEventType.KeyDown) onConfirm()
+                    enter
+                },
+            textStyle = HaulType.text(15f, 600),
+            singleLine = true,
+            cursorBrush = SolidColor(HaulColors.primary),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { onConfirm() }),
+            visualTransformation = DOLLARS,
+            decorationBox = { inner ->
+                Box(contentAlignment = Alignment.CenterStart) {
+                    if (value.isEmpty()) {
+                        Text(
+                            "$$placeholder",
+                            HaulType.text(15f).copy(color = HaulColors.outlineMuted),
+                            softWrap = false,
+                        )
+                    }
+                    inner()
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun PriceBox(
+    prefix: String,
+    modifier: Modifier,
+    value: @Composable RowScope.() -> Unit,
 ) {
     val shape = RoundedCornerShape(12.dp)
     Row(
@@ -165,9 +365,29 @@ private fun PriceField(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(prefix, HaulType.text(15f).copy(color = HaulColors.outlineMuted), softWrap = false)
-        Text(value, HaulType.text(15f, 600), softWrap = false)
+        value()
     }
 }
+
+/** A bound is typed as digits and drawn as dollars: «80» reads «$80»; an empty field stays empty. */
+private val DOLLARS =
+    VisualTransformation { text ->
+        if (text.isEmpty()) {
+            TransformedText(text, OffsetMapping.Identity)
+        } else {
+            TransformedText(
+                AnnotatedString("$") + text,
+                object : OffsetMapping {
+                    override fun originalToTransformed(offset: Int): Int = offset + 1
+
+                    override fun transformedToOriginal(offset: Int): Int = (offset - 1).coerceIn(0, text.length)
+                },
+            )
+        }
+    }
+
+/** Six digits: a bound past $999,999 is no bound the store's prices reach. */
+private const val MAX_DIGITS = 6
 
 @Composable
 private fun Thumb(modifier: Modifier) {

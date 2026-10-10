@@ -255,7 +255,7 @@ page would gain or lose a section an `update` cannot add or take away — is `na
 
 | Endpoint (kind `load`, kompot SPEC §16.1) | Tier | Pressed from | The parts |
 |---|---|---|---|
-| `GET /ui/parts/c/{categoryPath}?…` (the whole path, B-68) | public | a kind, a facet, «Show N more», an applied chip, «Clear all», a sort, a page | `title`, `kinds` (when the category has kinds), `results` |
+| `GET /ui/parts/c/{categoryPath}?…` (the whole path, B-68) | public | a kind, a facet, «Show N more», an applied chip, «Clear all», a sort, a page, the price range (B-69, below) | `title`, `kinds` (when the category has kinds), `results` |
 | `GET /ui/parts/search?q=…` | public | a category chip, a page | `categories`, `grid`, `pagination` |
 | `GET /ui/parts/deals?page=…` | public | a page between pages past the first; to or from the first, whose «Deals of the day» the others lack, the press is still `navigate` | `grid`, `pagination` |
 | `GET /ui/parts/account/orders?status=…` | customer (`401`) | a chip of the history | `account` |
@@ -272,6 +272,19 @@ screen's override store and its address into the history without a load (`Naviga
 to such an address are visits like any other and load its page, which replaces whatever the updates drew. The
 line under the header is on while a `load` is on its way, and one whose answer does not arrive leaves the page
 under B-62's notice, whose Retry presses it again; of two `load`s the last press wins (kompot's `withLoad`).
+
+**Decided in B-69, the price range is the one address the client completes.** A bound is any whole number the
+shopper types, so no list of `load`s in the tree could hold the ranges — a `load` per step of the slider would
+have capped the fields to the steps and cost two lists of addresses per page. The price facet carries
+`Facet.range` (`FacetRange`, `shared/.../ui/BrowseComponents.kt`): the bounds applied, the dollars at the
+slider's right end, and `template` — the parts address of the page as it is from the first page, the category's
+one address, every other filter and the sort written by the server, with `{min}` and `{max}` where the bounds go
+(`CatalogUrl.priced`). The client puts two numbers into it and nothing else (`FacetRange.applying`): a bound
+left empty, or a thumb taken to its end of the track, drops its parameter; bounds typed the wrong way round
+are swapped. A bound is applied on Enter, the keyboard's «Done» or leaving the field — after
+`awaitTypedInput` (B-76) — and on releasing a thumb, unless it is the range already applied; the applied range
+is a chip («$80 – $400», «From $80», «Up to $400») whose action removes it. The template is not a `load` on
+the wire (no `type`), so nothing that walks a tree's `load`s (`PartsCalls.loads`) mistakes it for one.
 
 **A card's «+» and the product page's «Add to cart» answer an `update` too**: the header (its count) and the
 control pressed (its next quantity), instead of `refresh`. Which node is in the command's own address, written
