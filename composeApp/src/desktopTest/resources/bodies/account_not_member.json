@@ -398,7 +398,11 @@
                     "kind": "price_drops",
                     "label": "Price drops",
                     "figure": "0",
-                    "text": "Nothing in your Saved list got cheaper"
+                    "text": "Nothing in your Saved list got cheaper",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/account/saved?filter=price-dropped"
+                    }
                 }
             ],
             "active": {
@@ -420,6 +424,10 @@
                         "status": "Delivered",
                         "statusKind": "done",
                         "actionLabel": "Reorder",
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/account/orders/HL-45890"
+                        },
                         "reorderUrl": "/api/v1/me/orders/HL-45890/reorder"
                     }
                 ]

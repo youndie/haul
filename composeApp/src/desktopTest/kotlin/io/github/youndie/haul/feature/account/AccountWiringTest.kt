@@ -144,6 +144,67 @@ class AccountWiringTest {
             )
         }
 
+    /**
+     * Every row of the history opens its order's page, a delivered one too, wherever it is pressed but on its
+     * «Reorder» — which sends only the reorder, as the first test shows (B-74). At 1440 on the overview…
+     */
+    @Test
+    fun `every row of the overview's history opens its order's page`() =
+        runDesktopComposeUiTest(WIDTH, 1_700) {
+            account(decode("account_content.json"))
+            onNodeWithText("#HL-45277").performClick()
+            onNodeWithText("#HL-42860").performClick()
+            onNodeWithText("#HL-44019").performClick()
+            waitForIdle()
+            assertEquals(
+                listOf<KompotAction>(
+                    NavigateAction("/account/orders/HL-45277"),
+                    NavigateAction("/account/orders/HL-42860"),
+                    NavigateAction("/account/orders/HL-44019"),
+                ),
+                followed.toList(),
+            )
+            assertEquals(emptyList(), sent.toList())
+        }
+
+    /** …and on a phone, on the orders' page. */
+    @Test
+    fun `every row of the orders' page opens its order's page on a phone`() =
+        runDesktopComposeUiTest(390, 1_400) {
+            account(decode("account_orders.json"), compact = true)
+            onNodeWithText("#HL-46102").performClick()
+            waitForIdle()
+            assertEquals(listOf<KompotAction>(NavigateAction("/account/orders/HL-46102")), followed.toList())
+            assertEquals(emptyList(), sent.toList())
+        }
+
+    /**
+     * «Price drops» opens the Saved list under «Price dropped», pressed anywhere on the tile; the points and
+     * a member's savings have no page of their own and are read, not pressed (B-74).
+     */
+    @Test
+    fun `the price drops tile opens the saved list's price drops`() = tiles(compact = false)
+
+    @Test
+    fun `the price drops tile opens the saved list's price drops on a phone`() = tiles(compact = true)
+
+    private fun tiles(compact: Boolean) =
+        runDesktopComposeUiTest(if (compact) 390 else WIDTH, if (compact) 2_300 else 1_700) {
+            account(decode("account_content.json"), compact = compact)
+            onNodeWithText("2,480").performClick()
+            onNodeWithText("Worth $24.80 on your next order").performClick()
+            onNodeWithText("$186").performClick()
+            onNodeWithText("Saved on delivery this year", substring = true).performClick()
+            waitForIdle()
+            assertEquals(emptyList(), followed.toList(), "the points and the membership are read")
+            onNodeWithText("Items in your Saved list got cheaper").performClick()
+            waitForIdle()
+            assertEquals(
+                listOf<KompotAction>(NavigateAction("/account/saved?filter=price-dropped")),
+                followed.toList(),
+            )
+        }
+
     /** Somebody with no orders is sent to the deals. */
     @Test
     fun `no orders leads to the deals`() =

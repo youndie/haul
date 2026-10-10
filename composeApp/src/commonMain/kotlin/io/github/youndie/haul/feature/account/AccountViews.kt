@@ -305,14 +305,20 @@ private fun Tiles(tiles: List<AccountTile>) {
     if (compact) {
         CssColumn(Modifier.fillMaxWidth(), gap = 12.dp, box = row) {
             tiles.forEachIndexed { index, tile ->
-                TileContent(tile, Modifier.fillMaxWidth().background(tile.fill(), TILE_SHAPE), boxes[index])
+                TileContent(
+                    tile,
+                    Modifier.fillMaxWidth().background(tile.fill(), TILE_SHAPE).follows(tile.action),
+                    boxes[index],
+                )
             }
         }
     } else {
         Layout(
             content = {
                 tiles.forEachIndexed { index, tile ->
-                    Box(Modifier.background(tile.fill(), TILE_SHAPE))
+                    // The fill is the tile's whole height, so it is what is pressed; its content, drawn over
+                    // it, takes no press and lets one through to it (but the trial's button).
+                    Box(Modifier.background(tile.fill(), TILE_SHAPE).follows(tile.action))
                     TileContent(tile, Modifier, boxes[index])
                 }
             },
@@ -740,7 +746,7 @@ private fun WideRow(
     onReorder: (String) -> Unit,
 ) {
     Row(
-        Modifier.fillMaxWidth().padding(vertical = 20.dp),
+        Modifier.fillMaxWidth().follows(row.action).padding(vertical = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -793,7 +799,7 @@ private fun PhoneRow(
             Action(row, onReorder)
             Hairline()
         },
-        modifier = Modifier.fillMaxWidth().layoutId(box),
+        modifier = Modifier.fillMaxWidth().layoutId(box).follows(row.action),
     ) { measurables, constraints ->
         val loose = constraints.copy(minWidth = 0, minHeight = 0)
         val status = measurables[1].measure(loose)
@@ -846,7 +852,10 @@ private fun Status(row: HistoryRow) {
     )
 }
 
-/** «Track» or «Details» follow the row's action; «Reorder» sends its command. */
+/**
+ * «Track» or «Details» say what a press on the row does — open the order's page, the row's action; «Reorder»
+ * sends its command instead, and a press on it goes no further than it.
+ */
 @Composable
 private fun Action(
     row: HistoryRow,
@@ -856,11 +865,7 @@ private fun Action(
     Text(
         row.actionLabel,
         normal(15f, 600).copy(color = HaulColors.primary),
-        if (reorder != null) {
-            Modifier.testTag(REORDER_TAG + row.id).pressable { onReorder(reorder) }
-        } else {
-            Modifier.follows(row.action)
-        },
+        if (reorder != null) Modifier.testTag(REORDER_TAG + row.id).pressable { onReorder(reorder) } else Modifier,
         softWrap = false,
     )
 }

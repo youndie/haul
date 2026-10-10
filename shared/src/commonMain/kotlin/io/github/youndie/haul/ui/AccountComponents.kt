@@ -89,7 +89,8 @@ public enum class AccountTileKind {
 /**
  * A tile of the overview: the [label] in mono capitals, the [figure] in Bodoni with its [accent] in
  * italics («30 days *free*»), the [text] under it, and — on the trial offer — the [button] («Try 30 days
- * free»), drawn without an action until there is a trial to start (B-23).
+ * free»), which presents the trial (B-23). [action] is where a press on the tile goes — the price drops
+ * to the Saved list under its «Price dropped» filter (B-74); a tile without one is read, not pressed.
  */
 @Serializable
 public data class AccountTile(
@@ -99,6 +100,7 @@ public data class AccountTile(
     val text: String,
     val accent: String? = null,
     val button: Link? = null,
+    val action: @Polymorphic KompotAction? = null,
 )
 
 /**
@@ -185,8 +187,8 @@ public enum class HistoryStatusKind {
 /**
  * One order in the history: the day it was placed ([date]), its [number], one tile per line ([tones]), the
  * [total], its [status] in a chip of [statusKind], and the way on — [actionLabel] «Track» or «Details»
- * going to the order's page ([action]), or «Reorder», a `POST` to [reorderUrl] answered with `navigate` to
- * the cart.
+ * going to the order's page, or «Reorder», a `POST` to [reorderUrl] answered with `navigate` to the cart.
+ * [action] is the order's page, for every row: a press anywhere on the row but «Reorder» opens it (B-74).
  */
 @Serializable
 public data class HistoryRow(
