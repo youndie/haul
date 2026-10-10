@@ -19,7 +19,9 @@ import kotlinx.serialization.Serializable
 
 /**
  * The checkout's own header, instead of `HaulHeader`: the logo ([home] goes back to the store), the
- * [steps] with the [current] one marked (an index into them), and [secureLabel].
+ * [steps] with the [current] one marked (an index into them), and [secureLabel]. The steps before
+ * [current] are done and drawn ticked (B-79): the server marks what the stored checkout has filled in.
+ * A [current] outside the steps marks none — the client's Loading and Error, which know nothing yet.
  */
 @Serializable
 @SerialName("haul_checkout_header")
@@ -211,7 +213,10 @@ public data class PaymentMethods(
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
-/** A line the order holds: the tile, the title and options, «× 2», the line's price. */
+/**
+ * A line the order holds: the tile, the title and options, «× 2», the line's price, and where a tap on the
+ * tile goes ([action], the product page, B-79).
+ */
 @Serializable
 public data class SummaryItem(
     val title: String,
@@ -220,6 +225,7 @@ public data class SummaryItem(
     val price: String,
     val tone: String,
     val label: String,
+    val action: @Polymorphic KompotAction? = null,
 )
 
 /**
@@ -246,6 +252,7 @@ public data class PointsToggle(
  * an address and a window, a pickup point or a locker needs the point, and an address form at fault
  * holds it — and [placeHint] says what is missing («Pick a delivery window»). [placeUrl] is where the
  * order is placed (B-16); [placingLabel] is the button while it is being placed («Placing order…»).
+ * [back] is «Back to cart» beside the title (B-79): the way to change the lines without the browser's back.
  */
 @Serializable
 @SerialName("haul_checkout_summary")
@@ -264,5 +271,6 @@ public data class CheckoutSummary(
     val placeHint: String? = null,
     val placeUrl: String? = null,
     val quote: String,
+    val back: Link? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent

@@ -28,10 +28,12 @@ import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.ui.CheckoutAddress
 import io.github.youndie.haul.ui.CheckoutBody
+import io.github.youndie.haul.ui.CheckoutHeader
 import io.github.youndie.haul.ui.CheckoutNotice
 import io.github.youndie.haul.ui.CheckoutSummary
 import io.github.youndie.haul.ui.DeliveryMethods
 import io.github.youndie.haul.ui.DeliverySlots
+import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.OrderSummary
 import io.github.youndie.haul.ui.PaymentMethods
 import io.github.youndie.haul.ui.PickupPoints
@@ -39,6 +41,7 @@ import io.github.youndie.haul.ui.PointsToggle
 import io.github.youndie.haul.ui.SummaryRow
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.decodeKompotComponent
+import io.github.youndie.kompot.standard.NavigateAction
 import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
@@ -262,6 +265,16 @@ class CheckoutRoutesTest {
                 assertEquals(3, summary.items.size)
                 assertTrue(summary.placeEnabled, "a complete quote cannot be placed")
                 assertEquals(null, summary.placeHint)
+                // B-79: each tile opens its product, the cart is a link away, and a quote that can be
+                // placed is on «Review» — the delivery filled in, a way to pay chosen.
+                assertEquals(
+                    setOf(SONY_HEADPHONES, DUVET_COVER, STONEWARE_MUG).map { NavigateAction("/p/$it") }.toSet(),
+                    summary.items.map { it.action }.toSet(),
+                )
+                assertEquals(Link("Back to cart", NavigateAction("/cart")), summary.back)
+                val header = tree.only<CheckoutHeader>()
+                assertEquals(listOf("Delivery", "Payment", "Review"), header.steps)
+                assertEquals(2, header.current, "a quote that can be placed is not on «Review»")
                 assertNotEquals(
                     before.only<CheckoutSummary>().quote,
                     summary.quote,
@@ -382,11 +395,17 @@ class CheckoutRoutesTest {
                 assertFalse(summary.placeEnabled, "a quote with no window can be placed")
                 assertEquals("Pick a delivery window", summary.placeHint)
                 assertEquals("Delivery · Thu, Oct 9", summary.rows.last().label)
+                assertEquals(0, tree.only<CheckoutHeader>().current, "a delivery with no window is not on «Delivery»")
 
                 choose(token, CheckoutChoice(slotId = "2025-10-09T15")).assertRefresh()
                 val again = checkout(token)
                 assertTrue(again.all().none { it is CheckoutNotice }, "the notice outlived the new window")
                 assertTrue(again.only<CheckoutSummary>().placeEnabled)
+                assertEquals(
+                    2,
+                    again.only<CheckoutHeader>().current,
+                    "a window chosen again did not move on to «Review»",
+                )
             }
         }
 

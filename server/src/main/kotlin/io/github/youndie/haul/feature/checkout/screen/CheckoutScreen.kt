@@ -5,6 +5,7 @@ import io.github.youndie.haul.feature.cart.screen.CartScreen
 import io.github.youndie.haul.feature.cart.screen.summaryRows
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.money
+import io.github.youndie.haul.feature.catalog.screen.productLink
 import io.github.youndie.haul.feature.checkout.CheckoutPaths
 import io.github.youndie.haul.feature.checkout.DeliveryMethod
 import io.github.youndie.haul.feature.checkout.domain.CheckoutCommands
@@ -13,6 +14,7 @@ import io.github.youndie.haul.feature.checkout.domain.CheckoutState
 import io.github.youndie.haul.feature.checkout.domain.PickupPoint
 import io.github.youndie.haul.feature.checkout.domain.Slot
 import io.github.youndie.haul.feature.membership.domain.PointsRules
+import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.ui.CheckoutAddress
 import io.github.youndie.haul.ui.CheckoutBody
 import io.github.youndie.haul.ui.CheckoutHeader
@@ -21,6 +23,7 @@ import io.github.youndie.haul.ui.CheckoutSummary
 import io.github.youndie.haul.ui.DeliveryMethods
 import io.github.youndie.haul.ui.DeliverySlots
 import io.github.youndie.haul.ui.FormField
+import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.MethodOption
 import io.github.youndie.haul.ui.PaymentMethods
 import io.github.youndie.haul.ui.PaymentOption
@@ -65,7 +68,7 @@ internal class CheckoutScreen(
                     CheckoutHeader(
                         "checkout-header",
                         STEPS,
-                        current = 0,
+                        current = step(state),
                         secureLabel = "Secure checkout",
                         home = NavigateAction("/"),
                     ),
@@ -83,6 +86,14 @@ internal class CheckoutScreen(
                 ),
         )
     }
+
+    /**
+     * The step the shopper is on (B-79): «Delivery» until the order can be placed, then «Review», with
+     * «Delivery» and «Payment» drawn done. «Payment» is never the one waiting: a way to pay is always
+     * chosen — the card ···· 4821 until another is (research, «Decided in B-14») — and everything that
+     * holds the order back is the delivery's: the address, the window, the point, an address form at fault.
+     */
+    private fun step(state: CheckoutState): Int = STEPS.indexOf(if (state.placeable) REVIEW else DELIVERY)
 
     /**
      * Each way to receive with when — the courier's first window («Tomorrow, Oct 8»), a pickup a day
@@ -254,6 +265,7 @@ internal class CheckoutScreen(
                         price = money(it.priceCents),
                         tone = it.item.product.tone,
                         label = it.item.product.label,
+                        action = productLink(it.item.product.id),
                     )
                 },
             rows =
@@ -275,6 +287,7 @@ internal class CheckoutScreen(
             placeHint = if (state.placeable) null else hint(state),
             placeUrl = CheckoutPaths.PLACE,
             quote = quote.fingerprint,
+            back = Link("Back to cart", NavigateAction(Frame.CART)),
         )
     }
 
@@ -309,7 +322,9 @@ internal class CheckoutScreen(
     )
 
     private companion object {
-        val STEPS = listOf("Delivery", "Payment", "Review")
+        const val DELIVERY = "Delivery"
+        const val REVIEW = "Review"
+        val STEPS = listOf(DELIVERY, "Payment", REVIEW)
 
         val METHODS =
             listOf(

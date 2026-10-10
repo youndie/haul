@@ -287,7 +287,11 @@
                         "quantity": 1,
                         "price": "$349",
                         "tone": "#E6E4FF",
-                        "label": "headphones"
+                        "label": "headphones",
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-sony-wh-1000xm6"
+                        }
                     },
                     {
                         "title": "Linen Duvet Cover Set, Queen",
@@ -295,7 +299,11 @@
                         "quantity": 1,
                         "price": "$139",
                         "tone": "#F1EBDD",
-                        "label": "bedding"
+                        "label": "bedding",
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-linen-duvet-cover-set"
+                        }
                     },
                     {
                         "title": "Stoneware Mug, 12 oz",
@@ -303,7 +311,11 @@
                         "quantity": 1,
                         "price": "$24",
                         "tone": "#E3F5D8",
-                        "label": "mug"
+                        "label": "mug",
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-stoneware-mug"
+                        }
                     }
                 ],
                 "rows": [
@@ -329,7 +341,14 @@
                 "placeEnabled": false,
                 "placeHint": "Fill in the street address and ZIP",
                 "placeUrl": "/api/v1/orders",
-                "quote": "7bb3ef377d025c0546130a22f068f3a1"
+                "quote": "7bb3ef377d025c0546130a22f068f3a1",
+                "back": {
+                    "label": "Back to cart",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/cart"
+                    }
+                }
             }
         }
     ]

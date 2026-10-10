@@ -741,13 +741,14 @@ private fun CartSummarySkeleton(modifier: Modifier) {
 
 /**
  * The checkout's header before its tree (Checkout_Loading, Checkout_Error): the client's own copy of
- * what the server's tree draws, the first step current.
+ * what the server's tree draws, with no step marked — which one the shopper is on is the stored
+ * checkout's, and only the tree knows it (B-79).
  */
 public val CHECKOUT_SHELL_HEADER: CheckoutHeader =
     CheckoutHeader(
         id = "checkout-shell-header",
         steps = listOf("Delivery", "Payment", "Review"),
-        current = 0,
+        current = -1,
         secureLabel = "Secure checkout",
     )
 

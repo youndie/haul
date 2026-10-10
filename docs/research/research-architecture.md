@@ -724,6 +724,13 @@ the account need a shildik token; signing in merges the guest cart.
   form equal to an address the customer already has chooses that one and stores nothing. An order copies the
   address it is placed to (`orders.address`, `V14__order_address.sql`) rather than naming the row, which is
   now edited; and the quote's fingerprint names the address's fields as well as its id.
+- **The steps say where the shopper is (B-79)**, not the canvas's fixed «Delivery»: the server marks
+  «Delivery» until the order can be placed (`CheckoutState.placeable`), then «Review» with the two before it
+  ticked. «Payment» is never the step waiting — a way to pay is always chosen, the card ···· 4821 by default —
+  so everything that holds an order back is the delivery's. The client's Loading and Error mark none
+  (`CHECKOUT_SHELL_HEADER.current = -1`): which step it is is the stored checkout's. The summary's tiles open
+  their products, and «Back to cart» beside «Your order» (`CheckoutSummary.back`) is the way back that is not
+  the browser's — in the title's row, so the page keeps the canvas's layout.
 
 ### D6. Product decisions taken by the owner on the brief (2026-10-08)
 

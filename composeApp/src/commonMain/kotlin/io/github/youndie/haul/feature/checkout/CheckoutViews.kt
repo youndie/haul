@@ -36,6 +36,8 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
@@ -63,6 +65,7 @@ import io.github.youndie.haul.ui.PickupPoints
 import io.github.youndie.haul.ui.PointsToggle
 import io.github.youndie.haul.ui.SummaryRow
 import io.github.youndie.haul.ui.Text
+import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.pressable
@@ -74,7 +77,10 @@ import io.github.youndie.haul.ui.toneColor
 // their _Phone twins). Every press is a [CheckoutCommand] for the renderer to send; the order is placed
 // through [onPlace], and while it is being placed the sections are drawn at half strength and do nothing.
 
-/** The checkout's header: the logo, the steps with the current one marked, and «Secure checkout». */
+/**
+ * The checkout's header: the logo, the steps — those done ticked in acid, the current one in cobalt — and
+ * «Secure checkout».
+ */
 @Composable
 public fun CheckoutHeaderView(
     header: CheckoutHeader,
@@ -127,6 +133,8 @@ private fun Steps(header: CheckoutHeader) {
                 Box(Modifier.size(if (compact) 20.dp else 56.dp, 2.dp).background(HaulColors.outlineVariant))
             }
             val current = index == header.current
+            // Only before a step that is one of them: a `current` outside the steps marks none done either.
+            val done = index < header.current && header.current < header.steps.size
             Row(
                 horizontalArrangement = Arrangement.spacedBy(if (compact) 6.dp else 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -135,27 +143,33 @@ private fun Steps(header: CheckoutHeader) {
                 Box(
                     Modifier
                         .size(circle)
+                        .testTag(stepTag(index))
+                        .semantics { selected = current }
                         .then(
-                            if (current) {
-                                Modifier.background(HaulColors.primary, CircleShape)
-                            } else {
-                                Modifier.border(2.dp, HaulColors.outlineControl, CircleShape)
+                            when {
+                                current -> Modifier.background(HaulColors.primary, CircleShape)
+                                done -> Modifier.background(HaulColors.secondaryContainer, CircleShape)
+                                else -> Modifier.border(2.dp, HaulColors.outlineControl, CircleShape)
                             },
                         ),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(
-                        "${index + 1}",
-                        HaulType
-                            .label(if (compact) 11f else 13f, 600, 0f)
-                            .copy(color = if (current) HaulColors.onPrimary else HaulColors.outline),
-                        softWrap = false,
-                    )
+                    if (done) {
+                        Icon(HaulIcons.checkBold, if (compact) 12.dp else 14.dp, HaulColors.onSecondaryContainer)
+                    } else {
+                        Text(
+                            "${index + 1}",
+                            HaulType
+                                .label(if (compact) 11f else 13f, 600, 0f)
+                                .copy(color = if (current) HaulColors.onPrimary else HaulColors.outline),
+                            softWrap = false,
+                        )
+                    }
                 }
                 Text(
                     step,
                     normal(if (compact) 13f else 15f, 600)
-                        .copy(color = if (current) HaulColors.onSurface else HaulColors.outline),
+                        .copy(color = if (current || done) HaulColors.onSurface else HaulColors.outline),
                     softWrap = false,
                 )
             }
@@ -742,7 +756,10 @@ private fun PointsSwitch(
     }
 }
 
-/** «Your order»: the items' tiles, the rows, the total, «Place order» and what placing it means. */
+/**
+ * «Your order» and «Back to cart» beside it, the items' tiles — each opens its product — the rows, the total,
+ * «Place order» and what placing it means. While the order is being placed the links do nothing.
+ */
 @Composable
 private fun Summary(
     summary: CheckoutSummary,
@@ -757,11 +774,31 @@ private fun Summary(
             .padding(if (compact) 24.dp else 32.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
-        Text(summary.title, HaulType.display(32f, 800, letterSpacing = -0.01f), softWrap = false)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(
+                summary.title,
+                HaulType.display(32f, 800, letterSpacing = -0.01f),
+                Modifier.alignByBaseline(),
+                softWrap = false,
+            )
+            Spacer(Modifier.weight(1f))
+            summary.back?.let { back ->
+                Text(
+                    back.label,
+                    HaulType.text(15f, 700).copy(color = HaulColors.primary),
+                    Modifier.alignByBaseline().testTag(BACK_TO_CART_TAG).follows(back.action.takeUnless { placing }),
+                    softWrap = false,
+                )
+            }
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            summary.items.forEach {
+            summary.items.forEachIndexed { index, item ->
                 Box(
-                    Modifier.size(72.dp).background(toneColor(it.tone), RoundedCornerShape(14.dp)),
+                    Modifier
+                        .size(72.dp)
+                        .testTag(summaryItemTag(index))
+                        .follows(item.action.takeUnless { placing })
+                        .background(toneColor(item.tone), RoundedCornerShape(14.dp)),
                 )
             }
         }
@@ -914,5 +951,10 @@ internal fun pointTag(id: String): String = "checkout-point:$id"
 
 internal fun paymentTag(id: String): String = "checkout-payment:$id"
 
+internal fun summaryItemTag(index: Int): String = "checkout-item:$index"
+
+internal fun stepTag(index: Int): String = "checkout-step:$index"
+
 internal const val PLACE_TAG: String = "checkout-place"
+internal const val BACK_TO_CART_TAG: String = "checkout-back-to-cart"
 internal const val POINTS_TAG: String = "checkout-points"
