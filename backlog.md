@@ -41,12 +41,11 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (12)
+## Open (11)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[?]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
-| [B-81](docs/backlog/B-81-card-plus-says-added.md) `[~]` | server + client: a card's «+» says the item was added | P2 | S | - |
 | [B-82](docs/backlog/B-82-tablet-widths.md) `[ ]` | client: the store reads well between a phone and 1440 | P2 | M | - |
 | [B-83](docs/backlog/B-83-typed-input-before-every-press.md) `[ ]` | client: every press that reads a field sees what was typed | P2 | S | - |
 | [B-88](docs/backlog/B-88-a-return-restocks.md) `[ ]` | server: a returned unit goes back to stock | P2 | S | - |
@@ -58,7 +57,7 @@ A stage is a field on the item, not a directory.
 | [B-89](docs/backlog/B-89-traffic-exercises-compensation.md) `[ ]` | e2e: the synthetic shoppers also walk a declined payment | P3 | S | - |
 | [B-90](docs/backlog/B-90-review-loop-leftovers.md) `[ ]` | client + server: the small leftovers of the review loop | P3 | S | - |
 
-## Closed (78)
+## Closed (79)
 
 **Skeleton**
 
@@ -167,6 +166,7 @@ A stage is a field on the item, not a directory.
 - [B-77](docs/backlog/B-77-pages-beyond-four-unreachable.md) `[x]` - client + server: every page of results can be reached
 - [B-79](docs/backlog/B-79-checkout-step-indicator-and-links.md) `[x]` - client + server: checkout's step indicator and summary tell the truth
 - [B-80](docs/backlog/B-80-blank-first-load.md) `[x]` - client: the first load shows something before the app starts
+- [B-81](docs/backlog/B-81-card-plus-says-added.md) `[x]` - server + client: a card's «+» says the item was added
 
 <!-- END INDEX -->
 
