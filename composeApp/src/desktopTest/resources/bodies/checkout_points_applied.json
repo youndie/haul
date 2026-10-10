@@ -10,6 +10,7 @@
                 "Payment",
                 "Review"
             ],
+            "current": 2,
             "secureLabel": "Secure checkout",
             "home": {
                 "type": "navigate",
@@ -287,7 +288,11 @@
                         "quantity": 1,
                         "price": "$349",
                         "tone": "#E6E4FF",
-                        "label": "headphones"
+                        "label": "headphones",
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-sony-wh-1000xm6"
+                        }
                     },
                     {
                         "title": "Linen Duvet Cover Set, Queen",
@@ -295,7 +300,11 @@
                         "quantity": 1,
                         "price": "$139",
                         "tone": "#F1EBDD",
-                        "label": "bedding"
+                        "label": "bedding",
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-linen-duvet-cover-set"
+                        }
                     },
                     {
                         "title": "Stoneware Mug, 12 oz",
@@ -303,7 +312,11 @@
                         "quantity": 1,
                         "price": "$24",
                         "tone": "#E3F5D8",
-                        "label": "mug"
+                        "label": "mug",
+                        "action": {
+                            "type": "navigate",
+                            "deeplink": "/p/p-stoneware-mug"
+                        }
                     }
                 ],
                 "rows": [
@@ -333,7 +346,14 @@
                 "placingLabel": "Placing order…",
                 "placeEnabled": true,
                 "placeUrl": "/api/v1/orders",
-                "quote": "03821cdb6408d8aa01fec7530927a0a6"
+                "quote": "03821cdb6408d8aa01fec7530927a0a6",
+                "back": {
+                    "label": "Back to cart",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/cart"
+                    }
+                }
             }
         }
     ]

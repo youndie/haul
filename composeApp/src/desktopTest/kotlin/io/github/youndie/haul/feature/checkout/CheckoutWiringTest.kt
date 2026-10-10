@@ -4,10 +4,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasParent
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -21,6 +30,7 @@ import io.github.youndie.haul.FixtureFonts
 import io.github.youndie.haul.decode
 import io.github.youndie.haul.read
 import io.github.youndie.haul.registry.haulRegistry
+import io.github.youndie.haul.shell.CheckoutLoading
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
 import io.github.youndie.haul.shell.Storefront
@@ -285,6 +295,79 @@ class CheckoutWiringTest {
             assertEquals(2, keys.size)
             assertEquals(keys[0], keys[1], "a retry of the same quote got a new key")
         }
+
+    /** B-79: a tile in «Your order» opens its product, and «Back to cart» goes to the cart; neither is a command. */
+    @Test
+    fun `the summary's tiles open their products and back to cart goes to the cart`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            val tree = decode(CONTENT)
+            checkout(tree)
+            val items = tree.body().summary.items
+            items.indices.forEach { onNodeWithTag(summaryItemTag(it)).performClick() }
+            onNodeWithTag(BACK_TO_CART_TAG).performClick()
+            waitForIdle()
+            assertEquals(emptyList(), sent.toList())
+            assertEquals(
+                items.map { it.action } + NavigateAction("/cart"),
+                followed.toList(),
+            )
+            assertEquals(NavigateAction("/p/p-sony-wh-1000xm6"), followed.first())
+        }
+
+    /** While the order is on its way the summary's links do nothing: the page leaves only for the order. */
+    @Test
+    fun `the summary's links do nothing while the order is placed`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            placed = CompletableDeferred()
+            checkout(CONTENT)
+            onNodeWithTag(PLACE_TAG).performClick()
+            waitUntil(timeoutMillis = 5_000) { sent.isNotEmpty() }
+            onNodeWithText("Placing order…").assertExists()
+            onNodeWithTag(summaryItemTag(0)).performClick()
+            onNodeWithTag(BACK_TO_CART_TAG).performClick()
+            waitForIdle()
+            assertEquals(emptyList(), followed.toList())
+            placed.complete(RefreshAction)
+        }
+
+    /**
+     * B-79: the step indicator is what the tree says — a quote that can be placed (Content) is on «Review»
+     * with «Delivery» and «Payment» ticked; one held for its window (PlaceError) is on «Delivery».
+     */
+    @Test
+    fun `the steps follow what is filled in`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            var tree by mutableStateOf(decode(CONTENT))
+            setContent {
+                HaulTheme(FixtureFonts.fonts, compact = false) {
+                    val forms = remember { FormController(FormSchema(formId = "none", fields = emptyList())) }
+                    KompotScreen(tree, remember { haulRegistry() }, forms, KompotActionHandler { followed += it })
+                }
+            }
+            assertSteps(current = 2)
+            tree = decode(PLACE_ERROR)
+            waitForIdle()
+            assertSteps(current = 0)
+        }
+
+    /** Before its tree the checkout does not know which step the shopper is on, and marks none (B-79). */
+    @Test
+    fun `the checkout before its tree marks no step`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            setContent { HaulTheme(FixtureFonts.fonts, compact = false) { CheckoutLoading() } }
+            assertSteps(current = -1)
+        }
+
+    /** The step [current] is marked selected; the ones before it are ticked, the ones after it numbered. */
+    private fun ComposeUiTest.assertSteps(current: Int) {
+        (0..2).forEach { index ->
+            val step = onNodeWithTag(stepTag(index), useUnmergedTree = true)
+            if (index == current) step.assertIsSelected() else step.assertIsNotSelected()
+            val numbered =
+                onAllNodes(hasText("${index + 1}") and hasParent(hasTestTag(stepTag(index))), useUnmergedTree = true)
+            numbered.assertCountEquals(if (index < current) 0 else 1)
+        }
+    }
 
     /**
      * In the storefront: `/checkout` loads the checkout's tree, and a command's `refresh` fetches it
