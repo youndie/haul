@@ -1,7 +1,7 @@
 ---
 id: B-69
 title: "client + server: the price filter can be used"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-10-review
