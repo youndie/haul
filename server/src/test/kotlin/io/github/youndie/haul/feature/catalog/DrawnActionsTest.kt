@@ -24,6 +24,7 @@ import io.github.youndie.haul.ui.Facet
 import io.github.youndie.haul.ui.FacetPanel
 import io.github.youndie.haul.ui.FacetRange
 import io.github.youndie.haul.ui.FilterChips
+import io.github.youndie.haul.ui.HaulFooter
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HaulPagination
 import io.github.youndie.haul.ui.PageTitle
@@ -509,6 +510,40 @@ class DrawnActionsTest {
             listOf("/ui/home", "/ui/c", "/ui/c/electronics/audio/headphones", "/ui/deals").forEach { path ->
                 assertEquals(NavigateAction("/sign-in"), tree(path).only<HaulHeader>().plus, path)
             }
+        }
+
+    /**
+     * B-72: every word of the footer leads somewhere — «Deals» to today's deals, «Haul Plus» where the header's
+     * pill goes, «Track an order» to a guest's sign-in that lands on the orders — and the canvas's words with no
+     * page are not sent at all. On each page that draws the footer.
+     */
+    @Test
+    fun `every word of the footer leads to its page`() =
+        haulTest {
+            listOf("/ui/home", "/ui/c", "/ui/deals").forEach { path ->
+                val page = tree(path)
+                val footer = page.only<HaulFooter>()
+                assertEquals(listOf("Shop", "Help"), footer.columns.map { it.title }, path)
+                footer.columns.forEach { column ->
+                    assertEquals(
+                        column.links,
+                        column.linked.map { it.label },
+                        "$path: a word of «${column.title}» leads nowhere",
+                    )
+                }
+                val linked = footer.columns.flatMap { it.linked }.associate { it.label to it.action }
+                assertEquals(NavigateAction("/deals"), linked["Deals"], path)
+                assertEquals(page.only<HaulHeader>().plus, linked["Haul Plus"], "$path: «Haul Plus» is not the pill's")
+                assertEquals(NavigateAction("/sign-in?next=%2Faccount%2Forders"), linked["Track an order"], path)
+            }
+            // Followed: «Deals» is the deals page, with the footer again.
+            val deals =
+                tree("/ui/home")
+                    .only<HaulFooter>()
+                    .columns
+                    .flatMap { it.linked }
+                    .single { it.label == "Deals" }
+            assertEquals("deals-page", follow(deals.action).id)
         }
 
     private fun brands(page: KompotComponent): Facet = page.only<FacetPanel>().facets.single { it.key == "brand" }

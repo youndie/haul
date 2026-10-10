@@ -234,36 +234,38 @@
      "title": "Shop",
      "links": [
       "Deals",
-      "New arrivals",
-      "Gift cards",
       "Haul Plus"
-     ]
-    },
-    {
-     "title": "Sell",
-     "links": [
-      "Open a store",
-      "Seller center",
-      "Fulfillment",
-      "Ads"
+     ],
+     "linked": [
+      {
+       "label": "Deals",
+       "action": {
+        "type": "navigate",
+        "deeplink": "/deals"
+       }
+      },
+      {
+       "label": "Haul Plus",
+       "action": {
+        "type": "navigate",
+        "deeplink": "/sign-in"
+       }
+      }
      ]
     },
     {
      "title": "Help",
      "links": [
-      "Track an order",
-      "Returns",
-      "Delivery",
-      "Contact us"
-     ]
-    },
-    {
-     "title": "Company",
-     "links": [
-      "About",
-      "Careers",
-      "Press",
-      "Privacy"
+      "Track an order"
+     ],
+     "linked": [
+      {
+       "label": "Track an order",
+       "action": {
+        "type": "navigate",
+        "deeplink": "/sign-in?next=%2Faccount%2Forders"
+       }
+      }
      ]
     }
    ],

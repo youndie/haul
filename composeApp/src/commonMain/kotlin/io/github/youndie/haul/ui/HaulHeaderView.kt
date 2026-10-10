@@ -52,15 +52,11 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -94,7 +90,8 @@ public val LocalSearchField: ProvidableCompositionLocal<SearchFieldState?> = sta
 
 /**
  * What the shopper types into the header's search field, owned by the app's shell; [submit] hands the
- * text to [onSubmit], which opens the results. Without one — a screenshot — the field is drawn, not edited.
+ * text and the [scope] the field's picker chose to [onSubmit], which opens the results. Without one — a
+ * screenshot — the field is drawn, not edited, and the picker opens nothing.
  *
  * The suggest panel's queries are [offer]ed to it (B-77): the arrow keys move [highlighted] over them, and
  * Enter on a highlighted one hands its action to [onPick] instead of submitting the text. Typing starts the
@@ -103,13 +100,20 @@ public val LocalSearchField: ProvidableCompositionLocal<SearchFieldState?> = sta
 @Stable
 public class SearchInput(
     private val onPick: (KompotAction) -> Unit = {},
-    private val onSubmit: (String) -> Unit,
+    private val onSubmit: (text: String, scope: String?) -> Unit,
 ) {
     public var text: TextFieldValue by mutableStateOf(TextFieldValue())
         private set
 
     /** Whether [text] is the shopper's own typing, rather than the query the page arrived with. */
     public var typed: Boolean by mutableStateOf(false)
+        private set
+
+    /**
+     * The category the search is in (B-72): a `category` of the header's `scopes`, `null` for all of them. A page
+     * arriving sets it to its own; the picker changes it, and nothing else does.
+     */
+    public var scope: String? by mutableStateOf(null)
         private set
 
     /** The query of the panel the keyboard is on, from 0; -1 is none, the text as typed. */
@@ -127,10 +131,22 @@ public class SearchInput(
         text = value
     }
 
-    /** A page arrived holding [query] (none outside search): the field shows it, caret at its end. */
-    public fun show(query: String) {
+    /**
+     * A page arrived holding [query] (none outside search) in [scope]: the field shows it, caret at its end,
+     * and the picker the scope.
+     */
+    public fun show(
+        query: String,
+        scope: String? = null,
+    ) {
         text = TextFieldValue(query, TextRange(query.length))
         typed = false
+        this.scope = scope
+    }
+
+    /** The picker chose [scope]: the next search is in it. */
+    public fun choose(scope: String?) {
+        this.scope = scope
     }
 
     /** The queries the panel now shows, each with where it goes; none when the panel is closed. */
@@ -155,7 +171,7 @@ public class SearchInput(
     /** Enter: the highlighted query, or the text as typed when none is. */
     public fun submit() {
         val picked = offered.getOrNull(highlighted)
-        if (picked != null) onPick(picked) else onSubmit(text.text)
+        if (picked != null) onPick(picked) else onSubmit(text.text, scope)
     }
 }
 
@@ -259,14 +275,12 @@ private fun WideHeader(
     pending: Boolean,
     account: Modifier,
 ) {
+    // Where the store delivers and for how much (B-72): two facts, nothing to press. The canvas's «Sell on
+    // HAUL», «Help» and «EN · USD» had no page behind them and are not drawn.
     Strip(height = 36.dp, padding = 48.dp, size = 11f, spacing = 0.06f) { style ->
         Row(horizontalArrangement = Arrangement.spacedBy(28.dp)) {
             DeliverTo(header.deliverTo, style)
             Text(header.deliveryPromise.uppercase(), style)
-        }
-        // No page exists for these yet (B-49): plain text, nothing to press.
-        Row(horizontalArrangement = Arrangement.spacedBy(28.dp)) {
-            listOf("Sell on HAUL", "Help", "EN · USD").forEach { Text(it.uppercase(), style) }
         }
     }
     Row(
@@ -308,10 +322,7 @@ private fun WideHeader(
             glyph = 22.dp,
         ) {
             Box(Modifier.width(1.dp).height(28.dp).background(HaulColors.outlineVariant))
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("All categories", HaulType.text(14f, 500))
-                Icon(HaulIcons.chevronDown, 16.dp, HaulColors.onSurface)
-            }
+            ScopePicker(header)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
             // «Orders» goes where the tree says (`HaulHeader.orders`): a customer's orders, a guest's sign-in.
@@ -380,9 +391,9 @@ private fun CompactHeader(
     account: Modifier,
     onAccount: (() -> Unit)?,
 ) {
+    // The place only (B-72): the canvas's «HELP» had no page behind it.
     Strip(height = 32.dp, padding = 16.dp, size = 10f, spacing = 0.04f) { style ->
         DeliverTo(header.deliverTo, style)
-        Text("HELP", style)
     }
     val menu = LocalHeaderMenu.current?.takeUnless { LocalHaulActions.current == null }
     Row(
@@ -507,22 +518,54 @@ private fun Strip(
     ) { content(style) }
 }
 
+/**
+ * Where the store delivers, as a fact in the strip's own type (B-72): the canvas set the place in the accent
+ * colour, bold, under «Deliver to» — the look of a place picker, and there is no picker; the place is the
+ * store's default until a customer's address says otherwise.
+ */
 @Composable
 private fun DeliverTo(
     place: String,
     style: TextStyle,
 ) {
-    Text(
-        buildAnnotatedString {
-            append("DELIVER TO ")
-            withStyle(
-                SpanStyle(color = HaulColors.secondaryContainer, fontWeight = FontWeight(600)),
-            ) { append(place.uppercase()) }
-        },
-        style = style,
-        softWrap = false,
-    )
+    Text("DELIVERING TO ${place.uppercase()}", style = style, softWrap = false)
 }
+
+/**
+ * The search field's category picker (B-72): «All categories» or the top-level category the next search is in
+ * (`HaulHeader.scopes`), chosen from a menu under it. The choice is the field's ([SearchInput.scope]) and opens
+ * nothing by itself. Without a field to search from, or with no scopes on the wire (the placeholder header),
+ * it is drawn as the page's scope and opens nothing.
+ */
+@Composable
+private fun ScopePicker(header: HaulHeader) {
+    val input = LocalSearchInput.current
+    val chosen = if (input != null) input.scope else header.scope
+    val label = header.scopes.firstOrNull { it.category == chosen }?.label ?: ALL_CATEGORIES
+    val entries =
+        if (input == null || header.scopes.isEmpty()) {
+            emptyList()
+        } else {
+            listOf(MenuEntry(ALL_CATEGORIES) { input.choose(null) }) +
+                header.scopes.map { scope -> MenuEntry(scope.label) { input.choose(scope.category) } }
+        }
+    Menu(entries, current = label) { press ->
+        Row(
+            press.testTag(SCOPE_PICKER_TAG),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(label, HaulType.text(14f, 500), softWrap = false)
+            Icon(HaulIcons.chevronDown, 16.dp, HaulColors.onSurface)
+        }
+    }
+}
+
+/** What the search picker reads when the search is in every category. */
+public const val ALL_CATEGORIES: String = "All categories"
+
+/** The tag of the header's search picker, for the tests that choose a scope. */
+public const val SCOPE_PICKER_TAG: String = "scope-picker"
 
 @Composable
 internal fun Logo(
@@ -627,7 +670,7 @@ private fun EditableQuery(
     textSize: Float,
     modifier: Modifier,
 ) {
-    LaunchedEffect(header.query) { input.show(header.query.orEmpty()) }
+    LaunchedEffect(header.query, header.scope) { input.show(header.query.orEmpty(), header.scope) }
     BasicTextField(
         value = input.text,
         onValueChange = input::type,

@@ -190,8 +190,8 @@ public fun Storefront(
     val field = remember { SearchFieldState() }
     val search =
         remember(navigator) {
-            SearchInput(onPick = { if (it is NavigateAction) navigator.open(it.deeplink) }) { text ->
-                text.trim().ifEmpty { null }?.let { navigator.open(Address.search(it)) }
+            SearchInput(onPick = { if (it is NavigateAction) navigator.open(it.deeplink) }) { text, scope ->
+                text.trim().ifEmpty { null }?.let { navigator.open(Address.search(it, scope)) }
             }
         }
     var panel by remember { mutableStateOf<SearchSuggestPanel?>(null) }

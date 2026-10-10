@@ -24,6 +24,10 @@ internal fun List<Category>.lineage(category: Category): List<Category> =
  */
 internal fun List<Category>.pathOf(category: Category): String = lineage(category).joinToString("/") { it.slug }
 
+/** The slugs of [category] and of every category under it, at any depth. */
+internal fun List<Category>.descendants(category: Category): Set<String> =
+    setOf(category.slug) + filter { it.parentSlug == category.slug }.flatMap { descendants(it) }
+
 internal data class Seller(
     val id: String,
     val name: String,

@@ -25,10 +25,10 @@ import io.github.youndie.haul.theme.HaulType.browserLeading
 import io.github.youndie.haul.theme.LocalHaulCompact
 
 /**
- * The footer (`HaulFooter` on the wire), with the gap the page leaves above it: four link columns and
- * «Get the app» at 1440, two columns and no app block at 390, the wordmark cut off by the page's end.
- * The links are plain text: no page exists for any of them yet (B-49), and a link that opens nothing
- * would be worse than none.
+ * The footer (`HaulFooter` on the wire), with the gap the page leaves above it: up to four link columns and
+ * «Get the app» at 1440, two columns a row and no app block at 390, the wordmark cut off by the page's end.
+ * A word follows its entry in `FooterColumn.linked` (B-72); one without is drawn as text, nothing to press.
+ * At 1440 the columns keep the canvas's four places, so «Get the app» stays at the end with fewer of them.
  */
 @Composable
 public fun HaulFooterView(footer: HaulFooter) {
@@ -58,6 +58,7 @@ public fun HaulFooterView(footer: HaulFooter) {
             } else {
                 Row(horizontalArrangement = Arrangement.spacedBy(32.dp)) {
                     footer.columns.forEach { LinkColumn(it, compact = false, Modifier.weight(1f)) }
+                    repeat(COLUMNS - footer.columns.size) { Box(Modifier.weight(1f)) }
                     Column(Modifier.weight(1.4f)) {
                         ColumnTitle(footer.appTitle, compact = false)
                         Text(
@@ -99,19 +100,23 @@ private fun LinkColumn(
     compact: Boolean,
     modifier: Modifier,
 ) {
+    val style =
+        HaulType
+            .text(
+                if (compact) 14f else 15f,
+                lineHeight = 2f,
+            ).browserLeading()
+            .copy(color = HaulColors.inverseOnSurface)
     Column(modifier) {
         ColumnTitle(column.title, compact)
-        Text(
-            column.links.joinToString("\n"),
-            HaulType
-                .text(
-                    if (compact) 14f else 15f,
-                    lineHeight = 2f,
-                ).browserLeading()
-                .copy(color = HaulColors.inverseOnSurface),
-        )
+        column.links.forEach { word ->
+            Text(word, style, Modifier.follows(column.linked.firstOrNull { it.label == word }?.action))
+        }
     }
 }
+
+/** How many link columns the canvas lays out at 1440. */
+private const val COLUMNS = 4
 
 /**
  * A column's title: an inline 11 px label in a block whose line is the footer's (15 px at line height

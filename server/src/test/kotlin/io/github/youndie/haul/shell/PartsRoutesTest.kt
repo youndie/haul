@@ -30,7 +30,8 @@ import kotlin.test.assertTrue
 class PartsRoutesTest {
     /**
      * Follows every `load` on the page at [address] and holds each answer to the page its address opens;
-     * returns how many there were. The parts are only nodes [parts] names, never the header.
+     * returns how many there were. The parts are only nodes [parts] names: the header only where the search's
+     * picker reads the page (B-72).
      */
     private suspend fun HttpClient.everyLoadOf(
         address: String,
@@ -74,6 +75,8 @@ class PartsRoutesTest {
         haulTest {
             val loads = everyLoadOf("/search?q=everyday", SearchScreen.PARTS)
             assertTrue(loads > 2, "the search carries only $loads loads")
+            // B-72: in a top-level category — «All» and a leaf's chip leave the scope, and the picker with it.
+            everyLoadOf("/search?q=running%20shoes&category=sports", SearchScreen.PARTS)
         }
 
     @Test

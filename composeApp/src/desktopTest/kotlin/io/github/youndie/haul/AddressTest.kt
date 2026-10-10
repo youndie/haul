@@ -87,6 +87,8 @@ class AddressTest {
         assertNull(Address("/c/headphones?q=x").query)
         // The server encodes a query with `%20` for a space (SearchScreen.searchLink); so does the field.
         assertEquals("/search?q=running%20shoes", Address.search("running shoes"))
+        // B-72: in the category the field's picker chose.
+        assertEquals("/search?q=running%20shoes&category=sports", Address.search("running shoes", "sports"))
         assertEquals("/ui/search/suggest?q=caf%C3%A9%20%26%20bar", Address.suggest("café & bar"))
     }
 }

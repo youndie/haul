@@ -62,11 +62,39 @@ internal fun LinkMenu(
     control: @Composable (Modifier) -> Unit,
 ) {
     val actions = LocalHaulActions.current
+    val entries =
+        if (actions == null) {
+            emptyList()
+        } else {
+            links.map { link -> MenuEntry(link.label, link.action?.let { { actions.handle(it) } }) }
+        }
+    Menu(entries, modifier, current, alignEnd, control)
+}
+
+/** An entry of a [Menu]: what it reads, and what pressing it does — `null` draws it and does nothing. */
+internal class MenuEntry(
+    val label: String,
+    val onPress: (() -> Unit)?,
+)
+
+/**
+ * [control] opens [entries] as a menu under it, and an entry pressed closes it and runs its press — a
+ * [LinkMenu]'s links, or a choice the client keeps itself (the search field's picker, B-72). [current] is the
+ * entry drawn as chosen. With no entry to press, [control] is drawn as it is and opens nothing.
+ */
+@Composable
+internal fun Menu(
+    entries: List<MenuEntry>,
+    modifier: Modifier = Modifier,
+    current: String? = null,
+    alignEnd: Boolean = false,
+    control: @Composable (Modifier) -> Unit,
+) {
     var open by remember { mutableStateOf(false) }
-    val usable = actions != null && links.any { it.action != null }
+    val usable = entries.any { it.onPress != null }
     Box(modifier, propagateMinConstraints = true) {
         control(Modifier.pressable(if (usable) ({ open = !open }) else null))
-        if (open && actions != null) {
+        if (open && usable) {
             val gap = with(LocalDensity.current) { MENU_GAP.roundToPx() }
             Popup(
                 popupPositionProvider = Below(gap, alignEnd),
@@ -95,18 +123,18 @@ internal fun LinkMenu(
                         .verticalScroll(rememberScrollState())
                         .padding(vertical = 6.dp),
                 ) {
-                    links.forEach { link ->
-                        val action = link.action
+                    entries.forEach { entry ->
+                        val press = entry.onPress
                         Text(
-                            link.label,
-                            HaulType.text(15f, if (link.label == current) 700 else 500),
+                            entry.label,
+                            HaulType.text(15f, if (entry.label == current) 700 else 500),
                             Modifier
                                 .fillMaxWidth()
                                 .pressable(
-                                    action?.let {
+                                    press?.let {
                                         {
                                             open = false
-                                            actions.handle(it)
+                                            it()
                                         }
                                     },
                                 ).padding(horizontal = 16.dp, vertical = 10.dp),

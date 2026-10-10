@@ -3,7 +3,6 @@ package io.github.youndie.haul.feature.catalog.screen
 import io.github.youndie.haul.feature.catalog.domain.Browse
 import io.github.youndie.haul.feature.catalog.domain.CatalogError
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
-import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.FacetKey
 import io.github.youndie.haul.feature.catalog.domain.Filters
@@ -11,6 +10,7 @@ import io.github.youndie.haul.feature.catalog.domain.Listed
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.Sort
 import io.github.youndie.haul.feature.catalog.domain.count
+import io.github.youndie.haul.feature.catalog.domain.descendants
 import io.github.youndie.haul.feature.catalog.domain.lineage
 import io.github.youndie.haul.feature.catalog.domain.pathOf
 import io.github.youndie.haul.shell.Frame
@@ -73,7 +73,7 @@ internal class CatalogScreen(
         val categories = catalog.categories()
         val slug = request.path.trimEnd('/').substringAfterLast('/')
         val category = categories.firstOrNull { it.slug == slug } ?: throw CatalogError.CategoryNotFound(slug)
-        val all = catalog.listedIn(descendants(category, categories), viewer.prices)
+        val all = catalog.listedIn(categories.descendants(category), viewer.prices)
         val page = browse.page(all, request.filters, request.sort, request.page, request.from)
         val url =
             CatalogUrl(
@@ -169,14 +169,6 @@ internal class CatalogScreen(
                 ),
             )
         return Frame.page("categories-page", viewer, navigation(categories), sections, footer = true)
-    }
-
-    private fun descendants(
-        category: Category,
-        categories: List<Category>,
-    ): Set<String> {
-        val children = categories.filter { it.parentSlug == category.slug }
-        return setOf(category.slug) + children.flatMap { descendants(it, categories) }
     }
 
     private fun kinds(

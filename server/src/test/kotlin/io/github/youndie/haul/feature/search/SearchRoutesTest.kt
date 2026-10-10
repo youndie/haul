@@ -17,6 +17,7 @@ import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.QuerySuggestion
 import io.github.youndie.haul.ui.SearchNoResults
+import io.github.youndie.haul.ui.SearchScope
 import io.github.youndie.haul.ui.SearchSuggestPanel
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -141,6 +142,68 @@ class SearchRoutesTest {
                         "running-shoes"
                 },
                 "the category chip did not narrow the grid",
+            )
+        }
+
+    /**
+     * B-72: the header's picker offers every top-level category, and a search in one of them is a scope — the
+     * results in it and in every category under it, the scope drawn as a chosen chip after «All» and in the
+     * picker. A leaf's chip narrows as before, and the picker reads «All categories» there.
+     */
+    @Test
+    fun `a search in a top-level category holds the results under it`() =
+        haulTest {
+            val topLevel = catalog.categories.filter { it.parentSlug == null }.sortedBy { it.position }
+            val everywhere = tree("/ui/search?q=running%20shoes")
+            assertEquals(
+                topLevel.map { SearchScope(it.name, it.slug) },
+                everywhere.only<HaulHeader>().scopes,
+                "the picker's choices",
+            )
+            assertEquals(null, everywhere.only<HaulHeader>().scope)
+
+            val sports = tree("/ui/search?q=running%20shoes&category=sports")
+            val under =
+                generateSequence(setOf("sports")) { slugs ->
+                    (
+                        slugs +
+                            catalog.categories
+                                .filter {
+                                    it.parentSlug in slugs
+                                }.map { it.slug }
+                    ).takeIf { it != slugs }
+                }.last()
+            val cards = sports.only<ProductGrid>().cards
+            assertTrue(cards.isNotEmpty(), "nothing found in Sports")
+            assertTrue(
+                cards.all { card -> catalog.products.single { it.id == card.productId }.categorySlug in under },
+                "a card from outside Sports",
+            )
+            val chips = sports.only<FilterChips>().chips
+            assertEquals(listOf("All", "Sports"), chips.take(2).map { it.label })
+            assertEquals(listOf(false, true), chips.take(2).map { it.selected }, "the scope is not the chosen chip")
+            val names =
+                catalog.categories
+                    .filter { it.slug in under }
+                    .map { it.name }
+                    .toSet()
+            val inSports =
+                everywhere
+                    .only<FilterChips>()
+                    .chips
+                    .drop(1)
+                    .filter { it.label in names }
+            assertEquals(inSports.sumOf { it.count!!.replace(",", "").toInt() }.toString(), chips[1].count)
+            assertEquals("sports", sports.only<HaulHeader>().scope, "the picker does not read the scope")
+
+            val leaf = tree("/ui/search?q=running%20shoes&category=running-shoes")
+            assertEquals(null, leaf.only<HaulHeader>().scope, "a leaf is not a choice of the picker")
+            assertEquals(
+                listOf(true),
+                leaf.only<FilterChips>().chips.filter { it.selected }.map {
+                    it.label ==
+                        "Running shoes"
+                },
             )
         }
 
