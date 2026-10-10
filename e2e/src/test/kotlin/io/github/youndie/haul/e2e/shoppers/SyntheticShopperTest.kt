@@ -10,8 +10,12 @@ import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.ui.AccountBody
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HistoryStatusKind
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.long
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.util.Base64
 import java.util.UUID
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.test.Test
@@ -87,7 +91,18 @@ class SyntheticShopperTest {
     fun `a walk whose bearer expires while it waits renews it and reaches the refund`() {
         val id = "shopper-${UUID.randomUUID()}"
         val login = ComposedStack.shildikAdmin.person(id, "Sid Synthetic", PASSWORD)
-        val expiring = BearerExpiresAtPlacement()
+        val clock = ComposedStack.shildikAdmin.person("clock-${UUID.randomUUID()}", "Cleo Clock", PASSWORD)
+        val settings =
+            haulWireJson.decodeFromString(
+                SignInSettings.serializer(),
+                Storefront(ComposedStack.origin).send("GET", "/api/v1/sign-in").body,
+            )
+        val expiring =
+            BearerExpiresAtPlacement(
+                issuingSecond = {
+                    issuedAt(ComposedStack.shildikAdmin.accessToken(settings, ComposedStack.REDIRECT, clock, PASSWORD))
+                },
+            )
         val walk =
             Walk(
                 number = 1,
@@ -113,8 +128,19 @@ class SyntheticShopperTest {
     /**
      * Between a walk and the server: once a placement is answered `202`, the bearer it carried is spoiled on every
      * later request — a token that has outlived its five minutes, without waiting them out.
+     *
+     * **The spoiled bearer is told by its text, so the renewed one must differ from it**, and within the second
+     * it was issued in it does not: shildik's access token carries no `jti`, its `iat` is in whole seconds and
+     * RS256 signs deterministically, so a refresh in the same second hands back the very same token, which
+     * would be spoiled again. In CI the walk went from its sign-in to its first read of the order in under a
+     * second and failed that way; on the build machine it crossed a second and passed (B-31, iteration 3). A
+     * real expiry comes five minutes after the issue, so there the renewed token is always a new one; here the
+     * placement waits until shildik issues tokens in a later second than the bearer's ([issuingSecond]: the
+     * `iat` of a token it issues now — shildik's clock, read off the wire, not this machine's) — at most one.
      */
-    private class BearerExpiresAtPlacement : Transport {
+    private class BearerExpiresAtPlacement(
+        private val issuingSecond: () -> Long,
+    ) : Transport {
         @Volatile private var expired: String? = null
 
         @Volatile var refused = 0
@@ -133,17 +159,32 @@ class SyntheticShopperTest {
                 }
             val response = Transport.DIRECT.send(sent)
             if (sent !== request && response.statusCode() == 401) refused += 1
-            if (request.method() == "POST" && response.statusCode() == 202 && expired == null) expired = bearer
+            if (request.method() == "POST" && response.statusCode() == 202 && expired == null && bearer != null) {
+                expired = bearer
+                val issued = issuedAt(bearer.substringAfter(' '))
+                while (issuingSecond() <= issued) Thread.sleep(TICK_MILLIS)
+            }
             return response
         }
 
         private companion object {
             const val AUTHORIZATION = "Authorization"
             const val SPOILED = "AAAA"
+            const val TICK_MILLIS = 100L
         }
     }
 
     private companion object {
         const val PASSWORD = "shoppers-horse-battery-staple"
+
+        /** The second [token] was issued in: its `iat`, read from the payload without checking the signature. */
+        fun issuedAt(token: String): Long {
+            val payload = String(Base64.getUrlDecoder().decode(token.split('.')[1]))
+            return haulWireJson
+                .parseToJsonElement(payload)
+                .jsonObject
+                .getValue("iat")
+                .jsonPrimitive.long
+        }
     }
 }
