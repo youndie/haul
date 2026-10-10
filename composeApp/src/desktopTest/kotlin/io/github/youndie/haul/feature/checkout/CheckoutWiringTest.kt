@@ -30,6 +30,7 @@ import io.github.youndie.haul.FixtureFonts
 import io.github.youndie.haul.decode
 import io.github.youndie.haul.read
 import io.github.youndie.haul.registry.haulRegistry
+import io.github.youndie.haul.shell.CheckoutLoading
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
 import io.github.youndie.haul.shell.Storefront
@@ -347,6 +348,14 @@ class CheckoutWiringTest {
             tree = decode(PLACE_ERROR)
             waitForIdle()
             assertSteps(current = 0)
+        }
+
+    /** Before its tree the checkout does not know which step the shopper is on, and marks none (B-79). */
+    @Test
+    fun `the checkout before its tree marks no step`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            setContent { HaulTheme(FixtureFonts.fonts, compact = false) { CheckoutLoading() } }
+            assertSteps(current = -1)
         }
 
     /** The step [current] is marked selected; the ones before it are ticked, the ones after it numbered. */
