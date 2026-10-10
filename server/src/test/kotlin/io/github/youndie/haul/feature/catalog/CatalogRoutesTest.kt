@@ -51,7 +51,7 @@ class CatalogRoutesTest {
     @Test
     fun `a filter set with no products answers an empty page with its facets`() =
         haulTest {
-            val page = tree("/ui/c/headphones?brand=Marshall&colour=Pink")
+            val page = tree("/ui/c/electronics/audio/headphones?brand=Marshall&colour=Pink")
             assertTrue(page.all().none { it is ProductGrid }, "a grid was drawn for an empty result")
             assertEquals("No items match these filters", page.only<EmptyState>().title)
             assertEquals("0 items", page.only<PageTitle>().count)
@@ -80,7 +80,7 @@ class CatalogRoutesTest {
     @Test
     fun `an unknown sort is 400 validation_failed naming the field`() =
         haulTest {
-            val response = get("/ui/c/headphones?sort=cheapest-first")
+            val response = get("/ui/c/electronics/audio/headphones?sort=cheapest-first")
             assertEquals(HttpStatusCode.BadRequest, response.status)
             val body = haulWireJson.decodeFromString(ErrorBody.serializer(), response.bodyAsText())
             assertEquals(ErrorCode.ValidationFailed, body.code)

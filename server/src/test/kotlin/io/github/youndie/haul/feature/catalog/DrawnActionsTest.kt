@@ -58,7 +58,7 @@ class DrawnActionsTest {
     @Test
     fun `the header links every top-level category and its deals cart and orders`() =
         haulTest {
-            listOf("/ui/home", "/ui/c/headphones", "/ui/deals").forEach { path ->
+            listOf("/ui/home", "/ui/c/electronics/audio/headphones", "/ui/deals").forEach { path ->
                 val header = tree(path).only<HaulHeader>()
                 val topLevel = seed.categories.filter { it.parentSlug == null }.sortedBy { it.position }
                 assertEquals(topLevel.map { it.name }, header.catalog.map { it.label }, "$path: «Catalog»")
@@ -106,13 +106,16 @@ class DrawnActionsTest {
     @Test
     fun `the sort offers every order and keeps the filters`() =
         haulTest {
-            val applied = tree("/ui/c/headphones?brand=Sony&page=2").only<AppliedFilters>()
+            val applied = tree("/ui/c/electronics/audio/headphones?brand=Sony&page=2").only<AppliedFilters>()
             assertEquals(
                 listOf("Popular", "Price: low to high", "Price: high to low", "Rating", "Newest"),
                 applied.sorts.map { it.label },
             )
             val cheapest = applied.sorts.single { it.label == "Price: low to high" }
-            assertEquals(LoadAction("/ui/parts/c/headphones?brand=Sony&sort=price-asc"), cheapest.action)
+            assertEquals(
+                LoadAction("/ui/parts/c/electronics/audio/headphones?brand=Sony&sort=price-asc"),
+                cheapest.action,
+            )
             val sorted = follow(cheapest.action)
             assertEquals("Price: low to high", sorted.only<AppliedFilters>().sortLabel)
             val prices = sorted.only<ProductGrid>().cards.map(::dollars)
@@ -123,8 +126,11 @@ class DrawnActionsTest {
     @Test
     fun `clear all drops every filter and keeps the sort`() =
         haulTest {
-            val applied = tree("/ui/c/headphones?brand=Sony&colour=Black&sort=rating").only<AppliedFilters>()
-            assertEquals(LoadAction("/ui/parts/c/headphones?sort=rating"), applied.clearAction)
+            val applied =
+                tree(
+                    "/ui/c/electronics/audio/headphones?brand=Sony&colour=Black&sort=rating",
+                ).only<AppliedFilters>()
+            assertEquals(LoadAction("/ui/parts/c/electronics/audio/headphones?sort=rating"), applied.clearAction)
             val cleared = follow(applied.clearAction).only<AppliedFilters>()
             assertEquals(0, cleared.filterCount)
             assertEquals("Rating", cleared.sortLabel)
@@ -150,7 +156,7 @@ class DrawnActionsTest {
             assertEquals(LineChange(quantity = 1), add.change)
 
             putLine(guest, mug, add.change).assertRefresh()
-            val after = tree("/ui/c/mugs", guest)
+            val after = tree("/ui/c/home-kitchen/kitchen/mugs", guest)
             assertEquals(1, after.only<HaulHeader>().cartCount, "«+» did not reach the header's count")
             val next = assertNotNull(mugCard(guest).add)
             assertEquals(LineChange(quantity = 2), next.change, "a second «+» would not add one more")
@@ -311,7 +317,7 @@ class DrawnActionsTest {
     @Test
     fun `the plus pill asks a guest to sign in`() =
         haulTest {
-            listOf("/ui/home", "/ui/c", "/ui/c/headphones", "/ui/deals").forEach { path ->
+            listOf("/ui/home", "/ui/c", "/ui/c/electronics/audio/headphones", "/ui/deals").forEach { path ->
                 assertEquals(NavigateAction("/sign-in"), tree(path).only<HaulHeader>().plus, path)
             }
         }
@@ -342,7 +348,10 @@ class DrawnActionsTest {
     }
 
     private suspend fun HttpClient.mugCard(guest: String): ProductCard =
-        tree("/ui/c/mugs", guest).only<ProductGrid>().cards.single { it.productId == SampleCatalog.STONEWARE_MUG }
+        tree("/ui/c/home-kitchen/kitchen/mugs", guest).only<ProductGrid>().cards.single {
+            it.productId ==
+                SampleCatalog.STONEWARE_MUG
+        }
 
     private suspend fun HttpClient.tree(
         path: String,

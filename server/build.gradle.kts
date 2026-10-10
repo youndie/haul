@@ -124,7 +124,7 @@ zavarnik {
             // The page at a storefront address (B-36), as a reloaded product link asks for it.
             get("http://127.0.0.1:8080/p/p-sony-wh-1000xm6")
             get("http://127.0.0.1:8080/ui/home")
-            get("http://127.0.0.1:8080/ui/c/headphones?brand=Sony&feature=Noise%20cancelling")
+            get("http://127.0.0.1:8080/ui/c/electronics/audio/headphones?brand=Sony&feature=Noise%20cancelling")
             get("http://127.0.0.1:8080/ui/p/p-sony-wh-1000xm6")
             get("http://127.0.0.1:8080/ui/search/suggest?q=running%20sh")
             get("http://127.0.0.1:8080/ui/search?q=running%20shoes")

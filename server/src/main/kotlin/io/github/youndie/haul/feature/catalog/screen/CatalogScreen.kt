@@ -11,6 +11,8 @@ import io.github.youndie.haul.feature.catalog.domain.Listed
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.Sort
 import io.github.youndie.haul.feature.catalog.domain.count
+import io.github.youndie.haul.feature.catalog.domain.lineage
+import io.github.youndie.haul.feature.catalog.domain.pathOf
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.shell.Parts
 import io.github.youndie.haul.shell.Viewer
@@ -70,13 +72,14 @@ internal class CatalogScreen(
         val category = categories.firstOrNull { it.slug == slug } ?: throw CatalogError.CategoryNotFound(slug)
         val all = catalog.listedIn(descendants(category, categories), viewer.prices)
         val page = browse.page(all, request.filters, request.sort, request.page)
-        val url = CatalogUrl(category.slug, request.filters, request.sort, request.page, request.brandsExpanded)
+        val url =
+            CatalogUrl(categories.pathOf(category), request.filters, request.sort, request.page, request.brandsExpanded)
 
         val sections = mutableListOf<KompotComponent>()
         sections +=
             Breadcrumbs(
                 "breadcrumbs",
-                path(category, categories).map { Crumb(it.name, categoryLink(it.slug)) }.let {
+                categories.lineage(category).map { Crumb(it.name, categoryLink(it, categories)) }.let {
                     listOf(Crumb("Home", NavigateAction("/"))) +
                         it
                 },
@@ -151,7 +154,7 @@ internal class CatalogScreen(
                                 it.name,
                                 it.tone,
                                 it.label,
-                                categoryLink(it.slug),
+                                categoryLink(it, categories),
                             )
                         },
                 ),
@@ -166,16 +169,6 @@ internal class CatalogScreen(
         val children = categories.filter { it.parentSlug == category.slug }
         return setOf(category.slug) + children.flatMap { descendants(it, categories) }
     }
-
-    private fun path(
-        category: Category,
-        categories: List<Category>,
-    ): List<Category> =
-        generateSequence(category) { c ->
-            categories.firstOrNull {
-                it.slug == c.parentSlug
-            }
-        }.toList().reversed()
 
     private fun kinds(
         all: List<Listed>,
@@ -419,12 +412,13 @@ internal class CatalogScreen(
 
 /**
  * A category page's address with its filters and sort, the form every facet's, sort's and page's action
- * loads the parts of (B-63). A change of filters or sort starts again from the first page. An expanded brand facet
+ * loads the parts of (B-63). [path] is the category's one address (B-68, `pathOf`): the parts a press loads
+ * name the path the page was opened at, so the shell takes them for the same screen and loads nothing else. A change of filters or sort starts again from the first page. An expanded brand facet
  * ([expanded], `expand=brand`) stays expanded on every address the page links to: it is how the shopper
  * is looking at the facets, as the sort is how they look at the grid.
  */
 internal class CatalogUrl(
-    private val slug: String,
+    private val path: String,
     private val filters: Filters,
     private val sort: Sort,
     private val page: Int = 1,
@@ -464,7 +458,7 @@ internal class CatalogUrl(
                     if (page > 1) "page=$page" else null,
                 )
         val query = params.joinToString("&") { it.replace(" ", "%20") }
-        return "/c/$slug" + if (query.isEmpty()) "" else "?$query"
+        return "${Frame.CATALOG}/$path" + if (query.isEmpty()) "" else "?$query"
     }
 
     companion object {

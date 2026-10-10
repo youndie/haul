@@ -41,12 +41,11 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (15)
+## Open (14)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-66](docs/backlog/B-66-sign-in-reachable-from-everywhere.md) `[ ]` | client: sign-in and sign-out work from every page and every way in | P1 | M | - |
-| [B-68](docs/backlog/B-68-first-filter-reloads-the-page.md) `[ ]` | server + client: the first filter on a category does not reload the page | P1 | S | - |
 | [B-69](docs/backlog/B-69-price-facet-does-nothing.md) `[ ]` | client + server: the price filter can be used | P1 | M | - |
 | [B-70](docs/backlog/B-70-deals-vanish-at-midnight.md) `[ ]` | server: a running stand keeps its deals of the day | P1 | M | - |
 | [B-73](docs/backlog/B-73-phone-cannot-reach-catalog-and-orders.md) `[ ]` | client: on a phone every part of the store is reachable | P1 | M | - |
@@ -61,7 +60,7 @@ A stage is a field on the item, not a directory.
 | [B-80](docs/backlog/B-80-blank-first-load.md) `[ ]` | client: the first load shows something before the app starts | P2 | S | - |
 | [B-79](docs/backlog/B-79-checkout-step-indicator-and-links.md) `[ ]` | client + server: checkout's step indicator and summary tell the truth | P3 | S | - |
 
-## Closed (65)
+## Closed (66)
 
 **Skeleton**
 
@@ -156,6 +155,7 @@ A stage is a field on the item, not a directory.
 
 **Review**
 
+- [B-68](docs/backlog/B-68-first-filter-reloads-the-page.md) `[x]` - server + client: the first filter on a category does not reload the page
 - [B-76](docs/backlog/B-76-promo-apply-sends-nothing.md) `[x]` - client: «Apply» on the cart's promo code is applied
 
 <!-- END INDEX -->

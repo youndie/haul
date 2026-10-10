@@ -9,10 +9,12 @@ import io.ktor.client.request.header
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsBytes
 import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.request
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.ktor.http.fullPath
 import io.ktor.server.testing.testApplication
 import java.io.File
 import java.nio.file.Files
@@ -185,6 +187,21 @@ class WebBundleTest {
             }
         }
 
+    /**
+     * A category has one address (B-68): the last slug alone, as a link from before it or a hand-typed address
+     * names it, is redirected to the page at the whole path, query kept, so the client starts at the address
+     * every link and filter of the page names.
+     */
+    @Test
+    fun `another form of a category address arrives at the page at its one address`() =
+        withBundle {
+            val response = get("/c/headphones?brand=Sony") { header(HttpHeaders.AcceptEncoding, BROWSER) }
+
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("/c/electronics/audio/headphones?brand=Sony", response.request.url.fullPath)
+            assertContentEquals(PAGE_BR, response.bodyAsBytes())
+        }
+
     /** An allow-list, not a catch-all (B-27): anything that is neither a file nor a storefront address. */
     @Test
     fun `a path that is no storefront address stays a 404`() =
@@ -215,7 +232,7 @@ class WebBundleTest {
         val STOREFRONT =
             listOf(
                 "/c",
-                "/c/headphones",
+                "/c/electronics",
                 "/c/electronics/audio/headphones?brand=Sony&feature=Noise%20cancelling",
                 "/p/p-001-05",
                 "/p/p-001-05?sku=s-1&tab=specifications",

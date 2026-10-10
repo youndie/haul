@@ -16,6 +16,7 @@ import io.github.youndie.haul.feature.catalog.domain.Seller
 import io.github.youndie.haul.feature.catalog.domain.Sku
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.discount
+import io.github.youndie.haul.feature.catalog.domain.lineage
 import io.github.youndie.haul.feature.catalog.domain.money
 import io.github.youndie.haul.feature.reviews.screen.ReviewTabs
 import io.github.youndie.haul.shell.Frame
@@ -314,11 +315,8 @@ internal class ProductScreen(
         categories: List<Category>,
     ): List<Crumb> {
         val leaf = categories.first { it.slug == item.product.categorySlug }
-        val path =
-            generateSequence(
-                leaf,
-            ) { c -> categories.firstOrNull { it.slug == c.parentSlug } }.toList().reversed()
-        return listOf(Crumb("Home", NavigateAction("/"))) + path.map { Crumb(it.name, categoryLink(it.slug)) } +
+        return listOf(Crumb("Home", NavigateAction("/"))) +
+            categories.lineage(leaf).map { Crumb(it.name, categoryLink(it, categories)) } +
             Crumb(item.product.title)
     }
 

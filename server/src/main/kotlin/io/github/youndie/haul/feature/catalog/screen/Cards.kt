@@ -6,6 +6,7 @@ import io.github.youndie.haul.feature.cart.LineCommand
 import io.github.youndie.haul.feature.cart.domain.CartCommands
 import io.github.youndie.haul.feature.catalog.domain.Browse
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
+import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.Listed
 import io.github.youndie.haul.feature.catalog.domain.Page
@@ -14,6 +15,7 @@ import io.github.youndie.haul.feature.catalog.domain.Sku
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.discount
 import io.github.youndie.haul.feature.catalog.domain.money
+import io.github.youndie.haul.feature.catalog.domain.pathOf
 import io.github.youndie.haul.feature.saved.SaveCommand
 import io.github.youndie.haul.feature.saved.SavedPaths
 import io.github.youndie.haul.shell.Frame
@@ -146,7 +148,11 @@ internal suspend fun dealsOfTheDay(
 
 internal fun productLink(productId: String): NavigateAction = NavigateAction("/p/$productId")
 
-internal fun categoryLink(slug: String): NavigateAction = NavigateAction("/c/$slug")
+/** A link to [category]'s page at its one address (B-68), whatever page it is drawn on. */
+internal fun categoryLink(
+    category: Category,
+    categories: List<Category>,
+): NavigateAction = NavigateAction("${Frame.CATALOG}/${categories.pathOf(category)}")
 
 /**
  * The pages under a grid: «Show 24 more» goes to the next page, and every page number but the current

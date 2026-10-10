@@ -179,7 +179,12 @@ class IdentityRoutesTest {
             putLine(guest, mug, LineChange(quantity = 2)).assertRefresh()
             putLine(token, duvet, 1).assertRefresh()
             val screens =
-                listOf("/ui/home", "/ui/c/headphones", "/ui/p/${SampleCatalog.SONY_HEADPHONES}", "/ui/search?q=mug")
+                listOf(
+                    "/ui/home",
+                    "/ui/c/electronics/audio/headphones",
+                    "/ui/p/${SampleCatalog.SONY_HEADPHONES}",
+                    "/ui/search?q=mug",
+                )
 
             for (screen in screens) {
                 val nobody = tree(screen) {}.only<HaulHeader>()

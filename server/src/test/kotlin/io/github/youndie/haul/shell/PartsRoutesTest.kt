@@ -59,8 +59,11 @@ class PartsRoutesTest {
     fun `every filter sort and page of a category answers the parts of the page it opens`() =
         haulTest {
             // The headphones have kinds («Over-ear»), so all three parts travel.
-            assertTrue(tree("/ui/c/headphones").all().any { it.id == "kinds" }, "the headphones have no kinds")
-            val headphones = everyLoadOf("/c/headphones", CatalogScreen.PARTS)
+            assertTrue(
+                tree("/ui/c/electronics/audio/headphones").all().any { it.id == "kinds" },
+                "the headphones have no kinds",
+            )
+            val headphones = everyLoadOf("/c/electronics/audio/headphones", CatalogScreen.PARTS)
             assertTrue(headphones > 10, "the headphones carry only $headphones loads")
             // Filters, a sort, the brands expanded and a second page, so every kind of press starts from somewhere.
             everyLoadOf("/c/electronics?rating=4.0&expand=brand&sort=price-asc&page=2", CatalogScreen.PARTS)
@@ -103,7 +106,7 @@ class PartsRoutesTest {
     @Test
     fun `a tick sends the results and not the frame`() =
         haulTest {
-            val page = tree("/ui/c/headphones")
+            val page = tree("/ui/c/electronics/audio/headphones")
             val tick = page.loads().first { "brand=" in it }
             val update = answer(tick) as UpdateAction
             val sent = update.updates.map { it.componentId }.toSet()

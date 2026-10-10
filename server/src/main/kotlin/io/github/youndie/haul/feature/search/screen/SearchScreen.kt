@@ -85,7 +85,7 @@ internal class SearchScreen(
                     .take(CATEGORIES)
                     .mapNotNull { (slug, n) ->
                         val leaf = categories.firstOrNull { it.slug == slug } ?: return@mapNotNull null
-                        CategorySuggestion(label(leaf, categories), count(n), categoryLink(slug))
+                        CategorySuggestion(label(leaf, categories), count(n), categoryLink(leaf, categories))
                     },
             products =
                 products.map {
@@ -188,7 +188,7 @@ internal class SearchScreen(
                     id = "popular",
                     tiles =
                         topLevel.take(POPULAR_CATEGORIES).map {
-                            CategoryTile("tile-${it.slug}", it.name, it.tone, it.label, categoryLink(it.slug))
+                            CategoryTile("tile-${it.slug}", it.name, it.tone, it.label, categoryLink(it, categories))
                         },
                 ),
             )
