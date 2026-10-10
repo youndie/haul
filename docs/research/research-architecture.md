@@ -242,8 +242,37 @@ trial's dialog for a customer who is not a member, `/account` for a member, sign
   are `load`s, so it stays open by itself and is drawn from the updated results; what the shell still
   decides is that a page *visited* — a link, back, forward — closes it, and that its facets follow nothing
   while a `load` of the screen is on its way.
-- **A control with no page behind it is plain text**, not a link that opens nothing: the strip's «Sell
-  on HAUL», «Help» and the language, and the footer's links, until a page exists for them.
+- **A control with no page behind it is not drawn** (B-72; B-49 had drawn such words as plain text, and
+  on the stand they still read as links). See «Decided in B-72» below.
+
+**Decided in B-72, the strip and the footer name only what has a page** (owner's call: wire what has a page,
+draw the rest as text or leave it out). Words in a utility strip or a footer link column read as links
+whatever their style, so the ones with no page are left out rather than drawn as text:
+
+- **The strip** says where the store delivers and for how much: «DELIVERING TO BROOKLYN, NY 11211» in the
+  strip's own type (the canvas's «Deliver to» with the place in the accent colour is a place picker's look, and
+  there is no picker), «FREE DELIVERY OVER $35». «Sell on HAUL», «Help» and «EN · USD» are gone, and the
+  phone's «HELP».
+- **The footer** keeps «Deals» (`/deals`), «Haul Plus» (the header's pill: the trial's dialog, a member's
+  account, a guest's sign-in) and «Track an order» (the orders; a guest's sign-in returning to them) under
+  «Shop» and «Help». «New arrivals», «Gift cards», «Returns», «Delivery», «Contact us» and the «Sell» and
+  «Company» columns are left out; a word comes back with its page. On the wire each column's words gained
+  their actions by label (`FooterColumn.linked`, a default-empty addition, as `HaulHeader.categories` follows
+  `catalog`), and the footer is built per viewer (`Frame.footer`). The footer keeps the canvas's height —
+  four column places at 1440, two rows of two on a phone, four lines to a column — so the wordmark is cut
+  where it was; without that Home's phone artboards read 9–13 % against the canvas.
+- **The search field's «All categories ▾» is a real scope.** The header carries every top-level category with
+  its slug (`HaulHeader.scopes`, `SearchScope`) and the scope of the page's search (`HaulHeader.scope`). The
+  picker is a menu kept in the client (`SearchInput.scope`): a choice changes no page, and the next search is
+  `/search?q=…&category=<slug>` — `Address.search` stays the one address the client builds. The search's
+  `category` now holds the category and every category under it (it matched a leaf's products only), and a
+  top-level scope is drawn as a chosen chip after «All». The search's parts include the header, so «All» or a
+  leaf's chip after a scope sets the picker back to «All categories»; a card's «+» keeps the scope in its
+  answer's header (`&category=`, `LineAnswers.SCOPE`). Without scopes on the wire — the shell's header before
+  any tree (B-67) — or without a field to type in, the picker opens nothing.
+- Rejected: plain text for the dead words (B-49's answer, which the stand walk showed did not read as text);
+  a picker that runs the search as soon as a category is chosen (it would leave the page while the shopper
+  may not have typed yet).
 
 **Decided in B-73, the phone header reaches what the 1440 one does.** The canvas's phone header has the
 logo, the heart, the account, the cart, the search field and a category row cut at the edge — no
@@ -330,7 +359,7 @@ page would gain or lose a section an `update` cannot add or take away — is `na
 | Endpoint (kind `load`, kompot SPEC §16.1) | Tier | Pressed from | The parts |
 |---|---|---|---|
 | `GET /ui/parts/c/{categoryPath}?…` (the whole path, B-68) | public | a kind, a facet, «Show N more», an applied chip, «Clear all», a sort, a page, the price range (B-69, below) | `title`, `kinds` (when the category has kinds), `results` |
-| `GET /ui/parts/search?q=…` | public | a category chip, a sort (B-77, the end of the chips' row), «Show N more», a page | `categories`, `grid`, `pagination` |
+| `GET /ui/parts/search?q=…` | public | a category chip, a sort (B-77, the end of the chips' row), «Show N more», a page | `header` (its picker reads the scope, B-72), `categories`, `grid`, `pagination` |
 | `GET /ui/parts/deals?page=…` | public | a page or «Show N more» between grids that start past the first page; to or from a grid with the first page, whose «Deals of the day» the others lack, the press is still `navigate` — «Show N more» from the first page included, which the shell draws behind the kept page (B-62) | `grid`, `pagination` |
 | `GET /ui/parts/account/orders?status=…` | customer (`401`) | a chip of the history | `account` |
 | `GET /ui/parts/account/saved?…` | customer (`401`) | a filter or a page of the Saved list | `account` |
