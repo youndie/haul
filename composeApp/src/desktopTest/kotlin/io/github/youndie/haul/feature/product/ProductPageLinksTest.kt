@@ -3,11 +3,12 @@ package io.github.youndie.haul.feature.product
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -166,7 +167,7 @@ class ProductPageLinksTest {
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
             val unsave = SaveCommand("/api/v1/saved/p-sony-wh-1000xm6", save = false)
             storefront(details(decode("product_out_of_stock.json")) { it.copy(saved = true, heartCommand = unsave) })
-            onNodeWithTag(SAVE_TAG).assert(hasText("Saved"))
+            onNode(hasText("Saved") and hasAnyAncestor(hasTestTag(SAVE_TAG)), useUnmergedTree = true).assertExists()
             onNodeWithTag(SAVE_TAG).performScrollTo().performClick()
             waitUntil(timeoutMillis = 5_000) { sent.isNotEmpty() }
             assertEquals(listOf<CartCommand>(CartCommand.Heart(unsave.url, save = false)), sent.toList())
