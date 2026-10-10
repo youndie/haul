@@ -73,3 +73,8 @@ Some have real destinations: footer «Deals», «Haul Plus», «Track an order»
   5.38, Order_Placed_Phone 5.06 → 5.12, Account_NoOrders_Phone 5.00 → 5.15. The five Search_* artboards read
   5–35 % on the replica, as B-75 found on main there (offset sections in the DIFF images); not chased here
   either. The tolerance is unchanged.
+- **Where it ran** (after the rebase over B-67 and B-71): on the Linux box `:composeApp:wasmJsBrowserDistribution`,
+  `:server:check :server:installDist` and the rest of `check` (`desktopTest`, `viddikVerify`, ktlint) as two runs
+  — the single `check :server:installDist` was OOM-killed under its 5 GB scope beside another build — and
+  `scripts/e2e.sh` green; `make check` and `make docs-against BASE=origin/main` on the Mac. The rebase took
+  B-71's sixteen product goldens and re-recorded them with this strip.
