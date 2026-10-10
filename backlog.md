@@ -61,7 +61,7 @@ A stage is a field on the item, not a directory.
 | [B-105](docs/backlog/B-105-shell-header-knows-the-customer.md) `[ ]` | client: a page opened directly knows who is signed in | P2 | S | - |
 | [B-106](docs/backlog/B-106-display-face-loses-characters.md) `[ ]` | client: the display face draws every character it is given | P2 | S | - |
 | [B-109](docs/backlog/B-109-saga-steps-in-tracy.md) `[ ]` | server: an order's saga is visible in tracy | P2 | S | - |
-| [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[?]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
+| [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[~]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 | [B-82](docs/backlog/B-82-tablet-widths.md) `[ ]` | client: the store reads well between a phone and 1440 | P2 | M | - |
 | [B-83](docs/backlog/B-83-typed-input-before-every-press.md) `[ ]` | client: every press that reads a field sees what was typed | P2 | S | - |
 | [B-88](docs/backlog/B-88-a-return-restocks.md) `[ ]` | server: a returned unit goes back to stock | P2 | S | - |
