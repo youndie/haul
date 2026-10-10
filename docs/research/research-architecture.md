@@ -771,6 +771,17 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   over about ten minutes, a return and its refund over about ten more — so the default `interval: 600` keeps two
   or three walks waiting at once. There is no declined payment among them: the test card that declines is not
   offered by the checkout.
+- **A walk keeps its sign-in alive** (found on the stand after v0.3.0). shildik's access token lives five minutes and
+  a walk at speed 288 lives about twenty, so the walk keeps the refresh token the storefront's `offline_access` scope
+  gets and, when a request comes back `401`, renews and sends it once more — what the storefront's client does
+  (`Identity`). Without it every walk on the stand stopped at its first read of the order page past the token's
+  life, about six and a half minutes after signing in, and none reached the return. The fast clock of the e2e and
+  of `stand-kind.sh`'s default (a whole walk in under a minute) never showed it; `stand-kind.sh` takes the stand's
+  own `SPEED`/`INTERVAL`/`POLL`/`WAIT` for that. The pace itself was not the cause: the fulfilment keys every
+  step to placement, not to the window chosen, and a walk's order was delivered ten minutes after it was placed.
+  **A shildik token is not unique within its second**: no `jti`, `iat` in whole seconds, RS256 deterministic — a
+  refresh in the second of the sign-in returns the same access token. Harmless for a real expiry (five minutes
+  later), but a test that marks a token expired by its text must let a second pass first (B-31, iteration 3).
 
 **Decided in B-19, the account.**
 
@@ -1497,8 +1508,8 @@ start on a rejected cache) serving all 43 of the server's own classes from it �
 cache; that is a number for when there is a hot path worth timing.
 
 **Risk 5. The stand measures nothing.** The sibling reference services run without traffic, so no
-number about petich, tracy or metrik can be taken on them. Mitigation: synthetic shoppers (B-31), built and
-in the chart since B-31, off until the stand's values turn them on (`shoppers.enabled`).
+number about petich, tracy or metrik can be taken on them. Mitigation: synthetic shoppers (B-31), in the chart
+since B-31 and on the stand since v0.3.0 (`shoppers.enabled` in the stand's values).
 
 **Open question 1. Search quality on PostgreSQL full text with `pg_trgm`.** *Settled for the seed in
 B-09; open beyond it.* Search matches a product when its `to_tsvector('english', listing name, brand,

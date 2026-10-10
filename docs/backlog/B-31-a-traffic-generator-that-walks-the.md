@@ -1,7 +1,7 @@
 ---
 id: B-31
 title: "synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand"
-status: question
+status: done
 priority: P2
 size: M
 stage: stage-9-ship
@@ -81,7 +81,9 @@ of a walk outside the database. The server's own spans and metrics are already w
 - **No declined payment**: the test card that always declines (`card-0002`) is not offered by the checkout, so the
   saga's compensation is not part of the traffic.
 
-## Question (2026-10-10)
+## Question (2026-10-10) — answered
+
+Answered by the owner turning them on: the stand walks as Sam, at the default rate, since v0.3.0.
 
 Everything but the stand is built; the owner turns it on and checks the AC.
 
@@ -103,7 +105,7 @@ them on `v0.1.0` would leave the pod in `ImagePullBackOff`. Optional, in the sam
 
 - `kubectl -n haul logs deploy/haul-shoppers`: «waiting for http://haul to be ready…» at most briefly, then about
   every ten minutes one line «walk N as sam@example.com: «…», order HL-… placed after …, delivered after …,
-  refunded after …» — about twenty minutes after its start at speed 288. A «failed at step «…»» line names where a
+  refunded after …, sign-in renewed N times» — about twenty minutes after its start at speed 288. A «failed at step «…»» line names where a
   walk stopped.
 - tracy, service `haul-server`, environment `stage`: placement's spans and the order saga's, a walk's requests every
   ten minutes. If `observability.tracy.sampleRate` is not `1.0` on the stand, tail sampling keeps few of them.
@@ -114,3 +116,124 @@ them on `v0.1.0` would leave the pod in `ImagePullBackOff`. Optional, in the sam
 **Decide:** whether Sam is the right person to walk as (Maya would lose her seeded cart, points and Plus state to
 the first walk), and whether the default rate is right. On a yes the item goes back to `wip` until the stand shows
 the walks in tracy and metrik, then `done`.
+
+## Iteration 2 (2026-10-10): no walk on the stand reached the return
+
+**What the stand showed** (the owner's reading of its tracy, v0.3.0, `shoppers.enabled: true`, server
+`HAUL_FULFILMENT_SPEED=288`, the chart's `interval: 600`, `poll: 30`, `wait: 3600`): every ten minutes a walk's
+`GET /ui/home`, `GET /ui/c/…`, `PUT /api/v1/cart/lines/{skuId}` 200, `POST /api/v1/me/cart/merge` 200,
+`GET /ui/checkout`, `POST /api/v1/orders` 202, then `GET /ui/account/orders/{id}` every 30 s — and in 80 minutes not
+one `POST /api/v1/me/orders/{id}/returns`, with no error span. Iteration 1 had checked the stand's shape at speed
+8640 only, where a whole walk takes under a minute.
+
+**Reproduced** on a throwaway kind cluster on the Linux build machine (`scripts/stand-kind.sh`, deleted after): the
+server's image from main, seed on, shildik with the demo realm, `SPEED=288`, the shoppers with the chart's own
+`interval`/`poll`/`wait`. One walk's timeline, from the database's stamps and the shoppers' log (UTC):
+
+| | walk 1 (main) | walk 2 (main) | walk 1 (fixed) |
+|---|---|---|---|
+| the window it picked | Oct 15, 18:00 | Oct 11, 12:00 | Oct 11, 18:00 |
+| signed in, order placed | 20:56:09 | 21:06:50 | 21:13:21 |
+| packed | 20:57:06 | 21:07:41 | 21:14:15 |
+| in transit | 21:01:16 | 21:11:51 | 21:18:25 |
+| the walk's last read | **21:02:36 — `401`** | **21:13:15 — `401`** | |
+| delivered | 21:06:16, the walk gone | 21:16:51, the walk gone | 21:23:25 |
+| return requested | — | — | 21:23:27 |
+| refunded, the walk's line | — | — | 21:33:35 |
+
+Both walks on main ended «failed at step «wait for the order to arrive»: the tree at /ui/account/orders/HL-… answered
+401: {"code":"unauthenticated","message":"Sign in: no valid token came with the request"}», about six and a half
+minutes after signing in.
+
+**The cause: the walk's sign-in expired, not the clock.** shildik's access token lives five minutes (its
+`TOKEN_TTL`, plus the verifier's minute of skew); the walk signed in once and kept only the access token, while at
+speed 288 it waits ten minutes for its delivery and ten more for its refund. The order itself went on: delivered ten
+minutes after placement whichever window the walk picked (the next day's or five days ahead) — the fulfilment keys
+every step to placement (research D4), which the timeline above shows. A `401` is not an error span, hence a quiet
+tracy; the failure was only in the shoppers' log, which nobody outside the cluster reads. The other candidates —
+the window, the poll and the wait, the delivered status, the store clock against the wall clock — were each ruled
+out by that same timeline.
+
+**Fixed in the walk**, the place the evidence points to: `SignIn.tokens` keeps the refresh token the storefront's
+`offline_access` scope gets and `SignIn.refresh` exchanges it (shildik rotates, so the walk keeps the new one); the
+`Storefront` sends a request whose bearer is answered `401` once more with a renewed one when it has a `renew` —
+what the browser's client does (`Identity.recover`). Gentle: one refresh per five minutes a walk is alive, three
+for a whole walk at 288. Each walk's line now says how many times its sign-in was renewed.
+`scripts/stand-kind.sh` takes `INTERVAL`, `POLL`, `WAIT` and `DEADLINE`, so the stand's own pace can be run
+(`SPEED=288 INTERVAL=600 POLL=30 WAIT=3600`) — its fast default cannot show this.
+
+**Test.** `SyntheticShopperTest.a walk whose bearer expires while it waits renews it and reaches the refund`: the
+token's age is played rather than waited out — between the walk and the server (`Transport`), from the placement's
+`202` on, the bearer the order was placed with is sent spoiled, and the server refuses it exactly as the stand did.
+Mutation: the walk without its `renew` fails it with the stand's own line, «step «wait for the order to arrive»: the
+tree at /ui/account/orders/HL-48302 answered 401: … no valid token came with the request».
+
+**On the local stand at 288, with the fix** (the shoppers' image swapped in at 21:13 on the same cluster): three
+walks of three, each «placed after 0.4s, delivered after 570.7s, refunded after 1141.1s, sign-in renewed 3 times»
+(the same numbers because the fulfilment's steps are fixed at this speed and the walk reads every 30 s); the
+database then held 6 orders, all `placed`, 6 order sagas `COMPLETED`, 2 returns refunded and 1 picked up (the third
+walk's, refunded seconds later per its line), no pod restarted.
+
+**Checks** (Linux build machine): `check :server:installDist` and `:composeApp:wasmJsBrowserDistribution` green;
+`scripts/e2e.sh` green — `WholePathTest`, both `SyntheticShopperTest`s, `ShoppersConfigTest`; the local stand
+above. On the Mac: `make fix`, `make check`, `make docs-against BASE=origin/main`.
+
+## Closed (2026-10-10)
+
+`done` on the walks reaching the return at the stand's own pace, locally. What the AC asks of the public stand
+splits three ways:
+
+- **Orders in tracy**: shown on the stand since v0.3.0 (the owner's reading above): placement's `202` and the
+  order page polled every walk. The returns — `POST /api/v1/me/orders/{id}/returns` — appear once this is deployed;
+  not seen yet, since nothing here was deployed.
+- **Sagas in tracy**: the server writes no span or log line for a saga's steps, so tracy cannot show them however
+  the walks go. That is B-109, open; B-31 does not wait for it.
+- **metrik**: not checked by us on the stand — no access from here.
+
+
+## Iteration 3 (2026-10-11): the renewal's test red in CI, green on the build machine
+
+haul#108 (iteration 2) was merged with its `e2e` job red and reverted (haul#109); this branch re-applies it on top of
+the revert and fixes what CI showed.
+
+**What CI showed** (runs 38089469768, push, and 38089539577, pull request, head `9eb7088`): `a walk whose bearer
+expires while it waits renews it and reaches the refund` failed with «the walk stopped at step «wait for the order
+to arrive»: the tree at /ui/account/orders/HL-48303 answered 401» — not «refreshing the sign-in answered …», so the
+refresh itself worked; the retried request was refused again. The same test passed twice on the build machine.
+
+**Not the stack.** CI and the build machine run the same e2e stack — `ComposedStack` starts shildik
+`ghcr.io/youndie/shildik-sqlite:0.4.1` with the same realm and client, and the storefront's scope carries
+`offline_access` in both (a missing refresh token would have failed the walk at its sign-in, «the provider issued no
+refresh token»). The same unchanged code then passed in CI too (run 38090220110, head `51483fe7`): a race, not an
+environment.
+
+**The cause: a refresh within the second of the sign-in returns the very same access token.** shildik's access
+token carries no `jti`, its `iat` is in whole seconds and RS256 signs deterministically
+(`IssueUserTokensUseCase`), so two tokens for one person issued in one second are byte for byte equal. Probed on the
+build machine against the e2e stack (a throwaway test, not kept): a sign-in and a refresh 10–13 ms later gave the same
+token three times of three; a refresh 1.1 s later a new one each time. The test's transport tells the «expired»
+bearer by its text, so when the walk went from its sign-in to its first read of the order in under a second — as
+in CI, «placed after 0.3s» — the renewed token was the spoiled one again and was refused again. Where the walk
+crossed a second it passed. A real expiry comes five minutes after the issue, so the walk itself was right; the test
+was not.
+
+**Reproduced on purpose** on the build machine, with the sign-in started 20 ms into a second (a temporary hook in
+the test's transport, not kept): iteration 2's test failed with CI's own line; the same test without the fix's wait,
+six runs, failed all three aligned runs and one of three unaligned.
+
+**Fixed in the test** (`SyntheticShopperTest.BearerExpiresAtPlacement`): at the placement's `202` the transport waits
+until shildik issues tokens in a later second than the bearer's — read from the `iat` of a token it issues for a
+second person, so shildik's clock off the wire rather than this machine's (`kapkan:wall-clock` refuses the local
+one, rightly: the second that matters is shildik's). At most one second. The walk is unchanged.
+
+**Mutation.** With the fix, six runs (three aligned) passed six. The walk without its `renew` fails it with the
+stand's line, «step «wait for the order to arrive»: the tree at /ui/account/orders/HL-48302 answered 401»; a `renew`
+that hands back the old token fails it the same way — which a transport that spoiled one request only would have
+let through.
+
+**Checks.** Build machine: `scripts/e2e.sh` (image built) green — all eight e2e tests. CI on this branch's push,
+run 38090822335 at `be15e27a` (the fix): every job green, the test passed; the pull request's run proves the head.
+On the Mac: `make fix`, `make check`, `make docs-against BASE=origin/main`.
+
+`done` again: the walks reach the return at the stand's pace (iteration 2), and the test that says so now passes in
+CI as well as on the build machine. What the AC asks of the public stand is as «Closed» above says.
