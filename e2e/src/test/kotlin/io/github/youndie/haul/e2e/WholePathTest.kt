@@ -69,11 +69,8 @@ class WholePathTest {
         step("a card's «+» says the item was added") {
             // Pressed by a guest of its own (B-81), so the shopper's cart below stays empty until «Add to cart».
             val other = Storefront(ComposedStack.origin).apply { arrive() }
-            val card =
-                assertNotNull(
-                    other.page("/").all(ProductGrid.serializer()).flatMap { it.cards }.firstOrNull { it.add != null },
-                    "no card on the home page can be added",
-                )
+            val cards = other.page("/").all(ProductGrid.serializer()).flatMap { it.cards }
+            val card = assertNotNull(cards.firstOrNull { it.add != null }, "no card on the home page can be added")
             val add = assertNotNull(card.add)
             val answer = other.send("PUT", add.url, haulWireJson.encodeToString(LineChange.serializer(), add.change))
             // The header's count and the card (B-63), then the message «Add to cart» answers with too (B-75).
@@ -437,7 +434,6 @@ class WholePathTest {
         val totalCents: Int,
     )
 
-    /** The header of the home, as the shopper is now. */
     /** A guest arrives: the server issues the id the storefront sends from then on. */
     private fun Storefront.arrive() {
         val answer = send("POST", GUESTS)
@@ -445,6 +441,7 @@ class WholePathTest {
         guest = haulWireJson.decodeFromString(GuestDto.serializer(), answer.body).id
     }
 
+    /** The header of the home, as the shopper is now. */
     private fun header(): HaulHeader = shop.page("/").one(HaulHeader.serializer())
 
     /** The cart's tree, reached the way the header's cart button reaches it. */
