@@ -3,13 +3,15 @@ package io.github.youndie.haul.ui
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.KompotModifierNode
+import io.github.youndie.kompot.commands.LoadAction
 import io.github.youndie.kompot.registry.KompotComponentMarker
 import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 // The pieces of the Home and Category screens (feature-browse). Copy arrives formatted; a link is a
-// kompot action the client follows, never a URL it builds.
+// kompot action the client follows, never a URL it builds — the price range's two numbers excepted
+// (`FacetRange`, B-69).
 //
 // An `accent` is the words of a title the canvas draws in Bodoni Moda's italic («Shop by *category*»);
 // it must occur in the title, and a title without one is drawn upright throughout.
@@ -244,7 +246,60 @@ public data class Facet(
     /** Where the price range's selection starts and ends on the slider, as fractions of its track. */
     val rangeStart: Float? = null,
     val rangeEnd: Float? = null,
+    /** What the `range` block's fields and thumbs edit, and where an edited range goes (B-69). */
+    val range: FacetRange? = null,
 )
+
+/**
+ * The price range as the shopper edits it (B-69): the applied bounds in whole dollars — `null` is no bound —
+ * the dollars at the slider's right end ([top]; the left end is $0), and [template], the address of the
+ * `load` that applies a range, with [LOW] and [HIGH] where the bounds go.
+ *
+ * The one address the client completes rather than follows: a bound is any whole number the shopper types,
+ * so no list of `load`s could hold them. The server still writes the whole address — the category, every
+ * other filter, the sort — and the client only puts two numbers into it ([applying]).
+ */
+@Serializable
+public data class FacetRange(
+    val low: Int? = null,
+    val high: Int? = null,
+    val top: Int,
+    val template: String,
+) {
+    /**
+     * The `load` that applies [low] to [high]: each placeholder replaced by its bound, and a query parameter
+     * whose bound is `null` left out, so the address names only the bounds that are set. Bounds typed the
+     * wrong way round are swapped.
+     */
+    public fun applying(
+        low: Int?,
+        high: Int?,
+    ): LoadAction {
+        val (from, to) = if (low != null && high != null && low > high) high to low else low to high
+        val path = template.substringBefore('?')
+        val query =
+            template
+                .substringAfter('?', "")
+                .split('&')
+                .filter { it.isNotEmpty() }
+                .mapNotNull { pair ->
+                    when {
+                        LOW in pair -> from?.let { pair.replace(LOW, it.toString()) }
+                        HIGH in pair -> to?.let { pair.replace(HIGH, it.toString()) }
+                        else -> pair
+                    }
+                }
+        return LoadAction(if (query.isEmpty()) path else path + "?" + query.joinToString("&"))
+    }
+
+    public companion object {
+        /** Where the lower bound goes in [template]. */
+        public const val LOW: String = "{min}"
+
+        /** Where the upper bound goes in [template]. */
+        public const val HIGH: String = "{max}"
+    }
+}
 
 @Serializable
 @SerialName("haul_facet_panel")

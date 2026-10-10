@@ -26,6 +26,7 @@ import io.github.youndie.haul.ui.EmptyState
 import io.github.youndie.haul.ui.Facet
 import io.github.youndie.haul.ui.FacetOption
 import io.github.youndie.haul.ui.FacetPanel
+import io.github.youndie.haul.ui.FacetRange
 import io.github.youndie.haul.ui.FilterChips
 import io.github.youndie.haul.ui.FilteredResults
 import io.github.youndie.haul.ui.Link
@@ -235,6 +236,13 @@ internal class CatalogScreen(
                         max = filters.priceMaxDollars?.let { "$$it" },
                         rangeStart = track(filters.priceMinDollars, ceiling) ?: 0f,
                         rangeEnd = track(filters.priceMaxDollars, ceiling) ?: 1f,
+                        range =
+                            FacetRange(
+                                low = filters.priceMinDollars,
+                                high = filters.priceMaxDollars,
+                                top = ceiling,
+                                template = Parts.PREFIX + url.priced(),
+                            ),
                     ),
                     Facet(
                         key = "brand",
@@ -351,7 +359,7 @@ internal class CatalogScreen(
             listOfNotNull(
                 if (filters.priceMinDollars != null || filters.priceMaxDollars != null) {
                     Chip(
-                        "$${filters.priceMinDollars ?: 0} – $${filters.priceMaxDollars ?: "∞"}",
+                        priceLabel(filters.priceMinDollars, filters.priceMaxDollars),
                         true,
                         toggle(
                             url,
@@ -366,6 +374,17 @@ internal class CatalogScreen(
             ) +
             filters.features.sorted().map { Chip(it, true, toggle(url, filters) { copy(features = features - it) }) } +
             filters.colours.sorted().map { Chip(it, true, toggle(url, filters) { copy(colours = colours - it) }) }
+
+    /** The applied range's chip: «$80 – $400», or the one bound set, «From $80», «Up to $400» (B-69). */
+    private fun priceLabel(
+        low: Int?,
+        high: Int?,
+    ): String =
+        when {
+            low != null && high != null -> "$$low – $$high"
+            low != null -> "From $$low"
+            else -> "Up to $$high"
+        }
 
     private fun toggle(
         url: CatalogUrl,
@@ -426,6 +445,12 @@ internal class CatalogUrl(
 ) {
     fun with(next: Filters): String = render(next)
 
+    /**
+     * The page as it is with the price range left open — [FacetRange.LOW] and [FacetRange.HIGH] where its
+     * bounds go — from the first page: what the price facet's fields and thumbs complete (B-69).
+     */
+    fun priced(): String = render(filters, priceTemplate = true)
+
     /** The page as it is — filters, sort and page — with the brand facet listing every brand: «Show N more». */
     fun brandsExpanded(): String = render(filters, sort, page, expanded = true)
 
@@ -442,6 +467,7 @@ internal class CatalogUrl(
         sort: Sort = this.sort,
         page: Int = 1,
         expanded: Boolean = this.expanded,
+        priceTemplate: Boolean = false,
     ): String {
         val params =
             f.brands.sorted().map { "brand=$it" } +
@@ -449,8 +475,8 @@ internal class CatalogUrl(
                 f.colours.sorted().map { "colour=$it" } +
                 listOfNotNull(
                     f.kind?.let { "kind=$it" },
-                    f.priceMinDollars?.let { "price_min=$it" },
-                    f.priceMaxDollars?.let { "price_max=$it" },
+                    (if (priceTemplate) FacetRange.LOW else f.priceMinDollars)?.let { "price_min=$it" },
+                    (if (priceTemplate) FacetRange.HIGH else f.priceMaxDollars)?.let { "price_max=$it" },
                     if (f.deliveryTomorrow) "delivery=tomorrow" else null,
                     f.ratingAtLeast?.let { "rating=${it.toPlainString()}" },
                     if (expanded) "$EXPAND=$EXPAND_BRANDS" else null,
