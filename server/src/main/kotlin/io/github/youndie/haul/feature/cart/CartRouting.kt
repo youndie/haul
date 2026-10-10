@@ -29,7 +29,8 @@ import org.koin.ktor.ext.inject
  * issued — is `401 unauthenticated`. A token and a guest id together are the customer (feature-identity).
  * Every command answers `refresh`, which redraws the cart and the header's count — but a card's «+» and the
  * product page's «Add to cart», whose address names the node they redraw, answer `update` of the header and
- * that node ([LineAnswers], B-63). Every refusal is a [CartError] or an [IdentityError].
+ * that node ([LineAnswers], B-63), followed by «Added to your cart» (B-75, B-81). Every refusal is a [CartError]
+ * or an [IdentityError].
  */
 internal fun Route.cartRouting() {
     val screen by inject<CartScreen>()

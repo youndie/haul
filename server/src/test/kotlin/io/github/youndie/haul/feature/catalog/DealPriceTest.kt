@@ -25,13 +25,13 @@ import io.github.youndie.haul.testing.assertRefresh
 import io.github.youndie.haul.testing.haulTest
 import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.seededFreshDatabase
+import io.github.youndie.haul.testing.update
 import io.github.youndie.haul.ui.CartLine
 import io.github.youndie.haul.ui.CheckoutSummary
 import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.kompot.KompotComponent
-import io.github.youndie.kompot.commands.UpdateAction
 import io.github.youndie.kompot.decodeKompotComponent
 import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
@@ -112,7 +112,7 @@ class DealPriceTest {
                 bearerAuth(sam)
                 contentType(ContentType.Application.Json)
                 setBody(haulWireJson.encodeToString(LineChange.serializer(), add.change))
-            }.action() is UpdateAction,
+            }.action().update() != null,
             "«+» on ${add.url} is not answered with an update",
         )
 

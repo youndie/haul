@@ -27,6 +27,7 @@ import io.github.youndie.haul.ui.ReturnForm
 import io.github.youndie.kompot.commands.LoadAction
 import io.github.youndie.kompot.commands.UpdateAction
 import io.github.youndie.kompot.standard.CloseAction
+import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.PresentAction
 import io.github.youndie.kompot.standard.RefreshAction
 import io.github.youndie.kompot.standard.SequenceAction
@@ -63,10 +64,32 @@ class WholePathTest {
 
     @Test
     fun `a shopper browses buys receives and returns an order over HTTP`() {
-        step("a guest arrives") {
-            val answer = shop.send("POST", GUESTS)
-            check(answer.status == 201) { "${answer.request} answered ${answer.status}: ${answer.body}" }
-            shop.guest = haulWireJson.decodeFromString(GuestDto.serializer(), answer.body).id
+        step("a guest arrives") { shop.arrive() }
+
+        step("a card's «+» says the item was added") {
+            // Pressed by a guest of its own (B-81), so the shopper's cart below stays empty until «Add to cart».
+            val other = Storefront(ComposedStack.origin).apply { arrive() }
+            val cards = other.page("/").all(ProductGrid.serializer()).flatMap { it.cards }
+            val card = assertNotNull(cards.firstOrNull { it.add != null }, "no card on the home page can be added")
+            val add = assertNotNull(card.add)
+            val answer = other.send("PUT", add.url, haulWireJson.encodeToString(LineChange.serializer(), add.change))
+            // The header's count and the card (B-63), then the message «Add to cart» answers with too (B-75).
+            val actions = (answer.action() as? SequenceAction)?.actions.orEmpty()
+            val update =
+                assertNotNull(actions.firstOrNull() as? UpdateAction, "«+» on «${card.title}» is not an update")
+            assertEquals(
+                1,
+                update.updates
+                    .map { it.component }
+                    .filterIsInstance<HaulHeader>()
+                    .single()
+                    .cartCount,
+            )
+            assertEquals(
+                ShowMessageAction("Added to your cart", actionLabel = "View cart", action = NavigateAction("/cart")),
+                actions.lastOrNull(),
+                "«+» on «${card.title}» does not say the item was added",
+            )
         }
 
         val (card, productAddress) =
@@ -410,6 +433,13 @@ class WholePathTest {
         val address: String,
         val totalCents: Int,
     )
+
+    /** A guest arrives: the server issues the id the storefront sends from then on. */
+    private fun Storefront.arrive() {
+        val answer = send("POST", GUESTS)
+        check(answer.status == 201) { "${answer.request} answered ${answer.status}: ${answer.body}" }
+        guest = haulWireJson.decodeFromString(GuestDto.serializer(), answer.body).id
+    }
 
     /** The header of the home, as the shopper is now. */
     private fun header(): HaulHeader = shop.page("/").one(HaulHeader.serializer())

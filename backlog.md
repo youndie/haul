@@ -57,7 +57,7 @@ A stage is a field on the item, not a directory.
 | [B-89](docs/backlog/B-89-traffic-exercises-compensation.md) `[ ]` | e2e: the synthetic shoppers also walk a declined payment | P3 | S | - |
 | [B-90](docs/backlog/B-90-review-loop-leftovers.md) `[ ]` | client + server: the small leftovers of the review loop | P3 | S | - |
 
-## Closed (78)
+## Closed (79)
 
 **Skeleton**
 
@@ -166,6 +166,7 @@ A stage is a field on the item, not a directory.
 - [B-77](docs/backlog/B-77-pages-beyond-four-unreachable.md) `[x]` - client + server: every page of results can be reached
 - [B-79](docs/backlog/B-79-checkout-step-indicator-and-links.md) `[x]` - client + server: checkout's step indicator and summary tell the truth
 - [B-80](docs/backlog/B-80-blank-first-load.md) `[x]` - client: the first load shows something before the app starts
+- [B-81](docs/backlog/B-81-card-plus-says-added.md) `[x]` - server + client: a card's «+» says the item was added
 
 <!-- END INDEX -->
 

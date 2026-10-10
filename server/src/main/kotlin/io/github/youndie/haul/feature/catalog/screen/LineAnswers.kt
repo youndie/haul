@@ -27,9 +27,9 @@ import io.ktor.http.encodeURLParameter
  * in ([SCOPE], B-72), which the header would otherwise lose. A command without it — the cart page's own lines — is answered `refresh`, as is one
  * whose SKU is no longer listed: there is no node to send.
  *
- * «Add to cart» also says so (B-75): its answer is `sequence[update, show_message]`, the message [ADDED] with
- * the way to the cart ([VIEW_CART]), which the client draws as a notice over the page. A card's «+» has no
- * message: the card stays where the shopper pressed it, and the header's count is the answer.
+ * Either press also says so (B-75, B-81): its answer is `sequence[update, show_message]`, the message [ADDED]
+ * with the way to the cart ([VIEW_CART]), which the client draws as a notice over the page. A `refresh` says
+ * nothing, and a «+» with nothing to add sends no command to be answered at all ([addToCart]).
  */
 internal class LineAnswers(
     private val catalog: CatalogRepository,
@@ -58,11 +58,11 @@ internal class LineAnswers(
                 addComponent(header)
                 addComponent(node)
             }
-        return if (answer == DETAILS) SequenceAction(listOf(update, ADDED_MESSAGE)) else update
+        return SequenceAction(listOf(update, ADDED_MESSAGE))
     }
 
     companion object {
-        /** What «Add to cart» says once the line is in (B-75). */
+        /** What «Add to cart» and a card's «+» say once the line is in (B-75, B-81). */
         const val ADDED = "Added to your cart"
 
         /** The words on the message's own button, which opens the cart. */

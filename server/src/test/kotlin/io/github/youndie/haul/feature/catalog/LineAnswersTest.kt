@@ -12,6 +12,7 @@ import io.github.youndie.haul.testing.guest
 import io.github.youndie.haul.testing.haulTest
 import io.github.youndie.haul.testing.json
 import io.github.youndie.haul.testing.only
+import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.testing.update
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.Link
@@ -36,6 +37,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import javax.sql.DataSource
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -48,6 +50,9 @@ import kotlin.test.assertNull
  * `update` of those two nodes rather than `refresh`. The page the client draws after it, the page before
  * with both replaced by id, has to be the page the address opens now; on the search page that includes the
  * query the header shows. The cart's own lines change the whole cart and still answer `refresh`.
+ *
+ * Both presses then say so (B-75, B-81): the answer is `sequence[update, show_message]`, «Added to your cart»
+ * with «View cart».
  */
 class LineAnswersTest {
     private suspend fun HttpClient.page(
@@ -92,14 +97,17 @@ class LineAnswersTest {
         return answer
     }
 
-    /** [answerOn] for a press answered with the update alone: no message. */
+    /** [answerOn] for a press that also says the line is in (B-81): the update, then the message. */
     private suspend fun HttpClient.pressedOn(
         path: String,
         guest: String,
         command: LineCommand,
         node: String,
-    ): UpdateAction =
-        assertIs<UpdateAction>(answerOn(path, guest, command, node), "${command.url} said more than the update")
+    ): UpdateAction {
+        val answer = assertIs<SequenceAction>(answerOn(path, guest, command, node), "${command.url} says nothing")
+        assertEquals(listOf(answer.update(), ADDED), answer.actions, command.url)
+        return assertNotNull(answer.update())
+    }
 
     @Test
     fun `a card's plus answers the header and the card`() =
@@ -158,13 +166,50 @@ class LineAnswersTest {
             val details = page(path, guest).only<ProductDetails>()
             assertNull(details.inCart, "the buy box says the line is in a cart that holds none of it")
             val answer = assertIs<SequenceAction>(answerOn(path, guest, assertNotNull(details.add), "details"))
-            assertEquals(
-                ShowMessageAction("Added to your cart", actionLabel = "View cart", action = NavigateAction("/cart")),
-                answer.actions.last(),
-            )
+            assertEquals(ADDED, answer.actions.last())
             val after = assertNotNull(answer.update()).updates.last().component as ProductDetails
             assertEquals(LineChange(quantity = 2), after.add?.change)
             assertEquals(Link("1 in your cart", NavigateAction("/cart")), after.inCart)
+        }
+
+    /**
+     * B-81: on every page that draws cards — home, the deals, a category, a search — the first card of each grid
+     * that can be added says so when its «+» is pressed, each by a guest of its own, so every press is a cart's
+     * first line. «Picked for you» is a customer's, pressed in `RecommendationsRoutesTest`.
+     */
+    @Test
+    fun `a card's plus says the item was added on every page that draws cards`() =
+        haulTest {
+            val pages = listOf("/ui/home", "/ui/deals", "/ui/c/home-kitchen/kitchen/mugs", "/ui/search?q=everyday")
+            val pressed =
+                pages.flatMap { path ->
+                    page(path, guest()).grids().mapNotNull { grid ->
+                        val buyer = guest()
+                        val cards = page(path, buyer).grids().single { it.id == grid.id }.cards
+                        val card = cards.firstOrNull { it.add != null } ?: return@mapNotNull null
+                        pressedOn(path, buyer, assertNotNull(card.add), card.id)
+                        "$path ${grid.id}"
+                    }
+                }
+            assertEquals(pages, pressed.map { it.substringBefore(' ') }.distinct(), "pressed only $pressed")
+        }
+
+    /**
+     * B-81: the press that takes the last one in stock still says so, and the card it answers with has nothing
+     * left to add — no command, so a press on it is answered with nothing and says nothing.
+     */
+    @Test
+    fun `a card's plus that takes the last one says so and leaves nothing to add`() =
+        seededFreshDatabase().use { database ->
+            haulTest(database) {
+                val guest = guest()
+                val path = "/ui/c/home-kitchen/kitchen/mugs"
+                val skuId = assertNotNull(mug(page(path, guest)).add).url.substringBefore('?').substringAfterLast('/')
+                database.sql("UPDATE skus SET stock = 1 WHERE id = '$skuId'")
+                val card = mug(page(path, guest))
+                val update = pressedOn(path, guest, assertNotNull(card.add), card.id)
+                assertNull((update.updates.last().component as ProductCard).add, "«+» offers more than the stock")
+            }
         }
 
     @Test
@@ -180,6 +225,19 @@ class LineAnswersTest {
             assertEquals(RefreshAction, press(guest, line).action())
         }
 
+    private fun DataSource.sql(statement: String) {
+        connection.use { c ->
+            c.createStatement().use { it.executeUpdate(statement) }
+            c.commit()
+        }
+    }
+
+    private fun KompotComponent.grids(): List<ProductGrid> = all().filterIsInstance<ProductGrid>()
+
     private fun mug(page: KompotComponent): ProductCard =
         page.only<ProductGrid>().cards.single { it.productId == SampleCatalog.STONEWARE_MUG }
+
+    private companion object {
+        val ADDED = ShowMessageAction("Added to your cart", actionLabel = "View cart", action = NavigateAction("/cart"))
+    }
 }
