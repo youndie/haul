@@ -1,6 +1,9 @@
 package io.github.youndie.haul
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.window.ComposeViewport
 import io.github.youndie.haul.feature.cart.ktorCartCommands
 import io.github.youndie.haul.feature.checkout.ktorCheckoutCommands
@@ -12,6 +15,7 @@ import io.github.youndie.haul.feature.identity.IdentityApi
 import io.github.youndie.haul.feature.identity.OidcSignInFlow
 import io.github.youndie.haul.feature.identity.PopupSignInFlow
 import io.github.youndie.haul.feature.identity.SIGN_IN_WINDOW
+import io.github.youndie.haul.shell.STATIC_FRAME_ID
 import io.github.youndie.haul.shell.WindowHistory
 import io.github.youndie.haul.shell.clipboardLinks
 import io.github.youndie.haul.shell.ktorCommands
@@ -31,6 +35,11 @@ import kotlinx.browser.window
  * which adds the bearer token or the guest id; so does the order page's stream of live updates (B-29). The
  * sign-in returns to `signed-in.html` beside the bundle, the address the realm's client registers, from a popup
  * the storefront watches itself (B-46) — or, when the browser blocks the popup, from this tab (B-66).
+ *
+ * Until Compose draws, the page shows `index.html`'s static frame — the header's shape and a progress line
+ * (B-80). Compose replaces the body's children with its own when it mounts, so the frame is put back over
+ * it, and taken away in the first frame Compose draws: removed in the same animation frame as the canvas's
+ * first picture, the browser shows one or the other, never both and never neither.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 public fun main() {
@@ -55,18 +64,28 @@ public fun main() {
     val checkoutCommands = ktorCheckoutCommands(http, origin, identity::send)
     val treeCommands = ktorTreeCommands(http, origin, identity::send)
     val realtime = ktorRealtime(http, origin, identity::send)
+    var frame = document.getElementById(STATIC_FRAME_ID)
     ComposeViewport(document.body!!) {
-        App(
-            photos,
-            transport,
-            WindowHistory,
-            identity,
-            cartCommands = cartCommands,
-            commands = commands,
-            checkoutCommands = checkoutCommands,
-            treeCommands = treeCommands,
-            realtime = realtime,
-            links = clipboardLinks,
-        )
+        Box(
+            Modifier.drawWithContent {
+                drawContent()
+                frame?.remove()
+                frame = null
+            },
+        ) {
+            App(
+                photos,
+                transport,
+                WindowHistory,
+                identity,
+                cartCommands = cartCommands,
+                commands = commands,
+                checkoutCommands = checkoutCommands,
+                treeCommands = treeCommands,
+                realtime = realtime,
+                links = clipboardLinks,
+            )
+        }
     }
+    frame?.let { document.body!!.appendChild(it) }
 }

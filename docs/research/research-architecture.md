@@ -1132,7 +1132,8 @@ name no photo, so every artboard's parity is what it was.
 A Compose canvas page is not indexable and its first load is dominated by the runtime. Accepted for
 a reference; the first-load size is measured (B-28), not assumed. *Confirmed in B-28* (below): skiko's
 wasm alone is two thirds of the bytes and, on a throttled link, most of the wait; what Haul itself adds
-is about a tenth, and the fonts another tenth.
+is about a tenth, and the fonts another tenth. The wait is no longer blank since B-80: the page draws the
+header's shape until Compose's first frame replaces it, in the HTML's first round trip (below).
 
 #### Measured in B-28
 
@@ -1310,6 +1311,69 @@ measurement's own static server, and within 0.1 s of B-28's brotli numbers for t
 (19.5 s and 3.9 s). On loopback the CPU still dominates and the shared machine's load still sets the
 spread (0.4 s against 1.0 s here, inside B-28's 0.4–1.2 s). Only the first load was measured; what
 `immutable` saves on a second visit (skiko's 2.5 MB) was not.
+
+#### Measured in B-80
+
+**What changed.** The wait itself stays — B-80 shortens none of it — but it is no longer blank:
+`composeApp/src/wasmJsMain/resources/index.html` draws the header's shape (the strip, the logo's place and its
+dot, «Catalog», the search field, the shortcuts, the cart, the category row) and B-62's sweeping line under it,
+in inline HTML and CSS at the header's own measures (185 px at 1440, 206 on a phone), shapes only — the words
+need the fonts, which arrive after the bundle. Nothing else is requested; the page is 4,726 bytes, 1,175
+brotli (`StaticFrameTest` holds it to the loader as its one request and under a first TCP window). No CSP or
+other header restricts inline styles: `WebBundle.kt` sets none and the chart's `IngressRoute` adds only the
+HTTPS redirect; the page carries no inline script, so a CSP that forbade inline scripts would not touch it.
+Compose mounts by replacing the body's children, the frame among them, so the entry point (`Main.kt`) puts
+the frame back over the mount in the same task and removes it from a `drawWithContent` around the app: in
+the animation frame of Compose's first picture, so the browser shows one or the other, never both and never
+neither.
+
+**How.** On 2026-10-10, B-34's `image` arm of B-28's harness, with the frame's probe and `--stop-after 3` added
+(the live storefront never goes quiet: the deals count down, so «settled» is not measured), as pre-registered
+in the item: two images from one server build of this item's branch on `d07ddf3`, differing only in the bundle
+they carry — **before**, `main`'s bundle at `d07ddf3` (`haul/server:b80-before`, `sha256:26e4206c…`), **after**,
+this branch's (`haul/server:b80-after`, `sha256:f0b962e8…`); skiko's `.wasm` the same in both (`089052ba…`),
+each started beside a seeded PostgreSQL, so the page draws Home from the server. Same Chromium (149.0.7827.55),
+profiles and rounds as B-28; the shared machine at a 1-minute load average of 0.7–3.3. «First contentful
+paint» is the browser's own (Paint Timing): a page whose only paint is its background colour reports none,
+so before it is Compose's first canvas frame and after it is the frame.
+
+| Arm | Profile | HTML end | First contentful paint | First frame (Compose) |
+|---|---|---:|---:|---:|
+| before | none | 53 | 666 (492–828) | 574 (447–758) |
+| before | Fast 4G | 213 | 4,770 (4,696–4,820) | 4,704 (4,641–4,751) |
+| before | Slow 4G | 614 | 24,030 (23,920–24,080) | 23,956 (23,864–24,002) |
+| after | none | 39 | 328 (268–532) | 533 (462–660) |
+| after | Fast 4G | 210 | 292 (272–312) | 4,709 (4,687–4,742) |
+| after | Slow 4G | 607 | 668 (656–676) | 23,934 (23,900–23,969) |
+
+The raw first contentful paints, rounds 1–7 (round 1 discarded):
+
+| Arm | Profile | First contentful paint | First frame |
+|---|---|---|---|
+| before | none | 672 828 540 588 744 780 492 | 583 758 461 510 637 691 447 |
+| before | Fast 4G | 4956 4784 4820 4764 4776 4720 4696 | 4814 4719 4751 4704 4705 4659 4641 |
+| before | Slow 4G | 24004 24080 24032 24028 24064 23928 23920 | 23933 24002 23965 23948 23983 23870 23864 |
+| after | none | 328 304 268 292 352 532 460 | 548 554 491 512 634 462 661 |
+| after | Fast 4G | 284 312 292 292 272 300 272 | 4720 4737 4711 4687 4742 4700 4706 |
+| after | Slow 4G | 664 668 676 660 668 672 656 | 23953 23969 23900 23931 23938 23949 23917 |
+
+The frame was on screen (first contentful paint to its removal) for 149 ms on loopback, 4.3 s on Fast 4G and
+23.2 s on Slow 4G (medians). In every counted run where the probe saw it — 17 of 18 — it was removed in the
+animation frame of Compose's first GL call and never hidden before. In the 18th (loopback, round 6) Compose drew
+before the browser's second animation frame: the probe, which only starts following the frame once a tick has
+seen it, never did, and the first contentful paint (532 ms) was the canvas, after the first frame (462 ms) —
+the frame was parsed and taken away without being painted, which is the right behaviour, not a measured one.
+Controls: with every `.wasm` blocked the probe saw no GL call in either arm and after's frame stayed on screen;
+the profiles came out in order; Slow 4G's first frame lies above the bundle's non-font bytes ÷ bandwidth
+(21,893 and 21,895 ms); and the swap check can fail — a copy of the after bundle whose page removes the frame
+on a timer, 300 ms after the HTML is parsed, failed it on Fast 4G (removed in animation frame 32–33, Compose's
+first GL call in 254).
+
+**What it says.** «Time to first paint» goes from the first frame to the HTML: 4.8 s to 0.3 s on Fast 4G and
+24.0 s to 0.7 s on Slow 4G — the page's first round trip plus a frame — and on loopback from 0.67 s to 0.33 s.
+The app's first frame does not move (+0.1 % on Fast 4G, −0.1 % on Slow 4G, inside the 5 % the item allowed);
+the kilobyte the page grew by is not visible in it. What D9 says about the bytes stands: the shopper still waits
+the bundle's whole transfer for the store itself, now looking at its header.
 
 ### D10. Documentation in English
 
