@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -28,6 +30,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.feature.checkout.CheckoutHeaderView
+import io.github.youndie.haul.feature.identity.SignInActions
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.HaulType.browserLeading
@@ -39,12 +42,14 @@ import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HaulHeaderView
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Icon
+import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.LocalLogoAction
 import io.github.youndie.haul.ui.Skeleton
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.accented
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.pressable
+import io.github.youndie.kompot.standard.NavigateAction
 
 // The client's own screens (research D2): what is drawn before a tree arrives and after a request for
 // one fails. No server tree is involved, so the header is the client's — who is looking is not known
@@ -53,16 +58,18 @@ import io.github.youndie.haul.ui.pressable
 /**
  * The header before any tree has arrived: the store's default place and promise, its top-level
  * categories, an account placeholder and no cart count. The server's header replaces it with the tree.
+ *
+ * Its controls lead where a guest's header from the server would send them (B-67), by the addresses the
+ * server's `Frame` fixes for every shopper: «Deals», the cart, «Orders» and «Saved» (a guest's — the
+ * sign-in, returning to them, which sends a customer straight on), the account and «HAUL PLUS» (the
+ * sign-in). Which address a category has is the server's to say, and no tree has said it yet: each word
+ * of the category row, and each entry of «Catalog», opens the catalog's root ([CATALOG]), every
+ * top-level category, one press from the one meant. Once a tree has been drawn the shell draws its
+ * header instead ([LocalShellHeader]).
  */
 public val SHELL_HEADER: HaulHeader =
-    HaulHeader(
-        id = "shell-header",
-        deliverTo = "Brooklyn, NY 11211",
-        deliveryPromise = "Free delivery over $35",
-        customerName = null,
-        cartCount = 0,
-        searchPlaceholder = "Search 2.4 million products",
-        categories =
+    run {
+        val categories =
             listOf(
                 "Electronics",
                 "Home & Kitchen",
@@ -74,8 +81,47 @@ public val SHELL_HEADER: HaulHeader =
                 "Auto",
                 "Books",
                 "Pets",
-            ),
-    )
+            )
+        HaulHeader(
+            id = "shell-header",
+            deliverTo = "Brooklyn, NY 11211",
+            deliveryPromise = "Free delivery over $35",
+            customerName = null,
+            cartCount = 0,
+            searchPlaceholder = "Search 2.4 million products",
+            categories = categories,
+            account = NavigateAction(SignInActions.SIGN_IN),
+            catalog = categories.map { Link(it, NavigateAction(CATALOG)) },
+            deals = NavigateAction(DEALS),
+            cart = NavigateAction(CART),
+            orders = NavigateAction(SignInActions.returningTo(ORDERS)),
+            saved = NavigateAction(SignInActions.returningTo(SAVED)),
+            plus = NavigateAction(SignInActions.SIGN_IN),
+        )
+    }
+
+// The server's addresses (`Frame` on the server) the shell's own header follows before a tree names them.
+private const val CATALOG = "/c"
+private const val DEALS = "/deals"
+private const val CART = "/cart"
+private const val ORDERS = "/account/orders"
+private const val SAVED = "/account/saved"
+
+/**
+ * The header the shell draws over a page it draws itself — a placeholder, an error, a page that is not
+ * there, the sign-in's (B-67): the header of the last tree drawn, whose links are the server's, or
+ * [SHELL_HEADER] before any. Outside the storefront — a screenshot — it is [SHELL_HEADER].
+ */
+public val LocalShellHeader: ProvidableCompositionLocal<HaulHeader> = staticCompositionLocalOf { SHELL_HEADER }
+
+/**
+ * [LocalShellHeader] as a page still loading or failed draws it: who is looking is not shown — the
+ * account slot a placeholder, no cart count — and the search field holds [query], a search's.
+ */
+@Composable
+internal fun PendingHeader(query: String? = null) {
+    HaulHeaderView(LocalShellHeader.current.copy(query = query), pending = true)
+}
 
 /** Why a screen's tree did not arrive, as the shell words it. */
 public enum class ShellFailure(
@@ -99,7 +145,7 @@ public fun ErrorShell(
     onRetry: () -> Unit = {},
 ) {
     ErrorPage({
-        HaulHeaderView(SHELL_HEADER, pending = true)
+        PendingHeader()
     }, accented("$subject didn’t\u00A0load", "load"), failure.message, balanced = false, onRetry)
 }
 
@@ -110,7 +156,7 @@ public fun SearchError(
     onRetry: () -> Unit = {},
 ) {
     ErrorPage(
-        { HaulHeaderView(SHELL_HEADER.copy(query = query), pending = true) },
+        { PendingHeader(query) },
         accented("Search didn’t respond", "respond"),
         "Your query is still in the field. Try again in a moment.",
         // `text-wrap: balance` keeps «didn’t respond» together at 1440 and breaks it on a phone,
@@ -189,7 +235,7 @@ public fun HomeLoading() {
     val compact = LocalHaulCompact.current
     val gutter = gutter()
     Column(Modifier.fillMaxWidth()) {
-        HaulHeaderView(SHELL_HEADER, pending = true)
+        PendingHeader()
         if (compact) {
             Column(
                 Modifier.padding(start = gutter, end = gutter, top = 16.dp),
@@ -300,7 +346,7 @@ public fun CatalogLoading() {
     val compact = LocalHaulCompact.current
     val gutter = gutter()
     Column(Modifier.fillMaxWidth()) {
-        HaulHeaderView(SHELL_HEADER, pending = true)
+        PendingHeader()
         Column(
             Modifier.padding(
                 start = gutter,
@@ -389,8 +435,9 @@ private val FACET_BLOCKS =
     )
 
 /**
- * A page whose subject is not there (`404`): the client draws it with the header it already has —
- * who is looking is known — an eyebrow, the title with its accent, why, and the way on. The sign-in's
+ * A page whose subject is not there (`404`): the client draws it with the header it already has — the
+ * last tree's, or [SHELL_HEADER] when the shopper landed on it (B-67) — an eyebrow, the title with its
+ * accent, why, and the way on. The sign-in's
  * pages are drawn the same way (B-44, B-66): no [actionLabel] while there is nothing to press, and a
  * second way on, [secondaryLabel], as a link under the button.
  */
@@ -464,7 +511,7 @@ public fun ProductLoading() {
     val compact = LocalHaulCompact.current
     val gutter = gutter()
     Column(Modifier.fillMaxWidth()) {
-        HaulHeaderView(SHELL_HEADER, pending = true)
+        PendingHeader()
         Column(
             Modifier.padding(
                 start = gutter,
@@ -547,7 +594,7 @@ public fun SearchLoading(query: String) {
     val compact = LocalHaulCompact.current
     val gutter = gutter()
     Column(Modifier.fillMaxWidth()) {
-        HaulHeaderView(SHELL_HEADER.copy(query = query), pending = true)
+        PendingHeader(query)
         Column(
             Modifier.padding(
                 start = gutter,
@@ -593,7 +640,7 @@ private val SEARCH_CHIP_WIDTHS = listOf(100, 140, 150, 130, 100, 90)
 @Composable
 public fun CartError(onRetry: () -> Unit = {}) {
     ErrorPage(
-        { HaulHeaderView(SHELL_HEADER, pending = true) },
+        { PendingHeader() },
         accented("Your cart didn’t load", "load"),
         "Nothing in it was lost. Try again in a moment.",
         // `text-wrap: balance`: «Your cart / didn’t load» at both widths.
@@ -611,7 +658,7 @@ public fun CartLoading() {
     val compact = LocalHaulCompact.current
     val gutter = gutter()
     Column(Modifier.fillMaxWidth()) {
-        HaulHeaderView(SHELL_HEADER, pending = true)
+        PendingHeader()
         Column(
             Modifier.padding(
                 start = gutter,
@@ -803,7 +850,7 @@ public fun OrderLoading() {
     val compact = LocalHaulCompact.current
     val gutter = gutter()
     Column(Modifier.fillMaxWidth()) {
-        HaulHeaderView(SHELL_HEADER, pending = true)
+        PendingHeader()
         Column(
             Modifier.padding(
                 start = gutter,
@@ -902,7 +949,7 @@ private fun OrderSummarySkeleton(modifier: Modifier) {
 @Composable
 public fun AccountError(onRetry: () -> Unit = {}) {
     ErrorPage(
-        { HaulHeaderView(SHELL_HEADER, pending = true) },
+        { PendingHeader() },
         accented("Your account didn’t load", "load"),
         ShellFailure.Server.message,
         // `text-wrap: balance`: «Your account / didn’t load» at both widths.
@@ -965,7 +1012,7 @@ public fun SavedLoading() {
 @Composable
 public fun SavedError(onRetry: () -> Unit = {}) {
     ErrorPage(
-        { HaulHeaderView(SHELL_HEADER, pending = true) },
+        { PendingHeader() },
         accented("Saved didn’t load", "load"),
         ShellFailure.Server.message,
         // `text-wrap: balance`: one line at 1440, «Saved / didn’t load» on a phone.
@@ -982,7 +1029,7 @@ public fun SavedError(onRetry: () -> Unit = {}) {
 private fun AccountPageLoading(main: @Composable (Modifier) -> Unit) {
     val compact = LocalHaulCompact.current
     Column(Modifier.fillMaxWidth()) {
-        HaulHeaderView(SHELL_HEADER, pending = true)
+        PendingHeader()
         if (compact) {
             Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 64.dp)) {
                 Column(Modifier.padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {

@@ -8,8 +8,9 @@ import io.github.youndie.haul.ui.following
 /**
  * What the client draws for `404 order_not_found` (Order_NotFound) — an order that is not there, or not
  * the shopper's, which the server answers alike: the answer carries no tree, so the copy is the client's
- * and the header is the one it last drew. «Go to your orders» follows that header's «Orders»
- * (`HaulHeader.orders`), the server's address for them.
+ * and the header is the one it last drew, or the shell's own on arrival. «Go to your orders» follows that
+ * header's «Orders» (`HaulHeader.orders`): the server's address for them, or — the shell's — a guest's
+ * sign-in returning to them, which sends a customer straight on (B-67).
  */
 @Composable
 public fun OrderNotFound(header: HaulHeader) {

@@ -44,7 +44,6 @@ import io.github.youndie.haul.feature.product.ProductNotFound
 import io.github.youndie.haul.feature.search.SearchSuggestOverlay
 import io.github.youndie.haul.registry.haulRegistry
 import io.github.youndie.haul.ui.HaulHeader
-import io.github.youndie.haul.ui.HaulHeaderView
 import io.github.youndie.haul.ui.HeaderMenuState
 import io.github.youndie.haul.ui.LocalHaulActions
 import io.github.youndie.haul.ui.LocalHaulNow
@@ -76,6 +75,7 @@ import io.github.youndie.kompot.standard.CloseAction
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.PresentAction
+import io.github.youndie.kompot.standard.RefreshAction
 import io.github.youndie.kompot.standard.SequenceAction
 import io.github.youndie.kompot.standard.ShowMessageAction
 import io.github.youndie.kompot.withLoad
@@ -138,6 +138,11 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * screenshot — it is drawn as it loaded. The phone's filter sheet is held here, above the page
  * ([FiltersSheetState], B-54): it stays open over the pages its own presses open, and any other new page
  * closes it. So is the phone header's menu ([HeaderMenuState], B-73), which any new page closes.
+ *
+ * The header over a page the shell draws itself — a placeholder, an error, a page that is not there, the
+ * sign-in's — is the last tree's, or [SHELL_HEADER] before any ([LocalShellHeader], B-67), and its presses
+ * are followed here: a link opens, sign-in's go through [Signing], a `present` (a non-member's «HAUL PLUS»)
+ * draws its dialog over the page until a `close` or a visit, and a `refresh` loads the page again.
  *
  * A screen is a path (B-62). A new address on the same path — a facet, a sort, a page of results, back
  * or forward between two of them — loads behind the page that is drawn, which keeps its scroll and what
@@ -208,13 +213,16 @@ public fun Storefront(
     val menu = remember { HeaderMenuState() }
     // A tree's `show_message` (B-75), drawn over whichever page is shown until its time is up.
     val messages = remember { MessageState() }
-    // A page visited closes the panel, the filter sheet and the phone header's menu (B-73); an address an
-    // update recorded (B-63) is the page already drawn, and closes none — the sheet's own presses are such
-    // updates.
+    // What a `present` of the shell's own header put over the page — a non-member's «HAUL PLUS» (B-67).
+    var shellPresented by remember { mutableStateOf<Presented?>(null) }
+    // A page visited closes the panel, the filter sheet, the phone header's menu (B-73) and what the shell's
+    // header presented; an address an update recorded (B-63) is the page already drawn, and closes none — the
+    // sheet's own presses are such updates.
     LaunchedEffect(navigator.visits) {
         dismiss()
         filters.close()
         menu.close()
+        shellPresented = null
     }
     // «Clear» on recent searches: the panel is asked for again once the server has emptied them.
     val clearUrl = panel?.clearUrl
@@ -230,7 +238,8 @@ public fun Storefront(
             }
         }
 
-    // The header the client last drew: a page that is not there is drawn under it (Product_NotFound).
+    // The header the client last drew: a page that is not there is drawn under it (Product_NotFound), and so
+    // are a page's placeholders and errors, as a placeholder (B-67).
     var header by remember { mutableStateOf<HaulHeader?>(null) }
     var signedOut by remember { mutableIntStateOf(0) }
     val home = remember(navigator) { { navigator.open("/") } }
@@ -240,16 +249,36 @@ public fun Storefront(
     // The suggest panel and the header of a page the shell draws itself — loading, an error, a page that is
     // not there, a prompt, the sign-in page — are not a renderer's, so their links are followed here; sign-in's
     // and sign-out's as everywhere else (B-66), the page loaded again for who is looking once they are done.
+    // A `present` — the last tree's «HAUL PLUS» for a customer who is not a member — draws its dialog over
+    // the page, and the dialog's `refresh` loads the page again (B-67).
     val panelActions =
         remember(navigator, signing) {
             val navigate = navigating(navigator)
-            KompotActionHandler { action ->
-                if (SignInActions.claims(action)) {
-                    scope.launch { signing.actions(navigator.address, redraw = navigator::reload).handle(action) }
-                } else {
-                    navigate.handle(action)
-                }
-            }
+            presenting(
+                KompotActionHandler { action ->
+                    when {
+                        SignInActions.claims(action) -> {
+                            // A sign-in that returns to the page already shown loads it again: opening it would
+                            // do nothing — a guest's «Saved» over the Saved list's error page.
+                            val actions =
+                                signing.actions(
+                                    navigator.address,
+                                    redraw = navigator::reload,
+                                    open = navigator::openOrReload,
+                                )
+                            scope.launch { actions.handle(action) }
+                        }
+
+                        action is RefreshAction -> {
+                            navigator.reload()
+                        }
+
+                        else -> {
+                            navigate.handle(action)
+                        }
+                    }
+                },
+            ) { shellPresented = it }
         }
     CompositionLocalProvider(
         LocalHaulNow provides now,
@@ -261,6 +290,8 @@ public fun Storefront(
         LocalTreeCommands provides treeCommands,
         LocalFiltersSheet provides filters,
         LocalHeaderMenu provides menu,
+        // The header of a page the shell draws itself: the last tree's, whose links are the server's (B-67).
+        LocalShellHeader provides (header ?: SHELL_HEADER),
     ) {
         SearchSuggestOverlay(
             panel,
@@ -284,6 +315,7 @@ public fun Storefront(
                         SignInPage(address, header ?: SHELL_HEADER, signing, navigator, blocked)
                     }
                 }
+                shellPresented?.let { PresentedOverlay(it, registry) { shellPresented = null } }
                 return@SearchSuggestOverlay
             }
             // The screen's `load`s (B-63): whether one is on its way, and which press is the last — the only
@@ -385,18 +417,27 @@ public fun Storefront(
                             NotUpdatedNotice(press.cause, press.retry)
                         }
                     }
-                    presented?.let { shown ->
-                        val forms = remember { FormController(FormSchema(formId = "none", fields = emptyList())) }
-                        val top = if (shown.content is PlusTrialDialog) PLUS_DIALOG_COMPACT_TOP else 120.dp
-                        DialogOverlay(onDismiss = { presented = null }, compactTop = top) {
-                            KompotScreen(shown.content, registry, forms, shown.actions)
-                        }
-                    }
+                    presented?.let { PresentedOverlay(it, registry) { presented = null } }
+                    shellPresented?.let { PresentedOverlay(it, registry) { shellPresented = null } }
                 }
             }
             FiltersSheetOverlay(filters, loading.isLoading)
             MessageHost(messages)
         }
+    }
+}
+
+/** What a `present` drew over the page, until [onDismiss] — the scrim — or the dialog's own `close`. */
+@Composable
+private fun PresentedOverlay(
+    shown: Presented,
+    registry: KompotRegistry,
+    onDismiss: () -> Unit,
+) {
+    val forms = remember { FormController(FormSchema(formId = "none", fields = emptyList())) }
+    val top = if (shown.content is PlusTrialDialog) PLUS_DIALOG_COMPACT_TOP else 120.dp
+    DialogOverlay(onDismiss = onDismiss, compactTop = top) {
+        KompotScreen(shown.content, registry, forms, shown.actions)
     }
 }
 
@@ -570,6 +611,11 @@ internal fun presenting(
     return self
 }
 
+/** Opens [location], or loads it again when it is the page already shown — which [Navigator.open] leaves be. */
+private fun Navigator.openOrReload(location: String) {
+    if (location == address.value) reload() else open(location)
+}
+
 /** Follows `navigate` to its deeplink; anything else is somebody else's to handle. */
 private fun navigating(navigator: Navigator): KompotActionHandler =
     KompotActionHandler { action -> if (action is NavigateAction) navigator.open(action.deeplink) }
@@ -629,7 +675,7 @@ private fun Loading(address: Address) {
         PageKind.Account -> AccountLoading()
         PageKind.Saved -> SavedLoading()
         PageKind.Order -> OrderLoading()
-        PageKind.SignIn, PageKind.Other -> HaulHeaderView(SHELL_HEADER, pending = true)
+        PageKind.SignIn, PageKind.Other -> PendingHeader()
     }
 }
 

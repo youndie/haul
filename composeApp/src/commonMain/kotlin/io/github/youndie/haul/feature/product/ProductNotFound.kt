@@ -6,7 +6,7 @@ import io.github.youndie.haul.ui.HaulHeader
 
 /**
  * What the client draws for `404 product_not_found` (Product_NotFound): the answer carries no tree, so
- * the copy is the client's and the header is the one it last drew.
+ * the copy is the client's and the header is the one it last drew, or the shell's own on arrival (B-67).
  */
 @Composable
 public fun ProductNotFound(
