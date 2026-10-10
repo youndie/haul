@@ -1,7 +1,7 @@
 ---
 id: B-75
 title: "client: a press shows that it worked"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-10-review
