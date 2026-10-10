@@ -334,6 +334,7 @@ page would gain or lose a section an `update` cannot add or take away — is `na
 | `GET /ui/parts/deals?page=…` | public | a page or «Show N more» between grids that start past the first page; to or from a grid with the first page, whose «Deals of the day» the others lack, the press is still `navigate` — «Show N more» from the first page included, which the shell draws behind the kept page (B-62) | `grid`, `pagination` |
 | `GET /ui/parts/account/orders?status=…` | customer (`401`) | a chip of the history | `account` |
 | `GET /ui/parts/account/saved?…` | customer (`401`) | a filter or a page of the Saved list | `account` |
+| `GET /ui/parts/p/{productId}?sku=…&tab=…&shown=…` | public | «Show more reviews», «Show more questions» (B-71): the tab listing ten more, `shown` from 10 to 500 | `reviews` or `questions`, the tab's node |
 
 A part is found by its id, so an id names one node of a page (kompot SPEC §4.2) — the order's live frame and the
 override store rely on it too. `server/.../shell/UniqueIdsTest.kt` holds it over every page a guest and a customer
