@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.catalog
 
 import io.github.youndie.haul.StoreClock
 import io.github.youndie.haul.seed.CatalogSeed
+import io.github.youndie.haul.seed.SeedProduct
 import io.github.youndie.haul.testing.SeededDatabase
 import io.github.youndie.haul.testing.all
 import io.github.youndie.haul.testing.cart
@@ -91,6 +92,47 @@ class DealsOfTheDayTest {
         }
 
     /**
+     * With no deal live a guest's home would have no row of products at all — hero, tiles and the Plus block
+     * over nothing (B-70) — so «Popular on Haul» takes the deals' place: the six most reviewed products in stock,
+     * at the guest's prices. Never beside live deals.
+     */
+    @Test
+    fun `with no live deal home draws the popular row`() =
+        seededFreshDatabase().use { database ->
+            store(database) { clock ->
+                assertTrue(tree("/ui/home").ids().none { it in POPULAR }, "the popular row is drawn beside live deals")
+
+                clock.at = CatalogSeed.DEALS_END
+                val home = tree("/ui/home")
+                assertTrue(home.ids().containsAll(POPULAR), "a guest's home has no row of products: ${home.ids()}")
+                val title =
+                    home
+                        .all()
+                        .filterIsInstance<SectionHeader>()
+                        .single { it.id == "popular-title" }
+                        .title
+                assertEquals("Popular on Haul", title)
+                val popular = home.all().filterIsInstance<ProductGrid>().single { it.id == "popular" }
+                assertEquals(mostReviewed(), popular.cards.map { it.productId })
+            }
+        }
+
+    /** The six most reviewed products of the seed with a SKU in stock, ties by id. */
+    private fun mostReviewed(): List<String> {
+        val seed = CatalogSeed.generate(CatalogSeed.CANVAS_DAY)
+        val inStock =
+            seed.skus
+                .filter { it.stock > 0 }
+                .map { it.productId }
+                .toSet()
+        return seed.products
+            .filter { it.id in inStock }
+            .sortedWith(compareByDescending<SeedProduct> { it.reviewsCount }.thenBy { it.id })
+            .take(6)
+            .map { it.id }
+    }
+
+    /**
      * A deal that ends before midnight is counted down to its own end: with the third deal ending at 21:00 on
      * the canvas's day, the countdown at 19:47 runs to 21:00 on home and on the deals page; at 21:00 that card
      * is gone and the countdown runs to the other five's end, midnight.
@@ -119,6 +161,7 @@ class DealsOfTheDayTest {
     private companion object {
         val DEALS = setOf("deals-title", "deals")
         val PICKS = setOf("picked-title", "picked")
+        val POPULAR = setOf("popular-title", "popular")
         val NINE_PM: OffsetDateTime = OffsetDateTime.parse("2025-10-07T21:00:00-04:00")
 
         init {

@@ -6,6 +6,7 @@ import io.github.youndie.haul.feature.catalog.domain.Campaign
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
+import io.github.youndie.haul.feature.catalog.domain.Listed
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.liveSale
 import io.github.youndie.haul.feature.membership.screen.PlusOffer
@@ -17,6 +18,7 @@ import io.github.youndie.haul.ui.CampaignRow
 import io.github.youndie.haul.ui.CategoryGrid
 import io.github.youndie.haul.ui.CategoryTile
 import io.github.youndie.haul.ui.Link
+import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.PromoBanner
 import io.github.youndie.haul.ui.SectionHeader
@@ -28,7 +30,8 @@ import java.util.Locale
 /**
  * `/ui/home` (screen-home). Everybody sees the campaign and its banners — the hero while the sale is live for
  * the viewer, each banner until its campaign ends (B-59) — the categories, the deals of the day — while a
- * deal is live: with none, the section is not drawn (B-58) — and the Plus block: the offer to a guest and a
+ * deal is live: with none, the section is not drawn (B-58), and «Popular on Haul» takes its place, so a guest's
+ * home always has a row of products (B-70) — and the Plus block: the offer to a guest and a
  * non-member — whose «Try 30 days free» is sign-in or the trial's dialog — and a member's savings and renewal
  * (feature-membership, [PlusOffer]). A customer sees «Picked for you» ([PickedSection],
  * feature-recommendations) after it, where the canvas puts it.
@@ -71,7 +74,8 @@ internal class HomeScreen(
                         CategoryTile("tile-${it.slug}", it.name, it.tone, it.label, categoryLink(it, categories))
                     },
             )
-        dealsOfTheDay(catalog, calendar, photos, viewer)?.let { deals ->
+        val deals = dealsOfTheDay(catalog, calendar, photos, viewer)
+        if (deals != null) {
             sections +=
                 SectionHeader(
                     "deals-title",
@@ -82,11 +86,34 @@ internal class HomeScreen(
                     accent = "day",
                 )
             sections += ProductGrid(id = "deals", columns = DEAL_COLUMNS, scroll = true, cards = deals.cards)
+        } else {
+            val popular = popular(categories, viewer)
+            if (popular.isNotEmpty()) {
+                sections += SectionHeader(POPULAR_TITLE, "Popular on Haul", accent = "Haul")
+                sections += ProductGrid(id = POPULAR, columns = DEAL_COLUMNS, scroll = true, cards = popular)
+            }
         }
         sections += PlusOffer.block(viewer, viewer.customer?.let { loyalty.standing(it) })
         sections += picked.build(viewer)
         return Frame.page("home", viewer, navigation(categories), sections, footer = true)
     }
+
+    /**
+     * The row drawn in the deals' place while no deal is live (B-70): a guest's home has no other row of products,
+     * and with none it is a hero, banners and tiles over nothing. The most reviewed products in stock — a measure
+     * that needs no window, so it is there whatever the sale's calendar — drawn as every card is, at the viewer's
+     * prices.
+     */
+    private suspend fun popular(
+        categories: List<Category>,
+        viewer: Viewer,
+    ): List<ProductCard> =
+        catalog
+            .listedIn(categories.map { it.slug }.toSet(), viewer.prices)
+            .filter { it.inStock }
+            .sortedWith(compareByDescending<Listed> { it.product.reviewsCount }.thenBy { it.product.id })
+            .take(DEAL_COLUMNS)
+            .map { card(it, calendar, photos, viewer) }
 
     private fun hero(campaign: Campaign) =
         CampaignHero(
@@ -129,6 +156,10 @@ internal class HomeScreen(
         private const val CATEGORY_TILES = 8
         private const val BANNERS = 2
         private const val DEAL_COLUMNS = 6
+
+        /** The ids of the row drawn while no deal is live (B-70). */
+        const val POPULAR_TITLE = "popular-title"
+        const val POPULAR = "popular"
         private val MONTH_DAY = DateTimeFormatter.ofPattern("MMM d", Locale.US)
     }
 }
