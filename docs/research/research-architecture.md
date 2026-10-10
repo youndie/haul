@@ -187,10 +187,34 @@ client alone.
   directly). At the line's limit «Buy now» only selects the line; out of stock neither is offered.
 - A list of choices («Catalog»'s categories, the sort's orders) travels as `Link`s and opens as a
   menu in the client. No artboard draws a menu open; the menu is drawn from the theme's tokens.
-- «Show 24 more» opens the next page, the same address as the page number. Since B-62 the shell keeps
-  the page and its scroll across a new address of the same path, and since B-63 the press is a `load` whose
-  answer replaces the results where the shopper is; appending to the grid instead is still not done — the
-  server sends each page of results whole.
+- **«Show N more» appends** (owner's call in B-77). An `update` replaces a node by its id and has no
+  «append», so the append is an address: the next page together with every page the grid already holds,
+  `?page=<next>&from=<first>` — `/c/mugs?page=3&from=1` draws pages 1 to 3 in one grid, and «Show N more»
+  under it goes to `page=4&from=1`. The press is the screen's `load` as before (B-63), answered with the
+  grid of all those pages; the cards above are drawn again unchanged, the shell keeps the page and its
+  scroll (B-62), and a reload or a shared link draws the same grid. A page number opens that page alone
+  (no `from`); a filter, a sort or a category starts again from the first page. «N» is how many the next
+  page holds — 24, or fewer on the last. `from` outside 1 to `page` is `400 validation_failed`, on the
+  category, the search and the deals alike. The cost: each press sends every card the grid holds, so the
+  answer grows by a page each time — «everyday», eight pages on the seed, ends at 192 cards; no cap is
+  set.
+- **The page numbers are the current page with its neighbours** (B-77): the first and the last, the
+  current one and one on either side, «…» for each run left out — «1 … 6 7 8 … 517» —, a run of one page
+  drawn as its number, and the three pages at either end, so the first page still reads «1 2 3 … 517» as
+  the canvas draws it. At most seven numbers, every page one press from the one before it
+  (`server/.../feature/catalog/screen/Cards.kt`, `pageNumbers`). The Saved list draws the same numbers.
+- **The search has the sort** (B-77) the route always parsed: `FilterChips.sortLabel` and `sorts` end the
+  category chips' row — at its right edge at 1440, over it on a phone — the same orders and menu as a
+  category's, each a `load` from the first page; a category chip keeps the sort. The
+  no-results tips («01 Check the spelling», …) are advice, drawn as text with their numbers, not on the
+  white pills the queries to try use, which run a search when pressed. No artboard draws the sort and the
+  canvas draws the tips as pills, so `Search_Results`, `Search_Autocomplete` and `Search_NoResults` (and
+  their phone twins) depart from their artboards on purpose from B-77 on.
+- **The suggest panel follows the keyboard** (B-77): with the panel's queries offered, ↓ and ↑ move the
+  highlight over them — from none to the last and back to none above the first — and Enter opens the
+  highlighted query; with none highlighted Enter opens the text as typed, as before. Typing starts over
+  from none. The field owns it (`SearchInput` in `ui/HaulHeaderView.kt`); the shell offers the panel's
+  queries and draws the highlight.
 - **`/deals` is a screen** (owner's call in B-37): «Deals», «View all deals», «Shop the sale» and the
   empty cart's «See today's deals» all lead there, and the server already had what it needs — today's
   deals with their countdown on the first page, then every product whose shown price is under its old
@@ -279,8 +303,8 @@ page would gain or lose a section an `update` cannot add or take away — is `na
 | Endpoint (kind `load`, kompot SPEC §16.1) | Tier | Pressed from | The parts |
 |---|---|---|---|
 | `GET /ui/parts/c/{categoryPath}?…` (the whole path, B-68) | public | a kind, a facet, «Show N more», an applied chip, «Clear all», a sort, a page, the price range (B-69, below) | `title`, `kinds` (when the category has kinds), `results` |
-| `GET /ui/parts/search?q=…` | public | a category chip, a page | `categories`, `grid`, `pagination` |
-| `GET /ui/parts/deals?page=…` | public | a page between pages past the first; to or from the first, whose «Deals of the day» the others lack, the press is still `navigate` | `grid`, `pagination` |
+| `GET /ui/parts/search?q=…` | public | a category chip, a sort (B-77, the end of the chips' row), «Show N more», a page | `categories`, `grid`, `pagination` |
+| `GET /ui/parts/deals?page=…` | public | a page or «Show N more» between grids that start past the first page; to or from a grid with the first page, whose «Deals of the day» the others lack, the press is still `navigate` — «Show N more» from the first page included, which the shell draws behind the kept page (B-62) | `grid`, `pagination` |
 | `GET /ui/parts/account/orders?status=…` | customer (`401`) | a chip of the history | `account` |
 | `GET /ui/parts/account/saved?…` | customer (`401`) | a filter or a page of the Saved list | `account` |
 
