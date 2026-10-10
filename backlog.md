@@ -41,19 +41,18 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (7)
+## Open (6)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
-| [B-67](docs/backlog/B-67-error-pages-header-is-dead.md) `[~]` | client: the header on loading, error and not-found pages leads somewhere | P2 | S | - |
 | [B-71](docs/backlog/B-71-product-page-dead-links.md) `[ ]` | client + server: what looks pressable on the product page does something | P2 | M | - |
 | [B-72](docs/backlog/B-72-header-and-footer-dead-words.md) `[ ]` | client + server: the header strip and the footer do not pretend to be links | P2 | S | - |
 | [B-78](docs/backlog/B-78-placeholders-on-the-stand.md) `[ ]` | server + client: the stand shows pictures, not placeholder labels | P2 | M | - |
 | [B-80](docs/backlog/B-80-blank-first-load.md) `[ ]` | client: the first load shows something before the app starts | P2 | S | - |
 | [B-79](docs/backlog/B-79-checkout-step-indicator-and-links.md) `[ ]` | client + server: checkout's step indicator and summary tell the truth | P3 | S | - |
 
-## Closed (73)
+## Closed (74)
 
 **Skeleton**
 
@@ -149,6 +148,7 @@ A stage is a field on the item, not a directory.
 **Review**
 
 - [B-66](docs/backlog/B-66-sign-in-reachable-from-everywhere.md) `[x]` - client: sign-in and sign-out work from every page and every way in
+- [B-67](docs/backlog/B-67-error-pages-header-is-dead.md) `[x]` - client: the header on loading, error and not-found pages leads somewhere
 - [B-68](docs/backlog/B-68-first-filter-reloads-the-page.md) `[x]` - server + client: the first filter on a category does not reload the page
 - [B-69](docs/backlog/B-69-price-facet-does-nothing.md) `[x]` - client + server: the price filter can be used
 - [B-70](docs/backlog/B-70-deals-vanish-at-midnight.md) `[x]` - server: a running stand keeps its deals of the day

@@ -268,6 +268,33 @@ Where the canvas has no answer the conventional phone pattern is taken:
   with the row or hides its words, and «Orders» and the account do not belong under categories; the button
   right of the cart — it moves the heart, the account and the cart instead of the logo.
 
+**Decided in B-67, the header over a page the shell draws itself leads somewhere.** A placeholder, an error
+page, a page that is not there, the sign-in prompt and the sign-in page carry no tree, so their header is the
+client's. It used to be `SHELL_HEADER` with no actions at all: on a page that did not load only the logo and
+the search worked, and landing straight on a 404 or the prompt gave the same dead header.
+
+- **Once a tree has been drawn, its header is the one**, its links the server's: the shell keeps the last
+  tree's header and draws every page of its own under it (`LocalShellHeader`, `shell/Shell.kt`) — a
+  placeholder or an error as a placeholder (who is looking not shown, no cart count), a page that is not
+  there as it is. The pixels are the artboards' as before; no golden changed.
+- **Before any tree, the shell's header carries the addresses the server's `Frame` fixes for a guest**:
+  «Deals» `/deals`, the cart `/cart`, «Orders» and «Saved» the sign-in returning to them (a customer
+  arriving at `/sign-in` is sent straight on, B-66), the account and «HAUL PLUS» the sign-in. Which address
+  a category has is the server's to say and no tree has said it yet, so each word of the category row and
+  each entry of «Catalog» opens the catalog's root, `/c`, every top-level category, one press from the one
+  meant. Rejected: copying the seed's slugs into the client (paths are the server's strings, and a store
+  with other categories would get 404s); drawing the words as plain text or not at all (the placeholders'
+  artboards draw the row, and the shopper cannot tell a dead word from a live one).
+- **A `present` of that header is drawn over the page**: the last tree's «HAUL PLUS» for a customer who is
+  not a member (the trial's dialog, B-49), which the shell's handler used to drop because the screen's
+  `presented` lives inside a screen that a page of the shell's own does not have. The dialog's answer
+  `refresh` loads the page again; a visit takes the dialog away.
+- **A sign-in from that header that returns to the page already shown loads it again** — a guest's «Saved»
+  over the Saved list's error page — as a tree's does; opening it did nothing.
+- **The phone header's menu opens over a placeholder too** (B-73 kept it shut there, a button drawn and
+  dead): it lists what the header carries, and its account row is the sign-in or the account, while the slot
+  itself stays a placeholder.
+
 **Decided in B-62, a screen is a path** (owner's call). `/c/mugs?brand=Ostra` and `/c/mugs` are one
 screen, `/c/mugs` and `/p/…` two. A new address of the same path — a facet, a sort, a page of results, a
 product's tab or SKU, back and forward between two of them — is loaded behind the page that is drawn
