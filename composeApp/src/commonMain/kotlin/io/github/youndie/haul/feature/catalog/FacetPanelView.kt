@@ -37,6 +37,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -119,7 +120,11 @@ private fun FacetBlock(
             else -> {
                 facet.options.forEach { option ->
                     Row(
-                        Modifier.fillMaxWidth().heightIn(min = if (sheet) 44.dp else 0.dp).follows(option.action),
+                        Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = if (sheet) 44.dp else 0.dp)
+                            .muted(option)
+                            .follows(option.action),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -399,6 +404,15 @@ private fun Thumb(modifier: Modifier) {
     )
 }
 
+/**
+ * An option that would show nothing — a count of 0, not ticked (B-75) — is drawn faded; the server sends it
+ * with no action, so it presses nothing. A ticked one keeps its look and its press: that is how it is unticked.
+ */
+private fun Modifier.muted(option: FacetOption): Modifier =
+    if (option.count == 0 && !option.selected) alpha(MUTED_ALPHA) else this
+
+private const val MUTED_ALPHA = 0.4f
+
 @Composable
 private fun Checkbox(checked: Boolean) {
     val shape = RoundedCornerShape(6.dp)
@@ -458,7 +472,7 @@ private fun Swatches(
             val colour = option.swatch?.let(::toneColor) ?: HaulColors.outlineVariant
             // The selected ring is a box shadow on the canvas: 2 px of Paper, then 2 px of Cobalt,
             // drawn outside the swatch without moving its neighbours.
-            Box(Modifier.size(size).follows(option.action), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(size).muted(option).follows(option.action), contentAlignment = Alignment.Center) {
                 if (option.selected) {
                     Box(Modifier.requiredSize(size + 8.dp).background(HaulColors.primary, CircleShape))
                     Box(Modifier.requiredSize(size + 4.dp).background(HaulColors.background, CircleShape))
@@ -501,7 +515,7 @@ private fun Pills(options: List<FacetOption>) {
             Text(
                 option.label,
                 HaulType.text(14f, if (option.selected) 600 else 500),
-                box.follows(option.action).padding(horizontal = 13.dp, vertical = 9.dp),
+                box.muted(option).follows(option.action).padding(horizontal = 13.dp, vertical = 9.dp),
                 softWrap = false,
             )
         }

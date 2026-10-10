@@ -21,6 +21,7 @@ import io.github.youndie.haul.testing.haulTest
 import io.github.youndie.haul.testing.liveTree
 import io.github.youndie.haul.testing.loads
 import io.github.youndie.haul.testing.seededFreshDatabase
+import io.github.youndie.haul.testing.update
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.commands.UpdateAction
@@ -184,7 +185,7 @@ class UniqueIdsTest {
                 contentType(ContentType.Application.Json)
                 setBody(haulWireJson.encodeToString(LineChange.serializer(), command.change))
             }.action()
-        (pressed as? UpdateAction)?.let { findings.updated(path, "«+» ${command.url}", page, it) }
+        pressed.update()?.let { findings.updated(path, "«+» ${command.url}", page, it) }
     }
 
     private fun Findings.updated(

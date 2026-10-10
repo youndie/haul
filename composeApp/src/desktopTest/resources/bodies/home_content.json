@@ -134,7 +134,7 @@
    "cards": [
     {
      "id": "card-1",
-     "productId": "p-1",
+     "productId": "p-1", "add": {"url": "/api/v1/cart/lines/p-1-0?answer=card", "change": {"quantity": 1}},
      "label": "headphones",
      "badge": "−22%",
      "price": "$349",
@@ -147,7 +147,7 @@
     },
     {
      "id": "card-2",
-     "productId": "p-2",
+     "productId": "p-2", "add": {"url": "/api/v1/cart/lines/p-2-0?answer=card", "change": {"quantity": 1}},
      "label": "air fryer",
      "badge": "−36%",
      "price": "$89",
@@ -160,7 +160,7 @@
     },
     {
      "id": "card-3",
-     "productId": "p-3",
+     "productId": "p-3", "add": {"url": "/api/v1/cart/lines/p-3-0?answer=card", "change": {"quantity": 1}},
      "label": "sweater",
      "badge": "−40%",
      "price": "$48",
@@ -173,7 +173,7 @@
     },
     {
      "id": "card-4",
-     "productId": "p-4",
+     "productId": "p-4", "add": {"url": "/api/v1/cart/lines/p-4-0?answer=card", "change": {"quantity": 1}},
      "label": "vacuum",
      "badge": "−40%",
      "price": "$299",
@@ -186,7 +186,7 @@
     },
     {
      "id": "card-5",
-     "productId": "p-5",
+     "productId": "p-5", "add": {"url": "/api/v1/cart/lines/p-5-0?answer=card", "change": {"quantity": 1}},
      "label": "serum",
      "badge": "−36%",
      "price": "$14",
@@ -199,7 +199,7 @@
     },
     {
      "id": "card-6",
-     "productId": "p-6",
+     "productId": "p-6", "add": {"url": "/api/v1/cart/lines/p-6-0?answer=card", "change": {"quantity": 1}},
      "label": "shoes",
      "badge": "−40%",
      "price": "$72",
@@ -242,7 +242,7 @@
    "cards": [
     {
      "id": "card-7",
-     "productId": "p-7",
+     "productId": "p-7", "add": {"url": "/api/v1/cart/lines/p-7-0?answer=card", "change": {"quantity": 1}},
      "label": "keyboard",
      "price": "$119",
      "title": "Mechanical Keyboard 75%, Hot-Swappable",
@@ -253,7 +253,7 @@
     },
     {
      "id": "card-8",
-     "productId": "p-8",
+     "productId": "p-8", "add": {"url": "/api/v1/cart/lines/p-8-0?answer=card", "change": {"quantity": 1}},
      "label": "coffee set",
      "price": "$42",
      "title": "Ceramic Pour-Over Coffee Set",
@@ -264,7 +264,7 @@
     },
     {
      "id": "card-9",
-     "productId": "p-9",
+     "productId": "p-9", "add": {"url": "/api/v1/cart/lines/p-9-0?answer=card", "change": {"quantity": 1}},
      "label": "bedding",
      "badge": "−22%",
      "price": "$139",
@@ -277,7 +277,7 @@
     },
     {
      "id": "card-10",
-     "productId": "p-10",
+     "productId": "p-10", "add": {"url": "/api/v1/cart/lines/p-10-0?answer=card", "change": {"quantity": 1}},
      "label": "toy",
      "price": "$35",
      "title": "Building Blocks Space Station, 1,200 pcs",
@@ -288,7 +288,7 @@
     },
     {
      "id": "card-11",
-     "productId": "p-11",
+     "productId": "p-11", "add": {"url": "/api/v1/cart/lines/p-11-0?answer=card", "change": {"quantity": 1}},
      "label": "watch",
      "price": "$229",
      "title": "Smart Watch Series 4, 44 mm, Graphite",
@@ -299,7 +299,7 @@
     },
     {
      "id": "card-12",
-     "productId": "p-12",
+     "productId": "p-12", "add": {"url": "/api/v1/cart/lines/p-12-0?answer=card", "change": {"quantity": 1}},
      "label": "yoga mat",
      "price": "$58",
      "title": "Natural Rubber Yoga Mat, 6 mm",

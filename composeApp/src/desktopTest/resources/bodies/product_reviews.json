@@ -137,6 +137,8 @@
    "haulPay": "or 4 payments of $87.25 with Haul Pay",
    "haulPayStrong": "4 payments of $87.25",
    "inStock": true,
+   "add": {"url": "/api/v1/cart/lines/p-sony-wh-1000xm6-0?answer=details", "change": {"quantity": 1}},
+   "buy": {"url": "/api/v1/cart/lines/p-sony-wh-1000xm6-0", "change": {"quantity": 1, "selected": true}, "next": {"type": "navigate", "deeplink": "/sign-in?next=%2Fcheckout"}},
    "delivery": [
     {
      "title": "Courier · Tomorrow, Oct 8",

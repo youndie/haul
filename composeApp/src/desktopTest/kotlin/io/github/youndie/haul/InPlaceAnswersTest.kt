@@ -6,6 +6,8 @@ import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertHasNoClickAction
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
@@ -262,6 +264,27 @@ class InPlaceAnswersTest {
                 },
             )
             assertEquals(listOf("/ui$MUGS"), requests.toList(), "«+» asked for a page")
+        }
+
+    /**
+     * B-75: a card whose tree gives «+» nothing to add — out of stock, or the line at its limit — draws it
+     * disabled, and a press on it sends nothing and opens nothing: before, it fell through to the card under
+     * it and opened the product.
+     */
+    @Test
+    fun `a card's plus with nothing to add sends nothing and opens nothing`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            mugs()
+            storefront()
+            waitForText(card("Stoneware", 0))
+            val plus = onAllNodes(hasContentDescription(ADD_TO_CART))[1]
+            plus.assertIsNotEnabled()
+            plus.performClick()
+            waitForIdle()
+            assertEquals(emptyList(), sent.toList(), "«+» with nothing to add sent a command")
+            assertEquals(listOf(MUGS), history.entries, "«+» with nothing to add opened the product")
+            assertEquals(listOf("/ui$MUGS"), requests.toList())
+            onAllNodes(hasContentDescription(ADD_TO_CART))[0].assertIsEnabled()
         }
 
     /**

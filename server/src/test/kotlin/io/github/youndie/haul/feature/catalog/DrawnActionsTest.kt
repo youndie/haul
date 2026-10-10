@@ -491,7 +491,8 @@ class DrawnActionsTest {
             assertEquals("Price: low to high", expandedPage.only<AppliedFilters>().sortLabel)
             assertEquals(2, expandedPage.only<HaulPagination>().current)
 
-            val ticked = follow(expanded.options.last().action)
+            // The last brand that can be ticked: one the rating leaves with nothing carries no action (B-75).
+            val ticked = follow(expanded.options.last { it.action != null }.action)
             assertEquals(expanded.options.size, brands(ticked).options.size, "ticking a brand folded the facet")
         }
 

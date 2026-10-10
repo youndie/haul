@@ -2,6 +2,11 @@ package io.github.youndie.haul.feature.product
 
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
@@ -16,13 +21,21 @@ import io.github.youndie.haul.feature.cart.LineCommand
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
+import io.github.youndie.haul.shell.MESSAGE_MS
+import io.github.youndie.haul.shell.MESSAGE_TAG
 import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.theme.HaulTheme
+import io.github.youndie.haul.ui.HaulHeader
+import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.ProductDetails
+import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.commands.kompotUpdate
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.RefreshAction
+import io.github.youndie.kompot.standard.SequenceAction
+import io.github.youndie.kompot.standard.ShowMessageAction
 import io.github.youndie.kompot.standard.TextComponent
 import kotlinx.serialization.PolymorphicSerializer
 import java.util.concurrent.CopyOnWriteArrayList
@@ -45,14 +58,15 @@ class BuyBoxWiringTest {
     private val signIns = AtomicInteger()
     private val history = FakeHistory(ADDRESS)
 
-    /** The server's answer to a cart command: accepted with `refresh` unless a test refuses it. */
+    /** The server's answer to a cart command: accepted with [answer] unless a test refuses it. */
     private var refuse = false
+    private var answer: KompotAction = RefreshAction
 
     private val cartCommands =
         CartCommands { command ->
             sent += command
             if (refuse) throw CartRefused(409, null, "Only 1 left in stock")
-            RefreshAction
+            answer
         }
 
     private fun ComposeUiTest.storefront(page: KompotComponent) {
@@ -85,6 +99,67 @@ class BuyBoxWiringTest {
             assertEquals(listOf<CartCommand>(CartCommand.ChangeLine(LINE, ADD.change)), sent.toList())
             assertEquals(listOf("/ui$ADDRESS", "/ui$ADDRESS"), requests.toList(), "the page was not drawn again")
             assertEquals(listOf(ADDRESS), history.entries, "«Add to cart» left the page")
+        }
+
+    /**
+     * B-75: «Add to cart» answered as the server answers it — `update` of the header and the buy box, then
+     * `show_message` — draws the count, the buy box's «1 in your cart» and the message, with no page asked
+     * for; the message's own button opens the cart and takes the message away.
+     */
+    @Test
+    fun `add to cart shows its message and the buy box says the line is in the cart`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            val page = inStock(BUY_AS_CUSTOMER) as ColumnComponent
+            val header = page.children.filterIsInstance<HaulHeader>().single()
+            val details = page.children.filterIsInstance<ProductDetails>().single()
+            answer =
+                SequenceAction(
+                    listOf(
+                        kompotUpdate {
+                            addComponent(header.copy(cartCount = 1))
+                            addComponent(
+                                details.copy(
+                                    add = LineCommand(LINE, LineChange(quantity = 2)),
+                                    inCart = Link("1 in your cart", NavigateAction("/cart")),
+                                ),
+                            )
+                        },
+                        ShowMessageAction(
+                            "Added to your cart",
+                            actionLabel = "View cart",
+                            action = NavigateAction("/cart"),
+                        ),
+                    ),
+                )
+            storefront(page)
+            onNodeWithTag(IN_CART_TAG).assertDoesNotExist()
+
+            onNodeWithText("Add to cart").performClick()
+            waitUntil(timeoutMillis = 5_000) { onAllNodesWithTag(MESSAGE_TAG).fetchSemanticsNodes().isNotEmpty() }
+            onNodeWithText("Added to your cart").assertExists()
+            onNodeWithTag(IN_CART_TAG).assertExists()
+            onNodeWithText("1 in your cart").assertExists()
+            assertEquals(listOf("/ui$ADDRESS"), requests.toList(), "«Add to cart» asked for a page")
+
+            onNode(hasText("View cart") and hasAnyAncestor(hasTestTag(MESSAGE_TAG))).performClick()
+            onNodeWithText(NEXT).assertExists()
+            onNodeWithTag(MESSAGE_TAG).assertDoesNotExist()
+            assertEquals(listOf(ADDRESS, "/cart"), history.entries)
+        }
+
+    /** B-75: a message with nothing pressed goes away on its own once its time is up. */
+    @Test
+    fun `a message goes away on its own`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            answer = SequenceAction(listOf(ShowMessageAction("Added to your cart")))
+            storefront(inStock(BUY_AS_CUSTOMER))
+            onNodeWithText("Add to cart").performClick()
+            waitUntil(timeoutMillis = 5_000) { onAllNodesWithTag(MESSAGE_TAG).fetchSemanticsNodes().isNotEmpty() }
+            mainClock.advanceTimeBy(MESSAGE_MS - 500)
+            onNodeWithTag(MESSAGE_TAG).assertExists()
+            mainClock.advanceTimeBy(1_000)
+            waitForIdle()
+            onNodeWithTag(MESSAGE_TAG).assertDoesNotExist()
         }
 
     @Test

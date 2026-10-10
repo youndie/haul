@@ -77,6 +77,7 @@ import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.PresentAction
 import io.github.youndie.kompot.standard.SequenceAction
+import io.github.youndie.kompot.standard.ShowMessageAction
 import io.github.youndie.kompot.withLoad
 import io.github.youndie.kompot.withRefresh
 import io.github.youndie.kompot.withUpdates
@@ -125,7 +126,8 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * refused for want of a sign-in (`401`: a guest on a customer's page, or a sign-in lapsed past
  * renewing) asks for one ([SignInPrompt], B-44) and is loaded again once it has gone through. The cart's presses — the cart's own and a card's «+» — go
  * to [cartCommands] (B-13, B-37), whose answer, `refresh`, draws the screen again — or, for «+» and «Add to
- * cart», `update`, which redraws the header and the control (B-63). «Clear» on recent
+ * cart», `update`, which redraws the header and the control (B-63); «Add to cart» then says so in a message
+ * drawn over the page ([MessageHost], B-75). «Clear» on recent
  * searches goes through [commands] (B-37), and the suggest panel is asked for again once the server
  * has answered. The checkout's go to [checkoutCommands] (B-15), whose `refresh` draws it again the
  * same way. A tree's `present` draws its component over the page — the product page's review and
@@ -204,6 +206,8 @@ public fun Storefront(
     }
     val filters = remember { FiltersSheetState() }
     val menu = remember { HeaderMenuState() }
+    // A tree's `show_message` (B-75), drawn over whichever page is shown until its time is up.
+    val messages = remember { MessageState() }
     // A page visited closes the panel, the filter sheet and the phone header's menu (B-73); an address an
     // update recorded (B-63) is the page already drawn, and closes none — the sheet's own presses are such
     // updates.
@@ -363,6 +367,7 @@ public fun Storefront(
                                     signing,
                                     live,
                                     InPlace(overrides, loading) { unanswered = it },
+                                    messages,
                                     { header = it },
                                     { signedOut += 1 },
                                 ) {
@@ -390,6 +395,7 @@ public fun Storefront(
                 }
             }
             FiltersSheetOverlay(filters, loading.isLoading)
+            MessageHost(messages)
         }
     }
 }
@@ -442,7 +448,8 @@ internal class Presented(
  * answer, and an `update` — a load's or a command's — replaces its nodes in [inPlace]'s store and hands
  * the address it names to the history without a load (B-63); a load refused for a lapsed sign-in is
  * [onSignedOut]'s too, any other failure [InPlace.unanswered]'s.
- * `present` and `close` are [onPresent]'s, and a `sequence` is each of its actions in turn. A [live] screen
+ * `present` and `close` are [onPresent]'s, a `show_message` is [messages]' (B-75), and a `sequence` is each of
+ * its actions in turn — «Add to cart» answers `update`, then `show_message`. A [live] screen
  * listens on its channel while it is shown, and an update redraws the node it names (B-29); a refresh starts it
  * over from the tree it brought, so an update older than the tree never covers it.
  */
@@ -456,6 +463,7 @@ private fun Shown(
     signing: Signing,
     live: Live?,
     inPlace: InPlace,
+    messages: MessageState,
     onHeader: (HaulHeader) -> Unit,
     onSignedOut: () -> Unit,
     onPresent: (Presented?) -> Unit,
@@ -489,7 +497,12 @@ private fun Shown(
             top =
                 presenting(
                     KompotActionHandler { action ->
-                        scope.launch { if (!signInActions.handle(action)) navigate.handle(action) }
+                        // A message's own button is a new action like any other: it goes through the whole chain.
+                        if (action is ShowMessageAction) {
+                            messages.show(action, top::handle)
+                        } else {
+                            scope.launch { if (!signInActions.handle(action)) navigate.handle(action) }
+                        }
                     }.withRefresh(scope) { refresh.refresh() }
                         .withUpdates(inPlace.overrides) { deeplink, history ->
                             navigator.record(deeplink, replace = history == UpdateHistory.REPLACE)

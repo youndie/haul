@@ -17,6 +17,8 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /** feature-browse's scenarios, against the seeded catalog. */
@@ -62,6 +64,29 @@ class CatalogRoutesTest {
                     .single { it.key == "brand" }
                     .options
             assertTrue(brands.any { it.label == "Marshall" && it.selected }, "the brand facet lost its values")
+        }
+
+    /**
+     * B-75: an option another filter has left with nothing to show — a count of 0 — carries no action, so the
+     * client draws it faded and pressing it opens nothing; ticked, it keeps its action, which unticks it.
+     */
+    @Test
+    fun `an option with nothing to show presses nothing unless it is ticked`() =
+        haulTest {
+            val options =
+                tree("/ui/c/electronics/audio/headphones?brand=Marshall&colour=Pink")
+                    .only<FacetPanel>()
+                    .facets
+                    .filter { it.kind != "range" }
+                    .flatMap { facet -> facet.options.map { facet.key to it } }
+            val empty = options.filter { (_, it) -> it.count == 0 && !it.selected }
+            assertTrue(empty.isNotEmpty(), "no option was left empty — the check would pass on nothing")
+            empty.forEach { (key, it) -> assertNull(it.action, "$key «${it.label}» shows nothing and still presses") }
+            val tickedEmpty = options.filter { (_, it) -> it.count == 0 && it.selected }
+            assertTrue(tickedEmpty.isNotEmpty(), "no ticked option was left empty — the exception is unchecked")
+            (options - empty.toSet()).forEach { (key, it) ->
+                assertNotNull(it.action, "$key «${it.label}» (${it.count}) presses nothing")
+            }
         }
 
     /** Scenario «An unknown category». */

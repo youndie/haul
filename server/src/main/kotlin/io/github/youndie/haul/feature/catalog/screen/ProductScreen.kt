@@ -25,6 +25,7 @@ import io.github.youndie.haul.ui.Breadcrumbs
 import io.github.youndie.haul.ui.Crumb
 import io.github.youndie.haul.ui.DeliveryLine
 import io.github.youndie.haul.ui.Highlight
+import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.ProductDescription
 import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.haul.ui.ProductTabs
@@ -221,8 +222,18 @@ internal class ProductScreen(
             heartAction = heartAction(viewer),
             add = addToCart(sku, viewer.inCart, LineAnswers.DETAILS_ANSWER),
             buy = buyNow(sku, viewer),
+            inCart = inCart(sku, viewer),
         )
     }
+
+    /**
+     * «2 in your cart», leading to the cart (B-75), while the viewer's cart holds [sku]: what «Add to cart»
+     * changes in the buy box, besides the header's count, so the press shows it worked.
+     */
+    private fun inCart(
+        sku: Sku,
+        viewer: Viewer,
+    ): Link? = viewer.inCart[sku.id]?.takeIf { it > 0 }?.let { Link("$it in your cart", NavigateAction(Frame.CART)) }
 
     /**
      * «Buy now» (B-48): what «Add to cart» puts in, with the line selected — checkout takes the selected

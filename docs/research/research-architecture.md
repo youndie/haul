@@ -341,6 +341,22 @@ the client draws a grid's cards as nodes of the tree (`LocalCardNodes`), so the 
 The cart's own lines, «Buy now», the Saved list's cards (whose «Price dropped» mark only that page draws) and every
 other command still answer `refresh`.
 
+**Decided in B-75, a press shows that it worked.** «Add to cart» answers `sequence[update, show_message]`: the
+header and the buy box as above, then kompot's message «Added to your cart» with «View cart» (`LineAnswers.ADDED`),
+and the buy box says what is in the cart (`ProductDetails.inCart`, «2 in your cart» leading to `/cart`). The client
+draws `show_message` itself (`shell/Messages.kt`): kompot leaves its look to the client and no artboard draws one,
+so it is the frame the shell already had over a page — B-62's notice, inverse surface, the Acid accent, the button
+on the right — at the bottom, four seconds (six with a button), a new message replacing the last; kompot's Material
+snackbar was not taken, the app has no Material theme. A card's «+» has no message: the card stays under the
+shopper's finger and the header's count is its answer. What has nothing to do looks it and presses nothing: a «+»
+the tree gives no change is greyed as the buy box's buttons are out of stock, and takes the press instead of
+letting it open the product; «Add to cart» at the line's limit is greyed the same; a facet option another filter
+leaves at 0, unticked, carries no action and is drawn faded (ticked, it keeps its action — that is how it is
+unticked). The cart button keeps the count's place when the cart is empty, so the count appearing moves nothing
+around it (the search field at 1440, the heart and the account on a phone); empty, the bag and «Cart» sit in the
+middle of that width. The cost against the canvas: every header drawn with an empty cart — a guest's, the
+placeholder's — has a cart button 34 px wider at 1440 and 32 px on a phone than the canvas's Home_Guest.
+
 **Decided in B-22, a route over the screen.** A dialog the canvas draws over a page («Write a review»,
 «Ask a question») is kompot's `present` of a component the server built — the form, its labels and the
 URL it posts to — carried by the control that opens it, so it has no address of its own and
