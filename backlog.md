@@ -42,7 +42,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (31)
+## Open (30)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -61,7 +61,6 @@ A stage is a field on the item, not a directory.
 | [B-105](docs/backlog/B-105-shell-header-knows-the-customer.md) `[ ]` | client: a page opened directly knows who is signed in | P2 | S | - |
 | [B-106](docs/backlog/B-106-display-face-loses-characters.md) `[ ]` | client: the display face draws every character it is given | P2 | S | - |
 | [B-109](docs/backlog/B-109-saga-steps-in-tracy.md) `[ ]` | server: an order's saga is visible in tracy | P2 | S | - |
-| [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[~]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 | [B-82](docs/backlog/B-82-tablet-widths.md) `[ ]` | client: the store reads well between a phone and 1440 | P2 | M | - |
 | [B-83](docs/backlog/B-83-typed-input-before-every-press.md) `[ ]` | client: every press that reads a field sees what was typed | P2 | S | - |
 | [B-88](docs/backlog/B-88-a-return-restocks.md) `[ ]` | server: a returned unit goes back to stock | P2 | S | - |
@@ -78,7 +77,7 @@ A stage is a field on the item, not a directory.
 | [B-89](docs/backlog/B-89-traffic-exercises-compensation.md) `[ ]` | e2e: the synthetic shoppers also walk a declined payment | P3 | S | - |
 | [B-90](docs/backlog/B-90-review-loop-leftovers.md) `[ ]` | client + server: the small leftovers of the review loop | P3 | S | - |
 
-## Closed (79)
+## Closed (80)
 
 **Skeleton**
 
@@ -164,6 +163,7 @@ A stage is a field on the item, not a directory.
 - [B-28](docs/backlog/B-28-first-load-size-and-time-of.md) `[x]` - measure: first-load size and time of the wasm bundle
 - [B-29](docs/backlog/B-29-live-order-tracking-through-kompot-realtime.md) `[x]` - live order tracking through kompot-realtime
 - [B-30](docs/backlog/B-30-product-images-through-object-storage.md) `[x]` - product images through object storage
+- [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[x]` - synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand
 - [B-34](docs/backlog/B-34-the-stand-serves-the-bundle-uncompressed.md) `[x]` - ops: the stand serves the wasm bundle uncompressed
 - [B-56](docs/backlog/B-56-placement-moves-the-order-page-live.md) `[x]` - server: placement moves the order page live
 - [B-62](docs/backlog/B-62-the-page-keeps-its-tree.md) `[x]` - client: a filter or a sort redraws the results, not the page

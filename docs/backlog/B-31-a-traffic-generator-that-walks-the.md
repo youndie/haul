@@ -1,7 +1,7 @@
 ---
 id: B-31
 title: "synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand"
-status: wip
+status: done
 priority: P2
 size: M
 stage: stage-9-ship
@@ -190,3 +190,50 @@ splits three ways:
   the walks go. That is B-109, open; B-31 does not wait for it.
 - **metrik**: not checked by us on the stand — no access from here.
 
+
+## Iteration 3 (2026-10-11): the renewal's test red in CI, green on the build machine
+
+haul#108 (iteration 2) was merged with its `e2e` job red and reverted (haul#109); this branch re-applies it on top of
+the revert and fixes what CI showed.
+
+**What CI showed** (runs 38089469768, push, and 38089539577, pull request, head `9eb7088`): `a walk whose bearer
+expires while it waits renews it and reaches the refund` failed with «the walk stopped at step «wait for the order
+to arrive»: the tree at /ui/account/orders/HL-48303 answered 401» — not «refreshing the sign-in answered …», so the
+refresh itself worked; the retried request was refused again. The same test passed twice on the build machine.
+
+**Not the stack.** CI and the build machine run the same e2e stack — `ComposedStack` starts shildik
+`ghcr.io/youndie/shildik-sqlite:0.4.1` with the same realm and client, and the storefront's scope carries
+`offline_access` in both (a missing refresh token would have failed the walk at its sign-in, «the provider issued no
+refresh token»). The same unchanged code then passed in CI too (run 38090220110, head `51483fe7`): a race, not an
+environment.
+
+**The cause: a refresh within the second of the sign-in returns the very same access token.** shildik's access
+token carries no `jti`, its `iat` is in whole seconds and RS256 signs deterministically
+(`IssueUserTokensUseCase`), so two tokens for one person issued in one second are byte for byte equal. Probed on the
+build machine against the e2e stack (a throwaway test, not kept): a sign-in and a refresh 10–13 ms later gave the same
+token three times of three; a refresh 1.1 s later a new one each time. The test's transport tells the «expired»
+bearer by its text, so when the walk went from its sign-in to its first read of the order in under a second — as
+in CI, «placed after 0.3s» — the renewed token was the spoiled one again and was refused again. Where the walk
+crossed a second it passed. A real expiry comes five minutes after the issue, so the walk itself was right; the test
+was not.
+
+**Reproduced on purpose** on the build machine, with the sign-in started 20 ms into a second (a temporary hook in
+the test's transport, not kept): iteration 2's test failed with CI's own line; the same test without the fix's wait,
+six runs, failed all three aligned runs and one of three unaligned.
+
+**Fixed in the test** (`SyntheticShopperTest.BearerExpiresAtPlacement`): at the placement's `202` the transport waits
+until shildik issues tokens in a later second than the bearer's — read from the `iat` of a token it issues for a
+second person, so shildik's clock off the wire rather than this machine's (`kapkan:wall-clock` refuses the local
+one, rightly: the second that matters is shildik's). At most one second. The walk is unchanged.
+
+**Mutation.** With the fix, six runs (three aligned) passed six. The walk without its `renew` fails it with the
+stand's line, «step «wait for the order to arrive»: the tree at /ui/account/orders/HL-48302 answered 401»; a `renew`
+that hands back the old token fails it the same way — which a transport that spoiled one request only would have
+let through.
+
+**Checks.** Build machine: `scripts/e2e.sh` (image built) green — all eight e2e tests. CI on this branch's push,
+run 38090822335 at `be15e27a` (the fix): every job green, the test passed; the pull request's run proves the head.
+On the Mac: `make fix`, `make check`, `make docs-against BASE=origin/main`.
+
+`done` again: the walks reach the return at the stand's pace (iteration 2), and the test that says so now passes in
+CI as well as on the build machine. What the AC asks of the public stand is as «Closed» above says.

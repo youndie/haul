@@ -779,6 +779,9 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   of `stand-kind.sh`'s default (a whole walk in under a minute) never showed it; `stand-kind.sh` takes the stand's
   own `SPEED`/`INTERVAL`/`POLL`/`WAIT` for that. The pace itself was not the cause: the fulfilment keys every
   step to placement, not to the window chosen, and a walk's order was delivered ten minutes after it was placed.
+  **A shildik token is not unique within its second**: no `jti`, `iat` in whole seconds, RS256 deterministic — a
+  refresh in the second of the sign-in returns the same access token. Harmless for a real expiry (five minutes
+  later), but a test that marks a token expired by its text must let a second pass first (B-31, iteration 3).
 
 **Decided in B-19, the account.**
 
