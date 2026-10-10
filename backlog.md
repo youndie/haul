@@ -41,7 +41,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (9)
+## Open (8)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -50,12 +50,11 @@ A stage is a field on the item, not a directory.
 | [B-71](docs/backlog/B-71-product-page-dead-links.md) `[ ]` | client + server: what looks pressable on the product page does something | P2 | M | - |
 | [B-72](docs/backlog/B-72-header-and-footer-dead-words.md) `[ ]` | client + server: the header strip and the footer do not pretend to be links | P2 | S | - |
 | [B-75](docs/backlog/B-75-feedback-after-a-press.md) `[ ]` | client: a press shows that it worked | P2 | S | - |
-| [B-77](docs/backlog/B-77-pages-beyond-four-unreachable.md) `[ ]` | client + server: every page of results can be reached | P2 | S | - |
 | [B-78](docs/backlog/B-78-placeholders-on-the-stand.md) `[ ]` | server + client: the stand shows pictures, not placeholder labels | P2 | M | - |
 | [B-80](docs/backlog/B-80-blank-first-load.md) `[ ]` | client: the first load shows something before the app starts | P2 | S | - |
 | [B-79](docs/backlog/B-79-checkout-step-indicator-and-links.md) `[ ]` | client + server: checkout's step indicator and summary tell the truth | P3 | S | - |
 
-## Closed (71)
+## Closed (72)
 
 **Skeleton**
 
@@ -157,6 +156,7 @@ A stage is a field on the item, not a directory.
 - [B-73](docs/backlog/B-73-phone-cannot-reach-catalog-and-orders.md) `[x]` - client: on a phone every part of the store is reachable
 - [B-74](docs/backlog/B-74-account-tiles-lead-nowhere.md) `[x]` - client + server: the account page's tiles and old orders open
 - [B-76](docs/backlog/B-76-promo-apply-sends-nothing.md) `[x]` - client: «Apply» on the cart's promo code is applied
+- [B-77](docs/backlog/B-77-pages-beyond-four-unreachable.md) `[x]` - client + server: every page of results can be reached
 
 <!-- END INDEX -->
 

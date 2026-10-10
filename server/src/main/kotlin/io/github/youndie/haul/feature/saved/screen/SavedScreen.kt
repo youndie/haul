@@ -95,7 +95,7 @@ internal class SavedScreen(
         current: Int,
         pages: Int,
     ): HaulPagination {
-        val numbers = pageNumbers(pages)
+        val numbers = pageNumbers(current, pages)
         return HaulPagination(
             id = "pagination",
             current = current,

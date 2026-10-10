@@ -39,12 +39,40 @@ internal enum class Sort(
 /** Which facet a count leaves out: each facet is counted over every filter but its own. */
 internal enum class FacetKey { Brand, Price, Feature, Colour, Kind, Delivery, Rating }
 
+/**
+ * What a grid shows of [total] products: the pages [from] to [page] of [pages], [Browse.PAGE_SIZE] to a page.
+ * [from] is [page] unless «Show N more» appended pages to the one the grid started at (B-77): the grid then
+ * holds every page from [from] on, and [page] is the last of them, where the next «Show N more» goes on from.
+ */
 internal data class Page(
     val items: List<Listed>,
     val total: Int,
     val page: Int,
     val pages: Int,
-)
+    val from: Int = page,
+) {
+    /** How many products the page after [page] holds: what «Show N more» says; 0 on the last page. */
+    val next: Int get() = (total - page * Browse.PAGE_SIZE).coerceIn(0, Browse.PAGE_SIZE)
+
+    companion object {
+        /** The pages [from] to [page] of [all], in their order. */
+        fun of(
+            all: List<Listed>,
+            page: Int,
+            from: Int = page,
+        ): Page {
+            val pages = maxOf(1, (all.size + Browse.PAGE_SIZE - 1) / Browse.PAGE_SIZE)
+            val first = from.coerceIn(1, page)
+            return Page(
+                all.drop((first - 1) * Browse.PAGE_SIZE).take((page - first + 1) * Browse.PAGE_SIZE),
+                all.size,
+                page,
+                pages,
+                first,
+            )
+        }
+    }
+}
 
 /**
  * Filtering, facet counts, sorting and paging of one category's products, in memory.
@@ -77,11 +105,8 @@ internal class Browse(
         filters: Filters,
         sort: Sort,
         page: Int,
-    ): Page {
-        val matching = all.filter { matches(it, filters) }.sortedWith(comparator(sort))
-        val pages = maxOf(1, (matching.size + PAGE_SIZE - 1) / PAGE_SIZE)
-        return Page(matching.drop((page - 1) * PAGE_SIZE).take(PAGE_SIZE), matching.size, page, pages)
-    }
+        from: Int = page,
+    ): Page = Page.of(all.filter { matches(it, filters) }.sortedWith(comparator(sort)), page, from)
 
     /**
      * How many products each value of [key] would leave, with the other filters as they are — for every

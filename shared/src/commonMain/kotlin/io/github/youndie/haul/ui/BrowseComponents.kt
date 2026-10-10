@@ -205,13 +205,19 @@ public data class Chip(
     val count: String? = null,
 )
 
-/** The pill row under a title: the kinds of a category, or the categories of a search. */
+/**
+ * The pill row under a title: the kinds of a category, or the categories of a search. A search's row ends
+ * in the sort control (B-77): [sortLabel] is the order shown and [sorts] the orders it offers, each with
+ * where it goes, as `AppliedFilters` has them on a category; a row without [sorts] has no sort control.
+ */
 @Serializable
 @SerialName("haul_filter_chips")
 @KompotComponentMarker
 public data class FilterChips(
     override val id: String,
     val chips: List<Chip>,
+    val sortLabel: String? = null,
+    val sorts: List<Link> = emptyList(),
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 

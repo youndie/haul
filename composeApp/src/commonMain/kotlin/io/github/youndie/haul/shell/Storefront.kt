@@ -176,17 +176,19 @@ public fun Storefront(
     val scope = rememberCoroutineScope()
 
     // The header's search field: typing asks for the suggest panel once the shopper pauses, Enter opens
-    // the results. A query the server refuses, or a request that fails, shows no panel. The panel stays
-    // open when the field loses focus — pressing a suggestion takes the focus, and closing the panel
-    // under the press would lose the press — and closes on the scrim, an emptied field or a new page.
+    // the results — or, once the arrow keys are on one of the panel's queries, that query's (B-77). A query
+    // the server refuses, or a request that fails, shows no panel. The panel stays open when the field loses
+    // focus — pressing a suggestion takes the focus, and closing the panel under the press would lose the
+    // press — and closes on the scrim, an emptied field or a new page.
     val field = remember { SearchFieldState() }
     val search =
         remember(navigator) {
-            SearchInput { text ->
+            SearchInput(onPick = { if (it is NavigateAction) navigator.open(it.deeplink) }) { text ->
                 text.trim().ifEmpty { null }?.let { navigator.open(Address.search(it)) }
             }
         }
     var panel by remember { mutableStateOf<SearchSuggestPanel?>(null) }
+    LaunchedEffect(panel) { search.offer(panel?.suggestions?.map { it.action }.orEmpty()) }
     val typed = search.text.text.trim()
     LaunchedEffect(typed, search.typed) {
         if (!search.typed || typed.isEmpty()) {
@@ -256,7 +258,13 @@ public fun Storefront(
         LocalFiltersSheet provides filters,
         LocalHeaderMenu provides menu,
     ) {
-        SearchSuggestOverlay(panel, highlighted = -1, field = field, onDismiss = dismiss, onClear = clearRecent) {
+        SearchSuggestOverlay(
+            panel,
+            highlighted = search.highlighted,
+            field = field,
+            onDismiss = dismiss,
+            onClear = clearRecent,
+        ) {
             val address = navigator.address
             val visit = navigator.visits
             // A screen is a path (B-62): `/c/mugs?brand=Ostra` loads behind the drawn `/c/mugs`, which keeps

@@ -63,7 +63,6 @@ import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.toneColor
-import io.github.youndie.kompot.KompotAction
 import kotlin.math.roundToInt
 
 // The Search screen's own components (screen-search): the page for a query that found nothing and the
@@ -71,9 +70,10 @@ import kotlin.math.roundToInt
 // (Search_NoResults, Search_Autocomplete and their _Phone twins).
 
 /**
- * Nothing found: the count, the title with the quoted query in the italic, then the queries to try —
- * or, when there are none, the numbered tips (Search_NoResults). The popular categories after it are a
- * `SectionHeader` and a `CategoryGrid` of their own.
+ * Nothing found: the count, the title with the quoted query in the italic, then the queries to try as
+ * pills that run them — or, when there are none, the numbered tips (Search_NoResults). The tips are advice,
+ * not controls, so they are drawn as text, with no pill that would look pressable (B-77). The popular
+ * categories after it are a `SectionHeader` and a `CategoryGrid` of their own.
  */
 @Composable
 public fun SearchNoResultsView(none: SearchNoResults) {
@@ -93,30 +93,31 @@ public fun SearchNoResultsView(none: SearchNoResults) {
             ),
             Modifier.padding(top = 14.dp, bottom = if (compact) 24.dp else 32.dp),
         )
-        val pills: List<Triple<String?, AnnotatedString, KompotAction?>> =
+        val items: List<@Composable (Modifier) -> Unit> =
             if (none.suggestions.isNotEmpty()) {
-                none.suggestions.map { Triple(null, suggestionText(it), it.action) }
+                none.suggestions.map { suggestion ->
+                    { m -> Pill(suggestionText(suggestion), m.follows(suggestion.action)) }
+                }
             } else {
                 none.tips.mapIndexed { index, tip ->
-                    Triple((index + 1).toString().padStart(2, '0'), AnnotatedString(tip), null)
+                    { m -> Tip((index + 1).toString().padStart(2, '0'), tip, m) }
                 }
             }
         if (compact) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                pills.forEach { (number, text, action) -> Tip(number, text, Modifier.fillMaxWidth().follows(action)) }
+                items.forEach { it(Modifier.fillMaxWidth()) }
             }
         } else {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                pills.forEach { (number, text, action) -> Tip(number, text, Modifier.follows(action)) }
+            Row(horizontalArrangement = Arrangement.spacedBy(if (none.suggestions.isEmpty()) 32.dp else 12.dp)) {
+                items.forEach { it(Modifier) }
             }
         }
     }
 }
 
-/** A tip on a white pill: its number in Cobalt mono, or the search glyph for a query to try. */
+/** A query to try on a white pill, behind the search glyph: pressing it runs that search. */
 @Composable
-private fun Tip(
-    number: String?,
+private fun Pill(
     text: AnnotatedString,
     modifier: Modifier = Modifier,
 ) {
@@ -127,12 +128,25 @@ private fun Tip(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (number != null) {
-            Text(number, HaulType.label(12f, 600, 0f).copy(color = HaulColors.primary))
-        } else {
-            Icon(HaulIcons.search, 18.dp, HaulColors.outline)
-        }
+        Icon(HaulIcons.search, 18.dp, HaulColors.outline)
         Text(text, style = HaulType.text(16f, 500), softWrap = false)
+    }
+}
+
+/** A tip: its number in Cobalt mono and the advice, as text on the page — nothing to press. */
+@Composable
+private fun Tip(
+    number: String,
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier.padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(number, HaulType.label(12f, 600, 0f).copy(color = HaulColors.primary))
+        Text(text, HaulType.text(16f, 500).copy(color = HaulColors.onSurfaceVariant), softWrap = false)
     }
 }
 

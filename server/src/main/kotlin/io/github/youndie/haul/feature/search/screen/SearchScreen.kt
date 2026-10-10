@@ -11,6 +11,7 @@ import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.Sort
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.money
+import io.github.youndie.haul.feature.catalog.screen.CatalogUrl
 import io.github.youndie.haul.feature.catalog.screen.card
 import io.github.youndie.haul.feature.catalog.screen.categoryLink
 import io.github.youndie.haul.feature.catalog.screen.navigation
@@ -40,12 +41,16 @@ import io.github.youndie.kompot.standard.NavigateAction
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
-/** What a search page was asked for, as the route parsed it; [query] is still raw. */
+/**
+ * What a search page was asked for, as the route parsed it; [query] is still raw. The grid holds the pages
+ * [from] to [page] («Show N more», B-77).
+ */
 internal data class SearchRequest(
     val query: String?,
     val category: String?,
     val sort: Sort,
     val page: Int,
+    val from: Int = page,
 )
 
 /**
@@ -108,7 +113,8 @@ internal class SearchScreen(
 
     /**
      * The results page, grouped by category with counts; or the page for a query that found nothing. A
-     * category chip and a page load their [PARTS] in place (B-63). A customer's search is recorded unless
+     * category chip, a sort and a page load their [PARTS] in place (B-63); the sort ends the chips' row (B-77),
+     * and a chip keeps it, as a category's facets keep theirs. A customer's search is recorded unless
      * [recorded] is `false`: the parts a `load` asks for, which changes nothing.
      */
     suspend fun results(
@@ -127,7 +133,7 @@ internal class SearchScreen(
             if (categories.none { it.slug == slug }) throw CatalogError.CategoryNotFound(slug)
         }
         val shown = request.category?.let { slug -> all.filter { it.product.categorySlug == slug } } ?: all
-        val page = browse.page(shown, Filters(), request.sort, request.page)
+        val page = browse.page(shown, Filters(), request.sort, request.page, request.from)
         val byLeaf =
             all
                 .groupingBy { it.product.categorySlug }
@@ -146,11 +152,25 @@ internal class SearchScreen(
                 FilterChips(
                     id = "categories",
                     chips =
-                        listOf(Chip("All", request.category == null, parts(query.text), count(all.size))) +
+                        listOf(
+                            Chip(
+                                "All",
+                                request.category == null,
+                                parts(query.text, sort = request.sort),
+                                count(all.size),
+                            ),
+                        ) +
                             byLeaf.mapNotNull { (slug, n) ->
                                 val leaf = categories.firstOrNull { it.slug == slug } ?: return@mapNotNull null
-                                Chip(leaf.name, request.category == slug, parts(query.text, slug), count(n))
+                                Chip(
+                                    leaf.name,
+                                    request.category == slug,
+                                    parts(query.text, slug, request.sort),
+                                    count(n),
+                                )
                             },
+                    sortLabel = request.sort.label,
+                    sorts = Sort.entries.map { Link(it.label, parts(query.text, request.category, it)) },
                 ),
                 ProductGrid(
                     "grid",
@@ -160,8 +180,7 @@ internal class SearchScreen(
                 pagination(
                     page,
                     { searchLink(query.text, request.category, request.sort, it).deeplink },
-                    Parts::load,
-                ),
+                ) { _, to -> Parts.load(to) },
             )
         return Frame.page("search", viewer, navigation(categories), sections, query = query.text)
     }
@@ -223,29 +242,35 @@ internal class SearchScreen(
         return if (top.slug == leaf.slug) leaf.name else "${top.name} › ${leaf.name}"
     }
 
-    /** A category chip: the parts of the results in it, loaded in place (B-63). */
+    /** A category chip or a sort: the parts of the results in it, from their first page, loaded in place (B-63). */
     private fun parts(
         query: String,
         category: String? = null,
-    ) = Parts.load(searchLink(query, category).deeplink)
+        sort: Sort = Sort.Popular,
+    ) = Parts.load(searchLink(query, category, sort).deeplink)
 
+    /** The search's address with the grid holding [pages] — one page, or those «Show N more» appended (B-77). */
     private fun searchLink(
         query: String,
         category: String? = null,
         sort: Sort = Sort.Popular,
-        page: Int = 1,
+        pages: IntRange = 1..1,
     ): NavigateAction {
         val q = URLEncoder.encode(query, StandardCharsets.UTF_8).replace("+", "%20")
         return NavigateAction(
             "/search?q=$q" +
                 (category?.let { "&category=$it" } ?: "") +
                 (if (sort != Sort.Popular) "&sort=${sort.key}" else "") +
-                (if (page > 1) "&page=$page" else ""),
+                (if (pages.last > 1) "&page=${pages.last}" else "") +
+                (if (pages.first < pages.last) "&${CatalogUrl.FROM}=${pages.first}" else ""),
         )
     }
 
     companion object {
-        /** What a category chip or a page changes on the results (B-63): the chips, the grid and the pages. */
+        /**
+         * What a category chip, a sort or a page changes on the results (B-63): the chips with the sort, the grid
+         * and the pages.
+         */
         val PARTS = listOf("categories", "grid", "pagination")
 
         /** Where «Clear» on recent searches sends its `DELETE` (endpoint-search, the customer tier). */

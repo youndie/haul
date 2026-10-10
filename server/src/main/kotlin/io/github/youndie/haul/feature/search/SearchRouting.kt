@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.search
 
 import io.github.youndie.haul.feature.catalog.domain.CatalogError
 import io.github.youndie.haul.feature.catalog.domain.Sort
+import io.github.youndie.haul.feature.catalog.firstPage
 import io.github.youndie.haul.feature.identity.Caller
 import io.github.youndie.haul.feature.identity.Callers
 import io.github.youndie.haul.feature.identity.domain.IdentityError
@@ -38,7 +39,7 @@ internal fun Route.searchRouting() {
         )
     }
 
-    // A category chip or a page of the results loaded in place (B-63, kind `load`), the search not recorded
+    // A category chip, a sort or a page of the results loaded in place (B-63, kind `load`), the search not recorded
     // again. A query that now finds nothing, or a category no longer there, cannot be partial.
     get("${Parts.PREFIX}/search") {
         val page =
@@ -79,5 +80,5 @@ internal fun searchRequest(query: Parameters): SearchRequest {
             it.toIntOrNull()?.takeIf { p -> p >= 1 }
                 ?: throw CatalogError.Invalid("page", "Pages start at 1, not «$it»")
         } ?: 1
-    return SearchRequest(query["q"], query["category"], sort, page)
+    return SearchRequest(query["q"], query["category"], sort, page, firstPage(query, page))
 }

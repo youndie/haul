@@ -27,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -68,6 +69,7 @@ import io.github.youndie.haul.feature.identity.SignInActions
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
+import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.standard.NavigateAction
 
 /**
@@ -93,9 +95,14 @@ public val LocalSearchField: ProvidableCompositionLocal<SearchFieldState?> = sta
 /**
  * What the shopper types into the header's search field, owned by the app's shell; [submit] hands the
  * text to [onSubmit], which opens the results. Without one — a screenshot — the field is drawn, not edited.
+ *
+ * The suggest panel's queries are [offer]ed to it (B-77): the arrow keys move [highlighted] over them, and
+ * Enter on a highlighted one hands its action to [onPick] instead of submitting the text. Typing starts the
+ * highlight over, as a new panel does.
  */
 @Stable
 public class SearchInput(
+    private val onPick: (KompotAction) -> Unit = {},
     private val onSubmit: (String) -> Unit,
 ) {
     public var text: TextFieldValue by mutableStateOf(TextFieldValue())
@@ -105,9 +112,18 @@ public class SearchInput(
     public var typed: Boolean by mutableStateOf(false)
         private set
 
+    /** The query of the panel the keyboard is on, from 0; -1 is none, the text as typed. */
+    public var highlighted: Int by mutableIntStateOf(-1)
+        private set
+
+    private var offered: List<KompotAction?> = emptyList()
+
     /** The shopper changed the text (or only moved the caret). */
     public fun type(value: TextFieldValue) {
-        if (value.text != text.text) typed = true
+        if (value.text != text.text) {
+            typed = true
+            highlighted = -1
+        }
         text = value
     }
 
@@ -117,8 +133,29 @@ public class SearchInput(
         typed = false
     }
 
+    /** The queries the panel now shows, each with where it goes; none when the panel is closed. */
+    public fun offer(actions: List<KompotAction?>) {
+        offered = actions
+        highlighted = -1
+    }
+
+    /** Whether the panel offers queries, so the arrow keys are the panel's rather than the field's. */
+    public val choosing: Boolean get() = offered.isNotEmpty()
+
+    /**
+     * The arrow keys: [by] queries down (up when negative), from none to the last and back to none above the
+     * first. Whether there was anything to move over — without a panel the keys are the field's own.
+     */
+    public fun move(by: Int): Boolean {
+        if (!choosing) return false
+        highlighted = (highlighted + by).coerceIn(-1, offered.lastIndex)
+        return true
+    }
+
+    /** Enter: the highlighted query, or the text as typed when none is. */
     public fun submit() {
-        onSubmit(text.text)
+        val picked = offered.getOrNull(highlighted)
+        if (picked != null) onPick(picked) else onSubmit(text.text)
     }
 }
 
@@ -598,9 +635,25 @@ private fun EditableQuery(
                 .testTag(SEARCH_FIELD_TAG)
                 .onFocusChanged { field?.focused = it.isFocused }
                 .onPreviewKeyEvent {
-                    val enter = it.key == Key.Enter || it.key == Key.NumPadEnter
-                    if (enter && it.type == KeyEventType.KeyDown) input.submit()
-                    enter
+                    val down = it.type == KeyEventType.KeyDown
+                    when (it.key) {
+                        Key.Enter, Key.NumPadEnter -> {
+                            if (down) input.submit()
+                            true
+                        }
+
+                        Key.DirectionDown -> {
+                            if (down) input.move(1) else input.choosing
+                        }
+
+                        Key.DirectionUp -> {
+                            if (down) input.move(-1) else input.choosing
+                        }
+
+                        else -> {
+                            false
+                        }
+                    }
                 },
         textStyle = HaulType.text(textSize, 500),
         singleLine = true,
