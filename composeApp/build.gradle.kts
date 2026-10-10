@@ -97,3 +97,12 @@ viddik {
 tasks.named("check") {
     dependsOn(tasks.named("compileKotlinWasmJs"))
 }
+
+// StaticFrameTest reads the shipped page, which no desktop source set carries (B-80): without it as an input,
+// a changed page would leave the test up to date.
+tasks.named<Test>("desktopTest") {
+    inputs
+        .file("src/wasmJsMain/resources/index.html")
+        .withPropertyName("shippedPage")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+}
