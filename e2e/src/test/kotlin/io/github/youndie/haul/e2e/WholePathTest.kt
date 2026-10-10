@@ -55,7 +55,8 @@ import kotlin.time.TimeSource
  * product, the line, the money, the order's state — and a failure names its step and carries the
  * server's log.
  *
- * Not covered: load (B-31's traffic generator walks the same path for that).
+ * Not covered: load. The synthetic shoppers (B-31, `shoppers/Walk.kt`) walk the same path on a stand, for its
+ * traffic rather than for a verdict.
  */
 class WholePathTest {
     private val shop = Storefront(ComposedStack.origin)

@@ -1,7 +1,9 @@
 name: publish image
 
-# The image the public demo stand runs (research D6, B-27): `ghcr.io/youndie/haul-server:<tag>`,
-# published from a pushed tag `v*` — and by hand against a tag ref, for a run that failed.
+# The images the public demo stand runs (research D6, B-27): `ghcr.io/youndie/haul-server:<tag>`, and
+# beside it the synthetic shoppers (B-31) `ghcr.io/youndie/haul-shoppers:<tag>`, which the chart runs under
+# the server's tag when `shoppers.enabled` — published from a pushed tag `v*`, and by hand against a tag
+# ref, for a run that failed.
 #
 # NOTHING HERE DEPLOYS. The stand is deployed from the infrastructure repository, which holds its
 # values, its secrets and the tag it runs, and deploys when that tag changes there (B-27, Iteration 2).
@@ -35,6 +37,7 @@ jobs:
             exit 1
           fi
           echo "IMAGE=ghcr.io/youndie/haul-server:${{ github.ref_name }}" >> "$GITHUB_ENV"
+          echo "SHOPPERS=ghcr.io/youndie/haul-shoppers:${{ github.ref_name }}" >> "$GITHUB_ENV"
 
       - uses: actions/setup-java@v4
         with:
@@ -53,18 +56,26 @@ jobs:
       # downstream restarts and the cluster keeps the previous binary behind a green deploy.
       - name: Refuse a tag that is already published
         run: |
-          if docker manifest inspect "$IMAGE" >/dev/null 2>&1; then
-            echo "::error::$IMAGE exists already — cut a new tag"
-            exit 1
-          fi
+          for image in "$IMAGE" "$SHOPPERS"; do
+            if docker manifest inspect "$image" >/dev/null 2>&1; then
+              echo "::error::$image exists already — cut a new tag"
+              exit 1
+            fi
+          done
 
       # The same script every pull request runs: the image is built, its AOT cache must be accepted
       # with all of the server's classes in it, and it must serve the page — before anything is pushed.
       - name: Build and verify the image
         run: scripts/image-check.sh "$IMAGE"
 
+      # The shoppers' image: built from the same commit, started, and made to refuse an empty configuration.
+      - name: Build and verify the shoppers' image
+        run: scripts/shoppers-check.sh "$SHOPPERS"
+
       - name: Push
-        run: docker push "$IMAGE"
+        run: |
+          docker push "$IMAGE"
+          docker push "$SHOPPERS"
 
   # The registry round trip: the image just published is pulled back and the whole path — browse,
   # buy, receive, return, against PostgreSQL and shildik (B-26) — is walked through IT, not through a
@@ -79,6 +90,7 @@ jobs:
       packages: read
     env:
       IMAGE: ghcr.io/youndie/haul-server:${{ github.ref_name }}
+      SHOPPERS: ghcr.io/youndie/haul-shoppers:${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v4
 
@@ -92,7 +104,17 @@ jobs:
       # Pulled anonymously, as the cluster will: a package that landed private fails here, with the
       # registry's own message, rather than as a pod in ImagePullBackOff after the deploy.
       - name: Pull what was just published, without credentials
-        run: docker pull "$IMAGE"
+        run: |
+          docker pull "$IMAGE"
+          docker pull "$SHOPPERS"
+
+      # The shoppers' package is a second one, and takes the repository's visibility the same way; pulled
+      # above, here it is started as published and must refuse an empty configuration (exit 2).
+      - name: The shoppers' image starts as published
+        run: |
+          status=0; out=$(docker run --rm "$SHOPPERS" 2>&1) || status=$?
+          echo "$out"
+          [ "$status" = 2 ] && case "$out" in *"HAUL_SHOPPERS_ORIGIN is required"*) true ;; *) false ;; esac
 
       - name: Walk the whole path through it
         env:

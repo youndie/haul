@@ -1,31 +1,20 @@
 package io.github.youndie.haul.e2e
 
 import io.github.youndie.haul.feature.identity.SignInSettings
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import java.net.URI
-import java.net.URLDecoder
-import java.net.URLEncoder
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import java.security.MessageDigest
-import java.security.SecureRandom
 import java.time.Duration
-import java.util.Base64
 
 /**
  * The identity provider's two faces for the whole path: its management API, where the test creates the
  * realm, the storefront's public client and a shopper — setup a stand does once and the test does for
- * itself — and its sign-in, walked the way the browser's popup walks it.
+ * itself — and its sign-in, walked the way the browser's popup walks it ([SignIn]).
  *
  * **The token comes the way the storefront's comes**: authorization code with PKCE through the realm's
- * public client, the person's form on shildik's own page posted from the issuer's origin, the code
- * exchanged at the token endpoint. No password grant and no client of the test's own: the client the
- * server names (`SignInSettings.clientId`) is the one that signs in, so a token the storefront could not
- * get would fail here too. The server's suite signs in the same way (`ShildikHarness`).
+ * public client, no password grant and no client of the test's own (`SignIn` says how). The server's
+ * suite signs in the same way (`ShildikHarness`).
  */
 internal class Shildik(
     private val management: String,
@@ -35,7 +24,6 @@ internal class Shildik(
     private val http: HttpClient =
         HttpClient
             .newBuilder()
-            .followRedirects(HttpClient.Redirect.NEVER)
             .connectTimeout(Duration.ofSeconds(10))
             .build()
 
@@ -65,81 +53,15 @@ internal class Shildik(
 
     /**
      * Signs [login] in where [settings] say — the issuer, the client and the scope the server handed the
-     * storefront — coming back to [redirect], and returns the access token.
+     * storefront — coming back to [redirect], and returns the access token ([SignIn], the walk the
+     * synthetic shoppers take too).
      */
     fun accessToken(
         settings: SignInSettings,
         redirect: String,
         login: String,
         password: String,
-    ): String {
-        val discovery = json(get("${settings.issuer}/.well-known/openid-configuration"))
-        val origin = URI(settings.issuer).let { "${it.scheme}://${it.authority}" }
-        val verifier = random(32)
-        val challenge = base64Url(MessageDigest.getInstance("SHA-256").digest(verifier.toByteArray()))
-        val state = random(16)
-        val authorize =
-            discovery.text("authorization_endpoint") + "?" +
-                form(
-                    "client_id" to settings.clientId,
-                    "redirect_uri" to redirect,
-                    "response_type" to "code",
-                    "scope" to settings.scope,
-                    "state" to state,
-                    "nonce" to random(16),
-                    "code_challenge" to challenge,
-                    "code_challenge_method" to "S256",
-                )
-        val page = send(HttpRequest.newBuilder(URI(authorize)).GET().build())
-        check(page.statusCode() == 200) { "the authorize page answered ${page.statusCode()}: ${page.body().take(300)}" }
-        val action = checkNotNull(FORM_ACTION.find(page.body())) { "no form on the sign-in page" }.groupValues[1]
-        val parked = checkNotNull(PARKED_STATE.find(page.body())) { "no parked state on the page" }.groupValues[1]
-
-        val signedIn =
-            send(
-                HttpRequest
-                    .newBuilder(URI(origin + action.replace("&amp;", "&")))
-                    .header("Content-Type", "application/x-www-form-urlencoded")
-                    .header("Origin", origin)
-                    .POST(
-                        HttpRequest.BodyPublishers.ofString(
-                            form(
-                                "state" to parked,
-                                "login" to login,
-                                "password" to password,
-                            ),
-                        ),
-                    ).build(),
-            )
-        val location = signedIn.headers().firstValue("Location").orElse("")
-        check(signedIn.statusCode() == 302 && location.startsWith(redirect)) {
-            "signing in answered ${signedIn.statusCode()} to «$location»: ${signedIn.body().take(300)}"
-        }
-        val query = URI(location).rawQuery.split('&').associate { it.substringBefore('=') to it.substringAfter('=') }
-        check(query["state"] == state) { "the state did not come back" }
-        val code = checkNotNull(query["code"]) { "no code came back to the redirect" }
-
-        val tokens =
-            send(
-                HttpRequest
-                    .newBuilder(URI(discovery.text("token_endpoint")))
-                    .header("Content-Type", "application/x-www-form-urlencoded")
-                    .POST(
-                        HttpRequest.BodyPublishers.ofString(
-                            form(
-                                "grant_type" to "authorization_code",
-                                "code" to URLDecoder.decode(code, Charsets.UTF_8),
-                                "redirect_uri" to redirect,
-                                "client_id" to settings.clientId,
-                                "code_verifier" to verifier,
-                            ),
-                        ),
-                    ).build(),
-            )
-        // The body carries the tokens, so a refusal is told by its status alone.
-        check(tokens.statusCode() == 200) { "the token endpoint answered ${tokens.statusCode()}" }
-        return json(tokens.body()).text("access_token")
-    }
+    ): String = SignIn(redirect).accessToken(settings, login, password)
 
     private fun admin(
         method: String,
@@ -160,30 +82,6 @@ internal class Shildik(
         ) { "$method $path answered ${response.statusCode()}: ${response.body()}" }
     }
 
-    private fun get(url: String): String =
-        send(HttpRequest.newBuilder(URI(url)).GET().build())
-            .also { check(it.statusCode() == 200) { "$url answered ${it.statusCode()}" } }
-            .body()
-
     private fun send(request: HttpRequest): HttpResponse<String> =
         http.send(request, HttpResponse.BodyHandlers.ofString())
-
-    private fun json(text: String): JsonObject = Json.parseToJsonElement(text).jsonObject
-
-    private fun JsonObject.text(name: String): String =
-        checkNotNull(this[name]) {
-            "no $name in the answer"
-        }.jsonPrimitive.content
-
-    private fun form(vararg pairs: Pair<String, String>): String =
-        pairs.joinToString("&") { (k, v) -> "$k=" + URLEncoder.encode(v, Charsets.UTF_8) }
-
-    private fun random(bytes: Int): String = base64Url(ByteArray(bytes).also { SecureRandom().nextBytes(it) })
-
-    private fun base64Url(bytes: ByteArray): String = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
-
-    private companion object {
-        val FORM_ACTION = Regex("""<form method="post" action="([^"]+)"""")
-        val PARKED_STATE = Regex("""name="state" value="([^"]+)"""")
-    }
 }

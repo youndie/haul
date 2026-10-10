@@ -747,6 +747,30 @@ The canvas contradicted itself in three places and left one promise unbacked; th
 - A public demo stand on the owner's domain, with synthetic shoppers walking the path continuously
   (B-31), so the stand has traffic to measure.
 
+**Decided in B-31, the synthetic shoppers.**
+
+- **The e2e module's `main`, one image beside the server's.** The walk (`e2e/src/main/kotlin/.../shoppers/Walk.kt`)
+  is the whole path's (`WholePathTest`) on the same storefront client (`Storefront`, moved to `main`), taken for
+  its traffic: a random category and buyable product, «Add to cart» on its page, sign-in, courier checkout with a
+  random window, placement, delivery, the line returned, the refund, the history. `ghcr.io/youndie/haul-shoppers`
+  is published by `stand.yaml` under the server's tag; `scripts/shoppers-check.sh` builds it on every pull request
+  and makes it refuse an empty configuration. Not a load test: one walk per `interval`, at most `inFlight` at once.
+- **In the chart, off by default** (`shoppers.enabled`, `templates/shoppers.yaml`, chart 0.2.1). The pod walks the
+  server's Service and signs in where the server says, by the storefront's PKCE flow through `haul-web`.
+- **Signed in as the stand's demo people, never as a guest.** A guest's «Checkout» goes to sign-in, so a guest walk
+  places nothing. The password is the release's shildik Secret's `demo-password`, by reference — never a value, and
+  never printed (`Password` prints `<hidden>`, sign-in failures name the status only). The render refuses shoppers
+  without `shildik.enabled`, without a demo password, or as anybody not in `shildik.demoPeople`.
+- **Sam, not Maya, by default.** Maya's seeded cart would be bought by her first walk and her Plus and points would
+  move; Sam's account has nothing seeded to lose. Every walk leaves one returned order in his history and takes one
+  unit of stock a refund does not put back.
+- **One walk per person between the sign-in and the placement** (a lock per person): the cart is the customer's.
+  Two walks started together without the lock still passed once, so its need is reasoned, not shown.
+- **What a walk produces**, at the stand's speed 288: one order saga completed, the fulfilment simulator's moves
+  over about ten minutes, a return and its refund over about ten more — so the default `interval: 600` keeps two
+  or three walks waiting at once. There is no declined payment among them: the test card that declines is not
+  offered by the checkout.
+
 **Decided in B-19, the account.**
 
 - **Two addresses, one tree.** The overview is `/account` (`StorefrontPage.Account`, tree `GET /ui/account`), the
@@ -1408,7 +1432,8 @@ start on a rejected cache) serving all 43 of the server's own classes from it �
 cache; that is a number for when there is a hot path worth timing.
 
 **Risk 5. The stand measures nothing.** The sibling reference services run without traffic, so no
-number about petich, tracy or metrik can be taken on them. Mitigation: synthetic shoppers (B-31).
+number about petich, tracy or metrik can be taken on them. Mitigation: synthetic shoppers (B-31), built and
+in the chart since B-31, off until the stand's values turn them on (`shoppers.enabled`).
 
 **Open question 1. Search quality on PostgreSQL full text with `pg_trgm`.** *Settled for the seed in
 B-09; open beyond it.* Search matches a product when its `to_tsvector('english', listing name, brand,
