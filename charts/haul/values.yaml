@@ -117,6 +117,41 @@ shildik:
   bootstrap:
     image: python:3.13.16-alpine3.24
 
+# Synthetic shoppers (B-31): a pod that walks the storefront's whole path — browse, add, sign in, check
+# out, receive, return — one walk every `interval`, so the stand has orders and sagas for tracy and metrik
+# to show (research D6, risk 5). Not a load test. **Off by default.**
+#
+# They sign in as people of the release's own realm, through the storefront's public client, with
+# `shildik.demoPassword` — read from the release's shildik Secret, never written here. So they need
+# `shildik.enabled` and a demo password, and each person below must be one of `shildik.demoPeople`; the
+# render refuses otherwise. A guest cannot check out (its «Checkout» goes to sign-in), so a walk without a
+# password would produce no order at all.
+shoppers:
+  enabled: false
+  image: ghcr.io/youndie/haul-shoppers
+  # Empty is `server.version`: the shoppers are published with the server, under the same tag.
+  version: ""
+  # Ids from `shildik.demoPeople`; the walks take them in turn. Sam by default: Maya's seeded cart would be
+  # bought by her first walk, and her seeded Plus and points would move. Every walk leaves one returned
+  # order in the person's history.
+  people:
+    - sam
+  # Seconds between the starts of two walks. At the stand's fulfilment speed (288) a walk waits about ten
+  # minutes for its delivery and ten more for its refund, so the default keeps two or three in flight.
+  interval: 600
+  # Seconds between two reads of a walk's order page while it waits on the fulfilment clock.
+  poll: 30
+  # Seconds a walk waits for its delivery, and again for its refund, before it gives up and says so.
+  wait: 3600
+  # Walks at once at most; a start past it is skipped and logged.
+  inFlight: 4
+  resources:
+    requests:
+      cpu: 10m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
 # Who may reach the release's PostgreSQL and the provider's management port: NetworkPolicies that
 # admit the server to the database and the bootstrap hook to the management API, and nothing else.
 # The provider's public port stays open to every pod — Traefik is in another namespace. Enforced by

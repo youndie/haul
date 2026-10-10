@@ -9,15 +9,29 @@ import java.time.Duration
 // `scripts/e2e.sh` builds with `scripts/image-build.sh` — the recipe the image job checks — and passes
 // on. Without it `test` is skipped, so `check` on a machine with no image stays what it was; the `e2e`
 // job of `check.yaml` always names one.
+//
+// **The synthetic shoppers** (B-31) are this module's `main`: the same storefront client walking the same
+// path continuously, for the stand's traffic rather than for a verdict. An `application`, so
+// `installDist` is what `docker/shoppers.Dockerfile` packages (`scripts/shoppers-check.sh` builds it); the
+// walk itself is tested here, against the composed stack (`SyntheticShopperTest`).
 plugins {
     alias(wip.plugins.kotlinJvm)
     id("io.github.youndie.sborka.jvm")
     id("io.github.youndie.sborka.lint")
+    application
+}
+
+application {
+    mainClass.set("io.github.youndie.haul.e2e.shoppers.MainKt")
+    applicationName = "shoppers"
+    // A small client with a few walks waiting on a clock: a heap that follows the container's limit, and the
+    // collector that costs the least memory beside it.
+    applicationDefaultJvmArgs = listOf("-XX:MaxRAMPercentage=60.0", "-XX:+UseSerialGC", "-XX:+ExitOnOutOfMemoryError")
 }
 
 dependencies {
-    testImplementation(projects.shared)
-    testImplementation(wip.kotlinx.serialization.json)
+    implementation(projects.shared)
+    implementation(wip.kotlinx.serialization.json)
     testImplementation(kotlin("test"))
     // The stack is started from the test itself, as the server's own suite starts PostgreSQL and
     // shildik: no compose file to keep beside the code that depends on it.

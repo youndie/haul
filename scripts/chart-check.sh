@@ -22,6 +22,8 @@ STAND=("${REQUIRED[@]}" --set server.seed=true --set-string server.fulfilmentSpe
   --set observability.tracy.endpoint=http://tracy:8080 --set observability.tracy.key=ci
   --set observability.katcher.endpoint=http://katcher:8080 --set observability.katcher.key=ci
   --set traefik.certResolver=cloudflare)
+# The stand's shape with the synthetic shoppers on (B-31): the one value the deploy adds to turn them on.
+SHOPPERS=("${STAND[@]}" --set shoppers.enabled=true)
 failed=0
 
 say() { printf '%-64s %s\n' "$1" "$2"; }
@@ -56,6 +58,9 @@ renders "the stand's shape" "${STAND[@]}"
 renders "the stand's shape, speed as a number" "${STAND[@]}" --set server.fulfilmentSpeed=288
 renders "the stand's shape, no sample customers" "${STAND[@]}" --set shildik.demoPassword=
 renders "the stand's shape, no network policies" "${STAND[@]}" --set networkPolicy=false
+renders "the stand's shape with the shoppers" "${SHOPPERS[@]}"
+renders "the shoppers as both demo people, their own tag" "${SHOPPERS[@]}" --set 'shoppers.people={sam,maya}' \
+  --set shoppers.version=v9
 
 STAND_RENDER=$(helm template haul "$CHART" "${STAND[@]}" 2>&1)
 says "the server's issuer is the realm's" 'value: "https://haul-id.example/realms/haul"'
@@ -72,6 +77,29 @@ says "the management port admits the hook only" 'app.kubernetes.io/name: shildik
 case "$(helm template haul "$CHART" "${STAND[@]}" -s templates/ingress.yaml)" in
   *"port: 9000"*) say "the management port is not routed" "FAILED — an IngressRoute names 9000"; failed=1 ;;
   *) say "the management port is not routed" ok ;;
+esac
+
+# The shoppers (B-31): off unless asked, and when on, signed in by reference to the release's Secret only.
+case "$STAND_RENDER" in
+  *haul-shoppers*) say "the stand's render: no shoppers unless enabled" "FAILED — a shoppers Deployment"; failed=1 ;;
+  *) say "the stand's render: no shoppers unless enabled" ok ;;
+esac
+SHOPPERS_RENDER=$(helm template haul "$CHART" "${SHOPPERS[@]}" -s templates/shoppers.yaml 2>&1)
+shoppers_say() { # name, expected text — in the shoppers' render
+  case "$SHOPPERS_RENDER" in
+    *"$2"*) say "the shoppers' render: $1" ok ;;
+    *) say "the shoppers' render: $1" "FAILED — no «$2»"; failed=1 ;;
+  esac
+}
+shoppers_say "their image is the server's tag" 'image: "ghcr.io/youndie/haul-shoppers:ci"'
+shoppers_say "they walk the server's Service" 'value: "http://haul"'
+shoppers_say "they sign in as Sam by default" 'value: "sam@example.com"'
+shoppers_say "they return to the storefront's page" 'value: "https://haul.example/signed-in.html"'
+shoppers_say "the password is the Secret's demo password" "$(printf 'name: haul-shildik\n                  key: demo-password')"
+password_value=$(printf '%s\n' "$SHOPPERS_RENDER" | grep -A1 'name: HAUL_SHOPPERS_PASSWORD' | tail -1)
+case "$password_value" in
+  *valueFrom:*) say "the shoppers' render: no literal password" ok ;;
+  *) say "the shoppers' render: no literal password" "FAILED — «$password_value»"; failed=1 ;;
 esac
 
 refuses "no image tag" "server.version is required" --set postgres.password=ci --set hostname=ci.example
@@ -94,6 +122,16 @@ refuses "the provider without its bootstrap token" "shildik.bootstrapToken is re
 refuses "the provider without its host" "shildik.hostname is required" "${STAND[@]}" --set shildik.hostname=
 refuses "the provider without the storefront's host" "registers https://<hostname>/signed-in.html" "${STAND[@]}" \
   --set hostname= --set traefik.enabled=false
+
+refuses "shoppers without the provider" "shoppers.enabled needs shildik.enabled" "${REQUIRED[@]}" \
+  --set shoppers.enabled=true
+refuses "shoppers without the demo password" "shoppers.enabled needs shildik.demoPassword" "${SHOPPERS[@]}" \
+  --set shildik.demoPassword=
+refuses "shoppers as somebody not in the realm" "shoppers.people names erin" "${SHOPPERS[@]}" \
+  --set 'shoppers.people={sam,erin}'
+refuses "shoppers as nobody" "shoppers.people is empty" "${SHOPPERS[@]}" --set 'shoppers.people=null'
+refuses "shoppers at a rate of zero" "shoppers.interval=0 is not a positive whole number" "${SHOPPERS[@]}" \
+  --set shoppers.interval=0
 
 # The hook's script is rendered into a ConfigMap and first run in a cluster: a syntax error would
 # surface there, as a failed release. Compiled here instead, where one costs a second.

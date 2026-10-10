@@ -1,0 +1,106 @@
+{{- if .Values.shoppers.enabled }}
+{{- $shoppers := .Values.shoppers }}
+{{- if not .Values.shildik.enabled }}
+{{- fail "haul: shoppers.enabled needs shildik.enabled — a synthetic shopper checks out signed in, as one of the release's demo people, and a guest's «Checkout» only leads to sign-in" }}
+{{- end }}
+{{- if not .Values.shildik.demoPassword }}
+{{- fail "haul: shoppers.enabled needs shildik.demoPassword — the shoppers sign in as the demo people with it, read from the release's shildik Secret; without it those people are not created and no walk gets past the checkout" }}
+{{- end }}
+{{- $logins := list }}
+{{- range $id := $shoppers.people }}
+{{- $login := "" }}
+{{- range $person := $.Values.shildik.demoPeople }}
+{{- if eq (toString $person.id) (toString $id) }}{{ $login = $person.email }}{{ end }}
+{{- end }}
+{{- if not $login }}
+{{- fail (printf "haul: shoppers.people names %v, who is not one of shildik.demoPeople — only those are created with the demo password the shoppers sign in with" $id) }}
+{{- end }}
+{{- $logins = append $logins $login }}
+{{- end }}
+{{- if not $logins }}
+{{- fail "haul: shoppers.people is empty — the shoppers need someone of shildik.demoPeople to sign in as" }}
+{{- end }}
+{{- range $name := list "interval" "poll" "wait" "inFlight" }}
+{{- $value := index $shoppers $name }}
+{{- if not (regexMatch "^[1-9][0-9]*$" (toString $value)) }}
+{{- fail (printf "haul: shoppers.%s=%v is not a positive whole number" $name $value) }}
+{{- end }}
+{{- end }}
+{{/*
+Synthetic shoppers (B-31, `e2e/src/main/kotlin/.../shoppers/`): one pod walking the storefront's whole
+path, one walk per `interval`, so the stand has orders and sagas to measure. They reach the server by its
+Service, as nothing outside the cluster sees them, and sign in where the server says — the provider's public
+host, which the cluster reaches (B-27) — through the storefront's own client and its registered return page.
+
+The password is the release's shildik Secret's `demo-password`, by reference: it never appears in a
+values file or in this render. No probes: the process has no port, and a walk that fails says so in the
+log and the next one starts anyway. One replica: a second would double the rate, which is `interval`'s job.
+*/}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-shoppers
+  labels:
+    {{- include "haul.labels" . | nindent 4 }}
+    app.kubernetes.io/name: haul-shoppers
+spec:
+  replicas: 1
+  # A walk in flight is abandoned on a restart; its order goes on without it. Nothing to roll gently.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/name: haul-shoppers
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/name: haul-shoppers
+    spec:
+      enableServiceLinks: false
+      {{- with .Values.server.imagePullSecrets }}
+      imagePullSecrets: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+        - name: shoppers
+          image: "{{ $shoppers.image }}:{{ $shoppers.version | default (include "haul.require" (dict "name" "server.version" "because" "the shoppers are published under the server's tag" "value" .Values.server.version)) }}"
+          env:
+            - name: HAUL_SHOPPERS_ORIGIN
+              value: "http://{{ .Release.Name }}"
+            - name: HAUL_SHOPPERS_REDIRECT
+              value: {{ include "haul.redirectUri" . | quote }}
+            - name: HAUL_SHOPPERS_PEOPLE
+              value: {{ join "," $logins | quote }}
+            - name: HAUL_SHOPPERS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-shildik
+                  key: demo-password
+            - name: HAUL_SHOPPERS_INTERVAL_SECONDS
+              value: {{ $shoppers.interval | toString | quote }}
+            - name: HAUL_SHOPPERS_POLL_SECONDS
+              value: {{ $shoppers.poll | toString | quote }}
+            - name: HAUL_SHOPPERS_WAIT_SECONDS
+              value: {{ $shoppers.wait | toString | quote }}
+            - name: HAUL_SHOPPERS_IN_FLIGHT
+              value: {{ $shoppers.inFlight | toString | quote }}
+          resources: {{- toYaml $shoppers.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          # The JVM's own scratch (its perf data, a crash file): the only place it writes.
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 64Mi
+{{- end }}
