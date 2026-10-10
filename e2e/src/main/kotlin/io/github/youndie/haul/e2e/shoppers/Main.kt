@@ -1,6 +1,13 @@
 package io.github.youndie.haul.e2e.shoppers
 
 import io.github.youndie.haul.e2e.SignIn
+import io.github.youndie.haul.e2e.Storefront
+import io.github.youndie.haul.feature.identity.SignInSettings
+import io.github.youndie.haul.haulWireJson
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
@@ -46,6 +53,7 @@ internal class Shoppers(
                 "at most ${config.inFlight} at once, the order read every ${config.poll} for up to ${config.wait}" +
                 if (config.walks > 0) ", ${config.walks} walks" else "",
         )
+        awaitStorefront()
         val finished = CountDownLatch(config.walks)
         var number = 0
         while (config.walks == 0 || number < config.walks) {
@@ -69,6 +77,30 @@ internal class Shoppers(
         finished.await()
         log("${config.walks} walks, ${failed.get()} failed")
         return failed.get() == 0
+    }
+
+    /**
+     * Until the storefront answers `/readyz` and the realm it names for sign-in answers its discovery: the pod
+     * starts beside a server that may still be migrating, and on a first install before the hook has made the
+     * realm — a walk against either would only fail. Said once a minute while it waits.
+     */
+    private fun awaitStorefront() {
+        val shop = Storefront(config.origin)
+
+        fun ready(): Boolean {
+            if (shop.send("GET", READY).status != 200) return false
+            val answer = shop.send("GET", SIGN_IN_SETTINGS)
+            if (answer.status != 200) return false
+            val issuer = haulWireJson.decodeFromString(SignInSettings.serializer(), answer.body).issuer
+            val discovery = HttpRequest.newBuilder(URI("$issuer/.well-known/openid-configuration")).build()
+            return HTTP.send(discovery, HttpResponse.BodyHandlers.discarding()).statusCode() == 200
+        }
+        var asked = 0
+        while (!runCatching { ready() }.getOrDefault(false)) {
+            if (asked % 12 == 0) log("waiting for ${config.origin} to be ready and its realm to answer")
+            asked += 1
+            Thread.sleep(5_000)
+        }
     }
 
     private fun walkNumber(number: Int): Walk {
@@ -103,6 +135,10 @@ internal class Shoppers(
         }
     }
 }
+
+private const val READY = "/readyz"
+private const val SIGN_IN_SETTINGS = "/api/v1/sign-in"
+private val HTTP: HttpClient = HttpClient.newBuilder().connectTimeout(java.time.Duration.ofSeconds(5)).build()
 
 private fun Duration.short(): String = toString(DurationUnit.SECONDS, 1)
 

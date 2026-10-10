@@ -13,7 +13,14 @@
 # the issuer is the provider's Service, `http://<release>-shildik:8080`, which the server and the pod both
 # reach. On the stand it is `https://<shildik.hostname>`, and the server reaches it through the ingress.
 #
+# With SHOPPERS=true it also runs the synthetic shoppers (B-31) as the stand would — `shoppers.enabled`, Sam
+# signing in with the demo password from the release's Secret — on a fast clock (SPEED, default a day in ten
+# seconds) and a short interval, waits for WALKS walks to finish (default 3), and asks the database what they
+# left: the orders, the sagas, the returns and refunds. tracy and metrik are not in a kind cluster, so what
+# they would show is read from the rows they would be about.
+#
 #   scripts/stand-kind.sh [image-tag]          SKIP_BUILD=true to use an image already built
+#   SHOPPERS=true scripts/stand-kind.sh [image-tag] [shoppers-image-tag]
 set -u
 cd "$(dirname "$0")/.."
 IMAGE=${1:-haul/server:stand-kind}
@@ -22,7 +29,9 @@ NS=haul
 PY=python:3.13.16-alpine3.24
 export KUBECONFIG=${TMPDIR:-/tmp}/$CLUSTER.kubeconfig
 
+SHOPPERS_IMAGE=${2:-haul/shoppers:stand-kind}
 if [ "${SKIP_BUILD:-}" != true ]; then scripts/image-build.sh "$IMAGE" || exit 1; fi
+if [ "${SHOPPERS:-}" = true ] && [ "${SKIP_BUILD:-}" != true ]; then scripts/shoppers-check.sh "$SHOPPERS_IMAGE" || exit 1; fi
 
 cleanup() { [ "${KEEP:-}" = true ] || kind delete cluster --name "$CLUSTER" >/dev/null 2>&1; rm -f "$KUBECONFIG"; }
 trap cleanup EXIT
@@ -30,16 +39,23 @@ kind create cluster --name "$CLUSTER" --kubeconfig "$KUBECONFIG" --wait 120s >/d
 # Only the image under test is loaded; the node pulls the published ones itself, as a cluster does
 # (`kind load` of a pulled multi-platform image fails on a Docker that keeps images in containerd).
 kind load docker-image --name "$CLUSTER" "$IMAGE" >/dev/null || exit 1
+if [ "${SHOPPERS:-}" = true ]; then kind load docker-image --name "$CLUSTER" "$SHOPPERS_IMAGE" >/dev/null || exit 1; fi
 
 secret() { head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n'; }
 MASTER=$(secret); BOOT=$(secret); DEMO=$(secret)
 ISSUER=http://haul-shildik:8080
+if [ "${SHOPPERS:-}" = true ]; then SPEED=${SPEED:-8640}; else SPEED=${SPEED:-288}; fi
 VALUES=(--set "server.image=${IMAGE%:*}" --set "server.version=${IMAGE##*:}" --set server.seed=true
-  --set-string server.fulfilmentSpeed=288 --set hostname=haul.example --set traefik.enabled=false
+  --set-string "server.fulfilmentSpeed=$SPEED" --set hostname=haul.example --set traefik.enabled=false
   --set-literal "postgres.password=$(secret)"
   --set shildik.enabled=true --set shildik.hostname=haul-id.example --set "shildik.issuer=$ISSUER"
   --set-literal "shildik.masterKeys=$MASTER" --set-literal "shildik.bootstrapToken=$BOOT"
   --set-literal "shildik.demoPassword=$DEMO")
+if [ "${SHOPPERS:-}" = true ]; then
+  VALUES+=(--set shoppers.enabled=true --set "shoppers.image=${SHOPPERS_IMAGE%:*}"
+    --set "shoppers.version=${SHOPPERS_IMAGE##*:}" --set shoppers.interval=15 --set shoppers.poll=2
+    --set shoppers.wait=300)
+fi
 
 # Installed, then upgraded with the same values — the second deploy the stand gets on every change. The
 # hook's Job is deleted once it succeeds, so its log is followed while helm runs.
@@ -149,6 +165,27 @@ sys.exit(1 if failed else 0)
 PY
 in_pod b27-check "app.kubernetes.io/name=b27-check" "$CHECK" "ISSUER=$ISSUER" "DEMO=$DEMO"; result=$?
 rm -f "$CHECK"
+
+if [ "${SHOPPERS:-}" = true ] && [ "$result" = 0 ]; then
+  want=${WALKS:-3}
+  echo "--- the synthetic shoppers, until $want walks have finished (fulfilment speed $SPEED):"
+  deadline=$(($(date +%s) + 600))
+  until [ "$(kubectl -n "$NS" logs deploy/haul-shoppers 2>/dev/null | grep -cE '^walk [0-9]+ as ')" -ge "$want" ]; do
+    if [ "$(date +%s)" -ge "$deadline" ]; then echo "fewer than $want walks finished within ten minutes"; result=1; break; fi
+    sleep 5
+  done
+  kubectl -n "$NS" logs deploy/haul-shoppers
+  failures=$(kubectl -n "$NS" logs deploy/haul-shoppers | grep -c ' failed')
+  echo "walks that failed: $failures"; [ "$failures" = 0 ] || result=1
+  echo "--- what they left in the database:"
+  kubectl -n "$NS" exec deploy/haul-postgres -- psql -U haul -d haul -c "
+    SELECT 'orders ' || status AS what, count(*) FROM orders GROUP BY status
+    UNION ALL SELECT 'sagas ' || type || ' ' || status, count(*) FROM petiches GROUP BY type, status
+    UNION ALL SELECT 'returns', count(*) FROM returns
+    UNION ALL SELECT 'refunds', count(*) FROM payment_refunds
+    UNION ALL SELECT 'orders of ' || customer_id, count(*) FROM orders GROUP BY customer_id
+    ORDER BY 1"
+fi
 restarts=$(kubectl -n "$NS" get pods -o jsonpath='{range .items[*]}{.status.containerStatuses[*].restartCount}{" "}{end}')
 echo "restarts per pod: $restarts"
 exit $result
