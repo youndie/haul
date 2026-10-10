@@ -1,7 +1,7 @@
 ---
 id: B-67
 title: "client: the header on loading, error and not-found pages leads somewhere"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-10-review

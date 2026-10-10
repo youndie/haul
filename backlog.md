@@ -46,7 +46,7 @@ A stage is a field on the item, not a directory.
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
-| [B-67](docs/backlog/B-67-error-pages-header-is-dead.md) `[ ]` | client: the header on loading, error and not-found pages leads somewhere | P2 | S | - |
+| [B-67](docs/backlog/B-67-error-pages-header-is-dead.md) `[~]` | client: the header on loading, error and not-found pages leads somewhere | P2 | S | - |
 | [B-71](docs/backlog/B-71-product-page-dead-links.md) `[ ]` | client + server: what looks pressable on the product page does something | P2 | M | - |
 | [B-72](docs/backlog/B-72-header-and-footer-dead-words.md) `[ ]` | client + server: the header strip and the footer do not pretend to be links | P2 | S | - |
 | [B-78](docs/backlog/B-78-placeholders-on-the-stand.md) `[ ]` | server + client: the stand shows pictures, not placeholder labels | P2 | M | - |
