@@ -34,6 +34,7 @@ A stage is a field on the item, not a directory.
 | `stage-8-loyalty` | Loyalty | Plus, points, Haul Pay, recommendations |
 | `stage-9-ship` | Ship | the end-to-end suite, the chart and the stand, observability, first-load numbers |
 | `stage-10-review` | Review | what a walk through the live stand found: controls that do nothing, behaviour that is wrong or surprising, placeholders |
+| `stage-11-qa` | QA | the full QA pass after v0.3.0: a guest walk of the stand, a signed-in walk of a local stand, and a code audit |
 
 ## Marks
 
@@ -41,14 +42,34 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (11)
+## Open (31)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
+| [B-91](docs/backlog/B-91-order-line-price-is-a-line-total.md) `[ ]` | server: an order line's price is a unit price, and a return refunds what was paid | P0 | S | - |
+| [B-92](docs/backlog/B-92-a-failed-command-says-so.md) `[ ]` | client: a command that fails or is refused tells the shopper | P1 | M | - |
+| [B-93](docs/backlog/B-93-refresh-after-an-in-place-tab.md) `[ ]` | client: a press after switching a product tab redraws the page | P1 | S | - |
+| [B-94](docs/backlog/B-94-errors-that-retry-cannot-fix.md) `[ ]` | client + server: an error page says what happened and offers what helps | P1 | S | - |
+| [B-95](docs/backlog/B-95-same-address-presses-do-nothing.md) `[ ]` | client: a press to the page already shown refreshes it | P1 | S | - |
+| [B-96](docs/backlog/B-96-home-rows-share-ids.md) `[ ]` | server: home never draws one product twice | P1 | S | - |
+| [B-97](docs/backlog/B-97-checkout-state-is-the-servers.md) `[ ]` | client + server: what checkout shows is what it will place | P1 | M | - |
+| [B-100](docs/backlog/B-100-cart-controls-look-what-they-do.md) `[ ]` | client + server: the cart's controls look what they do | P2 | M | - |
+| [B-101](docs/backlog/B-101-returns-and-reorder-say-their-rules.md) `[ ]` | server + client: returns and reorder say what they did and what is left | P2 | S | - |
+| [B-102](docs/backlog/B-102-catalog-filters-say-what-is-applied.md) `[ ]` | server: the catalog's filters show exactly what is applied | P2 | S | - |
+| [B-103](docs/backlog/B-103-search-panel-keeps-the-scope.md) `[ ]` | server: the search panel keeps the query and the scope | P2 | S | - |
+| [B-104](docs/backlog/B-104-product-page-polish.md) `[ ]` | client + server: the product page keeps what the shopper chose | P2 | S | - |
+| [B-105](docs/backlog/B-105-shell-header-knows-the-customer.md) `[ ]` | client: a page opened directly knows who is signed in | P2 | S | - |
+| [B-106](docs/backlog/B-106-display-face-loses-characters.md) `[ ]` | client: the display face draws every character it is given | P2 | S | - |
+| [B-109](docs/backlog/B-109-saga-steps-in-tracy.md) `[ ]` | server: an order's saga is visible in tracy | P2 | S | - |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[?]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 | [B-82](docs/backlog/B-82-tablet-widths.md) `[ ]` | client: the store reads well between a phone and 1440 | P2 | M | - |
 | [B-83](docs/backlog/B-83-typed-input-before-every-press.md) `[ ]` | client: every press that reads a field sees what was typed | P2 | S | - |
 | [B-88](docs/backlog/B-88-a-return-restocks.md) `[ ]` | server: a returned unit goes back to stock | P2 | S | - |
+| [B-98](docs/backlog/B-98-delivery-dates-and-fees-agree.md) `[ ]` | server: delivery dates, fees and the address agree across pages | P2 | M | - |
+| [B-99](docs/backlog/B-99-reviews-and-questions-tell-the-truth.md) `[ ]` | server + client: reviews and questions behave as they say | P2 | M | - |
+| [B-107](docs/backlog/B-107-copy-that-promises-nothing.md) `[ ]` | server: the store does not promise what it does not have | P3 | S | - |
+| [B-108](docs/backlog/B-108-pages-look-alike.md) `[ ]` | client + server: the same thing looks the same on every page | P3 | M | - |
+| [B-110](docs/backlog/B-110-order-updates-log-noise.md) `[ ]` | server: a client leaving the order page is not an error | P3 | XS | - |
 | [B-78](docs/backlog/B-78-placeholders-on-the-stand.md) `[ ]` | server + client: the stand shows pictures, not placeholder labels | P3 | M | - |
 | [B-84](docs/backlog/B-84-screenshot-fixtures-leak-state.md) `[ ]` | test: screenshot fixtures do not depend on their order | P3 | S | - |
 | [B-85](docs/backlog/B-85-canvas-behind-the-code.md) `[ ]` | design: the canvas draws what the store now has | P3 | M | - |
