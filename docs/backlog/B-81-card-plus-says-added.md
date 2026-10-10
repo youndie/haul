@@ -1,7 +1,7 @@
 ---
 id: B-81
 title: "server + client: a card's «+» says the item was added"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-10-review
