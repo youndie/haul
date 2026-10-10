@@ -8,6 +8,7 @@ import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
@@ -26,6 +27,7 @@ import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
 import io.github.youndie.haul.shell.LOADING_LINE_TAG
 import io.github.youndie.haul.shell.LOADING_TAG
+import io.github.youndie.haul.shell.MESSAGE_TAG
 import io.github.youndie.haul.shell.NOT_UPDATED_TAG
 import io.github.youndie.haul.shell.PAGE_SCROLL_TAG
 import io.github.youndie.haul.shell.Storefront
@@ -49,6 +51,8 @@ import io.github.youndie.kompot.commands.kompotUpdate
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.RefreshAction
+import io.github.youndie.kompot.standard.SequenceAction
+import io.github.youndie.kompot.standard.ShowMessageAction
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.serialization.PolymorphicSerializer
 import java.util.concurrent.CopyOnWriteArrayList
@@ -238,23 +242,35 @@ class InPlaceAnswersTest {
             assertEquals(listOf(MUGS, BY_OSTRA), history.entries)
         }
 
-    /** «Add to cart» on a card: the answer is the header's count and the card, and no page is asked for. */
+    /**
+     * «Add to cart» on a card: the answer is the header's count and the card, and no page is asked for; then,
+     * as the server answers it (B-81), the message that the item was added, with the way to the cart.
+     */
     @Test
-    fun `a card's plus updates the header's count without a page`() =
+    fun `a card's plus updates the header's count without a page and says the item was added`() =
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
             mugs()
             val first = grid("Stoneware").cards.first()
             cartAnswer =
-                kompotUpdate {
-                    addComponent(header.copy(cartCount = 7))
-                    addComponent(first.copy(add = LineCommand(LINE, LineChange(quantity = 2))))
-                }
+                SequenceAction(
+                    listOf(
+                        kompotUpdate {
+                            addComponent(header.copy(cartCount = 7))
+                            addComponent(first.copy(add = LineCommand(LINE, LineChange(quantity = 2))))
+                        },
+                        ShowMessageAction(ADDED, actionLabel = "View cart", action = NavigateAction("/cart")),
+                    ),
+                )
             storefront()
             waitForText(card("Stoneware", 0))
             assertTrue(!exists("7"), "the cart counts 7 before the press")
+            onNodeWithTag(MESSAGE_TAG).assertDoesNotExist()
 
             onAllNodes(hasContentDescription(ADD_TO_CART))[0].performClick()
             waitForText("7")
+            onNodeWithTag(MESSAGE_TAG).assertExists()
+            onNode(hasText("View cart") and hasAnyAncestor(hasTestTag(MESSAGE_TAG))).assertExists()
+            assertTrue(exists(ADDED), "«+» does not say the item was added")
             onAllNodes(hasContentDescription(ADD_TO_CART))[0].performClick()
             waitUntil(timeoutMillis = 5_000) { sent.size == 2 }
             assertEquals(
@@ -269,7 +285,7 @@ class InPlaceAnswersTest {
     /**
      * B-75: a card whose tree gives «+» nothing to add — out of stock, or the line at its limit — draws it
      * disabled, and a press on it sends nothing and opens nothing: before, it fell through to the card under
-     * it and opened the product.
+     * it and opened the product. Nothing was added, so nothing says it was (B-81).
      */
     @Test
     fun `a card's plus with nothing to add sends nothing and opens nothing`() =
@@ -284,6 +300,7 @@ class InPlaceAnswersTest {
             assertEquals(emptyList(), sent.toList(), "«+» with nothing to add sent a command")
             assertEquals(listOf(MUGS), history.entries, "«+» with nothing to add opened the product")
             assertEquals(listOf("/ui$MUGS"), requests.toList())
+            onNodeWithTag(MESSAGE_TAG).assertDoesNotExist()
             onAllNodes(hasContentDescription(ADD_TO_CART))[0].assertIsEnabled()
         }
 
@@ -353,6 +370,7 @@ class InPlaceAnswersTest {
         const val BY_LUME = "/c/mugs?brand=Lume"
         const val LINE = "/api/v1/cart/lines/p-0-0?answer=card"
         const val CRUMB = "Kitchen mugs"
+        const val ADDED = "Added to your cart"
 
         val SERVER_ERROR = HaulResponse(500, """{"code":"internal","message":"boom"}""")
 
