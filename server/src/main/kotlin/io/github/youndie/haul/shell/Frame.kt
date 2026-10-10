@@ -76,8 +76,8 @@ internal object Frame {
         catalog = navigation,
         deals = NavigateAction(DEALS),
         cart = NavigateAction(CART),
-        orders = NavigateAction(if (viewer.customerId == null) SIGN_IN else ORDERS),
-        saved = NavigateAction(if (viewer.customerId == null) SIGN_IN else SAVED),
+        orders = NavigateAction(if (viewer.customerId == null) SIGN_IN_TO_ORDERS else ORDERS),
+        saved = NavigateAction(if (viewer.customerId == null) SIGN_IN_TO_SAVED else SAVED),
         plus = plus(viewer),
     )
 
@@ -110,15 +110,21 @@ internal object Frame {
     /**
      * Where «Orders» takes a customer — and an order page that is not there, «Go to your orders», and the
      * order page's «Orders» crumb: the orders' history (B-19), which the order pages sit under. A guest's
-     * «Orders» is sign-in, as the account shortcut is.
+     * «Orders» is sign-in, returning to the orders ([SIGN_IN_TO_ORDERS]).
      */
     const val ORDERS = "$ACCOUNT/orders"
 
     /**
      * Where «Saved» takes a customer — the header's shortcut and the account's menu: the Saved list
-     * (B-20), a page of the account. A guest's «Saved» is sign-in, as «Orders» is.
+     * (B-20), a page of the account. A guest's «Saved» is sign-in, returning to the list ([SIGN_IN_TO_SAVED]).
      */
     const val SAVED = "$ACCOUNT/saved"
+
+    /** A guest's «Orders»: the sign-in that lands on the orders once it has gone through (B-41, B-66). */
+    const val SIGN_IN_TO_ORDERS = "$SIGN_IN?next=%2Faccount%2Forders"
+
+    /** A guest's «Saved»: the sign-in that lands on the Saved list (B-66). */
+    const val SIGN_IN_TO_SAVED = "$SIGN_IN?next=%2Faccount%2Fsaved"
 
     /** The store's default place, until a customer's address says otherwise (feature-browse). */
     private const val DEFAULT_PLACE = "Brooklyn, NY 11211"

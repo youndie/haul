@@ -60,7 +60,10 @@ public enum class StorefrontPage {
      */
     Order,
 
-    /** `/sign-in`, where the header sends a guest; the client claims it before it is followed. */
+    /**
+     * `/sign-in`, where the header sends a guest; the client claims a press on it before it is followed,
+     * and draws the page itself — no tree — for a reload, a link or back onto it (B-66).
+     */
     SignIn,
     ;
 

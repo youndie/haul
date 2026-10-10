@@ -261,11 +261,11 @@
             },
             "orders": {
                 "type": "navigate",
-                "deeplink": "/sign-in"
+                "deeplink": "/sign-in?next=%2Faccount%2Forders"
             },
             "saved": {
                 "type": "navigate",
-                "deeplink": "/sign-in"
+                "deeplink": "/sign-in?next=%2Faccount%2Fsaved"
             },
             "plus": {
                 "type": "navigate",

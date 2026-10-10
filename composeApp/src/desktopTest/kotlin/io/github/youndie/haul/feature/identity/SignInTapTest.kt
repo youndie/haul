@@ -137,6 +137,58 @@ class SignInTapTest {
             assertEquals(0, redraws + cancelled + opened.size, "a cancelled press ended the sign-in")
         }
 
+    /**
+     * B-66: a popup the browser blocked is not a sign-in the shopper abandoned. It is told as blocked,
+     * with the press's own address, so the shell can say why and offer the sign-in in this tab.
+     */
+    @Test
+    fun `a blocked popup is told as blocked, not as cancelled`() =
+        runBlocking {
+            var cancelled = 0
+            val blocked = mutableListOf<String>()
+            val actions =
+                SignInActions(
+                    signIn = { throw SignInPopupBlocked() },
+                    redraw = {},
+                    cancelled = { cancelled++ },
+                    blocked = { blocked += it },
+                    open = {},
+                )
+
+            assertTrue(actions.handle(NavigateAction("/sign-in?next=%2Fcheckout")))
+
+            assertEquals(listOf("/sign-in?next=%2Fcheckout"), blocked)
+            assertEquals(0, cancelled)
+        }
+
+    /** B-66: «Sign out» is the client's own address — the customer forgotten, the page drawn for a guest. */
+    @Test
+    fun `sign-out forgets the customer and draws what a guest sees, opening nothing`() =
+        runBlocking {
+            var signIns = 0
+            var signOuts = 0
+            var signedOut = 0
+            val opened = mutableListOf<String>()
+            val actions =
+                SignInActions(
+                    signIn = { signIns++ },
+                    redraw = {},
+                    signOut = { signOuts++ },
+                    signedOut = { signedOut++ },
+                    open = { opened += it },
+                )
+
+            assertTrue(SignInActions.claims(NavigateAction(SignInActions.SIGN_OUT)))
+            assertTrue(actions.handle(NavigateAction(SignInActions.SIGN_OUT)))
+
+            assertEquals(1, signOuts)
+            assertEquals(1, signedOut)
+            assertEquals(0, signIns)
+            assertEquals(emptyList(), opened)
+            assertFalse(SignInActions.claims(NavigateAction("/sign-out-of-stock")))
+            assertFalse(SignInActions.claims(NavigateAction("/account")))
+        }
+
     @Test
     fun `a next is a storefront address with its query kept`() {
         assertEquals("/checkout", SignInActions.next("/sign-in?next=%2Fcheckout"))

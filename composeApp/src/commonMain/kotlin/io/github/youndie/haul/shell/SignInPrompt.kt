@@ -33,7 +33,8 @@ internal val Throwable.asksForSignIn: Boolean
  * the sign-in a tree's `/sign-in?next=` starts (B-41), through [SignInActions] like every other, with
  * `next` set to this page. Once it has gone through, [onSignedIn] loads the page again; a sign-in that
  * did not go through — the popup closed, a server without sign-in — leaves for the home page, where a
- * guest has something to see.
+ * guest has something to see. A popup the browser blocked leaves for the sign-in page, which says so and
+ * returns here ([Signing], B-66).
  *
  * A press, not the page's arrival, starts it: the sign-in is a popup (B-12), and a browser blocks a
  * popup no click asked for — the sign-in would end before the shopper saw it, and send them home.
@@ -42,14 +43,14 @@ internal val Throwable.asksForSignIn: Boolean
 internal fun SignInPrompt(
     address: Address,
     header: HaulHeader,
-    signIn: suspend () -> Unit,
+    signing: Signing,
     navigator: Navigator,
     onSignedIn: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val actions =
-        remember(address) {
-            SignInActions(signIn = signIn, redraw = onSignedIn, cancelled = { navigator.open("/") }) { next ->
+        remember(address, signing) {
+            signing.actions(address, redraw = onSignedIn, cancelled = { navigator.open("/") }) { next ->
                 if (next == address.value) onSignedIn() else navigator.open(next)
             }
         }

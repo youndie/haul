@@ -21,8 +21,8 @@ public class OidcSignInFlow(
 ) : SignInFlow {
     private val factory = WebCodeAuthFlowFactory(windowTarget = windowTarget)
 
-    override suspend fun signIn(settings: SignInSettings): Tokens {
-        val response = factory.createAuthFlow(client(settings)).getAccessToken()
+    override suspend fun signIn(settings: suspend () -> SignInSettings): Tokens {
+        val response = factory.createAuthFlow(oidcClient(settings(), redirectUri)).getAccessToken()
         return Tokens(response.access_token, response.refresh_token)
     }
 
@@ -30,15 +30,19 @@ public class OidcSignInFlow(
         settings: SignInSettings,
         refreshToken: String,
     ): Tokens {
-        val response = client(settings).refreshToken(refreshToken)
+        val response = oidcClient(settings, redirectUri).refreshToken(refreshToken)
         // shildik rotates refresh tokens; a provider that does not answers none, and the old one stands.
         return Tokens(response.access_token, response.refresh_token ?: refreshToken)
     }
-
-    private suspend fun client(settings: SignInSettings): OpenIdConnectClient =
-        OpenIdConnectClient(discoveryUri = "${settings.issuer}/.well-known/openid-configuration") {
-            clientId = settings.clientId
-            redirectUri = this@OidcSignInFlow.redirectUri
-            scope = settings.scope
-        }.apply { discover() }
 }
+
+/** The realm's client as [settings] name it, returning to [returnTo], its endpoints discovered. */
+internal suspend fun oidcClient(
+    settings: SignInSettings,
+    returnTo: String,
+): OpenIdConnectClient =
+    OpenIdConnectClient(discoveryUri = "${settings.issuer}/.well-known/openid-configuration") {
+        clientId = settings.clientId
+        redirectUri = returnTo
+        scope = settings.scope
+    }.apply { discover() }

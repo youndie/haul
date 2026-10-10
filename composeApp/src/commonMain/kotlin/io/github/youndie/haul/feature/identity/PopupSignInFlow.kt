@@ -39,8 +39,10 @@ public interface SignInPopup {
  * either. So the provider's flow runs detached from the press, and the press waits for whichever
  * comes first — the tokens, or the popup closed without an answer, which throws
  * [SignInPopupClosed] within a second. A popup [open] could not get ([open] answers `null`: the
- * browser blocked it) throws [SignInPopupBlocked] before the provider is asked at all. Either is a
- * sign-in that did not go through, which [SignInActions] answers as `cancelled`.
+ * browser blocked it) throws [SignInPopupBlocked] before the provider — or the server, for its
+ * settings — is asked at all: the popup is opened first, while the press that asked for it still
+ * counts as the shopper's click (B-66). A closed popup is a sign-in that did not go through, which
+ * [SignInActions] answers as `cancelled`; a blocked one is told to the shopper, with a way that works.
  *
  * One sign-in at a time: a [signIn] while one is pending brings its popup to the front and throws
  * [SignInPending], so a second press opens no second window — two would race for one stored
@@ -53,23 +55,25 @@ public class PopupSignInFlow(
 ) : SignInFlow {
     private var pending: SignInPopup? = null
 
-    override suspend fun signIn(settings: SignInSettings): Tokens {
+    override suspend fun signIn(settings: suspend () -> SignInSettings): Tokens {
         pending?.let {
             it.focus()
             throw SignInPending()
         }
         val popup = open() ?: throw SignInPopupBlocked()
         pending = popup
-        // Detached on purpose: the provider's wait ignores cancellation, and a child would hold the
-        // press open for as long as it waits — for good, after a close.
-        val attempt = CoroutineScope(currentCoroutineContext() + Job()).async { delegate.signIn(settings) }
+        var attempt: Deferred<Tokens>? = null
         try {
+            val asked = settings()
+            // Detached on purpose: the provider's wait ignores cancellation, and a child would hold the
+            // press open for as long as it waits — for good, after a close.
+            attempt = CoroutineScope(currentCoroutineContext() + Job()).async { delegate.signIn { asked } }
             return settled(popup, attempt)
         } finally {
             // A window left open after its press is gone — the page left mid-sign-in — would hand its
             // answer to a flow nobody waits for, and the next press would reuse it.
             popup.close()
-            attempt.cancel()
+            attempt?.cancel()
             pending = null
         }
     }

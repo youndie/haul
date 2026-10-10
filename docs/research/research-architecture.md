@@ -448,7 +448,8 @@ and on the stand.
   most ten and the stock; a line already holding as many is only selected, so a second press adds
   nothing. A SKU gone or out of stock is left out. It answers `navigate` to the cart.
 - **«Orders» in the header** goes to the orders' history, `/account/orders` (B-19; until then `/account`),
-  and a guest's to sign-in, as the account shortcut does. The page's «Orders» crumb goes there too.
+  and a guest's to sign-in that lands on the orders once it has gone through (`/sign-in?next=…`, B-66).
+  The page's «Orders» crumb goes there too.
 - **The address drawn is the order's** (`NewOrder.address`, B-40's copy), never the saved address it came from,
   which the checkout edits in place.
 - **«Write a review»** on a delivered line is the product page's own: B-22's review dialog, presented over the
@@ -553,7 +554,31 @@ the account need a shildik token; signing in merges the guest cart.
   (`PopupSignInFlow`, `BrowserSignInPopup`): closed without the return page's answer is a sign-in
   that did not go through, in about half a second; blocked is the same, at once; a press while one is
   pending focuses its popup and opens none. Opening the popup before the provider's discovery also
-  keeps it inside the click's activation on a slow network.
+  keeps it inside the click's activation on a slow network — and since B-66 before the server's
+  `GET /api/v1/sign-in` too, which the first press of a page load used to wait for (`SignInFlow.signIn`
+  asks for the settings rather than being handed them).
+- **Every way in reaches the sign-in or says why not** (B-66). `/sign-in` is the client's own page
+  (`shell/SignInPage.kt`), not a tree: a reload of `/sign-in?next=…`, a shared link, back or forward onto
+  it draw «Sign in to HAUL», whose press opens the popup and, once it has gone through, gives the page's
+  history entry to `next` (`Navigator.redirect`), so back does not return to a sign-in that is done; a
+  customer who arrives there is sent on at once. Every press — a tree's, the header the shell draws over
+  a loading, error or not-found page, a prompt's, the page's own — goes through the same `Signing`
+  (`SignInActions` underneath), so no way in follows `/sign-in` as a page. A popup the browser blocked is
+  no longer a quiet `cancelled`: the shopper lands on the sign-in page, returning to where they were,
+  which says the window was blocked and offers «Sign in on this page» — the same code flow with PKCE in
+  the tab itself (`BrowserSignInHere`): the request and `next` wait in the tab's session storage, the
+  provider returns to the same `signed-in.html`, which, opened by no storefront window and finding a
+  request, keeps the answer beside it and goes on to `/sign-in`, where the exchange and the merge run as
+  the popup's do. The popup stays the first way: it keeps the page the shopper is on, and the tab's way
+  costs a second start of the bundle. A guest's «Orders» and «Saved» carry their `next`
+  (`Frame.SIGN_IN_TO_ORDERS`, `SIGN_IN_TO_SAVED`).
+- **Signing out** (B-66) is the customer's account slot, a menu on both widths — the account and «Sign
+  out» — and the phone header's menu. `/sign-out` is the client's own address, never a page: the tokens
+  are forgotten in the browser (the guest id stays, research above), and a customer's page (checkout, the
+  account, Saved, an order) leaves for the home page while any other is drawn again for the guest. The
+  provider is not asked to end anything: walked against shildik 0.4.1 (the e2e's image), a sign-in after a
+  sign-out asks for the password again — the provider kept no session of its own to sign in from. Its
+  `end_session_endpoint` is not used.
 
 **Decided in B-14, checkout and the quote.**
 

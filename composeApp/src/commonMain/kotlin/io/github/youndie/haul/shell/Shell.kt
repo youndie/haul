@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.LineBreak
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.feature.checkout.CheckoutHeaderView
@@ -43,6 +44,7 @@ import io.github.youndie.haul.ui.Skeleton
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.accented
 import io.github.youndie.haul.ui.gutter
+import io.github.youndie.haul.ui.pressable
 
 // The client's own screens (research D2): what is drawn before a tree arrives and after a request for
 // one fails. No server tree is involved, so the header is the client's — who is looking is not known
@@ -388,7 +390,9 @@ private val FACET_BLOCKS =
 
 /**
  * A page whose subject is not there (`404`): the client draws it with the header it already has —
- * who is looking is known — an eyebrow, the title with its accent, why, and the way on.
+ * who is looking is known — an eyebrow, the title with its accent, why, and the way on. The sign-in's
+ * pages are drawn the same way (B-44, B-66): no [actionLabel] while there is nothing to press, and a
+ * second way on, [secondaryLabel], as a link under the button.
  */
 @Composable
 public fun NotFoundShell(
@@ -397,8 +401,10 @@ public fun NotFoundShell(
     title: String,
     accent: String,
     text: String,
-    actionLabel: String,
+    actionLabel: String?,
     onAction: () -> Unit = {},
+    secondaryLabel: String? = null,
+    onSecondary: () -> Unit = {},
 ) {
     val compact = LocalHaulCompact.current
     Column(Modifier.fillMaxWidth()) {
@@ -430,15 +436,24 @@ public fun NotFoundShell(
                 HaulType.text(if (compact) 16f else 18f, lineHeight = 1.5f).copy(color = HaulColors.onSurfaceVariant),
                 Modifier.widthIn(max = 560.dp),
             )
-            HaulButton(
-                actionLabel,
-                height = if (compact) 56.dp else 64.dp,
-                radius = 18.dp,
-                fill = HaulColors.primary,
-                content = HaulColors.onPrimary,
-                icon = HaulIcons.arrowRight,
-                onClick = onAction,
-            )
+            if (actionLabel != null) {
+                HaulButton(
+                    actionLabel,
+                    height = if (compact) 56.dp else 64.dp,
+                    radius = 18.dp,
+                    fill = HaulColors.primary,
+                    content = HaulColors.onPrimary,
+                    icon = HaulIcons.arrowRight,
+                    onClick = onAction,
+                )
+            }
+            if (secondaryLabel != null) {
+                Text(
+                    secondaryLabel,
+                    HaulType.text(if (compact) 15f else 16f, 600).copy(textDecoration = TextDecoration.Underline),
+                    Modifier.pressable(onSecondary).padding(vertical = 6.dp),
+                )
+            }
         }
     }
 }

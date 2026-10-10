@@ -64,9 +64,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import io.github.youndie.haul.feature.identity.SignInActions
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
+import io.github.youndie.kompot.standard.NavigateAction
 
 /**
  * The header's search field as the page around the header sees it: whether the shopper is typing in
@@ -142,8 +144,9 @@ internal fun Modifier.headerMeasured(): Modifier {
 /**
  * The header, at the width the page is drawn at (`HaulHeader` on the wire). [pending] is the client's
  * own header before any tree has arrived (Loading, Error): who is looking is not known yet, so the
- * account slot is a placeholder and the cart has no count. [onAccount] is a tap on the account slot —
- * «Sign in» for a guest, the name for a customer — and the renderer hands it `HaulHeader.account`.
+ * account slot is a placeholder and the cart has no count. [onAccount] is a tap on a guest's «Sign in»,
+ * and the renderer hands it `HaulHeader.account`; a customer's name opens the account's menu — the
+ * account and «Sign out» (B-66) — whose entries follow through [LocalHaulActions].
  */
 @Composable
 public fun HaulHeaderView(
@@ -152,7 +155,10 @@ public fun HaulHeaderView(
     pending: Boolean = false,
     onAccount: (() -> Unit)? = null,
 ) {
-    val account = accountTap(if (pending) null else onAccount, header.customerName)
+    // A header the shell draws itself — over a page that did not load, or is not there — has no renderer to
+    // hand it the account's action, and follows it through whoever follows the page's links (B-66).
+    val press = onAccount ?: following(header.account)
+    val account = accountTap(if (pending) null else press, header.customerName)
     val compact = LocalHaulCompact.current
     val field = LocalSearchField.current
     Column(
@@ -168,13 +174,27 @@ public fun HaulHeaderView(
             ),
     ) {
         if (compact) {
-            CompactHeader(header, pending, account, if (pending) null else onAccount)
+            CompactHeader(header, pending, account, if (pending) null else press)
         } else {
             WideHeader(header, pending, account)
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(HaulColors.outlineVariant))
     }
 }
+
+/** What «Sign out» is called, in the account slot's menu and the phone's header menu. */
+public const val SIGN_OUT_LABEL: String = "Sign out"
+
+/** The header's «Sign out» (B-66): the client's own address, answered by sign-in's actions, not followed. */
+public val SIGN_OUT_ACTION: NavigateAction = NavigateAction(SignInActions.SIGN_OUT)
+
+/**
+ * A customer's account slot opens a menu (B-66): the account the tree names (`HaulHeader.account`) and
+ * «Sign out», the one place a customer signs out. No artboard draws it open; closed, the slot is drawn as
+ * the canvas has it.
+ */
+private val HaulHeader.accountMenu: List<Link>
+    get() = listOf(Link("Account", account), Link(SIGN_OUT_LABEL, SIGN_OUT_ACTION))
 
 /**
  * The account slot's tap, without a drawn indication: the canvas draws no pressed state, and a
@@ -262,9 +282,19 @@ private fun WideHeader(
             // «Saved» likewise (`HaulHeader.saved`, B-20): a customer's Saved list, a guest's sign-in.
             Shortcut(HaulIcons.heart, "Saved", modifier = Modifier.follows(header.saved))
             when {
-                pending -> Shortcut(HaulIcons.person) { Skeleton(Modifier.width(40.dp).height(10.dp), 5.dp) }
-                header.customerName == null -> Shortcut(HaulIcons.person, "Sign in", weight = 700, modifier = account)
-                else -> Shortcut(HaulIcons.person, header.customerName.orEmpty(), modifier = account)
+                pending -> {
+                    Shortcut(HaulIcons.person) { Skeleton(Modifier.width(40.dp).height(10.dp), 5.dp) }
+                }
+
+                header.customerName == null -> {
+                    Shortcut(HaulIcons.person, "Sign in", weight = 700, modifier = account)
+                }
+
+                else -> {
+                    LinkMenu(header.accountMenu, alignEnd = true) { press ->
+                        Shortcut(HaulIcons.person, header.customerName.orEmpty(), modifier = press)
+                    }
+                }
             }
             CartButton(
                 if (pending) 0 else header.cartCount,
@@ -347,10 +377,12 @@ private fun CompactHeader(
             }
 
             else -> {
-                Box(
-                    account.size(44.dp),
-                    contentAlignment = Alignment.Center,
-                ) { Icon(HaulIcons.person, 24.dp, HaulColors.onSurface) }
+                LinkMenu(header.accountMenu, alignEnd = true) { press ->
+                    Box(
+                        press.size(44.dp),
+                        contentAlignment = Alignment.Center,
+                    ) { Icon(HaulIcons.person, 24.dp, HaulColors.onSurface) }
+                }
             }
         }
         CartButton(

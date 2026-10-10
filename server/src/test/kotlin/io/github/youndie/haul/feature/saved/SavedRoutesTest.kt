@@ -365,7 +365,7 @@ class SavedRoutesTest {
                         it.heartAction == NavigateAction(Frame.SIGN_IN)
                 },
             )
-            assertEquals(NavigateAction(Frame.SIGN_IN), guests.only<HaulHeader>().saved)
+            assertEquals(NavigateAction(Frame.SIGN_IN_TO_SAVED), guests.only<HaulHeader>().saved)
             assertNotNull(tree(null, "/ui/p/$STONEWARE_MUG").only<ProductDetails>().heartAction)
         }
 

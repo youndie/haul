@@ -303,7 +303,10 @@ class SignInPromptTest {
     private class Provider : SignInFlow {
         val refreshedWith = CopyOnWriteArrayList<String>()
 
-        override suspend fun signIn(settings: SignInSettings): Tokens = Tokens("access-new", "refresh-new")
+        override suspend fun signIn(settings: suspend () -> SignInSettings): Tokens =
+            Tokens("access-new", "refresh-new").also {
+                settings()
+            }
 
         override suspend fun refresh(
             settings: SignInSettings,
