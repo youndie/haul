@@ -6,6 +6,7 @@ import io.github.youndie.haul.feature.account.accountRouting
 import io.github.youndie.haul.feature.cart.cartModule
 import io.github.youndie.haul.feature.cart.cartRouting
 import io.github.youndie.haul.feature.cart.domain.CartError
+import io.github.youndie.haul.feature.catalog.OneCategoryAddress
 import io.github.youndie.haul.feature.catalog.catalogModule
 import io.github.youndie.haul.feature.catalog.catalogRouting
 import io.github.youndie.haul.feature.catalog.domain.CatalogError
@@ -175,6 +176,8 @@ internal fun Application.haulModule(
         }
         unexpectedFailures(report = reportFailure)
     }
+    // A category answers at one address; any other form of it is redirected there (B-68).
+    install(OneCategoryAddress)
     routing {
         probes(commit = commit, ready = { databaseAnswers(dataSource) })
         // Public: a guest, a customer or nobody. A token is optional, and one that does not verify is

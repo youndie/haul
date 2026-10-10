@@ -13,6 +13,7 @@ import io.github.youndie.haul.feature.returns.ReturnEntry
 import io.github.youndie.haul.feature.returns.exactDollars
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.ui.AccountBody
+import io.github.youndie.haul.ui.Breadcrumbs
 import io.github.youndie.haul.ui.CartBody
 import io.github.youndie.haul.ui.CategoryGrid
 import io.github.youndie.haul.ui.CheckoutBody
@@ -107,8 +108,37 @@ class WholePathTest {
 
                 val productAddress = card.action.deeplink("the card «${card.title}»")
                 assertEquals(StorefrontPage.Product, pageOf(productAddress))
-                val product = shop.page(productAddress).one(ProductDetails.serializer())
+                val productPage = shop.page(productAddress)
+                val product = productPage.one(ProductDetails.serializer())
                 assertEquals(card.productId, product.productId, "the card led to another product")
+                // A category has one address (B-68): the product's own, opened from its breadcrumbs, names the
+                // same path in what its brand loads, so the client records the tick in place and loads no page.
+                val leaf =
+                    productPage
+                        .one(Breadcrumbs.serializer())
+                        .crumbs
+                        .last { it.action != null }
+                        .action
+                        .deeplink("the product's category in its breadcrumbs")
+                val leafBrand =
+                    shop
+                        .page(leaf)
+                        .one(FilteredResults.serializer())
+                        .facets.facets
+                        .single { it.key == "brand" }
+                        .options
+                        .first()
+                val leafTick = assertNotNull(leafBrand.action as? LoadAction, "the brand on $leaf is not a load")
+                val leafUpdate =
+                    assertNotNull(
+                        shop.send("GET", leafTick.url).action() as? UpdateAction,
+                        "${leafTick.url} is not an update",
+                    )
+                assertEquals(
+                    leaf.substringBefore('?'),
+                    leafUpdate.deeplink?.substringBefore('?'),
+                    "a tick on $leaf names another address of the category",
+                )
                 assertTrue(product.inStock, "the product page says «${card.title}» is out of stock")
                 assertEquals(card.price, product.price, "the card and the product page disagree on the price")
                 card to productAddress

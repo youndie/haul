@@ -90,7 +90,7 @@ class CampaignEndTest {
 
     /** The headphones' card in their category: its price, the struck-through one and the badge. */
     private suspend fun HttpClient.card(token: String): List<String?> =
-        page("/ui/c/headphones?brand=Sony", token)
+        page("/ui/c/electronics/audio/headphones?brand=Sony", token)
             .all()
             .filterIsInstance<ProductCard>()
             .single { it.productId == SONY }

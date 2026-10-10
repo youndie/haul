@@ -29,7 +29,7 @@ class ListingNameTest {
     @Test
     fun `a card writes the listing name where the product page writes brand above title`() =
         haulTest {
-            val cards = tree("/ui/c/headphones").all().filterIsInstance<ProductCard>()
+            val cards = tree("/ui/c/electronics/audio/headphones").all().filterIsInstance<ProductCard>()
             val card = cards.single { it.productId == SONY_HEADPHONES }
             assertEquals("Sony WH-1000XM6 Wireless Noise Cancelling Headphones", card.title)
 
@@ -46,7 +46,11 @@ class ListingNameTest {
     @Test
     fun `a product with no listing name is listed by its title`() =
         haulTest {
-            val card = tree("/ui/c/mugs").all().filterIsInstance<ProductCard>().single { it.productId == STONEWARE_MUG }
+            val card =
+                tree("/ui/c/home-kitchen/kitchen/mugs").all().filterIsInstance<ProductCard>().single {
+                    it.productId ==
+                        STONEWARE_MUG
+                }
             assertEquals("Stoneware Mug, 12 oz", card.title)
         }
 

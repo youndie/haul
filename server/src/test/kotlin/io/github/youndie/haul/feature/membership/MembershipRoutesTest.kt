@@ -181,7 +181,7 @@ class MembershipRoutesTest {
     fun `the plus pill offers the trial to a non-member and the account to a member`() =
         store {
             val dialog = PresentAction(PlusOffer.dialog, PlusOffer.DIALOG)
-            listOf("/ui/home", "/ui/c/headphones", CartPaths.SCREEN).forEach { path ->
+            listOf("/ui/home", "/ui/c/electronics/audio/headphones", CartPaths.SCREEN).forEach { path ->
                 assertEquals(dialog, screen(path, sam).only<HaulHeader>().plus, "Sam on $path")
                 assertEquals(NavigateAction(Frame.ACCOUNT), screen(path, maya).only<HaulHeader>().plus, "Maya on $path")
             }

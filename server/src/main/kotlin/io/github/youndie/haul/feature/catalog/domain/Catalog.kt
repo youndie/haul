@@ -14,6 +14,16 @@ internal data class Category(
     val label: String,
 )
 
+/** [category] and every category above it, from the top level down to [category] itself. */
+internal fun List<Category>.lineage(category: Category): List<Category> =
+    generateSequence(category) { c -> firstOrNull { it.slug == c.parentSlug } }.toList().reversed()
+
+/**
+ * A category's one address under `/c/` (B-68): the slugs of its [lineage] — `electronics/audio/headphones`;
+ * a top-level category's is its slug. Every link to a category and every address its page names is this one.
+ */
+internal fun List<Category>.pathOf(category: Category): String = lineage(category).joinToString("/") { it.slug }
+
 internal data class Seller(
     val id: String,
     val name: String,

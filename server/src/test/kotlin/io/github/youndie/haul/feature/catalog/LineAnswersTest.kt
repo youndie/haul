@@ -89,13 +89,13 @@ class LineAnswersTest {
     fun `a card's plus answers the header and the card`() =
         haulTest {
             val guest = guest()
-            val card = mug(page("/ui/c/mugs", guest))
-            val update = pressedOn("/ui/c/mugs", guest, assertNotNull(card.add), card.id)
+            val card = mug(page("/ui/c/home-kitchen/kitchen/mugs", guest))
+            val update = pressedOn("/ui/c/home-kitchen/kitchen/mugs", guest, assertNotNull(card.add), card.id)
             assertEquals(1, (update.updates.first().component as HaulHeader).cartCount)
             val again = update.updates.last().component as ProductCard
             assertEquals(LineChange(quantity = 2), again.add?.change, "a second «+» would not add one more")
             // And again: the answer is the card as it is now, so the next press adds one more still.
-            pressedOn("/ui/c/mugs", guest, assertNotNull(again.add), card.id)
+            pressedOn("/ui/c/home-kitchen/kitchen/mugs", guest, assertNotNull(again.add), card.id)
         }
 
     @Test
@@ -131,8 +131,8 @@ class LineAnswersTest {
     fun `a line of the cart itself is answered with refresh`() =
         haulTest {
             val guest = guest()
-            val card = mug(page("/ui/c/mugs", guest))
-            pressedOn("/ui/c/mugs", guest, assertNotNull(card.add), card.id)
+            val card = mug(page("/ui/c/home-kitchen/kitchen/mugs", guest))
+            pressedOn("/ui/c/home-kitchen/kitchen/mugs", guest, assertNotNull(card.add), card.id)
             val line =
                 assertNotNull(
                     card.add,

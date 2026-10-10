@@ -68,7 +68,7 @@ internal class HomeScreen(
                 id = "categories",
                 tiles =
                     topLevel.take(CATEGORY_TILES).map {
-                        CategoryTile("tile-${it.slug}", it.name, it.tone, it.label, categoryLink(it.slug))
+                        CategoryTile("tile-${it.slug}", it.name, it.tone, it.label, categoryLink(it, categories))
                     },
             )
         dealsOfTheDay(catalog, calendar, photos, viewer)?.let { deals ->
@@ -138,4 +138,4 @@ internal fun navigation(categories: List<Category>): List<Link> =
     categories
         .filter { it.parentSlug == null }
         .sortedBy { it.position }
-        .map { Link(it.name, categoryLink(it.slug)) }
+        .map { Link(it.name, categoryLink(it, categories)) }

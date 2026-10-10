@@ -96,7 +96,7 @@ class PlusEarlyAccessTest {
 
     /** The headphones' card in their category. */
     private suspend fun HttpClient.card(token: String?): ProductCard =
-        page("/ui/c/headphones?brand=Sony", token)
+        page("/ui/c/electronics/audio/headphones?brand=Sony", token)
             .all()
             .filterIsInstance<ProductCard>()
             .single { it.productId == SONY }
