@@ -1,7 +1,7 @@
 ---
 id: B-79
 title: "client + server: checkout's step indicator and summary tell the truth"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-10-review
