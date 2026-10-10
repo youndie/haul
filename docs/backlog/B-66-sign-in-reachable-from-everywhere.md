@@ -1,7 +1,7 @@
 ---
 id: B-66
 title: "client: sign-in and sign-out work from every page and every way in"
-status: wip
+status: done
 priority: P1
 size: M
 stage: stage-10-review
@@ -51,16 +51,22 @@ The code audit adds:
   `suspend () -> SignInSettings`): the first press of a page load used to wait for `GET /api/v1/sign-in` first, which
   a stricter browser counts as outside the click.
 - **One path for every press** (`Signing`): a tree's actions, the header the shell draws over a loading, error or
-  not-found page (`panelActions`, which only followed links), the 401 prompt and the sign-in page. A guest's «Orders»
+  not-found page (`panelActions`, which only followed links), the 401 prompt and the sign-in page. B-73's phone menu
+  follows the header's own actions through the same handler, so its «Sign in», «Orders» and «Saved» take this path
+  too. The shell-drawn header's account slot had no action at all (no renderer hands it `HaulHeader.account`); it
+  follows the account through the page's handler now. A guest's «Orders»
   and «Saved» now carry their `next` (`Frame.SIGN_IN_TO_ORDERS`, `SIGN_IN_TO_SAVED`; the cart's guest fixture follows
   the wire), so the sign-in lands on them; the account shortcut, the heart and «Save for later» keep a bare `/sign-in`
   and draw the page again, signed in.
 - **Sign-out**: a customer's account slot opens a menu on both widths, «Account» and «Sign out» (`SIGN_OUT_ACTION`,
-  the client's own `/sign-out`); `Identity.signOut()` is finally called. A customer's page is left for home, any other
+  the client's own `/sign-out`), and B-73's phone header menu has «Sign out» under «HAUL PLUS» for a customer
+  (`HaulHeader_Menu_Phone` re-recorded on Linux for that row, the only golden changed); `Identity.signOut()` is
+  finally called. A customer's page is left for home, any other
   drawn again for the guest. shildik kept no session to sign back in from: the next sign-in asked for the password.
 - **Left out**: a non-member's «HAUL PLUS» (`PresentAction`) on a page the shell draws itself is still ignored — the
   shell's `presented` state lives inside a screen; that header's other dead ends are B-67's.
-- **Tests**: `SignInEverywhereTest` (nine, the storefront with a fake transport and session: reload, back and forward,
+- **Tests**: `SignInEverywhereTest` (twelve, three of them the phone menu's «Orders», its «Sign out» and the
+  shell-drawn header's account slot; the storefront with a fake transport and session: reload, back and forward,
   a customer arriving, blocked → the page → «Sign in on this page», a tab sign-in coming back and one failing, the
   shell's own header, sign-out from a customer's page and from another), `PopupSignInFlowTest` (blocked is told as
   blocked and asks nothing; the popup opens before the settings and closes when they fail), `IdentityTest` (a tab
@@ -69,4 +75,4 @@ The code audit adds:
 - **Mutations**, each red then restored: the shell's header back to plain navigation; the sign-in page's branch off;
   the blocked catch removed; settings asked before the popup; «Sign out» left out of the menu; the tab sign-in not
   merged; `redirect` pushing instead of replacing; the customer's arrival not sent on; the guest's `next`s removed
-  from `Frame`.
+  from `Frame`; the phone menu's «Sign out» row removed; the shell-drawn header's account slot without its action.
