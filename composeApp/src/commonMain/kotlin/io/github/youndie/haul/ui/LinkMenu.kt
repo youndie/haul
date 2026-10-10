@@ -2,6 +2,7 @@ package io.github.youndie.haul.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -14,11 +15,19 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.IntOffset
@@ -39,7 +48,8 @@ public const val LINK_MENU_TAG: String = "link-menu"
  * [control] opens [links] as a menu under it — «Catalog»'s categories, the sort's orders — and an entry
  * pressed follows its action. [current] is the entry drawn as chosen. With nobody to follow the
  * actions ([LocalHaulActions] `null`, every screenshot) [control] is drawn as it is and opens nothing;
- * no artboard draws a menu open, so closed is the only state the canvas has.
+ * no artboard draws a menu open, so closed is the only state the canvas has. A press outside, or Escape,
+ * closes it.
  *
  * The box around [control] passes its constraints on unchanged, so wrapping a control moves no pixel.
  */
@@ -64,9 +74,19 @@ internal fun LinkMenu(
                 properties = PopupProperties(focusable = true),
             ) {
                 val shape = RoundedCornerShape(12.dp)
+                // Escape closes it (B-75). The popup takes the focus but gives it to none of its nodes, so the
+                // key reached nothing: the menu holds the focus itself, and reads the key before its entries.
+                val focus = remember { FocusRequester() }
+                LaunchedEffect(focus) { focus.requestFocus() }
                 Column(
                     Modifier
                         .testTag(LINK_MENU_TAG)
+                        .focusRequester(focus)
+                        .onPreviewKeyEvent {
+                            val escape = it.key == Key.Escape
+                            if (escape && it.type == KeyEventType.KeyDown) open = false
+                            escape
+                        }.focusable()
                         .width(IntrinsicSize.Max)
                         .widthIn(min = 200.dp)
                         .heightIn(max = 440.dp)

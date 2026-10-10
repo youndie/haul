@@ -30,6 +30,7 @@ import io.github.youndie.kompot.standard.CloseAction
 import io.github.youndie.kompot.standard.PresentAction
 import io.github.youndie.kompot.standard.RefreshAction
 import io.github.youndie.kompot.standard.SequenceAction
+import io.github.youndie.kompot.standard.ShowMessageAction
 import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -149,8 +150,11 @@ class WholePathTest {
             val product = shop.page(productAddress).one(ProductDetails.serializer())
             val add = assertNotNull(product.add, "the product page offers no «Add to cart» for «${product.title}»")
             val answer = shop.send("PUT", add.url, haulWireJson.encodeToString(LineChange.serializer(), add.change))
-            // Answered with the header and the buy box (B-63), not the page again.
-            val update = assertNotNull(answer.action() as? UpdateAction, "«Add to cart» is not answered with an update")
+            // Answered with the header and the buy box (B-63), not the page again, then a message (B-75).
+            val actions = (answer.action() as? SequenceAction)?.actions.orEmpty()
+            val update =
+                assertNotNull(actions.firstOrNull() as? UpdateAction, "«Add to cart» is not answered with an update")
+            assertTrue(actions.last() is ShowMessageAction, "«Add to cart» does not say it worked")
             assertEquals(
                 1,
                 update.updates

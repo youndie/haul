@@ -76,6 +76,10 @@ public data class SellerSummary(
  * absent when the line already holds as many as can be bought. [buy] is «Buy now»: the same line,
  * selected, then [LineCommand.next] to checkout (or to sign-in on the way there, for a guest); at the
  * line's limit it only selects the line. Both are absent out of stock.
+ *
+ * [inCart] says the SKU shown is in the viewer's cart (B-75): its words («2 in your cart») and where they
+ * lead, the cart; absent while the cart holds none of it. It is what «Add to cart» changes on the page
+ * besides the header's count, so a press shows it worked.
  */
 @Serializable
 @SerialName("haul_product_details")
@@ -116,6 +120,7 @@ public data class ProductDetails(
     val heartAction: @Polymorphic KompotAction? = null,
     val add: LineCommand? = null,
     val buy: LineCommand? = null,
+    val inCart: Link? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 

@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
@@ -47,6 +48,7 @@ import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Heart
 import io.github.youndie.haul.ui.Highlight
 import io.github.youndie.haul.ui.Icon
+import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.PhotoOrPlaceholder
 import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.haul.ui.SAVE
@@ -486,7 +488,10 @@ internal fun LabelledRows(
 /**
  * The buy box: the price for the chosen SKU, the buttons, then the delivery lines — or, out of stock,
  * «Save» and where to turn — and the seller. «Add to cart» and «Buy now» send the line changes the tree
- * gave them (B-48); out of stock the tree gives none and they are drawn greyed, pressing nothing.
+ * gave them (B-48); out of stock the tree gives none and they are drawn greyed, pressing nothing, and so is
+ * «Add to cart» alone at the line's limit (B-75). Under them, once the cart holds the SKU shown, how many
+ * and the way to the cart ([ProductDetails.inCart], B-75): what an «Add to cart» answered with an `update`
+ * changes here.
  */
 @Composable
 private fun BuyBox(
@@ -508,13 +513,14 @@ private fun BuyBox(
             Price(details, compact)
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 val live = details.inStock
+                val adds = live && details.add != null
                 HaulButton(
                     "Add to cart",
                     Modifier.fillMaxWidth(),
                     height = 64.dp,
                     radius = 18.dp,
-                    fill = if (live) HaulColors.primary else HaulColors.outlineVariant,
-                    content = if (live) HaulColors.onPrimary else HaulColors.outlineMuted,
+                    fill = if (adds) HaulColors.primary else HaulColors.outlineVariant,
+                    content = if (adds) HaulColors.onPrimary else HaulColors.outlineMuted,
                     textSize = 18f,
                     icon = HaulIcons.bag,
                     iconSize = 22.dp,
@@ -532,6 +538,7 @@ private fun BuyBox(
                     textSize = 16f,
                     onClick = linePress(details.buy),
                 )
+                details.inCart?.let { InCart(it) }
                 if (!live) {
                     HaulButton(
                         "Save",
@@ -568,6 +575,25 @@ private fun BuyBox(
                 }
             }
             Seller(details.seller)
+        }
+    }
+}
+
+/** The tag of the buy box's «in your cart» line, for the tests that wait for it. */
+public const val IN_CART_TAG: String = "in-cart"
+
+/** «2 in your cart», and «View cart» where it leads (B-75). No artboard draws it: the theme's tokens. */
+@Composable
+private fun InCart(note: Link) {
+    Row(
+        Modifier.fillMaxWidth().testTag(IN_CART_TAG).padding(top = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(HaulIcons.checkBold, 18.dp, HaulColors.primary)
+        Text(note.label, HaulType.text(15f, 600), Modifier.weight(1f))
+        note.action?.let {
+            Text("View cart", HaulType.text(15f, 700).copy(color = HaulColors.primary), Modifier.follows(it))
         }
     }
 }

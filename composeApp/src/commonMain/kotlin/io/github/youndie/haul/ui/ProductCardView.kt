@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
@@ -77,19 +78,33 @@ public fun ProductCardView(
                 }
             }
             val button = if (compact) 36.dp else 38.dp
-            // «+» sends the card's line change as a cart command (B-37) and follows the answer, `refresh`;
-            // the card's own press, under it, opens the product.
+            // «+» sends the card's line change as a cart command (B-37) and follows the answer, `update`;
+            // the card's own press, under it, opens the product. With nothing to add — out of stock, or the
+            // cart holds as many as can be bought — the tree gives no change: «+» is drawn as the buy box
+            // draws its buttons then, greyed, and takes the press so that it opens nothing either (B-75).
             val add = card.add
             val press = linePress(add)
             Box(
                 Modifier
-                    .pressable(press)
-                    .semantics { if (add != null) contentDescription = ADD_TO_CART }
-                    .size(button)
-                    .background(HaulColors.primary, RoundedCornerShape(12.dp)),
+                    .then(if (add == null) Modifier.swallowsPresses() else Modifier.pressable(press))
+                    // Its own node, pressable or not: merged into the card's, a disabled «+» would read as the card.
+                    .semantics(mergeDescendants = true) {
+                        contentDescription = ADD_TO_CART
+                        if (add == null) disabled()
+                    }.size(button)
+                    .background(
+                        if (add ==
+                            null
+                        ) {
+                            HaulColors.outlineVariant
+                        } else {
+                            HaulColors.primary
+                        },
+                        RoundedCornerShape(12.dp),
+                    ),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(HaulIcons.plus, 18.dp, HaulColors.onPrimary)
+                Icon(HaulIcons.plus, 18.dp, if (add == null) HaulColors.outlineMuted else HaulColors.onPrimary)
             }
         }
         card.drop?.let { PriceDrop(it) }

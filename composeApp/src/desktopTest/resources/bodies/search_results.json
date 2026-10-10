@@ -92,7 +92,7 @@
    "cards": [
     {
      "id": "card-1",
-     "productId": "p-1",
+     "productId": "p-1", "add": {"url": "/api/v1/cart/lines/p-1-0?answer=card", "change": {"quantity": 1}},
      "label": "shoes",
      "badge": "−26%",
      "price": "$89",
@@ -105,7 +105,7 @@
     },
     {
      "id": "card-2",
-     "productId": "p-2",
+     "productId": "p-2", "add": {"url": "/api/v1/cart/lines/p-2-0?answer=card", "change": {"quantity": 1}},
      "label": "shoes",
      "price": "$112",
      "title": "Cloudline Daily Trainer, Women's",
@@ -116,7 +116,7 @@
     },
     {
      "id": "card-3",
-     "productId": "p-3",
+     "productId": "p-3", "add": {"url": "/api/v1/cart/lines/p-3-0?answer=card", "change": {"quantity": 1}},
      "label": "shoes",
      "badge": "−40%",
      "price": "$72",
@@ -129,7 +129,7 @@
     },
     {
      "id": "card-4",
-     "productId": "p-4",
+     "productId": "p-4", "add": {"url": "/api/v1/cart/lines/p-4-0?answer=card", "change": {"quantity": 1}},
      "label": "shoes",
      "price": "$189",
      "title": "Tempo Carbon Racing Shoes, Unisex",
@@ -140,7 +140,7 @@
     },
     {
      "id": "card-5",
-     "productId": "p-5",
+     "productId": "p-5", "add": {"url": "/api/v1/cart/lines/p-5-0?answer=card", "change": {"quantity": 1}},
      "label": "shoes",
      "badge": "−25%",
      "price": "$64",
@@ -153,7 +153,7 @@
     },
     {
      "id": "card-6",
-     "productId": "p-6",
+     "productId": "p-6", "add": {"url": "/api/v1/cart/lines/p-6-0?answer=card", "change": {"quantity": 1}},
      "label": "shoes",
      "price": "$129",
      "title": "Stride Max Cushion Running Shoes, Men's Wide",
@@ -164,7 +164,7 @@
     },
     {
      "id": "card-7",
-     "productId": "p-7",
+     "productId": "p-7", "add": {"url": "/api/v1/cart/lines/p-7-0?answer=card", "change": {"quantity": 1}},
      "label": "shoes",
      "badge": "−21%",
      "price": "$38",
@@ -177,7 +177,7 @@
     },
     {
      "id": "card-8",
-     "productId": "p-8",
+     "productId": "p-8", "add": {"url": "/api/v1/cart/lines/p-8-0?answer=card", "change": {"quantity": 1}},
      "label": "shoes",
      "price": "$98",
      "title": "Summit Trail Runner, Women's",
@@ -188,7 +188,7 @@
     },
     {
      "id": "card-9",
-     "productId": "p-9",
+     "productId": "p-9", "add": {"url": "/api/v1/cart/lines/p-9-0?answer=card", "change": {"quantity": 1}},
      "label": "shoes",
      "badge": "−32%",
      "price": "$54",
@@ -201,7 +201,7 @@
     },
     {
      "id": "card-10",
-     "productId": "p-10",
+     "productId": "p-10", "add": {"url": "/api/v1/cart/lines/p-10-0?answer=card", "change": {"quantity": 1}},
      "label": "shoes",
      "badge": "−26%",
      "price": "$89",

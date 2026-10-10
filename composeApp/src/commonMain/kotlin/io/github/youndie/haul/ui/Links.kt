@@ -1,12 +1,14 @@
 package io.github.youndie.haul.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
@@ -42,6 +44,12 @@ internal fun Modifier.pressable(onPress: (() -> Unit)?): Modifier =
         pointerHoverIcon(PointerIcon.Hand)
             .clickable(interactionSource = null, indication = null, role = Role.Button, onClick = onPress)
     }
+
+/**
+ * A control that has nothing to do right now (a card's «+» with nothing to add, B-75) and sits over one that
+ * has: the press stops here instead of reaching the one under it.
+ */
+internal fun Modifier.swallowsPresses(): Modifier = pointerInput(Unit) { detectTapGestures { } }
 
 /**
  * [text] as a link that follows [action] inside a run of text (a crumb); plain text when there is no

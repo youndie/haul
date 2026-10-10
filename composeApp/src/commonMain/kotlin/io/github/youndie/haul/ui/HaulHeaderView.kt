@@ -714,29 +714,47 @@ private fun CartButton(
     gap: Dp,
     label: Boolean,
 ) {
+    // A cart with nothing in it shows no count (Home_Guest), but the button keeps the count's place (B-75):
+    // it is as wide with a count as without, so the first line put in moves nothing around it — not the search
+    // field beside it at 1440, not the heart and the account on a phone. Empty, the bag and the word sit in
+    // the middle of that width; the count, when it comes, takes its half of the room. Up to 99 fits the place:
+    // the badge's padding is 3, not the canvas's 6, so that two digits do, and one is centred as before.
+    val room = BADGE + gap
     Row(
         modifier
+            .testTag(CART_BUTTON_TAG)
             .height(height)
             .background(HaulColors.inverseSurface, RoundedCornerShape(radius))
             .padding(horizontal = horizontal),
-        horizontalArrangement = Arrangement.spacedBy(gap),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        if (count <= 0) Spacer(Modifier.width(room / 2))
         Icon(HaulIcons.bag, 22.dp, HaulColors.onPrimary)
-        if (label) Text("Cart", HaulType.text(16f, 700).copy(color = HaulColors.onPrimary))
-        // A cart with nothing in it shows no count (Home_Guest).
-        if (count > 0) {
+        if (label) {
+            Spacer(Modifier.width(gap))
+            Text("Cart", HaulType.text(16f, 700).copy(color = HaulColors.onPrimary))
+        }
+        if (count <= 0) {
+            Spacer(Modifier.width(room / 2))
+        } else {
+            Spacer(Modifier.width(gap))
             Box(
                 Modifier
-                    .defaultMinSize(minWidth = 24.dp)
-                    .height(24.dp)
+                    .defaultMinSize(minWidth = BADGE)
+                    .height(BADGE)
                     .background(HaulColors.secondaryContainer, RoundedCornerShape(12.dp))
-                    .padding(horizontal = 6.dp),
+                    .padding(horizontal = 3.dp),
                 contentAlignment = Alignment.Center,
-            ) { Text(count.toString(), HaulType.text(13f, 800)) }
+            ) { Text(count.toString(), HaulType.text(13f, 800), softWrap = false) }
         }
     }
 }
+
+/** The tag of the header's cart button, for the tests that hold the header still when the count appears. */
+public const val CART_BUTTON_TAG: String = "cart-button"
+
+/** The cart count's place: the badge's height, and its width up to two digits. */
+private val BADGE = 24.dp
 
 @Composable
 private fun Deals(

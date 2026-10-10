@@ -258,15 +258,9 @@ internal class CatalogScreen(
                         kind = "checkbox",
                         options =
                             shownBrands.map { (brand, n) ->
-                                FacetOption(
-                                    brand,
-                                    n,
-                                    brand in filters.brands,
-                                    action =
-                                        toggle(url, filters) {
-                                            copy(brands = this.brands.toggle(brand))
-                                        },
-                                )
+                                counted(brand, n, brand in filters.brands) {
+                                    toggle(url, filters) { copy(brands = this.brands.toggle(brand)) }
+                                }
                             },
                         moreLabel = hiddenBrands.takeIf { it > 0 }?.let { "Show $it more" },
                         moreAction = if (hiddenBrands > 0) Parts.load(url.brandsExpanded()) else null,
@@ -277,18 +271,9 @@ internal class CatalogScreen(
                         kind = "toggle",
                         options =
                             listOf(
-                                FacetOption(
-                                    "Tomorrow",
-                                    tomorrow,
-                                    filters.deliveryTomorrow,
-                                    action =
-                                        toggle(
-                                            url,
-                                            filters,
-                                        ) {
-                                            copy(deliveryTomorrow = !deliveryTomorrow)
-                                        },
-                                ),
+                                counted("Tomorrow", tomorrow, filters.deliveryTomorrow) {
+                                    toggle(url, filters) { copy(deliveryTomorrow = !deliveryTomorrow) }
+                                },
                             ),
                     ),
                     Facet(
@@ -316,15 +301,9 @@ internal class CatalogScreen(
                         kind = "swatch",
                         options =
                             colours.keys.sorted().map {
-                                FacetOption(
-                                    it,
-                                    colours[it],
-                                    it in filters.colours,
-                                    SWATCHES[it],
-                                    toggle(url, filters) {
-                                        copy(colours = this.colours.toggle(it))
-                                    },
-                                )
+                                counted(it, colours.getValue(it), it in filters.colours, SWATCHES[it]) {
+                                    toggle(url, filters) { copy(colours = this.colours.toggle(it)) }
+                                }
                             },
                     ),
                     Facet(
@@ -333,15 +312,9 @@ internal class CatalogScreen(
                         kind = "pills",
                         options =
                             features.keys.sorted().map {
-                                FacetOption(
-                                    it,
-                                    features[it],
-                                    it in filters.features,
-                                    action =
-                                        toggle(url, filters) {
-                                            copy(features = this.features.toggle(it))
-                                        },
-                                )
+                                counted(it, features.getValue(it), it in filters.features) {
+                                    toggle(url, filters) { copy(features = this.features.toggle(it)) }
+                                }
                             },
                     ),
                 ),
@@ -393,6 +366,19 @@ internal class CatalogScreen(
             low != null -> "From $$low"
             else -> "Up to $$high"
         }
+
+    /**
+     * An option that counts the products ticking it would show, [count] (B-75): with none, there is nothing to
+     * tick it for, and it carries no action — unless it is ticked already, when the press unticks it.
+     */
+    private fun counted(
+        label: String,
+        count: Int,
+        selected: Boolean,
+        swatch: String? = null,
+        toggle: () -> KompotAction,
+    ): FacetOption =
+        FacetOption(label, count, selected, swatch, action = if (count == 0 && !selected) null else toggle())
 
     private fun toggle(
         url: CatalogUrl,

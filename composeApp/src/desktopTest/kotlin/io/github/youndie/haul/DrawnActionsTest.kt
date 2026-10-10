@@ -1,6 +1,7 @@
 package io.github.youndie.haul
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHasClickAction
@@ -14,8 +15,10 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import androidx.compose.ui.unit.dp
@@ -207,6 +210,21 @@ class DrawnActionsTest {
             onNodeWithText("Price: low to high").performClick()
             onNodeWithText(NEXT).assertExists()
             assertEquals(listOf("/", BY_PRICE), history.entries)
+        }
+
+    /** B-75: Escape closes the sort's menu, and opens nothing. */
+    @Test
+    fun `escape closes the sort's menu`() =
+        runDesktopComposeUiTest(WIDTH, 1_600) {
+            answer("/ui/home", results)
+            storefront()
+            onNodeWithText("Sort:").performClick()
+            onNodeWithTag(LINK_MENU_TAG).assertExists()
+            waitForIdle()
+            onNodeWithTag(LINK_MENU_TAG).performKeyInput { pressKey(Key.Escape) }
+            waitForIdle()
+            onNodeWithTag(LINK_MENU_TAG).assertDoesNotExist()
+            assertEquals(listOf("/"), history.entries)
         }
 
     @Test

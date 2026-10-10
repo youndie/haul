@@ -12,14 +12,20 @@ import io.github.youndie.haul.testing.guest
 import io.github.youndie.haul.testing.haulTest
 import io.github.youndie.haul.testing.json
 import io.github.youndie.haul.testing.only
+import io.github.youndie.haul.testing.update
 import io.github.youndie.haul.ui.HaulHeader
+import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.haul.ui.ProductGrid
+import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.commands.UpdateAction
 import io.github.youndie.kompot.decodeKompotComponent
+import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.RefreshAction
+import io.github.youndie.kompot.standard.SequenceAction
+import io.github.youndie.kompot.standard.ShowMessageAction
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -32,6 +38,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
@@ -62,19 +69,19 @@ class LineAnswersTest {
             setBody(haulWireJson.encodeToString(LineChange.serializer(), command.change))
         }
 
-    /** Presses [command] on the page at [path] and holds the answer to the page there now; returns the update. */
-    private suspend fun HttpClient.pressedOn(
+    /**
+     * Presses [command] on the page at [path] and holds the answer's update to the page there now; returns the
+     * answer, an `update` or a `sequence` around one.
+     */
+    private suspend fun HttpClient.answerOn(
         path: String,
         guest: String,
         command: LineCommand,
         node: String,
-    ): UpdateAction {
+    ): KompotAction {
         val before = page(path, guest)
-        val update =
-            assertNotNull(
-                press(guest, command).action() as? UpdateAction,
-                "${command.url} is not answered with an update",
-            )
+        val answer = press(guest, command).action()
+        val update = assertNotNull(answer.update(), "${command.url} is not answered with an update")
         assertEquals(listOf("header", node), update.updates.map { it.componentId }, command.url)
         assertNull(update.deeplink, "a line change moved the page to ${update.deeplink}")
         assertEquals(
@@ -82,8 +89,17 @@ class LineAnswersTest {
             before.after(update),
             "$path after «${command.url}» is not the page there now",
         )
-        return update
+        return answer
     }
+
+    /** [answerOn] for a press answered with the update alone: no message. */
+    private suspend fun HttpClient.pressedOn(
+        path: String,
+        guest: String,
+        command: LineCommand,
+        node: String,
+    ): UpdateAction =
+        assertIs<UpdateAction>(answerOn(path, guest, command, node), "${command.url} said more than the update")
 
     @Test
     fun `a card's plus answers the header and the card`() =
@@ -117,14 +133,25 @@ class LineAnswersTest {
             pressedOn("/ui/home", guest, assertNotNull(card.add), card.id)
         }
 
+    /**
+     * B-75: «Add to cart» answers the header and the buy box, which now says the line is in the cart, then says
+     * so in a message — `sequence[update, show_message]` — whose button opens the cart.
+     */
     @Test
-    fun `add to cart answers the header and the buy box`() =
+    fun `add to cart answers the header and the buy box and says so`() =
         haulTest {
             val guest = guest()
             val path = "/ui/p/${SampleCatalog.SONY_HEADPHONES}?sku=${SampleCatalog.SONY_HEADPHONES}-1&tab=reviews"
             val details = page(path, guest).only<ProductDetails>()
-            val update = pressedOn(path, guest, assertNotNull(details.add), "details")
-            assertEquals(LineChange(quantity = 2), (update.updates.last().component as ProductDetails).add?.change)
+            assertNull(details.inCart, "the buy box says the line is in a cart that holds none of it")
+            val answer = assertIs<SequenceAction>(answerOn(path, guest, assertNotNull(details.add), "details"))
+            assertEquals(
+                ShowMessageAction("Added to your cart", actionLabel = "View cart", action = NavigateAction("/cart")),
+                answer.actions.last(),
+            )
+            val after = assertNotNull(answer.update()).updates.last().component as ProductDetails
+            assertEquals(LineChange(quantity = 2), after.add?.change)
+            assertEquals(Link("1 in your cart", NavigateAction("/cart")), after.inCart)
         }
 
     @Test

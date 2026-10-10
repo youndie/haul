@@ -6,6 +6,7 @@ import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.commands.UpdateAction
 import io.github.youndie.kompot.decodeKompotAction
 import io.github.youndie.kompot.encodeKompotComponent
+import io.github.youndie.kompot.standard.SequenceAction
 import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
@@ -22,6 +23,17 @@ import kotlin.test.assertEquals
 
 // B-63's checks of an `update`: what the client draws after one is the tree it had with each node the
 // update names replaced by id (kompot SPEC §16.4), and that has to be the page the update's address opens.
+
+/**
+ * The `update` in [this] answer: the answer itself, or the one inside its `sequence` — «Add to cart» answers
+ * `sequence[update, show_message]` (B-75). `null` when there is none.
+ */
+internal fun KompotAction.update(): UpdateAction? =
+    when (this) {
+        is UpdateAction -> this
+        is SequenceAction -> actions.filterIsInstance<UpdateAction>().singleOrNull()
+        else -> null
+    }
 
 /** The tree as it travels: JSON, where a node is found by its `id` at any depth. */
 internal fun KompotComponent.json(): JsonElement = Json.parseToJsonElement(haulWireJson.encodeKompotComponent(this))
