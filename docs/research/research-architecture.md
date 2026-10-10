@@ -206,9 +206,9 @@ kept again on every address the page links to, so ticking a brand does not fold 
 builds no address from the text. The «HAUL PLUS» pill is `HaulHeader.plus`: B-23's `present` of the
 trial's dialog for a customer who is not a member, `/account` for a member, sign-in for a guest.
 
-- **The one control wired in the client alone is the filter sheet's.** The sheet is the facets already
-  in the tree, drawn over the page on a phone; «Filters» opens it and «×» closes it without asking the
-  server, because there is nothing for the server to decide and no address to change. «Show N items»
+- **The one control wired in the client alone is the filter sheet's** (and, since B-73, the phone
+  header's menu, below). The sheet is the facets already in the tree, drawn over the page on a phone;
+  «Filters» opens it and «×» closes it without asking the server, because there is nothing for the server to decide and no address to change. «Show N items»
   closes it too (B-54): each press inside the sheet already opened the page those results are on. The
   sheet is held by the shell above the page
   (`composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/catalog/FiltersSheetState.kt`), so
@@ -220,6 +220,29 @@ trial's dialog for a customer who is not a member, `/account` for a member, sign
   while a `load` of the screen is on its way.
 - **A control with no page behind it is plain text**, not a link that opens nothing: the strip's «Sell
   on HAUL», «Help» and the language, and the footer's links, until a page exists for them.
+
+**Decided in B-73, the phone header reaches what the 1440 one does.** The canvas's phone header has the
+logo, the heart, the account, the cart, the search field and a category row cut at the edge — no
+«Catalog», no «Orders», no «HAUL PLUS», and ten of the 32 top-level categories, the rest past the edge.
+Where the canvas has no answer the conventional phone pattern is taken:
+
+- **The category row scrolls sideways**; the canvas's cut at the edge reads as the sign that there is more.
+  At rest it is pixel for pixel the row it was.
+- **A menu button left of the logo** opens a full-screen menu: the account («Sign in» for a guest),
+  «Orders», «Saved», «Deals», «HAUL PLUS», then under «Catalog» every top-level category
+  (`HaulHeader.catalog`). Each entry follows what the header already carries, so the server is unchanged.
+  It is drawn in the filter sheet's frame (Catalog_FiltersSheet_Phone: title row, «×», a scrolling body)
+  from the theme's tokens; no artboard draws it (goldens `HaulHeader_Menu_Phone`, `HaulHeader_Menu_Guest_Phone`).
+  It is the second control wired in the client alone, beside the filter sheet, and held the same way: by the
+  shell (`ui/HeaderMenu.kt`, `HeaderMenuState`), which closes it on any page visited; an entry closes it
+  before it is followed, so the Plus trial's dialog is not drawn under it.
+- **The cost against the canvas**: the button and the logo moved 44 px right are drawn on every phone page
+  but checkout's, +0.12 to +0.77 % on each phone artboard. Three short ones that already sat near the line now
+  read over 5 % (Catalog_Empty_Phone 4.54 → 5.06, Order_Placed_Phone 4.83 → 5.06, Product_NotFound_Phone
+  4.53 → 5.21); the tolerance is unchanged. The canvas gaining a phone header with the menu is the way back.
+- Rejected: a menu inside the category row (a trailing «All» or a leading grid button) — it scrolls away
+  with the row or hides its words, and «Orders» and the account do not belong under categories; the button
+  right of the cart — it moves the heart, the account and the cart instead of the logo.
 
 **Decided in B-62, a screen is a path** (owner's call). `/c/mugs?brand=Ostra` and `/c/mugs` are one
 screen, `/c/mugs` and `/p/…` two. A new address of the same path — a facet, a sort, a page of results, a

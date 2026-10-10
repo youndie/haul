@@ -41,12 +41,11 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (12)
+## Open (11)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-66](docs/backlog/B-66-sign-in-reachable-from-everywhere.md) `[ ]` | client: sign-in and sign-out work from every page and every way in | P1 | M | - |
-| [B-73](docs/backlog/B-73-phone-cannot-reach-catalog-and-orders.md) `[~]` | client: on a phone every part of the store is reachable | P1 | M | - |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 | [B-67](docs/backlog/B-67-error-pages-header-is-dead.md) `[ ]` | client: the header on loading, error and not-found pages leads somewhere | P2 | S | - |
 | [B-71](docs/backlog/B-71-product-page-dead-links.md) `[ ]` | client + server: what looks pressable on the product page does something | P2 | M | - |
@@ -58,7 +57,7 @@ A stage is a field on the item, not a directory.
 | [B-80](docs/backlog/B-80-blank-first-load.md) `[ ]` | client: the first load shows something before the app starts | P2 | S | - |
 | [B-79](docs/backlog/B-79-checkout-step-indicator-and-links.md) `[ ]` | client + server: checkout's step indicator and summary tell the truth | P3 | S | - |
 
-## Closed (68)
+## Closed (69)
 
 **Skeleton**
 
@@ -156,6 +155,7 @@ A stage is a field on the item, not a directory.
 - [B-68](docs/backlog/B-68-first-filter-reloads-the-page.md) `[x]` - server + client: the first filter on a category does not reload the page
 - [B-69](docs/backlog/B-69-price-facet-does-nothing.md) `[x]` - client + server: the price filter can be used
 - [B-70](docs/backlog/B-70-deals-vanish-at-midnight.md) `[x]` - server: a running stand keeps its deals of the day
+- [B-73](docs/backlog/B-73-phone-cannot-reach-catalog-and-orders.md) `[x]` - client: on a phone every part of the store is reachable
 - [B-76](docs/backlog/B-76-promo-apply-sends-nothing.md) `[x]` - client: «Apply» on the cart's promo code is applied
 
 <!-- END INDEX -->
