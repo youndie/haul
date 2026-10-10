@@ -68,9 +68,9 @@ public const val HEADER_MENU_TAG: String = "header-menu"
 
 /**
  * The phone header's menu (B-73): what the 1440 header reaches and a 390 one has no room for — the account
- * («Sign in» for a guest), «Orders», «Saved», «Deals», «HAUL PLUS», and under «Catalog» every top-level
- * category (`HaulHeader.catalog`), not only the ten of the category row. No artboard draws it; it is the
- * filter sheet's frame (Catalog_FiltersSheet_Phone) — title row, «×», a scrolling body — drawn from the
+ * («Sign in» for a guest), «Orders», «Saved», «Deals», «HAUL PLUS», a customer's «Sign out» (B-66), and
+ * under «Catalog» every top-level category (`HaulHeader.catalog`), not only the ten of the category row.
+ * No artboard draws it; it is the filter sheet's frame (Catalog_FiltersSheet_Phone) — title row, «×», a scrolling body — drawn from the
  * theme's tokens. Each entry follows what the header carries for it; [onAccount] is the account slot's
  * tap. Nothing to follow — a screenshot — draws the same rows with nothing to press.
  */
@@ -134,6 +134,8 @@ public fun HeaderMenuSheet(
                     softWrap = false,
                 )
             }
+            // A customer signs out here on a phone, as from the account slot's menu at 1440 (B-66).
+            if (!guest) MenuRow(null, SIGN_OUT_LABEL, then(following(SIGN_OUT_ACTION)))
             Divider(Modifier.padding(vertical = 8.dp))
             Text(
                 "CATALOG",

@@ -3,9 +3,11 @@ package io.github.youndie.haul.feature.identity
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -22,8 +24,10 @@ import io.github.youndie.haul.shell.SIGN_IN_PAGE_TAG
 import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.shell.TRY_POPUP_AGAIN_LABEL
 import io.github.youndie.haul.theme.HaulTheme
+import io.github.youndie.haul.ui.HEADER_MENU_TAG
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.LINK_MENU_TAG
+import io.github.youndie.haul.ui.OPEN_MENU
 import io.github.youndie.haul.ui.SIGN_OUT_LABEL
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.ColumnComponent
@@ -265,8 +269,91 @@ class SignInEverywhereTest {
             onNodeWithText(CUSTOMER).assertDoesNotExist()
         }
 
+    /**
+     * The header the shell draws itself had no account to press either: its «Sign in» had no renderer to
+     * hand it the action. It signs in now, through the page's own way of following links.
+     */
+    @Test
+    fun `the account slot of the header the shell draws itself signs in`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            val history = FakeHistory("/cart")
+            history.entries += "/p/gone"
+            storefront(history, signIn = { signIns += 1 }) { path ->
+                when (path) {
+                    "/ui/cart" -> ok(page(GUEST_HEADER, CART_TEXT))
+                    "/ui/p/gone" -> HaulResponse(404, """{"code":"product_not_found","message":"No product gone"}""")
+                    else -> error("nothing answers $path")
+                }
+            }
+            waitUntil(timeoutMillis = 5_000) { exists(hasText(CART_TEXT)) }
+            history.forward()
+            waitUntil(timeoutMillis = 5_000) { exists(hasText("This product is no longer available")) }
+
+            onNode(hasText("Sign in") and hasClickAction()).performClick()
+            waitUntil(timeoutMillis = 5_000) { signIns == 1 }
+            waitUntil(timeoutMillis = 5_000) { requests.count { it == "/ui/p/gone" } == 2 }
+
+            // No next: the page is loaded again for who is looking now.
+            assertEquals(listOf("/cart", "/p/gone"), history.entries)
+        }
+
+    /** On a phone the header's menu (B-73) is the way in: a guest's «Orders» there signs in and lands on them. */
+    @Test
+    fun `on a phone the menu's orders signs a guest in and lands on them`() =
+        runDesktopComposeUiTest(PHONE, HEIGHT) {
+            val history = FakeHistory("/cart")
+            storefront(history, compact = true, signIn = { signIns += 1 }) { path ->
+                when (path) {
+                    "/ui/cart" -> ok(page(GUEST_HEADER, CART_TEXT))
+                    "/ui/account/orders" -> ok(page(CUSTOMER_HEADER, ORDERS_TEXT))
+                    else -> error("nothing answers $path")
+                }
+            }
+            waitUntil(timeoutMillis = 5_000) { exists(hasText(CART_TEXT)) }
+
+            openMenu()
+            inMenu("Orders").performClick()
+            waitUntil(timeoutMillis = 5_000) { exists(hasText(ORDERS_TEXT)) }
+
+            assertEquals(1, signIns)
+            assertEquals(listOf("/cart", "/account/orders"), history.entries)
+        }
+
+    /** On a phone a customer signs out from the header's menu; from a customer's page that is home. */
+    @Test
+    fun `on a phone a customer signs out from the header's menu`() =
+        runDesktopComposeUiTest(PHONE, HEIGHT) {
+            session.signedIn = true
+            val history = FakeHistory("/account")
+            storefront(history, compact = true) { path ->
+                when (path) {
+                    "/ui/account" -> ok(page(CUSTOMER_HEADER, ACCOUNT_TEXT))
+                    "/ui/home" -> ok(page(GUEST_HEADER, HOME_TEXT))
+                    else -> error("nothing answers $path")
+                }
+            }
+            waitUntil(timeoutMillis = 5_000) { exists(hasText(ACCOUNT_TEXT)) }
+
+            openMenu()
+            inMenu(SIGN_OUT_LABEL).performClick()
+            waitUntil(timeoutMillis = 5_000) { exists(hasText(HOME_TEXT)) }
+
+            assertEquals(1, session.signOuts)
+            assertEquals(listOf("/account", "/"), history.entries)
+            onNodeWithTag(HEADER_MENU_TAG).assertDoesNotExist()
+        }
+
+    private fun ComposeUiTest.openMenu() {
+        onNodeWithContentDescription(OPEN_MENU).performClick()
+        waitUntil(timeoutMillis = 5_000) { exists(hasTestTag(HEADER_MENU_TAG)) }
+    }
+
+    private fun ComposeUiTest.inMenu(text: String) =
+        onNode(hasText(text) and hasAnyAncestor(hasTestTag(HEADER_MENU_TAG)))
+
     private fun ComposeUiTest.storefront(
         history: FakeHistory,
+        compact: Boolean = false,
         signIn: suspend () -> Unit = { signIns += 1 },
         answer: (path: String) -> HaulResponse,
     ) {
@@ -276,7 +363,7 @@ class SignInEverywhereTest {
                 answer(path)
             }
         setContent {
-            HaulTheme(FixtureFonts.fonts, compact = false) {
+            HaulTheme(FixtureFonts.fonts, compact = compact) {
                 Storefront(transport, history, signIn = signIn, clock = FixedClock, session = session)
             }
         }
@@ -321,6 +408,7 @@ class SignInEverywhereTest {
 
     private companion object {
         const val WIDTH = 1440
+        const val PHONE = 390
         const val HEIGHT = 1400
         const val CUSTOMER = "Maya"
         const val NOT_HERE = "This page isn’t here"

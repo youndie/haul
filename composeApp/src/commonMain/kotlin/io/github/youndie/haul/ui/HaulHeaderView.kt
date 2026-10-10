@@ -155,7 +155,10 @@ public fun HaulHeaderView(
     pending: Boolean = false,
     onAccount: (() -> Unit)? = null,
 ) {
-    val account = accountTap(if (pending) null else onAccount, header.customerName)
+    // A header the shell draws itself — over a page that did not load, or is not there — has no renderer to
+    // hand it the account's action, and follows it through whoever follows the page's links (B-66).
+    val press = onAccount ?: following(header.account)
+    val account = accountTap(if (pending) null else press, header.customerName)
     val compact = LocalHaulCompact.current
     val field = LocalSearchField.current
     Column(
@@ -171,7 +174,7 @@ public fun HaulHeaderView(
             ),
     ) {
         if (compact) {
-            CompactHeader(header, pending, account, if (pending) null else onAccount)
+            CompactHeader(header, pending, account, if (pending) null else press)
         } else {
             WideHeader(header, pending, account)
         }
