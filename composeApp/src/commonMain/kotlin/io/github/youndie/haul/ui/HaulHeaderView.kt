@@ -211,7 +211,7 @@ public fun HaulHeaderView(
             ),
     ) {
         if (compact) {
-            CompactHeader(header, pending, account, if (pending) null else press)
+            CompactHeader(header, pending, account, press)
         } else {
             WideHeader(header, pending, account)
         }
@@ -369,8 +369,9 @@ private fun WideHeader(
 /**
  * The phone's header (B-73): what the 1440 header has no room for here — the catalog's every category,
  * «Orders», «HAUL PLUS» — is behind the menu button, left of the logo; no artboard draws one, and the
- * canvas's phone header is otherwise kept as it is drawn. The menu opens only with somebody to follow its
- * entries and a header that is the viewer's own, not the placeholder before a tree arrives.
+ * canvas's phone header is otherwise kept as it is drawn. The menu opens whenever somebody follows its
+ * entries — over a page still loading or failed too, where the header's links are the shell's (B-67) —
+ * and its account row is [onAccount], which the slot itself is not while [pending].
  */
 @Composable
 private fun CompactHeader(
@@ -383,7 +384,7 @@ private fun CompactHeader(
         DeliverTo(header.deliverTo, style)
         Text("HELP", style)
     }
-    val menu = LocalHeaderMenu.current?.takeUnless { pending || LocalHaulActions.current == null }
+    val menu = LocalHeaderMenu.current?.takeUnless { LocalHaulActions.current == null }
     Row(
         Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),

@@ -7,6 +7,7 @@ import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -72,7 +73,8 @@ class SignInEverywhereTest {
             assertEquals(emptyList(), requests.toList(), "the sign-in page asked the server for a tree")
             assertEquals(0, signIns, "the page's arrival started a sign-in: a browser blocks that popup")
 
-            pressButton(SIGN_IN_PAGE_LABEL)
+            // The page's own button; the header's account slot reads the same and leads to the sign-in too (B-67).
+            onAllNodes(hasText(SIGN_IN_PAGE_LABEL) and hasClickAction()).onLast().performClick()
             waitUntil(timeoutMillis = 5_000) { exists(hasText(ORDERS_TEXT)) }
 
             assertEquals(1, signIns)
