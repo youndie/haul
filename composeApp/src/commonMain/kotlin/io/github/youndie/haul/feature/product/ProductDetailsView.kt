@@ -21,12 +21,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
@@ -49,6 +54,7 @@ import io.github.youndie.haul.ui.Heart
 import io.github.youndie.haul.ui.Highlight
 import io.github.youndie.haul.ui.Icon
 import io.github.youndie.haul.ui.Link
+import io.github.youndie.haul.ui.LocalLinkCopier
 import io.github.youndie.haul.ui.PhotoOrPlaceholder
 import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.haul.ui.SAVE
@@ -63,6 +69,8 @@ import io.github.youndie.haul.ui.hatching
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.rememberHeartPress
 import io.github.youndie.haul.ui.toneColor
+import io.github.youndie.kompot.KompotAction
+import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 // The top of the product page (screen-product): the gallery, the identity and choices, the buy box.
@@ -80,31 +88,30 @@ public fun ProductDetailsView(details: ProductDetails) {
             Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = 16.dp),
             verticalArrangement = Arrangement.spacedBy(22.dp),
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Photo(details, Modifier.fillMaxWidth(), radius = 24.dp)
-                Dots(details.photoTotal)
-            }
-            Brand(details.brand)
+            Photo(details, Modifier.fillMaxWidth(), radius = 24.dp)
+            Brand(details)
             Title(details, compact = true, Modifier.negativeTop(6.dp))
             Rating(details)
             BuyBox(details, compact = true, Modifier.fillMaxWidth())
             details.variants.forEach { Variants(it) }
             Highlights(details.highlights)
-            AllSpecifications()
+            AllSpecifications(details)
         }
     } else {
         Row(
             Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = 28.dp),
             horizontalArrangement = Arrangement.spacedBy(40.dp),
         ) {
-            Gallery(details, Modifier.weight(1.3f))
+            // The canvas's thumbnails beside the photo drew photos no product has; the product's one photo
+            // takes the gallery's width (B-71).
+            Photo(details, Modifier.weight(1.3f), radius = 28.dp)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(24.dp)) {
-                Brand(details.brand)
+                Brand(details)
                 Title(details, compact = false, Modifier.negativeTop(8.dp))
                 Rating(details)
                 details.variants.forEach { Variants(it) }
                 Highlights(details.highlights)
-                AllSpecifications()
+                AllSpecifications(details)
             }
             BuyBox(details, compact = false, Modifier.width(384.dp))
         }
@@ -117,65 +124,6 @@ private fun Modifier.negativeTop(by: Dp): Modifier =
         val placeable = measurable.measure(constraints)
         val shift = by.roundToPx()
         layout(placeable.width, (placeable.height - shift).coerceAtLeast(0)) { placeable.place(0, -shift) }
-    }
-
-@Composable
-private fun Gallery(
-    details: ProductDetails,
-    modifier: Modifier,
-) {
-    Row(modifier, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-        Column(Modifier.width(76.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            details.gallery.forEachIndexed { index, tone ->
-                val shape = RoundedCornerShape(14.dp)
-                val thumbnail =
-                    Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1f)
-                        .then(if (index == 0) Modifier.ring(2.dp, HaulColors.onSurface, 14.dp) else Modifier)
-                val photo = details.photo?.takeIf { index == 0 }
-                if (photo == null) {
-                    Box(thumbnail.background(toneColor(tone), shape))
-                } else {
-                    // The first thumbnail is the shown photo's (B-30).
-                    PhotoOrPlaceholder(photo, thumbnail.clip(shape)) {
-                        Box(Modifier.fillMaxSize().background(toneColor(tone)))
-                    }
-                }
-            }
-            details.morePhotos?.let {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(
-                            1f,
-                        ).background(HaulColors.inverseSurface, RoundedCornerShape(14.dp)),
-                    contentAlignment = Alignment.Center,
-                ) { Text(it, HaulType.label(12f, 600, 0f).copy(color = HaulColors.onPrimary)) }
-            }
-        }
-        Photo(details, Modifier.weight(1f), radius = 28.dp)
-    }
-}
-
-/** A ring drawn outside the box, as CSS's `box-shadow: 0 0 0 [width]` draws it. */
-private fun Modifier.ring(
-    width: Dp,
-    color: androidx.compose.ui.graphics.Color,
-    radius: Dp,
-): Modifier =
-    drawBehind {
-        val w = width.toPx()
-        drawRoundRect(
-            color,
-            topLeft = Offset(-w, -w),
-            size =
-                androidx.compose.ui.geometry
-                    .Size(size.width + 2 * w, size.height + 2 * w),
-            cornerRadius =
-                androidx.compose.ui.geometry
-                    .CornerRadius(radius.toPx() + w),
-        )
     }
 
 @Composable
@@ -198,7 +146,7 @@ private fun Photo(
                     .hatching(period = 14f),
             ) {
                 Text(
-                    "${details.photoLabel} · ${details.photoCount}".uppercase(),
+                    details.photoLabel.uppercase(),
                     HaulType.label(11f, 500, 0.06f).copy(color = HaulColors.tileLabel),
                     Modifier.align(Alignment.BottomStart).padding(start = 20.dp, bottom = 20.dp),
                 )
@@ -228,51 +176,66 @@ private fun Photo(
                     .background(HaulColors.surfaceContainerLowest, CircleShape),
                 contentAlignment = Alignment.Center,
             ) { Heart(details.saved, 20.dp) }
-            RoundIcon(HaulIcons.share, HaulColors.onSurface)
+            details.share?.let { Share(it) }
         }
     }
 }
 
+/** The buy box's «Save» out of stock, for the tests that press it. */
+internal const val SAVE_TAG: String = "buy-box-save"
+
+/** What the share button says it does, and says once it has: its description to a screen reader and the tests. */
+internal const val COPY_LINK: String = "Copy link"
+internal const val LINK_COPIED: String = "Link copied"
+
+/** How long the share button shows its check after a link was copied. */
+private const val COPIED_MS = 2_000L
+
+/**
+ * The share button (B-71): copies the link to the product at its SKU — [path], on the page's own origin — through
+ * [LocalLinkCopier], then shows a check for a moment. Nobody to copy it (a screenshot) presses nothing.
+ */
 @Composable
-private fun RoundIcon(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    tint: androidx.compose.ui.graphics.Color,
-) {
+private fun Share(path: String) {
+    val copier = LocalLinkCopier.current
+    var copied by remember(path) { mutableStateOf(false) }
+    LaunchedEffect(copied) {
+        if (copied) {
+            delay(COPIED_MS)
+            copied = false
+        }
+    }
     Box(
-        Modifier.size(44.dp).background(HaulColors.surfaceContainerLowest, CircleShape),
+        Modifier
+            .pressable(copier?.let { { it.copy(path) { done -> if (done) copied = true } } })
+            .semantics { contentDescription = if (copied) LINK_COPIED else COPY_LINK }
+            .size(44.dp)
+            .background(HaulColors.surfaceContainerLowest, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, 20.dp, tint)
+        Icon(if (copied) HaulIcons.check else HaulIcons.share, 20.dp, HaulColors.onSurface)
     }
 }
 
-/** The phone's gallery position: the shown photo as a 20 px bar, the others as 6 px dots. */
+/** The brand, which opens its products in this product's category (B-71). */
 @Composable
-private fun Dots(total: Int) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally)) {
-        repeat(total) { index ->
-            Box(
-                Modifier
-                    .size(if (index == 0) 20.dp else 6.dp, 6.dp)
-                    .background(
-                        if (index ==
-                            0
-                        ) {
-                            HaulColors.inverseSurface
-                        } else {
-                            HaulColors.outlineControl
-                        },
-                        RoundedCornerShape(3.dp),
-                    ),
-            )
-        }
-    }
+private fun Brand(details: ProductDetails) {
+    Text(
+        details.brand.uppercase(),
+        HaulType.label(13f, 600, 0.08f).copy(color = linkColour(details.brandAction)),
+        Modifier.follows(details.brandAction),
+    )
 }
 
-@Composable
-private fun Brand(brand: String) {
-    Text(brand.uppercase(), HaulType.label(13f, 600, 0.08f).copy(color = HaulColors.primary))
-}
+/** A link's words are the theme's link colour only while there is somewhere to go (B-71). */
+private fun linkColour(action: KompotAction?): Color =
+    if (action !=
+        null
+    ) {
+        HaulColors.primary
+    } else {
+        HaulColors.onSurfaceVariant
+    }
 
 @Composable
 private fun Title(
@@ -287,10 +250,15 @@ private fun Title(
     )
 }
 
+/** The stars, the rating and «2,341 reviews», which open the reviews tab (B-71); then «12K bought this month». */
 @Composable
 private fun Rating(details: ProductDetails) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier.follows(details.ratingAction),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             val filled = details.rating.toFloatOrNull()?.roundToInt() ?: STARS
             Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                 repeat(STARS) {
@@ -308,7 +276,11 @@ private fun Rating(details: ProductDetails) {
                 }
             }
             Text(details.rating, HaulType.text(15f, 700), softWrap = false)
-            Text(details.reviews, HaulType.text(15f, 500).copy(color = HaulColors.primary), softWrap = false)
+            Text(
+                details.reviews,
+                HaulType.text(15f, 500).copy(color = linkColour(details.ratingAction)),
+                softWrap = false,
+            )
         }
         details.bought?.let { Text(it.uppercase(), HaulType.label(11f, 600, 0.08f).copy(color = HaulColors.outline)) }
     }
@@ -416,9 +388,14 @@ private fun Highlights(rows: List<Highlight>) {
     }
 }
 
+/** «All specifications», which opens the specifications tab (B-71). */
 @Composable
-private fun AllSpecifications() {
-    Text("All specifications", HaulType.text(15f, 600).copy(color = HaulColors.primary))
+private fun AllSpecifications(details: ProductDetails) {
+    Text(
+        "All specifications",
+        HaulType.text(15f, 600).copy(color = linkColour(details.specificationsAction)),
+        Modifier.follows(details.specificationsAction),
+    )
 }
 
 /** A hairline along the top edge, inside the box: CSS's `border-top: 1px solid`. */
@@ -487,11 +464,11 @@ internal fun LabelledRows(
 
 /**
  * The buy box: the price for the chosen SKU, the buttons, then the delivery lines — or, out of stock,
- * «Save» and where to turn — and the seller. «Add to cart» and «Buy now» send the line changes the tree
- * gave them (B-48); out of stock the tree gives none and they are drawn greyed, pressing nothing, and so is
- * «Add to cart» alone at the line's limit (B-75). Under them, once the cart holds the SKU shown, how many
- * and the way to the cart ([ProductDetails.inCart], B-75): what an «Add to cart» answered with an `update`
- * changes here.
+ * «Save» and where to turn — and the seller, drawn as words: there is no seller's page to open (B-71).
+ * «Add to cart» and «Buy now» send the line changes the tree gave them (B-48); out of stock the tree gives
+ * none and they are drawn greyed, pressing nothing, and so is «Add to cart» alone at the line's limit (B-75).
+ * Under them, once the cart holds the SKU shown, how many and the way to the cart ([ProductDetails.inCart],
+ * B-75): what an «Add to cart» answered with an `update` changes here.
  */
 @Composable
 private fun BuyBox(
@@ -540,16 +517,18 @@ private fun BuyBox(
                 )
                 details.inCart?.let { InCart(it) }
                 if (!live) {
+                    // The heart's twin (B-71): «Saved» once the product is on the Saved list, and pressing it
+                    // takes it off, as the heart over the photo does.
                     HaulButton(
-                        "Save",
-                        Modifier.fillMaxWidth(),
+                        if (details.saved) "Saved" else "Save",
+                        Modifier.fillMaxWidth().testTag(SAVE_TAG),
                         height = 56.dp,
                         radius = 18.dp,
                         border = HaulColors.onSurface,
                         textSize = 16f,
-                        icon = HaulIcons.heart,
+                        icon = if (details.saved) HaulIcons.heartFilled else HaulIcons.heart,
                         iconFirst = true,
-                        onClick = rememberHeartPress(details.heartCommand?.takeIf { it.save }, details.heartAction),
+                        onClick = rememberHeartPress(details.heartCommand, details.heartAction),
                     )
                 }
             }
@@ -710,6 +689,5 @@ private fun Seller(seller: SellerSummary) {
             Text(seller.name, HaulType.text(15f, 600))
             Text(seller.meta, HaulType.text(14f).copy(color = HaulColors.outline), Modifier.padding(top = 3.dp))
         }
-        Icon(HaulIcons.chevronRight, 20.dp, HaulColors.onSurface)
     }
 }

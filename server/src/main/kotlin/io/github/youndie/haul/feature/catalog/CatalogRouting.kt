@@ -12,6 +12,7 @@ import io.github.youndie.haul.feature.catalog.screen.HomeScreen
 import io.github.youndie.haul.feature.catalog.screen.ProductScreen
 import io.github.youndie.haul.feature.catalog.screen.ProductTab
 import io.github.youndie.haul.feature.recommendations.domain.RecordView
+import io.github.youndie.haul.feature.reviews.screen.ReviewTabs
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.shell.Parts
 import io.github.youndie.haul.shell.Viewers
@@ -104,17 +105,30 @@ internal fun Route.catalogRouting() {
     // page's reads, and a failed one is logged, never answered.
     get("/ui/p/{productId}") {
         val query = call.request.queryParameters
-        val tab =
-            query["tab"]?.let { ProductTab.of(it) ?: throw CatalogError.Invalid("tab", "No tab «$it»") }
-                ?: ProductTab.Description
+        val tab = productTab(query)
         val productId = call.parameters["productId"]!!
         val viewer = viewers.of(call)
         val tree =
             coroutineScope {
                 launch { recordView(viewer, productId) }
-                product.build(productId, query["sku"], tab, viewer)
+                product.build(productId, query["sku"], tab, viewer, productShown(query))
             }
         call.respondKompotComponent(haulWireJson, tree)
+    }
+
+    // «Show more reviews» or «Show more questions» loaded in place (B-71, kind `load`): the tab's node. A
+    // product that is no longer there cannot be partial: the answer opens the address, whose page says so.
+    // Loading the parts is not opening the page, so no view is recorded.
+    get("${Parts.PREFIX}/p/{productId}") {
+        val query = call.request.queryParameters
+        val tab = productTab(query)
+        val page =
+            try {
+                product.build(call.parameters["productId"]!!, query["sku"], tab, viewers.of(call), productShown(query))
+            } catch (_: CatalogError.ProductNotFound) {
+                null
+            }
+        call.respondParts(page, listOf(tab.key))
     }
 
     // A product's photo out of the object storage (B-30), served from the server's own origin so the
@@ -214,3 +228,18 @@ internal fun firstPage(
     } ?: page
 
 private val RATINGS = setOf(BigDecimal("4.5"), BigDecimal("4.0"))
+
+/** The product page's tab, `tab`: the description when absent. */
+private fun productTab(query: Parameters): ProductTab =
+    query["tab"]?.let { ProductTab.of(it) ?: throw CatalogError.Invalid("tab", "No tab «$it»") }
+        ?: ProductTab.Description
+
+/** How many reviews or questions the tab lists, `shown` (B-71): ten when absent. */
+private fun productShown(query: Parameters): Int =
+    query[ProductScreen.SHOWN]?.let {
+        it.toIntOrNull()?.takeIf { n -> n in ReviewTabs.SHOWN..ReviewTabs.MAX_SHOWN }
+            ?: throw CatalogError.Invalid(
+                ProductScreen.SHOWN,
+                "List from ${ReviewTabs.SHOWN} to ${ReviewTabs.MAX_SHOWN}",
+            )
+    } ?: ReviewTabs.SHOWN

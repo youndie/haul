@@ -51,15 +51,6 @@
    "skuId": "p-sony-wh-1000xm6-3",
    "photoTone": "#E6E4FF",
    "photoLabel": "product photo",
-   "photoCount": "1 / 8",
-   "photoTotal": 8,
-   "gallery": [
-    "#E6E4FF",
-    "#DEDCF7",
-    "#E9E6E0",
-    "#E0EEF7"
-   ],
-   "morePhotos": "+3",
    "badge": "Bestseller",
    "brand": "Sony",
    "title": "WH-1000XM6 Wireless Noise Cancelling Headphones",
@@ -159,7 +150,20 @@
    "stockAdvice": {
     "title": "Silver is out of stock.",
     "text": "Midnight Black is in stock and arrives tomorrow, Oct 8."
-   }
+   },
+   "brandAction": {
+    "type": "navigate",
+    "deeplink": "/c/electronics/audio/headphones?brand=Sony"
+   },
+   "ratingAction": {
+    "type": "navigate",
+    "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-3&tab=reviews"
+   },
+   "specificationsAction": {
+    "type": "navigate",
+    "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-3&tab=specifications"
+   },
+   "share": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-3"
   },
   {
    "type": "haul_product_tabs",

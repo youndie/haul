@@ -5,6 +5,8 @@ import io.github.youndie.haul.feature.catalog.domain.Listed
 import io.github.youndie.haul.feature.catalog.domain.Seller
 import io.github.youndie.haul.feature.catalog.domain.Sku
 import io.github.youndie.haul.feature.catalog.domain.count
+import io.github.youndie.haul.feature.catalog.screen.ProductScreen
+import io.github.youndie.haul.feature.catalog.screen.ProductTab
 import io.github.youndie.haul.feature.reviews.HelpfulCommand
 import io.github.youndie.haul.feature.reviews.HelpfulVote
 import io.github.youndie.haul.feature.reviews.ReviewPaths
@@ -14,6 +16,7 @@ import io.github.youndie.haul.feature.reviews.domain.StoredQuestion
 import io.github.youndie.haul.feature.reviews.domain.StoredReview
 import io.github.youndie.haul.groupedCount
 import io.github.youndie.haul.shell.Frame
+import io.github.youndie.haul.shell.Parts
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.ui.FormProduct
 import io.github.youndie.haul.ui.HistogramBar
@@ -41,6 +44,12 @@ import kotlin.math.roundToInt
  * which posts to `endpoint-reviews`; for a guest, the way to sign in, as the header's account shortcut.
  * «Helpful» on each review is a customer's vote (B-43, `PUT /api/v1/reviews/{id}/helpful`), and the way to
  * sign in for a guest.
+ *
+ * Each tab lists the first `shown` (ten unless the address says more) and, while the product has more stored
+ * than that, «Show more reviews» or «Show more questions»: kompot's `load` of the tab's address listing ten
+ * more, answered with the tab's node (B-71, as a page of results is since B-63). The counts beside the tabs
+ * are the product's — the canvas's 2,341 reviews — and only the stored rows can be listed, so «more» follows
+ * the rows: one more is asked for than is drawn.
  */
 internal class ReviewTabs(
     private val reviews: ReviewRepository,
@@ -49,11 +58,13 @@ internal class ReviewTabs(
         item: Listed,
         sku: Sku,
         viewer: Viewer,
+        shown: Int = SHOWN,
     ): ProductReviews {
         val product = item.product
         val counts = reviews.ratingCounts(product.id)
         val total = counts.values.sum()
-        val listed = reviews.reviews(product.id, SHOWN)
+        val found = reviews.reviews(product.id, shown + 1)
+        val listed = found.take(shown)
         val voted = viewer.customerId?.let { reviews.votedHelpful(it, listed.map(StoredReview::id)) }.orEmpty()
         return ProductReviews(
             id = "reviews",
@@ -66,6 +77,8 @@ internal class ReviewTabs(
             actionLabel = "Write a review",
             reviews = listed.map { review(it, viewer, it.id in voted) },
             action = writeReview(item, sku, viewer),
+            moreLabel = if (found.size > shown) "Show more reviews" else null,
+            more = if (found.size > shown) more(item, sku, ProductTab.Reviews, shown) else null,
         )
     }
 
@@ -74,23 +87,36 @@ internal class ReviewTabs(
         sku: Sku,
         seller: Seller,
         viewer: Viewer,
+        shown: Int = SHOWN,
     ): ProductQuestions {
         val product = item.product
+        val found = reviews.questions(product.id, shown + 1)
         return ProductQuestions(
             id = "questions",
             count = count(product.questionsCount),
             caption = plural(product.questionsCount, "question"),
             text = "Answers come from ${seller.name}.",
             actionLabel = "Ask a question",
-            questions = reviews.questions(product.id, SHOWN).map { question(it, seller) },
+            questions = found.take(shown).map { question(it, seller) },
             action = forCustomer(viewer) { questionForm(item, sku, seller) },
+            moreLabel = if (found.size > shown) "Show more questions" else null,
+            more = if (found.size > shown) more(item, sku, ProductTab.Questions, shown) else null,
         )
     }
+
+    /** The tab listing ten more than [shown], loaded in place (B-71). */
+    private fun more(
+        item: Listed,
+        sku: Sku,
+        tab: ProductTab,
+        shown: Int,
+    ): KompotAction = Parts.load(ProductScreen.address(item, sku, tab, shown + SHOWN))
 
     /**
      * [review] as the page draws it for [viewer], who [voted] it helpful or not: «Helpful» is their vote —
      * the opposite of the one they have — for a customer, the way to sign in for a guest, and nothing on
-     * the viewer's own review, which the route would refuse (`409 own_review`).
+     * the viewer's own review, which the route would refuse (`409 own_review`): there it reads «Your review»,
+     * drawn as words (B-71).
      */
     private fun review(
         review: StoredReview,
@@ -112,12 +138,18 @@ internal class ReviewTabs(
                     1 -> "1 person found this helpful"
                     else -> "${count(review.helpful)} people found this helpful"
                 },
+            helpfulLabel = if (own(review, viewer)) OWN_REVIEW else HELPFUL,
             helpfulAction = if (viewer.customerId == null) NavigateAction(Frame.SIGN_IN) else null,
             helpfulCommand =
-                viewer.customerId?.takeIf { it != review.customerId }?.let {
+                viewer.customerId?.takeUnless { own(review, viewer) }?.let {
                     HelpfulCommand(ReviewPaths.helpful(review.id), HelpfulVote(helpful = !voted))
                 },
         )
+
+    private fun own(
+        review: StoredReview,
+        viewer: Viewer,
+    ): Boolean = viewer.customerId != null && viewer.customerId == review.customerId
 
     private fun question(
         question: StoredQuestion,
@@ -209,8 +241,17 @@ internal class ReviewTabs(
     ): String = if (n == 1) word else "${word}s"
 
     companion object {
-        /** How many reviews or questions a tab lists (feature-reviews: 10 per page; no artboard draws a second page). */
+        /**
+         * How many reviews or questions a tab lists at first, and how many more each «Show more» adds
+         * (feature-reviews: 10 per page; no artboard draws a second page).
+         */
         const val SHOWN = 10
+
+        /** The most a tab lists, however many presses of «Show more» the address says (B-71). */
+        const val MAX_SHOWN = 500
+
+        private const val HELPFUL = "Helpful"
+        private const val OWN_REVIEW = "Your review"
 
         /** What kompot's `present` is asked to show the form as: a dialog over the page. */
         const val DIALOG = "dialog"

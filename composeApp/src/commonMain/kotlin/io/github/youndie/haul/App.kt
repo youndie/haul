@@ -18,6 +18,8 @@ import io.github.youndie.haul.shell.TreeCommands
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.theme.rememberHaulFonts
+import io.github.youndie.haul.ui.LinkCopier
+import io.github.youndie.haul.ui.LocalLinkCopier
 import io.github.youndie.haul.ui.LocalPhotoLoader
 import io.github.youndie.haul.ui.PhotoLoader
 import io.github.youndie.kompot.realtime.KompotRealtimeSource
@@ -32,7 +34,8 @@ import kotlin.time.Clock
  * browser's, [clock] is the one «now» the countdowns read, [cartCommands] sends the cart's commands
  * (B-13), [commands] the requests the trees name by method and path (B-37), [checkoutCommands] the
  * checkout's (B-15) and [treeCommands] the dialogs' and «Helpful»'s (B-51), through the same headers;
- * [realtime] streams the updates of a page that names a channel, the order's (B-29).
+ * [realtime] streams the updates of a page that names a channel, the order's (B-29); [links] copies a link
+ * to a page, the product page's share button (B-71).
  */
 @Composable
 public fun App(
@@ -46,9 +49,10 @@ public fun App(
     checkoutCommands: CheckoutCommands? = null,
     treeCommands: TreeCommands? = null,
     realtime: KompotRealtimeSource? = null,
+    links: LinkCopier? = null,
 ) {
     BoxWithConstraints(Modifier.fillMaxSize().background(HaulColors.background)) {
-        CompositionLocalProvider(LocalPhotoLoader provides photos) {
+        CompositionLocalProvider(LocalPhotoLoader provides photos, LocalLinkCopier provides links) {
             HaulTheme(rememberHaulFonts(), compact = maxWidth < COMPACT_BELOW) {
                 Storefront(
                     transport,

@@ -14,16 +14,26 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -31,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.shell.LocalTreeCommands
 import io.github.youndie.haul.shell.TreeCommand
@@ -55,6 +66,7 @@ import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.toneColor
+import io.github.youndie.kompot.KompotAction
 import kotlinx.coroutines.launch
 
 // The lower half of the product page: the tab row and the four tabs' content, each with the margins
@@ -63,11 +75,27 @@ import kotlinx.coroutines.launch
 /**
  * The tab row: 36 px apart under a hairline at 1440, 24 apart and running off the right edge on a
  * phone, the selected tab underlined 3 px over the hairline.
+ *
+ * Another tab arriving on the page drawn (B-62 keeps it) brings the row into view with the top of the tab
+ * under it (B-71): «2,341 reviews» and «All specifications» open a tab from above the fold, where the
+ * new tab would otherwise change out of sight. A tab pressed in the row is in view already.
  */
 @Composable
 public fun ProductTabsView(tabs: ProductTabs) {
     val compact = LocalHaulCompact.current
     val gutter = gutter()
+    val selected = tabs.tabs.firstOrNull { it.selected }?.key
+    val requester = remember { BringIntoViewRequester() }
+    var drawn by remember { mutableStateOf(selected) }
+    var rowSize by remember { mutableStateOf(IntSize.Zero) }
+    val below = with(LocalDensity.current) { TAB_TOP_IN_VIEW.toPx() }
+    LaunchedEffect(selected) {
+        if (selected != drawn) {
+            drawn = selected
+            // The row and the first [TAB_TOP_IN_VIEW] of the tab under it, as one rectangle.
+            requester.bringIntoView(Rect(0f, 0f, rowSize.width.toFloat(), rowSize.height + below))
+        }
+    }
     // The hairline runs the row's full width — to the page's right edge on a phone, where the row
     // scrolls (`margin-right: -16px`).
     val hairline =
@@ -86,7 +114,13 @@ public fun ProductTabsView(tabs: ProductTabs) {
         } else {
             Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = 72.dp).then(hairline)
         }
-    Box(row) {
+    Box(
+        Modifier
+            .testTag(TABS_TAG)
+            .bringIntoViewRequester(requester)
+            .onSizeChanged { rowSize = it }
+            .then(row),
+    ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(if (compact) 24.dp else 36.dp),
         ) {
@@ -123,6 +157,12 @@ public fun ProductTabsView(tabs: ProductTabs) {
     }
 }
 
+/** The tab row, for the tests that look for it in view. */
+internal const val TABS_TAG: String = "product-tabs"
+
+/** How much of a tab opened from above the fold is brought into view under the row (B-71). */
+private val TAB_TOP_IN_VIEW = 240.dp
+
 /** «Write a review», which presents the review dialog (a customer) or signs in (a guest). */
 internal const val WRITE_REVIEW_TAG: String = "write-review"
 
@@ -131,6 +171,9 @@ internal const val ASK_TAG: String = "ask-question"
 
 /** «Helpful» on a review: a customer's vote, or the way to sign in for a guest (B-43). */
 internal const val HELPFUL_TAG: String = "review-helpful"
+
+/** «Show more reviews» and «Show more questions» (B-71). */
+internal const val MORE_TAG: String = "show-more"
 
 /** The bottom of the page under the tab's content. */
 @Composable
@@ -270,6 +313,7 @@ public fun ProductReviewsView(reviews: ProductReviews) {
         Column(outer, verticalArrangement = Arrangement.spacedBy(20.dp)) {
             RatingSummary(reviews, compact = true)
             reviews.reviews.forEach { ReviewCard(it, compact = true, Modifier.fillMaxWidth()) }
+            More(reviews.moreLabel, reviews.more)
         }
     } else {
         Row(outer, horizontalArrangement = Arrangement.spacedBy(40.dp)) {
@@ -281,9 +325,31 @@ public fun ProductReviewsView(reviews: ProductReviews) {
                         if (pair.size == 1) Box(Modifier.weight(1f))
                     }
                 }
+                More(reviews.moreLabel, reviews.more)
             }
         }
     }
+}
+
+/**
+ * «Show more reviews» or «Show more questions» under the list (B-71): the tab's `load` of ten more. No artboard
+ * draws a second page; it is the tab's outlined button, as wide as the list.
+ */
+@Composable
+private fun More(
+    label: String?,
+    action: KompotAction?,
+) {
+    if (label == null || action == null) return
+    HaulButton(
+        label,
+        Modifier.fillMaxWidth().testTag(MORE_TAG),
+        height = 56.dp,
+        radius = 18.dp,
+        border = HaulColors.onSurface,
+        textSize = 16f,
+        onClick = following(action),
+    )
 }
 
 @Composable
@@ -385,16 +451,26 @@ private fun ReviewCard(
             review.helpful?.let {
                 Text(it, HaulType.text(14f).copy(color = HaulColors.outline), Modifier.weight(1f))
             }
-            Text(
-                review.helpfulLabel,
-                HaulType.text(14f, 600),
-                Modifier
-                    .testTag(HELPFUL_TAG)
-                    .pressable(helpfulPress(review))
-                    .border(1.dp, HaulColors.outlineVariant, CircleShape)
-                    .padding(horizontal = 15.dp, vertical = 9.dp),
-                softWrap = false,
-            )
+            if (review.helpfulCommand == null && review.helpfulAction == null) {
+                // The viewer's own review: «Your review», words where the others have the pill (B-71).
+                Text(
+                    review.helpfulLabel,
+                    HaulType.text(14f, 600).copy(color = HaulColors.outline),
+                    Modifier.testTag(HELPFUL_TAG).padding(vertical = 10.dp),
+                    softWrap = false,
+                )
+            } else {
+                Text(
+                    review.helpfulLabel,
+                    HaulType.text(14f, 600),
+                    Modifier
+                        .testTag(HELPFUL_TAG)
+                        .pressable(helpfulPress(review))
+                        .border(1.dp, HaulColors.outlineVariant, CircleShape)
+                        .padding(horizontal = 15.dp, vertical = 9.dp),
+                    softWrap = false,
+                )
+            }
         }
     }
 }
@@ -443,6 +519,7 @@ public fun ProductQuestionsView(questions: ProductQuestions) {
         @Composable { modifier: Modifier ->
             Column(modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 questions.questions.forEach { QuestionCard(it, compact) }
+                More(questions.moreLabel, questions.more)
             }
         }
     if (compact) {

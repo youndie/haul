@@ -51,15 +51,6 @@
    "skuId": "p-sony-wh-1000xm6-0",
    "photoTone": "#E6E4FF",
    "photoLabel": "product photo",
-   "photoCount": "1 / 8",
-   "photoTotal": 8,
-   "gallery": [
-    "#E6E4FF",
-    "#DEDCF7",
-    "#E9E6E0",
-    "#E0EEF7"
-   ],
-   "morePhotos": "+3",
    "badge": "Bestseller",
    "brand": "Sony",
    "title": "WH-1000XM6 Wireless Noise Cancelling Headphones",
@@ -160,7 +151,20 @@
     "name": "Sony Official Store",
     "initial": "S",
     "meta": "4.9 · 98% positive · 6 yrs on Haul"
-   }
+   },
+   "brandAction": {
+    "type": "navigate",
+    "deeplink": "/c/electronics/audio/headphones?brand=Sony"
+   },
+   "ratingAction": {
+    "type": "navigate",
+    "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=reviews"
+   },
+   "specificationsAction": {
+    "type": "navigate",
+    "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=specifications"
+   },
+   "share": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0"
   },
   {
    "type": "haul_product_tabs",
