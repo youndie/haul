@@ -1,7 +1,7 @@
 ---
 id: B-77
 title: "client + server: every page of results can be reached"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-10-review
