@@ -31,14 +31,27 @@ import kotlin.concurrent.thread
  * server's routes.
  *
  * A shopper is a guest ([guest], sent as [GUEST_HEADER]) until they hold a [token]; then the bearer.
+ *
+ * **A bearer outlives nothing**: shildik's access token lives five minutes. With [renew] set, a request whose
+ * bearer is answered `401` gets a new [token] from it and is sent once more — what the storefront's client
+ * does with its refresh token (`Identity`). A walk that waits on the fulfilment clock longer than that (twenty
+ * minutes at the stand's speed, B-31) needs it; without [renew] the `401` is the answer.
+ *
+ * [transport] is how a request reaches the server: the JDK's client, unless a test stands between them.
  */
 internal class Storefront(
     private val origin: String,
+    private val transport: Transport = Transport.DIRECT,
 ) {
     var guest: String? = null
     var token: String? = null
 
-    private val http: HttpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build()
+    /** The next bearer, when the one held is refused; `null` — nobody to ask — leaves the `401` as it is. */
+    var renew: (() -> String)? = null
+
+    /** How many times [renew] was asked. */
+    var renewals: Int = 0
+        private set
 
     /**
      * The tree of the page at [address] — a deeplink as a `NavigateAction` carries it — where the client
@@ -65,7 +78,7 @@ internal class Storefront(
                 .apply { token?.let { header("Authorization", "Bearer $it") } }
                 .GET()
                 .build()
-        val response = http.send(request, HttpResponse.BodyHandlers.ofLines())
+        val response = Transport.HTTP.send(request, HttpResponse.BodyHandlers.ofLines())
         check(response.statusCode() == 200) { "the stream of $topic answered ${response.statusCode()}" }
         return LiveStream(topic, response.body())
     }
@@ -77,7 +90,7 @@ internal class Storefront(
         body: String? = null,
         headers: Map<String, String> = emptyMap(),
     ): Answer {
-        val request =
+        fun request() =
             HttpRequest
                 .newBuilder(URI(origin + url))
                 .timeout(Duration.ofSeconds(30))
@@ -90,8 +103,30 @@ internal class Storefront(
                     method,
                     body?.let { HttpRequest.BodyPublishers.ofString(it) } ?: HttpRequest.BodyPublishers.noBody(),
                 ).build()
-        val response = http.send(request, HttpResponse.BodyHandlers.ofString())
+        var response = transport.send(request())
+        val renew = renew
+        if (response.statusCode() == UNAUTHORIZED && token != null && renew != null) {
+            token = renew()
+            renewals += 1
+            response = transport.send(request())
+        }
         return Answer("$method $url", response.statusCode(), response.body())
+    }
+
+    private companion object {
+        const val UNAUTHORIZED = 401
+    }
+}
+
+/** How the storefront's requests reach the server. */
+internal fun interface Transport {
+    fun send(request: HttpRequest): HttpResponse<String>
+
+    companion object {
+        val HTTP: HttpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build()
+
+        /** Straight to the server, with the JDK's client. */
+        val DIRECT = Transport { HTTP.send(it, HttpResponse.BodyHandlers.ofString()) }
     }
 }
 
