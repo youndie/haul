@@ -44,6 +44,7 @@ import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.HaulPagination
 import io.github.youndie.haul.ui.Icon
+import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.LinkMenu
 import io.github.youndie.haul.ui.LocalHaulActions
 import io.github.youndie.haul.ui.PageTitle
@@ -228,27 +229,51 @@ internal fun ResultCount(count: String) {
     Text(count, HaulType.label(13f, 600, 0.04f).copy(color = HaulColors.outline))
 }
 
-/** The kinds of a category as pills: one row at 1440, a row that scrolls off the right edge on a phone. */
+/**
+ * The kinds of a category as pills: one row at 1440, a row that scrolls off the right edge on a phone. A
+ * search's row ends in its sort control (B-77) — at the row's right edge at 1440, over the row at the right
+ * on a phone, where the chips scroll.
+ */
 @Composable
 public fun FilterChipsView(chips: FilterChips) {
     val compact = LocalHaulCompact.current
     val gutter = gutter()
-    val row =
-        if (compact) {
-            Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .padding(start = gutter, bottom = if (chips.counted()) 24.dp else 16.dp)
-        } else {
-            Modifier.fillMaxWidth().padding(
-                start = gutter,
-                end = gutter,
-                bottom = if (chips.counted()) 32.dp else 36.dp,
-            )
-        }
+    val bottom = if (compact) (if (chips.counted()) 24.dp else 16.dp) else (if (chips.counted()) 32.dp else 36.dp)
+    val sort = chips.sortLabel?.takeIf { chips.sorts.isNotEmpty() }
     // A flex line stretches its items: the selected pill has no border and is as tall as the others.
-    Row(row.height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        chips.chips.forEach { KindChip(it, compact) }
+    val pills =
+        @Composable { m: Modifier ->
+            Row(m.height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                chips.chips.forEach { KindChip(it, compact) }
+            }
+        }
+    when {
+        compact -> {
+            Column(Modifier.fillMaxWidth().padding(bottom = bottom)) {
+                if (sort != null) {
+                    Row(Modifier.fillMaxWidth().padding(start = gutter, end = gutter, bottom = 12.dp)) {
+                        Spacer(Modifier.weight(1f))
+                        SortMenu(sort, chips.sorts, Modifier.height(44.dp), textSize = 15f)
+                    }
+                }
+                pills(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = gutter))
+            }
+        }
+
+        sort != null -> {
+            Row(
+                Modifier.fillMaxWidth().padding(start = gutter, end = gutter, bottom = bottom),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                pills(Modifier.weight(1f))
+                SortMenu(sort, chips.sorts, Modifier.height(44.dp), textSize = 14f)
+            }
+        }
+
+        else -> {
+            pills(Modifier.fillMaxWidth().padding(start = gutter, end = gutter, bottom = bottom))
+        }
     }
 }
 
@@ -428,8 +453,19 @@ private fun Sort(
     modifier: Modifier,
     textSize: Float,
 ) {
-    LinkMenu(applied.sorts, current = applied.sortLabel, alignEnd = true) { press ->
-        SortControl(applied.sortLabel, press.then(modifier), textSize)
+    SortMenu(applied.sortLabel, applied.sorts, modifier, textSize)
+}
+
+/** «Sort: [label]»; pressing it opens [sorts], the orders it offers, as a menu. */
+@Composable
+private fun SortMenu(
+    label: String,
+    sorts: List<Link>,
+    modifier: Modifier,
+    textSize: Float,
+) {
+    LinkMenu(sorts, current = label, alignEnd = true) { press ->
+        SortControl(label, press.then(modifier), textSize)
     }
 }
 

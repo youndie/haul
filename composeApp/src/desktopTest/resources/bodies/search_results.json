@@ -65,6 +65,24 @@
      "selected": false,
      "count": "544"
     }
+   ],
+   "sortLabel": "Popular",
+   "sorts": [
+    {
+     "label": "Popular"
+    },
+    {
+     "label": "Price: low to high"
+    },
+    {
+     "label": "Price: high to low"
+    },
+    {
+     "label": "Rating"
+    },
+    {
+     "label": "Newest"
+    }
    ]
   },
   {

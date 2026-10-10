@@ -326,6 +326,53 @@ class StorefrontTest {
             assertEquals(listOf("/", "/search?q=running%20shoes"), history.entries)
         }
 
+    /** B-77: the arrow keys move the highlight over the panel's queries, and Enter opens the one it is on. */
+    @Test
+    fun `the arrow keys and Enter pick a suggestion`() =
+        runDesktopComposeUiTest(CANVAS_WIDTH, 1_000) {
+            answer("/ui/home", ok(home))
+            answer("/ui/search/suggest?q=run", ok(twoSuggestions))
+            answer("/ui/search?q=running%20shorts", ok(product))
+            storefront()
+            val field = onNodeWithTag(SEARCH_FIELD_TAG)
+            field.performClick()
+            field.performTextInput("run")
+            waitUntil(timeoutMillis = 5_000) { exists("running shorts") }
+            // Down twice is the second query, a third Down stays on the last, Up goes back one.
+            field.performKeyInput {
+                pressKey(Key.DirectionDown)
+                pressKey(Key.DirectionDown)
+                pressKey(Key.DirectionDown)
+                pressKey(Key.DirectionUp)
+                pressKey(Key.DirectionDown)
+            }
+            field.performKeyInput { pressKey(Key.Enter) }
+            onNodeWithText(PRODUCT_TEXT).assertExists()
+            assertEquals(listOf("/", "/search?q=running%20shorts"), history.entries)
+        }
+
+    /** Up from the first query is none again, and Enter then opens the text as typed. */
+    @Test
+    fun `up past the first suggestion leaves Enter to the typed text`() =
+        runDesktopComposeUiTest(CANVAS_WIDTH, 1_000) {
+            answer("/ui/home", ok(home))
+            answer("/ui/search/suggest?q=run", ok(twoSuggestions))
+            answer("/ui/search?q=run", ok(product))
+            storefront()
+            val field = onNodeWithTag(SEARCH_FIELD_TAG)
+            field.performClick()
+            field.performTextInput("run")
+            waitUntil(timeoutMillis = 5_000) { exists("running shorts") }
+            field.performKeyInput {
+                pressKey(Key.DirectionDown)
+                pressKey(Key.DirectionUp)
+                pressKey(Key.DirectionUp)
+            }
+            field.performKeyInput { pressKey(Key.Enter) }
+            onNodeWithText(PRODUCT_TEXT).assertExists()
+            assertEquals(listOf("/", "/search?q=run"), history.entries)
+        }
+
     @Test
     fun `the countdown ticks with the one clock`() =
         runDesktopComposeUiTest(CANVAS_WIDTH, 1_000) {
@@ -403,6 +450,17 @@ class StorefrontTest {
                 categories = emptyList(),
                 products = emptyList(),
                 allResultsLabel = "All 3 results",
+            )
+
+        val twoSuggestions =
+            suggest.copy(
+                suggestions =
+                    suggest.suggestions +
+                        QuerySuggestion(
+                            typed = "run",
+                            completion = "ning shorts",
+                            action = NavigateAction("/search?q=running%20shorts"),
+                        ),
             )
 
         fun signInHere(deeplink: String) =
