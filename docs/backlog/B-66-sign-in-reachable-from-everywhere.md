@@ -1,7 +1,7 @@
 ---
 id: B-66
 title: "client: sign-in and sign-out work from every page and every way in"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-10-review
