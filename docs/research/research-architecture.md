@@ -576,8 +576,9 @@ the account need a shildik token; signing in merges the guest cart.
   out» — and the phone header's menu. `/sign-out` is the client's own address, never a page: the tokens
   are forgotten in the browser (the guest id stays, research above), and a customer's page (checkout, the
   account, Saved, an order) leaves for the home page while any other is drawn again for the guest. The
-  provider's own session is not ended: a sign-in after it may need no password at shildik
-  (`end_session_endpoint` needs a registered post-logout address, not configured on the stand).
+  provider is not asked to end anything: walked against shildik 0.4.1 (the e2e's image), a sign-in after a
+  sign-out asks for the password again — the provider kept no session of its own to sign in from. Its
+  `end_session_endpoint` is not used.
 
 **Decided in B-14, checkout and the quote.**
 

@@ -155,13 +155,16 @@ internal fun SignInPage(
                 NotFoundShell(
                     header = header,
                     eyebrow = "Sign in",
-                    title = "Your browser blocked the sign-in window",
+                    // No hyphen in the title: the display face draws none (walked in the browser pane).
+                    title = "The browser blocked the window",
                     accent = "blocked",
                     text =
                         if (canSignInHere) {
-                            "Sign in on this page instead: you go to the sign-in page and come back here once you have."
+                            "The sign-in opens in a window of its own, and this browser did not let it open. " +
+                                "Sign in on this page instead: you come back here once you have."
                         } else {
-                            "Allow pop-up windows for this site, then try again."
+                            "The sign-in opens in a window of its own, and this browser did not let it open. " +
+                                "Allow pop-up windows for this site, then try again."
                         },
                     actionLabel = if (canSignInHere) SIGN_IN_HERE_LABEL else TRY_POPUP_AGAIN_LABEL,
                     onAction = { if (canSignInHere) here() else popup() },
@@ -175,7 +178,7 @@ internal fun SignInPage(
                     header = header,
                     eyebrow = "Sign in",
                     title = "Signing you in",
-                    accent = "in",
+                    accent = "you in",
                     text = "One moment: you’re back where you were once it’s done.",
                     actionLabel = null,
                 )

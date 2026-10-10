@@ -324,7 +324,7 @@ class SignInEverywhereTest {
         const val HEIGHT = 1400
         const val CUSTOMER = "Maya"
         const val NOT_HERE = "This page isn’t here"
-        const val BLOCKED = "Your browser blocked the sign-in window"
+        const val BLOCKED = "The browser blocked the window"
         const val ORDERS_TEXT = "Your orders"
         const val CART_TEXT = "Your cart"
         const val ACCOUNT_TEXT = "Your account"
