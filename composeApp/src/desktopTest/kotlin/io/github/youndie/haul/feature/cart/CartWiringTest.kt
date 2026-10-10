@@ -176,6 +176,24 @@ class CartWiringTest {
             assertEquals(listOf<CartCommand>(CartCommand.ApplyPromo(PROMO, PromoEntry("autumn10"))), sent.toList())
         }
 
+    /**
+     * B-76, Cart_Guest: in the browser a keystroke reaches the field at the next animation frame, while
+     * a press is handled the moment it arrives, so «Apply» pressed within that frame read an empty field
+     * and sent nothing. Here the code lands after the press and before the next frame, as it does there.
+     */
+    @Test
+    fun `apply sends a code typed just before the press`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            cart(GUEST)
+            mainClock.autoAdvance = false
+            onNodeWithTag(PROMO_APPLY_TAG).performClick()
+            onNodeWithTag(PROMO_INPUT_TAG).performTextInput("AUTUMN10")
+            mainClock.autoAdvance = true
+            waitForIdle()
+            assertEquals(listOf<CartCommand>(CartCommand.ApplyPromo(PROMO, PromoEntry("AUTUMN10"))), sent.toList())
+            assertEquals(listOf<KompotAction>(RefreshAction), followed.toList())
+        }
+
     @Test
     fun `apply with nothing typed sends nothing`() =
         runDesktopComposeUiTest(WIDTH, HEIGHT) {

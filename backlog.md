@@ -41,7 +41,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (16)
+## Open (15)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -50,7 +50,6 @@ A stage is a field on the item, not a directory.
 | [B-69](docs/backlog/B-69-price-facet-does-nothing.md) `[ ]` | client + server: the price filter can be used | P1 | M | - |
 | [B-70](docs/backlog/B-70-deals-vanish-at-midnight.md) `[ ]` | server: a running stand keeps its deals of the day | P1 | M | - |
 | [B-73](docs/backlog/B-73-phone-cannot-reach-catalog-and-orders.md) `[ ]` | client: on a phone every part of the store is reachable | P1 | M | - |
-| [B-76](docs/backlog/B-76-promo-apply-sends-nothing.md) `[ ]` | client: «Apply» on the cart's promo code is applied | P1 | S | - |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 | [B-67](docs/backlog/B-67-error-pages-header-is-dead.md) `[ ]` | client: the header on loading, error and not-found pages leads somewhere | P2 | S | - |
 | [B-71](docs/backlog/B-71-product-page-dead-links.md) `[ ]` | client + server: what looks pressable on the product page does something | P2 | M | - |
@@ -62,7 +61,7 @@ A stage is a field on the item, not a directory.
 | [B-80](docs/backlog/B-80-blank-first-load.md) `[ ]` | client: the first load shows something before the app starts | P2 | S | - |
 | [B-79](docs/backlog/B-79-checkout-step-indicator-and-links.md) `[ ]` | client + server: checkout's step indicator and summary tell the truth | P3 | S | - |
 
-## Closed (64)
+## Closed (65)
 
 **Skeleton**
 
@@ -154,6 +153,10 @@ A stage is a field on the item, not a directory.
 - [B-63](docs/backlog/B-63-answers-replace-what-changed.md) `[x]` - server + client: a filter answers with the parts that changed
 - [B-64](docs/backlog/B-64-drop-the-override-workaround.md) `[x]` - client: back after a filter draws the address's page with kompot's own reset
 - [B-65](docs/backlog/B-65-every-id-once-per-page.md) `[x]` - server: every node id appears once on a page
+
+**Review**
+
+- [B-76](docs/backlog/B-76-promo-apply-sends-nothing.md) `[x]` - client: «Apply» on the cart's promo code is applied
 
 <!-- END INDEX -->
 

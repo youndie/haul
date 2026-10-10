@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,12 +45,14 @@ import io.github.youndie.haul.ui.OrderSummary
 import io.github.youndie.haul.ui.PromoField
 import io.github.youndie.haul.ui.SummaryRow
 import io.github.youndie.haul.ui.Text
+import io.github.youndie.haul.ui.awaitTypedInput
 import io.github.youndie.haul.ui.following
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.toneColor
 import io.github.youndie.kompot.standard.NavigateAction
+import kotlinx.coroutines.launch
 
 // The Cart screen's body (screen-cart): the lines grouped by seller beside the order summary at 1440,
 // the summary under them on a phone. The numbers are the artboards' (Cart_Content, Cart_ItemChanged,
@@ -600,6 +603,7 @@ private fun PromoFieldView(
         return
     }
     var typed by remember(field.code, field.error) { mutableStateOf(field.code.orEmpty()) }
+    val scope = rememberCoroutineScope()
     val refused = field.error != null
     val shape = RoundedCornerShape(14.dp)
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -635,8 +639,14 @@ private fun PromoFieldView(
                 Modifier
                     .testTag(PROMO_APPLY_TAG)
                     .pressable {
-                        val code = typed.trim()
-                        if (code.isNotEmpty()) onCommand(listOf(CartCommand.ApplyPromo(field.url, PromoEntry(code))))
+                        // What was typed just before the press may not be in the field yet (B-76).
+                        scope.launch {
+                            awaitTypedInput()
+                            val code = typed.trim()
+                            if (code.isNotEmpty()) {
+                                onCommand(listOf(CartCommand.ApplyPromo(field.url, PromoEntry(code))))
+                            }
+                        }
                     }.height(52.dp)
                     .background(HaulColors.inverseSurface, shape)
                     .padding(horizontal = 20.dp),

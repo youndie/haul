@@ -1146,6 +1146,14 @@ didn’t *respond*», and a no-break space that keeps two words together at 1440
 phone where they do not fit one line. `BalancedText` does what Chrome does: it keeps the number of
 lines the text takes at the full width and bisects for the narrowest width that still holds it.
 
+**Found in B-76: in the browser a keystroke reaches a field a frame after a press does.** Compose on
+wasmJs collects the page's input events and applies them to the focused field at the next animation
+frame (`NativeInputEventsProcessor`, Compose UI 1.12), while a pointer press is handled the moment it
+arrives. A press that reads a field — the cart's «Apply» — read it without what was typed within that
+frame; in a hidden or background tab, where frames are throttled, that is seconds, which is how the stand
+review saw «Apply» send nothing. Such a press waits for the input first (`ui/TypedInput.kt`,
+`awaitTypedInput`); the desktop target applies input at once, so only a test that holds the clock sees it.
+
 **Risk 1. The canvas and the code drift apart without anyone seeing it.** A renderer changed for one
 screen changes every screen that uses the component. Mitigation: one reference PNG per artboard
 (125), exported from the canvas into the client's snapshot directory, and `viddikDesignParity` in
