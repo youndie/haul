@@ -1,7 +1,7 @@
 ---
 id: B-31
 title: "synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand"
-status: open
+status: wip
 priority: P2
 size: M
 stage: stage-9-ship
