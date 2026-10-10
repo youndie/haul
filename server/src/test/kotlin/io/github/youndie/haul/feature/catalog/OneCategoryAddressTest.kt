@@ -57,7 +57,9 @@ class OneCategoryAddressTest {
                 .forEach { assertTrue(it in links, "no page links $it; the links: $links") }
             val still = config { followRedirects = false }
             links.forEach { link ->
-                assertEquals(addressOf(link.substringAfterLast('/')), link, "a link to a category in another form")
+                // A product's brand links to its category with the brand ticked (B-71): the path is the address.
+                val path = link.substringBefore('?')
+                assertEquals(addressOf(path.substringAfterLast('/')), path, "a link to a category in another form")
                 assertEquals(HttpStatusCode.OK, still.get("/ui$link").status, "$link is not where its page is")
             }
         }
