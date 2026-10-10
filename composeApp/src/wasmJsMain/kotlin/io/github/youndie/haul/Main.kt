@@ -13,6 +13,7 @@ import io.github.youndie.haul.feature.identity.OidcSignInFlow
 import io.github.youndie.haul.feature.identity.PopupSignInFlow
 import io.github.youndie.haul.feature.identity.SIGN_IN_WINDOW
 import io.github.youndie.haul.shell.WindowHistory
+import io.github.youndie.haul.shell.clipboardLinks
 import io.github.youndie.haul.shell.ktorCommands
 import io.github.youndie.haul.shell.ktorRealtime
 import io.github.youndie.haul.shell.ktorTransport
@@ -65,6 +66,7 @@ public fun main() {
             checkoutCommands = checkoutCommands,
             treeCommands = treeCommands,
             realtime = realtime,
+            links = clipboardLinks,
         )
     }
 }

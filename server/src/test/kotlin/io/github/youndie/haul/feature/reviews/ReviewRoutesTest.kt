@@ -381,6 +381,9 @@ class ReviewRoutesTest {
                 val mine = review(token, "Maya K.")
                 assertNull(mine.helpfulCommand, "the author's own review carries no vote")
                 assertNull(mine.helpfulAction)
+                // B-71: and says whose it is where the others have «Helpful».
+                assertEquals("Your review", mine.helpfulLabel)
+                assertEquals("Helpful", review(token, "Aisha K.").helpfulLabel)
                 val id = dataSource.reviewOf(SampleCustomers.MAYA)
                 vote(token, ReviewPaths.helpful(id), HelpfulVote(helpful = true))
                     .assertError(HttpStatusCode.Conflict, ErrorCode.OwnReview)

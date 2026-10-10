@@ -57,9 +57,14 @@ public data class SellerSummary(
  * SKU. [inStock] `false` is `Product_OutOfStock`: the price is greyed, only «Save» stays live, and
  * [stockAdvice] («Silver is out of stock.» and where to turn) takes the delivery lines' place.
  *
- * [gallery] is the thumbnails' tile tones, the first being the photo shown; [morePhotos] is the last
- * thumbnail's «+3»; [photoTotal] is how many photos there are (the phone's dots). [haulPayStrong] is
+ * The product has one photo, [photo] over the tile of [photoTone] captioned [photoLabel]: the canvas's
+ * thumbnails, «+3» and «1 / 8» drew photos no product has, and are not sent (B-71). [haulPayStrong] is
  * the part of [haulPay] drawn bold.
+ *
+ * What looks like a link is one (B-71): [brandAction] opens the brand in the product's category,
+ * [ratingAction] — the stars and «2,341 reviews» — the reviews tab, [specificationsAction] — «All
+ * specifications» — the specifications tab. [share] is the product's address at its SKU, which the share
+ * button over the photo copies as a link on the page's own origin; absent, no share button is drawn.
  *
  * [bought] is «12K bought this month» under the rating, already abbreviated by the server (B-52); absent
  * for a product bought fewer than 50 times in the last 30 days.
@@ -90,7 +95,6 @@ public data class ProductDetails(
     val skuId: String,
     val photoTone: String,
     val photoLabel: String,
-    val photoCount: String,
     val badge: String? = null,
     val brand: String,
     val title: String,
@@ -110,9 +114,6 @@ public data class ProductDetails(
     val seller: SellerSummary,
     val saved: Boolean = false,
     val accent: String? = null,
-    val gallery: List<String> = emptyList(),
-    val morePhotos: String? = null,
-    val photoTotal: Int = 1,
     val haulPayStrong: String? = null,
     val stockAdvice: Highlight? = null,
     val photo: String? = null,
@@ -121,6 +122,10 @@ public data class ProductDetails(
     val add: LineCommand? = null,
     val buy: LineCommand? = null,
     val inCart: Link? = null,
+    val brandAction: @Polymorphic KompotAction? = null,
+    val ratingAction: @Polymorphic KompotAction? = null,
+    val specificationsAction: @Polymorphic KompotAction? = null,
+    val share: String? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
@@ -181,7 +186,8 @@ public data class HistogramBar(
  *
  * «Helpful» ([helpfulLabel]) carries, for a customer, [helpfulCommand] — their vote, or taking it back
  * (B-43) — and for a guest [helpfulAction], the way to sign in. On the customer's own review it carries
- * neither: the author cannot vote on it.
+ * neither: the author cannot vote on it, and [helpfulLabel] is «Your review», drawn as words, not a
+ * control (B-71).
  */
 @Serializable
 public data class Review(
@@ -202,7 +208,8 @@ public data class Review(
 /**
  * The reviews tab: the rating, its histogram and «Write a review» beside the reviews themselves
  * (feature-reviews, B-22). [action] is what «Write a review» does: kompot's `present` of a
- * [ReviewForm] for a customer, the way to sign in for a guest.
+ * [ReviewForm] for a customer, the way to sign in for a guest. [more] is «[moreLabel]» under the reviews
+ * while the product has more than are listed: kompot's `load` of the tab listing ten more (B-71).
  */
 @Serializable
 @SerialName("haul_product_reviews")
@@ -215,6 +222,8 @@ public data class ProductReviews(
     val actionLabel: String,
     val reviews: List<Review>,
     val action: @Polymorphic KompotAction? = null,
+    val moreLabel: String? = null,
+    val more: @Polymorphic KompotAction? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
@@ -231,6 +240,7 @@ public data class Question(
 /**
  * The questions tab: how many there are, who answers, «Ask a question», and the questions. [action] is
  * what «Ask a question» does: kompot's `present` of a [QuestionForm] for a customer, sign-in for a guest.
+ * [more] is «[moreLabel]» under the questions, as on the reviews tab.
  */
 @Serializable
 @SerialName("haul_product_questions")
@@ -243,6 +253,8 @@ public data class ProductQuestions(
     val actionLabel: String,
     val questions: List<Question>,
     val action: @Polymorphic KompotAction? = null,
+    val moreLabel: String? = null,
+    val more: @Polymorphic KompotAction? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 

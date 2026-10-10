@@ -9,6 +9,7 @@ import io.github.youndie.haul.testing.tree
 import io.github.youndie.haul.ui.ProductDescription
 import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.kompot.decodeKompotComponent
+import io.github.youndie.kompot.standard.NavigateAction
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
@@ -105,6 +106,26 @@ class ProductRoutesTest {
                     .only<ProductDetails>()
             assertEquals("12K bought this month", drawn.bought, "the fixture no longer draws the canvas's line")
             assertEquals(drawn.bought, details.bought)
+        }
+
+    /**
+     * B-71: what looks like a link on the details is one. The brand opens its products in the product's
+     * category, the rating and «2,341 reviews» the reviews tab, «All specifications» the specifications tab,
+     * each at the SKU shown; the share button copies the product at that SKU. Every one of them is the address
+     * of a page that opens.
+     */
+    @Test
+    fun `the brand, the rating and all specifications lead somewhere and share names the product`() =
+        haulTest {
+            val details = tree("/ui/p/$sony?sku=$sony-1").only<ProductDetails>()
+            assertEquals(NavigateAction("/c/electronics/audio/headphones?brand=Sony"), details.brandAction)
+            assertEquals(NavigateAction("/p/$sony?sku=$sony-1&tab=reviews"), details.ratingAction)
+            assertEquals(NavigateAction("/p/$sony?sku=$sony-1&tab=specifications"), details.specificationsAction)
+            assertEquals("/p/$sony?sku=$sony-1", details.share)
+            for (action in listOf(details.brandAction, details.ratingAction, details.specificationsAction)) {
+                tree("/ui" + (action as NavigateAction).deeplink)
+            }
+            tree("/ui" + details.share)
         }
 
     /** Scenario «Unknown product». */

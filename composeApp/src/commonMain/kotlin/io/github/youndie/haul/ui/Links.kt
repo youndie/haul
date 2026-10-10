@@ -73,3 +73,18 @@ internal fun following(action: KompotAction?): (() -> Unit)? {
     val handler = LocalHaulActions.current
     return if (action == null || handler == null) null else ({ handler.handle(action) })
 }
+
+/**
+ * Puts a link to an address of this storefront on the clipboard (B-71): the page's own origin and [copy]'s
+ * `path`, as the server wrote the address (`ProductDetails.share`); `done` says whether it went. The origin
+ * is the browser's, which the server does not know.
+ */
+public fun interface LinkCopier {
+    public fun copy(
+        path: String,
+        done: (Boolean) -> Unit,
+    )
+}
+
+/** Whoever copies links: the browser's clipboard in the app; `null` — a screenshot — copies nothing. */
+public val LocalLinkCopier: ProvidableCompositionLocal<LinkCopier?> = staticCompositionLocalOf { null }

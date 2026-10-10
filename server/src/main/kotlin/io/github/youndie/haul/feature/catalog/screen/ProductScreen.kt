@@ -9,15 +9,18 @@ import io.github.youndie.haul.feature.catalog.domain.CatalogError
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
+import io.github.youndie.haul.feature.catalog.domain.Filters
 import io.github.youndie.haul.feature.catalog.domain.HaulPay
 import io.github.youndie.haul.feature.catalog.domain.Listed
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.Seller
 import io.github.youndie.haul.feature.catalog.domain.Sku
+import io.github.youndie.haul.feature.catalog.domain.Sort
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.discount
 import io.github.youndie.haul.feature.catalog.domain.lineage
 import io.github.youndie.haul.feature.catalog.domain.money
+import io.github.youndie.haul.feature.catalog.domain.pathOf
 import io.github.youndie.haul.feature.reviews.screen.ReviewTabs
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.shell.Viewer
@@ -60,6 +63,9 @@ internal enum class ProductTab(
  * with no stock is `Product_OutOfStock`: the details say so and the client keeps only «Save».
  * «Add to cart» and «Buy now» carry their line changes for that SKU (B-48), drawn for the [Viewer]'s
  * cart as a card's «+» is. «12K bought this month» under the rating is [BoughtThisMonth]'s (B-52).
+ *
+ * The reviews and questions tabs list the first [shown] (`shown`, ten more per «Show more», B-71); the
+ * tab's address is [address].
  */
 internal class ProductScreen(
     private val catalog: CatalogRepository,
@@ -73,6 +79,7 @@ internal class ProductScreen(
         skuId: String?,
         tab: ProductTab,
         viewer: Viewer,
+        shown: Int = ReviewTabs.SHOWN,
     ): KompotComponent {
         val item = catalog.product(productId, viewer.prices) ?: throw CatalogError.ProductNotFound(productId)
         val sku =
@@ -87,7 +94,7 @@ internal class ProductScreen(
         val sections =
             listOf(
                 Breadcrumbs("breadcrumbs", crumbs(item, categories)),
-                details(item, sku, seller, viewer, boughtThisMonth.label(item.product)),
+                details(item, sku, seller, categories, viewer, boughtThisMonth.label(item.product)),
                 ProductTabs(
                     id = "tabs",
                     tabs =
@@ -102,7 +109,7 @@ internal class ProductScreen(
                                         else -> null
                                     },
                                 selected = it == tab,
-                                action = NavigateAction("/p/${item.product.id}?sku=${sku.id}&tab=${it.key}"),
+                                action = NavigateAction(address(item, sku, it)),
                                 compactTitle = it.compactTitle,
                             )
                         },
@@ -128,11 +135,11 @@ internal class ProductScreen(
                     }
 
                     ProductTab.Reviews -> {
-                        reviewTabs.reviews(item, sku, viewer)
+                        reviewTabs.reviews(item, sku, viewer, shown)
                     }
 
                     ProductTab.Questions -> {
-                        reviewTabs.questions(item, sku, seller, viewer)
+                        reviewTabs.questions(item, sku, seller, viewer, shown)
                     }
                 },
             )
@@ -149,13 +156,14 @@ internal class ProductScreen(
         viewer: Viewer,
     ): ProductDetails {
         val seller = catalog.seller(item.product.sellerId) ?: error("product ${item.product.id} names no seller")
-        return details(item, sku, seller, viewer, boughtThisMonth.label(item.product))
+        return details(item, sku, seller, catalog.categories(), viewer, boughtThisMonth.label(item.product))
     }
 
     private fun details(
         item: Listed,
         sku: Sku,
         seller: Seller,
+        categories: List<Category>,
         viewer: Viewer,
         bought: String?,
     ): ProductDetails {
@@ -171,10 +179,6 @@ internal class ProductScreen(
             photoTone = item.product.tone,
             photo = photos.url(item.product),
             photoLabel = "product photo",
-            photoCount = "1 / $PHOTOS",
-            photoTotal = PHOTOS,
-            gallery = listOf(item.product.tone) + GALLERY_TONES,
-            morePhotos = "+${PHOTOS - GALLERY_TONES.size - 2}",
             accent = item.product.title.substringAfterLast(' '),
             badge = if (item.product.reviewsCount >= BESTSELLER_REVIEWS) "Bestseller" else null,
             brand = item.product.brand,
@@ -223,7 +227,21 @@ internal class ProductScreen(
             add = addToCart(sku, viewer.inCart, LineAnswers.DETAILS_ANSWER),
             buy = buyNow(sku, viewer),
             inCart = inCart(sku, viewer),
+            brandAction = NavigateAction(brandLink(item, categories)),
+            ratingAction = NavigateAction(address(item, sku, ProductTab.Reviews)),
+            specificationsAction = NavigateAction(address(item, sku, ProductTab.Specifications)),
+            share = "/p/${item.product.id}?sku=${sku.id}",
         )
+    }
+
+    /** The brand's products in this product's category: the brand facet ticked there (B-71). */
+    private fun brandLink(
+        item: Listed,
+        categories: List<Category>,
+    ): String {
+        val leaf = categories.first { it.slug == item.product.categorySlug }
+        val brand = Filters(brands = setOf(item.product.brand))
+        return CatalogUrl(categories.pathOf(leaf), brand, Sort.Popular).with(brand)
     }
 
     /**
@@ -332,10 +350,22 @@ internal class ProductScreen(
     }
 
     companion object {
-        private const val PHOTOS = 8
+        /**
+         * The page of [item] at [sku] on [tab]; the reviews and questions tabs listing [shown] when it is more
+         * than the first ten (B-71).
+         */
+        fun address(
+            item: Listed,
+            sku: Sku,
+            tab: ProductTab,
+            shown: Int = ReviewTabs.SHOWN,
+        ): String =
+            "/p/${item.product.id}?sku=${sku.id}&tab=${tab.key}" +
+                if (shown > ReviewTabs.SHOWN) "&$SHOWN=$shown" else ""
 
-        /** The placeholder tones of the thumbnails after the first (research D8). */
-        private val GALLERY_TONES = listOf("#DEDCF7", "#E9E6E0", "#E0EEF7")
+        /** The query parameter naming how many reviews or questions the tab lists (B-71). */
+        const val SHOWN = "shown"
+
         private const val HIGHLIGHTS = 4
         private const val BESTSELLER_REVIEWS = 2_000
         private const val FREE_DELIVERY_CENTS = 3_500
