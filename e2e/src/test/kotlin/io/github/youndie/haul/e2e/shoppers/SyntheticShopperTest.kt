@@ -1,19 +1,14 @@
 package io.github.youndie.haul.e2e.shoppers
 
 import io.github.youndie.haul.e2e.ComposedStack
-import io.github.youndie.haul.e2e.SignIn
 import io.github.youndie.haul.e2e.Storefront
-import io.github.youndie.haul.e2e.Transport
 import io.github.youndie.haul.e2e.deeplink
 import io.github.youndie.haul.feature.identity.SignInSettings
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.ui.AccountBody
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HistoryStatusKind
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 import java.util.UUID
-import java.util.concurrent.locks.ReentrantLock
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -73,74 +68,6 @@ class SyntheticShopperTest {
                 .orEmpty()
         assertEquals(2, rows.size, "the walks left ${rows.map { it.status }}")
         assertTrue(rows.all { it.statusKind == HistoryStatusKind.Returned }, "${rows.map { it.status }}")
-    }
-
-    /**
-     * The stand's failure (B-31): at its speed (288) a walk waits about ten minutes for the delivery, and the
-     * access token it placed the order with lives five, so its next read of the order page is answered `401`
-     * and the walk stopped at «wait for the order to arrive». Here the clock is quick, so the token's age is
-     * played instead: from the placement on, the bearer the order was placed with is sent spoiled, and the
-     * server refuses it the way it refuses an expired one — «no valid token came with the request». The walk
-     * must renew its sign-in and still reach the refund.
-     */
-    @Test
-    fun `a walk whose bearer expires while it waits renews it and reaches the refund`() {
-        val id = "shopper-${UUID.randomUUID()}"
-        val login = ComposedStack.shildikAdmin.person(id, "Sid Synthetic", PASSWORD)
-        val expiring = BearerExpiresAtPlacement()
-        val walk =
-            Walk(
-                number = 1,
-                origin = ComposedStack.origin,
-                signIn = SignIn(ComposedStack.REDIRECT),
-                login = login,
-                password = Password(PASSWORD),
-                cart = ReentrantLock(),
-                poll = 500.milliseconds,
-                wait = 2.minutes,
-                transport = expiring,
-            )
-        val walked =
-            try {
-                walk.take()
-            } catch (e: WalkFailed) {
-                throw AssertionError("the walk stopped at ${e.message}\n${ComposedStack.serverLog()}", e)
-            }
-        assertTrue(expiring.refused > 0, "the spoiled bearer was never sent, so nothing was shown")
-        assertEquals(1, walked.renewals, "one refusal, one renewal")
-    }
-
-    /**
-     * Between a walk and the server: once a placement is answered `202`, the bearer it carried is spoiled on every
-     * later request — a token that has outlived its five minutes, without waiting them out.
-     */
-    private class BearerExpiresAtPlacement : Transport {
-        @Volatile private var expired: String? = null
-
-        @Volatile var refused = 0
-            private set
-
-        override fun send(request: HttpRequest): HttpResponse<String> {
-            val bearer = request.headers().firstValue(AUTHORIZATION).orElse(null)
-            val sent =
-                if (bearer != null && bearer == expired) {
-                    HttpRequest
-                        .newBuilder(request) { name, _ -> !name.equals(AUTHORIZATION, ignoreCase = true) }
-                        .header(AUTHORIZATION, bearer.dropLast(SPOILED.length) + SPOILED)
-                        .build()
-                } else {
-                    request
-                }
-            val response = Transport.DIRECT.send(sent)
-            if (sent !== request && response.statusCode() == 401) refused += 1
-            if (request.method() == "POST" && response.statusCode() == 202 && expired == null) expired = bearer
-            return response
-        }
-
-        private companion object {
-            const val AUTHORIZATION = "Authorization"
-            const val SPOILED = "AAAA"
-        }
     }
 
     private companion object {

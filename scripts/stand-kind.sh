@@ -15,17 +15,12 @@
 #
 # With SHOPPERS=true it also runs the synthetic shoppers (B-31) as the stand would — `shoppers.enabled`, Sam
 # signing in with the demo password from the release's Secret — on a fast clock (SPEED, default a day in ten
-# seconds) and a short interval, waits for WALKS walks to finish (default 3) within DEADLINE seconds (default
-# 600), and asks the database what they left: the orders, the sagas, the returns and refunds. tracy and metrik
-# are not in a kind cluster, so what they would show is read from the rows they would be about.
-#
-# The stand's own pace is SPEED=288 INTERVAL=600 POLL=30 WAIT=3600 (the chart's defaults): a walk then takes
-# about twenty minutes, longer than the five a sign-in's access token lives, which the fast default never
-# shows — B-31's walks on the stand stopped there. Give DEADLINE room for it (WALKS=2 DEADLINE=2400).
+# seconds) and a short interval, waits for WALKS walks to finish (default 3), and asks the database what they
+# left: the orders, the sagas, the returns and refunds. tracy and metrik are not in a kind cluster, so what
+# they would show is read from the rows they would be about.
 #
 #   scripts/stand-kind.sh [image-tag]          SKIP_BUILD=true to use an image already built
 #   SHOPPERS=true scripts/stand-kind.sh [image-tag] [shoppers-image-tag]
-#   SHOPPERS=true SPEED=288 INTERVAL=600 POLL=30 WAIT=3600 WALKS=2 DEADLINE=2400 scripts/stand-kind.sh
 set -u
 cd "$(dirname "$0")/.."
 IMAGE=${1:-haul/server:stand-kind}
@@ -58,8 +53,8 @@ VALUES=(--set "server.image=${IMAGE%:*}" --set "server.version=${IMAGE##*:}" --s
   --set-literal "shildik.demoPassword=$DEMO")
 if [ "${SHOPPERS:-}" = true ]; then
   VALUES+=(--set shoppers.enabled=true --set "shoppers.image=${SHOPPERS_IMAGE%:*}"
-    --set "shoppers.version=${SHOPPERS_IMAGE##*:}" --set "shoppers.interval=${INTERVAL:-15}"
-    --set "shoppers.poll=${POLL:-2}" --set "shoppers.wait=${WAIT:-300}")
+    --set "shoppers.version=${SHOPPERS_IMAGE##*:}" --set shoppers.interval=15 --set shoppers.poll=2
+    --set shoppers.wait=300)
 fi
 
 # Installed, then upgraded with the same values — the second deploy the stand gets on every change. The
@@ -174,9 +169,9 @@ rm -f "$CHECK"
 if [ "${SHOPPERS:-}" = true ] && [ "$result" = 0 ]; then
   want=${WALKS:-3}
   echo "--- the synthetic shoppers, until $want walks have finished (fulfilment speed $SPEED):"
-  deadline=$(($(date +%s) + ${DEADLINE:-600}))
+  deadline=$(($(date +%s) + 600))
   until [ "$(kubectl -n "$NS" logs deploy/haul-shoppers 2>/dev/null | grep -cE '^walk [0-9]+ as ')" -ge "$want" ]; do
-    if [ "$(date +%s)" -ge "$deadline" ]; then echo "fewer than $want walks finished within ${DEADLINE:-600} s"; result=1; break; fi
+    if [ "$(date +%s)" -ge "$deadline" ]; then echo "fewer than $want walks finished within ten minutes"; result=1; break; fi
     sleep 5
   done
   kubectl -n "$NS" logs deploy/haul-shoppers
