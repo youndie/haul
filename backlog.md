@@ -46,7 +46,7 @@ A stage is a field on the item, not a directory.
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-66](docs/backlog/B-66-sign-in-reachable-from-everywhere.md) `[ ]` | client: sign-in and sign-out work from every page and every way in | P1 | M | - |
-| [B-73](docs/backlog/B-73-phone-cannot-reach-catalog-and-orders.md) `[ ]` | client: on a phone every part of the store is reachable | P1 | M | - |
+| [B-73](docs/backlog/B-73-phone-cannot-reach-catalog-and-orders.md) `[~]` | client: on a phone every part of the store is reachable | P1 | M | - |
 | [B-31](docs/backlog/B-31-a-traffic-generator-that-walks-the.md) `[ ]` | synthetic shoppers: a traffic generator that walks the e2e path continuously on the stand | P2 | M | B-26, B-27 |
 | [B-67](docs/backlog/B-67-error-pages-header-is-dead.md) `[ ]` | client: the header on loading, error and not-found pages leads somewhere | P2 | S | - |
 | [B-71](docs/backlog/B-71-product-page-dead-links.md) `[ ]` | client + server: what looks pressable on the product page does something | P2 | M | - |
