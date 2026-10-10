@@ -49,6 +49,7 @@ import io.github.youndie.haul.feature.search.searchRouting
 import io.github.youndie.haul.ops.ObservabilitySettings
 import io.github.youndie.haul.ops.installObservability
 import io.github.youndie.haul.ops.probes
+import io.github.youndie.haul.seed.SaleRedater
 import io.github.youndie.petich.PetichClock
 import io.github.youndie.petich.SuspendedPetichSweeper
 import io.github.youndie.shildik.oidc.JWT_AUTH_OIDC
@@ -69,6 +70,7 @@ import org.koin.ktor.plugin.Koin
 import java.io.File
 import java.time.ZonedDateTime
 import javax.sql.DataSource
+import kotlin.time.Duration
 
 /** «Now» for everything that shows a date, read in one place so a test can hold it still. */
 internal fun interface StoreClock {
@@ -96,6 +98,10 @@ internal fun interface StoreClock {
  * [fulfilment] is the simulated world's pace and whether it runs here (B-17): `main` runs it at
  * `HAUL_FULFILMENT_SPEED`; a test gets [FulfilmentSettings.MANUAL] and moves shipments by calling the
  * simulator itself. Its clock is [sagaClock], for the same reason: its stamps outlive the process.
+ *
+ * [saleLook] keeps a seeded stand's sample sale on the store's day while it runs (B-70, [SaleRedater]): looked
+ * at each store midnight and at least every [saleLook]. `main` passes it only when it seeds (`HAUL_SEED`); `null`
+ * — a test, or a store that was never seeded — runs nothing.
  */
 internal fun Application.haulModule(
     dataSource: DataSource,
@@ -107,6 +113,7 @@ internal fun Application.haulModule(
     signIn: SignInConfig? = null,
     sagaClock: PetichClock,
     fulfilment: FulfilmentSettings = FulfilmentSettings.MANUAL,
+    saleLook: Duration? = null,
 ) {
     val reportFailure = installObservability(observability)
     installSignIn(signIn)
@@ -146,6 +153,8 @@ internal fun Application.haulModule(
     // The simulated world after placement, in the same scope: shipments move and are charged as they ship,
     // returns are refunded, and Haul Pay's payments are taken as they come due.
     fulfilment.interval?.let { FulfilmentRunner(get(), get(), get(), it).start(this) }
+    // The sample sale moved to the new day at each store midnight, so a stand that runs for days keeps its deals.
+    saleLook?.let { SaleRedater(database, clock).start(this, it) }
     // Server-sent events, the live order page's stream (B-29).
     install(SSE)
     install(StatusPages) {

@@ -814,8 +814,8 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   day, to exactly the windows a fresh seed of that day writes, once every sample deal has ended by that day's start.
   Never under a live deal, at most once a day, and never on a database that is not seeded. A migration (V28) was
   refused: it would re-date once, at the version's deploy, and the stand's sale would be over again a week later; and
-  it would run on every database, seeded or not. A stand that runs for days without a restart still sees its deals
-  end at midnight and the sale end on its eighth day — the next start brings them back.
+  it would run on every database, seeded or not. Since B-70 the same re-date also runs at each store midnight while
+  the stand runs (below), so a stand never has to restart to keep its deals.
 - **The sale's promo code moves with the sale** (B-61): a seeded code that names its campaign
   (`SeedPromoCode.campaignSlug`, `seed/SamplePromoCodes.kt`) — `AUTUMN10`, the Autumn mega sale's — is moved by the
   same whole store days in `generate(day)` and by `redateSale`, which recognises it by its code **and** its terms, so
@@ -840,6 +840,25 @@ The canvas contradicted itself in three places and left one promise unbacked; th
 - **The empty cart's line** («Today's deals end at midnight — up to −70 % in the Autumn mega sale.») names today's
   deals and the sale, so it is drawn only while a deal is live and the sale is live for the cart's owner; otherwise
   `EmptyState.text` is left out (it became optional on the wire), and the title and «See today's deals» stay.
+
+**Decided in B-70, a running stand keeps its deals of the day.**
+
+- **The start-up re-date runs at each store midnight too** (`SaleRedater`, `seed/SaleRedater.kt`): a stand started on
+  2026-10-09 drew no deals of the day on Oct 10, because `redateSale` ran only at start. Each look is that re-date,
+  unchanged, for the store's day at that moment — the seed's own rows only, under the seeding lock, never under a
+  live deal, at most once a day — so the sale moves the way a start on that day moves it: its deals open at the
+  midnight, its countdown runs to the next one, and the campaigns (the hero's week, the banners) and `AUTUMN10` move
+  with it, so the sale never reaches its eighth day either. It looks at each store midnight and at least hourly
+  (`SaleRedater.LOOK`), so a process that slept past a midnight, or whose clock jumped, catches up at the next look.
+  `main` starts it only when it seeds (`HAUL_SEED`, `haulModule(saleLook = …)`); tests start nothing and call
+  `redate()` themselves. No database job was taken: the windows a day's sale has are the seed's (`generate(day)`),
+  which only the server computes.
+- **No deals, a popular row** (`HomeScreen.popular`): while no deal is live — the seconds between a midnight and the
+  look, a store that was never seeded, a store whose own deals ended — home draws «Popular on Haul» in the deals'
+  place: the six most reviewed products in stock, drawn as every card is, at the viewer's prices. Without it a
+  guest's home had no product at all (hero, banners, tiles, Plus, footer). The measure needs no window, so the row is
+  there whatever the sale's calendar; it is never drawn beside live deals, so the canvas's home is unchanged.
+  `/deals` keeps «On sale» and gains nothing; the empty cart's picks stay deals-only (B-58).
 
 **How the stand is built (B-27).** One image serves the page and the API: the server's distribution
 carries the browser bundle and serves it at `/`, so the two cannot be deployed at different versions

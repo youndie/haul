@@ -27,10 +27,14 @@ import io.github.youndie.haul.ui.SectionHeader
 import io.github.youndie.kompot.KompotComponent
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import javax.sql.DataSource
@@ -38,6 +42,10 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * The sale's calendar on a stand (B-58): the seed dates the campaigns' and the deals' windows from the day it
@@ -262,6 +270,107 @@ class SaleCalendarTest {
             assertEquals(CatalogSeed.DEALS_START.toInstant(), dataSource.promoStart(AUTUMN10), "the store's code moved")
         }
 
+    /**
+     * The bug B-70 fixes: a stand started on one day drew no deals of the day from the next midnight on — nor,
+     * a week later, the sale — until it was restarted. Now a running stand's look at each midnight moves the sample
+     * sale exactly as a start on that day does. Across two midnights on a store clock that moves: just past each,
+     * before the look, the day's deals are over and a guest's home draws its popular row instead; the look moves
+     * the sale to a fresh seed's windows of the new day, once, and home and `/deals` draw the six deals again,
+     * counted down to the next midnight, under a hero naming the moved week. A stand that slept past the sale's own
+     * end (Oct 15) without a look is moved by the next one.
+     */
+    @Test
+    fun `a running stand moves its sale at each midnight`() =
+        seededFreshDatabase().use { dataSource ->
+            var now = CatalogSeed.NOW.toZonedDateTime()
+            val clock = StoreClock { now }
+            val redater = SaleRedater(Databases.connect(dataSource), clock)
+            haulTest(dataSource, clock = clock) {
+                assertFalse(redater.redate(), "a live sale moved")
+                assertEquals("2025-10-08T00:00-04:00", countdown(tree("/ui/home")), "the control: the canvas's day")
+
+                for (days in 1L..2L) {
+                    val day = CatalogSeed.CANVAS_DAY.plusDays(days)
+                    now = day.atStartOfDay(DeliveryCalendar.STORE).plusSeconds(30)
+                    val before = tree("/ui/home")
+                    assertTrue(deals(before).isEmpty(), "the control: the deals of $day's eve are drawn past midnight")
+                    assertEquals(6, popular(before).size, "a guest's home has no row of products before the look")
+
+                    assertTrue(redater.redate(), "the midnight of $day did not move the sale")
+                    assertFalse(redater.redate(), "the sale moved twice on $day")
+                    assertEquals(windows(CatalogSeed.generate(day)), stored(dataSource), "not a start's re-date")
+
+                    val midnight =
+                        day
+                            .plusDays(1)
+                            .atStartOfDay(DeliveryCalendar.STORE)
+                            .toOffsetDateTime()
+                            .toString()
+                    val home = tree("/ui/home")
+                    assertEquals(6, deals(home).size, "home draws no deals on $day")
+                    assertEquals(midnight, countdown(home))
+                    assertTrue(popular(home).isEmpty(), "the popular row is drawn beside the deals")
+                    assertEquals("Autumn mega sale · Oct ${7 + days} — ${14 + days}", home.only<CampaignHero>().eyebrow)
+                    val dealsPage = tree("/ui/deals")
+                    assertEquals(6, deals(dealsPage).size, "/deals draws no deals on $day")
+                    assertEquals(midnight, countdown(dealsPage))
+                }
+
+                val late = LocalDate.of(2025, 10, 20)
+                now = late.atTime(LocalTime.NOON).atZone(DeliveryCalendar.STORE)
+                val asleep = tree("/ui/home")
+                assertTrue(asleep.all().none { it is CampaignHero }, "the control: the sale has ended by Oct 20")
+                assertEquals(6, popular(asleep).size, "a guest's home has no row of products past the sale")
+                assertTrue(redater.redate(), "a sale past its end did not move")
+                assertEquals(windows(CatalogSeed.generate(late)), stored(dataSource))
+                val home = tree("/ui/home")
+                assertEquals(6, deals(home).size)
+                assertEquals("2025-10-21T00:00-04:00", countdown(home))
+                assertEquals("Autumn mega sale · Oct 20 — 27", home.only<CampaignHero>().eyebrow)
+            }
+        }
+
+    /**
+     * The look runs by itself: started in a scope on a stand whose deals ended at midnight, it moves the sale with
+     * nobody calling it — the look `haulModule` starts for a seeded stand.
+     */
+    @Test
+    fun `the running look moves an ended sale by itself`() =
+        seededFreshDatabase().use { dataSource ->
+            val day = CatalogSeed.CANVAS_DAY.plusDays(1)
+            val clock = StoreClock { day.atStartOfDay(DeliveryCalendar.STORE).plusSeconds(30) }
+            val moved = windows(CatalogSeed.generate(day))
+            runBlocking {
+                val look = SaleRedater(Databases.connect(dataSource), clock).start(this, 50.milliseconds)
+                try {
+                    withTimeout(10.seconds) { while (stored(dataSource) != moved) delay(50.milliseconds) }
+                } finally {
+                    look.cancel()
+                }
+            }
+        }
+
+    /**
+     * The look waits for the store's next midnight, or for the interval if that comes first — reading the store's
+     * zone whatever zone «now» comes in — and never for less than a second, so a look that woke a moment early does
+     * not spin until midnight.
+     */
+    @Test
+    fun `the next look is at the store's midnight`() {
+        val evening = CatalogSeed.NOW.toZonedDateTime()
+        assertEquals(1.hours, SaleRedater.untilNextLook(evening, 1.hours))
+        val halfPastEleven = evening.withHour(23).withMinute(30).withSecond(0)
+        assertEquals(30.minutes, SaleRedater.untilNextLook(halfPastEleven, 1.hours))
+        assertEquals(
+            30.minutes,
+            SaleRedater.untilNextLook(halfPastEleven.withZoneSameInstant(ZoneOffset.UTC), 1.hours),
+            "midnight read in UTC, not in the store's zone",
+        )
+        val halfASecondToMidnight = halfPastEleven.withMinute(59).withSecond(59).withNano(500_000_000)
+        val wait = SaleRedater.untilNextLook(halfASecondToMidnight, 1.hours)
+        assertEquals(1.seconds, wait, "a look spins until midnight")
+    }
+
     /** A guest's cart holding the headphones, so a promo code has something to count against. */
     private suspend fun HttpClient.cartWithHeadphones(): String =
         guest().also { putLine(it, "${SampleCatalog.SONY_HEADPHONES}-0", LineChange(quantity = 1)).assertRefresh() }
@@ -309,6 +418,21 @@ class SaleCalendarTest {
             .singleOrNull { it.id == "deals" }
             ?.cards
             .orEmpty()
+
+    private fun popular(home: KompotComponent): List<ProductCard> =
+        home
+            .all()
+            .filterIsInstance<ProductGrid>()
+            .singleOrNull { it.id == "popular" }
+            ?.cards
+            .orEmpty()
+
+    private fun countdown(page: KompotComponent): String? =
+        page
+            .all()
+            .filterIsInstance<SectionHeader>()
+            .single { it.id == "deals-title" }
+            .countdownEndsAt
 
     /**
      * [catalog]'s sale windows as instants: each campaign's three, then each deal's two, then each promo code's two

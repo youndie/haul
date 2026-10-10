@@ -236,8 +236,9 @@ internal object Seeder {
      * day writes. Prices, carts and orders are not touched: a cart line put in at an ended price is a changed
      * price, as any price is (B-11).
      *
-     * Called by `main` only when it seeds (`HAUL_SEED`): a database that was never seeded is never re-dated.
-     * Takes the seeding lock, so replicas starting together re-date once.
+     * Called only where `main` seeds (`HAUL_SEED`) — at start, and by [SaleRedater] at each store midnight while
+     * the stand runs (B-70): a database that was never seeded is never re-dated. Takes the seeding lock, so
+     * replicas starting or looking together re-date once.
      */
     fun redateSale(
         database: Database,
