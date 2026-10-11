@@ -20,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
@@ -484,11 +485,12 @@ internal class Presented(
 
 /**
  * A screen's tree, following its actions: `/sign-in` is sign-in's, any other `navigate` opens its
- * deeplink, and `refresh` — kompot's action, or [LocalScreenRefresh] — draws the screen again in place;
- * a refresh refused for want of a sign-in (a lapsed one, B-44) is [onSignedOut]'s. A `load` GETs its
- * answer, and an `update` — a load's or a command's — replaces its nodes in [inPlace]'s store and hands
- * the address it names to the history without a load (B-63); a load refused for a lapsed sign-in is
- * [onSignedOut]'s too, any other failure [InPlace.unanswered]'s.
+ * deeplink, and `refresh` — kompot's action, or [LocalScreenRefresh] — draws the screen again in place,
+ * fetched at the address shown when it runs, however the page got there (B-93); a refresh refused for want
+ * of a sign-in (a lapsed one, B-44) is [onSignedOut]'s. A `load` GETs its answer, and an `update` — a
+ * load's or a command's — replaces its nodes in [inPlace]'s store and hands the address it names to the
+ * history without a load (B-63); a load refused for a lapsed sign-in is [onSignedOut]'s too, any other
+ * failure [InPlace.unanswered]'s.
  * `present` and `close` are [onPresent]'s, a `show_message` is [messages]' (B-75), and a `sequence` is each of
  * its actions in turn — «Add to cart» answers `update`, then `show_message`. A [live] screen
  * listens on its channel while it is shown, and an update redraws the node it names (B-29); a refresh starts it
@@ -515,15 +517,19 @@ private fun Shown(
     var refreshed by remember { mutableIntStateOf(0) }
     LaunchedEffect(tree) { tree.header()?.let(onHeader) }
     val scope = rememberCoroutineScope()
+    // One refresh for the screen, reading the address and the tree drawn when it runs (B-93). A new address of
+    // the screen (B-62) arrives before its tree, and a refresh remembered with the address then wrote into the
+    // tree before it, which nothing drew any more: the server's new page answered and the old one stayed.
+    val at by rememberUpdatedState(address)
+    val draw by rememberUpdatedState { arrived: KompotComponent ->
+        tree = arrived
+        refreshed += 1
+    }
+    val signedOut by rememberUpdatedState(onSignedOut)
     val refresh =
-        remember(address) {
+        remember {
             ScreenRefresh {
-                scope.launch {
-                    transport.treeOrNull(address.screen, onSignedOut)?.let {
-                        tree = it
-                        refreshed += 1
-                    }
-                }
+                scope.launch { transport.treeOrNull(at.screen, signedOut)?.let(draw) }
             }
         }
     val actions =

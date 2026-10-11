@@ -334,7 +334,9 @@ arrive keeps the page under a notice with Retry, not the error page. Another pat
 and starts at the top, as before. A customer's page refused within its screen for a lapsed sign-in is the
 exception: it is taken down and asks for the sign-in (B-44), so a guest is not left looking at it. The
 server still answers each address with the whole tree; the presses that only filter answer with the
-changed nodes since B-63.
+changed nodes since B-63. A kept page's address changes before its tree arrives, so the screen's `refresh`
+reads the address and the tree drawn when it runs, not when it was made (B-93): one made with the address
+wrote the new page into the tree before it, and the shopper kept the old one until a reload.
 
 **Decided in B-68, a category has one address** (owner's call): the slugs from its top-level category down
 to it, `/c/electronics/audio/headphones` — a top-level category's is its slug. A screen being a path, two
