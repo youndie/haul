@@ -207,8 +207,10 @@ client alone.
   (no `from`); a filter, a sort or a category starts again from the first page. «N» is how many the next
   page holds — 24, or fewer on the last. `from` outside 1 to `page` is `400 validation_failed`, on the
   category, the search and the deals alike. The cost: each press sends every card the grid holds, so the
-  answer grows by a page each time — «everyday», eight pages on the seed, ends at 192 cards; no cap is
-  set.
+  answer grows by a page each time. **A grid holds at most eight pages** (B-90, `Browse.MAX_HELD_PAGES`):
+  192 cards, «everyday», the seed's longest search (185), whole. A grid that holds eight has no «Show N more»
+  — its page numbers go on — and `from` more than seven pages before `page` is `400 validation_failed`, so
+  `?page=517&from=1` no longer asks for a listing's every card in one answer.
 - **The page numbers are the current page with its neighbours** (B-77): the first and the last, the
   current one and one on either side, «…» for each run left out — «1 … 6 7 8 … 517» —, a run of one page
   drawn as its number, and the three pages at either end, so the first page still reads «1 2 3 … 517» as
@@ -285,7 +287,17 @@ whatever their style, so the ones with no page are left out rather than drawn as
   top-level scope is drawn as a chosen chip after «All». The search's parts include the header, so «All» or a
   leaf's chip after a scope sets the picker back to «All categories»; a card's «+» keeps the scope in its
   answer's header (`&category=`, `LineAnswers.SCOPE`). Without scopes on the wire — the shell's header before
-  any tree (B-67) — or without a field to type in, the picker opens nothing.
+  any tree (B-67) — or without a field to type in, the picker opens nothing. Since B-105 a page that stays
+  without a tree draws the header alone the shell asks for, scopes included, so the picker works there (B-90
+  holds it in `KnownHeaderTest`); it is still drawn and opens nothing while the first page loads (the tree brings
+  the scopes, and the pending header's account slot is a placeholder too), on the sign-in page landed on cold
+  (B-66 keeps it free of server requests) and when the header alone does not arrive.
+- **A scope the query finds nothing in says so** (B-90). With the query's results all in other categories, the
+  scope's chip read 0 over an empty grid. The page is now the title and the chips as before — the scope's
+  chosen at 0 — then an `EmptyState`, «Nothing for “mug” in Fashion», «N results in other categories.» and
+  «Search all categories». It has no grid, no pages and no sort, so its chips `navigate` rather than `load`:
+  the pages they open have the grid an `update` could not add (a `load` of its parts is answered with the
+  whole page, as for a category gone).
 - **The suggest panel is in the picker's scope too** (B-103; it ignored it until then). The client asks for
   `/ui/search/suggest?q=…&category=<slug>` (`Address.suggest`), and again when the picker changes; the panel's
   products, categories and counts and «All N results» are the matches under the scope, and every search it
@@ -498,7 +510,8 @@ one address, every other filter and the sort written by the server, with `{min}`
 left empty, or a thumb taken to its end of the track, drops its parameter; bounds typed the wrong way round
 are swapped. A bound is applied on Enter, the keyboard's «Done» or leaving the field — after
 `awaitTypedInput` (B-76) — and on releasing a thumb, unless it is the range already applied; the applied range
-is a chip («$80 – $400», «From $80», «Up to $400») whose action removes it. The template is not a `load` on
+is a chip («$80 – $400», «From $80», «Up to $400») whose action removes it. A thumb is grabbed anywhere on it:
+the slider takes presses half a thumb past each end of its track (B-90), where a thumb at an end is drawn. The template is not a `load` on
 the wire (no `type`), so nothing that walks a tree's `load`s (`PartsCalls.loads`) mistakes it for one.
 
 **A card's «+» and the product page's «Add to cart» answer an `update` too**: the header (its count) and the
@@ -1448,7 +1461,9 @@ every file. Two arms:
 - **wired** — a throwaway copy of the tree whose root renders the Home body of the screenshot fixtures
   (`home_content.json`) through `haulRegistry()`: every renderer reachable, the Home page drawn. It is
   the bundle the storefront will ship once it draws screens, minus the HTTP client; nothing of it is
-  committed. Its skiko `.wasm` is byte-identical to main's (sha256 `089052ba…`).
+  committed. Its skiko `.wasm` is byte-identical to main's (sha256 `089052ba…`). Its patch swapped
+  `{ App() }` in `Main.kt` and stopped applying once the root took arguments (B-80); since B-90 it swaps the
+  one `App(...)` call (`WIRED_ROOT`), keeps the rest of the entry point, and `WiredArmTest` holds `Main.kt` to it.
 
 Time in headless Chromium (Chrome for Testing 149.0.7827.55, `--headless=new`, WebGL 2 through
 SwiftShader, 1440×900 at 1×), a fresh browser and profile per run, cache disabled, three network
@@ -1618,7 +1633,11 @@ in inline HTML and CSS at the header's own measures (185 px at 1440, 206 on a ph
 need the fonts, which arrive after the bundle. Nothing else is requested; the page is 4,726 bytes, 1,175
 brotli (`StaticFrameTest` holds it to the loader as its one request and under a first TCP window). No CSP or
 other header restricts inline styles: `WebBundle.kt` sets none and the chart's `IngressRoute` adds only the
-HTTPS redirect; the page carries no inline script, so a CSP that forbade inline scripts would not touch it.
+HTTPS redirect; the page carried no inline script then. Since B-90 it carries one line: on `/checkout` it marks
+the root `checkout`, before the frame is parsed, and the frame draws checkout's own header — the logo, three
+steps and «Secure checkout», 89 px at 1440 and 118 on a phone — instead of the storefront's, which a cold
+checkout showed first and then swapped. A CSP that forbade inline scripts would leave every address the
+storefront's shape.
 Compose mounts by replacing the body's children, the frame among them, so the entry point (`Main.kt`) puts
 the frame back over the mount in the same task and removes it from a `drawWithContent` around the app: in
 the animation frame of Compose's first picture, so the browser shows one or the other, never both and never

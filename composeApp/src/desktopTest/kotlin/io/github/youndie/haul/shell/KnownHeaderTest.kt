@@ -1,5 +1,6 @@
 package io.github.youndie.haul.shell
 
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
@@ -7,7 +8,11 @@ import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import io.github.youndie.haul.CANVAS_NOW
 import io.github.youndie.haul.FakeHistory
@@ -19,7 +24,10 @@ import io.github.youndie.haul.ui.CART_BUTTON_TAG
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.LINK_MENU_TAG
 import io.github.youndie.haul.ui.Link
+import io.github.youndie.haul.ui.SCOPE_PICKER_TAG
+import io.github.youndie.haul.ui.SEARCH_FIELD_TAG
 import io.github.youndie.haul.ui.SIGN_OUT_LABEL
+import io.github.youndie.haul.ui.SearchScope
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
@@ -131,6 +139,33 @@ class KnownHeaderTest {
 
             press(hasText("Electronics") and isInRow())
             waitUntil(timeoutMillis = 5_000) { exists(hasText(pageAt("/c/electronics"))) }
+        }
+
+    /**
+     * B-90 (from B-72): before any tree the shell's header had no search scopes, so its picker was drawn and opened
+     * nothing. A page that stays without a tree now draws the header alone the shell asked for, scopes included:
+     * the picker offers the categories and the search Enter runs is in the one chosen.
+     */
+    @Test
+    fun `a page with no tree offers the server's search scopes`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            val history = FakeHistory("/p/p-does-not-exist")
+            storefront(history) { path ->
+                when (path) {
+                    "/ui/p/p-does-not-exist" -> notFound("product_not_found")
+                    HEADER_TREE -> tree(GUEST.copy(scopes = listOf(SearchScope("Electronics", "electronics"))))
+                    else -> destination(path)
+                }
+            }
+            waitUntil(timeoutMillis = 5_000) { exists(counted(2)) }
+            press(hasTestTag(SCOPE_PICKER_TAG) and hasClickAction())
+            press(hasText("Electronics") and hasAnyAncestor(hasTestTag(LINK_MENU_TAG)))
+            waitUntil(timeoutMillis = 5_000) { exists(hasTestTag(SCOPE_PICKER_TAG) and hasText("Electronics")) }
+            onNodeWithTag(SEARCH_FIELD_TAG).performClick()
+            onNodeWithTag(SEARCH_FIELD_TAG).performTextInput("tv")
+            onNodeWithTag(SEARCH_FIELD_TAG).performKeyInput { pressKey(Key.Enter) }
+            waitUntil(timeoutMillis = 5_000) { exists(hasText(pageAt("/search?q=tv&category=electronics"))) }
+            assertEquals(listOf("/p/p-does-not-exist", "/search?q=tv&category=electronics"), history.entries)
         }
 
     /**

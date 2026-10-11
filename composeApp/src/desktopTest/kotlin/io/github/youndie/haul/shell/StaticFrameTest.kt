@@ -1,8 +1,10 @@
 package io.github.youndie.haul.shell
 
+import io.github.youndie.haul.StorefrontPage
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
@@ -32,6 +34,31 @@ class StaticFrameTest {
         val fetched = Regex("""\b(?:src|href)\s*=\s*"([^"]*)"""").findAll(page).map { it.groupValues[1] }.toList()
         assertEquals(listOf("/", "composeApp.js"), fetched)
         listOf("<link", "url(", "@import", "<img").forEach { assertTrue(it !in page, "index.html has $it") }
+    }
+
+    /**
+     * B-90: a cold `/checkout` drew the storefront's header shape, then checkout's own. The page marks the
+     * address — before the frame is parsed, so its first paint already has the mark — and the mark draws the
+     * checkout's shape in place of the storefront's rows. The address is checkout's and nothing else's.
+     */
+    @Test
+    fun `a cold checkout draws the checkout's header shape`() {
+        val mark =
+            Regex(
+                """<script>if \(location\.pathname === "([^"]+)"\) """ +
+                    """document\.documentElement\.className = "checkout";</script>""",
+            )
+        val found = mark.find(page)
+        assertNotNull(found, "no script marks the checkout's address")
+        val path = found.groupValues[1]
+        assertEquals(StorefrontPage.Checkout, StorefrontPage.of(path))
+        assertTrue(found.range.first < page.indexOf("id=\"$STATIC_FRAME_ID\""), "the mark comes after the frame")
+        assertTrue("<div class=\"co\">" in page, "no checkout header in the frame")
+        listOf(
+            ".checkout #haul-frame .strip, .checkout #haul-frame .row, .checkout #haul-frame .words { display: none; }",
+            ".checkout #haul-frame .co { display: flex;",
+            "#haul-frame .co { display: none; }",
+        ).forEach { assertTrue(it in page, "index.html lacks «$it»") }
     }
 
     /**

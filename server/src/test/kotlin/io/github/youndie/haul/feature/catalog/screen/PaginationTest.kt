@@ -79,4 +79,18 @@ class PaginationTest {
         assertNull(last.moreAction)
         assertNull(last.moreLabel)
     }
+
+    /** B-90: «Show N more» appended pages without end; a grid holds eight, and the page numbers go on from there. */
+    @Test
+    fun `a grid holding eight pages offers no more of them`() {
+        val seven = pagination(page(7, 517, from = 1), ::address)
+        assertEquals(NavigateAction("/c/mugs?page=8&from=1"), seven.moreAction)
+        val eight = pagination(page(8, 517, from = 1), ::address)
+        assertNull(eight.moreAction)
+        assertNull(eight.moreLabel)
+        assertEquals(NavigateAction("/c/mugs?page=9"), eight.links.single { it.label == "9" }.action)
+        val later = pagination(page(20, 517, from = 14), ::address)
+        assertEquals(NavigateAction("/c/mugs?page=21&from=14"), later.moreAction)
+        assertNull(pagination(page(21, 517, from = 14), ::address).moreAction)
+    }
 }

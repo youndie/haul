@@ -16,6 +16,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
+import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.FakeHistory
 import io.github.youndie.haul.FixtureFonts
 import io.github.youndie.haul.haulWireJson
@@ -173,6 +174,35 @@ class PriceRangeTest {
             loaded(TO_50)
         }
 
+    /**
+     * B-90 (from B-69): a thumb at its end of the track is drawn half past the track, and only its inner half could
+     * be grabbed. Each thumb taken by its outer half — the upper past the track's right end, then the lower past
+     * its left — follows the pointer and applies where it is released.
+     */
+    @Test
+    fun `a thumb at the end of the track is grabbed by its outer half`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            ranged(TO_50, null, 50)
+            ranged(FROM_25_TO_50, 25, 50)
+            storefront()
+            waitForText(OSTRA_MUG)
+            onNodeWithTag(PRICE_SLIDER_TAG).performTouchInput {
+                down(Offset(width + OUTER_HALF.dp.toPx(), centerY))
+                moveTo(Offset(width * 0.75f, centerY))
+                moveTo(center)
+                up()
+            }
+            waitForText("Up to $50")
+            onNodeWithTag(PRICE_SLIDER_TAG).performTouchInput {
+                down(Offset(-OUTER_HALF.dp.toPx(), centerY))
+                moveTo(Offset(width * 0.1f, centerY))
+                moveTo(Offset(width * 0.25f, centerY))
+                up()
+            }
+            waitForText("$25 – $50")
+            loaded(TO_50, FROM_25_TO_50)
+        }
+
     @Test
     fun `the filter sheet applies a typed range and stays open over its results`() =
         runDesktopComposeUiTest(PHONE, HEIGHT) {
@@ -237,6 +267,10 @@ class PriceRangeTest {
         const val FROM_20 = "$BY_OSTRA&price_min=20"
         const val TO_60 = "$BY_OSTRA&price_max=60"
         const val TO_50 = "$BY_OSTRA&price_max=50"
+        const val FROM_25_TO_50 = "$BY_OSTRA&price_min=25&price_max=50"
+
+        /** Where the outer half of an end thumb is pressed: 7 of its 10 dp past the end of the track. */
+        const val OUTER_HALF = 7
         const val TEMPLATE = "$PARTS$BY_OSTRA&price_min={min}&price_max={max}"
         const val OSTRA_MUG = "Ostra Mug"
 
