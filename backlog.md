@@ -42,14 +42,13 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (11)
+## Open (10)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-112](docs/backlog/B-112-first-press-focuses-the-field.md) `[?]` | client: the first press on a text field focuses it | P1 | M | - |
 | [B-107](docs/backlog/B-107-copy-that-promises-nothing.md) `[ ]` | server: the store does not promise what it does not have | P3 | S | - |
 | [B-108](docs/backlog/B-108-pages-look-alike.md) `[ ]` | client + server: the same thing looks the same on every page | P3 | M | - |
-| [B-110](docs/backlog/B-110-order-updates-log-noise.md) `[~]` | server: a client leaving the order page is not an error | P3 | XS | - |
 | [B-78](docs/backlog/B-78-placeholders-on-the-stand.md) `[ ]` | server + client: the stand shows pictures, not placeholder labels | P3 | M | - |
 | [B-84](docs/backlog/B-84-screenshot-fixtures-leak-state.md) `[ ]` | test: screenshot fixtures do not depend on their order | P3 | S | - |
 | [B-85](docs/backlog/B-85-canvas-behind-the-code.md) `[ ]` | design: the canvas draws what the store now has | P3 | M | - |
@@ -58,7 +57,7 @@ A stage is a field on the item, not a directory.
 | [B-89](docs/backlog/B-89-traffic-exercises-compensation.md) `[ ]` | e2e: the synthetic shoppers also walk a declined payment | P3 | S | - |
 | [B-90](docs/backlog/B-90-review-loop-leftovers.md) `[ ]` | client + server: the small leftovers of the review loop | P3 | S | - |
 
-## Closed (101)
+## Closed (102)
 
 **Skeleton**
 
@@ -183,6 +182,7 @@ A stage is a field on the item, not a directory.
 - [B-105](docs/backlog/B-105-shell-header-knows-the-customer.md) `[x]` - client: a page opened directly knows who is signed in
 - [B-106](docs/backlog/B-106-display-face-loses-characters.md) `[x]` - client: the display face draws every character it is given
 - [B-109](docs/backlog/B-109-saga-steps-in-tracy.md) `[x]` - server: an order's saga is visible in tracy
+- [B-110](docs/backlog/B-110-order-updates-log-noise.md) `[x]` - server: a client leaving the order page is not an error
 - [B-111](docs/backlog/B-111-tests-seed-fast.md) `[x]` - test: a test database is seeded as fast as before B-99
 - [B-91](docs/backlog/B-91-order-line-price-is-a-line-total.md) `[x]` - server: an order line's price is a unit price, and a return refunds what was paid
 - [B-92](docs/backlog/B-92-a-failed-command-says-so.md) `[x]` - client: a command that fails or is refused tells the shopper
