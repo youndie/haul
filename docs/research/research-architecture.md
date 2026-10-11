@@ -490,6 +490,18 @@ server's own; the Cart, Checkout and Search pages keep their artboards' copy for
 the codes were already there. Rejected: answering a short query or an empty checkout with a tree of the
 server's (a `200` for a request the endpoint refuses, and the code the contract names would go unread).
 
+**Decided in B-117, a page's address is the page whatever its query.** A link with broken percent-encoding —
+cut off mid-escape (`/c/electronics?brand=%E0%A4%A`) or with an escape that is none (`/search?q=%zz`) — answered
+the page request itself with the API's `400` JSON, which the browser showed as the page: Ktor decodes the query as
+it starts any routed call (`RoutingCall` reads the call's parameters whole), before the static route can look at
+it. The server now answers a `GET` of a `StorefrontPage` address whose query does not decode with the page, ahead of
+routing (`PageAtAnyQuery`, `WebBundle.kt`); `/ui/…` and `/api/…` still refuse it, `400 validation_failed` naming
+no parameter. In the browser the tree request is never sent: Ktor's client decodes a URL's query as it builds the
+request and throws, so the shell takes that as the same refusal (`Transport.kt`) and draws «This link is out of
+date» with «Open the page»; a search's query that does not decode is no query rather than a throw from the
+page's placeholders (`Address.query`). Rejected: decoding leniently on the server — it would open a broken link at
+a guessed one.
+
 **Decided in B-68, a category has one address** (owner's call): the slugs from its top-level category down
 to it, `/c/electronics/audio/headphones` — a top-level category's is its slug. A screen being a path, two
 forms of one category were two screens: links named the last slug alone while the route answered any path

@@ -1,7 +1,7 @@
 ---
 id: B-117
 title: "fix: a page address with broken percent-encoding opens the store"
-status: wip
+status: done
 priority: P2
 size: S
 stage: stage-12-qa-run
@@ -25,3 +25,27 @@ date» never appears — every other refusal on `/ui/…` names a field, so on t
 - AC: each of the four addresses above opens the store with «This link is out of date», «Open the page» and
   «Go to the home page»; `GET /api/…?%zz` still answers `400` JSON. A server test holds both.
 - Anchors: `server/src/main/kotlin/io/github/youndie/haul/ErrorAnswers.kt`.
+
+## Findings (2026-10-12)
+
+- **Where the `400` came from.** Not the static route: Ktor 3.6 reads the call's parameters whole, the query's
+  with them, as it starts any routed call (`RoutingCall`'s constructor), so a query that does not decode is a
+  `BadRequestException` before any route or route-scoped plugin runs, and `ErrorAnswers.kt` answers it. The page
+  is now answered ahead of routing by an application plugin, `PageAtAnyQuery` (`WebBundle.kt`), installed after
+  `OneCategoryAddress` so another form of a category's address still goes to its one address first: a `GET` of a
+  `StorefrontPage` address whose query does not decode gets `index.html`, `no-cache`. It is sent as it is, not
+  precompressed — the static route's choice of encoding is Ktor-internal, and a mangled link is not worth a copy
+  of it for a page of a few kilobytes.
+- **The tree request is never sent from the browser.** Ktor's client decodes a URL's query as it builds the
+  request (`URLBuilder.build`) and throws `URLDecodeException`, so the shell caught it as a missing network:
+  «We couldn't reach Haul» with a Retry that fails the same way. The shell now takes it as the refusal the server
+  gives such a query, `400 validation_failed` naming nothing (`Transport.kt`), which is «This link is out of date».
+  And `/search?q=%zz` threw from the composition drawing the search's placeholders (`Address.query` decoded the
+  whole query): a query that does not decode is now no query, and spoils no other parameter.
+- **«Open the page» and «Go to the home page».** Read as B-94 decided and TC-ERR-04 says: the page offers «Open
+  the page» (its path) when the link has a query, «Go to the home page» when it has none. All four addresses have
+  a query, so each offers «Open the page», which opens the page at its path.
+- The server test sends the four addresses over a socket to CIO, the stand's engine: Ktor's test client cannot
+  send them either. Unchanged and out of scope: any other routed path with such a query — an unknown one, a file —
+  answers the same `400` rather than its `404` or the file.
+
