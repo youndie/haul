@@ -1,7 +1,7 @@
 ---
 id: B-89
 title: "e2e: the synthetic shoppers also walk a declined payment"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-10-review
