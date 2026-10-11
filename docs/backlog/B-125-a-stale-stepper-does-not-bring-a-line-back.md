@@ -1,7 +1,7 @@
 ---
 id: B-125
 title: "fix: a stepper on a line removed elsewhere does not bring it back"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-12-qa-run
