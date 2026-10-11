@@ -259,7 +259,7 @@ class CheckoutRoutesTest {
                 assertEquals("$512", summary.total)
                 assertEquals("Place order · $512.00", summary.placeLabel)
                 assertEquals(
-                    "By placing the order you agree to the Terms of Sale. Your card is charged when the order ships.",
+                    "Your card is charged when the order ships.",
                     summary.note,
                 )
                 assertEquals(3, summary.items.size)

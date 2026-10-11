@@ -107,6 +107,7 @@ internal object SkusTable : Table("skus") {
 
 internal object CampaignsTable : Table("campaigns") {
     val slug = text("slug")
+    val name = text("name")
     val title = text("title")
     val subtitle = text("subtitle")
     val position = integer("position")

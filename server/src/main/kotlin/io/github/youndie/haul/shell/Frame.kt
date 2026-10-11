@@ -77,7 +77,7 @@ internal object Frame {
         deliveryPromise = "Free delivery over $35",
         customerName = viewer.firstName,
         cartCount = viewer.cartCount,
-        searchPlaceholder = "Search 2.4 million products",
+        searchPlaceholder = SEARCH_PLACEHOLDER,
         query = query,
         categories = navigation.take(ROW).map { it.label },
         account = NavigateAction(if (viewer.customerId == null) SIGN_IN else ACCOUNT),
@@ -114,6 +114,13 @@ internal object Frame {
      * that is not there, a refusal, an error — when it lands there before any tree has drawn the header.
      */
     const val HEADER = "/ui/header"
+
+    /**
+     * The search field's placeholder. The canvas's «Search 2.4 million products» counted a catalogue the store does
+     * not have (B-107), and the header is drawn before any page has read the catalogue — the shell's own header too,
+     * which has no catalogue to count — so the number is left out rather than drawn from a count.
+     */
+    const val SEARCH_PLACEHOLDER = "Search products"
 
     /** How many categories the header's row names. */
     private const val ROW = 10
@@ -166,7 +173,8 @@ internal object Frame {
      * «Haul Plus» to the Plus offer as the header's pill makes it, «Track an order» to the orders (a guest's
      * sign-in, returning to them). The canvas's other twelve — «New arrivals», «Gift cards», the «Sell» and
      * «Company» columns, «Returns», «Delivery», «Contact us» — had none and are left out, not drawn as links
-     * that open nothing; a word comes back with its page.
+     * that open nothing; a word comes back with its page. The canvas's «Get the app» block is left out too: there is
+     * no app (B-107).
      */
     fun footer(viewer: Viewer): HaulFooter {
         val shop = listOf(Link("Deals", NavigateAction(DEALS)), Link("Haul Plus", plus(viewer)))
@@ -179,8 +187,6 @@ internal object Frame {
                     FooterColumn("Shop", shop.map { it.label }, shop),
                     FooterColumn("Help", help.map { it.label }, help),
                 ),
-            appTitle = "Get the app",
-            appText = "Order tracking, price drop alerts and app-only deals.",
         )
     }
 }

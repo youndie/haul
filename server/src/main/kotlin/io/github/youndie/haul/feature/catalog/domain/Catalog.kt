@@ -91,10 +91,12 @@ internal data class Sku(
 
 /**
  * A campaign as home draws it (B-59): the first by [position] is the sale its hero announces, drawn while
- * the sale is live for the viewer ([window]); the others are its banners, drawn until they end.
+ * the sale is live for the viewer ([window]); the others are its banners, drawn until they end. [name] is what
+ * the hero and the empty cart call it («Autumn mega sale», B-107).
  */
 internal data class Campaign(
     val slug: String,
+    val name: String,
     val title: String,
     val subtitle: String,
     val position: Int,
@@ -111,7 +113,7 @@ internal data class Campaign(
 }
 
 /**
- * The sale home's hero announces and the empty cart's line names («up to −70 % in the Autumn mega sale»):
+ * The sale home's hero announces and the empty cart's line names («up to −70% in the Autumn mega sale»):
  * the first of [campaigns] by position, while it is live for [prices] at [at] — a Plus member's from its
  * early access — else `null`, and then neither is drawn (B-59). Before, both were drawn for good: past the
  * sale's end the hero announced a sale whose prices were gone (B-58's findings).

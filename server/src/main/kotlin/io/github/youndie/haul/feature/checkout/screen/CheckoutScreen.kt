@@ -279,9 +279,9 @@ internal class CheckoutScreen(
                 ),
             totalLabel = "Total",
             total = money(quote.totalCents),
-            note =
-                "By placing the order you agree to the Terms of Sale." +
-                    if (quote.payment.card) " Your card is charged when the order ships." else "",
+            // The canvas's «By placing the order you agree to the Terms of Sale.» named a page the store does not
+            // have (B-107); what is left is what happens to a card, and with no card there is no note.
+            note = if (quote.payment.card) "Your card is charged when the order ships." else null,
             placeLabel = "Place order · $exact",
             placingLabel = "Placing order…",
             placeEnabled = state.placeable,

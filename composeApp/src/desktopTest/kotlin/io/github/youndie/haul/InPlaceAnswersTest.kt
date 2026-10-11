@@ -381,7 +381,7 @@ class InPlaceAnswersTest {
                 deliveryPromise = "Free delivery over $35",
                 customerName = "Maya",
                 cartCount = 0,
-                searchPlaceholder = "Search 2.4 million products",
+                searchPlaceholder = "Search products",
                 categories = listOf("Electronics"),
             )
 

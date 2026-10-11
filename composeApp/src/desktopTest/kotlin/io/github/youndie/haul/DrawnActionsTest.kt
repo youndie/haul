@@ -784,7 +784,7 @@ class DrawnActionsTest {
                 deliveryPromise = "Free delivery over $35",
                 customerName = "Maya",
                 cartCount = 0,
-                searchPlaceholder = "Search 2.4 million products",
+                searchPlaceholder = "Search products",
                 categories = listOf("Electronics"),
                 catalog =
                     listOf(
@@ -928,8 +928,6 @@ class DrawnActionsTest {
                             listOf(Link("Track an order", NavigateAction("/account/orders"))),
                         ),
                     ),
-                appTitle = "Get the app",
-                appText = "Order tracking.",
             )
 
         /** The header with the search picker's choices (B-72). */

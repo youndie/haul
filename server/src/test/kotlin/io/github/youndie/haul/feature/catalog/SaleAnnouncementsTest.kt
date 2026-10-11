@@ -1,7 +1,6 @@
 package io.github.youndie.haul.feature.catalog
 
 import io.github.youndie.haul.StoreClock
-import io.github.youndie.haul.feature.cart.screen.CartScreen
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCustomers
@@ -38,8 +37,8 @@ import kotlin.test.assertTrue
 /**
  * What announces the sale is drawn only while there is a sale to announce (B-59), on the store's clock: home's
  * hero while the Autumn mega sale is live for the viewer, each banner until its campaign ends, the empty
- * cart's «Today's deals end at midnight — up to −70 % in the Autumn mega sale.» while a deal and the sale
- * are both live.
+ * cart's «Today's deals end at midnight — up to −70% in the Autumn mega sale.» while a deal and the sale
+ * are both live. Both name the sale as its campaign row does (B-107).
  *
  * Before B-59 all three were drawn for good: past the sale's end (Oct 15, 2025) home announced «Up to −70%»
  * beside «Laptops from $399» whose week was over, and the empty cart promised deals and −70 % on a stand that
@@ -143,7 +142,11 @@ class SaleAnnouncementsTest {
     fun `the empty cart's sale line needs a live deal`() =
         store { clock ->
             val guest = guest()
-            assertEquals(CartScreen.SALE_LINE, cart(guest).only<EmptyState>().text, "the control: the canvas's line")
+            assertEquals(
+                "Today’s deals end at midnight — up to −70% in the Autumn mega sale.",
+                cart(guest).only<EmptyState>().text,
+                "the control: the canvas's line",
+            )
 
             clock.at = CatalogSeed.DEALS_END
             val empty = cart(guest).only<EmptyState>()
@@ -173,6 +176,34 @@ class SaleAnnouncementsTest {
                 val home = tree("/ui/home")
                 assertTrue("deals" in home.ids(), "the control: home draws the live deals")
                 assertNull(home.row(), "an ended sale is announced beside live deals")
+            }
+        }
+
+    /**
+     * The hero's eyebrow and the empty cart's line say what the sale's campaign row says (B-107): renamed and
+     * retitled, the sale is announced as «Winter clearance» with its own figure. Before, both wrote «Autumn mega
+     * sale» — and the cart «up to −70 %» — into the code, whatever sale the first campaign was.
+     */
+    @Test
+    fun `the hero and the empty cart name the sale the campaign row is`() =
+        seededFreshDatabase().use { database ->
+            database.connection.use { c ->
+                c.createStatement().use {
+                    it.executeUpdate(
+                        "UPDATE campaigns SET name = 'Winter clearance', title = 'Up to −50%' " +
+                            "WHERE slug = 'autumn-mega-sale'",
+                    )
+                }
+                c.commit()
+            }
+            store(database) {
+                val hero = assertNotNull(tree("/ui/home").row(), "the control: the canvas's home draws its row").hero
+                assertEquals("Winter clearance · Oct 7 — 14", hero.eyebrow)
+                assertEquals("Up to −50%", hero.title)
+                assertEquals(
+                    "Today’s deals end at midnight — up to −50% in the Winter clearance.",
+                    cart(guest()).only<EmptyState>().text,
+                )
             }
         }
 

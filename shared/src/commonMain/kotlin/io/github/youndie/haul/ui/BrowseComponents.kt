@@ -164,8 +164,6 @@ public data class FooterColumn(
 public data class HaulFooter(
     override val id: String,
     val columns: List<FooterColumn>,
-    val appTitle: String,
-    val appText: String,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 

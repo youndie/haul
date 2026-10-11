@@ -120,6 +120,7 @@ internal class ExposedCatalogRepository(
             CampaignsTable.selectAll().orderBy(CampaignsTable.position).map {
                 Campaign(
                     it[CampaignsTable.slug],
+                    it[CampaignsTable.name],
                     it[CampaignsTable.title],
                     it[CampaignsTable.subtitle],
                     it[CampaignsTable.position],
