@@ -5,6 +5,7 @@ import androidx.compose.runtime.remember
 import io.github.youndie.haul.feature.search.SearchSuggestOverlay
 import io.github.youndie.haul.shell.SearchError
 import io.github.youndie.haul.shell.SearchLoading
+import io.github.youndie.haul.shell.SearchTooShort
 import io.github.youndie.haul.ui.SearchSuggestPanel
 import io.github.youndie.viddik.annotations.ViddikScreenshot
 
@@ -52,6 +53,16 @@ internal fun SearchErrorWide() = Fixture(compact = false) { Page { SearchError("
 @ViddikScreenshot(name = "Error_Phone", group = "Search", width = 390, height = 692)
 @Composable
 internal fun SearchErrorPhone() = Fixture(compact = true) { Page { SearchError("running shoes") } }
+
+// No artboard: a search shorter than the server matches (B-94), drawn as the page that is not there is,
+// under the shell's header with the query in its field.
+@ViddikScreenshot(name = "TooShort", group = "Search", width = 1440, height = 900)
+@Composable
+internal fun SearchTooShortWide() = Fixture(compact = false) { Page { SearchTooShort("a") } }
+
+@ViddikScreenshot(name = "TooShort_Phone", group = "Search", width = 390, height = 692)
+@Composable
+internal fun SearchTooShortPhone() = Fixture(compact = true) { Page { SearchTooShort("a") } }
 
 /** The results page while the shopper types «running shoes»: the panel open, its first row highlighted. */
 @Composable

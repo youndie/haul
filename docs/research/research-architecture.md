@@ -338,6 +338,21 @@ changed nodes since B-63. A kept page's address changes before its tree arrives,
 reads the address and the tree drawn when it runs, not when it was made (B-93): one made with the address
 wrote the new page into the tree before it, and the shopper kept the old one until a reload.
 
+**Decided in B-94, a page the server refused leads where it helps.** The shell drew every answer that was
+not a tree as «didn’t load» with Retry, and Retry sends the same request: a checkout with nothing selected
+(`409 cart_empty` — back after placing an order, a reload), a one-character search (`400 query_too_short`) and
+an old or edited link (`400 validation_failed` naming a `page`, `sort`, `from`, `shown` or a `sku` no longer on
+the product) all came back as the same error. The server's code and `field` already say what happened, so the
+client reads them (`shell/Recovery.kt`): an empty checkout gives its entry to the cart; a search too short is
+said as such under the header, the query in its field and no Retry (`SearchTooShort`, no artboard); a `400`
+naming a query parameter the address has loads the page without it — one parameter per refusal, every value
+of it, the rest of the query as written — and one naming none is «This link is out of date», which opens the
+page's path or home. Over a page kept on the same screen (B-62) the notice says the same and drops its Retry.
+Every error page tells no answer («We couldn’t reach Haul … check your connection») from an error of the
+server's own; the Cart, Checkout and Search pages keep their artboards' copy for the latter. No server change:
+the codes were already there. Rejected: answering a short query or an empty checkout with a tree of the
+server's (a `200` for a request the endpoint refuses, and the code the contract names would go unread).
+
 **Decided in B-68, a category has one address** (owner's call): the slugs from its top-level category down
 to it, `/c/electronics/audio/headphones` — a top-level category's is its slug. A screen being a path, two
 forms of one category were two screens: links named the last slug alone while the route answered any path
