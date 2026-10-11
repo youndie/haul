@@ -24,7 +24,8 @@ import io.ktor.http.encodeURLParameter
  * Which node it is, the tree that drew the control wrote into the command's own address ([ANSWER]): a card
  * — built the same from the product and the SKU on every page that draws it, [card] — or the product page's
  * buy box ([DETAILS]); on the search page, also the search the header shows ([QUERY]) and the category it is
- * in ([SCOPE], B-72), which the header would otherwise lose. A command without it — the cart page's own lines — is answered `refresh`, as is one
+ * in ([SCOPE], B-72), which the header would otherwise lose. A command without it — the cart page's own lines, and the empty cart's picks, whose line the page
+ * then lists (B-95) — is answered `refresh`, as is one
  * whose SKU is no longer listed: there is no node to send.
  *
  * Either press also says so (B-75, B-81): its answer is `sequence[update, show_message]`, the message [ADDED]

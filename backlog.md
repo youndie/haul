@@ -42,11 +42,10 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (25)
+## Open (24)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-95](docs/backlog/B-95-same-address-presses-do-nothing.md) `[ ]` | client: a press to the page already shown refreshes it | P1 | S | - |
 | [B-97](docs/backlog/B-97-checkout-state-is-the-servers.md) `[ ]` | client + server: what checkout shows is what it will place | P1 | M | - |
 | [B-100](docs/backlog/B-100-cart-controls-look-what-they-do.md) `[ ]` | client + server: the cart's controls look what they do | P2 | M | - |
 | [B-101](docs/backlog/B-101-returns-and-reorder-say-their-rules.md) `[ ]` | server + client: returns and reorder say what they did and what is left | P2 | S | - |
@@ -72,7 +71,7 @@ A stage is a field on the item, not a directory.
 | [B-89](docs/backlog/B-89-traffic-exercises-compensation.md) `[ ]` | e2e: the synthetic shoppers also walk a declined payment | P3 | S | - |
 | [B-90](docs/backlog/B-90-review-loop-leftovers.md) `[ ]` | client + server: the small leftovers of the review loop | P3 | S | - |
 
-## Closed (85)
+## Closed (86)
 
 **Skeleton**
 
@@ -190,6 +189,7 @@ A stage is a field on the item, not a directory.
 - [B-92](docs/backlog/B-92-a-failed-command-says-so.md) `[x]` - client: a command that fails or is refused tells the shopper
 - [B-93](docs/backlog/B-93-refresh-after-an-in-place-tab.md) `[x]` - client: a press after switching a product tab redraws the page
 - [B-94](docs/backlog/B-94-errors-that-retry-cannot-fix.md) `[x]` - client + server: an error page says what happened and offers what helps
+- [B-95](docs/backlog/B-95-same-address-presses-do-nothing.md) `[x]` - client: a press to the page already shown refreshes it
 - [B-96](docs/backlog/B-96-home-rows-share-ids.md) `[x]` - server: home never draws one product twice
 
 <!-- END INDEX -->

@@ -319,7 +319,8 @@ the search worked, and landing straight on a 404 or the prompt gave the same dea
   `presented` lives inside a screen that a page of the shell's own does not have. The dialog's answer
   `refresh` loads the page again; a visit takes the dialog away.
 - **A sign-in from that header that returns to the page already shown loads it again** — a guest's «Saved»
-  over the Saved list's error page — as a tree's does; opening it did nothing.
+  over the Saved list's error page — as a tree's does; opening it did nothing. Since B-95 any press to the
+  page already shown does (below).
 - **The phone header's menu opens over a placeholder too** (B-73 kept it shut there, a button drawn and
   dead): it lists what the header carries, and its account row is the sign-in or the account, while the slot
   itself stays a placeholder.
@@ -336,7 +337,12 @@ exception: it is taken down and asks for the sign-in (B-44), so a guest is not l
 server still answers each address with the whole tree; the presses that only filter answer with the
 changed nodes since B-63. A kept page's address changes before its tree arrives, so the screen's `refresh`
 reads the address and the tree drawn when it runs, not when it was made (B-93): one made with the address
-wrote the new page into the tree before it, and the shopper kept the old one until a reload.
+wrote the new page into the tree before it, and the shopper kept the old one until a reload. **A press to the
+address already shown is a visit too** (B-95): the header's Cart or a message's «View cart» on the cart, the
+query shown submitted again by Enter, the button, a suggestion or «All N results». `Navigator.open` used to
+drop it, so the press did nothing and the suggest panel stayed open; now it takes no history entry and loads
+the page again behind itself like any new address of the screen, and closes what a visit closes — the panel,
+the filter sheet, the phone menu, a dialog presented over the page.
 
 **Decided in B-94, a page the server refused leads where it helps.** The shell drew every answer that was
 not a tree as «didn’t load» with Retry, and Retry sends the same request: a checkout with nothing selected
@@ -413,8 +419,9 @@ control pressed (its next quantity), instead of `refresh`. Which node is in the 
 by the tree (`?answer=card`, `?answer=details`, and the search the header shows, `&q=`;
 `feature/catalog/screen/LineAnswers.kt`); a card is built the same from its product and SKU on every page, and
 the client draws a grid's cards as nodes of the tree (`LocalCardNodes`), so the `update` of one card reaches it.
-The cart's own lines, «Buy now», the Saved list's cards (whose «Price dropped» mark only that page draws) and every
-other command still answer `refresh`.
+The cart's own lines, «Buy now», the Saved list's cards (whose «Price dropped» mark only that page draws), the
+empty cart's «Picked for you» (whose line turns the page into a cart with it, B-95: an `update` of the card and the
+count left «Your cart is empty» drawn over a count of one) and every other command still answer `refresh`.
 
 **Decided in B-75, a press shows that it worked.** «Add to cart» answers `sequence[update, show_message]`: the
 header and the buy box as above, then kompot's message «Added to your cart» with «View cart» (`LineAnswers.ADDED`),
@@ -424,7 +431,8 @@ so it is the frame the shell already had over a page — B-62's notice, inverse 
 on the right — at the bottom, four seconds (six with a button), a new message replacing the last; kompot's Material
 snackbar was not taken, the app has no Material theme. A card's «+» says the same since B-81 (the owner's
 decision): its answer is the same `sequence` around the header and the card, on every page that answers it in
-place — home, catalog, search, deals, «Picked for you». The Saved list's «+», answered `refresh`, says nothing.
+place — home, catalog, search, deals, a customer's «Picked for you». The Saved list's «+» and the empty cart's
+picks, answered `refresh`, say nothing: the line drawn is the answer.
 What has nothing to do looks it and presses nothing: a «+» the tree gives no change is greyed as the buy box's
 buttons are out of stock, and takes the press instead of letting it open the product (nor says it added anything); «Add to cart» at the line's limit is greyed the same; a facet option another filter
 leaves at 0, unticked, carries no action and is drawn faded (ticked, it keeps its action — that is how it is

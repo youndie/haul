@@ -150,7 +150,10 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * its nodes hold open, with a [LoadingLine] under the header until the tree arrives; one that does not
  * arrive leaves the page as it was under a [NotUpdatedNotice] with Retry. An address on another path
  * draws its placeholder and starts at the top. A customer's page refused for a lapsed sign-in is not
- * kept: it is taken down and asks for the sign-in as above.
+ * kept: it is taken down and asks for the sign-in as above. A press to the address already shown — the
+ * cart's «View cart» on the cart, the query shown submitted again — takes no history entry but is a visit
+ * all the same (B-95): the page loads again behind itself, and the panel, the sheet, the menu and what was
+ * presented close as for any visit.
  *
  * A press that only filters, sorts or pages the screen is a `load` (B-63): one `GET`, answered with an
  * `update` of the nodes it changes, which go into the screen's override store, and the address they make,
@@ -270,14 +273,9 @@ public fun Storefront(
                             }
 
                             SignInActions.claims(action) -> {
-                                // A sign-in that returns to the page already shown loads it again: opening it would
-                                // do nothing — a guest's «Saved» over the Saved list's error page.
-                                val actions =
-                                    signing.actions(
-                                        navigator.address,
-                                        redraw = navigator::reload,
-                                        open = navigator::openOrReload,
-                                    )
+                                // A sign-in that returns to the page already shown loads it again, as any press to
+                                // it does (B-95) — a guest's «Saved» over the Saved list's error page.
+                                val actions = signing.actions(navigator.address, redraw = navigator::reload)
                                 scope.launch { actions.handle(action) }
                             }
 
@@ -338,8 +336,9 @@ public fun Storefront(
                 // Where the screen's loads are: the tree drawn, a load on its way, why the last one failed.
                 val loader = rememberKompotScreenLoaderState()
                 val scroll = rememberScrollState()
-                // What a `present` put over the page; a new address starts without one.
-                var presented by remember(address) { mutableStateOf<Presented?>(null) }
+                // What a `present` put over the page; a new address starts without one, and so does a visit to the
+                // address shown (B-95).
+                var presented by remember(address, visit) { mutableStateOf<Presented?>(null) }
                 // A page refused for want of a sign-in asks for one (B-44); [loads] counts the visit's loads
                 // after a sign-in, and [signedInFor] is the load a sign-in from here asked for — refused again,
                 // that one is an error page, not another prompt. Per visit, not per address: an address an
@@ -562,7 +561,8 @@ private fun Shown(
         }
     val actions =
         remember(address, inPlace.overrides) {
-            // A sign-in that returns to the page already shown draws it again: opening it would do nothing.
+            // A sign-in that returns to the page already shown draws it again where it is, without a visit: the
+            // page is the same, only who is looking has changed.
             val signInActions =
                 signing.actions(address, redraw = refresh::refresh) { next ->
                     if (next == address.value) refresh.refresh() else navigator.open(next)
@@ -646,11 +646,6 @@ internal fun presenting(
             }
         }
     return self
-}
-
-/** Opens [location], or loads it again when it is the page already shown — which [Navigator.open] leaves be. */
-private fun Navigator.openOrReload(location: String) {
-    if (location == address.value) reload() else open(location)
 }
 
 /** Follows `navigate` to its deeplink; anything else is somebody else's to handle. */

@@ -139,12 +139,14 @@ internal class Navigator(
         private set
 
     /**
-     * A link followed: a new entry, unless it is the page already shown. Only addresses inside the
-     * storefront are followed; anything else is not a deeplink this client has a page for.
+     * A link followed: a new entry and a visit. The page already shown takes no entry but is visited all the
+     * same (B-95) — loaded again in place, as a new address of the screen is (B-62), with what the press
+     * opened closed: the cart's «View cart» on the cart, the query already shown submitted again. Only
+     * addresses inside the storefront are followed; anything else is not a deeplink this client has a page for.
      */
     fun open(location: String) {
-        if (!location.startsWith("/") || location == address.value) return
-        history.push(location)
+        if (!location.startsWith("/")) return
+        if (location != address.value) history.push(location)
         visit(location)
     }
 

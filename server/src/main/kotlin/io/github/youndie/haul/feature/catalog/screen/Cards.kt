@@ -34,8 +34,8 @@ import io.github.youndie.kompot.standard.NavigateAction
  *
  * «+» is answered with the header and this card again (B-63, [LineAnswers]) when [inPlace]: the card is
  * built the same from the product and the SKU wherever it is drawn, and [query] is the search the page's
- * header shows, [scope] the category its picker reads (B-72). A card the page draws its own way (the Saved list's mark) is not, and «+» there redraws
- * the page.
+ * header shows, [scope] the category its picker reads (B-72). A card the page draws its own way (the Saved list's mark) is not, nor is a
+ * card whose line changes the rest of the page (the empty cart's picks, B-95), and «+» there redraws the page.
  */
 internal fun card(
     item: Listed,
