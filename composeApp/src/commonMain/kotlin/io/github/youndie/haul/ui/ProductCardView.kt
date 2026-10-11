@@ -21,11 +21,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.FirstBaseline
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.constrainWidth
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.feature.cart.CartCommand
 import io.github.youndie.haul.feature.cart.LocalCartCommands
@@ -56,27 +60,32 @@ public fun ProductCardView(
     Column(modifier.follows(card.action), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         PhotoTile(card, compact, Modifier.padding(bottom = 4.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Row(
-                Modifier.weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.Bottom,
-            ) {
-                Text(
-                    card.price,
-                    HaulType.display(if (compact) 22f else 26f, 800, letterSpacing = -0.01f),
-                    Modifier.alignByBaseline(),
-                )
-                card.oldPrice?.let {
+            Prices(
+                price = {
                     Text(
-                        it,
-                        HaulType
-                            .text(
-                                if (compact) 13f else 14f,
-                            ).copy(color = HaulColors.outlineMuted, textDecoration = TextDecoration.LineThrough),
-                        Modifier.alignByBaseline(),
+                        card.price,
+                        HaulType.display(if (compact) 22f else 26f, 800, letterSpacing = -0.01f),
+                        softWrap = false,
                     )
-                }
-            }
+                },
+                old =
+                    card.oldPrice?.let {
+                        {
+                            Text(
+                                it,
+                                HaulType
+                                    .text(
+                                        if (compact) 13f else 14f,
+                                    ).copy(
+                                        color = HaulColors.outlineMuted,
+                                        textDecoration = TextDecoration.LineThrough,
+                                    ),
+                                softWrap = false,
+                            )
+                        }
+                    },
+                modifier = Modifier.weight(1f),
+            )
             val button = if (compact) 36.dp else 38.dp
             // «+» sends the card's line change as a cart command (B-37) and follows the answer, `update`;
             // the card's own press, under it, opens the product. With nothing to add — out of stock, or the
@@ -123,6 +132,49 @@ public fun ProductCardView(
         Text(card.delivery.uppercase(), HaulType.label(11f, 600, 0.05f).copy(color = HaulColors.primary))
     }
 }
+
+/**
+ * The price and the old price struck through beside it on their baselines, 8 apart — or, where the two do not fit
+ * beside each other, the old price under the price (B-108). Neither is ever broken: a deal's «$432.99» beside
+ * «$618.56» in a card of six across broke the old price mid-number, «$432.9» over «9».
+ */
+@Composable
+private fun Prices(
+    price: @Composable () -> Unit,
+    old: (@Composable () -> Unit)?,
+    modifier: Modifier,
+) {
+    Layout(content = {
+        price()
+        old?.invoke()
+    }, modifier = modifier) { measurables, constraints ->
+        val loose = constraints.copy(minWidth = 0, minHeight = 0, maxWidth = Constraints.Infinity)
+        val shown = measurables[0].measure(loose)
+        val struck = measurables.getOrNull(1)?.measure(loose)
+        val room = constraints.maxWidth
+        if (struck == null) {
+            return@Layout layout(constraints.constrainWidth(shown.width), shown.height) { shown.place(0, 0) }
+        }
+        val gap = PRICE_GAP.roundToPx()
+        if (shown.width + gap + struck.width <= room) {
+            val top = maxOf(shown[FirstBaseline], struck[FirstBaseline])
+            val shownY = top - shown[FirstBaseline]
+            val struckY = top - struck[FirstBaseline]
+            val height = maxOf(shownY + shown.height, struckY + struck.height)
+            layout(constraints.constrainWidth(shown.width + gap + struck.width), height) {
+                shown.place(0, shownY)
+                struck.place(shown.width + gap, struckY)
+            }
+        } else {
+            layout(constraints.constrainWidth(maxOf(shown.width, struck.width)), shown.height + struck.height) {
+                shown.place(0, 0)
+                struck.place(0, shown.height)
+            }
+        }
+    }
+}
+
+private val PRICE_GAP = 8.dp
 
 @Composable
 private fun PhotoTile(

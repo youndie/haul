@@ -320,6 +320,22 @@ class OrderRoutesTest {
     }
 
     /**
+     * B-108: an order placed with a promo code draws the summary's rows as the cart and checkout drew them —
+     * «Discount» the sale alone, «Promo · AUTUMN10» beside it — and they add up to the total. The order used to
+     * draw the two as one «Discount».
+     */
+    @Test
+    fun `an order placed with a promo code draws its promo row`() =
+        placed(cart = { koin.get<CartCommands>().applyPromo(MAYA, "AUTUMN10") }) { orderId, _ ->
+            val summary = order(maya, orderId).only<OrderBody>().summary
+            val rows = summary.rows.associate { it.label to it.value }
+            assertEquals(listOf("Items (3)", "Discount", "Promo · AUTUMN10", "Delivery"), summary.rows.map { it.label })
+            assertEquals("−$140.00", rows["Discount"], "the sale alone: $449 → $349 and $179 → $139")
+            assertEquals("−$50.00", rows["Promo · AUTUMN10"], "10 % of $512, capped at $50")
+            assertEquals("$462.00", summary.total)
+        }
+
+    /**
      * Scenario «Declined card cancels and releases» (feature-orders), as its page shows it: cancelled, the
      * card named, nothing charged, and the way back to the cart — no steps and no reorder.
      */
@@ -329,7 +345,8 @@ class OrderRoutesTest {
             val body = order(maya, orderId).only<OrderBody>()
             assertEquals("Order cancelled", body.title)
             assertEquals("Your card ···· 0002 was declined", body.notice?.title)
-            assertEquals(Link("Back to cart", NavigateAction(Frame.CART)), body.summary.back)
+            // Once, in the notice: the summary drew a second «Back to cart» beside it (B-108).
+            assertEquals(Link("Back to cart", NavigateAction(Frame.CART)), body.notice?.action)
             assertEquals(true, body.summary.voided)
             assertNull(body.steps)
             assertEquals(listOf("Not shipped", "Not shipped"), body.shipments.map { it.eta })

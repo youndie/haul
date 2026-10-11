@@ -70,6 +70,7 @@ import io.github.youndie.haul.ui.DeliverySlots
 import io.github.youndie.haul.ui.FormField
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Icon
+import io.github.youndie.haul.ui.LineTile
 import io.github.youndie.haul.ui.Logo
 import io.github.youndie.haul.ui.PaymentMethods
 import io.github.youndie.haul.ui.PickupPoints
@@ -81,7 +82,6 @@ import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.pressable
-import io.github.youndie.haul.ui.toneColor
 import kotlinx.coroutines.launch
 
 // The Checkout screen (screen-checkout): the checkout's own header, then the numbered sections in one
@@ -913,12 +913,14 @@ private fun Summary(
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             summary.items.forEachIndexed { index, item ->
-                Box(
+                LineTile(
+                    item.image,
+                    item.tone,
+                    14.dp,
                     Modifier
                         .size(72.dp)
                         .testTag(summaryItemTag(index))
-                        .follows(item.action.takeUnless { placing })
-                        .background(toneColor(item.tone), RoundedCornerShape(14.dp)),
+                        .follows(item.action.takeUnless { placing }),
                 )
             }
         }

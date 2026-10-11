@@ -1,21 +1,41 @@
 package io.github.youndie.haul.feature.catalog
 
 import io.github.youndie.haul.db.Databases
+import io.github.youndie.haul.feature.cart.CartPaths
+import io.github.youndie.haul.feature.catalog.screen.productLink
+import io.github.youndie.haul.feature.checkout.CheckoutChoice
+import io.github.youndie.haul.feature.checkout.CheckoutPaths
+import io.github.youndie.haul.feature.order.OrderPaths
+import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog
+import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.seed.SeedPhotos
 import io.github.youndie.haul.seed.Seeder
+import io.github.youndie.haul.testing.FulfilmentWorld
 import io.github.youndie.haul.testing.PostgresHarness
 import io.github.youndie.haul.testing.SeaweedHarness
+import io.github.youndie.haul.testing.ShildikHarness
 import io.github.youndie.haul.testing.all
 import io.github.youndie.haul.testing.haulTest
+import io.github.youndie.haul.testing.liveTree
 import io.github.youndie.haul.testing.only
+import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.testing.tree
+import io.github.youndie.haul.ui.CartLine
+import io.github.youndie.haul.ui.CheckoutSummary
+import io.github.youndie.haul.ui.OrderBody
 import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.haul.ui.ProductGrid
+import io.github.youndie.haul.ui.SearchSuggestPanel
+import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.decodeKompotComponent
+import io.ktor.client.HttpClient
+import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsBytes
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -76,6 +96,52 @@ class PhotoRoutesTest {
             assertTrue(generated.isNotEmpty(), "no generated product among the deals")
             assertTrue(generated.all { it.image == null }, "a product without a photo carries an address")
         }
+
+    /**
+     * B-108: a cart line, checkout's «Your order», an order's line and the suggest panel's «Top products» drew a
+     * blank tile where the card and the product page draw the stored photo — their wire had no address. Each carries
+     * the card's now. Maya's seeded cart holds the headphones; the order is that cart, placed.
+     */
+    @Test
+    fun `the cart, checkout, an order and the suggest panel carry the photo the card carries`() =
+        seededFreshDatabase().use { database ->
+            check(runBlocking { SeedPhotos.attach(Databases.connect(database), Photographed.store) } > 0)
+            val maya = ShildikHarness.accessToken(ShildikHarness.person("Maya Kowalski", SampleCustomers.MAYA))
+            var url: String? = null
+            haulTest(database, Photographed.store, signIn = ShildikHarness.signIn) {
+                url = assertNotNull(tree("/ui/p/$sony").only<ProductDetails>().photo)
+                val lines = tree(CartPaths.SCREEN, maya).all().filterIsInstance<CartLine>()
+                val line =
+                    assertNotNull(lines.firstOrNull { it.productId == sony }, "the cart: ${lines.map { it.productId }}")
+                assertEquals(url, line.image, "the cart line")
+                val items = tree(CheckoutPaths.SCREEN, maya).only<CheckoutSummary>().items
+                val item = assertNotNull(items.firstOrNull { it.action == productLink(sony) }, "checkout: $items")
+                assertEquals(url, item.image, "checkout's line")
+                // Each suggested product carries its own page's photo; the sample ones have one.
+                val panel = tree("/ui/search/suggest?q=sony") as SearchSuggestPanel
+                panel.products.forEach {
+                    assertEquals(tree("/ui/p/${it.productId}").only<ProductDetails>().photo, it.image, it.productId)
+                }
+                assertTrue(panel.products.any { it.image != null }, "no suggested product has a photo")
+            }
+            val orderId = FulfilmentWorld(database).use { it.place(CheckoutChoice(slotId = "2025-10-08T15")) }
+            haulTest(database, Photographed.store, signIn = ShildikHarness.signIn) {
+                val response = get(OrderPaths.SCREEN.replace("{id}", orderId)) { bearerAuth(maya) }
+                val body = liveTree(response.bodyAsText(), "order:$orderId").only<OrderBody>()
+                val items = body.shipments.flatMap { it.items }
+                val item = assertNotNull(items.firstOrNull { it.action == productLink(sony) }, "the order: $items")
+                assertEquals(url, item.image, "the order's line")
+            }
+        }
+
+    private suspend fun HttpClient.tree(
+        path: String,
+        token: String,
+    ): KompotComponent {
+        val response = get(path) { bearerAuth(token) }
+        assertEquals(HttpStatusCode.OK, response.status, response.bodyAsText())
+        return haulWireJson.decodeKompotComponent(response.bodyAsText())
+    }
 
     @Test
     fun `the photo address serves the stored bytes for good`() =

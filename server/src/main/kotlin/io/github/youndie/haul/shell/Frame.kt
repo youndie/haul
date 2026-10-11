@@ -103,11 +103,14 @@ internal object Frame {
 
     /**
      * The «HAUL PLUS» pill (B-49): the Plus offer as the home page makes it — the trial's dialog to a
-     * customer who is not a member, sign-in to a guest ([PlusOffer.trial]) — and, since a member is never
-     * offered the trial (research D6), the account, where the membership is drawn, to a member.
+     * customer who is not a member, sign-in to a guest ([PlusOffer.trial]). A member is never offered the trial
+     * (research D6), and no page of the store is the membership's own: the pill led a member to the account
+     * overview, where the membership is one tile of four — and on the overview it opened the page shown, which
+     * read as a press that did nothing (B-108). So to a member the pill is the membership's mark, as the
+     * strip's words without a page are text (B-72): `null`, nothing to press.
      */
-    private fun plus(viewer: Viewer): KompotAction =
-        if (viewer.customer?.plus == true) NavigateAction(ACCOUNT) else PlusOffer.trial(viewer)
+    private fun plus(viewer: Viewer): KompotAction? =
+        PlusOffer.trial(viewer).takeUnless { viewer.customer?.plus == true }
 
     /**
      * The header alone, for whoever asks (B-105): the client draws it over a page that came with no tree — one
@@ -177,14 +180,16 @@ internal object Frame {
      * no app (B-107).
      */
     fun footer(viewer: Viewer): HaulFooter {
+        // A member's «Haul Plus» is text, as the pill is (B-108): a word without an entry is drawn as text.
         val shop = listOf(Link("Deals", NavigateAction(DEALS)), Link("Haul Plus", plus(viewer)))
+        val linked = shop.filter { it.action != null }
         val help =
             listOf(Link("Track an order", NavigateAction(if (viewer.customerId == null) SIGN_IN_TO_ORDERS else ORDERS)))
         return HaulFooter(
             id = "footer",
             columns =
                 listOf(
-                    FooterColumn("Shop", shop.map { it.label }, shop),
+                    FooterColumn("Shop", shop.map { it.label }, linked),
                     FooterColumn("Help", help.map { it.label }, help),
                 ),
         )

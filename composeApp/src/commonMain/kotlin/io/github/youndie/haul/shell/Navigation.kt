@@ -28,6 +28,12 @@ public enum class PageKind {
     Saved,
     Order,
 
+    /** `/c`: every top-level category (B-49). */
+    Categories,
+
+    /** `/deals`: today's deals and everything on sale (B-37). */
+    Deals,
+
     /** `/sign-in`: the client's own page, with no tree behind it (B-66). */
     SignIn,
     Other,
@@ -51,29 +57,18 @@ public data class Address(
     val kind: PageKind =
         when (StorefrontPage.of(path)) {
             StorefrontPage.Home -> PageKind.Home
-
             StorefrontPage.Catalog -> PageKind.Catalog
-
             StorefrontPage.Product -> PageKind.Product
-
             StorefrontPage.Search -> PageKind.Search
-
             StorefrontPage.Cart -> PageKind.Cart
-
             StorefrontPage.Checkout -> PageKind.Checkout
-
             StorefrontPage.Account, StorefrontPage.Orders -> PageKind.Account
-
             StorefrontPage.Saved -> PageKind.Saved
-
             StorefrontPage.Order -> PageKind.Order
-
             StorefrontPage.SignIn -> PageKind.SignIn
-
-            StorefrontPage.Categories,
-            StorefrontPage.Deals,
-            null,
-            -> PageKind.Other
+            StorefrontPage.Categories -> PageKind.Categories
+            StorefrontPage.Deals -> PageKind.Deals
+            null -> PageKind.Other
         }
 
     /** Where the server keeps this page's tree: `/` is `/ui/home`, any other address the same under `/ui`. */

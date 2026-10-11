@@ -46,6 +46,7 @@ import io.github.youndie.haul.ui.CssColumn
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Icon
+import io.github.youndie.haul.ui.LineTile
 import io.github.youndie.haul.ui.LocalHaulActions
 import io.github.youndie.haul.ui.OrderBody
 import io.github.youndie.haul.ui.OrderFact
@@ -69,7 +70,6 @@ import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.lines
 import io.github.youndie.haul.ui.normal
-import io.github.youndie.haul.ui.toneColor
 import kotlin.math.roundToInt
 
 // The Order screen (screen-order): the frame's header, then the crumbs and the title, and the order —
@@ -453,7 +453,7 @@ private fun Item(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val tile = if (compact) 72.dp else 88.dp
-        Box(Modifier.size(tile).background(toneColor(item.tone), RoundedCornerShape(14.dp)).follows(item.action))
+        LineTile(item.image, item.tone, 14.dp, Modifier.size(tile).follows(item.action))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Text(
                 item.title,
@@ -550,18 +550,6 @@ private fun Summary(
                     )
                 }
             }
-        }
-        totals.back?.let {
-            HaulButton(
-                it.label,
-                Modifier.fillMaxWidth(),
-                height = 64.dp,
-                radius = 18.dp,
-                fill = HaulColors.primary,
-                content = HaulColors.onPrimary,
-                icon = HaulIcons.arrowRight,
-                onClick = following(it.action),
-            )
         }
     }
 }

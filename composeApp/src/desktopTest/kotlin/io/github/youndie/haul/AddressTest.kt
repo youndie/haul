@@ -62,13 +62,14 @@ class AddressTest {
         assertEquals(PageKind.Saved, Address("/account/saved?filter=price-dropped&page=2").kind)
         assertEquals("/ui/account/saved?page=2", Address("/account/saved?page=2").screen)
         assertEquals(PageKind.Other, Address("/saved").kind)
-        // The deals page (B-37) is a page a reload opens, drawn with the shell's own placeholders.
+        // The deals page (B-37) is a page a reload opens, with placeholders of its own (B-108).
         assertEquals("/ui/deals?page=2", Address("/deals?page=2").screen)
-        assertEquals(PageKind.Other, Address("/deals").kind)
+        assertEquals(PageKind.Deals, Address("/deals").kind)
+        assertEquals(PageKind.Deals, Address("/deals?page=2").kind)
         assertEquals(PageKind.Other, Address("/deals/today").kind)
-        // The catalog's root (B-49), every top-level category: a page, with the shell's own placeholders.
+        // The catalog's root (B-49), every top-level category: a page, with placeholders of its own (B-108).
         assertEquals("/ui/c", Address("/c").screen)
-        assertEquals(PageKind.Other, Address("/c").kind)
+        assertEquals(PageKind.Categories, Address("/c").kind)
         assertEquals("/ui/cart", Address("/cart").screen)
         assertEquals("/ui/checkout", Address("/checkout").screen)
         // An order (B-18): under the account's history (B-19), where placement lands.

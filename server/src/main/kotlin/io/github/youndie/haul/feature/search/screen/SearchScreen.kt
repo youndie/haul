@@ -120,6 +120,7 @@ internal class SearchScreen(
                         tone = it.product.tone,
                         label = it.product.label,
                         action = productLink(it.product.id),
+                        image = photos.url(it.product),
                     )
                 },
             allResultsLabel = "All ${count(matches.size)} results",

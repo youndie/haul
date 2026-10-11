@@ -486,7 +486,8 @@ internal fun Note(
 
 /**
  * An order on its way: the meta line, the title and the lead beside the tiles or the pickup code at 1440
- * (a grid of two columns, the row centred), under each other on a phone; then the steps and «Details».
+ * (a grid of two columns, the row centred), under each other on a phone; then the steps and «Details». A press
+ * anywhere on the card opens the order's page, as a press on a history row does (B-108).
  */
 @Composable
 private fun Card(order: ActiveOrder) {
@@ -539,7 +540,6 @@ private fun Card(order: ActiveOrder) {
     val details: @Composable () -> Unit = {
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
             Row(
-                Modifier.follows(order.details.action),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -548,9 +548,11 @@ private fun Card(order: ActiveOrder) {
             }
         }
     }
+    // The whole card opens the order, as a history row does (B-74, B-108); «Details ›» says what the press does.
     CssColumn(
         Modifier
             .fillMaxWidth()
+            .follows(order.details.action)
             .background(HaulColors.surfaceContainerLowest, RoundedCornerShape(24.dp))
             .padding(horizontal = if (compact) 20.dp else 32.dp),
         gap = 24.dp,

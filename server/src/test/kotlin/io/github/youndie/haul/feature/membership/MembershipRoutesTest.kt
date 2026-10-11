@@ -21,6 +21,7 @@ import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.ui.AccountBody
 import io.github.youndie.haul.ui.AccountTileKind
+import io.github.youndie.haul.ui.HaulFooter
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.OrderSummary
 import io.github.youndie.haul.ui.PlusBlock
@@ -174,25 +175,30 @@ class MembershipRoutesTest {
     /**
      * B-49: the header's «HAUL PLUS» pill carried nothing. It is the Plus offer as the home page makes it,
      * on every page with the header: the trial's dialog for Sam, no member — the very `present` the Plus
-     * block carries — and, once his trial has started, his account, where the membership is drawn, as it is
-     * for Maya. A guest's is sign-in (`DrawnActionsTest`).
+     * block carries. To a member it is the membership's mark with nothing to press (B-108): it led to the
+     * account overview, and on the overview it opened the page shown. So it is for Maya, and for Sam once his
+     * trial has started; the footer's «Haul Plus» is text for them too. A guest's is sign-in (`DrawnActionsTest`).
      */
     @Test
-    fun `the plus pill offers the trial to a non-member and the account to a member`() =
+    fun `the plus pill offers the trial to a non-member and is a mark for a member`() =
         store {
             val dialog = PresentAction(PlusOffer.dialog, PlusOffer.DIALOG)
-            listOf("/ui/home", "/ui/c/electronics/audio/headphones", CartPaths.SCREEN).forEach { path ->
+            val paths = listOf("/ui/home", "/ui/c/electronics/audio/headphones", CartPaths.SCREEN, AccountPaths.SCREEN)
+            paths.forEach { path ->
                 assertEquals(dialog, screen(path, sam).only<HaulHeader>().plus, "Sam on $path")
-                assertEquals(NavigateAction(Frame.ACCOUNT), screen(path, maya).only<HaulHeader>().plus, "Maya on $path")
+                assertEquals(null, screen(path, maya).only<HaulHeader>().plus, "Maya on $path")
             }
             assertEquals(
                 screen("/ui/home", sam).only<PlusBlock>().action,
                 screen("/ui/home", sam).only<HaulHeader>().plus,
             )
+            val mayas = screen("/ui/home", maya).only<HaulFooter>().columns.first()
+            assertEquals(listOf("Deals", "Haul Plus"), mayas.links)
+            assertEquals(listOf("Deals"), mayas.linked.map { it.label }, "a member's «Haul Plus» leads somewhere")
+            val sams = screen("/ui/home", sam).only<HaulFooter>().columns.first()
+            assertEquals(listOf("Deals", "Haul Plus"), sams.linked.map { it.label })
 
             assertEquals(HttpStatusCode.Created, startTrial(sam).status)
-            assertEquals(NavigateAction(Frame.ACCOUNT), screen("/ui/home", sam).only<HaulHeader>().plus)
-            val tiles = screen(AccountPaths.SCREEN, sam).only<AccountBody>().tiles
-            assertTrue(tiles.any { it.kind == AccountTileKind.Plus }, "the account the pill opens draws no membership")
+            assertEquals(null, screen("/ui/home", sam).only<HaulHeader>().plus)
         }
 }

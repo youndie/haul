@@ -327,13 +327,6 @@
         "type": "navigate",
         "deeplink": "/deals"
        }
-      },
-      {
-       "label": "Haul Plus",
-       "action": {
-        "type": "navigate",
-        "deeplink": "/account"
-       }
       }
      ]
     },

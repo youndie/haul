@@ -490,6 +490,91 @@ public fun CatalogLoading() {
     }
 }
 
+/**
+ * The crumbs and the title every listing opens with, as placeholders: the catalog's root (`/c`) and the deals
+ * (`/deals`) draw them before their own blocks (B-108). [crumbs] is whether the page has a trail.
+ */
+@Composable
+private fun TitleSkeleton(crumbs: Boolean) {
+    val compact = LocalHaulCompact.current
+    if (crumbs) Skeleton(Modifier.size(if (compact) 140.dp else 180.dp, 12.dp), 5.dp)
+    Skeleton(
+        Modifier
+            .padding(top = if (crumbs) (if (compact) 16.dp else 20.dp) else 0.dp)
+            .size(if (compact) 220.dp else 420.dp, if (compact) 50.dp else 96.dp),
+        12.dp,
+    )
+}
+
+/** The tags on the catalog's root's and the deals' placeholders, for the tests that tell them from the header alone. */
+public const val CATEGORIES_LOADING_TAG: String = "categories-loading"
+public const val DEALS_LOADING_TAG: String = "deals-loading"
+
+/**
+ * The catalog's root before its tree (B-108): the crumbs, «All categories» and the tiles of every top-level
+ * category, eight to a row at 1440 and four on a phone, as home's tiles are drawn. No artboard draws the page.
+ */
+@Composable
+public fun CategoriesLoading() {
+    val compact = LocalHaulCompact.current
+    val gutter = gutter()
+    Column(Modifier.fillMaxWidth().testTag(CATEGORIES_LOADING_TAG)) {
+        PendingHeader()
+        Column(
+            Modifier.padding(
+                start = gutter,
+                end = gutter,
+                top = if (compact) 20.dp else 28.dp,
+                bottom = if (compact) 64.dp else 80.dp,
+            ),
+        ) {
+            TitleSkeleton(crumbs = true)
+            Grid(
+                columns = if (compact) 4 else 8,
+                count = 16,
+                columnGap = if (compact) 10.dp else 16.dp,
+                rowGap = 16.dp,
+                modifier = Modifier.padding(top = if (compact) 28.dp else 40.dp),
+            ) {
+                Column(it, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Skeleton(Modifier.fillMaxWidth().aspectRatio(1f), if (compact) 16.dp else 22.dp)
+                    Skeleton(Modifier.fillMaxWidth(0.7f).height(14.dp), 5.dp)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * The deals before their tree (B-108): «Deals» and its count, «Deals of the day» over a row of cards — six at
+ * 1440, a row running off the edge on a phone, as home draws the row — then «On sale» over a grid of cards.
+ * No artboard draws the page.
+ */
+@Composable
+public fun DealsLoading() {
+    val compact = LocalHaulCompact.current
+    val gutter = gutter()
+    Column(Modifier.fillMaxWidth().testTag(DEALS_LOADING_TAG)) {
+        PendingHeader()
+        Column(Modifier.padding(start = gutter, end = gutter, top = if (compact) 20.dp else 28.dp)) {
+            TitleSkeleton(crumbs = false)
+            Skeleton(Modifier.padding(top = 12.dp).size(if (compact) 120.dp else 160.dp, 14.dp), 5.dp)
+        }
+        LoadingSection(if (compact) 220.dp else 420.dp) { ProductRow() }
+        LoadingSection(if (compact) 140.dp else 240.dp) {
+            Box(Modifier.padding(horizontal = gutter)) {
+                Grid(
+                    columns = if (compact) 2 else 4,
+                    count = 8,
+                    columnGap = if (compact) 12.dp else 24.dp,
+                    rowGap = if (compact) 28.dp else 40.dp,
+                ) { CardSkeleton(it) }
+            }
+        }
+        Spacer(Modifier.height(if (compact) 64.dp else 80.dp))
+    }
+}
+
 private val KIND_WIDTHS = listOf(60, 96, 80, 120, 84, 72, 64)
 
 /** The facet column's placeholder: a title bar and value bars per block, hairlines between. */

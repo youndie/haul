@@ -24,5 +24,5 @@ internal val checkoutModule =
                 calendar = get(),
             )
         }
-        single { CheckoutScreen(get()) }
+        single { CheckoutScreen(get(), get()) }
     }

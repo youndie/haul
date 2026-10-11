@@ -268,10 +268,6 @@
                 "type": "navigate",
                 "deeplink": "/account/saved"
             },
-            "plus": {
-                "type": "navigate",
-                "deeplink": "/account"
-            },
             "scopes": [
                 {
                     "label": "Electronics",
@@ -512,14 +508,7 @@
                         "title": "Card ···· 0002",
                         "detail": "Declined · nothing charged"
                     }
-                ],
-                "back": {
-                    "label": "Back to cart",
-                    "action": {
-                        "type": "navigate",
-                        "deeplink": "/cart"
-                    }
-                }
+                ]
             }
         }
     ]
