@@ -35,6 +35,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -50,7 +52,9 @@ import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
 import io.github.youndie.haul.ui.HaulButton
+import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Highlight
+import io.github.youndie.haul.ui.Icon
 import io.github.youndie.haul.ui.LocalHaulActions
 import io.github.youndie.haul.ui.ProductDescription
 import io.github.youndie.haul.ui.ProductQuestions
@@ -399,15 +403,25 @@ private fun RatingSummary(
                 }
             }
         }
-        HaulButton(
-            reviews.actionLabel,
-            Modifier.padding(top = 28.dp).fillMaxWidth().testTag(WRITE_REVIEW_TAG),
-            height = 56.dp,
-            radius = 18.dp,
-            border = HaulColors.onSurface,
-            textSize = 16f,
-            onClick = following(reviews.action),
-        )
+        if (reviews.action == null) {
+            // A customer who has reviewed the product: when they did, in words where the button was; their
+            // review leads the list (B-99).
+            Text(
+                reviews.actionLabel,
+                HaulType.text(15f, 600).copy(color = HaulColors.outline),
+                Modifier.padding(top = 28.dp).testTag(WRITE_REVIEW_TAG),
+            )
+        } else {
+            HaulButton(
+                reviews.actionLabel,
+                Modifier.padding(top = 28.dp).fillMaxWidth().testTag(WRITE_REVIEW_TAG),
+                height = 56.dp,
+                radius = 18.dp,
+                border = HaulColors.onSurface,
+                textSize = 16f,
+                onClick = following(reviews.action),
+            )
+        }
     }
 }
 
@@ -460,18 +474,38 @@ private fun ReviewCard(
                     softWrap = false,
                 )
             } else {
-                Text(
-                    review.helpfulLabel,
-                    HaulType.text(14f, 600),
-                    Modifier
-                        .testTag(HELPFUL_TAG)
-                        .pressable(helpfulPress(review))
-                        .border(1.dp, HaulColors.outlineVariant, CircleShape)
-                        .padding(horizontal = 15.dp, vertical = 9.dp),
-                    softWrap = false,
-                )
+                HelpfulPill(review)
             }
         }
+    }
+}
+
+/**
+ * «Helpful» as a pill: outlined while the viewer's vote is not on the review, filled in ink with a tick while
+ * it is (B-99) — the press that takes the vote back is the same pill, so it has to look pressed. The state is
+ * also the node's `selected`, for a screen reader.
+ */
+@Composable
+private fun HelpfulPill(review: Review) {
+    val voted = review.helpfulVoted
+    val content = if (voted) HaulColors.inverseOnSurface else HaulColors.onSurface
+    Row(
+        Modifier
+            .testTag(HELPFUL_TAG)
+            .semantics { selected = voted }
+            .pressable(helpfulPress(review))
+            .then(
+                if (voted) {
+                    Modifier.background(HaulColors.inverseSurface, CircleShape)
+                } else {
+                    Modifier.border(1.dp, HaulColors.outlineVariant, CircleShape)
+                },
+            ).padding(horizontal = 15.dp, vertical = 9.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (voted) Icon(HaulIcons.check, 14.dp, content)
+        Text(review.helpfulLabel, HaulType.text(14f, 600).copy(color = content), softWrap = false)
     }
 }
 

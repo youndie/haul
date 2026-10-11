@@ -17,7 +17,6 @@ import io.github.youndie.haul.feature.membership.data.PointsEntriesTable
 import io.github.youndie.haul.feature.membership.domain.PointsMovement
 import io.github.youndie.haul.feature.recommendations.data.ProductViewsTable
 import io.github.youndie.haul.feature.reviews.data.QuestionsTable
-import io.github.youndie.haul.feature.reviews.data.RatingCountsTable
 import io.github.youndie.haul.feature.reviews.data.ReviewsTable
 import io.github.youndie.haul.feature.saved.data.SavedItemsTable
 import kotlinx.serialization.json.JsonArray
@@ -33,6 +32,7 @@ import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
+import java.sql.Connection
 
 /**
  * Inserts a [SeedCatalog] into an empty catalog, once.
@@ -47,8 +47,9 @@ internal object Seeder {
 
     /**
      * Returns whether it seeded; `false` means the catalog already had rows. The sample customers' Plus
-     * memberships and opening points ([seedLoyalty], B-23) are written either way, each once: a database
-     * seeded before they existed gets them on its next start.
+     * memberships and opening points ([seedLoyalty], B-23) and the reviews and questions behind every
+     * product's counts ([SeedReviews.fill], B-99) are written either way, each once: a database seeded before
+     * they existed gets them on its next start.
      */
     fun seedIfEmpty(
         database: Database,
@@ -57,6 +58,7 @@ internal object Seeder {
         transaction(database) {
             exec("SELECT pg_advisory_xact_lock($LOCK_KEY)")
             if (!CategoriesTable.selectAll().empty()) {
+                SeedReviews.fill(connection.connection as Connection, catalog, fresh = false)
                 seedLoyalty(catalog)
                 return@transaction false
             }
@@ -188,15 +190,6 @@ internal object Seeder {
                 this[ReviewsTable.photos] = JsonArray(it.photos.map(::JsonPrimitive))
                 this[ReviewsTable.createdAt] = it.createdAt
             }
-            RatingCountsTable.batchInsert(
-                catalog.ratingCounts.flatMap { (product, counts) ->
-                    counts.map { (stars, n) -> Triple(product, stars, n) }
-                },
-            ) { (product, stars, n) ->
-                this[RatingCountsTable.productId] = product
-                this[RatingCountsTable.stars] = stars
-                this[RatingCountsTable.count] = n
-            }
             SavedItemsTable.batchInsert(catalog.saved) {
                 this[SavedItemsTable.customerId] = it.customerId
                 this[SavedItemsTable.productId] = it.productId
@@ -217,6 +210,8 @@ internal object Seeder {
                 this[QuestionsTable.answer] = it.answer
                 this[QuestionsTable.answeredAt] = it.answeredAt
             }
+            // The rest of every count, and the histograms, from the rows (B-99).
+            SeedReviews.fill(connection.connection as Connection, catalog, fresh = true)
             seedLoyalty(catalog)
             true
         }

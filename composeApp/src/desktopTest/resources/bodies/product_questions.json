@@ -232,9 +232,52 @@
      "answeredBy": "Sony Official Store · Sep 15"
     },
     {
-     "question": "Is the headband adjustable enough for a small head?",
-     "asked": "Asked Oct 6",
-     "pendingLabel": "Not answered yet"
+     "question": "Is it suitable as a gift?",
+     "asked": "Asked Sep 4",
+     "answer": "Yes. It arrives in its retail box, so it is ready to wrap.",
+     "answeredBy": "Sony Official Store · Sep 5"
+    },
+    {
+     "question": "Does it ship in its own box?",
+     "asked": "Asked Aug 29",
+     "answer": "It ships in a plain outer carton with the retail box inside.",
+     "answeredBy": "Sony Official Store · Aug 30"
+    },
+    {
+     "question": "Is the price the same in store?",
+     "asked": "Asked Aug 23",
+     "answer": "We sell online only; the price on this page is the price.",
+     "answeredBy": "Sony Official Store · Aug 24"
+    },
+    {
+     "question": "How long does it usually last?",
+     "asked": "Asked Aug 17",
+     "answer": "With normal use, years. The warranty covers the first one.",
+     "answeredBy": "Sony Official Store · Aug 18"
+    },
+    {
+     "question": "Is there a manual in the box?",
+     "asked": "Asked Aug 11",
+     "answer": "Yes, a printed quick-start guide is included.",
+     "answeredBy": "Sony Official Store · Aug 12"
+    },
+    {
+     "question": "Can I buy more than one?",
+     "asked": "Asked Aug 5",
+     "answer": "Yes, as many as the page shows in stock.",
+     "answeredBy": "Sony Official Store · Aug 6"
+    },
+    {
+     "question": "Is it the same as the one in the photos?",
+     "asked": "Asked Jul 30",
+     "answer": "Yes, the photos are of this exact product.",
+     "answeredBy": "Sony Official Store · Jul 31"
+    },
+    {
+     "question": "Does it need assembly?",
+     "asked": "Asked Jul 24",
+     "answer": "No, it is ready to use out of the box.",
+     "answeredBy": "Sony Official Store · Jul 25"
     }
    ],
    "action": {
@@ -250,7 +293,7 @@
      },
      "label": "Your question",
      "hint": "10 – 1,000 characters",
-     "note": "Sony Official Store answers questions. You'll see the answer on this page.",
+     "note": "Your question appears on this page for other shoppers, marked «Not answered yet». Sellers can't answer new questions on Haul yet.",
      "submitLabel": "Send",
      "cancelLabel": "Cancel",
      "url": "/api/v1/products/p-sony-wh-1000xm6/questions",
@@ -259,6 +302,11 @@
      }
     },
     "kind": "dialog"
+   },
+   "moreLabel": "Show more questions",
+   "more": {
+    "type": "load",
+    "url": "/ui/parts/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=questions&shown=20"
    }
   }
  ]

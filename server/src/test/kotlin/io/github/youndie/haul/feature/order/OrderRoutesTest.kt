@@ -5,7 +5,10 @@ import io.github.youndie.haul.feature.cart.CartPaths
 import io.github.youndie.haul.feature.checkout.AddressEntry
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.checkout.CheckoutPaths
+import io.github.youndie.haul.feature.reviews.ReviewEntry
+import io.github.youndie.haul.feature.reviews.ReviewPaths
 import io.github.youndie.haul.haulWireJson
+import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.testing.FulfilmentWorld
@@ -201,6 +204,42 @@ class OrderRoutesTest {
                 assertEquals(NavigateAction(Frame.CART), haulWireJson.decodeKompotAction(answer.bodyAsText()))
                 assertEquals(MAYAS_SKUS.map { Triple(it, 1, true) }, cartOf(maya), "after press ${press + 1}")
             }
+        }
+
+    /**
+     * B-99: a delivered line of a product the customer has reviewed offers their review — the product's reviews
+     * tab, where it leads the list — and not a second «Write a review» whose Post answers `409 review_exists`.
+     * The other lines still offer the dialog.
+     */
+    @Test
+    fun `a delivered line the customer has reviewed leads to their review`() =
+        placed(moved = 10.days) { orderId, _ ->
+            val posted =
+                post(ReviewPaths.reviews(SONY_HEADPHONES)) {
+                    bearerAuth(maya)
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        haulWireJson.encodeToString(
+                            ReviewEntry.serializer(),
+                            ReviewEntry(5, "Quiet at last", "The noise cancelling makes the commute bearable."),
+                        ),
+                    )
+                }
+            assertEquals(HttpStatusCode.Created, posted.status, posted.bodyAsText())
+            val links =
+                order(maya, orderId)
+                    .only<OrderBody>()
+                    .shipments
+                    .flatMap { it.items }
+                    .mapNotNull { it.review }
+            assertEquals(
+                listOf(Link("Your review", NavigateAction("/p/$SONY_HEADPHONES?sku=$SONY_HEADPHONES-0&tab=reviews"))),
+                links.filter { it.label == "Your review" },
+            )
+            assertEquals(
+                listOf(true, true),
+                links.filter { it.label == "Write a review" }.map { it.action is PresentAction },
+            )
         }
 
     /**

@@ -96,7 +96,8 @@ public data class OrderShipment(
 /**
  * A line as it was bought: the tile ([tone], one of the canvas's tile tones), the [title], [details] — the options, the quantity
  * and the price paid («Midnight Black · Headphones only · 1 × $349») — where a tap on the tile or the
- * title goes ([action], the product page), and, once delivered, [review] («Write a review»).
+ * title goes ([action], the product page), and, once delivered, [review]: «Write a review», or «Your review» —
+ * the product's reviews, where theirs leads — once the customer has written one (B-99).
  */
 @Serializable
 public data class OrderItem(

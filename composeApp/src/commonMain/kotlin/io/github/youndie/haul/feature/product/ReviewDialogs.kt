@@ -427,7 +427,11 @@ private fun LineField(
     }
 }
 
-/** A text area with its hint (or its error) and how much of [max] is used under it. */
+/**
+ * A text area with its hint (or its error) and how much of [max] is used under it. The whole box is the field:
+ * a press anywhere in it — under the first line too — focuses it (B-99; the field was one line tall inside
+ * the box before, and only that line took a press).
+ */
 @Composable
 private fun AreaField(
     value: String,
@@ -442,22 +446,22 @@ private fun AreaField(
     val border = borderOf(error, focused)
     val shape = RoundedCornerShape(14.dp)
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Box(
+        BasicTextField(
+            value,
+            onValue,
             Modifier
                 .fillMaxWidth()
                 .heightIn(min = minHeight)
                 .border(border.first, border.second, shape)
+                .testTag(tag)
+                .onFocusChanged { focused = it.isFocused },
+            textStyle = HaulType.text(16f, lineHeight = 1.5f),
+            cursorBrush = SolidColor(HaulColors.primary),
+            decorationBox = { field ->
                 // CSS's 14 / 16 inside a 2 px border, kept while the border is thinner so the text never moves.
-                .padding(horizontal = 18.dp, vertical = 16.dp),
-        ) {
-            BasicTextField(
-                value,
-                onValue,
-                Modifier.fillMaxWidth().testTag(tag).onFocusChanged { focused = it.isFocused },
-                textStyle = HaulType.text(16f, lineHeight = 1.5f),
-                cursorBrush = SolidColor(HaulColors.primary),
-            )
-        }
+                Box(Modifier.padding(horizontal = 18.dp, vertical = 16.dp), propagateMinConstraints = true) { field() }
+            },
+        )
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             if (error != null) {
                 Row(

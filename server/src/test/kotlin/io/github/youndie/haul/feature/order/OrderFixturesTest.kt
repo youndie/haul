@@ -145,7 +145,7 @@ class OrderFixturesTest {
                                     shown,
                                     tone,
                                     0,
-                                    tabs.writeReview(item, item.skus.single(), canvasViewer),
+                                    tabs.orderLine(item, item.skus.single(), canvasViewer, reviewed = false),
                                 ),
                         )
                     }

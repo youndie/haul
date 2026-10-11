@@ -95,6 +95,33 @@ internal class ExposedReviews(
                 .empty()
         }
 
+    override suspend fun reviewBy(
+        customerId: String,
+        productId: String,
+    ): StoredReview? =
+        tx {
+            ReviewsTable
+                .selectAll()
+                .where { (ReviewsTable.productId eq productId) and (ReviewsTable.customerId eq customerId) }
+                .singleOrNull()
+                ?.let(::review)
+        }
+
+    override suspend fun reviewed(
+        customerId: String,
+        productIds: Collection<String>,
+    ): Set<String> =
+        if (productIds.isEmpty()) {
+            emptySet()
+        } else {
+            tx {
+                ReviewsTable
+                    .select(ReviewsTable.productId)
+                    .where { (ReviewsTable.customerId eq customerId) and (ReviewsTable.productId inList productIds) }
+                    .mapTo(mutableSetOf()) { it[ReviewsTable.productId] }
+            }
+        }
+
     override suspend fun received(
         customerId: String,
         productId: String,

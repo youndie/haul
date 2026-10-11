@@ -58,6 +58,14 @@ internal fun ProductReviews() = Fixture(compact = false) { Page { Body("product_
 @Composable
 internal fun ProductReviewsPhone() = Fixture(compact = true) { Page { Body("product_reviews.json") } }
 
+/**
+ * The reviews tab once Maya has reviewed the headphones and found Aisha's review helpful (B-99): her review
+ * leads, the button's place says when she wrote it, and Aisha's «Helpful» is drawn voted. No artboard draws it.
+ */
+@ViddikScreenshot(name = "Reviews_Mine", group = "Product", width = 1440, height = 1960)
+@Composable
+internal fun ProductReviewsMine() = Fixture(compact = false) { Page { Body("product_reviews_mine.json") } }
+
 @ViddikScreenshot(name = "Questions", group = "Product", width = 1440, height = 1723)
 @Composable
 internal fun ProductQuestions() = Fixture(compact = false) { Page { Body("product_questions.json") } }

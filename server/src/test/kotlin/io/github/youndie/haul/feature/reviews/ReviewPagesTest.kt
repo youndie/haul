@@ -5,6 +5,7 @@ import io.github.youndie.haul.db.Databases
 import io.github.youndie.haul.feature.reviews.data.ExposedReviews
 import io.github.youndie.haul.feature.reviews.domain.StoredQuestion
 import io.github.youndie.haul.feature.reviews.domain.StoredReview
+import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
 import io.github.youndie.haul.shell.Parts
 import io.github.youndie.haul.testing.after
@@ -37,47 +38,71 @@ import kotlin.test.assertNull
 /**
  * B-71: the reviews and questions tabs list ten, then «Show more» — kompot's `load` of the tab's address listing
  * ten more, answered with an `update` of the tab's node and that address, `push`; the page the client draws after
- * it is the page the address opens. The seed stores two reviews and three questions of the headphones (the
- * canvas's 2,341 and 86 are the product's counts), so this writes more into a database of its own.
+ * it is the page the address opens. Since B-99 the seed stores every review and question a product counts, so
+ * the headphones' tabs have more on the seed itself; the pages are counted on a product the seed gives none,
+ * with as many written into a database of its own as each test needs.
  */
 class ReviewPagesTest {
-    private val sony = SONY_HEADPHONES
+    /** A generated product with no reviews and no questions in the seed. */
+    private val product =
+        CatalogSeed
+            .generate(CatalogSeed.CANVAS_DAY)
+            .products
+            .first { it.reviewsCount == 0 && it.questionsCount == 0 }
+            .id
+
+    /** The headphones on the seed: 2,341 reviews and 86 questions, each stored, so «Show more» is there (B-99). */
+    @Test
+    fun `the headphones' tabs offer more on the seed itself`() =
+        haulTest {
+            val reviews = tree("/ui/p/$SONY_HEADPHONES?tab=reviews").only<ProductReviews>()
+            assertEquals(10, reviews.reviews.size)
+            assertEquals("Show more reviews", reviews.moreLabel)
+            val questions = tree("/ui/p/$SONY_HEADPHONES?tab=questions").only<ProductQuestions>()
+            assertEquals(10, questions.questions.size)
+            assertEquals("Show more questions", questions.moreLabel)
+            // The most a tab lists is 500 of the 2,341: still more.
+            assertEquals(
+                500,
+                tree("/ui/p/$SONY_HEADPHONES?tab=reviews&shown=500").only<ProductReviews>().reviews.size,
+            )
+        }
 
     @Test
     fun `the reviews tab lists ten and shows ten more in place until there are no more`() =
         withMore(reviews = 11, questions = 0) {
-            val page = tree("/ui/p/$sony?tab=reviews")
+            val page = tree("/ui/p/$product?tab=reviews")
             val sku = page.only<ProductDetails>().skuId
             val first = page.only<ProductReviews>()
             assertEquals(10, first.reviews.size)
             assertEquals("Show more reviews", first.moreLabel)
-            assertEquals(LoadAction("${Parts.PREFIX}/p/$sony?sku=$sku&tab=reviews&shown=20"), first.more)
+            assertEquals(LoadAction("${Parts.PREFIX}/p/$product?sku=$sku&tab=reviews&shown=20"), first.more)
 
             val after = loaded(page, first.more, "reviews")
             val all = after.only<ProductReviews>()
-            assertEquals(13, all.reviews.size, "the seed's two and the eleven written")
+            assertEquals(11, all.reviews.size, "the eleven written")
             assertNull(all.moreLabel)
             assertNull(all.more)
         }
 
     @Test
     fun `the questions tab lists ten and shows ten more in place until there are no more`() =
-        withMore(reviews = 0, questions = 9) {
-            val page = tree("/ui/p/$sony?tab=questions")
+        withMore(reviews = 0, questions = 11) {
+            val page = tree("/ui/p/$product?tab=questions")
             val first = page.only<ProductQuestions>()
             assertEquals(10, first.questions.size)
             assertEquals("Show more questions", first.moreLabel)
             val after = loaded(page, first.more, "questions")
             val all = after.only<ProductQuestions>()
-            assertEquals(12, all.questions.size, "the seed's three and the nine asked")
+            assertEquals(11, all.questions.size, "the eleven asked")
             assertNull(all.more)
         }
 
     /** Ten stored are ten listed: «more» follows the rows, one more is asked for than is drawn. */
     @Test
     fun `ten reviews draw no more`() =
-        withMore(reviews = 8, questions = 0) {
-            val reviews = tree("/ui/p/$sony?tab=reviews").only<ProductReviews>()
+        withMore(reviews = 10, questions = 0) {
+            val reviews = tree("/ui/p/$product?tab=reviews").only<ProductReviews>()
             assertEquals(10, reviews.reviews.size)
             assertNull(reviews.more)
             assertNull(reviews.moreLabel)
@@ -88,7 +113,7 @@ class ReviewPagesTest {
         haulTest {
             for (shown in listOf("9", "501", "many")) {
                 get(
-                    "/ui/p/$sony?tab=reviews&shown=$shown",
+                    "/ui/p/$product?tab=reviews&shown=$shown",
                 ).assertError(HttpStatusCode.BadRequest, ErrorCode.ValidationFailed)
             }
         }
@@ -122,7 +147,7 @@ class ReviewPagesTest {
         return whole
     }
 
-    /** The seeded catalog with [reviews] more reviews and [questions] more questions of the headphones, older than the seed's. */
+    /** The seeded catalog with [reviews] reviews and [questions] questions of the product, which the seed gives none. */
     private fun withMore(
         reviews: Int,
         questions: Int,
@@ -135,7 +160,7 @@ class ReviewPagesTest {
                 repository.write(
                     StoredReview(
                         id = "r-more-$it",
-                        productId = sony,
+                        productId = product,
                         customerId = null,
                         author = "Reader $it",
                         rating = 4,
@@ -153,7 +178,7 @@ class ReviewPagesTest {
                 repository.ask(
                     StoredQuestion(
                         id = "q-more-$it",
-                        productId = sony,
+                        productId = product,
                         customerId = null,
                         text = "Question $it for the second page?",
                         askedAt = before.minusDays(it.toLong()),
