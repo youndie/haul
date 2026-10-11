@@ -1,7 +1,7 @@
 ---
 id: B-119
 title: "fix: a search's title, chips and picker say what the grid shows"
-status: open
+status: wip
 priority: P2
 size: S/M
 stage: stage-12-qa-run
