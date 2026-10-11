@@ -130,7 +130,7 @@ later (B-27). A local stack runs at `HAUL_FULFILMENT_SPEED`.
   2. Ask a return with no reason.
   3. Take the network away and send a return.
 - **Expected:**
-  - Step 1: «Late return», in the dialog (the window is 30 store days from each line's own arrival, the last one
+  - Step 1: «Returns for this order closed on <its last day>», in the dialog (the window is 30 store days from each line's own arrival, the last one
     whole).
   - Step 2: nothing sent; the reason named.
   - Step 3: «Couldn't reach the store» in the dialog, no «Retry» (its own button is the press again).

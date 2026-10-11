@@ -13,7 +13,7 @@ is the server's, stored per customer, and the summary is the server's quote (B-1
   2. Read the steps in its header.
 - **Expected:**
   - Step 1: courier chosen, its day the cart's earliest line's («Tomorrow, Oct 8» on the canvas); her address in the
-    inline form; windows 09:00, 12:00, 15:00, 18:00 on five days; the card ···· 4821 chosen, no test card listed;
+    inline form; windows «9:00 – 12:00» to «18:00 – 21:00» on five days; the card ···· 4821 chosen, no test card listed;
     the points toggle; the summary's lines with their photos where stored, the rows the cart's (Total $512), the
     delivery day, and «Your card is charged when the order ships.» — no «Terms of Sale».
   - Step 2: «Delivery» marked until the order can be placed (a window chosen, the address complete), then
@@ -163,7 +163,7 @@ is the server's, stored per customer, and the summary is the server's quote (B-1
   2. Press back to checkout, then reload it.
   3. Open the cart.
 - **Expected:**
-  - Step 1: «Placing…» with the page's links inert, then `/account/orders/HL-…`, «Placed». A double press or a
+  - Step 1: «Placing order…» with the page's links inert, then `/account/orders/HL-…`, «Placed». A double press or a
     retry is the same order (the key).
   - Step 2: the cart — nothing is left selected to check out (TC-CHK-11).
   - Step 3: the bought lines are gone; lines that were not ticked are still there.

@@ -29,7 +29,7 @@ width, a fresh load per width.
 - **Expected:**
   - Step 1: the search field on a row of its own under the logo's; the category row draws the words that fit whole
     and keeps «HAUL PLUS» at its end (one word, not one letter a line); «Catalog» lists every category.
-  - Step 2: grids of four cards; the cart's lines the phone's beside the summary; the product's buy box under its
+  - Step 2: a category's grid three across beside its facets (golden `Catalog_Content_1024`); the cart's lines the phone's beside the summary; the product's buy box under its
     title beside the photo, its facts under the copy; checkout's summary under its sections; the account's tiles
     one under another, its history rows the phone's; a search's kinds scrolling sideways; a banner's title 32 px.
     Nothing cut or broken.

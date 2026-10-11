@@ -73,10 +73,10 @@ Payment methods, Settings) are hidden in v1 (D6).
 - **Width:** 1440, 390
 - **Preconditions:** a customer who has never ordered (a fresh person on a local realm).
 - **Steps:**
-  1. Open `/account`.
-  2. Press the empty history's button.
+  1. Open `/account`, then `/account/orders`.
+  2. Press the empty history's «See today’s deals».
 - **Expected:**
-  - Step 1: «Joined <month year>», no orders, the trial's offer.
+  - Step 1: «Joined <month year>», no orders, the trial's offer; the orders' page is «No orders yet».
   - Step 2: `/deals`.
 - **Decided in:** B-19
 - **Coverage:** `AccountRoutesTest` «a customer with no orders is sent to the deals»;
@@ -151,8 +151,8 @@ Payment methods, Settings) are hidden in v1 (D6).
   3. Ask for the trial again (a second tab still showing the offer).
 - **Expected:**
   - Step 1: the dialog closes and the page is drawn again for a member.
-  - Step 2: the pill is the membership's mark; the Plus block shows savings and the renewal (30 days free, then
-    renewing monthly); delivery free under $35; member prices where the sale has early access.
+  - Step 2: the pill is the membership's mark; the Plus block shows savings and the renewal («Renews <30 days on>» ·
+    «$4.99 / month»); delivery free under $35; member prices where the sale has early access.
   - Step 3: the dialog closes, the page is drawn again, and the server's words say he is already a member.
 - **Decided in:** D6, B-23, B-92, B-108
 - **Coverage:** `PlusTrialWiringTest` «start trial sends the dialog's post and the page is drawn again»;
