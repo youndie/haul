@@ -1,7 +1,7 @@
 ---
 id: B-83
 title: "client: every press that reads a field sees what was typed"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-10-review

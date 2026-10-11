@@ -48,7 +48,7 @@ A stage is a field on the item, not a directory.
 |---|---|---|---|---|
 | [B-109](docs/backlog/B-109-saga-steps-in-tracy.md) `[ ]` | server: an order's saga is visible in tracy | P2 | S | - |
 | [B-82](docs/backlog/B-82-tablet-widths.md) `[ ]` | client: the store reads well between a phone and 1440 | P2 | M | - |
-| [B-83](docs/backlog/B-83-typed-input-before-every-press.md) `[ ]` | client: every press that reads a field sees what was typed | P2 | S | - |
+| [B-83](docs/backlog/B-83-typed-input-before-every-press.md) `[~]` | client: every press that reads a field sees what was typed | P2 | S | - |
 | [B-107](docs/backlog/B-107-copy-that-promises-nothing.md) `[ ]` | server: the store does not promise what it does not have | P3 | S | - |
 | [B-108](docs/backlog/B-108-pages-look-alike.md) `[ ]` | client + server: the same thing looks the same on every page | P3 | M | - |
 | [B-110](docs/backlog/B-110-order-updates-log-noise.md) `[ ]` | server: a client leaving the order page is not an error | P3 | XS | - |
