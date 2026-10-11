@@ -75,4 +75,6 @@ Found in the QA pass of 2026-10-10 (v0.3.0), code audit and signed-in walk:
   Brooklyn, no fixture's product is under $35 to a member, no fixture order arrived early).
 - **Where the checks ran**: on the Linux build machine — `:composeApp:wasmJsBrowserDistribution`; `check
   :server:installDist` (438 server and 321 client tests, 0 failed; `viddikVerify` and ktlint in it);
-  `scripts/e2e.sh` (the whole path and the shoppers, green). `make check` on the Mac.
+  `scripts/e2e.sh` (the whole path and the shoppers, green). After rebasing onto B-97 (#118):
+  `:composeApp:wasmJsBrowserDistribution` and `check :server:installDist` again (438 server and 327 client tests,
+  0 failed). `make check` and `make docs-against BASE=origin/main` on the Mac.
