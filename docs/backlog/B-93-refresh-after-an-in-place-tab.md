@@ -1,7 +1,7 @@
 ---
 id: B-93
 title: "client: a press after switching a product tab redraws the page"
-status: open
+status: wip
 priority: P1
 size: S
 stage: stage-11-qa
