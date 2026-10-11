@@ -1,7 +1,7 @@
 ---
 id: B-110
 title: "server: a client leaving the order page is not an error"
-status: open
+status: wip
 priority: P3
 size: XS
 stage: stage-11-qa
