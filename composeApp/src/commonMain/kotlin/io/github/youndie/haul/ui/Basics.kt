@@ -44,8 +44,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.sp
 import io.github.youndie.haul.theme.HaulColors
+import io.github.youndie.haul.theme.HaulFonts
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
+import io.github.youndie.haul.theme.LocalHaulFonts
+import kotlin.math.floor
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import kotlin.time.Duration
@@ -442,6 +445,101 @@ internal fun SpacedWords(
 }
 
 private const val GAP = "gap"
+
+/**
+ * A display text at [size], or at the largest size below it that the width it is given holds (B-82): one line
+ * no wider than the width when [softWrap] is off — the campaign's «70%», cut at the card's edge at 1024 — or
+ * lines none of whose words is wider than it — Compose breaks a word that does not fit its line between two
+ * letters («WH-1000XM / 6» at 1280), where CSS would let it overflow, and neither reads. A word runs from space
+ * to space: the line breaker keeps «WH-1000XM6» whole (no break between a hyphen and a figure), so the room
+ * after a hyphen ([widestWord]'s) is not counted on. [style] is
+ * the style at a size, built in the fonts given, so that a display face's optical size follows the size; never
+ * below [min]. [textModifier] is the text's own, at the size drawn.
+ *
+ * It measures in a [BoxWithConstraints], which has no intrinsic size: where a row asks its cells for one, a
+ * fact tile's title shrinks after its first measurement instead (B-104's `FactTitle`).
+ */
+@Composable
+internal fun FittedText(
+    text: AnnotatedString,
+    size: Float,
+    style: (fonts: HaulFonts, size: Float) -> TextStyle,
+    modifier: Modifier = Modifier,
+    softWrap: Boolean = true,
+    min: Float = size / 2,
+    textModifier: (size: Float) -> Modifier = { Modifier },
+) {
+    val fonts = LocalHaulFonts.current
+    val measurer = rememberTextMeasurer()
+    BoxWithConstraints(modifier) {
+        val room = constraints.maxWidth
+        val fitted =
+            remember(text, size, room, fonts, softWrap, min) {
+                if (room == Constraints.Infinity) return@remember size
+
+                val words =
+                    if (softWrap) {
+                        SPACED.findAll(text.text).map { text.subSequence(it.range.first, it.range.last + 1) }.toList()
+                    } else {
+                        listOf(text)
+                    }
+
+                fun width(at: Float): Int {
+                    val atSize = style(fonts, at)
+                    return words.maxOfOrNull { word: AnnotatedString ->
+                        measurer.measure(word, atSize, softWrap = false, maxLines = 1).size.width
+                    } ?: 0
+                }
+                var at = size
+                var wide = width(at)
+                while (wide > room && at > min) {
+                    // Widths grow with the size, nearly in proportion: the estimate, then half a pixel at a time.
+                    at = maxOf(min, minOf(at - 0.5f, floor(at * room / wide * 2f) / 2f))
+                    wide = width(at)
+                }
+                at
+            }
+        Text(text, textModifier(fitted), style(fonts, fitted), softWrap = softWrap)
+    }
+}
+
+/** A run of [FittedText]'s between two spaces. */
+private val SPACED = Regex("""\S+""")
+
+/**
+ * [SpacedWords] in the width it is given, as many of [words] as fit whole and the rest left out (B-82): at
+ * 1440 the header's category row draws every word, at 1024 the first eight; a word cut at the edge, or the
+ * row pushing what follows it into a column of letters, was the alternative. Whatever is left out has
+ * another way in — the header's «Catalog» lists every category.
+ */
+@Composable
+internal fun FittingWords(
+    words: List<String>,
+    gap: Dp,
+    style: TextStyle,
+    modifier: Modifier = Modifier,
+    links: List<Link> = emptyList(),
+) {
+    val measurer = rememberTextMeasurer()
+    BoxWithConstraints(modifier) {
+        val room = constraints.maxWidth
+        val gapPx = with(LocalDensity.current) { gap.roundToPx() }
+        val shown =
+            remember(words, style, room, gapPx) {
+                var used = 0
+                var count = 0
+                for (word in words) {
+                    val width = measurer.measure(word, style, softWrap = false, maxLines = 1).size.width
+                    val next = used + (if (count > 0) gapPx else 0) + width
+                    if (next > room) break
+                    used = next
+                    count++
+                }
+                words.take(count)
+            }
+        SpacedWords(shown, gap, style, links = links)
+    }
+}
 
 /**
  * CSS's `text-wrap: balance`: the text keeps the number of lines it breaks into at the full width, at

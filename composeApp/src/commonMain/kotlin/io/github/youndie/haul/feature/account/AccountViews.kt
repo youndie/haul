@@ -40,6 +40,7 @@ import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
 import io.github.youndie.haul.theme.LocalHaulFonts
+import io.github.youndie.haul.theme.LocalHaulMedium
 import io.github.youndie.haul.ui.AccountBody
 import io.github.youndie.haul.ui.AccountMenuItem
 import io.github.youndie.haul.ui.AccountProfile
@@ -302,7 +303,9 @@ private fun Tiles(tiles: List<AccountTile>) {
     val compact = LocalHaulCompact.current
     val boxes = remember(tiles.size) { List(tiles.size) { CssBox(carry = true) } }
     val row = remember { CssBox(carry = true) }
-    if (compact) {
+    // Below 1280 three tiles side by side are 189 px at 1024, a figure broken between its digits and the trial's
+    // button cut (B-82): one under another, as on a phone.
+    if (compact || LocalHaulMedium.current) {
         CssColumn(Modifier.fillMaxWidth(), gap = 12.dp, box = row) {
             tiles.forEachIndexed { index, tile ->
                 TileContent(
@@ -725,9 +728,12 @@ private fun Rows(
         bottom = if (compact) 4.dp else 8.dp,
         box = box,
     ) {
+        // Below 1280 the fixed columns of a wide row are wider than the card and cut «Reorder» (B-82): the phone's
+        // row, a grid of two columns, fits any width.
+        val narrow = compact || LocalHaulMedium.current
         rows.forEachIndexed { index, row ->
             val last = index == rows.lastIndex
-            if (compact) {
+            if (narrow) {
                 PhoneRow(row, onReorder, last, remember { CssBox(carry = true) })
             } else {
                 Column(Modifier.fillMaxWidth()) {

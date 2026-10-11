@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
@@ -55,6 +56,7 @@ import io.github.youndie.haul.shell.vote
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
+import io.github.youndie.haul.theme.LocalHaulMedium
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Highlight
@@ -230,6 +232,13 @@ public fun ProductDescriptionView(description: ProductDescription) {
         Column(outer, verticalArrangement = Arrangement.spacedBy(28.dp)) {
             copy(Modifier)
             facts(Modifier)
+        }
+    } else if (LocalHaulMedium.current) {
+        // Below 1280 a tile beside the copy is 192 px at 1024 and sets «250 g» on two lines (B-82): the facts go
+        // under the copy, two across the page's width, and the copy keeps a reading measure.
+        Column(outer, verticalArrangement = Arrangement.spacedBy(40.dp)) {
+            copy(Modifier.widthIn(max = 720.dp))
+            facts(Modifier.fillMaxWidth())
         }
     } else {
         Row(outer, horizontalArrangement = Arrangement.spacedBy(56.dp)) {

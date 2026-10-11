@@ -80,20 +80,26 @@ public fun HaulFooterView(footer: HaulFooter) {
                     }
                 }
             }
+            // On a desktop as large as the page is wide enough for (B-82): 420 px of «Haul.» ran past the edge at
+            // 1024. The phone's runs past it at 390, as Home_Content_Phone draws it, and is left so.
             val size = if (compact) 150f else 420f
-            Text(
+            FittedText(
                 buildAnnotatedString {
                     append("Haul")
                     withStyle(SpanStyle(color = HaulColors.primary)) { append(".") }
                 },
-                Modifier
-                    .padding(top = if (compact) 40.dp else 56.dp)
-                    .offset(x = if (compact) (-6).dp else (-14).dp)
-                    .negativeBottomMargin(if (compact) 24.dp else 70.dp),
-                style =
+                size = size,
+                min = if (compact) size else size / 2,
+                style = { fonts, at ->
                     HaulType
-                        .display(size, 900, letterSpacing = -0.05f, lineHeight = 0.78f)
-                        .copy(color = HaulColors.secondaryContainer),
+                        .display(fonts, at, 900, letterSpacing = -0.05f, lineHeight = 0.78f)
+                        .copy(color = HaulColors.secondaryContainer)
+                },
+                modifier =
+                    Modifier
+                        .padding(top = if (compact) 40.dp else 56.dp)
+                        .offset(x = if (compact) (-6).dp else (-14).dp)
+                        .negativeBottomMargin(if (compact) 24.dp else 70.dp),
                 softWrap = false,
             )
         }

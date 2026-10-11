@@ -16,6 +16,7 @@ import io.github.youndie.haul.shell.HaulTransport
 import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.shell.TreeCommands
 import io.github.youndie.haul.theme.HaulColors
+import io.github.youndie.haul.theme.HaulFonts
 import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.theme.rememberHaulFonts
 import io.github.youndie.haul.ui.LinkCopier
@@ -27,7 +28,8 @@ import kotlin.time.Clock
 
 /**
  * The storefront's root: the theme, at the width the page has, and the page at the browser's address.
- * The canvas draws two widths, 1440 and 390; anything narrower than [COMPACT_BELOW] is drawn as the phone.
+ * The canvas draws two widths, 1440 and 390; anything narrower than [COMPACT_BELOW] is drawn as the phone, and
+ * the desktop narrower than [WIDE_FROM] rearranges what 1440's arrangement cannot hold (B-82).
  *
  * The entry point supplies what is the platform's: [photos] draws the product photos the trees name
  * (B-30), [transport] fetches the screens through [identity]'s headers (B-12, B-35), [history] is the
@@ -51,24 +53,42 @@ public fun App(
     realtime: KompotRealtimeSource? = null,
     links: LinkCopier? = null,
 ) {
-    BoxWithConstraints(Modifier.fillMaxSize().background(HaulColors.background)) {
+    HaulThemeAtWidth(rememberHaulFonts(), Modifier.fillMaxSize().background(HaulColors.background)) {
         CompositionLocalProvider(LocalPhotoLoader provides photos, LocalLinkCopier provides links) {
-            HaulTheme(rememberHaulFonts(), compact = maxWidth < COMPACT_BELOW) {
-                Storefront(
-                    transport,
-                    history,
-                    identity::signIn,
-                    clock,
-                    cartCommands,
-                    commands,
-                    checkoutCommands,
-                    treeCommands,
-                    realtime,
-                    session = identity,
-                )
-            }
+            Storefront(
+                transport,
+                history,
+                identity::signIn,
+                clock,
+                cartCommands,
+                commands,
+                checkoutCommands,
+                treeCommands,
+                realtime,
+                session = identity,
+            )
         }
     }
 }
 
-private val COMPACT_BELOW = 768.dp
+/** [HaulTheme] for the width [content] is given: the phone's below [COMPACT_BELOW], rearranged below [WIDE_FROM]. */
+@Composable
+public fun HaulThemeAtWidth(
+    fonts: HaulFonts,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    BoxWithConstraints(modifier) {
+        HaulTheme(fonts, compact = maxWidth < COMPACT_BELOW, medium = maxWidth < WIDE_FROM, content = content)
+    }
+}
+
+/**
+ * Below 1024 px the phone's arrangement is drawn (B-82): a tablet held upright gets the phone's header with its
+ * menu, one column of content and the phone's cart lines, every one of them laid out for any width from 375 up.
+ * The desktop's arrangement was squeezed there before — the cart's title one letter per line at 800.
+ */
+private val COMPACT_BELOW = 1024.dp
+
+/** From 1280 px the desktop is drawn as the 1440 artboards arrange it; between 1024 and 1279, rearranged. */
+private val WIDE_FROM = 1280.dp

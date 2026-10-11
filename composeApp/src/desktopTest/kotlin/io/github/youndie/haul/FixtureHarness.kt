@@ -32,9 +32,10 @@ internal val CANVAS_NOW: Instant = Instant.parse("2025-10-07T19:47:23-04:00")
 @Composable
 internal fun Fixture(
     compact: Boolean,
+    medium: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    HaulTheme(FixtureFonts.fonts, compact) {
+    HaulTheme(FixtureFonts.fonts, compact, medium) {
         CompositionLocalProvider(LocalHaulNow provides CANVAS_NOW) {
             Box(
                 Modifier.fillMaxSize().background(HaulColors.background),

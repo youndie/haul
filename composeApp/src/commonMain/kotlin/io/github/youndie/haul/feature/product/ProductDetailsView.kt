@@ -49,7 +49,9 @@ import io.github.youndie.haul.feature.cart.linePress
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
+import io.github.youndie.haul.theme.LocalHaulMedium
 import io.github.youndie.haul.ui.DeliveryLine
+import io.github.youndie.haul.ui.FittedText
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Heart
@@ -98,6 +100,24 @@ public fun ProductDetailsView(details: ProductDetails) {
             details.variants.forEach { Variants(it) }
             Highlights(details.highlights)
             AllSpecifications(details)
+        }
+    } else if (LocalHaulMedium.current) {
+        // Below 1280 the three columns leave the title 200 px at 1024 (B-82): the buy box goes under the title,
+        // as on a phone, and the photo and the rest share the width.
+        Row(
+            Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = 28.dp),
+            horizontalArrangement = Arrangement.spacedBy(40.dp),
+        ) {
+            Photo(details, Modifier.weight(1f), radius = 28.dp)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                Brand(details)
+                Title(details, compact = false, Modifier.negativeTop(8.dp))
+                Rating(details)
+                BuyBox(details, compact = false, Modifier.fillMaxWidth())
+                details.variants.forEach { Variants(it) }
+                Highlights(details.highlights)
+                AllSpecifications(details)
+            }
         }
     } else {
         Row(
@@ -310,10 +330,12 @@ private fun Title(
     compact: Boolean,
     modifier: Modifier,
 ) {
-    Text(
+    // A word of the title wider than its column is set smaller rather than broken between two letters (B-82).
+    FittedText(
         accented(details.title, details.accent),
-        modifier,
-        style = HaulType.display(if (compact) 34f else 48f, 800, letterSpacing = -0.02f),
+        size = if (compact) 34f else 48f,
+        style = { fonts, size -> HaulType.display(fonts, size, 800, letterSpacing = -0.02f) },
+        modifier = modifier,
     )
 }
 

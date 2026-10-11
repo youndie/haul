@@ -41,6 +41,13 @@ internal fun HomeContentWide() = Fixture(compact = false) { Page { Body("home_co
 @Composable
 internal fun HomeContentPhone() = Fixture(compact = true) { Page { Body("home_content.json") } }
 
+// No artboard draws a width between the two (B-82): the page at 1024, the desktop rearranged below 1280 — the
+// search field on a row of its own, the category row the words that fit, the campaign's figure and the banners'
+// titles smaller, four cards across. Drawn whole, footer included.
+@ViddikScreenshot(name = "Content_1024", group = "Home", width = 1024, height = 4160)
+@Composable
+internal fun HomeContentMedium() = Fixture(compact = false, medium = true) { Page { Body("home_content.json") } }
+
 @ViddikScreenshot(name = "Guest", group = "Home", width = 1440, height = 2627)
 @Composable
 internal fun HomeGuestWide() = Fixture(compact = false) { Page { Body("home_guest.json") } }
@@ -88,6 +95,11 @@ internal fun CatalogContentWide() = Fixture(compact = false) { Page { Body("cata
 @ViddikScreenshot(name = "Content_Phone", group = "Catalog", width = 390, height = 2789)
 @Composable
 internal fun CatalogContentPhone() = Fixture(compact = true) { Page { Body("catalog_content.json") } }
+
+// The category at 1024 (B-82): three cards across beside the filters, the applied filters on two lines.
+@ViddikScreenshot(name = "Content_1024", group = "Catalog", width = 1024, height = 2265)
+@Composable
+internal fun CatalogContentMedium() = Fixture(compact = false, medium = true) { Page { Body("catalog_content.json") } }
 
 @ViddikScreenshot(name = "Empty", group = "Catalog", width = 1440, height = 1646)
 @Composable

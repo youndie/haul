@@ -34,6 +34,7 @@ import io.github.youndie.haul.feature.identity.SignInActions
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
+import io.github.youndie.haul.theme.LocalHaulMedium
 import io.github.youndie.haul.ui.CartBody
 import io.github.youndie.haul.ui.CartGroup
 import io.github.youndie.haul.ui.CartLine
@@ -209,8 +210,11 @@ private fun GroupCard(
             )
         }
         Hairline()
+        // Below 1280 the summary leaves the lines 412 px at 1024, where 1440's line gave its title none and set it
+        // one letter a line (B-82): the phone's line, its actions and stepper on a row of their own, fits there.
+        val narrow = compact || LocalHaulMedium.current
         group.lines.forEachIndexed { index, line ->
-            if (compact) PhoneLine(line, selection, onCommand) else WideLine(line, selection, onCommand)
+            if (narrow) PhoneLine(line, selection, onCommand) else WideLine(line, selection, onCommand)
             if (index < group.lines.lastIndex) Hairline()
         }
     }
@@ -265,7 +269,10 @@ private fun WideLine(
     }
 }
 
-/** A line on a phone: box, tile and title with the price; the actions and the stepper on a row of their own. */
+/**
+ * A line on a phone, and on a desktop below 1280 (B-82): box, tile and title with the price; the actions and the
+ * stepper on a row of their own.
+ */
 @Composable
 private fun PhoneLine(
     line: CartLine,

@@ -21,16 +21,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.HaulType.browserLeading
 import io.github.youndie.haul.theme.LocalHaulCompact
+import io.github.youndie.haul.theme.LocalHaulMedium
 import io.github.youndie.haul.ui.CampaignHero
 import io.github.youndie.haul.ui.CampaignRow
 import io.github.youndie.haul.ui.CategoryGrid
 import io.github.youndie.haul.ui.CategoryTile
+import io.github.youndie.haul.ui.FittedText
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Icon
@@ -129,16 +132,22 @@ private fun Hero(
                                 ).copy(color = HaulColors.onPrimary),
                     )
                 }
-                Text(
-                    figure,
-                    HaulType
-                        .display(
-                            if (compact) 108f else 260f,
-                            900,
-                            letterSpacing = -0.05f,
-                            lineHeight = if (compact) 0.84f else 0.82f,
-                        ).copy(color = HaulColors.secondaryContainer),
-                    Modifier.offset(x = if (compact) (-4).dp else (-10).dp),
+                // The figure is as large as the card is wide enough for (B-82): 260 px of «70%» run 50 px past
+                // the card's edge at 1024.
+                FittedText(
+                    AnnotatedString(figure),
+                    size = if (compact) 108f else 260f,
+                    style = { fonts, size ->
+                        HaulType
+                            .display(
+                                fonts,
+                                size,
+                                900,
+                                letterSpacing = -0.05f,
+                                lineHeight = if (compact) 0.84f else 0.82f,
+                            ).copy(color = HaulColors.secondaryContainer)
+                    },
+                    modifier = Modifier.offset(x = if (compact) (-4).dp else (-10).dp),
                     softWrap = false,
                 )
             }
@@ -192,8 +201,11 @@ private fun Banner(
     modifier: Modifier,
 ) {
     val shape = RoundedCornerShape(if (compact) 24.dp else 28.dp)
+    // Below 1280 a banner is 304 px wide at 1024: its title is set smaller, and the placeholder's tile, which the
+    // title would run into, is left out, as on a phone (B-82).
+    val medium = LocalHaulMedium.current
     Box(modifier.clip(shape).follows(banner.action).background(toneColor(banner.tone))) {
-        val label = banner.label
+        val label = banner.label?.takeUnless { medium }
         if (!compact && label != null) {
             Box(
                 Modifier
@@ -219,6 +231,7 @@ private fun Banner(
             // 24 px for «Free delivery on everything»).
             val size =
                 when {
+                    medium -> 32f
                     !compact -> 48f
                     banner.title.length > LONG_BANNER_TITLE -> 24f
                     else -> 28f

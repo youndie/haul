@@ -319,6 +319,36 @@ Where the canvas has no answer the conventional phone pattern is taken:
   with the row or hides its words, and «Orders» and the account do not belong under categories; the button
   right of the cart — it moves the heart, the account and the cart instead of the logo.
 
+**Decided in B-82, the widths the canvas does not draw.** The canvas draws 1440 and 390; the client drew the
+1440 arrangement from 768 up, squeezed — at 1024 the search field a sliver and «HAUL PLUS» one letter a line,
+at 800 the cart's title one letter a line, at 1280 the product's «WH-1000XM6» broken before its last figure.
+Three bands now, chosen by the page's width (`HaulThemeAtWidth`, `App.kt`):
+
+- **Below 1024, the phone's arrangement** (`COMPACT_BELOW`, was 768): the menu button, the scrolling category
+  row, one column, the phone's cart lines. Every phone layout already held any width from 375 up; at 800 it
+  reads, with large cards (two across) and a photo as wide as the page. A tablet held upright gets a big
+  phone, which is what the stores the canvas imitates give it.
+- **From 1024 to 1279, the desktop rearranged** (`LocalHaulMedium`, `WIDE_FROM`): what 1440's arrangement
+  squeezes moves rather than shrinks. The header's search field takes a row of its own under the logo's (the
+  header is 261 px, not 185; the page's static frame draws it so). The cart's lines are the phone's beside the
+  summary; the product's buy box goes under its title, beside the photo, and its facts under the copy;
+  checkout's summary under its sections; the account's tiles one under another and its history rows the
+  phone's; a search's kinds scroll sideways; a banner's title is 32 px and its placeholder tile is left out.
+- **At every desktop width, what does not fit is fitted**: the header's category row draws the words that fit
+  whole and keeps «HAUL PLUS» at its end («Catalog» lists every category); a grid takes as many cards of
+  168 px as fit (four at 1024) up to the columns the tree asks for; the campaign's figure, the footer's
+  wordmark and the product's title are set as large as their width holds (`FittedText`); the catalog's applied
+  filters wrap, the sort at the first line's end. At 1440 each of these draws what it drew, and no 1440 or 390
+  golden moved.
+- No artboard draws 1024: `Home_Content_1024`, `Catalog_Content_1024`, `Product_Description_1024` and
+  `Cart_Content_1024` are goldens without a reference, and `WidthsTest` reads every text of the header and of
+  every page's tree at 800, 1024 and 1280 for a word cut at an edge or broken between two lines.
+- Rejected: the phone below 1280 (a laptop at 1024 with a menu button and two cards across); the desktop down
+  to 768 (at 800 the cart, the product page and the catalog's grid beside the filters need a third
+  arrangement each); dropping the words under «Orders», «Saved» and the account and the cart's «Cart» to keep
+  the 1024 header one row (about 200 px back for the field, and three bare icons the canvas draws nowhere on a
+  desktop); scaling the whole page down.
+
 **Decided in B-67, the header over a page the shell draws itself leads somewhere.** A placeholder, an error
 page, a page that is not there, the sign-in prompt and the sign-in page carry no tree, so their header is the
 client's. It used to be `SHELL_HEADER` with no actions at all: on a page that did not load only the logo and

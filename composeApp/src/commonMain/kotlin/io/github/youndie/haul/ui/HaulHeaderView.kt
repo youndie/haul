@@ -66,6 +66,7 @@ import io.github.youndie.haul.feature.identity.SignInActions
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
+import io.github.youndie.haul.theme.LocalHaulMedium
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.standard.NavigateAction
 import kotlinx.coroutines.launch
@@ -231,7 +232,7 @@ public fun HaulHeaderView(
         if (compact) {
             CompactHeader(header, pending, account, press)
         } else {
-            WideHeader(header, pending, account)
+            WideHeader(header, pending, account, medium = LocalHaulMedium.current)
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(HaulColors.outlineVariant))
     }
@@ -271,11 +272,18 @@ private fun accountTap(
         )
     }
 
+/**
+ * The header at 1440, and at any desktop width (B-82): below 1280 ([medium]) the search field takes a row of its
+ * own under the logo's, where 1440's single row left it a sliver at 1024; the category row draws the words that
+ * fit whole and keeps «HAUL PLUS» at its end, where it used to be squeezed into a column of letters. «Catalog»
+ * lists every category, so a word that does not fit is still a press away.
+ */
 @Composable
 private fun WideHeader(
     header: HaulHeader,
     pending: Boolean,
     account: Modifier,
+    medium: Boolean,
 ) {
     // Where the store delivers and for how much (B-72): two facts, nothing to press. The canvas's «Sell on
     // HAUL», «Help» and «EN · USD» had no page behind them and are not drawn.
@@ -285,6 +293,25 @@ private fun WideHeader(
             Text(header.deliveryPromise.uppercase(), style)
         }
     }
+    val search =
+        @Composable { modifier: Modifier ->
+            SearchField(
+                header,
+                modifier,
+                height = 56.dp,
+                radius = 16.dp,
+                start = 20.dp,
+                end = 4.dp,
+                gap = 14.dp,
+                textSize = 17f,
+                button = 44.dp,
+                buttonRadius = 12.dp,
+                glyph = 22.dp,
+            ) {
+                Box(Modifier.width(1.dp).height(28.dp).background(HaulColors.outlineVariant))
+                ScopePicker(header)
+            }
+        }
     Row(
         Modifier.fillMaxWidth().height(96.dp).padding(horizontal = 48.dp),
         horizontalArrangement = Arrangement.spacedBy(20.dp),
@@ -310,22 +337,7 @@ private fun WideHeader(
                 Text("Catalog", HaulType.text(16f, 700).copy(color = HaulColors.onPrimary))
             }
         }
-        SearchField(
-            header,
-            Modifier.weight(1f),
-            height = 56.dp,
-            radius = 16.dp,
-            start = 20.dp,
-            end = 4.dp,
-            gap = 14.dp,
-            textSize = 17f,
-            button = 44.dp,
-            buttonRadius = 12.dp,
-            glyph = 22.dp,
-        ) {
-            Box(Modifier.width(1.dp).height(28.dp).background(HaulColors.outlineVariant))
-            ScopePicker(header)
-        }
+        if (medium) Spacer(Modifier.weight(1f)) else search(Modifier.weight(1f))
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
             // «Orders» goes where the tree says (`HaulHeader.orders`): a customer's orders, a guest's sign-in.
             Shortcut(HaulIcons.box, "Orders", modifier = Modifier.follows(header.orders))
@@ -357,27 +369,35 @@ private fun WideHeader(
             )
         }
     }
+    if (medium) {
+        // The row's own 20 px above the field's 56, as the logo's row has around its 56 px controls.
+        search(Modifier.fillMaxWidth().padding(start = 48.dp, end = 48.dp, bottom = 20.dp))
+    }
     Row(
         Modifier.fillMaxWidth().height(52.dp).padding(horizontal = 48.dp),
         horizontalArrangement = Arrangement.spacedBy(28.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Deals(size = 15f, Modifier.follows(header.deals))
-        SpacedWords(header.categories, 28.dp, HaulType.text(15f, 500), links = header.catalog)
-        Spacer(Modifier.weight(1f))
+        FittingWords(header.categories, 28.dp, HaulType.text(15f, 500), Modifier.weight(1f), links = header.catalog)
         // The Plus offer (`HaulHeader.plus`, B-49): the trial's dialog, a member's account, a guest's sign-in.
         Text(
             "HAUL PLUS",
             HaulType.label(11f, 600, 0.06f),
             Modifier
+                .testTag(PLUS_PILL_TAG)
                 .follows(header.plus)
                 .background(
                     HaulColors.secondaryContainer,
                     CircleShape,
                 ).padding(horizontal = 12.dp, vertical = 7.dp),
+            softWrap = false,
         )
     }
 }
+
+/** The tag of the wide header's «HAUL PLUS», for the tests that read it at every desktop width. */
+public const val PLUS_PILL_TAG: String = "plus-pill"
 
 /**
  * The phone's header (B-73): what the 1440 header has no room for here — the catalog's every category,
