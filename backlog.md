@@ -46,7 +46,7 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-112](docs/backlog/B-112-first-press-focuses-the-field.md) `[~]` | client: the first press on a text field focuses it | P1 | M | - |
+| [B-112](docs/backlog/B-112-first-press-focuses-the-field.md) `[?]` | client: the first press on a text field focuses it | P1 | M | - |
 | [B-107](docs/backlog/B-107-copy-that-promises-nothing.md) `[ ]` | server: the store does not promise what it does not have | P3 | S | - |
 | [B-108](docs/backlog/B-108-pages-look-alike.md) `[ ]` | client + server: the same thing looks the same on every page | P3 | M | - |
 | [B-110](docs/backlog/B-110-order-updates-log-noise.md) `[ ]` | server: a client leaving the order page is not an error | P3 | XS | - |
