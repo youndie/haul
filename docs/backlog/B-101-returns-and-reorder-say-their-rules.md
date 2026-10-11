@@ -1,7 +1,7 @@
 ---
 id: B-101
 title: "server + client: returns and reorder say what they did and what is left"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-11-qa
