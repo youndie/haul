@@ -45,7 +45,7 @@ and sends her back. B-67's `SHELL_HEADER` is the guest's; its category words all
   over a missing product draws the guest's header asked anew, and the client's own guest header when that does
   not arrive. Server: `HomeRoutesTest` (the header alone is home's, «Electronics» to its category),
   `IdentityRoutesTest` (`/ui/header` among the screens whose header greets whoever is looking: nobody, a guest's
-  count, Maya's). `SignInPromptTest` counts the page's loads and no longer counts the header asked beside them.
+  count, Maya's). `SignInPromptTest` and `StorefrontTest` count the page's loads and no longer count the header asked beside them.
 - **Mutations**, each red then restored, `git status` clean: the ask does nothing → all five; the header kept
   whoever looks → the sign-out test whose guest header does not arrive; the shell asked as if it knew whoever
   looks → both sign-out tests; no customer header → «before the header answers»; a tree's header tagged a guest's

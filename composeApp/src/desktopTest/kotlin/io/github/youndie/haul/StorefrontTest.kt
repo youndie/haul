@@ -13,6 +13,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import io.github.youndie.haul.shell.BrowserHistory
+import io.github.youndie.haul.shell.HEADER_TREE
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
 import io.github.youndie.haul.shell.LOADING_TAG
@@ -64,7 +65,8 @@ class StorefrontTest {
 
     private val transport =
         HaulTransport { path ->
-            requests += path
+            // These tests count the page's loads; the header alone (B-105) is asked beside them and not counted.
+            if (path != HEADER_TREE) requests += path
             val queue = answers[path] ?: error("nothing answers $path")
             val next = if (queue.size > 1) queue.removeFirst() else queue.first()
             next()
