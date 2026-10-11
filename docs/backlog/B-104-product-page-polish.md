@@ -1,7 +1,7 @@
 ---
 id: B-104
 title: "client + server: the product page keeps what the shopper chose"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-11-qa
