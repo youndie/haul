@@ -1,7 +1,7 @@
 ---
 id: B-111
 title: "test: a test database is seeded as fast as before B-99"
-status: open
+status: wip
 priority: P1
 size: S
 stage: stage-11-qa
