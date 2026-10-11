@@ -1,7 +1,7 @@
 ---
 id: B-112
 title: "client: the first press on a text field focuses it"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-11-qa
