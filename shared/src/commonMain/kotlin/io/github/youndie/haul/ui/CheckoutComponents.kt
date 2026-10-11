@@ -147,6 +147,9 @@ public data class SlotDay(
 /**
  * The courier's windows over the next five days. A tap on an available one sends `CheckoutChoice(slotId)`
  * to [url]; [notice] says what to do when the window chosen filled up («Pick another window for Wed, Oct 8»).
+ * Another day's tile only shows that day's windows; while a day other than the chosen window's is shown,
+ * «Place order» is held and says [otherDayHint] («Pick a delivery window») until one of its windows is
+ * chosen — the order is placed for the window the server holds, which the summary names (B-97).
  */
 @Serializable
 @SerialName("haul_delivery_slots")
@@ -156,6 +159,7 @@ public data class DeliverySlots(
     val title: String,
     val days: List<SlotDay>,
     val notice: String? = null,
+    val otherDayHint: String? = null,
     val url: String,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent

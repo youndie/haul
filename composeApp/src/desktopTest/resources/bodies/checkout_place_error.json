@@ -251,6 +251,7 @@
                     }
                 ],
                 "notice": "Pick another window for Wed, Oct 8",
+                "otherDayHint": "Pick a delivery window",
                 "url": "/api/v1/me/checkout"
             },
             "payment": {
