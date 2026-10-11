@@ -5,6 +5,7 @@ import io.github.youndie.haul.feature.search.data.ExposedRecentSearches
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.testing.PostgresHarness
 import kotlinx.coroutines.runBlocking
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -14,8 +15,12 @@ import kotlin.test.assertEquals
  * rule is held.
  */
 class RecentSearchesTest {
-    private val recent = ExposedRecentSearches(Databases.connect(PostgresHarness.freshDatabase()))
+    private val dataSource = PostgresHarness.freshDatabase()
+    private val recent = ExposedRecentSearches(Databases.connect(dataSource))
     private val now = CatalogSeed.NOW
+
+    @AfterTest
+    fun close() = dataSource.close()
 
     @Test
     fun `one customer's searches are not another's`() =

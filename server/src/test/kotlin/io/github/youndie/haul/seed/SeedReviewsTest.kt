@@ -18,60 +18,63 @@ import kotlin.test.assertTrue
  */
 class SeedReviewsTest {
     @Test
-    fun `every product's counts and histogram are its stored rows`() {
-        val dataSource = PostgresHarness.freshDatabase()
-        assertTrue(Seeder.seedIfEmpty(Databases.connect(dataSource), CatalogSeed.generate(CatalogSeed.CANVAS_DAY)))
+    fun `every product's counts and histogram are its stored rows`() =
+        PostgresHarness.freshDatabase().use { dataSource ->
+            assertTrue(Seeder.seedIfEmpty(Databases.connect(dataSource), CatalogSeed.generate(CatalogSeed.CANVAS_DAY)))
 
-        assertEquals(emptyList(), dataSource.miscounted(), "products whose counts are not their rows")
-        assertEquals(2_341 to 86, dataSource.counts(SONY_HEADPHONES))
-        assertEquals(mapOf(5 to 1_826, 4 to 328, 3 to 94, 2 to 47, 1 to 46), dataSource.histogram(SONY_HEADPHONES))
-        // The seed's counts are the ones stored: what the cards and the sorts read.
-        val seeded =
-            CatalogSeed.generate(CatalogSeed.CANVAS_DAY).products.associate {
-                it.id to
-                    (it.reviewsCount to it.questionsCount)
-            }
-        assertEquals(seeded, dataSource.allCounts())
-    }
+            assertEquals(emptyList(), dataSource.miscounted(), "products whose counts are not their rows")
+            assertEquals(2_341 to 86, dataSource.counts(SONY_HEADPHONES))
+            assertEquals(mapOf(5 to 1_826, 4 to 328, 3 to 94, 2 to 47, 1 to 46), dataSource.histogram(SONY_HEADPHONES))
+            // The seed's counts are the ones stored: what the cards and the sorts read.
+            val seeded =
+                CatalogSeed.generate(CatalogSeed.CANVAS_DAY).products.associate {
+                    it.id to
+                        (it.reviewsCount to it.questionsCount)
+                }
+            assertEquals(seeded, dataSource.allCounts())
+        }
 
     @Test
-    fun `a catalogue seeded before the rows gets them and its counts from them`() {
-        val dataSource = PostgresHarness.freshDatabase()
-        val database = Databases.connect(dataSource)
-        Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY))
-        val generated =
-            CatalogSeed
-                .generate(CatalogSeed.CANVAS_DAY)
-                .products
-                .first { it.id.matches(Regex("p-\\d{3}-\\d{2}")) && it.reviewsCount > 0 }
-                .id
-        // As a stand was: the canvas's rows only, the counts at marketplace scale, and a review Maya wrote.
-        dataSource.run(
-            "DELETE FROM reviews WHERE id LIKE 'rf-%'",
-            "DELETE FROM questions WHERE id LIKE 'qf-%'",
-            "DELETE FROM rating_counts",
-            "INSERT INTO rating_counts VALUES ('$SONY_HEADPHONES', 5, 1827), ('$SONY_HEADPHONES', 4, 328)",
-            "UPDATE products SET reviews_count = 9000, questions_count = 150 WHERE id = '$generated'",
-            "UPDATE products SET reviews_count = 2342 WHERE id = '$SONY_HEADPHONES'",
-            """
-            INSERT INTO reviews (id, product_id, customer_id, author, rating, title, body, verified, helpful, tone, created_at)
-            VALUES ('r-mayas', '$SONY_HEADPHONES', '${SampleCustomers.MAYA}', 'Maya K.', 5, 'Quiet', 'Quiet on every flight I take.',
-                false, 0, '#E6E4FF', '2025-10-07T12:00:00-04:00')
-            """.trimIndent(),
-        )
+    fun `a catalogue seeded before the rows gets them and its counts from them`() =
+        PostgresHarness.freshDatabase().use { dataSource ->
+            val database = Databases.connect(dataSource)
+            Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY))
+            val generated =
+                CatalogSeed
+                    .generate(CatalogSeed.CANVAS_DAY)
+                    .products
+                    .first { it.id.matches(Regex("p-\\d{3}-\\d{2}")) && it.reviewsCount > 0 }
+                    .id
+            // As a stand was: the canvas's rows only, the counts at marketplace scale, and a review Maya wrote.
+            dataSource.run(
+                "DELETE FROM reviews WHERE id LIKE 'rf-%'",
+                "DELETE FROM questions WHERE id LIKE 'qf-%'",
+                "DELETE FROM rating_counts",
+                "INSERT INTO rating_counts VALUES ('$SONY_HEADPHONES', 5, 1827), ('$SONY_HEADPHONES', 4, 328)",
+                "UPDATE products SET reviews_count = 9000, questions_count = 150 WHERE id = '$generated'",
+                "UPDATE products SET reviews_count = 2342 WHERE id = '$SONY_HEADPHONES'",
+                """
+                INSERT INTO reviews (id, product_id, customer_id, author, rating, title, body, verified, helpful, tone, created_at)
+                VALUES ('r-mayas', '$SONY_HEADPHONES', '${SampleCustomers.MAYA}', 'Maya K.', 5, 'Quiet', 'Quiet on every flight I take.',
+                    false, 0, '#E6E4FF', '2025-10-07T12:00:00-04:00')
+                """.trimIndent(),
+            )
 
-        assertFalse(Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY)), "the catalog was there")
-        assertEquals(emptyList(), dataSource.miscounted())
-        assertEquals(2_342 to 86, dataSource.counts(SONY_HEADPHONES), "the seed's 2,341 and Maya's")
-        assertEquals(mapOf(5 to 1_827, 4 to 328, 3 to 94, 2 to 47, 1 to 46), dataSource.histogram(SONY_HEADPHONES))
-        val seeded = CatalogSeed.generate(CatalogSeed.CANVAS_DAY).products.single { it.id == generated }
-        assertEquals(seeded.reviewsCount to seeded.questionsCount, dataSource.counts(generated))
+            assertFalse(
+                Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY)),
+                "the catalog was there",
+            )
+            assertEquals(emptyList(), dataSource.miscounted())
+            assertEquals(2_342 to 86, dataSource.counts(SONY_HEADPHONES), "the seed's 2,341 and Maya's")
+            assertEquals(mapOf(5 to 1_827, 4 to 328, 3 to 94, 2 to 47, 1 to 46), dataSource.histogram(SONY_HEADPHONES))
+            val seeded = CatalogSeed.generate(CatalogSeed.CANVAS_DAY).products.single { it.id == generated }
+            assertEquals(seeded.reviewsCount to seeded.questionsCount, dataSource.counts(generated))
 
-        // The next start finds every row there and writes nothing.
-        val digest = SeedDigest.of(dataSource)
-        Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY))
-        assertEquals(digest, SeedDigest.of(dataSource), "a second start changed the reviews")
-    }
+            // The next start finds every row there and writes nothing.
+            val digest = SeedDigest.of(dataSource)
+            Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY))
+            assertEquals(digest, SeedDigest.of(dataSource), "a second start changed the reviews")
+        }
 
     @Test
     fun `a histogram made from an average gives that average`() {

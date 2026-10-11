@@ -13,12 +13,13 @@ import kotlin.test.assertEquals
 class ProbesTest {
     @Test
     fun `readiness answers 200 while the database answers`() =
-        testApplication {
-            val dataSource = PostgresHarness.freshDatabase()
-            application { routing { probes(commit = "abc1234", ready = { databaseAnswers(dataSource) }) } }
+        PostgresHarness.freshDatabase().use { dataSource ->
+            testApplication {
+                application { routing { probes(commit = "abc1234", ready = { databaseAnswers(dataSource) }) } }
 
-            assertEquals(HttpStatusCode.OK, client.get("/readyz").status)
-            assertEquals("""{"commit":"abc1234"}""", client.get("/version").bodyAsText())
+                assertEquals(HttpStatusCode.OK, client.get("/readyz").status)
+                assertEquals("""{"commit":"abc1234"}""", client.get("/version").bodyAsText())
+            }
         }
 
     /**

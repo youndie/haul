@@ -22,6 +22,7 @@ import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.http.HttpStatusCode
 import javax.sql.DataSource
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -36,6 +37,10 @@ import kotlin.test.assertTrue
 class ChangedLinesTest {
     private val headphones = "${SampleCatalog.SONY_HEADPHONES}-0"
     private val mug = "${SampleCatalog.STONEWARE_MUG}-0"
+    private val db = seededFreshDatabase()
+
+    @AfterTest
+    fun close() = db.close()
 
     private fun DataSource.sql(statement: String) {
         connection.use { c ->
@@ -57,7 +62,6 @@ class ChangedLinesTest {
      */
     @Test
     fun `a changed line bought alone is accepted at the price the page showed`() {
-        val db = seededFreshDatabase()
         haulTest(db) {
             val guest = guest()
             putLine(guest, headphones, LineChange(quantity = 1)).assertRefresh()
@@ -76,7 +80,6 @@ class ChangedLinesTest {
 
     @Test
     fun `a line whose price changed is marked and left out until acknowledged`() {
-        val db = seededFreshDatabase()
         haulTest(db) {
             val guest = guest()
             putLine(guest, headphones, LineChange(quantity = 1)).assertRefresh()
@@ -114,7 +117,6 @@ class ChangedLinesTest {
     /** «Never above stock», where the stock is below the cap of ten. */
     @Test
     fun `a quantity above the stock is 409 out_of_stock`() {
-        val db = seededFreshDatabase()
         haulTest(db) {
             db.sql("UPDATE skus SET stock = 3 WHERE id = '$mug'")
             val guest = guest()
@@ -127,7 +129,6 @@ class ChangedLinesTest {
 
     @Test
     fun `a line that went out of stock is marked and stays out of the selection`() {
-        val db = seededFreshDatabase()
         haulTest(db) {
             val guest = guest()
             putLine(guest, mug, LineChange(quantity = 1)).assertRefresh()

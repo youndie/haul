@@ -32,6 +32,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import java.io.File
 import javax.sql.DataSource
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -54,7 +55,7 @@ import kotlin.test.assertTrue
  * a card as the server writes one, key for key.
  */
 class CartFixturesTest {
-    private val dataSource: DataSource = seededFreshDatabase()
+    private val dataSource = seededFreshDatabase()
     private val database = Databases.connect(dataSource)
     private val catalog = ExposedCatalogRepository(database, CANVAS_NOW)
     private val carts = ExposedCartRepository(database)
@@ -70,6 +71,9 @@ class CartFixturesTest {
         )
     private val bodies = File(System.getProperty("haul.clientBodies") ?: error("haul.clientBodies is not set"))
     private val pretty = Json(haulWireJson) { prettyPrint = true }
+
+    @AfterTest
+    fun close() = dataSource.close()
 
     private fun DataSource.sql(statement: String) {
         connection.use { c ->

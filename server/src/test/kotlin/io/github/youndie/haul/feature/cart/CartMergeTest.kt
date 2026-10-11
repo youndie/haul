@@ -13,6 +13,7 @@ import io.github.youndie.haul.testing.CANVAS_NOW
 import io.github.youndie.haul.testing.seededFreshDatabase
 import kotlinx.coroutines.runBlocking
 import java.util.UUID
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -29,6 +30,9 @@ class CartMergeTest {
     private val commands = CartCommands(carts, ExposedCatalogRepository(database, CANVAS_NOW), CANVAS_NOW)
     private val mug = "${SampleCatalog.STONEWARE_MUG}-0"
     private val duvet = "${SampleCatalog.DUVET_COVER}-0"
+
+    @AfterTest
+    fun close() = dataSource.close()
 
     private fun parties(): Pair<CartOwner.Guest, CartOwner.Customer> =
         runBlocking {

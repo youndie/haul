@@ -11,6 +11,7 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.time.LocalDate
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -20,9 +21,13 @@ import kotlin.test.assertFalse
  * membership, no points — gets them on its next start, and points spent since are not handed out again.
  */
 class SeedLoyaltyTest {
+    private val dataSource = PostgresHarness.freshDatabase()
+
+    @AfterTest
+    fun close() = dataSource.close()
+
     @Test
     fun `a database seeded before the ledger gets Maya's membership and points once`() {
-        val dataSource = PostgresHarness.freshDatabase()
         val database = Databases.connect(dataSource)
         Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY))
         transaction(database) {

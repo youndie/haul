@@ -39,11 +39,14 @@ class SchemaTest {
 
     @Test
     fun `the migrated schema needs no further DDL for the catalog tables`() {
-        val database = Databases.connect(PostgresHarness.freshDatabase())
         val required =
-            transaction(database) {
-                MigrationUtils.statementsRequiredForDatabaseMigration(*catalogTables.toTypedArray())
-            }.filterNot { it in searchIndexesOnProducts }
+            PostgresHarness
+                .freshDatabase()
+                .use {
+                    transaction(Databases.connect(it)) {
+                        MigrationUtils.statementsRequiredForDatabaseMigration(*catalogTables.toTypedArray())
+                    }
+                }.filterNot { it in searchIndexesOnProducts }
         assertEquals(
             emptyList(),
             required,
@@ -54,10 +57,11 @@ class SchemaTest {
     /** V3's `recent_searches` against its Exposed declaration. */
     @Test
     fun `the migrated schema needs no further DDL for the search tables`() {
-        val database = Databases.connect(PostgresHarness.freshDatabase())
         val required =
-            transaction(database) {
-                MigrationUtils.statementsRequiredForDatabaseMigration(*searchTables.toTypedArray())
+            PostgresHarness.freshDatabase().use {
+                transaction(Databases.connect(it)) {
+                    MigrationUtils.statementsRequiredForDatabaseMigration(*searchTables.toTypedArray())
+                }
             }
         assertEquals(emptyList(), required, "still required:\n" + required.joinToString("\n"))
         assertEquals(1, searchTables.size)
@@ -66,10 +70,11 @@ class SchemaTest {
     /** V4's guests, promo codes, carts and lines, and V8's customers, against their Exposed declarations. */
     @Test
     fun `the migrated schema needs no further DDL for the cart tables`() {
-        val database = Databases.connect(PostgresHarness.freshDatabase())
         val required =
-            transaction(database) {
-                MigrationUtils.statementsRequiredForDatabaseMigration(*cartTables.toTypedArray())
+            PostgresHarness.freshDatabase().use {
+                transaction(Databases.connect(it)) {
+                    MigrationUtils.statementsRequiredForDatabaseMigration(*cartTables.toTypedArray())
+                }
             }
         assertEquals(emptyList(), required, "still required:\n" + required.joinToString("\n"))
         assertEquals(5, cartTables.size)

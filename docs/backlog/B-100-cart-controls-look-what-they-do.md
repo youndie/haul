@@ -89,6 +89,30 @@ Found in the QA pass of 2026-10-10 (v0.3.0):
 - **A «Buy now» on a SKU out of stock that the cart already holds** is accepted by the server (as a selection change
   always was) but never offered by the tree; the line stays not counted.
 
+## Findings: the server suite ran out of PostgreSQL connections (2026-10-11)
+
+- **haul#121's `gradle` failed twice in `UniqueIdsTest`'s customer walks with «sorry, too many clients already»**
+  (run 38134352751), after the rebase on B-99; `main` with B-99 was green. Not B-100's code and not the B-99 seed's
+  time: test databases left open. Every `PostgresHarness.freshDatabase` comes with a Hikari pool that keeps its four
+  connections open until it is closed, the suite runs in one JVM against one container, and 22 test databases were
+  never closed — `RecentSearchesTest`, `CartMergeTest` and `CartFixturesTest` held one per test instance, and
+  `ChangedLinesTest`, `SchemaTest`, `SeedTest`, `SeedReviewsTest`, `SeedLoyaltyTest` and `ProbesTest` opened them
+  inside a test without `use`. With the three the suite keeps on purpose (the shared seeded database,
+  `PhotoRoutesTest`'s and `DeliverySlotsTest`'s), that was 25 pools, 100 connections: PostgreSQL's limit. `main`
+  sat at 96 — B-99's two new `SeedReviewsTest` databases had taken it there — and the database B-100's new
+  `ChangedLinesTest` case opens was the one over; the first test to ask for a database after the seed tests,
+  `UniqueIdsTest`, failed. Reproduced on the WSL box with a count of PostgreSQL's client backends at every new
+  database: it climbed by four at each of those sites and reached 97 before `UniqueIdsTest`, which failed as on CI.
+  With the fix the same count peaks at 13, and no more than the three kept databases are open when a test asks for
+  one (`:server:test`, 203 databases).
+- **Fixed in the tests, not in `max_connections`**: raising the limit would only move the wall, and the next leak
+  would fail some other test far from where it is. Each of those databases is closed by the test that opens it
+  (`use`, or `@AfterTest` for a test class's own). `PostgresHarness` now keeps the databases it handed out and
+  refuses to open more than eight at once, naming where each open one was opened — a leak fails near its address,
+  not in whichever test is unlucky (checked: with three of the fixes reverted, the ninth database was refused with
+  the eight left open listed by file and line).
+- `LiveOrderTest`'s timing failure in the first attempt is the suite's length (B-111), not this.
+
 ## Where the checks ran (2026-10-11)
 
 On the WSL box (Ubuntu 24.04), after the rebase on `origin/main` (B-98 in): `:composeApp:wasmJsBrowserDistribution`
