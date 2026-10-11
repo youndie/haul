@@ -42,11 +42,10 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (14)
+## Open (13)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-106](docs/backlog/B-106-display-face-loses-characters.md) `[~]` | client: the display face draws every character it is given | P2 | S | - |
 | [B-109](docs/backlog/B-109-saga-steps-in-tracy.md) `[ ]` | server: an order's saga is visible in tracy | P2 | S | - |
 | [B-82](docs/backlog/B-82-tablet-widths.md) `[ ]` | client: the store reads well between a phone and 1440 | P2 | M | - |
 | [B-83](docs/backlog/B-83-typed-input-before-every-press.md) `[ ]` | client: every press that reads a field sees what was typed | P2 | S | - |
@@ -61,7 +60,7 @@ A stage is a field on the item, not a directory.
 | [B-89](docs/backlog/B-89-traffic-exercises-compensation.md) `[ ]` | e2e: the synthetic shoppers also walk a declined payment | P3 | S | - |
 | [B-90](docs/backlog/B-90-review-loop-leftovers.md) `[ ]` | client + server: the small leftovers of the review loop | P3 | S | - |
 
-## Closed (97)
+## Closed (98)
 
 **Skeleton**
 
@@ -182,6 +181,7 @@ A stage is a field on the item, not a directory.
 - [B-103](docs/backlog/B-103-search-panel-keeps-the-scope.md) `[x]` - server: the search panel keeps the query and the scope
 - [B-104](docs/backlog/B-104-product-page-polish.md) `[x]` - client + server: the product page keeps what the shopper chose
 - [B-105](docs/backlog/B-105-shell-header-knows-the-customer.md) `[x]` - client: a page opened directly knows who is signed in
+- [B-106](docs/backlog/B-106-display-face-loses-characters.md) `[x]` - client: the display face draws every character it is given
 - [B-111](docs/backlog/B-111-tests-seed-fast.md) `[x]` - test: a test database is seeded as fast as before B-99
 - [B-91](docs/backlog/B-91-order-line-price-is-a-line-total.md) `[x]` - server: an order line's price is a unit price, and a return refunds what was paid
 - [B-92](docs/backlog/B-92-a-failed-command-says-so.md) `[x]` - client: a command that fails or is refused tells the shopper

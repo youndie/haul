@@ -1626,6 +1626,13 @@ variable files of `google/fonts@5e8a3ba`, OFL, bundled as Compose resources with
 draws it with optical sizing on. *Hypothesis still open:* that wasmJs honours the `opsz` setting as the
 desktop target does — checked when a screen is first compared in the browser.
 
+**Found in B-106: at the canvas's optical size Bodoni Moda's hairlines are 0.2 px.** The hairline is about
+0.2 em ÷ `opsz` (the hyphen: 72/2000 em at 6, 20 at 22, 4 at 96), so drawn at `opsz` = its pixel size it is about
+0.2 px at any size: a hyphen and a dash vanish, a 4 reads as a 1. Figures and punctuation are drawn at a smaller
+optical size whose hairline is a pixel (`HaulType.legibleFigures`, `legibleOpticalSize`); their advances are the same
+along the axis, so no line moves. Letters keep the canvas's cut — theirs grow by up to 2 % towards the small cuts and
+re-break titles — and an H's bar still vanishes (B-106's findings).
+
 **Found in B-07: three ways Compose lays text out unlike the browser the references come from.**
 Measured on the Home and Catalog artboards (B-07, Iteration 1):
 
