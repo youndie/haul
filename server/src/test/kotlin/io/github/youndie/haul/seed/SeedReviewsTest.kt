@@ -76,6 +76,27 @@ class SeedReviewsTest {
             assertEquals(digest, SeedDigest.of(dataSource), "a second start changed the reviews")
         }
 
+    /**
+     * B-111: the tests' seed leaves the generated rows out, and a start that fills — `main`'s, which never
+     * passes the switch — puts every one of them in, so no database stays without them past such a start.
+     */
+    @Test
+    fun `a database seeded without the generated rows gets them on the next start that fills`() {
+        val dataSource = PostgresHarness.freshDatabase()
+        val database = Databases.connect(dataSource)
+        assertTrue(
+            Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY), generatedReviews = false),
+        )
+        assertEquals(0 to 0, dataSource.generated(), "the tests' seed wrote the generated rows")
+        val headphones = CatalogSeed.generate(CatalogSeed.CANVAS_DAY).products.single { it.id == SONY_HEADPHONES }
+        assertEquals(headphones.reviewsCount to headphones.questionsCount, dataSource.counts(SONY_HEADPHONES))
+
+        assertFalse(Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY)), "the catalog was there")
+        val filled = PostgresHarness.freshDatabase()
+        assertTrue(Seeder.seedIfEmpty(Databases.connect(filled), CatalogSeed.generate(CatalogSeed.CANVAS_DAY)))
+        assertEquals(SeedDigest.of(filled), SeedDigest.of(dataSource), "not the database a seed that fills writes")
+    }
+
     @Test
     fun `a histogram made from an average gives that average`() {
         assertEquals(mapOf(5 to 294, 4 to 126), SeedReviews.histogram(BigDecimal("4.7"), 420))
@@ -108,6 +129,12 @@ class SeedReviewsTest {
             it.getInt(1) to
                 it.getInt(2)
         }.single()
+
+    /** How many generated reviews and questions the database holds. */
+    private fun DataSource.generated(): Pair<Int, Int> =
+        query(
+            "SELECT (SELECT count(*) FROM reviews WHERE id LIKE 'rf-%'), (SELECT count(*) FROM questions WHERE id LIKE 'qf-%')",
+        ) { it.getInt(1) to it.getInt(2) }.single()
 
     private fun DataSource.allCounts(): Map<String, Pair<Int, Int>> =
         query("SELECT id, reviews_count, questions_count FROM products") {

@@ -44,7 +44,13 @@ class PhotoRoutesTest {
         val dataSource: DataSource by lazy {
             PostgresHarness.freshDatabase().also {
                 val database = Databases.connect(it)
-                check(Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY)))
+                check(
+                    Seeder.seedIfEmpty(
+                        database,
+                        CatalogSeed.generate(CatalogSeed.CANVAS_DAY),
+                        generatedReviews = false,
+                    ),
+                )
                 val stored = runBlocking { SeedPhotos.attach(database, store) }
                 check(stored == SampleCatalog.products.size) { "stored $stored photos" }
             }

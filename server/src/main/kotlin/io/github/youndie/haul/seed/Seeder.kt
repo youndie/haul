@@ -50,15 +50,23 @@ internal object Seeder {
      * memberships and opening points ([seedLoyalty], B-23) and the reviews and questions behind every
      * product's counts ([SeedReviews.fill], B-99) are written either way, each once: a database seeded before
      * they existed gets them on its next start.
+     *
+     * [generatedReviews] `false` leaves out that fill — the 60,849 reviews and 6,799 questions written in SQL —
+     * and nothing else: the catalogue's own rows (the canvas's reviews and questions) and its counts go in as
+     * they are, and no histogram is written. Only the server's tests pass it (B-111), for a database of their
+     * own that reads no review: the fill is most of a fresh seed's time, paid by every test that writes. `main`
+     * does not pass it, and a database seeded without the fill gets the rows on its next start that fills, as
+     * any database seeded before B-99 does.
      */
     fun seedIfEmpty(
         database: Database,
         catalog: SeedCatalog,
+        generatedReviews: Boolean = true,
     ): Boolean =
         transaction(database) {
             exec("SELECT pg_advisory_xact_lock($LOCK_KEY)")
             if (!CategoriesTable.selectAll().empty()) {
-                SeedReviews.fill(connection.connection as Connection, catalog, fresh = false)
+                if (generatedReviews) SeedReviews.fill(connection.connection as Connection, catalog, fresh = false)
                 seedLoyalty(catalog)
                 return@transaction false
             }
@@ -211,7 +219,7 @@ internal object Seeder {
                 this[QuestionsTable.answeredAt] = it.answeredAt
             }
             // The rest of every count, and the histograms, from the rows (B-99).
-            SeedReviews.fill(connection.connection as Connection, catalog, fresh = true)
+            if (generatedReviews) SeedReviews.fill(connection.connection as Connection, catalog, fresh = true)
             seedLoyalty(catalog)
             true
         }
