@@ -90,7 +90,7 @@ internal class ReviewCommands(
 
     companion object {
         /** The canvas's tile tones (`canvas.json`, `tileTones`), one per author, so an avatar keeps its colour. */
-        private val TONES =
+        val TONES: List<String> =
             listOf("#E6E4FF", "#F1EBDD", "#FFE5DD", "#F1E4F5", "#FFF1C9", "#E3F5D8", "#E9F0D2", "#E0EEF7", "#ECE9E2")
 
         /** «Maya K.» for «Maya Kowalski», as the canvas signs a review; a single name stays whole. */

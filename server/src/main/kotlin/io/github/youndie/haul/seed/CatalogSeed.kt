@@ -195,8 +195,10 @@ internal object CatalogSeed {
                 description = "$adjective ${leaf.name.lowercase()} by $brand.",
                 specifications = specifications("Brand" to brand, "Model" to id.uppercase()),
                 rating = BigDecimal.valueOf(random.nextLong(38, 50), 1),
-                reviewsCount = random.nextInt(0, 12_000),
-                questionsCount = random.nextInt(0, 200),
+                // Drawn as before B-99, so every other row stays as it was, then scaled to what the seed stores
+                // one by one ([SeedReviews]): 0–23 reviews and 0–7 questions, not up to 12,000 over no rows.
+                reviewsCount = random.nextInt(0, 12_000) / GENERATED_REVIEWS_SCALE,
+                questionsCount = random.nextInt(0, 200) / GENERATED_QUESTIONS_SCALE,
                 tone = TONES[random.nextInt(TONES.size)],
                 label = leaf.label,
                 createdAt = NOW.minusDays(random.nextLong(1, 720)),
@@ -239,6 +241,8 @@ internal object CatalogSeed {
             .replace(Regex("[^a-z0-9]+"), "-")
             .trim('-')
 
+    private const val GENERATED_REVIEWS_SCALE = 500
+    private const val GENERATED_QUESTIONS_SCALE = 25
     private const val DISCOUNTED_PERCENT = 40
     private const val OUT_OF_STOCK_PERCENT = 5
     private const val DEAL_PERCENT = 70

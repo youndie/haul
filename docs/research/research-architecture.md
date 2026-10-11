@@ -468,6 +468,31 @@ What is typed is the client's until it is sent; the client checks the rules the 
 the contract's, `shared/.../feature/reviews/`), and a refusal is drawn in the dialog. For a guest the
 same control is the way to sign in instead of a `present`.
 
+**Decided in B-99, a product's counts are its rows: the seed stores them.** «2,341 reviews» and «86 questions»
+stood over two and three rows, so «Show more» (B-71) could never be reached and the cards, the buy box and the
+tabs counted what nobody could read. Of the item's two ways — count the stored rows, or store what is counted —
+the second was taken: counting would have written «2 reviews» on the hero product of a marketplace and 0 on
+nearly every card, and broken «Popular», «Bestseller» and every artboard's copy. `seed/SeedReviews.kt` writes the
+rest of each count in SQL (`generate_series` over per-product targets, copy picked from fixed pools by the row's
+number, no clock), the stars following the product's histogram — the canvas's 78 / 14 / 4 / 2 / 2 % for the
+headphones — or the one its average makes; answered questions answered by the seed, as the canvas's are. The
+generated catalogue's counts were scaled down to what that costs (0–23 reviews, 0–7 questions, drawn from the
+same random numbers, so every other row is unchanged); the sample products keep their canvas counts, so the seed
+holds 60,849 reviews and 6,799 questions, which add about a second and a half to a fresh seed (0.6–1.4 s before,
+2.2–2.7 s after, on the build box). It runs on every seeding start
+like the loyalty rows, so a stand seeded before it gets the rows and then every product's counts and histogram
+recounted from them, a customer's own review counted once; a database that has them all reads one count and writes
+nothing. Rows built in Kotlin and batch-inserted through Exposed were rejected unmeasured: the per-row round
+trip is what `INSERT … SELECT` avoids, and the server's suite seeds about ninety databases.
+
+**Decided in B-99, what the review controls promise.** A customer who has reviewed a product is offered their
+review, never a second «Write a review» the route refuses (`409 review_exists`): on the product page theirs leads
+the list and the button's place reads «You reviewed this on Oct 7» (`ProductReviews.action` absent); on a
+delivered order line the link is «Your review», the product's reviews tab. «Helpful» is drawn filled with a tick
+while the viewer's vote is on it (`Review.helpfulVoted`), so the second press — which takes the vote back — is not
+a surprise. The question dialog says what happens: the question is shown, «Not answered yet»; nothing answers it,
+since there is no seller side.
+
 ### D3. PostgreSQL; the access layer is chosen at scaffold
 
 Decision: one PostgreSQL database for the catalog, carts, orders and the saga's state. Exposed with
@@ -1707,4 +1732,5 @@ campaigns, reviews); the fixtures take it from there, not from this table.
 The headphones' histogram on Product_Reviews (78 / 14 / 4 / 2 / 2 % of 2,341) averages 4.6, not the 4.8
 every artboard writes. The seed keeps both as drawn — the histogram as counts (`rating_counts`), the
 average on the product — and a new review moves the average from the stored one rather than recounting
-it from the histogram (B-22).
+it from the histogram (B-22). Since B-99 the seed stores every one of the 2,341 reviews and 86 questions, the
+histogram is counted from them, and the canvas's two reviews and three questions are the newest of each.

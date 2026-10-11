@@ -185,9 +185,10 @@ public data class HistogramBar(
  * D8); [helpful] is «48 people found this helpful», the stored count, absent while nobody has.
  *
  * «Helpful» ([helpfulLabel]) carries, for a customer, [helpfulCommand] — their vote, or taking it back
- * (B-43) — and for a guest [helpfulAction], the way to sign in. On the customer's own review it carries
- * neither: the author cannot vote on it, and [helpfulLabel] is «Your review», drawn as words, not a
- * control (B-71).
+ * (B-43) — and for a guest [helpfulAction], the way to sign in. [helpfulVoted] is whether the customer's vote
+ * is on it: the pill is drawn pressed, and pressing it again takes the vote back (B-99). On the customer's
+ * own review it carries neither: the author cannot vote on it, and [helpfulLabel] is «Your review», drawn as
+ * words, not a control (B-71).
  */
 @Serializable
 public data class Review(
@@ -203,13 +204,16 @@ public data class Review(
     val helpfulLabel: String = "Helpful",
     val helpfulAction: @Polymorphic KompotAction? = null,
     val helpfulCommand: HelpfulCommand? = null,
+    val helpfulVoted: Boolean = false,
 )
 
 /**
  * The reviews tab: the rating, its histogram and «Write a review» beside the reviews themselves
  * (feature-reviews, B-22). [action] is what «Write a review» does: kompot's `present` of a
- * [ReviewForm] for a customer, the way to sign in for a guest. [more] is «[moreLabel]» under the reviews
- * while the product has more than are listed: kompot's `load` of the tab listing ten more (B-71).
+ * [ReviewForm] for a customer, the way to sign in for a guest. A customer who has reviewed the product has
+ * no [action]: [actionLabel] says so («You reviewed this on Oct 7»), drawn as words, and their review leads
+ * the list (B-99). [more] is «[moreLabel]» under the reviews while the product has more than are listed:
+ * kompot's `load` of the tab listing ten more (B-71).
  */
 @Serializable
 @SerialName("haul_product_reviews")

@@ -1,6 +1,9 @@
 package io.github.youndie.haul.feature.reviews
 
 import io.github.youndie.haul.ErrorCode
+import io.github.youndie.haul.db.Databases
+import io.github.youndie.haul.feature.reviews.data.ExposedReviews
+import io.github.youndie.haul.feature.reviews.domain.StoredReview
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
 import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
@@ -43,11 +46,15 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
+import java.time.OffsetDateTime
 import javax.sql.DataSource
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /**
  * feature-reviews over HTTP, against a running shildik ([ShildikHarness]) and the seeded catalog in
@@ -69,7 +76,7 @@ class ReviewRoutesTest {
         )
 
     @Test
-    fun `the reviews tab is the server's - the canvas's rating, histogram and two reviews`() =
+    fun `the reviews tab is the server's - the canvas's rating, histogram and two reviews first`() =
         haulTest {
             val tree = tree(reviewsTab)
             val reviews = tree.only<ProductReviews>()
@@ -85,13 +92,14 @@ class ReviewRoutesTest {
                 ),
                 reviews.histogram,
             )
-            assertEquals(listOf("Daniel R.", "Aisha K."), reviews.reviews.map { it.author })
-            assertEquals(
-                listOf("Sep 28 · Verified purchase", "Sep 21 · Verified purchase"),
-                reviews.reviews.map { it.meta },
-            )
-            assertEquals(listOf("5.0", "4.0"), reviews.reviews.map { it.score })
-            assertEquals(listOf(null, "48 people found this helpful"), reviews.reviews.map { it.helpful })
+            // The canvas's two are the newest of the 2,341 the seed stores (B-99): ten listed, and more.
+            assertEquals(10, reviews.reviews.size)
+            val canvas = reviews.reviews.take(2)
+            assertEquals(listOf("Daniel R.", "Aisha K."), canvas.map { it.author })
+            assertEquals(listOf("Sep 28 · Verified purchase", "Sep 21 · Verified purchase"), canvas.map { it.meta })
+            assertEquals(listOf("5.0", "4.0"), canvas.map { it.score })
+            assertEquals(listOf(null, "48 people found this helpful"), canvas.map { it.helpful })
+            assertEquals("Show more reviews", reviews.moreLabel)
             // A guest is sent to sign in, as the header's account shortcut sends one.
             assertEquals(NavigateAction(Frame.SIGN_IN), reviews.action)
             val tabs = tree.only<ProductTabs>().tabs
@@ -107,13 +115,22 @@ class ReviewRoutesTest {
             assertEquals("86", questions.count)
             assertEquals("questions", questions.caption)
             assertEquals("Answers come from Sony Official Store.", questions.text)
-            assertEquals(listOf("Asked Sep 29", "Asked Sep 14", "Asked Oct 6"), questions.questions.map { it.asked })
+            // The canvas's two answered ones are the newest answered of the 86 the seed stores (B-99).
+            assertEquals(10, questions.questions.size)
+            assertEquals(listOf("Asked Sep 29", "Asked Sep 14"), questions.questions.take(2).map { it.asked })
             assertEquals(
-                listOf("Sony Official Store · Sep 30", "Sony Official Store · Sep 15", null),
-                questions.questions.map { it.answeredBy },
+                listOf("Sony Official Store · Sep 30", "Sony Official Store · Sep 15"),
+                questions.questions.take(2).map { it.answeredBy },
             )
-            assertEquals(listOf(null, null, "Not answered yet"), questions.questions.map { it.pendingLabel })
+            assertEquals(List(10) { null }, questions.questions.map { it.pendingLabel })
+            assertEquals("Show more questions", questions.moreLabel)
             assertEquals(NavigateAction(Frame.SIGN_IN), questions.action)
+            // The open one comes after every answered one: the 86th.
+            val all = tree("$questionsTab&shown=90").only<ProductQuestions>().questions
+            assertEquals(86, all.size)
+            assertEquals("Asked Oct 6", all.last().asked)
+            assertEquals("Not answered yet", all.last().pendingLabel)
+            assertNull(all.last().answer)
         }
 
     @Test
@@ -129,6 +146,12 @@ class ReviewRoutesTest {
             val ask = assertIs<QuestionForm>(question.content)
             assertEquals(ReviewPaths.questions(sony), ask.url)
             assertEquals("10 – 1,000 characters", ask.hint)
+            // B-99: what happens to the question, not «Sony answers questions», which nothing does.
+            assertEquals(
+                "Your question appears on this page for other shoppers, marked «Not answered yet». " +
+                    "Sellers can't answer new questions on Haul yet.",
+                ask.note,
+            )
             // The chosen SKU is the dialog's: Silver with a travel case.
             val silver =
                 assertIs<PresentAction>(customerTree(token, "$reviewsTab&sku=$sony-4").only<ProductReviews>().action)
@@ -211,6 +234,57 @@ class ReviewRoutesTest {
             }
         }
 
+    /**
+     * B-99: a customer who has reviewed the product is not offered «Write a review» — whose Post would answer
+     * `409 review_exists` — but their review, first in the list, and when they wrote it where the button was.
+     * Theirs leads even when ten newer ones would push it off the first page, and is listed once.
+     */
+    @Test
+    fun `a reviewer sees their review first and no second write a review`() =
+        ownDatabase { dataSource ->
+            runBlocking {
+                ExposedReviews(Databases.connect(dataSource)).write(
+                    StoredReview(
+                        id = "r-mayas-old",
+                        productId = sony,
+                        customerId = SampleCustomers.MAYA,
+                        author = "Maya K.",
+                        rating = 4,
+                        title = "Two years on",
+                        body = "Still my everyday pair after two years of commuting.",
+                        verified = true,
+                        helpful = 0,
+                        tone = "#E6E4FF",
+                        photos = emptyList(),
+                        createdAt = OffsetDateTime.parse("2024-01-15T09:00:00-05:00"),
+                    ),
+                )
+            }
+            signedIn(dataSource, "Maya Kowalski", SampleCustomers.MAYA) { token ->
+                val reviews = customerTree(token, reviewsTab).only<ProductReviews>()
+                assertNull(reviews.action, "a reviewer is offered a second review")
+                assertEquals("You reviewed this on Jan 15", reviews.actionLabel)
+                assertEquals("Maya K.", reviews.reviews.first().author)
+                assertEquals("Your review", reviews.reviews.first().helpfulLabel)
+                assertEquals(
+                    listOf("Daniel R.", "Aisha K."),
+                    reviews.reviews
+                        .drop(1)
+                        .take(2)
+                        .map { it.author },
+                )
+                assertEquals(10, reviews.reviews.size)
+                val wider = customerTree(token, "$reviewsTab&shown=500").only<ProductReviews>().reviews
+                assertEquals(1, wider.count { it.author == "Maya K." }, "her review is listed twice")
+            }
+            // Somebody else still writes one.
+            signedIn(dataSource, "Sam Ortiz", SampleCustomers.SAM) { token ->
+                val reviews = customerTree(token, reviewsTab).only<ProductReviews>()
+                assertEquals("Write a review", reviews.actionLabel)
+                assertIs<PresentAction>(reviews.action)
+            }
+        }
+
     /** feature-reviews, «Too short». */
     @Test
     fun `a body of five characters is refused naming body`() =
@@ -279,8 +353,10 @@ class ReviewRoutesTest {
         ownDatabase { dataSource ->
             signedIn(dataSource, "Sam Ortiz", SampleCustomers.SAM) { token ->
                 ask(token, QuestionEntry("  Do the ear cushions come off for cleaning?  ")).assertClosed()
-                val questions = customerTree(token, questionsTab).only<ProductQuestions>()
-                assertEquals("87", questions.count)
+                assertEquals("87", customerTree(token, questionsTab).only<ProductQuestions>().count)
+                // Unanswered, it comes after the 85 answered ones.
+                val questions = customerTree(token, "$questionsTab&shown=90").only<ProductQuestions>()
+                assertEquals(87, questions.questions.size)
                 val asked = questions.questions.single { it.question == "Do the ear cushions come off for cleaning?" }
                 assertEquals("Asked Oct 7", asked.asked)
                 assertEquals("Not answered yet", asked.pendingLabel)
@@ -310,9 +386,9 @@ class ReviewRoutesTest {
     fun `helpful is a customer's vote and a guest's way to sign in`() =
         signedIn { token ->
             val guest = tree(reviewsTab).only<ProductReviews>().reviews
-            assertEquals(List(2) { NavigateAction(Frame.SIGN_IN) }, guest.map { it.helpfulAction })
-            assertEquals(listOf(null, null), guest.map { it.helpfulCommand })
-            val customer = customerTree(token, reviewsTab).only<ProductReviews>().reviews
+            assertEquals(List(10) { NavigateAction(Frame.SIGN_IN) }, guest.map { it.helpfulAction })
+            assertEquals(List(10) { null }, guest.map { it.helpfulCommand })
+            val customer = customerTree(token, reviewsTab).only<ProductReviews>().reviews.take(2)
             assertEquals(
                 listOf(
                     HelpfulCommand(ReviewPaths.helpful(DANIEL), HelpfulVote(helpful = true)),
@@ -336,10 +412,14 @@ class ReviewRoutesTest {
                 val voted = review(token, "Aisha K.")
                 assertEquals("49 people found this helpful", voted.helpful)
                 assertEquals(HelpfulVote(helpful = false), voted.helpfulCommand?.vote)
+                // B-99: the pill says the vote is on, so the press that takes it back is not a surprise.
+                assertTrue(voted.helpfulVoted, "a voted review is drawn as not voted")
+                assertFalse(review(token, "Daniel R.").helpfulVoted)
                 vote(token, voted.helpfulCommand!!.url, voted.helpfulCommand!!.vote).assertRefreshed()
                 val back = review(token, "Aisha K.")
                 assertEquals("48 people found this helpful", back.helpful)
                 assertEquals(HelpfulVote(helpful = true), back.helpfulCommand?.vote)
+                assertFalse(back.helpfulVoted, "a vote taken back is still drawn")
                 // Nobody had found Daniel's helpful: one vote is one person.
                 vote(token, ReviewPaths.helpful(DANIEL), HelpfulVote(helpful = true)).assertRefreshed()
                 assertEquals("1 person found this helpful", review(token, "Daniel R.").helpful)

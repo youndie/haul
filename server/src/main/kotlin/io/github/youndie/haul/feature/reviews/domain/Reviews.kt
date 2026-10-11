@@ -55,6 +55,18 @@ internal interface ReviewRepository {
         productId: String,
     ): Boolean
 
+    /** [customerId]'s review of [productId], if they have written one (B-99: shown in place of «Write a review»). */
+    suspend fun reviewBy(
+        customerId: String,
+        productId: String,
+    ): StoredReview?
+
+    /** The ids among [productIds] that [customerId] has reviewed. */
+    suspend fun reviewed(
+        customerId: String,
+        productIds: Collection<String>,
+    ): Set<String>
+
     /**
      * Whether [customerId] has received [productId]: a shipment of one of their orders that holds it was
      * delivered, or picked up (feature-reviews, «Verified purchase»).

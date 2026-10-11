@@ -10,9 +10,10 @@ import java.time.OffsetDateTime
  * copy), and the histogram behind «4.8 out of 5 · 2,341 reviews». Answers are seed data only: there is no
  * seller side (feature-reviews).
  *
- * The two reviews' authors have no account here (`customerId` `null`): they stand for the 2,341 reviews
- * the canvas counts, which the seed does not hold one by one; so do the histogram's counts, which give the
- * canvas's 78 / 14 / 4 / 2 / 2 % of 2,341.
+ * The two reviews' authors have no account here (`customerId` `null`). They are the newest of the 2,341 the
+ * canvas counts; [SeedReviews] writes the other 2,339, and the other 83 questions, so the page lists what it
+ * counts (B-99). The histogram is the stars those 2,341 give — the canvas's 78 / 14 / 4 / 2 / 2 % — and the
+ * rows follow it.
  */
 internal object SampleReviews {
     val reviews: List<StoredReview> =
@@ -51,7 +52,10 @@ internal object SampleReviews {
             ),
         )
 
-    /** Stars to how many reviews gave them: 1,826 + 328 + 94 + 47 + 46 = 2,341, the product's count. */
+    /**
+     * Stars to how many reviews give them: 1,826 + 328 + 94 + 47 + 46 = 2,341, the product's count. The
+     * generated rows ([SeedReviews]) make up each number with the two reviews above.
+     */
     val ratingCounts: Map<String, Map<Int, Int>> =
         mapOf(SONY_HEADPHONES to mapOf(5 to 1_826, 4 to 328, 3 to 94, 2 to 47, 1 to 46))
 

@@ -51,7 +51,6 @@ import io.github.youndie.haul.ui.PlanPaymentState
 import io.github.youndie.haul.ui.ReturnForm
 import io.github.youndie.haul.ui.ReturnLine
 import io.github.youndie.haul.ui.SummaryRow
-import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.CloseAction
 import io.github.youndie.kompot.standard.NavigateAction
@@ -101,6 +100,8 @@ internal class OrderScreen(
         val placed = tracked.order.placed
         // The options, the tone and the review button: an order draws its own prices, not the catalog's.
         val listed = catalog.listedBySkus(placed.lines.map { it.skuId }.toSet(), PriceList.Public)
+        // A product the customer has reviewed offers their review, not a second one (B-99).
+        val reviewed = reviews.reviewed(customerId, listed.map { it.product.id })
         val products =
             placed.lines
                 .mapNotNull { line ->
@@ -118,7 +119,13 @@ internal class OrderScreen(
                                     .joinToString(" · ") { it.value },
                             tone = item.product.tone,
                             dispatchDays = item.product.dispatchDays,
-                            review = reviews.writeReview(item, sku, Viewer(customerId = customerId)),
+                            review =
+                                reviews.orderLine(
+                                    item,
+                                    sku,
+                                    Viewer(customerId = customerId),
+                                    reviewed = item.product.id in reviewed,
+                                ),
                         )
                 }.toMap()
         return OrderView(
@@ -179,14 +186,15 @@ internal data class OrderCard(
 
 /**
  * A SKU's product as the page draws its line: the tile's tone, the options, how long its seller takes to
- * dispatch, and what «Write a review» does once the line has arrived (the review dialog, B-22).
+ * dispatch, and the review link the line shows once it has arrived — «Write a review», the review dialog
+ * (B-22), or «Your review» once the customer has written one (B-99).
  */
 internal data class Bought(
     val productId: String,
     val options: String,
     val tone: String,
     val dispatchDays: Int,
-    val review: KompotAction,
+    val review: Link,
 )
 
 /** One order's page, built from its [view]; every date is the store's (New York's). */
@@ -557,7 +565,7 @@ private class OrderPage(
             details = details(line),
             tone = bought?.tone.orEmpty(),
             action = bought?.let { productLink(it.productId) },
-            review = bought?.review?.takeIf { received }?.let { Link("Write a review", it) },
+            review = bought?.review?.takeIf { received },
         )
     }
 

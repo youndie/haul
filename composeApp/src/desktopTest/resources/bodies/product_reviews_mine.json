@@ -1,0 +1,403 @@
+{
+ "type": "column",
+ "id": "product",
+ "children": [
+  {
+   "type": "haul_header",
+   "id": "header",
+   "customerName": "Maya",
+   "deliverTo": "Brooklyn, NY 11211",
+   "deliveryPromise": "Free delivery over $35",
+   "cartCount": 3,
+   "searchPlaceholder": "Search 2.4 million products",
+   "categories": [
+    "Electronics",
+    "Home & Kitchen",
+    "Fashion",
+    "Beauty",
+    "Kids & Toys",
+    "Sports",
+    "Grocery",
+    "Auto",
+    "Books",
+    "Pets"
+   ]
+  },
+  {
+   "type": "haul_breadcrumbs",
+   "id": "breadcrumbs",
+   "crumbs": [
+    {
+     "label": "Home"
+    },
+    {
+     "label": "Electronics"
+    },
+    {
+     "label": "Audio"
+    },
+    {
+     "label": "Headphones"
+    },
+    {
+     "label": "Sony WH-1000XM6"
+    }
+   ]
+  },
+  {
+   "type": "haul_product_details",
+   "id": "details",
+   "productId": "p-sony-wh-1000xm6",
+   "skuId": "p-sony-wh-1000xm6-0",
+   "photoTone": "#E6E4FF",
+   "photoLabel": "product photo",
+   "badge": "Bestseller",
+   "brand": "Sony",
+   "title": "WH-1000XM6 Wireless Noise Cancelling Headphones",
+   "accent": "Headphones",
+   "rating": "4.8",
+   "reviews": "2,342 reviews",
+   "bought": "12K bought this month",
+   "variants": [
+    {
+     "name": "Color",
+     "selectedLabel": "Midnight Black",
+     "options": [
+      {
+       "label": "Midnight Black",
+       "skuId": "p-sony-wh-1000xm6-0",
+       "selected": true,
+       "available": true,
+       "swatch": "#2A2A2E"
+      },
+      {
+       "label": "Silver",
+       "skuId": "p-sony-wh-1000xm6-3",
+       "selected": false,
+       "available": false,
+       "swatch": "#D9D3C7"
+      }
+     ]
+    },
+    {
+     "name": "Bundle",
+     "selectedLabel": "Headphones only",
+     "options": [
+      {
+       "label": "Headphones only",
+       "skuId": "p-sony-wh-1000xm6-0",
+       "selected": true,
+       "available": true
+      },
+      {
+       "label": "+ Travel case",
+       "skuId": "p-sony-wh-1000xm6-1",
+       "selected": false,
+       "available": true
+      },
+      {
+       "label": "+ 2-year care",
+       "skuId": "p-sony-wh-1000xm6-2",
+       "selected": false,
+       "available": true
+      }
+     ]
+    }
+   ],
+   "highlights": [
+    {
+     "title": "Battery",
+     "text": "Up to 40 hours, 3 min charge = 3 h"
+    },
+    {
+     "title": "Noise cancelling",
+     "text": "Adaptive, 12 microphones"
+    },
+    {
+     "title": "Bluetooth",
+     "text": "5.4 · LDAC · multipoint"
+    },
+    {
+     "title": "Weight",
+     "text": "250 g"
+    }
+   ],
+   "price": "$349",
+   "oldPrice": "$449",
+   "discount": "−22%",
+   "haulPay": "or 4 payments of $87.25 with Haul Pay",
+   "haulPayStrong": "4 payments of $87.25",
+   "inStock": true,
+   "add": {"url": "/api/v1/cart/lines/p-sony-wh-1000xm6-0?answer=details", "change": {"quantity": 1}},
+   "buy": {"url": "/api/v1/cart/lines/p-sony-wh-1000xm6-0", "change": {"quantity": 1, "selected": true}, "next": {"type": "navigate", "deeplink": "/sign-in?next=%2Fcheckout"}},
+   "delivery": [
+    {
+     "title": "Courier · Tomorrow, Oct 8",
+     "detail": "Order within 3 h 42 min",
+     "price": "Free"
+    },
+    {
+     "title": "Pickup point · Thu, Oct 9",
+     "detail": "214 Bedford Ave, 240 m",
+     "price": "Free"
+    },
+    {
+     "title": "Returns",
+     "detail": "30 days, free pickup"
+    }
+   ],
+   "cutoff": "Order within 3 h 42 min",
+   "seller": {
+    "name": "Sony Official Store",
+    "initial": "S",
+    "meta": "4.9 · 98% positive · 6 yrs on Haul"
+   },
+   "brandAction": {
+    "type": "navigate",
+    "deeplink": "/c/electronics/audio/headphones?brand=Sony"
+   },
+   "ratingAction": {
+    "type": "navigate",
+    "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=reviews"
+   },
+   "specificationsAction": {
+    "type": "navigate",
+    "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=specifications"
+   },
+   "share": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0"
+  },
+  {
+   "type": "haul_product_tabs",
+   "id": "tabs",
+   "tabs": [
+    {
+     "key": "description",
+     "title": "Description",
+     "selected": false,
+     "action": {
+      "type": "navigate",
+      "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=description"
+     }
+    },
+    {
+     "key": "specifications",
+     "title": "Specifications",
+     "selected": false,
+     "action": {
+      "type": "navigate",
+      "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=specifications"
+     },
+     "compactTitle": "Specs"
+    },
+    {
+     "key": "reviews",
+     "title": "Reviews",
+     "count": "2,342",
+     "selected": true,
+     "action": {
+      "type": "navigate",
+      "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=reviews"
+     }
+    },
+    {
+     "key": "questions",
+     "title": "Questions",
+     "count": "86",
+     "selected": false,
+     "action": {
+      "type": "navigate",
+      "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=questions"
+     }
+    }
+   ]
+  },
+  {
+   "type": "haul_product_reviews",
+   "id": "reviews",
+   "rating": "4.8",
+   "caption": "out of 5 · 2,342 reviews",
+   "histogram": [
+    {
+     "stars": 5,
+     "percent": 78
+    },
+    {
+     "stars": 4,
+     "percent": 14
+    },
+    {
+     "stars": 3,
+     "percent": 4
+    },
+    {
+     "stars": 2,
+     "percent": 2
+    },
+    {
+     "stars": 1,
+     "percent": 2
+    }
+   ],
+   "actionLabel": "You reviewed this on Oct 7",
+   "reviews": [
+    {
+     "author": "Maya K.",
+     "initial": "M",
+     "tone": "#F1EBDD",
+     "meta": "Oct 7 · Verified purchase",
+     "score": "5.0",
+     "title": "Worth it for the commute",
+     "text": "Noise cancelling handles the subway and the open office. Comfortable for a full workday, and the battery lasts all week.",
+     "helpfulLabel": "Your review"
+    },
+    {
+     "author": "Daniel R.",
+     "initial": "D",
+     "tone": "#E6E4FF",
+     "meta": "Sep 28 · Verified purchase",
+     "score": "5.0",
+     "title": "The quietest flight I've had",
+     "text": "Wore them on a 9-hour flight. Engine noise basically disappears and they stay comfortable the whole way. Battery was at 60% when we landed.",
+     "photos": [
+      "#E9E6E0",
+      "#E6E4FF"
+     ],
+     "helpfulCommand": {
+      "url": "/api/v1/reviews/r-sony-daniel/helpful",
+      "vote": {
+       "helpful": true
+      }
+     }
+    },
+    {
+     "author": "Aisha K.",
+     "initial": "A",
+     "tone": "#FFE5DD",
+     "meta": "Sep 21 · Verified purchase",
+     "score": "4.0",
+     "title": "Great sound, tight at first",
+     "text": "Clear, balanced sound and the app EQ is easy to use. The headband felt tight for the first few days, then loosened up. Calls sound good even outside.",
+     "helpful": "49 people found this helpful",
+     "helpfulCommand": {
+      "url": "/api/v1/reviews/r-sony-aisha/helpful",
+      "vote": {
+       "helpful": false
+      }
+     },
+     "helpfulVoted": true
+    },
+    {
+     "author": "Priya N.",
+     "initial": "P",
+     "tone": "#E6E4FF",
+     "meta": "Sep 20 · Verified purchase",
+     "score": "5.0",
+     "title": "Use it every day",
+     "text": "My partner borrowed it and now wants one. That says enough.",
+     "helpfulCommand": {
+      "url": "/api/v1/reviews/rf-p-sony-wh-1000xm6-5-1/helpful",
+      "vote": {
+       "helpful": true
+      }
+     }
+    },
+    {
+     "author": "Ben A.",
+     "initial": "B",
+     "tone": "#F1EBDD",
+     "meta": "Sep 19 · Verified purchase",
+     "score": "5.0",
+     "title": "Great quality",
+     "text": "Great quality for the price. Setup took a couple of minutes and everything just worked.",
+     "helpfulCommand": {
+      "url": "/api/v1/reviews/rf-p-sony-wh-1000xm6-5-2/helpful",
+      "vote": {
+       "helpful": true
+      }
+     }
+    },
+    {
+     "author": "Ines V.",
+     "initial": "I",
+     "tone": "#FFE5DD",
+     "meta": "Sep 19",
+     "score": "5.0",
+     "title": "Love it",
+     "text": "Replaced an older one I had for years and this is better in every way I care about.",
+     "helpfulCommand": {
+      "url": "/api/v1/reviews/rf-p-sony-wh-1000xm6-5-3/helpful",
+      "vote": {
+       "helpful": true
+      }
+     }
+    },
+    {
+     "author": "Chris P.",
+     "initial": "C",
+     "tone": "#F1E4F5",
+     "meta": "Sep 18 · Verified purchase",
+     "score": "5.0",
+     "title": "Exactly what I hoped for",
+     "text": "Arrived well packed and works exactly as described. Feels solid and looks better in person.",
+     "helpful": "33 people found this helpful",
+     "helpfulCommand": {
+      "url": "/api/v1/reviews/rf-p-sony-wh-1000xm6-5-4/helpful",
+      "vote": {
+       "helpful": true
+      }
+     }
+    },
+    {
+     "author": "Hannah B.",
+     "initial": "H",
+     "tone": "#FFF1C9",
+     "meta": "Sep 18 · Verified purchase",
+     "score": "5.0",
+     "title": "Better than expected",
+     "text": "Bought one as a gift, then a second for myself. No complaints at all.",
+     "helpfulCommand": {
+      "url": "/api/v1/reviews/rf-p-sony-wh-1000xm6-5-5/helpful",
+      "vote": {
+       "helpful": true
+      }
+     }
+    },
+    {
+     "author": "Priya N.",
+     "initial": "P",
+     "tone": "#E6E4FF",
+     "meta": "Sep 18 · Verified purchase",
+     "score": "4.0",
+     "title": "Does the job well",
+     "text": "Solid and dependable. I'd buy it again, maybe in another colour.",
+     "helpfulCommand": {
+      "url": "/api/v1/reviews/rf-p-sony-wh-1000xm6-4-1/helpful",
+      "vote": {
+       "helpful": true
+      }
+     }
+    },
+    {
+     "author": "Ravi K.",
+     "initial": "R",
+     "tone": "#E3F5D8",
+     "meta": "Sep 18 · Verified purchase",
+     "score": "5.0",
+     "title": "Would buy again",
+     "text": "Exactly as pictured, arrived a day early, and still feels new after a month.",
+     "helpfulCommand": {
+      "url": "/api/v1/reviews/rf-p-sony-wh-1000xm6-5-6/helpful",
+      "vote": {
+       "helpful": true
+      }
+     }
+    }
+   ],
+   "moreLabel": "Show more reviews",
+   "more": {
+    "type": "load",
+    "url": "/ui/parts/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=reviews&shown=20"
+   }
+  }
+ ]
+}
