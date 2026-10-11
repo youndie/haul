@@ -47,6 +47,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -58,6 +59,7 @@ import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.offset
 import io.github.youndie.haul.groupedCount
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
@@ -214,47 +216,52 @@ private fun PriceRange(facet: Facet) {
                 if (range == null) {
                     Modifier
                 } else {
-                    Modifier.pointerInput(range) {
-                        val track = size.width.toFloat()
-                        // The thumb nearer the press is the one dragged, and it does not pass the other.
-                        var lower = true
-                        detectHorizontalDragGestures(
-                            onDragStart = { at ->
-                                val (s, e) = held ?: ((facet.rangeStart ?: 0f) to (facet.rangeEnd ?: 1f))
-                                val x = at.x / track
-                                lower = abs(x - s) < abs(x - e) || (x < s && s == e)
-                                held = s to e
-                            },
-                            // The held thumb is where the pointer is, within its end of the track.
-                            onHorizontalDrag = { change, _ ->
-                                change.consume()
-                                val (s, e) = held ?: return@detectHorizontalDragGestures
-                                val x = change.position.x / track
-                                held = if (lower) x.coerceIn(0f, e) to e else s to x.coerceIn(s, 1f)
-                                held?.let { (ns, ne) ->
-                                    low = bound(ns, range.top, atEnd = ns <= 0f)
-                                    high = bound(ne, range.top, atEnd = ne >= 1f)
-                                }
-                            },
-                            onDragEnd = {
-                                val applied =
-                                    held?.let { (s, e) ->
-                                        apply(dollars(s, range.top, s <= 0f), dollars(e, range.top, e >= 1f))
-                                    } ?: false
-                                // Nothing went: the thumbs and the fields go back to the range applied.
-                                if (!applied) {
+                    // A thumb at an end of the track is drawn half past it, and is grabbed by either half
+                    // (B-90): the presses are taken a thumb's half wider on each side than the track.
+                    Modifier
+                        .reachingPast(THUMB_RADIUS)
+                        .pointerInput(range) {
+                            val reach = THUMB_RADIUS.toPx()
+                            val track = size.width - 2 * reach
+                            // The thumb nearer the press is the one dragged, and it does not pass the other.
+                            var lower = true
+                            detectHorizontalDragGestures(
+                                onDragStart = { at ->
+                                    val (s, e) = held ?: ((facet.rangeStart ?: 0f) to (facet.rangeEnd ?: 1f))
+                                    val x = (at.x - reach) / track
+                                    lower = abs(x - s) < abs(x - e) || (x < s && s == e)
+                                    held = s to e
+                                },
+                                // The held thumb is where the pointer is, within its end of the track.
+                                onHorizontalDrag = { change, _ ->
+                                    change.consume()
+                                    val (s, e) = held ?: return@detectHorizontalDragGestures
+                                    val x = (change.position.x - reach) / track
+                                    held = if (lower) x.coerceIn(0f, e) to e else s to x.coerceIn(s, 1f)
+                                    held?.let { (ns, ne) ->
+                                        low = bound(ns, range.top, atEnd = ns <= 0f)
+                                        high = bound(ne, range.top, atEnd = ne >= 1f)
+                                    }
+                                },
+                                onDragEnd = {
+                                    val applied =
+                                        held?.let { (s, e) ->
+                                            apply(dollars(s, range.top, s <= 0f), dollars(e, range.top, e >= 1f))
+                                        } ?: false
+                                    // Nothing went: the thumbs and the fields go back to the range applied.
+                                    if (!applied) {
+                                        held = null
+                                        low = range.low?.toString().orEmpty()
+                                        high = range.high?.toString().orEmpty()
+                                    }
+                                },
+                                onDragCancel = {
                                     held = null
                                     low = range.low?.toString().orEmpty()
                                     high = range.high?.toString().orEmpty()
-                                }
-                            },
-                            onDragCancel = {
-                                held = null
-                                low = range.low?.toString().orEmpty()
-                                high = range.high?.toString().orEmpty()
-                            },
-                        )
-                    }
+                                },
+                            )
+                        }.padding(horizontal = THUMB_RADIUS)
                 },
             ),
     ) {
@@ -274,10 +281,25 @@ private fun PriceRange(facet: Facet) {
                 .height(4.dp)
                 .background(HaulColors.primary),
         )
-        Thumb(Modifier.offset(x = track * start - 10.dp))
-        Thumb(Modifier.offset(x = track * end - 10.dp))
+        Thumb(Modifier.offset(x = track * start - THUMB_RADIUS))
+        Thumb(Modifier.offset(x = track * end - THUMB_RADIUS))
     }
 }
+
+/**
+ * Takes [edge] more on each side than the element is laid out at, without moving what is around it or what it
+ * draws: the modifiers after it — a gesture area — reach [edge] past both ends, and a `padding` of [edge] after
+ * those gives the content its own width back.
+ */
+private fun Modifier.reachingPast(edge: Dp): Modifier =
+    layout { measurable, constraints ->
+        val extra = edge.roundToPx()
+        val placeable = measurable.measure(constraints.offset(horizontal = 2 * extra))
+        layout(placeable.width - 2 * extra, placeable.height) { placeable.place(-extra, 0) }
+    }
+
+/** Half a thumb: a thumb is 20 dp across, centred on its place on the track. */
+private val THUMB_RADIUS = 10.dp
 
 /** The whole dollars at [fraction] of a track that ends at [top]; `null` — no bound — at the track's end. */
 private fun dollars(

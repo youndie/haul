@@ -3,11 +3,13 @@
 # gzip and brotli, and the time to the first frame in headless Chromium under three network profiles.
 # The measuring itself is scripts/measure-first-load.py; this script builds the two arms and runs it.
 #
-#   main   — the bundle as `main` builds it. Its root draws the theme with an empty body, so nothing
-#            calls the renderers and dead-code elimination is free to leave them out.
+#   main   — the bundle as `main` builds it. Served as static files, with no server behind it, it draws
+#            the storefront's error page, which never goes quiet (B-80): give it STOP_AFTER.
 #   wired  — a throwaway copy of the tree whose root renders the Home body of the screenshot fixtures
 #            (composeApp/src/desktopTest/resources/bodies/home_content.json) through haulRegistry():
-#            every renderer reachable, real text drawn in the three fonts. Nothing of it is committed.
+#            every renderer reachable, real text drawn in the three fonts. Nothing of it is committed. The
+#            patch swaps the one `App(...)` call in Main.kt for it (WIRED_ROOT below; WiredArmTest holds
+#            Main.kt to that shape), and keeps the rest of the entry point, the static frame's removal included.
 #
 # Neither arm needs the server or PostgreSQL: the page is static files and the wired arm's body is
 # compiled in. Outputs go to $OUT (raw runs as JSON lines, a summary per arm, a screenshot per run).
@@ -75,7 +77,7 @@ for arm in $ARMS; do
       rm -rf "$tree" && mkdir -p "$tree"
       tar --exclude=./.gradle --exclude=./.kotlin --exclude='*/build' --exclude=./.git -cf - . | tar -xf - -C "$tree"
       python3 - "$tree" <<'EOF'
-import json, sys
+import json, re, sys
 tree = sys.argv[1]
 body = open(f"{tree}/composeApp/src/desktopTest/resources/bodies/home_content.json").read()
 literal = json.dumps(json.dumps(json.loads(body))).replace("$", "\\$")
@@ -84,7 +86,6 @@ open(f"{pkg}/MeasureWired.kt", "w").write('''package io.github.youndie.haul
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -92,11 +93,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.registry.haulJson
 import io.github.youndie.haul.registry.haulRegistry
 import io.github.youndie.haul.theme.HaulColors
-import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.theme.rememberHaulFonts
 import io.github.youndie.haul.ui.LocalHaulNow
 import io.github.youndie.kompot.KompotActionHandler
@@ -114,12 +113,10 @@ internal fun WiredHome() {
     val body = remember { haulJson.decodeFromString(PolymorphicSerializer(KompotComponent::class), HOME_BODY) }
     val registry = remember { haulRegistry() }
     val forms = remember { FormController(FormSchema(formId = "none", fields = emptyList())) }
-    BoxWithConstraints(Modifier.fillMaxSize().background(HaulColors.background)) {
-        HaulTheme(rememberHaulFonts(), compact = maxWidth < 768.dp) {
-            CompositionLocalProvider(LocalHaulNow provides Instant.parse("2025-10-07T19:47:23-04:00")) {
-                Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                    KompotScreen(body, registry, forms, KompotActionHandler { })
-                }
+    HaulThemeAtWidth(rememberHaulFonts(), Modifier.fillMaxSize().background(HaulColors.background)) {
+        CompositionLocalProvider(LocalHaulNow provides Instant.parse("2025-10-07T19:47:23-04:00")) {
+            Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                KompotScreen(body, registry, forms, KompotActionHandler { })
             }
         }
     }
@@ -129,8 +126,11 @@ private const val HOME_BODY: String = ''' + literal + '''
 ''')
 main = f"{pkg}/Main.kt"
 src = open(main).read()
-assert "{ App() }" in src, "Main.kt changed: update the wired arm's patch"
-open(main, "w").write(src.replace("{ App() }", "{ WiredHome() }"))
+# The storefront's root, called once in Main.kt with plain arguments: App(photos, transport, ...).
+WIRED_ROOT = re.compile(r"\bApp\([^()]*\)")
+calls = WIRED_ROOT.findall(src)
+assert len(calls) == 1, f"Main.kt calls App( {len(calls)} times: update the wired arm's patch"
+open(main, "w").write(WIRED_ROOT.sub("WiredHome()", src))
 EOF
       ;;
     image | image-identity)

@@ -6,25 +6,31 @@ import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
 import io.github.youndie.haul.testing.all
+import io.github.youndie.haul.testing.answer
 import io.github.youndie.haul.testing.haulTest
+import io.github.youndie.haul.testing.loads
 import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.testing.tree
 import io.github.youndie.haul.ui.CategoryGrid
+import io.github.youndie.haul.ui.EmptyState
 import io.github.youndie.haul.ui.FilterChips
 import io.github.youndie.haul.ui.HaulHeader
+import io.github.youndie.haul.ui.HaulPagination
 import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.QuerySuggestion
 import io.github.youndie.haul.ui.SearchNoResults
 import io.github.youndie.haul.ui.SearchScope
 import io.github.youndie.haul.ui.SearchSuggestPanel
+import io.github.youndie.kompot.standard.NavigateAction
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import javax.sql.DataSource
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 /** feature-search's scenarios, against the seeded catalog in PostgreSQL. */
@@ -206,6 +212,64 @@ class SearchRoutesTest {
                 },
             )
         }
+
+    /**
+     * B-90: a scope the picker chose that holds none of the query's results, while other categories do, said
+     * nothing but its chip at 0 over an empty grid. The page says so and offers every category; its chips open
+     * their pages, which have the grid this page has not.
+     */
+    @Test
+    fun `a scope the query finds nothing in says so and offers every category`() =
+        haulTest {
+            val everywhere = tree("/ui/search?q=running%20shoes")
+            val matched =
+                everywhere
+                    .only<FilterChips>()
+                    .chips
+                    .drop(1)
+                    .map { it.label }
+                    .toSet()
+            val empty =
+                catalog.categories.filter { it.parentSlug == null }.sortedBy { it.position }.first { top ->
+                    catalog.categories.none { it.name in matched && top.slug in ancestry(it.slug) }
+                }
+            val address = "/search?q=running%20shoes&category=${empty.slug}"
+            val page = tree("/ui$address")
+            assertTrue(page.all().none { it is ProductGrid || it is HaulPagination }, "an empty grid was drawn")
+            val nothing = page.only<EmptyState>()
+            assertEquals("Nothing for “running shoes” in ${empty.name}", nothing.title)
+            assertEquals(empty.name, nothing.accent)
+            assertEquals("Search all categories", nothing.actionLabel)
+            assertEquals(NavigateAction("/search?q=running%20shoes"), nothing.action)
+            assertEquals(
+                "${everywhere.only<PageTitle>().count!!.substringBefore(' ')} results in other categories.",
+                nothing.text,
+            )
+            assertEquals(empty.slug, page.only<HaulHeader>().scope, "the picker does not read the scope")
+
+            val chips = page.only<FilterChips>()
+            assertEquals(listOf("All", empty.name), chips.chips.take(2).map { it.label })
+            val chosen = chips.chips[1]
+            assertEquals(true to "0", chosen.selected to chosen.count)
+            assertEquals(null, chosen.action, "the chosen scope presses nothing")
+            assertTrue(chips.sorts.isEmpty() && chips.sortLabel == null, "a sort over nothing")
+            (chips.chips - chosen).forEach { chip ->
+                val to = assertIs<NavigateAction>(chip.action, "${chip.label} loads into a page without a grid")
+                assertTrue(
+                    tree("/ui${to.deeplink}").only<ProductGrid>().cards.isNotEmpty(),
+                    "${chip.label} opens nothing",
+                )
+            }
+            // Nothing on the page loads parts; one asked for anyway is the whole page, as for a category gone.
+            assertTrue(page.loads().isEmpty(), "the page loads ${page.loads()}")
+            assertEquals(NavigateAction(address), answer("/ui/parts$address"))
+        }
+
+    /** [slug] and every category above it. */
+    private fun ancestry(slug: String): List<String> =
+        generateSequence(catalog.categories.single { it.slug == slug }) { c ->
+            catalog.categories.singleOrNull { it.slug == c.parentSlug }
+        }.map { it.slug }.toList()
 
     /** «No results → the page says so and offers the suggestions for the query.» */
     @Test

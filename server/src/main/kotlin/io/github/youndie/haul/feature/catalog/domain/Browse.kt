@@ -56,7 +56,7 @@ internal data class Page(
             from: Int = page,
         ): Page {
             val pages = maxOf(1, (all.size + Browse.PAGE_SIZE - 1) / Browse.PAGE_SIZE)
-            val first = from.coerceIn(1, page)
+            val first = from.coerceIn(Browse.firstHeld(page), page)
             return Page(
                 all.drop((first - 1) * Browse.PAGE_SIZE).take((page - first + 1) * Browse.PAGE_SIZE),
                 all.size,
@@ -134,5 +134,15 @@ internal class Browse(
     companion object {
         const val PAGE_SIZE = 24
         const val CENTS = 100
+
+        /**
+         * How many pages one grid holds at most (B-90): «Show N more» appends a page until the grid holds this
+         * many, 192 cards — the seed's longest search, «everyday» (185), whole — and then only the page numbers
+         * go on. Without it an address such as `?page=517&from=1` asked for every card of a listing in one answer.
+         */
+        const val MAX_HELD_PAGES = 8
+
+        /** The first page a grid that ends at [page] can start from: [MAX_HELD_PAGES] back, or the first. */
+        fun firstHeld(page: Int): Int = maxOf(1, page - MAX_HELD_PAGES + 1)
     }
 }

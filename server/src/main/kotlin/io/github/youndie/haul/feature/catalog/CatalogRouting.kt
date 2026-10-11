@@ -1,5 +1,6 @@
 package io.github.youndie.haul.feature.catalog
 
+import io.github.youndie.haul.feature.catalog.domain.Browse
 import io.github.youndie.haul.feature.catalog.domain.CatalogError
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Filters
@@ -228,16 +229,18 @@ internal fun catalogRequest(
 
 /**
  * The first page a grid holds, `from` (B-77): «Show N more» appends the next page to the grid, so an address
- * may draw the pages `from` to [page]. Absent, the grid holds [page] alone; one that is not a page from 1 to
- * [page] is `400 validation_failed`, as a page that is not a number is.
+ * may draw the pages `from` to [page], at most [Browse.MAX_HELD_PAGES] of them (B-90). Absent, the grid holds
+ * [page] alone; one that is not a page from [Browse.firstHeld] to [page] is `400 validation_failed`, as a page
+ * that is not a number is.
  */
 internal fun firstPage(
     query: Parameters,
     page: Int,
 ): Int =
     query[CatalogUrl.FROM]?.let {
-        it.toIntOrNull()?.takeIf { from -> from in 1..page }
-            ?: throw CatalogError.Invalid(CatalogUrl.FROM, "The grid starts at a page from 1 to $page, not «$it»")
+        val first = Browse.firstHeld(page)
+        it.toIntOrNull()?.takeIf { from -> from in first..page }
+            ?: throw CatalogError.Invalid(CatalogUrl.FROM, "The grid starts at a page from $first to $page, not «$it»")
     } ?: page
 
 private val RATINGS = setOf(BigDecimal("4.5"), BigDecimal("4.0"))

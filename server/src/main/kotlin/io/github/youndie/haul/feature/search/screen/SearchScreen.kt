@@ -7,6 +7,7 @@ import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.Filters
+import io.github.youndie.haul.feature.catalog.domain.Listed
 import io.github.youndie.haul.feature.catalog.domain.Page
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.Sort
@@ -29,6 +30,7 @@ import io.github.youndie.haul.ui.CategoryGrid
 import io.github.youndie.haul.ui.CategorySuggestion
 import io.github.youndie.haul.ui.CategoryTile
 import io.github.youndie.haul.ui.Chip
+import io.github.youndie.haul.ui.EmptyState
 import io.github.youndie.haul.ui.FilterChips
 import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.PageTitle
@@ -38,6 +40,7 @@ import io.github.youndie.haul.ui.QuerySuggestion
 import io.github.youndie.haul.ui.SearchNoResults
 import io.github.youndie.haul.ui.SearchSuggestPanel
 import io.github.youndie.haul.ui.SectionHeader
+import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import java.net.URLEncoder
@@ -136,6 +139,10 @@ internal class SearchScreen(
      *
      * The `category` is a scope: the results in it and in every category under it — a leaf's chip, or a
      * top-level category the header's picker chose (B-72), drawn as a chip of its own, chosen, after «All».
+     * A scope the query finds nothing in, while other categories have its results (B-90), is not an empty
+     * grid under its chip at 0: the page says so — «Nothing for “mug” in Fashion» — and offers the search in
+     * every category. That page has no grid to load parts into, so its chips open their pages, and it has no
+     * sort: there is nothing to order.
      */
     suspend fun results(
         request: SearchRequest,
@@ -158,15 +165,14 @@ internal class SearchScreen(
                 all.filter { it.product.categorySlug in within }
             }
                 ?: all
+        if (scope != null && shown.isEmpty()) {
+            return nothingInScope(request, query, scope, all.size, byLeaf(all), categories, viewer)
+        }
         val page =
             request.sort?.let { browse.page(shown, Filters(), it, request.page, request.from) }
                 ?: Page.of(shown, request.page, request.from)
-        val byLeaf =
-            all
-                .groupingBy { it.product.categorySlug }
-                .eachCount()
-                .entries
-                .sortedWith(compareByDescending<Map.Entry<String, Int>> { it.value }.thenBy { it.key })
+        val byLeaf = byLeaf(all)
+        val press = { category: String? -> parts(query.text, category, request.sort) }
 
         val sections =
             listOf(
@@ -178,19 +184,7 @@ internal class SearchScreen(
                 ),
                 FilterChips(
                     id = "categories",
-                    chips =
-                        listOf(
-                            chip("All", null, all.size, request, query),
-                        ) +
-                            listOfNotNull(
-                                scope?.takeIf { s -> byLeaf.none { it.key == s.slug } }?.let {
-                                    chip(it.name, it.slug, shown.size, request, query)
-                                },
-                            ) +
-                            byLeaf.mapNotNull { (slug, n) ->
-                                val leaf = categories.firstOrNull { it.slug == slug } ?: return@mapNotNull null
-                                chip(leaf.name, slug, n, request, query)
-                            },
+                    chips = chips(request, all.size, scope, shown.size, byLeaf, categories, press),
                     sortLabel = label(request.sort),
                     sorts =
                         SORTS.map { sort ->
@@ -217,6 +211,82 @@ internal class SearchScreen(
             scope = request.category,
         )
     }
+
+    /**
+     * A search whose [scope] has none of its results, while [total] are in other categories (B-90): the title
+     * and the chips as on the results — the scope's chosen at 0 — then what happened and the way to every
+     * category, where the grid would be. Its chips open their pages (`navigate`): the page they open has the
+     * grid this one has not, which a `load` could not add.
+     */
+    private fun nothingInScope(
+        request: SearchRequest,
+        query: Query,
+        scope: Category,
+        total: Int,
+        byLeaf: List<Map.Entry<String, Int>>,
+        categories: List<Category>,
+        viewer: Viewer,
+    ): KompotComponent {
+        val press = { category: String? -> searchLink(query.text, category, request.sort) }
+        val sections =
+            listOf(
+                PageTitle(
+                    "title",
+                    query.text.replaceFirstChar { it.uppercase() },
+                    "${count(total)} results",
+                    quoted = true,
+                ),
+                FilterChips(id = "categories", chips = chips(request, total, scope, 0, byLeaf, categories, press)),
+                EmptyState(
+                    id = "nothing-in-scope",
+                    title = "Nothing for “${query.text}” in ${scope.name}",
+                    text = "${count(total)} ${if (total == 1) "result" else "results"} in other categories.",
+                    actionLabel = "Search all categories",
+                    action = press(null),
+                    accent = scope.name,
+                ),
+            )
+        return Frame.page(
+            "search",
+            viewer,
+            navigation(categories),
+            sections,
+            query = query.text,
+            scope = request.category,
+        )
+    }
+
+    /** The results by leaf category, the most first. */
+    private fun byLeaf(all: List<Listed>): List<Map.Entry<String, Int>> =
+        all
+            .groupingBy { it.product.categorySlug }
+            .eachCount()
+            .entries
+            .sortedWith(compareByDescending<Map.Entry<String, Int>> { it.value }.thenBy { it.key })
+
+    /**
+     * The category chips: «All» with every match, the [scope] the picker chose when no leaf chip stands for it
+     * (holding [inScope]), and a chip per leaf; each [press]ed to its results.
+     */
+    private fun chips(
+        request: SearchRequest,
+        total: Int,
+        scope: Category?,
+        inScope: Int,
+        byLeaf: List<Map.Entry<String, Int>>,
+        categories: List<Category>,
+        press: (String?) -> KompotAction,
+    ): List<Chip> =
+        listOf(chip("All", null, total, request, press)) +
+            listOfNotNull(
+                scope?.takeIf { s -> byLeaf.none { it.key == s.slug } }?.let {
+                    chip(it.name, it.slug, inScope, request, press)
+                },
+            ) +
+            byLeaf.mapNotNull { (slug, n) ->
+                val leaf = categories.firstOrNull { it.slug == slug } ?: return@mapNotNull null
+                chip(leaf.name, slug, n, request, press)
+            }
 
     private suspend fun noResults(
         query: Query,
@@ -253,10 +323,10 @@ internal class SearchScreen(
         category: String?,
         n: Int,
         request: SearchRequest,
-        query: Query,
+        press: (String?) -> KompotAction,
     ): Chip {
         val selected = request.category == category
-        return Chip(label, selected, parts(query.text, category, request.sort).takeUnless { selected }, count(n))
+        return Chip(label, selected, press(category).takeUnless { selected }, count(n))
     }
 
     /** What the sort control says for [sort]: its own label, «Relevance» for the search's order. */

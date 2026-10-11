@@ -99,10 +99,15 @@ tasks.named("check") {
 }
 
 // StaticFrameTest reads the shipped page, which no desktop source set carries (B-80): without it as an input,
-// a changed page would leave the test up to date.
+// a changed page would leave the test up to date. WiredArmTest likewise reads the entry point and the script
+// that patches it (B-90).
 tasks.named<Test>("desktopTest") {
     inputs
         .file("src/wasmJsMain/resources/index.html")
         .withPropertyName("shippedPage")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs
+        .files("src/wasmJsMain/kotlin/io/github/youndie/haul/Main.kt", "../scripts/measure-first-load.sh")
+        .withPropertyName("wiredArm")
         .withPathSensitivity(PathSensitivity.RELATIVE)
 }

@@ -3,6 +3,7 @@ package io.github.youndie.haul.feature.catalog
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.feature.cart.CartPaths
 import io.github.youndie.haul.feature.cart.LineChange
+import io.github.youndie.haul.feature.catalog.domain.Browse
 import io.github.youndie.haul.feature.catalog.domain.Sort
 import io.github.youndie.haul.feature.identity.GUEST_HEADER
 import io.github.youndie.haul.haulWireJson
@@ -164,6 +165,32 @@ class DrawnActionsTest {
                 "/ui/search?q=everyday&from=x",
                 "/ui/deals?page=2&from=3",
             ).forEach { assertEquals(HttpStatusCode.BadRequest, get(it).status, it) }
+        }
+
+    /**
+     * B-90: a grid holds at most eight pages — «everyday», the seed's longest search, whole — so
+     * `?page=517&from=1` no longer asks for a listing's every card in one answer.
+     */
+    @Test
+    fun `a grid holds at most eight pages`() =
+        haulTest {
+            assertEquals(HttpStatusCode.OK, get("/ui/search?q=everyday&page=8&from=1").status)
+            assertEquals(HttpStatusCode.OK, get("/ui/search?q=everyday&page=9&from=2").status)
+            listOf(
+                "/ui/search?q=everyday&page=9&from=1",
+                "/ui/c/electronics?page=9&from=1",
+                "/ui/deals?page=9&from=1",
+                "/ui/parts/search?q=everyday&page=9&from=1",
+            ).forEach { assertEquals(HttpStatusCode.BadRequest, get(it).status, it) }
+            val whole = tree("/ui/search?q=everyday&page=8&from=1")
+            val total =
+                whole
+                    .only<PageTitle>()
+                    .count!!
+                    .substringBefore(' ')
+                    .toInt()
+            assertTrue(total > 7 * Browse.PAGE_SIZE, "«everyday» is no longer eight pages")
+            assertEquals(total, whole.only<ProductGrid>().cards.size, "eight pages do not hold «everyday» whole")
         }
 
     @Test

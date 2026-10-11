@@ -163,6 +163,7 @@ internal fun categoryLink(
  * The pages under a grid. «Show N more» appends the next page to the grid (B-77): it goes to the pages
  * the grid holds and the next one, `?page=<next>&from=<first>`, an address that draws every one of them, so
  * the press keeps the cards above where the shopper is, and a reload or a shared link shows the same grid.
+ * A grid that holds [Browse.MAX_HELD_PAGES] pages has no «Show N more» (B-90): the page numbers go on.
  * Every page number but the current one goes to that page alone. [address] is the page's address showing
  * the pages in the range (`?page=` is left out for the first alone), and [press] what a press on one does —
  * opens it, or loads its parts (B-63) — given the pages it shows and its address.
@@ -173,7 +174,7 @@ internal fun pagination(
     press: (pages: IntRange, address: String) -> KompotAction = { _, to -> NavigateAction(to) },
 ): HaulPagination {
     val pages = pageNumbers(page.page, page.pages)
-    val more = page.page < page.pages
+    val more = page.page < page.pages && page.page - page.from + 1 < Browse.MAX_HELD_PAGES
     val next = page.from..page.page + 1
     return HaulPagination(
         id = "pagination",
