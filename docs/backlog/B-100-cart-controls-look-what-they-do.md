@@ -1,7 +1,7 @@
 ---
 id: B-100
 title: "client + server: the cart's controls look what they do"
-status: open
+status: wip
 priority: P2
 size: M
 stage: stage-11-qa
