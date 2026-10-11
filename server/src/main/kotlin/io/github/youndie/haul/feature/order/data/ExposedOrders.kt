@@ -73,8 +73,8 @@ internal class ExposedOrders(
                 this[OrderLinesTable.sellerId] = line.sellerId
                 this[OrderLinesTable.title] = line.title
                 this[OrderLinesTable.quantity] = line.quantity
-                this[OrderLinesTable.priceCents] = line.priceCents
-                this[OrderLinesTable.listCents] = line.listCents
+                this[OrderLinesTable.totalCents] = line.totalCents
+                this[OrderLinesTable.listTotalCents] = line.listTotalCents
             }
             val sellers = order.lines.map { it.sellerId }.distinct()
             ShipmentsTable.batchInsert(sellers.withIndex()) { (position, seller) ->
@@ -140,8 +140,8 @@ internal class ExposedOrders(
                         sellerId = it[OrderLinesTable.sellerId],
                         title = it[OrderLinesTable.title],
                         quantity = it[OrderLinesTable.quantity],
-                        priceCents = it[OrderLinesTable.priceCents],
-                        listCents = it[OrderLinesTable.listCents],
+                        totalCents = it[OrderLinesTable.totalCents],
+                        listTotalCents = it[OrderLinesTable.listTotalCents],
                     )
                 }
         val shipments =

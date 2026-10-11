@@ -202,7 +202,7 @@ internal object ShipmentShares {
                 shipment.id to
                     order.placed.lines
                         .filter { it.sellerId == shipment.sellerId }
-                        .sumOf { it.priceCents.toLong() * it.quantity }
+                        .sumOf { it.totalCents.toLong() }
             }
         val cost = costs.sumOf { it.second }
         if (costs.isEmpty() || cost == 0L) return costs.associate { it.first to 0 }

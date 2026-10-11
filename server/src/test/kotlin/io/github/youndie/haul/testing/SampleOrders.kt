@@ -266,7 +266,7 @@ internal object SampleOrders {
         lines: List<OrderLine>,
         pointsRedeemed: Int = 0,
     ): TrackedOrder {
-        val items = lines.sumOf { it.priceCents * it.quantity }
+        val items = lines.sumOf { it.totalCents }
         val total = items - pointsRedeemed
         val order =
             Order(

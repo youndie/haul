@@ -142,7 +142,7 @@ class PointsTest {
                         sagaId = "saga-45890",
                         customerId = SampleCustomers.SAM,
                         payment = "pay_on_delivery",
-                        lines = listOf(mayas.lines.first().copy(priceCents = 10_300, listCents = 10_300)),
+                        lines = listOf(mayas.lines.first().copy(totalCents = 10_300, listTotalCents = 10_300)),
                         itemsCents = 10_300,
                         discountCents = 0,
                         deliveryCents = 0,

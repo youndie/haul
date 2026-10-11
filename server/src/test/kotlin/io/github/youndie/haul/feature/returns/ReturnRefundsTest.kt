@@ -116,7 +116,7 @@ class ReturnRefundsTest {
                     bought.placed.copy(
                         itemsCents = 53_800,
                         discountCents = 5_000,
-                        lines = listOf(bought.placed.lines[0].copy(listCents = 39_900), bought.placed.lines[1]),
+                        lines = listOf(bought.placed.lines[0].copy(listTotalCents = 39_900), bought.placed.lines[1]),
                     ),
             )
         assertEquals(mapOf(0 to 34_900, 1 to 13_900), ReturnRefunds.of(sale))
@@ -176,6 +176,42 @@ class ReturnRefundsTest {
                 assertTrue(share <= refunds.getValue(position), "line $position gives back $share points of $refunds")
             }
         }
+    }
+
+    /**
+     * B-91, the QA pass's #HL-48303: Sony's headphones ×2 at $349.00 — a $698.00 line, its total as the order keeps
+     * it — the duvet cover at $139.00 and the mugs at $24.00, $861.00 paid partly with 2,480 points. Each line gives
+     * back what it cost, $698.00 for the two pairs and not the $770.97 the quantity counted twice gave, and any set
+     * of lines gives back what that set cost, as money and points together, whichever lines are ticked.
+     */
+    @Test
+    fun `a line of several gives back what it cost and any set of lines what the set cost`() {
+        val bought = paidWithPoints(2_480, 69_800, 13_900, 2_400)
+        val sony = bought.placed.lines[0].copy(quantity = 2)
+        val order = bought.copy(placed = bought.placed.copy(lines = listOf(sony) + bought.placed.lines.drop(1)))
+
+        assertEquals(34_900, sony.unitCents, "the price of one pair")
+        val refunds = ReturnRefunds.of(order)
+        assertEquals(mapOf(0 to 69_800, 1 to 13_900, 2 to 2_400), refunds)
+        val shares = ReturnRefunds.pointsBack(order)
+        assertEquals(mapOf(0 to 2_010, 1 to 400, 2 to 70), shares)
+        val sets = listOf(listOf(0), listOf(1), listOf(2), listOf(0, 1), listOf(0, 2), listOf(1, 2), listOf(0, 1, 2))
+        sets.forEach { set ->
+            val cost = set.sumOf { order.placed.lines[it].totalCents }
+            val money = set.sumOf { refunds.getValue(it) } - ReturnRefunds.pointsBack(order, set)
+            assertEquals(cost, money + ReturnRefunds.pointsBack(order, set), "lines $set give back what they cost")
+            assertTrue(money >= 0, "lines $set: $money in money")
+        }
+        assertEquals(
+            69_800 - 2_010,
+            refunds.getValue(0) - shares.getValue(0),
+            "Sony's two pairs: $677.90 and 2,010 points",
+        )
+        assertEquals(
+            order.placed.totalCents,
+            refunds.values.sum() - shares.values.sum(),
+            "everything gives back what was paid",
+        )
     }
 
     /** A count reads as the pages write one: the dialog writes «+ 1,690 points back» itself. */

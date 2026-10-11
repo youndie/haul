@@ -169,8 +169,8 @@ internal class Placement(
                         // The listing name it is bought under, kept by the order line (B-45).
                         title = it.item.product.listingName,
                         quantity = it.stored.quantity,
-                        priceCents = it.priceCents,
-                        listCents = it.listCents,
+                        totalCents = it.totalCents,
+                        listTotalCents = it.listTotalCents,
                     )
                 },
         )

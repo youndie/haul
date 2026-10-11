@@ -62,6 +62,24 @@ class ShipmentSharesTest {
     }
 
     /**
+     * B-91: a line of two at $349.00 is a $698.00 line as the order keeps it, and is shared as $698.00 — not as the
+     * $1,396.00 the quantity counted twice made it, which took $748.77 of an $836.20 total for Sony instead of $677.89.
+     */
+    @Test
+    fun `a line of several is shared by its total`() {
+        val placed = order(83_620, "sony" to 69_800, "home" to 16_300)
+        val order =
+            placed.copy(
+                placed =
+                    placed.placed.copy(
+                        lines = listOf(placed.placed.lines[0].copy(quantity = 2), placed.placed.lines[1]),
+                    ),
+            )
+
+        assertEquals(mapOf("HL-1-1" to 67_789, "HL-1-2" to 15_831), ShipmentShares.of(order))
+    }
+
+    /**
      * A discount that does not divide evenly: every share but the last is rounded down and the last takes
      * the rest, so the captures add up to the authorisation and never to a cent more.
      */

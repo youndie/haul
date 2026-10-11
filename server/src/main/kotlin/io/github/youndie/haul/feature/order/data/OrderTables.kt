@@ -57,8 +57,12 @@ internal object OrderLinesTable : Table("order_lines") {
     val sellerId = text("seller_id").references(SellersTable.id, onDelete = ReferenceOption.RESTRICT)
     val title = text("title")
     val quantity = integer("quantity").check("order_lines_quantity_check") { it greater 0 }
-    val priceCents = integer("price_cents")
-    val listCents = integer("list_cents")
+
+    // Line totals, as placement has written them since V10: the price paid and the list price, each times the
+    // quantity — not unit prices, whatever the columns' names say (B-91). Every row on the stand is in this
+    // shape, so they are read as they are rather than rewritten.
+    val totalCents = integer("price_cents")
+    val listTotalCents = integer("list_cents")
     override val primaryKey = PrimaryKey(orderId, position, name = "pk_order_lines")
 
     init {

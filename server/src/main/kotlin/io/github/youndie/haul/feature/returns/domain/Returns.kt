@@ -121,7 +121,8 @@ internal object ReturnRefunds {
     /** Each line's refund, by its position in [order]. */
     fun of(order: Order): Map<Int, Int> {
         val lines = order.placed.lines
-        val costs = lines.map { it.priceCents.toLong() * it.quantity }
+        // A line's cost is its total as paid, the quantity in it already (B-91).
+        val costs = lines.map { it.totalCents.toLong() }
         val cost = costs.sum()
         if (lines.isEmpty() || cost == 0L) return lines.indices.associateWith { 0 }
         // The order's items are at the list price and its discount is the sales' and the code's together
