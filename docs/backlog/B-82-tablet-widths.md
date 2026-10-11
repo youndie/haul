@@ -1,7 +1,7 @@
 ---
 id: B-82
 title: "client: the store reads well between a phone and 1440"
-status: open
+status: wip
 priority: P2
 size: M
 stage: stage-10-review
