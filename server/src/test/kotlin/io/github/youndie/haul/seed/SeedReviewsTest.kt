@@ -81,21 +81,27 @@ class SeedReviewsTest {
      * passes the switch — puts every one of them in, so no database stays without them past such a start.
      */
     @Test
-    fun `a database seeded without the generated rows gets them on the next start that fills`() {
-        val dataSource = PostgresHarness.freshDatabase()
-        val database = Databases.connect(dataSource)
-        assertTrue(
-            Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY), generatedReviews = false),
-        )
-        assertEquals(0 to 0, dataSource.generated(), "the tests' seed wrote the generated rows")
-        val headphones = CatalogSeed.generate(CatalogSeed.CANVAS_DAY).products.single { it.id == SONY_HEADPHONES }
-        assertEquals(headphones.reviewsCount to headphones.questionsCount, dataSource.counts(SONY_HEADPHONES))
+    fun `a database seeded without the generated rows gets them on the next start that fills`() =
+        PostgresHarness.freshDatabase().use { dataSource ->
+            val database = Databases.connect(dataSource)
+            assertTrue(
+                Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY), generatedReviews = false),
+            )
+            assertEquals(0 to 0, dataSource.generated(), "the tests' seed wrote the generated rows")
+            val headphones = CatalogSeed.generate(CatalogSeed.CANVAS_DAY).products.single { it.id == SONY_HEADPHONES }
+            assertEquals(headphones.reviewsCount to headphones.questionsCount, dataSource.counts(SONY_HEADPHONES))
 
-        assertFalse(Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY)), "the catalog was there")
-        val filled = PostgresHarness.freshDatabase()
-        assertTrue(Seeder.seedIfEmpty(Databases.connect(filled), CatalogSeed.generate(CatalogSeed.CANVAS_DAY)))
-        assertEquals(SeedDigest.of(filled), SeedDigest.of(dataSource), "not the database a seed that fills writes")
-    }
+            assertFalse(
+                Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY)),
+                "the catalog was there",
+            )
+            val filled =
+                PostgresHarness.freshDatabase().use {
+                    assertTrue(Seeder.seedIfEmpty(Databases.connect(it), CatalogSeed.generate(CatalogSeed.CANVAS_DAY)))
+                    SeedDigest.of(it)
+                }
+            assertEquals(filled, SeedDigest.of(dataSource), "not the database a seed that fills writes")
+        }
 
     @Test
     fun `a histogram made from an average gives that average`() {
