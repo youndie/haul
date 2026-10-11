@@ -29,6 +29,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.constrainWidth
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.feature.cart.CartCommand
 import io.github.youndie.haul.feature.cart.LocalCartCommands
@@ -152,7 +153,7 @@ private fun Prices(
         val struck = measurables.getOrNull(1)?.measure(loose)
         val room = constraints.maxWidth
         if (struck == null) {
-            return@Layout layout(shown.width.coerceAtMost(room), shown.height) { shown.place(0, 0) }
+            return@Layout layout(constraints.constrainWidth(shown.width), shown.height) { shown.place(0, 0) }
         }
         val gap = PRICE_GAP.roundToPx()
         if (shown.width + gap + struck.width <= room) {
@@ -160,12 +161,12 @@ private fun Prices(
             val shownY = top - shown[FirstBaseline]
             val struckY = top - struck[FirstBaseline]
             val height = maxOf(shownY + shown.height, struckY + struck.height)
-            layout(shown.width + gap + struck.width, height) {
+            layout(constraints.constrainWidth(shown.width + gap + struck.width), height) {
                 shown.place(0, shownY)
                 struck.place(shown.width + gap, struckY)
             }
         } else {
-            layout(maxOf(shown.width, struck.width).coerceAtMost(room), shown.height + struck.height) {
+            layout(constraints.constrainWidth(maxOf(shown.width, struck.width)), shown.height + struck.height) {
                 shown.place(0, 0)
                 struck.place(0, shown.height)
             }

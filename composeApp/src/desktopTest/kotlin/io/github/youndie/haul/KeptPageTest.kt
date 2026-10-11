@@ -266,7 +266,7 @@ class KeptPageTest {
             val more = "$MUGS?page=3&from=2"
             answer("/ui$MUGS", ok(page(header, grid("Stoneware"), pages(1, more = second))))
             answer("/ui$second", ok(page(header, grid("Ostra"), pages(2, more = more))))
-            answer("/ui$more", ok(page(header, grid("Lume"), pages(3, more = null))))
+            answer("/ui$more", ok(page(header, grid("Lume"), pages(3, more = "$MUGS?page=4&from=2"))))
             storefront(compact = true)
             waitForText(card("Stoneware", 0))
             scrollBy(BOTTOM)

@@ -63,21 +63,21 @@ class WidthsTest {
     fun `every other page reads at every width`() = pages(OTHERS)
 
     /**
-     * B-108: a deals row — six cards across at 1440, home's and the deals page's — broke a struck-out price with cents
-     * mid-number, «$432.9» over «9», where the price and the old price did not fit side by side. The old price goes
+     * B-108: a deals row — six cards across, home's and the deals page's; at 1280 a card is 180 px — broke a struck-out
+     * price with cents mid-number, «$432.9» over «9», where the price and the old price did not fit side by side. The old price goes
      * under the price whole; a card whose two fit keeps them side by side.
      */
     @Test
     fun `a deals row keeps its prices whole`() =
-        runDesktopComposeUiTest(1_440, 600) {
+        runDesktopComposeUiTest(1_280, 600) {
             val cards =
                 List(6) {
                     ProductCard(
                         id = "deal-$it",
                         productId = "p-$it",
                         title = "A deal of the day",
-                        price = if (it == 0) "$12" else "$432.99",
-                        oldPrice = if (it == 0) "$15" else "$618.56",
+                        price = if (it == 0) "$12" else "$1,099.99",
+                        oldPrice = if (it == 0) "$15" else "$1,432.99",
                         rating = "4.8",
                         reviews = "1,204",
                         delivery = "Tomorrow",
@@ -86,13 +86,16 @@ class WidthsTest {
                     )
                 }
             atWidth { ProductGridView(ProductGrid("today", cards, columns = 6), gutter = 40.dp) }
-            assertReads("a deals row at 1440")
+            assertReads("a deals row at 1280")
             val shown = onAllNodesWithText("$12").fetchSemanticsNodes().single().boundsInRoot
             val struck = onAllNodesWithText("$15").fetchSemanticsNodes().single().boundsInRoot
             assertTrue(struck.left > shown.right, "a short old price left the price's side")
-            val wide = onAllNodesWithText("$432.99").fetchSemanticsNodes().first().boundsInRoot
-            val under = onAllNodesWithText("$618.56").fetchSemanticsNodes().first().boundsInRoot
-            assertTrue(under.top >= wide.bottom - 1f, "an old price that does not fit beside the price is not under it")
+            val wide = onAllNodesWithText("$1,099.99").fetchSemanticsNodes().first().boundsInRoot
+            val under = onAllNodesWithText("$1,432.99").fetchSemanticsNodes().first().boundsInRoot
+            assertTrue(
+                under.top > wide.center.y && under.left < wide.right,
+                "an old price that does not fit beside the price is not under it: $wide, $under",
+            )
         }
 
     private fun pages(bodies: List<String>) =

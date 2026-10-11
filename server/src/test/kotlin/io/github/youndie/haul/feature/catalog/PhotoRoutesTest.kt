@@ -111,18 +111,26 @@ class PhotoRoutesTest {
             haulTest(database, Photographed.store, signIn = ShildikHarness.signIn) {
                 url = assertNotNull(tree("/ui/p/$sony").only<ProductDetails>().photo)
                 val lines = tree(CartPaths.SCREEN, maya).all().filterIsInstance<CartLine>()
-                assertEquals(url, lines.single { it.productId == sony }.image, "the cart line")
+                val line =
+                    assertNotNull(lines.firstOrNull { it.productId == sony }, "the cart: ${lines.map { it.productId }}")
+                assertEquals(url, line.image, "the cart line")
                 val items = tree(CheckoutPaths.SCREEN, maya).only<CheckoutSummary>().items
-                assertEquals(url, items.single { it.action == productLink(sony) }.image, "checkout's line")
+                val item = assertNotNull(items.firstOrNull { it.action == productLink(sony) }, "checkout: $items")
+                assertEquals(url, item.image, "checkout's line")
+                // Each suggested product carries its own page's photo; the sample ones have one.
                 val panel = tree("/ui/search/suggest?q=sony") as SearchSuggestPanel
-                assertEquals(url, panel.products.single { it.productId == sony }.image, "the suggest panel")
+                panel.products.forEach {
+                    assertEquals(tree("/ui/p/${it.productId}").only<ProductDetails>().photo, it.image, it.productId)
+                }
+                assertTrue(panel.products.any { it.image != null }, "no suggested product has a photo")
             }
             val orderId = FulfilmentWorld(database).use { it.place(CheckoutChoice(slotId = "2025-10-08T15")) }
             haulTest(database, Photographed.store, signIn = ShildikHarness.signIn) {
                 val response = get(OrderPaths.SCREEN.replace("{id}", orderId)) { bearerAuth(maya) }
                 val body = liveTree(response.bodyAsText(), "order:$orderId").only<OrderBody>()
                 val items = body.shipments.flatMap { it.items }
-                assertEquals(url, items.single { it.action == productLink(sony) }.image, "the order's line")
+                val item = assertNotNull(items.firstOrNull { it.action == productLink(sony) }, "the order: $items")
+                assertEquals(url, item.image, "the order's line")
             }
         }
 

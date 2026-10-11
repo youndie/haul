@@ -2,15 +2,18 @@ package io.github.youndie.haul
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
+import io.github.youndie.haul.feature.search.SearchSuggestOverlay
 import io.github.youndie.haul.registry.haulJson
 import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.ui.LocalHaulNow
 import io.github.youndie.haul.ui.LocalPhotoLoader
 import io.github.youndie.haul.ui.PhotoLoader
+import io.github.youndie.haul.ui.SearchSuggestPanel
 import io.github.youndie.kompot.KompotComponent
 import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.JsonArray
@@ -51,17 +54,38 @@ class LinePhotosTest {
         setContent {
             HaulTheme(FixtureFonts.fonts, compact = false) {
                 CompositionLocalProvider(
-                    LocalPhotoLoader provides PhotoLoader { _, modifier, _ -> Box(modifier.testTag(PHOTO)) },
+                    LocalPhotoLoader provides
+                        PhotoLoader {
+                            _,
+                            modifier,
+                            _,
+                            ->
+                            Box(modifier) { Box(Modifier.matchParentSize().testTag(PHOTO)) }
+                        },
                     LocalHaulNow provides CANVAS_NOW,
                 ) {
                     Page {
-                        Render(haulJson.decodeFromJsonElement(PolymorphicSerializer(KompotComponent::class), tree))
+                        // The panel is drawn over the page it opens on, as the header draws it; anything else is a page.
+                        when (
+                            val component =
+                                haulJson.decodeFromJsonElement(
+                                    PolymorphicSerializer(KompotComponent::class),
+                                    tree,
+                                )
+                        ) {
+                            is SearchSuggestPanel -> SearchSuggestOverlay(component) { Body("search_results.json") }
+                            else -> Render(component)
+                        }
                     }
                 }
             }
         }
         waitForIdle()
-        assertEquals(lines, onAllNodes(hasTestTag(PHOTO)).fetchSemanticsNodes().size, "$body: the photos drawn")
+        assertEquals(
+            lines,
+            onAllNodes(hasTestTag(PHOTO), useUnmergedTree = true).fetchSemanticsNodes().size,
+            "$body: the photos drawn",
+        )
     }
 
     /**
