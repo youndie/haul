@@ -54,7 +54,7 @@ A stage is a field on the item, not a directory.
 | [B-86](docs/backlog/B-86-reviews-photos-and-histogram.md) `[ ]` | client + server: review photos open and the histogram filters | P3 | M | - |
 | [B-87](docs/backlog/B-87-fallback-rows.md) `[ ]` | server: what home and the empty cart show when no deal is live | P3 | S | - |
 | [B-89](docs/backlog/B-89-traffic-exercises-compensation.md) `[ ]` | e2e: the synthetic shoppers also walk a declined payment | P3 | S | - |
-| [B-90](docs/backlog/B-90-review-loop-leftovers.md) `[ ]` | client + server: the small leftovers of the review loop | P3 | S | - |
+| [B-90](docs/backlog/B-90-review-loop-leftovers.md) `[~]` | client + server: the small leftovers of the review loop | P3 | S | - |
 
 ## Closed (103)
 
