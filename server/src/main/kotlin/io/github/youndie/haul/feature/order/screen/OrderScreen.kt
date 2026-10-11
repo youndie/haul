@@ -676,10 +676,15 @@ private class OrderPage(
         val rows =
             buildList {
                 add(SummaryRow("Items ($units)", exact(placed.itemsCents)))
-                if (placed.discountCents >
-                    0
-                ) {
-                    add(SummaryRow("Discount", "−" + exact(placed.discountCents), saving = true))
+                // The cart's and checkout's rows (B-108, `summaryRows`): «Discount» the sale alone, the promo
+                // code's row beside it. An order keeps the two as one sum, so the sale is read off its lines —
+                // what each cost before its sale less what it cost — and the promo is the rest.
+                val code = placed.promoCode
+                val sale = placed.lines.sumOf { it.listTotalCents - it.totalCents }.coerceIn(0, placed.discountCents)
+                val discount = if (code == null) placed.discountCents else sale
+                if (discount > 0) add(SummaryRow("Discount", "−" + exact(discount), saving = true))
+                if (code != null && placed.discountCents > sale) {
+                    add(SummaryRow("Promo · $code", "−" + exact(placed.discountCents - sale), saving = true))
                 }
                 // Paid in part with points (B-23): a point a cent, as the checkout's summary drew it.
                 if (placed.pointsRedeemed > 0) {
@@ -712,7 +717,6 @@ private class OrderPage(
             returnLabel = "Return items".takeIf { form != null },
             returnAction = form?.let { PresentAction(it, ReviewTabs.DIALOG) },
             returnNote = returnRule(),
-            back = Link("Back to cart", toCart()).takeIf { cancelled },
             plan = plan(),
         )
     }

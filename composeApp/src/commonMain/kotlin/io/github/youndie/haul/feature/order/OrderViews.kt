@@ -551,18 +551,6 @@ private fun Summary(
                 }
             }
         }
-        totals.back?.let {
-            HaulButton(
-                it.label,
-                Modifier.fillMaxWidth(),
-                height = 64.dp,
-                radius = 18.dp,
-                fill = HaulColors.primary,
-                content = HaulColors.onPrimary,
-                icon = HaulIcons.arrowRight,
-                onClick = following(it.action),
-            )
-        }
     }
 }
 

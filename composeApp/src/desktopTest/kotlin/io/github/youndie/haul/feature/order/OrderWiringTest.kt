@@ -142,16 +142,17 @@ class OrderWiringTest {
             assertNoAnswer(followed.single(), retry = false)
         }
 
-    /** A cancelled order's «Back to cart», in the banner and in the summary, opens the cart and sends nothing. */
+    /**
+     * A cancelled order's «Back to cart» — once, in the banner: the summary drew a second one beside it (B-108) —
+     * opens the cart and sends nothing.
+     */
     @Test
     fun `a cancelled order leads back to the cart`() =
         runDesktopComposeUiTest(WIDTH, 1_200) {
             order(decode("order_cancelled.json"))
-            onAllNodesWithText("Back to cart").fetchSemanticsNodes().indices.forEach {
-                onAllNodesWithText("Back to cart")[it].performClick()
-            }
+            onNodeWithText("Back to cart").performClick()
             waitForIdle()
-            assertEquals(listOf<KompotAction>(NavigateAction("/cart"), NavigateAction("/cart")), followed.toList())
+            assertEquals(listOf<KompotAction>(NavigateAction("/cart")), followed.toList())
             assertEquals(emptyList(), sent.toList())
         }
 

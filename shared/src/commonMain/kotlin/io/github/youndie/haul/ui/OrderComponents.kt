@@ -181,8 +181,8 @@ public data class PaymentPlan(
  * [reorderUrl], answered `navigate` to the cart, with a message naming what could not go in — or the message
  * alone when nothing could, B-101); [returnLabel] is «Return items», and [returnAction] what it does — kompot's
  * `present` of the [ReturnForm] (B-21); [returnNote], once a return is in and some lines were kept, is the rule
- * that took the button away, drawn where it was («One return per order: …», B-101); [back] is a cancelled order's
- * «Back to cart».
+ * that took the button away, drawn where it was («One return per order: …», B-101). A cancelled order's «Back to
+ * cart» is its notice's alone (B-108): the summary drew a second one beside it.
  */
 @Serializable
 public data class OrderTotals(
@@ -197,7 +197,6 @@ public data class OrderTotals(
     val returnLabel: String? = null,
     val returnAction: @Polymorphic KompotAction? = null,
     val returnNote: String? = null,
-    val back: Link? = null,
     val plan: PaymentPlan? = null,
 )
 
