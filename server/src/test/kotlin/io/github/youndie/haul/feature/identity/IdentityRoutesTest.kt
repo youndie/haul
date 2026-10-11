@@ -184,6 +184,8 @@ class IdentityRoutesTest {
                     "/ui/c/electronics/audio/headphones",
                     "/ui/p/${SampleCatalog.SONY_HEADPHONES}",
                     "/ui/search?q=mug",
+                    // The header alone, which the client asks for over a page that came with no tree (B-105).
+                    "/ui/header",
                 )
 
             for (screen in screens) {

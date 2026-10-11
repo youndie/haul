@@ -61,13 +61,14 @@ import io.github.youndie.kompot.standard.NavigateAction
  * The header before any tree has arrived: the store's default place and promise, its top-level
  * categories, an account placeholder and no cart count. The server's header replaces it with the tree.
  *
- * Its controls lead where a guest's header from the server would send them (B-67), by the addresses the
+ * It is a guest's (B-105: a customer's is [CUSTOMER_SHELL_HEADER]), and its controls lead where a guest's
+ * header from the server would send them (B-67), by the addresses the
  * server's `Frame` fixes for every shopper: «Deals», the cart, «Orders» and «Saved» (a guest's — the
  * sign-in, returning to them, which sends a customer straight on), the account and «HAUL PLUS» (the
  * sign-in). Which address a category has is the server's to say, and no tree has said it yet: each word
  * of the category row, and each entry of «Catalog», opens the catalog's root ([CATALOG]), every
- * top-level category, one press from the one meant. Once a tree has been drawn the shell draws its
- * header instead ([LocalShellHeader]).
+ * top-level category, one press from the one meant. Once the server has drawn a header for the shopper —
+ * a tree's, or the header alone the shell asks for (B-105) — the shell draws that instead ([LocalShellHeader]).
  */
 public val SHELL_HEADER: HaulHeader =
     run {
@@ -102,17 +103,40 @@ public val SHELL_HEADER: HaulHeader =
         )
     }
 
+/**
+ * [SHELL_HEADER] for a customer (B-105): the shopper is signed in, and no answer of the server's has drawn the
+ * header for her yet — a page she landed on with no tree, before the header alone ([ShellHeaders]) answers, or
+ * when it does not. Her name and her cart are the server's to say, so the account slot reads «Account» and
+ * opens the account's menu — the account and «Sign out» — and the cart has no count. «Orders» and «Saved» lead
+ * straight to them, «HAUL PLUS» to the account, where the membership is drawn; the category words are
+ * [SHELL_HEADER]'s, the catalog's root.
+ */
+public val CUSTOMER_SHELL_HEADER: HaulHeader =
+    SHELL_HEADER.copy(
+        customerName = ACCOUNT_LABEL,
+        account = NavigateAction(ACCOUNT),
+        orders = NavigateAction(ORDERS),
+        saved = NavigateAction(SAVED),
+        plus = NavigateAction(ACCOUNT),
+    )
+
+/** What a customer's account slot reads while her name is not known ([CUSTOMER_SHELL_HEADER]). */
+public const val ACCOUNT_LABEL: String = "Account"
+
 // The server's addresses (`Frame` on the server) the shell's own header follows before a tree names them.
 private const val CATALOG = "/c"
 private const val DEALS = "/deals"
 internal const val CART: String = "/cart"
+private const val ACCOUNT = "/account"
 private const val ORDERS = "/account/orders"
 private const val SAVED = "/account/saved"
 
 /**
  * The header the shell draws over a page it draws itself — a placeholder, an error, a page that is not
- * there, the sign-in's (B-67): the header of the last tree drawn, whose links are the server's, or
- * [SHELL_HEADER] before any. Outside the storefront — a screenshot — it is [SHELL_HEADER].
+ * there, the sign-in's (B-67): the last header the server drew for who is looking — a tree's, whose links
+ * are the server's, or the header alone the shell asked for (B-105) — or, before any, [SHELL_HEADER] for a
+ * guest and [CUSTOMER_SHELL_HEADER] for a customer ([ShellHeaders]). Outside the storefront — a screenshot —
+ * it is [SHELL_HEADER].
  */
 public val LocalShellHeader: ProvidableCompositionLocal<HaulHeader> = staticCompositionLocalOf { SHELL_HEADER }
 
@@ -501,7 +525,8 @@ private val FACET_BLOCKS =
 
 /**
  * A page whose subject is not there (`404`): the client draws it with the header it already has — the
- * last tree's, or [SHELL_HEADER] when the shopper landed on it (B-67) — an eyebrow, the title with its
+ * server's last for who is looking, or the client's own when the shopper landed on it (B-67, B-105:
+ * [LocalShellHeader]) — an eyebrow, the title with its
  * accent, why, and the way on. The sign-in's
  * pages are drawn the same way (B-44, B-66): no [actionLabel] while there is nothing to press, and a
  * second way on, [secondaryLabel], as a link under the button.
