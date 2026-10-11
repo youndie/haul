@@ -42,11 +42,10 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (11)
+## Open (10)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-82](docs/backlog/B-82-tablet-widths.md) `[~]` | client: the store reads well between a phone and 1440 | P2 | M | - |
 | [B-107](docs/backlog/B-107-copy-that-promises-nothing.md) `[ ]` | server: the store does not promise what it does not have | P3 | S | - |
 | [B-108](docs/backlog/B-108-pages-look-alike.md) `[ ]` | client + server: the same thing looks the same on every page | P3 | M | - |
 | [B-110](docs/backlog/B-110-order-updates-log-noise.md) `[ ]` | server: a client leaving the order page is not an error | P3 | XS | - |
@@ -58,7 +57,7 @@ A stage is a field on the item, not a directory.
 | [B-89](docs/backlog/B-89-traffic-exercises-compensation.md) `[ ]` | e2e: the synthetic shoppers also walk a declined payment | P3 | S | - |
 | [B-90](docs/backlog/B-90-review-loop-leftovers.md) `[ ]` | client + server: the small leftovers of the review loop | P3 | S | - |
 
-## Closed (100)
+## Closed (101)
 
 **Skeleton**
 
@@ -169,6 +168,7 @@ A stage is a field on the item, not a directory.
 - [B-79](docs/backlog/B-79-checkout-step-indicator-and-links.md) `[x]` - client + server: checkout's step indicator and summary tell the truth
 - [B-80](docs/backlog/B-80-blank-first-load.md) `[x]` - client: the first load shows something before the app starts
 - [B-81](docs/backlog/B-81-card-plus-says-added.md) `[x]` - server + client: a card's «+» says the item was added
+- [B-82](docs/backlog/B-82-tablet-widths.md) `[x]` - client: the store reads well between a phone and 1440
 - [B-83](docs/backlog/B-83-typed-input-before-every-press.md) `[x]` - client: every press that reads a field sees what was typed
 - [B-88](docs/backlog/B-88-a-return-restocks.md) `[x]` - server: a returned unit goes back to stock
 
