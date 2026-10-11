@@ -12,8 +12,9 @@ import java.time.OffsetDateTime
  * canvas's two reviews and three questions of the headphones) and, for the rest of each count, generated rows
  * written in SQL — `generate_series` over each product's target, the copy picked from the pools below by the
  * row's number. The seed holds 60,849 reviews and 6,799 questions so; written that way they add about a second
- * and a half to a fresh seed (0.6–1.4 s before, 2.2–2.7 s after, on the build box), which the server's suite,
- * seeding a database per test that writes, pays about ninety times.
+ * and a half to a fresh seed (0.6–1.4 s before, 2.2–2.7 s after, on the build box). The server's tests seed a
+ * database of their own without them unless they read a product's reviews (`Seeder.seedIfEmpty`'s
+ * `generatedReviews`, B-111): the suite seeds about ninety.
  *
  * Every row is deterministic: its id is `rf-<product>-<stars>-<n>` (a review) or `qf-<product>-<n>` (a
  * question), its copy and its date follow from that number and the product's id, and no clock is read. The

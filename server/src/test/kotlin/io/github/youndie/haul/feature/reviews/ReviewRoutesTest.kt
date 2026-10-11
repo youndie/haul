@@ -241,7 +241,7 @@ class ReviewRoutesTest {
      */
     @Test
     fun `a reviewer sees their review first and no second write a review`() =
-        ownDatabase { dataSource ->
+        ownDatabase(generatedReviews = true) { dataSource ->
             runBlocking {
                 ExposedReviews(Databases.connect(dataSource)).write(
                     StoredReview(
@@ -350,7 +350,7 @@ class ReviewRoutesTest {
 
     @Test
     fun `a question asked shows as not answered yet and is counted`() =
-        ownDatabase { dataSource ->
+        ownDatabase(generatedReviews = true) { dataSource ->
             signedIn(dataSource, "Sam Ortiz", SampleCustomers.SAM) { token ->
                 ask(token, QuestionEntry("  Do the ear cushions come off for cleaning?  ")).assertClosed()
                 assertEquals("87", customerTree(token, questionsTab).only<ProductQuestions>().count)
@@ -611,8 +611,14 @@ class ReviewRoutesTest {
         }
     }
 
-    /** A seeded database of the test's own, its pool closed afterwards. */
-    private fun ownDatabase(block: (DataSource) -> Unit) = seededFreshDatabase().use(block)
+    /**
+     * A seeded database of the test's own, its pool closed afterwards; with every review and question the
+     * products count only for a test that lists past the seed's own rows ([generatedReviews], B-111).
+     */
+    private fun ownDatabase(
+        generatedReviews: Boolean = false,
+        block: (DataSource) -> Unit,
+    ) = seededFreshDatabase(generatedReviews).use(block)
 
     private companion object {
         /** The seed's two reviews of the headphones (`SampleReviews`): nobody's, so anyone may vote. */
