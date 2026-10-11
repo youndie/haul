@@ -47,7 +47,7 @@ A stage is a field on the item, not a directory.
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-112](docs/backlog/B-112-first-press-focuses-the-field.md) `[?]` | client: the first press on a text field focuses it | P1 | M | - |
-| [B-108](docs/backlog/B-108-pages-look-alike.md) `[ ]` | client + server: the same thing looks the same on every page | P3 | M | - |
+| [B-108](docs/backlog/B-108-pages-look-alike.md) `[~]` | client + server: the same thing looks the same on every page | P3 | M | - |
 | [B-78](docs/backlog/B-78-placeholders-on-the-stand.md) `[ ]` | server + client: the stand shows pictures, not placeholder labels | P3 | M | - |
 | [B-84](docs/backlog/B-84-screenshot-fixtures-leak-state.md) `[ ]` | test: screenshot fixtures do not depend on their order | P3 | S | - |
 | [B-85](docs/backlog/B-85-canvas-behind-the-code.md) `[ ]` | design: the canvas draws what the store now has | P3 | M | - |

@@ -1,7 +1,7 @@
 ---
 id: B-108
 title: "client + server: the same thing looks the same on every page"
-status: open
+status: wip
 priority: P3
 size: M
 stage: stage-11-qa
