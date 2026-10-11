@@ -20,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
@@ -49,6 +50,7 @@ import io.github.youndie.haul.ui.Icon
 import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.LinkMenu
 import io.github.youndie.haul.ui.LocalHaulActions
+import io.github.youndie.haul.ui.LocalPageScroll
 import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.ProductGridView
 import io.github.youndie.haul.ui.Text
@@ -57,7 +59,7 @@ import io.github.youndie.haul.ui.following
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.pressable
-import io.github.youndie.kompot.KompotAction
+import kotlinx.coroutines.launch
 
 // The category page's components (screen-catalog), each with the margin the page gives it; the
 // numbers are the artboards' (Catalog_Content, Catalog_Empty and their _Phone twins).
@@ -513,13 +515,22 @@ private fun SortControl(
     }
 }
 
-/** «Show 24 more» and the page numbers: side by side at 1440, stacked and centred on a phone. */
+/**
+ * «Show 24 more» and the page numbers: side by side at 1440, stacked and centred on a phone. A grid of one page
+ * has neither and draws nothing — not a lone «1» (B-108). A page number opens its page at the top, as a link to
+ * another page would: the page is kept while it loads (B-62), but a press at the foot of a page left the shopper at
+ * the foot of the next one. «Show N more» appends and keeps the scroll (B-77).
+ */
 @Composable
 public fun PaginationView(
     pagination: HaulPagination,
     modifier: Modifier = Modifier,
 ) {
+    if (pagination.pages.size <= 1 && pagination.moreLabel == null) return
     val compact = LocalHaulCompact.current
+    val handler = LocalHaulActions.current
+    val scroll = LocalPageScroll.current
+    val scope = rememberCoroutineScope()
     val more =
         @Composable { m: Modifier ->
             pagination.moreLabel?.let {
@@ -538,10 +549,19 @@ public fun PaginationView(
         @Composable {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 pagination.pages.forEach { label ->
+                    val action = pagination.links.firstOrNull { it.label == label }?.action
                     PageNumber(
                         label,
                         current = label == pagination.current.toString(),
-                        action = pagination.links.firstOrNull { it.label == label }?.action,
+                        onPress =
+                            if (action == null || handler == null) {
+                                null
+                            } else {
+                                {
+                                    handler.handle(action)
+                                    scroll?.let { scope.launch { it.scrollTo(0) } }
+                                }
+                            },
                     )
                 }
             }
@@ -571,7 +591,7 @@ public fun PaginationView(
 private fun PageNumber(
     label: String,
     current: Boolean,
-    action: KompotAction?,
+    onPress: (() -> Unit)?,
 ) {
     val fill =
         when {
@@ -581,7 +601,7 @@ private fun PageNumber(
         }
     Box(
         Modifier
-            .follows(action)
+            .pressable(onPress)
             .defaultMinSize(minWidth = 44.dp)
             .height(44.dp)
             .then(if (fill != null) Modifier.background(fill, RoundedCornerShape(12.dp)) else Modifier)

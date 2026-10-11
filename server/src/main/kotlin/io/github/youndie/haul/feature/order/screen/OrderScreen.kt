@@ -5,6 +5,7 @@ import io.github.youndie.haul.feature.cart.screen.CartScreen
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.PriceList
+import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.money
 import io.github.youndie.haul.feature.catalog.screen.navigation
@@ -75,6 +76,7 @@ internal class OrderScreen(
     private val checkout: CheckoutRepository,
     private val reviews: ReviewTabs,
     private val clock: StoreClock,
+    private val photos: ProductPhotos,
 ) {
     suspend fun build(
         customerId: String,
@@ -126,6 +128,7 @@ internal class OrderScreen(
                                     Viewer(customerId = customerId),
                                     reviewed = item.product.id in reviewed,
                                 ),
+                            image = photos.url(item.product),
                         )
                 }.toMap()
         return OrderView(
@@ -187,7 +190,8 @@ internal data class OrderCard(
 /**
  * A SKU's product as the page draws its line: the tile's tone, the options, how long its seller takes to
  * dispatch, and the review link the line shows once it has arrived — «Write a review», the review dialog
- * (B-22), or «Your review» once the customer has written one (B-99).
+ * (B-22), or «Your review» once the customer has written one (B-99); [image], where the product's stored photo is
+ * served (B-108).
  */
 internal data class Bought(
     val productId: String,
@@ -195,6 +199,7 @@ internal data class Bought(
     val tone: String,
     val dispatchDays: Int,
     val review: Link,
+    val image: String? = null,
 )
 
 /** One order's page, built from its [view]; every date is the store's (New York's). */
@@ -569,6 +574,7 @@ private class OrderPage(
             tone = bought?.tone.orEmpty(),
             action = bought?.let { productLink(it.productId) },
             review = bought?.review?.takeIf { received },
+            image = bought?.image,
         )
     }
 

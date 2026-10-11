@@ -1,5 +1,6 @@
 package io.github.youndie.haul.ui
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
@@ -29,6 +30,12 @@ import io.github.youndie.kompot.KompotActionHandler
  * pixels with nothing to press.
  */
 public val LocalHaulActions: ProvidableCompositionLocal<KompotActionHandler?> = staticCompositionLocalOf { null }
+
+/**
+ * The scroll of the page being drawn: the storefront's, one per screen (B-62). `null` — a screenshot, a view drawn
+ * on its own — has no page to move. A page number moves it to the top (B-108).
+ */
+public val LocalPageScroll: ProvidableCompositionLocal<ScrollState?> = staticCompositionLocalOf { null }
 
 /** Pressing this follows [action]; no action, or nobody to follow it, leaves the element as it was. */
 @Composable

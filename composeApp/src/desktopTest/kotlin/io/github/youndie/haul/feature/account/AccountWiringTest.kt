@@ -180,6 +180,33 @@ class AccountWiringTest {
             assertEquals(emptyList(), sent.toList())
         }
 
+    /**
+     * B-108: an active order's card opens its page wherever it is pressed — its number, its pickup code — as a
+     * history row does; it used to open only from the small «Details ›». At 1440 and on a phone.
+     */
+    @Test
+    fun `an active order's card opens its order's page wherever it is pressed`() = activeCards(compact = false)
+
+    @Test
+    fun `an active order's card opens its order's page wherever it is pressed on a phone`() =
+        activeCards(compact = true)
+
+    private fun activeCards(compact: Boolean) =
+        runDesktopComposeUiTest(if (compact) 390 else WIDTH, if (compact) 2_400 else 1_700) {
+            account(decode("account_content.json"), compact = compact)
+            onNodeWithText("#HL-48211 · Placed Oct 5 · $512.00").performClick()
+            onNodeWithText("4821").performClick()
+            waitForIdle()
+            assertEquals(
+                listOf<KompotAction>(
+                    NavigateAction("/account/orders/HL-48211"),
+                    NavigateAction("/account/orders/HL-47960"),
+                ),
+                followed.toList(),
+            )
+            assertEquals(emptyList(), sent.toList())
+        }
+
     /** …and on a phone, on the orders' page. */
     @Test
     fun `every row of the orders' page opens its order's page on a phone`() =

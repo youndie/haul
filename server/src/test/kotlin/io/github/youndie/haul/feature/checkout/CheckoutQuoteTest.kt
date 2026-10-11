@@ -8,6 +8,7 @@ import io.github.youndie.haul.feature.cart.domain.CartCommands
 import io.github.youndie.haul.feature.cart.domain.CartOwner
 import io.github.youndie.haul.feature.catalog.data.ExposedCatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
+import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.checkout.data.ExposedCheckoutRepository
 import io.github.youndie.haul.feature.checkout.data.ExposedDeliverySlots
 import io.github.youndie.haul.feature.checkout.domain.CheckoutCommands
@@ -72,7 +73,7 @@ class CheckoutQuoteTest {
             assertEquals("AUTUMN10", expired.expiredPromo)
             assertEquals(34_900, expired.quote.totals.totalCents)
 
-            val tree = CheckoutScreen(commands(later)).build(owner)
+            val tree = CheckoutScreen(commands(later), ProductPhotos(null)).build(owner)
             assertEquals("Code AUTUMN10 has expired and is not in the total", tree.only<CheckoutNotice>().text)
             assertEquals("$349", tree.only<CheckoutSummary>().total)
         }

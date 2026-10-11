@@ -1,5 +1,8 @@
 package io.github.youndie.haul.feature.catalog
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ComposeUiTest
@@ -153,6 +156,29 @@ class ReachablePagesTest {
             onNodeWithText("Popular").assertDoesNotExist()
             assertEquals(listOf("/ui$SEARCH", PARTS + CHEAPEST), requests.toList())
             assertEquals(listOf(SEARCH, CHEAPEST), history.entries)
+        }
+
+    /**
+     * B-108: a listing of one page — a narrow search, a small category, the deals on a quiet day — drew a lone «1»
+     * with nothing to press. It draws no pagination at all; two pages draw both numbers.
+     */
+    @Test
+    fun `a listing of one page draws no page number`() =
+        runDesktopComposeUiTest(1440, 300) {
+            var pagination by mutableStateOf(HaulPagination("pagination", current = 1, pages = listOf("1")))
+            setContent { HaulTheme(FixtureFonts.fonts, compact = false) { PaginationView(pagination) } }
+            onNodeWithText("1").assertDoesNotExist()
+
+            pagination =
+                HaulPagination(
+                    "pagination",
+                    current = 1,
+                    pages = listOf("1", "2"),
+                    links = listOf(Link("2", NavigateAction("/c/mugs?page=2"))),
+                )
+            waitForIdle()
+            onNodeWithText("1").assertExists()
+            onNodeWithText("2").assertExists()
         }
 
     private companion object {

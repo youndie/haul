@@ -7,6 +7,8 @@ import io.github.youndie.haul.feature.home.PLUS_DIALOG_COMPACT_TOP
 import io.github.youndie.haul.feature.home.PlusTrialDialogView
 import io.github.youndie.haul.feature.product.DialogOverlay
 import io.github.youndie.haul.shell.CatalogLoading
+import io.github.youndie.haul.shell.CategoriesLoading
+import io.github.youndie.haul.shell.DealsLoading
 import io.github.youndie.haul.shell.ErrorShell
 import io.github.youndie.haul.shell.HomeLoading
 import io.github.youndie.haul.shell.ShellFailure
@@ -77,6 +79,25 @@ internal fun HomeErrorPhone() =
     Fixture(compact = true) {
         Page { ErrorShell("The home page", ShellFailure.Unreachable) }
     }
+
+// The catalog's root and the deals before their trees (B-108). No artboard draws either page: placeholders of the
+// blocks each page draws, as every other page has, where they had the header alone.
+
+@ViddikScreenshot(name = "Loading", group = "Categories", width = 1440, height = 900)
+@Composable
+internal fun CategoriesLoadingWide() = Fixture(compact = false) { Page { CategoriesLoading() } }
+
+@ViddikScreenshot(name = "Loading_Phone", group = "Categories", width = 390, height = 1000)
+@Composable
+internal fun CategoriesLoadingPhone() = Fixture(compact = true) { Page { CategoriesLoading() } }
+
+@ViddikScreenshot(name = "Loading", group = "Deals", width = 1440, height = 1700)
+@Composable
+internal fun DealsLoadingWide() = Fixture(compact = false) { Page { DealsLoading() } }
+
+@ViddikScreenshot(name = "Loading_Phone", group = "Deals", width = 390, height = 1700)
+@Composable
+internal fun DealsLoadingPhone() = Fixture(compact = true) { Page { DealsLoading() } }
 
 // Catalog
 

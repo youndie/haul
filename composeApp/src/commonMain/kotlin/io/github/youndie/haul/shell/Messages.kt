@@ -1,6 +1,7 @@
 package io.github.youndie.haul.shell
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
@@ -38,6 +40,8 @@ import kotlinx.coroutines.delay
 // what happens over a page, the notice a load that did not arrive leaves (`NotUpdatedNotice`, B-62): the
 // inverse surface, the Acid accent, the button on the right. The Material snackbar kompot ships
 // (`kompot-ds-material-compose`) is not taken: the app has no Material theme, only Haul's tokens.
+
+private val MESSAGE_SHAPE = RoundedCornerShape(16.dp)
 
 /** The tag on the message drawn over the page, for the tests that wait for it. */
 public const val MESSAGE_TAG: String = "page-message"
@@ -120,7 +124,11 @@ internal fun MessageNotice(
             .semantics { liveRegion = LiveRegionMode.Polite }
             .widthIn(max = 560.dp)
             .fillMaxWidth()
-            .background(HaulColors.inverseSurface, RoundedCornerShape(16.dp))
+            // A ring of the page's white and a shadow (B-108): the notice is Ink, and over the home page's Ink Plus
+            // block «Added to your cart» was a dark box on a dark block.
+            .shadow(16.dp, MESSAGE_SHAPE)
+            .border(2.dp, HaulColors.surfaceContainerLowest, MESSAGE_SHAPE)
+            .background(HaulColors.inverseSurface, MESSAGE_SHAPE)
             .padding(start = 20.dp, end = if (onAction != null) 12.dp else 20.dp, top = 12.dp, bottom = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.CenterVertically,

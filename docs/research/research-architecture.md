@@ -246,7 +246,8 @@ the header's order — built from home's own tiles, no artboard, so no parity re
 kept again on every address the page links to, so ticking a brand does not fold the list; any other
 `expand` is `400 validation_failed`. A recent search's row is a `Link` to its `/search?q=`, so the client
 builds no address from the text. The «HAUL PLUS» pill is `HaulHeader.plus`: B-23's `present` of the
-trial's dialog for a customer who is not a member, `/account` for a member, sign-in for a guest.
+trial's dialog for a customer who is not a member, sign-in for a guest; for a member, since B-108, nothing —
+the membership's mark (see «Decided in B-108»).
 
 - **The one control wired in the client alone is the filter sheet's** (and, since B-73, the phone
   header's menu, below). The sheet is the facets already in the tree, drawn over the page on a phone;
@@ -263,6 +264,45 @@ trial's dialog for a customer who is not a member, `/account` for a member, sign
 - **A control with no page behind it is not drawn** (B-72; B-49 had drawn such words as plain text, and
   on the stand they still read as links). See «Decided in B-72» below.
 
+**Decided in B-108, the same thing looks the same on every page.** The QA pass of 2026-10-10 listed what one
+page drew one way and another page another; each line was fixed, or the difference kept and said why here:
+
+- **The footer stays on home, the catalog's root and the deals** — kept. The canvas draws it on home alone, no
+  artboard of another page has one, and every word it holds is in the header on every page: «Deals» in the
+  category row, «HAUL PLUS» at its end, «Orders» among the shortcuts. Drawn on the other pages it would be a
+  second way to the same three places, below content the artboards end without it.
+- **The catalog's root and the deals have placeholders of their own** (`CategoriesLoading`, `DealsLoading`,
+  `PageKind.Categories` and `Deals`): they drew the header alone while their trees were on their way.
+- **A listing of one page draws no page number** (`PaginationView`): «1» alone was a control with nothing to
+  choose. The tree still sends the node — a search narrowed in place by an `update` must keep the node it
+  replaces — and the client draws nothing for it.
+- **A page number opens its page at the top** — an amendment to B-62, whose kept page kept the scroll for
+  every new address of a screen, so a page number pressed at the foot of the Saved list on a phone landed at the
+  foot of the next page. The page is still kept while it loads (no placeholder); only the scroll moves, at the
+  press. A filter, a sort and «Show N more» keep the scroll as before. The Saved list keeps only the page
+  numbers, no «Show 24 more» (B-20, as the canvas draws `Saved_*`).
+- **An active order's card opens its order wherever it is pressed**, as a history row does (B-74); «Details ›»
+  says what the press does.
+- **Every tile of a product carries its stored photo** (D8): a cart line, checkout's lines, an order's lines, the
+  suggest panel's products.
+- **A cancelled order says «Back to cart» once**, in its notice beside the reason; the summary's second one is
+  gone (`OrderTotals.back` with it). The notice is the first thing a phone draws, and every other way on of an
+  order page is the summary's only because no notice is there.
+- **An order's summary draws the promo code's row**, as the cart's and checkout's do since B-100: an order keeps
+  the sale and the code as one sum (`discount_cents`), so «Discount» is read off its lines (each line's price
+  before its sale less what it cost) and «Promo · AUTUMN10» is the rest.
+- **A member's «HAUL PLUS» is the membership's mark, with nothing to press** (amends B-49). It led a member to
+  the account overview, where the membership is one tile of four, and on the overview it opened the page shown —
+  a press that did nothing. No page of the store is the membership's own (B-74), so, as with the strip's words
+  without a page (B-72), the pill is not a control for a member; the footer's «Haul Plus» is text for one too.
+  Rejected: a dialog describing the membership (no artboard, and the home page's Plus block already says what
+  it saved and when it renews). The client's own header before any tree (B-105) still points the pill at the
+  account: it does not know whether the customer is a member, and the server's header replaces it.
+- **A card's old price is never broken.** Beside the price when the two fit, under it when they do not
+  (`ProductCardView`, `Prices`): a deal of the day with cents, six across at 1440, broke «$432.9» from «9».
+- **A message over the page has a ring of the page's white and a shadow** (`MessageNotice`): Ink on the home
+  page's Ink Plus block, «Added to your cart» did not stand out.
+
 **Decided in B-72, the strip and the footer name only what has a page** (owner's call: wire what has a page,
 draw the rest as text or leave it out). Words in a utility strip or a footer link column read as links
 whatever their style, so the ones with no page are left out rather than drawn as text:
@@ -271,8 +311,8 @@ whatever their style, so the ones with no page are left out rather than drawn as
   strip's own type (the canvas's «Deliver to» with the place in the accent colour is a place picker's look, and
   there is no picker), «FREE DELIVERY OVER $35». «Sell on HAUL», «Help» and «EN · USD» are gone, and the
   phone's «HELP».
-- **The footer** keeps «Deals» (`/deals`), «Haul Plus» (the header's pill: the trial's dialog, a member's
-  account, a guest's sign-in) and «Track an order» (the orders; a guest's sign-in returning to them) under
+- **The footer** keeps «Deals» (`/deals`), «Haul Plus» (the header's pill: the trial's dialog, a guest's
+  sign-in; a member's is text since B-108) and «Track an order» (the orders; a guest's sign-in returning to them) under
   «Shop» and «Help». «New arrivals», «Gift cards», «Returns», «Delivery», «Contact us» and the «Sell» and
   «Company» columns are left out; a word comes back with its page. On the wire each column's words gained
   their actions by label (`FooterColumn.linked`, a default-empty addition, as `HaulHeader.categories` follows
@@ -1471,7 +1511,10 @@ photos: the server starts as before and every tile is the placeholder. The clien
 placeholder tile, which stays while the photo is absent, loading or failed (Coil 3 in the bundle). The
 seed draws photos for the sample products of §6 in code; real product photography is the owner's
 question (B-30 findings), and until it is answered the generated catalog keeps its tiles. The fixtures
-name no photo, so every artboard's parity is what it was.
+name no photo, so every artboard's parity is what it was. Since B-108 every tile of a product carries the same
+address: a cart line, checkout's «Your order», an order's line and the suggest panel's «Top products»
+(`image` on `CartLine`, `SummaryItem`, `OrderItem`, `ProductSuggestion`) — no picture is made up for them, the
+stored one is wired. The return dialog's lines keep their tiles.
 
 ### D9. No server rendering, no SEO
 

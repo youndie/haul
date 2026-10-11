@@ -42,6 +42,7 @@ import io.github.youndie.haul.ui.CartSelection
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Icon
+import io.github.youndie.haul.ui.LineTile
 import io.github.youndie.haul.ui.OrderSummary
 import io.github.youndie.haul.ui.PromoField
 import io.github.youndie.haul.ui.SummaryRow
@@ -52,7 +53,6 @@ import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.inert
 import io.github.youndie.haul.ui.pressable
-import io.github.youndie.haul.ui.toneColor
 import io.github.youndie.kompot.standard.NavigateAction
 import kotlinx.coroutines.launch
 
@@ -351,7 +351,7 @@ private fun Tile(
     size: Dp,
     radius: Dp,
 ) {
-    Box(Modifier.size(size).background(toneColor(line.tone), RoundedCornerShape(radius)).follows(line.action))
+    LineTile(line.image, line.tone, radius, Modifier.size(size).follows(line.action))
 }
 
 /**

@@ -13,6 +13,8 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import io.github.youndie.haul.shell.BrowserHistory
+import io.github.youndie.haul.shell.CATEGORIES_LOADING_TAG
+import io.github.youndie.haul.shell.DEALS_LOADING_TAG
 import io.github.youndie.haul.shell.HEADER_TREE
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
@@ -108,6 +110,26 @@ class StorefrontTest {
             arrived.complete(ok(home)())
             waitUntil(timeoutMillis = 5_000) { requests.size == 1 && exists(CARD_TITLE) }
             onNodeWithTag(LOADING_TAG).assertDoesNotExist()
+        }
+
+    /**
+     * B-108: the catalog's root and the deals drew the header alone while their trees were on their way, where every
+     * other page draws its placeholders. Each draws its own now.
+     */
+    @Test
+    fun `the catalog's root and the deals draw their placeholders on their way`() =
+        listOf("/c" to CATEGORIES_LOADING_TAG, "/deals" to DEALS_LOADING_TAG).forEach { (address, tag) ->
+            runDesktopComposeUiTest(CANVAS_WIDTH, 1_000) {
+                history.entries[0] = address
+                val arrived = CompletableDeferred<HaulResponse>()
+                answer("/ui$address", { arrived.await() })
+                storefront()
+                onNodeWithTag(tag).assertExists()
+                onNodeWithTag(LOADING_TAG).assertExists()
+                arrived.complete(ok(home)())
+                waitUntil(timeoutMillis = 5_000) { exists(CARD_TITLE) }
+                onNodeWithTag(tag).assertDoesNotExist()
+            }
         }
 
     @Test

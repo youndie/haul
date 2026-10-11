@@ -1,14 +1,19 @@
 package io.github.youndie.haul.ui
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.Dp
 import coil3.EventListener
 import coil3.ImageLoader
 import coil3.PlatformContext
@@ -55,6 +60,26 @@ internal fun PhotoOrPlaceholder(
         Box(modifier) { placeholder() }
     } else {
         LocalPhotoLoader.current.Photo(url, modifier, placeholder)
+    }
+}
+
+/**
+ * A product's tile in a line — a cart line, checkout's «Your order», an order's line, the suggest panel's «Top
+ * products» — in [modifier]'s box: the stored photo at [image] over the tile of [tone], as a card draws it (B-108).
+ * Without a photo it is the plain tile in [tone], with the corners of [radius].
+ */
+@Composable
+internal fun LineTile(
+    image: String?,
+    tone: String,
+    radius: Dp,
+    modifier: Modifier,
+) {
+    val shape = RoundedCornerShape(radius)
+    if (image == null) {
+        Box(modifier.background(toneColor(tone), shape))
+    } else {
+        PhotoOrPlaceholder(image, modifier.clip(shape)) { Box(Modifier.fillMaxSize().background(toneColor(tone))) }
     }
 }
 

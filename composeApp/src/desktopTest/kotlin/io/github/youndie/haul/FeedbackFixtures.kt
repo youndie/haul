@@ -1,5 +1,6 @@
 package io.github.youndie.haul
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,7 @@ import io.github.youndie.haul.feature.cart.LineCommand
 import io.github.youndie.haul.feature.catalog.FacetPanelView
 import io.github.youndie.haul.registry.haulJson
 import io.github.youndie.haul.shell.MessageNotice
+import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.ui.Facet
 import io.github.youndie.haul.ui.FacetOption
 import io.github.youndie.haul.ui.FacetPanel
@@ -42,6 +44,17 @@ internal fun ShellMessage() = Fixture(compact = false) { Message() }
 @ViddikScreenshot(name = "Message_Phone", group = "Shell", width = 390, height = 100)
 @Composable
 internal fun ShellMessagePhone() = Fixture(compact = true) { Message() }
+
+/**
+ * The message over the home page's Plus block, Ink as the message is (B-108): the ring of the page's white and the
+ * shadow keep it a box of its own there.
+ */
+@ViddikScreenshot(name = "Message_OverPlus", group = "Shell", width = 390, height = 160)
+@Composable
+internal fun ShellMessageOverPlus() =
+    Fixture(compact = true) {
+        Box(Modifier.fillMaxSize().background(HaulColors.inverseSurface)) { Message() }
+    }
 
 @Composable
 private fun Message() {

@@ -106,6 +106,8 @@ public data class OrderItem(
     val tone: String,
     val action: @Polymorphic KompotAction? = null,
     val review: Link? = null,
+    /** Where the product's stored photo is served, drawn over the tile as a card draws it (B-30, B-108). */
+    val image: String? = null,
 )
 
 /** What a fact of the summary is about, which is the icon it is drawn with. */

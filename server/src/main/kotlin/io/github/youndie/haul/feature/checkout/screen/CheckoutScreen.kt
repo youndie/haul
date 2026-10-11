@@ -3,6 +3,7 @@ package io.github.youndie.haul.feature.checkout.screen
 import io.github.youndie.haul.feature.cart.domain.CartOwner
 import io.github.youndie.haul.feature.cart.screen.CartScreen
 import io.github.youndie.haul.feature.cart.screen.summaryRows
+import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.money
 import io.github.youndie.haul.feature.catalog.screen.productLink
@@ -48,6 +49,7 @@ import java.time.LocalDate
  */
 internal class CheckoutScreen(
     private val commands: CheckoutCommands,
+    private val photos: ProductPhotos,
 ) {
     suspend fun build(owner: CartOwner.Customer): KompotComponent {
         val state = commands.state(owner)
@@ -267,6 +269,7 @@ internal class CheckoutScreen(
                         tone = it.item.product.tone,
                         label = it.item.product.label,
                         action = productLink(it.item.product.id),
+                        image = photos.url(it.item.product),
                     )
                 },
             rows =

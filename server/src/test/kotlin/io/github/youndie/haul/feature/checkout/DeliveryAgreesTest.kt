@@ -80,7 +80,7 @@ class DeliveryAgreesTest {
                 clock,
                 calendar,
             )
-        val checkout = CheckoutScreen(commands)
+        val checkout = CheckoutScreen(commands, ProductPhotos(null))
         val product =
             ProductScreen(
                 catalog,

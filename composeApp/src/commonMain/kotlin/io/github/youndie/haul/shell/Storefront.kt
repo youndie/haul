@@ -51,6 +51,7 @@ import io.github.youndie.haul.ui.LocalHaulNow
 import io.github.youndie.haul.ui.LocalHeaderMeasured
 import io.github.youndie.haul.ui.LocalHeaderMenu
 import io.github.youndie.haul.ui.LocalLogoAction
+import io.github.youndie.haul.ui.LocalPageScroll
 import io.github.youndie.haul.ui.LocalSearchInput
 import io.github.youndie.haul.ui.PlusTrialDialog
 import io.github.youndie.haul.ui.SearchFieldState
@@ -482,7 +483,9 @@ private fun Scrolled(
     scroll: ScrollState,
     content: @Composable () -> Unit,
 ) {
-    Box(Modifier.testTag(PAGE_SCROLL_TAG).fillMaxSize().verticalScroll(scroll)) { content() }
+    Box(Modifier.testTag(PAGE_SCROLL_TAG).fillMaxSize().verticalScroll(scroll)) {
+        CompositionLocalProvider(LocalPageScroll provides scroll) { content() }
+    }
 }
 
 /** The channel a screen named ([topic]) and where its updates come from. */
@@ -718,6 +721,8 @@ private fun Loading(address: Address) {
         PageKind.Account -> AccountLoading()
         PageKind.Saved -> SavedLoading()
         PageKind.Order -> OrderLoading()
+        PageKind.Categories -> CategoriesLoading()
+        PageKind.Deals -> DealsLoading()
         PageKind.SignIn, PageKind.Other -> PendingHeader()
     }
 }
@@ -811,6 +816,8 @@ private val PageKind.subject: String
             PageKind.Checkout,
             PageKind.Account,
             PageKind.Saved,
+            PageKind.Categories,
+            PageKind.Deals,
             PageKind.SignIn,
             PageKind.Other,
             -> "This page"

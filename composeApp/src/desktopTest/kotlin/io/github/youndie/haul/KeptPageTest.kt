@@ -29,6 +29,8 @@ import io.github.youndie.haul.ui.FacetOption
 import io.github.youndie.haul.ui.FacetPanel
 import io.github.youndie.haul.ui.FilteredResults
 import io.github.youndie.haul.ui.HaulHeader
+import io.github.youndie.haul.ui.HaulPagination
+import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.kompot.KompotComponent
@@ -253,6 +255,37 @@ class KeptPageTest {
         }
 
     /**
+     * B-108: a page number pressed at the foot of a page — the Saved list's on a phone — left the shopper at the foot
+     * of the next page, the page being kept while it loads. A page number now opens its page at the top; «Show N
+     * more» appends under the cards and keeps the scroll, as before (B-77).
+     */
+    @Test
+    fun `a page number opens its page at the top and show more keeps the scroll`() =
+        runDesktopComposeUiTest(390, 800) {
+            val second = "$MUGS?page=2"
+            val more = "$MUGS?page=3&from=2"
+            answer("/ui$MUGS", ok(page(header, grid("Stoneware"), pages(1, more = second))))
+            answer("/ui$second", ok(page(header, grid("Ostra"), pages(2, more = more))))
+            answer("/ui$more", ok(page(header, grid("Lume"), pages(3, more = null))))
+            storefront(compact = true)
+            waitForText(card("Stoneware", 0))
+            scrollBy(BOTTOM)
+            assertTrue(scrolled() > 0f, "the page did not scroll")
+
+            onNodeWithText("2").performClick()
+            waitForText(card("Ostra", 0))
+            waitForIdle()
+            assertEquals(0f, scrolled(), "a page number left the scroll where it was")
+
+            scrollBy(BOTTOM)
+            val before = scrolled()
+            onNodeWithText(MORE).performClick()
+            waitForText(card("Lume", 0))
+            waitForIdle()
+            assertEquals(before, scrolled(), "show more moved the scroll")
+        }
+
+    /**
      * A facet whose page did not arrive used to draw «This category didn’t load» in the page's place. Now
      * the page stays, under a notice with Retry, and Retry asks for the same address again.
      */
@@ -305,6 +338,8 @@ class KeptPageTest {
         const val WIDTH = 1440
         const val HEIGHT = 1000
         const val SCROLL = 240f
+        const val BOTTOM = 100_000f
+        const val MORE = "Show 24 more"
         const val MUGS = "/c/mugs"
         const val BY_OSTRA = "/c/mugs?brand=Ostra"
         const val BY_LUME = "/c/mugs?brand=Lume"
@@ -380,6 +415,22 @@ class KeptPageTest {
                 ),
             )
         }
+
+        /** The page numbers of three pages at [current], and «Show 24 more» to [more]. */
+        fun pages(
+            current: Int,
+            more: String?,
+        ) = HaulPagination(
+            id = "pagination",
+            current = current,
+            pages = listOf("1", "2", "3"),
+            moreLabel = more?.let { MORE },
+            moreAction = more?.let { NavigateAction(it) },
+            links =
+                (1..3).filter { it != current }.map {
+                    Link("$it", NavigateAction(if (it == 1) MUGS else "$MUGS?page=$it"))
+                },
+        )
 
         /** Sixteen of [brand]'s mugs, four to a row. */
         fun grid(brand: String) =

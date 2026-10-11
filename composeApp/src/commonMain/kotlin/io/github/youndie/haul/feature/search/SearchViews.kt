@@ -51,6 +51,7 @@ import io.github.youndie.haul.ui.BalancedText
 import io.github.youndie.haul.ui.CategorySuggestion
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Icon
+import io.github.youndie.haul.ui.LineTile
 import io.github.youndie.haul.ui.LocalSearchField
 import io.github.youndie.haul.ui.ProductSuggestion
 import io.github.youndie.haul.ui.QuerySuggestion
@@ -62,7 +63,6 @@ import io.github.youndie.haul.ui.accented
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.pressable
-import io.github.youndie.haul.ui.toneColor
 import kotlin.math.roundToInt
 
 // The Search screen's own components (screen-search): the page for a query that found nothing and the
@@ -426,7 +426,7 @@ private fun TopProduct(
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.size(tile).background(toneColor(product.tone), RoundedCornerShape(14.dp)))
+        LineTile(product.image, product.tone, 14.dp, Modifier.size(tile))
         Column {
             Text(product.title, HaulType.text(14f, lineHeight = 1.3f).browserLeading())
             Text(

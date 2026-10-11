@@ -62,7 +62,16 @@ internal val orderModule =
                 clock = get(),
             )
         }
-        single { OrderScreen(tracking = get(), catalog = get(), checkout = get(), reviews = get(), clock = get()) }
+        single {
+            OrderScreen(
+                tracking = get(),
+                catalog = get(),
+                checkout = get(),
+                reviews = get(),
+                clock = get(),
+                photos = get(),
+            )
+        }
         single { Reorder(orders = get(), carts = get(), catalog = get(), commands = get()) }
         single { OrderMoves() }
         // An explicit lambda: the bus is a defaulted parameter (kompot's in-memory one).
