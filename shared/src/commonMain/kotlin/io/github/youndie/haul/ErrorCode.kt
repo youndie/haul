@@ -31,11 +31,17 @@ public enum class ErrorCode {
     @SerialName("query_too_short")
     QueryTooShort,
 
-    /** A cart route called with neither a guest id the server issued nor a customer token. */
+    /**
+     * No customer token where one is needed, or neither a token nor a guest id on a cart route (`401`): the
+     * client keeps its guest — a guest on a customer's page is asked to sign in (B-115).
+     */
     @SerialName("unauthenticated")
     Unauthenticated,
 
-    /** A guest cart merged on sign-in names a guest the server never issued (feature-identity). */
+    /**
+     * A guest id the server never issued (feature-identity): on a cart route `401`, where the client replaces
+     * its guest, and nowhere else; on sign-in's merge `404` (B-115).
+     */
     @SerialName("guest_not_found")
     GuestNotFound,
 

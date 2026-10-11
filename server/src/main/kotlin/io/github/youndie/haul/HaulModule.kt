@@ -174,7 +174,12 @@ internal fun Application.haulModule(
         }
         exception<CatalogError> { call, error -> call.respondError(error.code, error.message, error.field) }
         exception<SearchError> { call, error -> call.respondError(error.code, error.message, error.field) }
-        exception<IdentityError> { call, error -> call.respondError(error.code, error.message, error.field) }
+        exception<IdentityError> { call, error ->
+            // A guest the cart's routes do not know is a credential refused, as `unauthenticated` is; the
+            // merge's `guest_not_found` names a missing guest and stays `404` (B-115).
+            val status = if (error is IdentityError.UnknownGuest) HttpStatusCode.Unauthorized else status(error.code)
+            call.respondError(error.code, error.message, error.field, status = status)
+        }
         exception<CartError> { call, error -> call.respondError(error.code, error.message, error.field) }
         exception<OrderError> { call, error -> call.respondError(error.code, error.message, error.field) }
         exception<ReturnError> { call, error ->
@@ -220,16 +225,17 @@ internal fun Application.haulModule(
     }
 }
 
-/** The one shape of every refusal: [ErrorBody] with the status its [code] maps to. */
+/** The one shape of every refusal: [ErrorBody] with the status its [code] maps to, unless [status] says otherwise. */
 internal suspend fun ApplicationCall.respondError(
     code: ErrorCode,
     message: String,
     field: String? = null,
     fields: List<FieldError> = emptyList(),
+    status: HttpStatusCode = status(code),
 ) = respondText(
     haulWireJson.encodeToString(ErrorBody.serializer(), ErrorBody(code, message, field, fields)),
     ContentType.Application.Json,
-    status(code),
+    status,
 )
 
 internal fun status(code: ErrorCode): HttpStatusCode =

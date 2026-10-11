@@ -840,9 +840,10 @@ the account need a shildik token; signing in merges the guest cart.
 **Decided in B-11, the guest and the cart.**
 
 - A guest id is `g-` and a random UUID from `POST /api/v1/guests` (`201`), stored in `guests`; it is
-  the guest's only credential, so it is unguessable. A cart route with no `X-Haul-Guest`, or one the
-  server never issued, answers `401 unauthenticated`: the client creates a new guest rather than the
-  server inventing one.
+  the guest's only credential, so it is unguessable. A cart route with no `X-Haul-Guest` answers `401
+  unauthenticated`, and one naming a guest the server never issued (or a reseed forgot) `401
+  guest_not_found`: the client creates a new guest rather than the server inventing one — on that code
+  alone (B-115). The merge's `guest_not_found` stays `404`; the code is shared, the status is not.
 - The cart's commands keep the methods and JSON bodies of endpoint-cart (`PUT`/`DELETE` with
   `LineChange`, `LinesRemoval`, `PromoEntry` from `shared/.../feature/cart/`) and answer kompot's
   `refresh` — but a card's «+» and «Add to cart», `update` (B-63) followed by their message (B-75, B-81). Their paths are the server's strings: each component of the tree carries the URL its
@@ -890,7 +891,13 @@ the account need a shildik token; signing in merges the guest cart.
   an empty cart). A second merge of the same guest changes nothing.
 - **The browser keeps** the guest id in `localStorage` and the tokens in `sessionStorage` (a
   sign-in lasts the tab). A `401` is answered once: a customer's token renewed through the refresh
-  token, or the customer signed out when it cannot be; a guest the server forgot replaced.
+  token, or the customer signed out — back to the guest they were — when it cannot be; a guest the
+  server forgot (`guest_not_found`) replaced. **Decided in B-115:** any other `401` is the answer, not a
+  forgotten guest — a guest's `unauthenticated` on a customer's page keeps the guest and its cart, where
+  replacing it on every `401` threw the cart away under a prompt that says it comes along. Never
+  replacing a guest was rejected: a stand reseeded under a browser would leave it an id nobody knows and
+  a cart that cannot be filled. A sign-in whose merge names a guest the server forgot goes through and
+  drops the guest.
 - **A customer's page refused with `401`** after that — a guest on `/checkout`, a sign-in lapsed past
   renewing — asks for a sign-in instead of drawing an error (B-44): «Sign in to continue», whose
   press starts the sign-in with `next` set to the page, which is loaded again once it has gone

@@ -55,18 +55,6 @@ public class IdentityApi(
         throw IdentityFailure(response.status.value, errorCode(body))
     }
 
-    /** The body's error code; a body that is not an `ErrorBody` (a proxy's page) has none. */
-    @Suppress(
-        "ktlint:kapkan:swallowed-failure",
-        "A body that does not parse is answered by the status alone, which the failure carries.",
-    )
-    private fun errorCode(body: String): ErrorCode? =
-        try {
-            haulJson.decodeFromString(ErrorBody.serializer(), body).code
-        } catch (_: IllegalArgumentException) {
-            null
-        }
-
     public companion object {
         public const val GUESTS: String = "/api/v1/guests"
         public const val SIGN_IN_SETTINGS: String = "/api/v1/sign-in"
@@ -78,3 +66,15 @@ public class IdentityFailure(
     public val status: Int,
     public val code: ErrorCode?,
 ) : Exception("identity route answered $status ${code ?: ""}".trim())
+
+/** The body's error code; a body that is not an `ErrorBody` (a proxy's page) has none. */
+@Suppress(
+    "ktlint:kapkan:swallowed-failure",
+    "A body that does not parse is answered by the status alone: no code, so nothing a code would change.",
+)
+internal fun errorCode(body: String): ErrorCode? =
+    try {
+        haulJson.decodeFromString(ErrorBody.serializer(), body).code
+    } catch (_: IllegalArgumentException) {
+        null
+    }

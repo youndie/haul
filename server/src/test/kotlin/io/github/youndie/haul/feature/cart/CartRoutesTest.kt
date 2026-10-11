@@ -187,18 +187,29 @@ class CartRoutesTest {
             applyPromo(guest, " ").assertError(HttpStatusCode.BadRequest, ErrorCode.ValidationFailed)
         }
 
-    /** The public tier: a guest id the server issued, or nothing works (endpoint-cart). */
+    /**
+     * The public tier: a guest id the server issued, or nothing works (endpoint-cart). No guest is
+     * `unauthenticated`; one the server does not know is `guest_not_found`, the only `401` on which the
+     * client replaces its guest (B-115).
+     */
     @Test
-    fun `no guest or an unknown one is 401 unauthenticated`() =
+    fun `no guest is 401 unauthenticated and an unknown one 401 guest_not_found`() =
         haulTest {
             get(CartPaths.SCREEN).assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
             get(CartPaths.SCREEN) { header(GUEST_HEADER, "g-not-issued") }
-                .assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
+                .assertError(HttpStatusCode.Unauthorized, ErrorCode.GuestNotFound)
+            get(CartPaths.SCREEN) { header(GUEST_HEADER, "not a guest id at all") }
+                .assertError(HttpStatusCode.Unauthorized, ErrorCode.GuestNotFound)
             putLine(
                 null,
                 mug,
                 LineChange(quantity = 1),
             ).assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
+            putLine(
+                "g-not-issued",
+                mug,
+                LineChange(quantity = 1),
+            ).assertError(HttpStatusCode.Unauthorized, ErrorCode.GuestNotFound)
             // Positive control: the same request with an issued id goes through.
             putLine(guest(), mug, LineChange(quantity = 1)).assertRefresh()
         }

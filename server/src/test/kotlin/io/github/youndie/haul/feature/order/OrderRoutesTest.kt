@@ -7,6 +7,7 @@ import io.github.youndie.haul.feature.cart.domain.CartCommands
 import io.github.youndie.haul.feature.checkout.AddressEntry
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.checkout.CheckoutPaths
+import io.github.youndie.haul.feature.identity.GUEST_HEADER
 import io.github.youndie.haul.feature.reviews.ReviewEntry
 import io.github.youndie.haul.feature.reviews.ReviewPaths
 import io.github.youndie.haul.haulWireJson
@@ -19,6 +20,7 @@ import io.github.youndie.haul.testing.MAYAS_SKUS
 import io.github.youndie.haul.testing.ShildikHarness
 import io.github.youndie.haul.testing.all
 import io.github.youndie.haul.testing.assertError
+import io.github.youndie.haul.testing.guest
 import io.github.youndie.haul.testing.haulTest
 import io.github.youndie.haul.testing.liveTree
 import io.github.youndie.haul.testing.only
@@ -39,6 +41,7 @@ import io.github.youndie.kompot.standard.ShowMessageAction
 import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -184,6 +187,9 @@ class OrderRoutesTest {
             get(
                 OrderPaths.SCREEN.replace("{id}", orderId),
             ).assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
+            // A guest is not a customer: the same `unauthenticated`, on which the client keeps its guest (B-115).
+            get(OrderPaths.SCREEN.replace("{id}", orderId)) { header(GUEST_HEADER, guest()) }
+                .assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
             reorder(sam, OrderPaths.reorder(orderId)).assertError(HttpStatusCode.NotFound, ErrorCode.OrderNotFound)
             assertEquals(emptyList(), cartOf(sam), "Sam's cart got Maya's order")
         }
