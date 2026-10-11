@@ -53,13 +53,13 @@ A stage is a field on the item, not a directory.
 | [B-117](docs/backlog/B-117-a-malformed-link-opens-the-store.md) `[ ]` | fix: a page address with broken percent-encoding opens the store | P2 | S | - |
 | [B-119](docs/backlog/B-119-search-chips-and-title-say-what-is-shown.md) `[ ]` | fix: a search's title, chips and picker say what the grid shows | P2 | S/M | - |
 | [B-120](docs/backlog/B-120-out-of-stock-promises-no-delivery.md) `[ ]` | fix: a product with nothing in stock promises no delivery date | P2 | S | - |
-| [B-122](docs/backlog/B-122-the-stand-reaches-metrik-and-katcher.md) `[ ]` | ops: the stand's server shows up in metrik and katcher | P2 | S | - |
 | [B-123](docs/backlog/B-123-maya-s-plus-savings-follow-the-seeding-year.md) `[ ]` | fix: Maya's carried Plus savings belong to the year the stand was seeded | P2 | XS | - |
 | [B-124](docs/backlog/B-124-the-empty-search-field-offers-recent-searches.md) `[ ]` | fix: pressing the empty search field offers a customer's recent searches | P2 | S | - |
 | [B-125](docs/backlog/B-125-a-stale-stepper-does-not-bring-a-line-back.md) `[ ]` | fix: a stepper on a line removed elsewhere does not bring it back | P2 | S | - |
 | [B-126](docs/backlog/B-126-the-accessible-tree-follows-the-page.md) `[ ]` | fix: the accessible tree follows the page after a popup, and every button has a name | P2 | M | - |
 | [B-118](docs/backlog/B-118-a-click-outside-applies-the-price-bound.md) `[ ]` | fix: a click outside a price field applies the bound typed into it | P3 | S | - |
 | [B-121](docs/backlog/B-121-small-presses-and-copy-from-the-v040-run.md) `[ ]` | fix: the small presses and lines the v0.4.0 run noticed | P3 | S | - |
+| [B-122](docs/backlog/B-122-the-stand-reports-to-katcher.md) `[ ]` | ops: the stand's server reports to katcher | P3 | XS | - |
 | [B-127](docs/backlog/B-127-a-database-outage-shows-in-seconds.md) `[ ]` | fix: a database outage reaches the shopper in seconds, not in a minute and a half | P3 | S | - |
 | [B-128](docs/backlog/B-128-no-request-leaves-the-store-s-origin.md) `[ ]` | fix: the storefront loads nothing from another origin | P3 | XS | - |
 | [B-129](docs/backlog/B-129-small-lines-from-the-customer-walk.md) `[ ]` | fix: the small lines the v0.4.0 customer walk noticed | P3 | S | - |
