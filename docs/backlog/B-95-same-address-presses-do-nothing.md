@@ -48,3 +48,6 @@ Found in the QA pass of 2026-10-10 (v0.3.0). `Navigator.open` ignores the addres
   the empty cart answers `refresh` and the cart then lists the line. Mutations: the old `open` fails the four new
   client tests and two header walks (the cart's, and the Saved list's sign-in that leaned on `openOrReload`);
   `presented` remembered per address alone fails the dialog test; the picks built in place fail the cart route test.
+- **Where it ran** (the head rebased on `99a60ec2`, B-92 and B-94 in): on the Linux box, `:composeApp:wasmJsBrowserDistribution`,
+  then `check :server:installDist` (747 tests, 0 failed; `viddikVerify` and ktlint in it, no golden changed), then
+  `scripts/e2e.sh` against an image built from the head; `make check` and `make docs-against BASE=origin/main` on the Mac.
