@@ -48,7 +48,7 @@ A stage is a field on the item, not a directory.
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-112](docs/backlog/B-112-first-press-focuses-the-field.md) `[?]` | client: the first press on a text field focuses it | P1 | M | - |
-| [B-116](docs/backlog/B-116-back-from-the-provider-says-the-sign-in-did-not-go-through.md) `[ ]` | fix: back from the provider's page says the sign-in did not go through | P2 | S | - |
+| [B-116](docs/backlog/B-116-back-from-the-provider-says-the-sign-in-did-not-go-through.md) `[~]` | fix: back from the provider's page says the sign-in did not go through | P2 | S | - |
 | [B-119](docs/backlog/B-119-search-chips-and-title-say-what-is-shown.md) `[ ]` | fix: a search's title, chips and picker say what the grid shows | P2 | S/M | - |
 | [B-124](docs/backlog/B-124-the-empty-search-field-offers-recent-searches.md) `[ ]` | fix: pressing the empty search field offers a customer's recent searches | P2 | S | - |
 | [B-125](docs/backlog/B-125-a-stale-stepper-does-not-bring-a-line-back.md) `[ ]` | fix: a stepper on a line removed elsewhere does not bring it back | P2 | S | - |
