@@ -186,17 +186,30 @@ class DrawnActionsTest {
             assertEquals(prices.sorted(), prices)
         }
 
+    /** The kind is the row above the results, not an applied chip: «Clear all» keeps it (B-102). */
     @Test
-    fun `clear all drops every filter and keeps the sort`() =
+    fun `clear all drops every filter and keeps the kind and the sort`() =
         haulTest {
             val applied =
                 tree(
-                    "/ui/c/electronics/audio/headphones?brand=Sony&colour=Black&sort=rating",
+                    "/ui/c/electronics/audio/headphones?brand=Sony&colour=Black&kind=Over-ear&sort=rating",
                 ).only<AppliedFilters>()
-            assertEquals(LoadAction("/ui/parts/c/electronics/audio/headphones?sort=rating"), applied.clearAction)
-            val cleared = follow(applied.clearAction).only<AppliedFilters>()
-            assertEquals(0, cleared.filterCount)
-            assertEquals("Rating", cleared.sortLabel)
+            assertEquals(
+                LoadAction("/ui/parts/c/electronics/audio/headphones?kind=Over-ear&sort=rating"),
+                applied.clearAction,
+            )
+            val cleared = follow(applied.clearAction)
+            assertEquals(0, cleared.only<AppliedFilters>().filterCount)
+            assertNull(cleared.only<AppliedFilters>().clearAction, "nothing is left to clear")
+            assertEquals("Rating", cleared.only<AppliedFilters>().sortLabel)
+            assertEquals(
+                listOf("Over-ear"),
+                cleared
+                    .only<FilterChips>()
+                    .chips
+                    .filter { it.selected }
+                    .map { it.label },
+            )
         }
 
     /**

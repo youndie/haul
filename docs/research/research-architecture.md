@@ -381,12 +381,20 @@ page would gain or lose a section an `update` cannot add or take away — is `na
 
 | Endpoint (kind `load`, kompot SPEC §16.1) | Tier | Pressed from | The parts |
 |---|---|---|---|
-| `GET /ui/parts/c/{categoryPath}?…` (the whole path, B-68) | public | a kind, a facet, «Show N more», an applied chip, «Clear all», a sort, a page, the price range (B-69, below) | `title`, `kinds` (when the category has kinds), `results` |
+| `GET /ui/parts/c/{categoryPath}?…` (the whole path, B-68) | public | a kind, a facet, «Show N more», an applied chip, «Clear all», a sort, a page, the price range (B-69, below) | `title`, `kinds` (a leaf's kinds, or a category's subcategories, which `navigate`; B-102), `results` |
 | `GET /ui/parts/search?q=…` | public | a category chip, a sort (B-77, the end of the chips' row), «Show N more», a page | `header` (its picker reads the scope, B-72), `categories`, `grid`, `pagination` |
 | `GET /ui/parts/deals?page=…` | public | a page or «Show N more» between grids that start past the first page; to or from a grid with the first page, whose «Deals of the day» the others lack, the press is still `navigate` — «Show N more» from the first page included, which the shell draws behind the kept page (B-62) | `grid`, `pagination` |
 | `GET /ui/parts/account/orders?status=…` | customer (`401`) | a chip of the history | `account` |
 | `GET /ui/parts/account/saved?…` | customer (`401`) | a filter or a page of the Saved list | `account` |
 | `GET /ui/parts/p/{productId}?sku=…&tab=…&shown=…` | public | «Show more reviews», «Show more questions» (B-71): the tab listing ten more, `shown` from 10 to 500 | `reviews` or `questions`, the tab's node |
+
+**No press loads the page it is on** (B-102). What is already chosen carries no action — the selected kind or
+history chip, the sort shown, the rating ticked («Any rating» with none) — and «Clear all» is sent, and drawn, only
+while an applied chip is (`AppliedFilters.filterCount` is the number of chips, so the phone's «Filters N» counts
+what it lists). «Clear all» keeps the kind: the kind is the row above the results, not a chip. A category with
+subcategories offers them in that row, each to its page, and applies no `kind`; a leaf offers its products' kinds,
+and a `kind` it has none of is not applied either — nothing filters a page without a chip or a selected pill
+saying so.
 
 A part is found by its id, so an id names one node of a page (kompot SPEC §4.2) — the order's live frame and the
 override store rely on it too. `server/.../shell/UniqueIdsTest.kt` holds it over every page a guest and a customer
