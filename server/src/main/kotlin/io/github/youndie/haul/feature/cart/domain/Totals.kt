@@ -66,6 +66,18 @@ internal data class Totals(
         const val DELIVERY_CENTS = 599
         private const val CENTS_PER_DOLLAR = 100
 
+        /**
+         * The fee before membership for [atPriceCents] of items at their price: nothing from $35, else $5.99
+         * (research D7). The product page reads its line from here, as if the item were the cart (B-98).
+         */
+        fun feeCents(atPriceCents: Int): Int = if (atPriceCents >= FREE_DELIVERY_FROM_CENTS) 0 else DELIVERY_CENTS
+
+        /** What delivery costs for [atPriceCents] of items: the [feeCents], waived for Plus. */
+        fun deliveryCents(
+            atPriceCents: Int,
+            plus: Boolean,
+        ): Int = if (plus) 0 else feeCents(atPriceCents)
+
         fun of(
             lines: List<PricedLine>,
             promo: PromoCode?,
@@ -76,7 +88,7 @@ internal data class Totals(
             val items = counted.sumOf { it.listTotalCents }
             val atPrice = counted.sumOf { it.totalCents }
             val promoCents = promo?.takeIf { it.activeAt(now) }?.discountOn(atPrice) ?: 0
-            val fee = if (counted.isEmpty() || atPrice >= FREE_DELIVERY_FROM_CENTS) 0 else DELIVERY_CENTS
+            val fee = if (counted.isEmpty()) 0 else feeCents(atPrice)
             val delivery = if (plus) 0 else fee
             return Totals(
                 itemsCents = items,

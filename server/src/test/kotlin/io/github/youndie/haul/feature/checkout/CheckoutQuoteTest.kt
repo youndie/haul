@@ -7,6 +7,7 @@ import io.github.youndie.haul.feature.cart.data.ExposedCartRepository
 import io.github.youndie.haul.feature.cart.domain.CartCommands
 import io.github.youndie.haul.feature.cart.domain.CartOwner
 import io.github.youndie.haul.feature.catalog.data.ExposedCatalogRepository
+import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.checkout.data.ExposedCheckoutRepository
 import io.github.youndie.haul.feature.checkout.data.ExposedDeliverySlots
 import io.github.youndie.haul.feature.checkout.domain.CheckoutCommands
@@ -45,6 +46,7 @@ class CheckoutQuoteTest {
             CartCommands(carts, catalog, clock),
             ExposedPointsLedger(database),
             clock,
+            DeliveryCalendar(clock::now),
         )
 
     @Test

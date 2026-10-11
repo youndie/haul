@@ -5,6 +5,7 @@ import io.github.youndie.haul.feature.cart.data.ExposedCartRepository
 import io.github.youndie.haul.feature.cart.domain.CartCommands
 import io.github.youndie.haul.feature.cart.domain.CartOwner
 import io.github.youndie.haul.feature.catalog.data.ExposedCatalogRepository
+import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.checkout.data.DeliverySlotsTable
 import io.github.youndie.haul.feature.checkout.data.ExposedCheckoutRepository
 import io.github.youndie.haul.feature.checkout.data.ExposedDeliverySlots
@@ -59,6 +60,7 @@ class CheckoutFixturesTest {
                         CartCommands(carts, ExposedCatalogRepository(database, CANVAS_NOW), CANVAS_NOW),
                         ExposedPointsLedger(database),
                         CANVAS_NOW,
+                        DeliveryCalendar(CANVAS_NOW::now),
                     )
                 val screen = CheckoutScreen(commands)
                 val mismatches = mutableListOf<String>()

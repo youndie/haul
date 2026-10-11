@@ -3,6 +3,7 @@ package io.github.youndie.haul.feature.catalog.screen
 import io.github.youndie.haul.feature.cart.CartPaths
 import io.github.youndie.haul.feature.cart.LineChange
 import io.github.youndie.haul.feature.cart.LineCommand
+import io.github.youndie.haul.feature.cart.domain.Totals
 import io.github.youndie.haul.feature.cart.screen.CartScreen
 import io.github.youndie.haul.feature.catalog.domain.BoughtThisMonth
 import io.github.youndie.haul.feature.catalog.domain.CatalogError
@@ -170,7 +171,9 @@ internal class ProductScreen(
         val inStock = sku.stock > 0
         val saved = item.product.id in viewer.saved
         val courier = calendar.courier(item)
-        val freeDelivery = sku.priceCents >= FREE_DELIVERY_CENTS
+        // The cart's fee for this SKU alone, for this viewer: a member's delivery is free (B-98).
+        val fee = Totals.deliveryCents(sku.priceCents, plus = viewer.customer?.plus == true)
+        val price = if (fee == 0) "Free" else money(fee)
         val cutoff = if (inStock) calendar.cutoffLabel() else null
         return ProductDetails(
             id = "details",
@@ -204,13 +207,13 @@ internal class ProductScreen(
                     // The courier line reads the cut-off when there is one to race (Product_Description).
                     DeliveryLine(
                         "Courier · ${calendar.label(courier)}",
-                        cutoff ?: "To Brooklyn, NY 11211",
-                        if (freeDelivery) "Free" else money(DELIVERY_FEE_CENTS),
+                        cutoff ?: "To ${Frame.place(viewer)}",
+                        price,
                     ),
                     DeliveryLine(
                         "Pickup point · ${calendar.label(calendar.pickup(item))}",
                         "Pickup points near you",
-                        "Free",
+                        price,
                     ),
                     DeliveryLine("Returns", "30 days, free pickup"),
                 ),
@@ -368,7 +371,5 @@ internal class ProductScreen(
 
         private const val HIGHLIGHTS = 4
         private const val BESTSELLER_REVIEWS = 2_000
-        private const val FREE_DELIVERY_CENTS = 3_500
-        private const val DELIVERY_FEE_CENTS = 599
     }
 }
