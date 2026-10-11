@@ -139,29 +139,46 @@ class KnownHeaderTest {
      */
     @Test
     fun `a sign-out over a page with no tree draws the guest's header`() =
-        runDesktopComposeUiTest(WIDTH, HEIGHT) {
-            session.signedIn = true
-            val history = FakeHistory("/deals")
-            history.entries += "/p/p-does-not-exist"
-            storefront(history) { path ->
-                when (path) {
-                    "/ui/p/p-does-not-exist" -> notFound("product_not_found")
-                    HEADER_TREE -> tree(if (session.signedIn) MAYA else GUEST)
-                    else -> destination(path, MAYA)
-                }
-            }
-            waitUntil(timeoutMillis = 5_000) { exists(hasText(pageAt("/deals"))) }
-            history.forward()
-            waitUntil(timeoutMillis = 5_000) { exists(hasText("This product is no longer available")) }
-            assertEquals(false, HEADER_TREE in requests, "a header the last tree drew was asked for again")
-
-            press(hasText("Maya") and hasClickAction())
-            press(hasText(SIGN_OUT_LABEL) and hasAnyAncestor(hasTestTag(LINK_MENU_TAG)))
-            waitUntil(timeoutMillis = 5_000) { exists(hasText("Sign in") and hasClickAction()) }
-            assertEquals(false, exists(hasText("Maya")), "the guest's header named the customer")
+        signOutOverMissingProduct(guestHeader = true) {
             waitUntil(timeoutMillis = 5_000) { exists(counted(2)) }
-            assertEquals(listOf("/deals", "/p/p-does-not-exist"), history.entries)
         }
+
+    /** The same while the guest's header does not arrive: the client's own guest header, not the customer's. */
+    @Test
+    fun `a sign-out over a page with no tree forgets the customer's header`() =
+        signOutOverMissingProduct(guestHeader = false) {
+            waitUntil(timeoutMillis = 5_000) { requests.count { it == HEADER_TREE } == 1 }
+            assertEquals(false, exists(hasText("Maya")), "the guest's header named the customer")
+        }
+
+    /** Maya on `/deals`, then on a missing product under its header; she signs out from the account's menu. */
+    private fun signOutOverMissingProduct(
+        guestHeader: Boolean,
+        then: ComposeUiTest.() -> Unit,
+    ) = runDesktopComposeUiTest(WIDTH, HEIGHT) {
+        session.signedIn = true
+        val history = FakeHistory("/deals")
+        history.entries += "/p/p-does-not-exist"
+        storefront(history) { path ->
+            when {
+                path == "/ui/p/p-does-not-exist" -> notFound("product_not_found")
+                path == HEADER_TREE && guestHeader -> tree(GUEST)
+                path == HEADER_TREE -> HaulResponse(500, """{"code":"internal","message":"boom"}""")
+                else -> destination(path, MAYA)
+            }
+        }
+        waitUntil(timeoutMillis = 5_000) { exists(hasText(pageAt("/deals"))) }
+        history.forward()
+        waitUntil(timeoutMillis = 5_000) { exists(hasText("This product is no longer available")) }
+        assertEquals(false, HEADER_TREE in requests, "a header the last tree drew was asked for again")
+
+        press(hasText("Maya") and hasClickAction())
+        press(hasText(SIGN_OUT_LABEL) and hasAnyAncestor(hasTestTag(LINK_MENU_TAG)))
+        waitUntil(timeoutMillis = 5_000) { exists(hasText("Sign in") and hasClickAction()) }
+        then()
+        assertEquals(false, exists(hasText("Maya")), "the guest's header named the customer")
+        assertEquals(listOf("/deals", "/p/p-does-not-exist"), history.entries)
+    }
 
     private fun ComposeUiTest.press(matcher: SemanticsMatcher) {
         waitUntil(timeoutMillis = 5_000) { exists(matcher) }
