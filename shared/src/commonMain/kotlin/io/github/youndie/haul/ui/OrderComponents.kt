@@ -178,8 +178,11 @@ public data class PaymentPlan(
  * «Summary»: the [rows] («Items (3) $652.00», «Discount −$140.00», «Delivery Free»), the total — struck
  * through once it is [voided], a cancelled order's — the [facts], a Haul Pay order's [plan] under the payment
  * fact (B-24), and the ways on: [reorderLabel] puts the order's lines back into the cart (`POST` to
- * [reorderUrl], answered `navigate` to the cart); [returnLabel] is «Return items», and [returnAction] what it
- * does — kompot's `present` of the [ReturnForm] (B-21); [back] is a cancelled order's «Back to cart».
+ * [reorderUrl], answered `navigate` to the cart, with a message naming what could not go in — or the message
+ * alone when nothing could, B-101); [returnLabel] is «Return items», and [returnAction] what it does — kompot's
+ * `present` of the [ReturnForm] (B-21); [returnNote], once a return is in and some lines were kept, is the rule
+ * that took the button away, drawn where it was («One return per order: …», B-101); [back] is a cancelled order's
+ * «Back to cart».
  */
 @Serializable
 public data class OrderTotals(
@@ -193,6 +196,7 @@ public data class OrderTotals(
     val reorderUrl: String? = null,
     val returnLabel: String? = null,
     val returnAction: @Polymorphic KompotAction? = null,
+    val returnNote: String? = null,
     val back: Link? = null,
     val plan: PaymentPlan? = null,
 )

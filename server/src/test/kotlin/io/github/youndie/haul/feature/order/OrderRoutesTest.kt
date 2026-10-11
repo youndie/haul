@@ -2,6 +2,8 @@ package io.github.youndie.haul.feature.order
 
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.feature.cart.CartPaths
+import io.github.youndie.haul.feature.cart.LineChange
+import io.github.youndie.haul.feature.cart.domain.CartCommands
 import io.github.youndie.haul.feature.checkout.AddressEntry
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.checkout.CheckoutPaths
@@ -12,6 +14,7 @@ import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.testing.FulfilmentWorld
+import io.github.youndie.haul.testing.MAYA
 import io.github.youndie.haul.testing.MAYAS_SKUS
 import io.github.youndie.haul.testing.ShildikHarness
 import io.github.youndie.haul.testing.all
@@ -28,8 +31,11 @@ import io.github.youndie.haul.ui.OrderFactKind
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.decodeKompotAction
 import io.github.youndie.kompot.decodeKompotComponent
+import io.github.youndie.kompot.standard.MessageLevel
 import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.PresentAction
+import io.github.youndie.kompot.standard.SequenceAction
+import io.github.youndie.kompot.standard.ShowMessageAction
 import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
@@ -40,6 +46,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import kotlinx.coroutines.runBlocking
 import javax.sql.DataSource
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -66,10 +73,12 @@ class OrderRoutesTest {
     private fun placed(
         choice: CheckoutChoice = CheckoutChoice(slotId = "2025-10-08T15"),
         moved: Duration? = null,
+        cart: suspend FulfilmentWorld.() -> Unit = {},
         block: suspend HttpClient.(orderId: String, database: DataSource) -> Unit,
     ) = seededFreshDatabase().use { database ->
         val orderId =
             FulfilmentWorld(database).use { world ->
+                runBlocking { world.cart() }
                 world.place(choice).also { id ->
                     moved?.let {
                         world.advance(Duration.ZERO)
@@ -241,6 +250,74 @@ class OrderRoutesTest {
                 links.filter { it.label == "Write a review" }.map { it.action is PresentAction },
             )
         }
+
+    /**
+     * B-101: a reorder says what it could not put back. Maya's order of two pairs of headphones, the duvet cover and
+     * the mugs: with none of the three left, nothing goes in and the answer is a message alone — she stays on the
+     * order instead of landing on an empty cart; with one pair left and no mugs, the cart takes one pair and the
+     * duvet cover, and the answer is the cart with a message naming the mugs and the pair that did not go in.
+     */
+    @Test
+    fun `a reorder names what it could not put back`() =
+        placed(
+            moved = 10.days,
+            cart = {
+                val sony = ledger.cartLines(SampleCustomers.MAYA).first()
+                koin.get<CartCommands>().changeLine(MAYA, sony, LineChange(quantity = 2))
+            },
+        ) { orderId, database ->
+            val (sony, duvet, mug) = database.titles(orderId)
+            val url = OrderPaths.reorder(orderId)
+            MAYAS_SKUS.forEach { database.sql("UPDATE skus SET stock = 0 WHERE id = '$it'") }
+
+            val none = reorder(maya, url)
+            assertEquals(HttpStatusCode.OK, none.status, none.bodyAsText())
+            assertEquals(
+                ShowMessageAction(
+                    "Nothing was added: $sony, $duvet and $mug aren't available now.",
+                    MessageLevel.ERROR,
+                ),
+                haulWireJson.decodeKompotAction(none.bodyAsText()),
+            )
+            assertEquals(emptyList(), cartOf(maya), "a reorder of nothing in stock put something in")
+
+            database.sql("UPDATE skus SET stock = 1 WHERE id = '${MAYAS_SKUS[0]}'")
+            database.sql("UPDATE skus SET stock = 20 WHERE id = '${MAYAS_SKUS[1]}'")
+            val some = reorder(maya, url)
+            assertEquals(HttpStatusCode.OK, some.status, some.bodyAsText())
+            assertEquals(
+                SequenceAction(
+                    listOf(
+                        NavigateAction(Frame.CART),
+                        ShowMessageAction(
+                            "Added what was in stock — $mug isn't available now; $sony: only 1 of 2 went in.",
+                            MessageLevel.ERROR,
+                        ),
+                    ),
+                ),
+                haulWireJson.decodeKompotAction(some.bodyAsText()),
+            )
+            assertEquals(
+                listOf(Triple(MAYAS_SKUS[0], 1, true), Triple(MAYAS_SKUS[1], 1, true)),
+                cartOf(maya),
+            )
+        }
+
+    /** The titles [orderId]'s lines were bought under, in the order's order: what a reorder's answer names. */
+    private fun DataSource.titles(orderId: String): List<String> =
+        connection.use { c ->
+            c.prepareStatement("SELECT title FROM order_lines WHERE order_id = ? ORDER BY position").use { statement ->
+                statement.setString(1, orderId)
+                statement.executeQuery().use { rows -> buildList { while (rows.next()) add(rows.getString(1)) } }
+            }
+        }
+
+    private fun DataSource.sql(statement: String) {
+        connection.use { c ->
+            c.createStatement().use { it.executeUpdate(statement) }
+            c.commit()
+        }
+    }
 
     /**
      * Scenario «Declined card cancels and releases» (feature-orders), as its page shows it: cancelled, the

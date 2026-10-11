@@ -212,6 +212,9 @@ private class OrderPage(
     private val returned = view.tracked.returned
     private val refunded = returned?.status == ReturnStatus.REFUNDED
 
+    /** Arrived, whatever has gone back since: what «Reorder» needs (B-101) — a return does not unbuy the order. */
+    private val received = arrived || returned != null
+
     /**
      * What the return gives back in money and as points (B-55): the split the return dialog drew (B-50) and the
      * refund pays, the returned lines' shares of the points the order was paid with coming back as points. An
@@ -704,10 +707,11 @@ private class OrderPage(
                     points(),
                     reversed(),
                 ),
-            reorderLabel = "Reorder".takeIf { arrived },
-            reorderUrl = OrderPaths.reorder(order.id).takeIf { arrived },
+            reorderLabel = "Reorder".takeIf { received },
+            reorderUrl = OrderPaths.reorder(order.id).takeIf { received },
             returnLabel = "Return items".takeIf { form != null },
             returnAction = form?.let { PresentAction(it, ReviewTabs.DIALOG) },
+            returnNote = returnRule(),
             back = Link("Back to cart", toCart()).takeIf { cancelled },
             plan = plan(),
         )
@@ -816,9 +820,21 @@ private class OrderPage(
     }
 
     /**
+     * The rule that took «Return items» away, said where the button was (B-101): one return per order, so once a
+     * return is in, a line kept back stays kept, however many days its own window has left. `null` with no return,
+     * and when every line went back and nothing is left to ask about.
+     */
+    private fun returnRule(): String? {
+        val ret = returned ?: return null
+        if (ret.lines.size >= placed.lines.size) return null
+        return "One return per order: what you kept can't be sent back."
+    }
+
+    /**
      * «Return items» (`Order_ReturnDialog`): the lines of an order that has arrived, each still inside its 30
      * days, with what returning it gives back and the part of that which comes back as points (B-50); `null` —
-     * no button — once nothing can go back any more. One return per order, so an order with a return has none.
+     * no button — once nothing can go back any more. One return per order, so an order with a return has none,
+     * and [returnRule] says why in its place.
      */
     private fun returnForm(): ReturnForm? {
         if (!arrived || returned != null) return null

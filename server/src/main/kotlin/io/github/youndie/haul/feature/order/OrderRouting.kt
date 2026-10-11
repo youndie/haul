@@ -7,12 +7,11 @@ import io.github.youndie.haul.feature.identity.domain.IdentityError
 import io.github.youndie.haul.feature.order.domain.OrderError
 import io.github.youndie.haul.feature.order.domain.Reorder
 import io.github.youndie.haul.feature.order.screen.OrderScreen
+import io.github.youndie.haul.feature.order.screen.ReorderAnswer
 import io.github.youndie.haul.haulWireJson
-import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.shell.Viewers
 import io.github.youndie.kompot.ktor.respondKompotAction
 import io.github.youndie.kompot.realtime.KompotScreenResponse
-import io.github.youndie.kompot.standard.NavigateAction
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.server.application.ApplicationCall
@@ -37,7 +36,8 @@ import kotlin.time.Duration.Companion.seconds
  * same as one that does not exist ([OrderError.NotFound]).
  *
  * Reorder answers kompot's `navigate` to the cart, with the order's SKUs in it ([Reorder]); a SKU gone or
- * out of stock is left out, and the cart is drawn with the rest.
+ * out of stock is left out, and the cart is drawn with the rest under a message naming it — or, when nothing
+ * went in, the message alone over the order ([ReorderAnswer], B-101).
  *
  * The page is live (B-29): its tree comes in kompot's `KompotScreenResponse`, naming the order's channel, and
  * [OrderPaths.UPDATES] streams that channel's frames ([LiveOrders]) — in the same tier and refused the same way:
@@ -98,8 +98,8 @@ internal fun Route.orderRouting() {
 
     post(OrderPaths.REORDER) {
         val customer = call.caller().customer
-        reorder.reorder(CartOwner.Customer(customer.id, customer.plus), call.parameters["id"]!!)
-        call.respondKompotAction(haulWireJson, NavigateAction(Frame.CART))
+        val reordered = reorder.reorder(CartOwner.Customer(customer.id, customer.plus), call.parameters["id"]!!)
+        call.respondKompotAction(haulWireJson, ReorderAnswer.of(reordered))
     }
 }
 

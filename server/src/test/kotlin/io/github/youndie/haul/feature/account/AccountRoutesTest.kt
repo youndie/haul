@@ -220,8 +220,9 @@ class AccountRoutesTest {
 
     /**
      * A return in the history (B-21): Maya's delivered order, its first line sent back, reads «Returning» in
-     * Blush while the courier has it and «Returned» once refunded — under the «Returned» chip, which counts
-     * it, and out of «Delivered»; it leads to its page («Details»), not to a reorder, as its page has none.
+     * Blush while the courier has it and, once refunded, «Partly returned» at what was paid and kept — $512.00
+     * less the headphones' $349.00, the page's «Paid» (B-101) — under the «Returned» chip, which counts it, and
+     * out of «Delivered»; it leads to its page («Details»), as the canvas's history draws a returned order.
      */
     @Test
     fun `a returned order is returned in the history and under its filter`() =
@@ -256,6 +257,7 @@ class AccountRoutesTest {
                     Triple("Returning", HistoryStatusKind.Returned, "Details"),
                     rows.single().let { Triple(it.status, it.statusKind, it.actionLabel) },
                 )
+                assertEquals("$512.00", rows.single().total, "nothing is back while the courier has it")
             }
             FulfilmentWorld(database, clock).use { it.advanceReturns(120.hours) }
             haulTest(database, signIn = ShildikHarness.signIn) {
@@ -264,9 +266,10 @@ class AccountRoutesTest {
                 val row = rows.single()
                 assertEquals(orderId, row.id)
                 assertEquals(
-                    Triple("Returned", HistoryStatusKind.Returned, "Details"),
+                    Triple("Partly returned", HistoryStatusKind.Returned, "Details"),
                     Triple(row.status, row.statusKind, row.actionLabel),
                 )
+                assertEquals("$163.00", row.total)
                 assertEquals(NavigateAction(OrderPaths.page(orderId)), row.action)
                 assertNull(row.reorderUrl)
             }

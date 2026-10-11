@@ -21,6 +21,7 @@ import io.github.youndie.haul.ui.CategoryGrid
 import io.github.youndie.haul.ui.CheckoutBody
 import io.github.youndie.haul.ui.FilteredResults
 import io.github.youndie.haul.ui.HaulHeader
+import io.github.youndie.haul.ui.HistoryStatusKind
 import io.github.youndie.haul.ui.OrderBody
 import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.haul.ui.ReturnForm
@@ -182,7 +183,8 @@ internal class Walk(
         val history = checkNotNull(shop.page(orders).one(AccountBody.serializer()).history) { "no history" }
         val row = history.rows.firstOrNull { it.action?.deeplink("a history row") == order }
         // A long history may page the order away; the page was read either way, which is the traffic.
-        if (row != null) check(row.status == "Returned") { "the history reads «${row.status}»" }
+        // Returned whole or in part (B-101's «Partly returned», should the cart have carried more than one line).
+        if (row != null) check(row.statusKind == HistoryStatusKind.Returned) { "the history reads «${row.status}»" }
     }
 
     private fun header(): HaulHeader = shop.page("/").one(HaulHeader.serializer())

@@ -506,7 +506,9 @@
                         "title": "−174 points",
                         "detail": "Points earned on the returned lines were reversed"
                     }
-                ]
+                ],
+                "reorderLabel": "Reorder",
+                "reorderUrl": "/api/v1/me/orders/HL-44019/reorder"
             }
         }
     ]

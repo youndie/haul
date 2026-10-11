@@ -17,6 +17,7 @@ import io.github.youndie.haul.feature.payment.domain.InstalmentPlan
 import io.github.youndie.haul.feature.payment.domain.InstalmentSchedule
 import io.github.youndie.haul.feature.payment.domain.InstalmentStatus
 import io.github.youndie.haul.feature.returns.domain.OrderReturn
+import io.github.youndie.haul.feature.returns.domain.ReturnRefunds
 import io.github.youndie.haul.feature.returns.domain.ReturnStatus
 import io.github.youndie.haul.feature.returns.domain.ReturnedLine
 import io.github.youndie.haul.seed.SampleCheckout
@@ -210,6 +211,23 @@ internal object SampleOrders {
                     ),
             )
         return delivered.copy(order = order, progress = OrderProgress.of(order), returned = back)
+    }
+
+    /**
+     * #HL-44019 as if only the building blocks had gone back (B-101), which no artboard draws: refunded $35.00 on
+     * Sep 19, the bags and the cable kept — the summary's «Paid» is what was kept, and the rule that took «Return
+     * items» away is said where it was.
+     */
+    fun partlyReturned(mayas: NewOrder): TrackedOrder {
+        val whole = returned(mayas)
+        val back = checkNotNull(whole.returned)
+        val part =
+            back.copy(
+                lines = back.lines.take(1),
+                refundCents = back.lines.first().refundCents,
+                points = ReturnRefunds.points(whole.order, back.lines.first().refundCents),
+            )
+        return whole.copy(returned = part)
     }
 
     /**

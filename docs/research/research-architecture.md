@@ -620,7 +620,12 @@ and on the stand.
 - **Reorder** (`POST /api/v1/me/orders/{id}/reorder`, `feature/order/domain/Reorder.kt`) puts each SKU
   of the order into the cart through the cart's own `changeLine`, selected, at the order's quantity — at
   most ten and the stock; a line already holding as many is only selected, so a second press adds
-  nothing. A SKU gone or out of stock is left out. It answers `navigate` to the cart.
+  nothing. A SKU gone or out of stock is left out. It answers `navigate` to the cart. Since B-101 the answer
+  names what it could not put back (`ReorderAnswer`): a SKU left out («… isn't available now») or put in with
+  fewer units than the order had («…: only 1 of 2 went in») follows the `navigate` as B-75's message at the
+  `error` level; when nothing went in, the message is the whole answer and the shopper stays on the order rather
+  than landing on a cart with none of it. A `200` with a message, not a refusal: the press did what it could.
+  «Reorder» is offered on every order that arrived, a returned one included — a return unbuys nothing.
 - **«Orders» in the header** goes to the orders' history, `/account/orders` (B-19; until then `/account`),
   and a guest's to sign-in that lands on the orders once it has gone through (`/sign-in?next=…`, B-66).
   The page's «Orders» crumb goes there too.
@@ -631,7 +636,8 @@ and on the stand.
 
 **Decided in B-21, returns and refunds.**
 
-- **One return per order, of whole lines**, as the dialog's checkboxes take them: `POST
+- **One return per order, of whole lines** (a second is not stored: `returns` holds one row per order, and the
+  refund, the points and the restock are keyed by the order), as the dialog's checkboxes take them: `POST
   /api/v1/me/orders/{id}/returns` with the ticked lines' positions and a reason (`feature/returns/`,
   `RequestReturn`), answered like a dialog's command — `201`, kompot's `close` then `refresh`. Refused, in this
   order: a form at fault (`400 validation_failed`, every field named), not the caller's order or none
@@ -663,6 +669,11 @@ and on the stand.
 - **The order's progress** is `returning` while its return is requested or picked up and `returned` once it is
   refunded (`OrderProgress.of`, reading `Order.returnStatus`): the order page draws the return's three steps,
   the lines kept in their shipments and the returned ones in a card of their own, «Paid» net of the refund.
+- **The rule is said where «Return items» was** (B-101): once a return of some of the lines is in, the summary
+  reads «One return per order: what you kept can't be sent back.» (`OrderTotals.returnNote`) under «Reorder»; a
+  whole return has nothing left to ask about and says nothing. Allowing a second return was the alternative the
+  QA pass offered; the owner recorded no call, and the store holds one return per order everywhere (the table,
+  the refund, points and restock keys, the order's progress), so the rule is shown rather than changed.
 
 ### D5. Sign-in through shildik; guests can browse and fill a cart
 
@@ -907,7 +918,9 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   draws a card's saved heart as its illustration, and that tile goes where «Browse deals» does.
 - **Returned** is a state of the history (the chip, the filter), derived since B-21 from the order's return: a
   refunded one reads «Returned», one asked for and not refunded yet «Returning» — Blush like it, under the same
-  «Returned» filter, with «Details» rather than «Reorder».
+  «Returned» filter, with «Details» rather than «Reorder». A refunded return of some of the lines reads «Partly
+  returned» at what was paid and kept — the order page's «Paid» (B-101); a whole return keeps the order's total
+  beside «Returned», as the canvas's `Account_Orders` draws #HL-44019.
 - **The profile line** is «Plus member since <year>» for a member, «Joined <month year>» (the customer row's
   `created_at`) for somebody who has never ordered, «No membership» otherwise; a non-member's avatar is the tile tone
   their reviews are signed with (`ReviewCommands.avatarTone`), a member's Acid.
