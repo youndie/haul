@@ -27,10 +27,10 @@ import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.standard.NavigateAction
 
 /**
- * A product as a card for [viewer]: the shown SKU's price, the earliest delivery day (feature-browse), its
- * photo if stored, «+», which puts one more of [sku] into the cart — given how many of each SKU the
- * viewer's cart already holds (`Viewer.inCart`) — and the heart, filled when the product is in the
- * viewer's Saved list (`Viewer.saved`, B-20).
+ * A product as a card for [viewer]: the shown SKU's price, the earliest delivery day (feature-browse) — none
+ * when that SKU has nothing in stock (B-120) — its photo if stored, «+», which puts one more of [sku] into the
+ * cart — given how many of each SKU the viewer's cart already holds (`Viewer.inCart`) — and the heart, filled
+ * when the product is in the viewer's Saved list (`Viewer.saved`, B-20).
  *
  * «+» is answered with the header and this card again (B-63, [LineAnswers]) when [inPlace]: the card is
  * built the same from the product and the SKU wherever it is drawn, and [query] is the search the page's
@@ -59,7 +59,7 @@ internal fun card(
         badge = discount(priceCents, oldCents),
         rating = item.product.rating.toPlainString(),
         reviews = count(item.product.reviewsCount),
-        delivery = calendar.label(calendar.courier(item)),
+        delivery = calendar.promised(item, sku)?.let(calendar::label),
         tone = item.product.tone,
         label = item.product.label,
         image = photos.url(item.product),

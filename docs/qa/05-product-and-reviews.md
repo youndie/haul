@@ -275,10 +275,12 @@ search for `sony`).
   1. Open it; read the buy box.
   2. Press «Saved».
 - **Expected:**
-  - Step 1: neither «Add to cart» nor «Buy now» is offered; «Saved» with a filled heart.
+  - Step 1: neither «Add to cart» nor «Buy now» is offered; «Saved» with a filled heart; no courier or pickup day,
+    and no cut-off — the stock advice stands where the delivery lines were.
   - Step 2: the product leaves her list; the button reads «Save».
-- **Decided in:** B-48, B-71
+- **Decided in:** B-48, B-71, B-120
 - **Coverage:** `ProductPageLinksTest` «saved out of stock reads saved and takes the product off the list»;
+  `OutOfStockPromiseTest` «a product with nothing in stock promises no day on its page»;
   `BuyBoxWiringTest` «out of stock neither button sends anything»;
   `ProductButtonsTest` «out of stock neither add to cart nor buy now is offered»; golden `Product_OutOfStock`
 

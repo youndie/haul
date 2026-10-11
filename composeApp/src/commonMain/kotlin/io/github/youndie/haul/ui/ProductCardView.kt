@@ -129,7 +129,8 @@ public fun ProductCardView(
             Text(card.rating, HaulType.text(13f, 600))
             Text("· ${card.reviews}", HaulType.text(13f).copy(color = HaulColors.outline))
         }
-        Text(card.delivery.uppercase(), HaulType.label(11f, 600, 0.05f).copy(color = HaulColors.primary))
+        // Out of stock there is no day to promise (B-120): the card ends at its rating.
+        card.delivery?.let { Text(it.uppercase(), HaulType.label(11f, 600, 0.05f).copy(color = HaulColors.primary)) }
     }
 }
 

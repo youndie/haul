@@ -18,6 +18,9 @@ import java.util.Locale
  * It is the one calendar of every page (B-98): a card, the product page, the cart, the checkout's
  * windows and the order page all read their days from here, so a product promised for Thursday is
  * offered from Thursday at checkout and tracked to Thursday on its order.
+ *
+ * A day is promised only for what can be bought (B-120): a card and the product page ask [promised], which
+ * has none for a SKU with nothing in stock, since there is no restock date to promise from.
  */
 internal class DeliveryCalendar(
     private val now: () -> ZonedDateTime,
@@ -35,9 +38,18 @@ internal class DeliveryCalendar(
      */
     fun courier(items: Collection<Listed>): LocalDate = items.minOfOrNull(::courier) ?: courierDay(now(), 0)
 
-    fun pickup(item: Listed): LocalDate = pickupDay(courier(item))
+    /**
+     * The courier's day a card or the product page promises for [sku] of [item], or `null` when [sku] has
+     * nothing in stock: nothing can be bought, so nothing arrives (B-120). A card asks for the SKU it shows —
+     * out of stock only when every SKU is — and the product page for the SKU chosen.
+     */
+    fun promised(
+        item: Listed,
+        sku: Sku,
+    ): LocalDate? = if (sku.stock > 0) courier(item) else null
 
-    fun isTomorrow(item: Listed): Boolean = courier(item) == today().plusDays(1)
+    /** Whether a card of [item] promises tomorrow: the «Delivery: Tomorrow» facet, which keeps none out of stock. */
+    fun isTomorrow(item: Listed): Boolean = promised(item, item.shown) == today().plusDays(1)
 
     /** «Tomorrow», or «Thu, Oct 9». */
     fun label(date: LocalDate): String = if (date == today().plusDays(1)) "Tomorrow" else DAY.format(date)

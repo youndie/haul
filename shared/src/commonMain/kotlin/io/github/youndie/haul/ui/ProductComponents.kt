@@ -55,7 +55,8 @@ public data class SellerSummary(
 /**
  * The top of the product page: the photo, the identity, the choices, and the buy box for the chosen
  * SKU. [inStock] `false` is `Product_OutOfStock`: the price is greyed, only «Save» stays live, and
- * [stockAdvice] («Silver is out of stock.» and where to turn) takes the delivery lines' place.
+ * [stockAdvice] («Silver is out of stock.» and where to turn) takes the delivery lines' place — [delivery] is
+ * then empty, since a SKU with nothing in stock has no day to promise (B-120).
  *
  * The product has one photo, [photo] over the tile of [photoTone] captioned [photoLabel]: the canvas's
  * thumbnails, «+3» and «1 / 8» drew photos no product has, and are not sent (B-71). [haulPayStrong] is

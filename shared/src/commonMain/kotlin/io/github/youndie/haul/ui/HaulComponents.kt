@@ -111,7 +111,8 @@ public data class ProductCard(
     val badge: String? = null,
     val rating: String,
     val reviews: String,
-    val delivery: String,
+    /** The courier's day, «Tomorrow» or «Fri, Oct 10»; absent when the SKU shown has nothing in stock (B-120). */
+    val delivery: String? = null,
     val tone: String,
     val label: String,
     val saved: Boolean = false,

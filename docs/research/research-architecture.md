@@ -1517,6 +1517,14 @@ are written against them and verified against the code before they go `active`.
   it was booked for.» (or «…, the day it was due.» without a window). Showing the window's date instead would
   put a delivery in the future and start the return window on a day that has not come.
 
+**Decided in B-120, no stock, no day.** A card and the product page promise a day only for a SKU with something in
+stock (`DeliveryCalendar.promised`): a card for the SKU it shows — out of stock only when every SKU is — so a product
+with nothing to sell has a card that ends at its rating (`ProductCard.delivery` absent); the product page for the SKU
+chosen, so out of stock it sends no delivery lines and the stock advice stands in their place, naming the day only of
+the colour it turns to. The «Delivery: Tomorrow» facet counts and keeps only products a card promises for tomorrow.
+A later date was the alternative and was refused: there is no restock date to promise from. The cart and checkout
+are unchanged — a line out of stock there is neither counted nor bought (B-11).
+
 ### D8. Product photography is out of v1
 
 The canvas marks photos as striped placeholder tiles (tone + label), and v1 ships those tiles.

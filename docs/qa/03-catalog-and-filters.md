@@ -267,10 +267,13 @@ header says a load is on its way. Pages of a search are in [search](04-search.md
   1. Press the greyed «+» of each.
   2. Press «+» on the card of a SKU with one left in stock.
 - **Expected:**
-  - Step 1: nothing is sent, no message, and the product does not open (the press is the «+»'s).
+  - Step 1: nothing is sent, no message, and the product does not open (the press is the «+»'s). A card of a
+    product with nothing in stock names no delivery day: it ends at its rating.
   - Step 2: it is added, «Added to your cart», and the card's «+» is greyed after it.
-- **Decided in:** B-37, B-75, B-81
+- **Decided in:** B-37, B-75, B-81, B-120
 - **Coverage:** `server:DrawnActionsTest` «a card out of stock has no plus»;
+  `OutOfStockPromiseTest` «a product with nothing in stock promises no day on its card»; `OutOfStockCardTest`
+  «a card out of stock comes without a day and draws none»;
   `InPlaceAnswersTest` «a card's plus with nothing to add sends nothing and opens nothing»;
   `LineAnswersTest` «a card's plus that takes the last one says so and leaves nothing to add»;
   golden `ProductCard_NothingToAdd`

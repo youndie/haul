@@ -172,7 +172,8 @@ internal class ProductScreen(
     ): ProductDetails {
         val inStock = sku.stock > 0
         val saved = item.product.id in viewer.saved
-        val courier = calendar.courier(item)
+        // The chosen SKU decides (B-120): out of stock it has no day, and the advice takes the lines' place.
+        val courier = calendar.promised(item, sku)
         // The cart's fee for this SKU alone, for this viewer: a member's delivery is free (B-98).
         val fee = Totals.deliveryCents(sku.priceCents, plus = viewer.customer?.plus == true)
         val price = if (fee == 0) "Free" else money(fee)
@@ -201,24 +202,27 @@ internal class ProductScreen(
                 haulPay(
                     sku.priceCents,
                 )?.let { "4 payments of ${money(HaulPay.paymentCents(sku.priceCents))}" },
-            stockAdvice = if (inStock) null else stockAdvice(item, sku, courier),
+            stockAdvice = if (inStock) null else stockAdvice(item, sku),
             inStock = inStock,
             stockNote = if (inStock) null else "Out of stock",
             delivery =
-                listOf(
-                    // The courier line reads the cut-off when there is one to race (Product_Description).
-                    DeliveryLine(
-                        "Courier · ${calendar.label(courier)}",
-                        cutoff ?: "To ${Frame.place(viewer)}",
-                        price,
-                    ),
-                    DeliveryLine(
-                        "Pickup point · ${calendar.label(calendar.pickup(item))}",
-                        "Pickup points near you",
-                        price,
-                    ),
-                    DeliveryLine("Returns", "30 days, free pickup"),
-                ),
+                courier
+                    ?.let {
+                        listOf(
+                            // The courier line reads the cut-off when there is one to race (Product_Description).
+                            DeliveryLine(
+                                "Courier · ${calendar.label(it)}",
+                                cutoff ?: "To ${Frame.place(viewer)}",
+                                price,
+                            ),
+                            DeliveryLine(
+                                "Pickup point · ${calendar.label(DeliveryCalendar.pickupDay(it))}",
+                                "Pickup points near you",
+                                price,
+                            ),
+                            DeliveryLine("Returns", "30 days, free pickup"),
+                        )
+                    }.orEmpty(),
             cutoff = cutoff,
             seller =
                 SellerSummary(
@@ -316,13 +320,12 @@ internal class ProductScreen(
     }
 
     /**
-     * «Silver is out of stock.» and, when another colour of the same bundle is in stock, where to turn
-     * (Product_OutOfStock).
+     * «Silver is out of stock.» and, when another colour of the same bundle is in stock, where to turn and the
+     * day that colour arrives (Product_OutOfStock) — the only day a page out of stock names (B-120).
      */
     private fun stockAdvice(
         item: Listed,
         sku: Sku,
-        courier: java.time.LocalDate,
     ): Highlight {
         val name = sku.options["colour"] ?: item.product.title
         val other =
@@ -331,8 +334,10 @@ internal class ProductScreen(
                     it.options["colour"] != sku.options["colour"]
             }
         val text =
-            other?.options?.get("colour")?.let {
-                "$it is in stock and arrives ${calendar.label(courier).replaceFirstChar { c -> c.lowercase() }}."
+            other?.let { turn ->
+                val colour = turn.options["colour"] ?: return@let null
+                val day = calendar.promised(item, turn) ?: return@let null
+                "$colour is in stock and arrives ${calendar.label(day).replaceFirstChar { c -> c.lowercase() }}."
             } ?: ""
         return Highlight("$name is out of stock.", text)
     }
