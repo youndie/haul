@@ -56,6 +56,9 @@ make check      # the gate, then the reports: what CI runs
 make fix        # regenerate the backlog index, append missing coverage-map lines
 ```
 
+`make check` also runs `scripts/qa-cases.py`, which holds the QA catalogue in [`qa/`](qa/README.md) — the
+cases a release is walked against, each with the test, golden or script that holds it — to its format.
+
 ## Coverage map
 
 The list below is **checked** against the files on disk.

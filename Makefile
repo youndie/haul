@@ -86,6 +86,7 @@ check: gate report
 # `make check`, runs them too - for example, below `gate: docs-gate`:
 #	$(PY) scripts/no_todo_in_main.py
 gate: docs-gate
+	$(PY) scripts/qa-cases.py
 
 report: docs-report
 
