@@ -25,7 +25,9 @@ import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import io.github.youndie.haul.CANVAS_NOW
+import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.FakeHistory
+import io.github.youndie.haul.FieldError
 import io.github.youndie.haul.FixtureFonts
 import io.github.youndie.haul.decode
 import io.github.youndie.haul.read
@@ -34,6 +36,8 @@ import io.github.youndie.haul.shell.CheckoutLoading
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
 import io.github.youndie.haul.shell.Storefront
+import io.github.youndie.haul.shell.assertNoAnswer
+import io.github.youndie.haul.shell.told
 import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.ui.CheckoutBody
 import io.github.youndie.haul.ui.LocalHaulNow
@@ -47,9 +51,11 @@ import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.RefreshAction
 import kotlinx.coroutines.CompletableDeferred
+import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -73,9 +79,13 @@ class CheckoutWiringTest {
             )
         }
 
+    /** What the server does with a command instead of answering it: refuses it, or is not there; `null` answers. */
+    private var failure: (CheckoutCommand) -> Throwable? = { null }
+
     private val commands =
         CheckoutCommands { command ->
             sent += command
+            failure(command)?.let { throw it }
             if (command is CheckoutCommand.Place) placed.await() else RefreshAction
         }
 
@@ -296,6 +306,100 @@ class CheckoutWiringTest {
             assertEquals(keys[0], keys[1], "a retry of the same quote got a new key")
         }
 
+    /** B-92: a refused choice — a window that filled since the page was drawn — redraws the checkout and says why. */
+    @Test
+    fun `a refused choice draws the checkout again and says why`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            failure = { CheckoutRefused(409, ErrorCode.SlotUnavailable, FILLED, emptyList()) }
+            checkout(CONTENT)
+            press(slotTag("2025-10-08T09"))
+            assertEquals(listOf(told(FILLED)), followed.toList())
+        }
+
+    /** B-92: a refused address form is drawn again with its errors under its fields (Checkout_Validation), and only there. */
+    @Test
+    fun `a refused form says why under its fields alone`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            failure = {
+                CheckoutRefused(
+                    400,
+                    ErrorCode.ValidationFailed,
+                    "Check the address",
+                    listOf(FieldError("zip", ErrorCode.FieldInvalid, "Enter a 5-digit ZIP")),
+                )
+            }
+            checkout(CONTENT)
+            sendAddress()
+            assertEquals(listOf<KompotAction>(RefreshAction), followed.toList())
+        }
+
+    /**
+     * B-92: a refused placement — the order changed since the page was drawn — draws the checkout again and says
+     * why in the server's words, and «Place order» is no longer Placing; a window that filled up at placement is
+     * said by the tree that follows (Checkout_PlaceError) and by nothing else.
+     */
+    @Test
+    fun `a refused placement says why and the button is pressable again`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            failure = { CheckoutRefused(409, ErrorCode.CartChanged, CHANGED, emptyList()) }
+            checkout(CONTENT)
+            press(PLACE_TAG)
+            assertEquals(listOf(told(CHANGED)), followed.toList())
+            onNodeWithText("Place order · $512.00").assertExists()
+
+            followed.clear()
+            failure = { CheckoutRefused(409, ErrorCode.SlotUnavailable, FILLED, emptyList()) }
+            press(PLACE_TAG)
+            assertEquals(listOf<KompotAction>(RefreshAction), followed.toList())
+        }
+
+    /**
+     * B-92: a placement with no answer says so, «Place order» is pressable again, and the message's «Retry» places
+     * again under the same key — one order, however many presses (B-16).
+     */
+    @Test
+    fun `a placement with no answer says so and Retry places under the same key`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            failure = { IOException("connection refused") }
+            checkout(CONTENT)
+            press(PLACE_TAG)
+            val again = assertNotNull(assertNoAnswer(followed.single(), retry = true))
+            onNodeWithText("Place order · $512.00").assertExists()
+
+            failure = { null }
+            runOnIdle { again.press() }
+            waitUntil(timeoutMillis = 5_000) { followed.size == 2 }
+            assertEquals(NavigateAction("/account/orders/HL-48302"), followed.last())
+            val keys = sent.map { (it as CheckoutCommand.Place).idempotencyKey }
+            assertEquals(2, keys.size)
+            assertEquals(keys[0], keys[1], "«Retry» placed under a new key")
+        }
+
+    /** B-92: a choice with no answer offers «Retry», the same `PUT`; the address form, a `POST`, does not. */
+    @Test
+    fun `no answer to a choice offers Retry and to the address form does not`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            failure = { IOException("connection refused") }
+            checkout(CONTENT)
+            press(paymentTag("haul_pay"))
+            val again = assertNotNull(assertNoAnswer(followed.single(), retry = true))
+            runOnIdle { again.press() }
+            waitUntil(timeoutMillis = 5_000) { followed.size == 2 }
+            assertEquals(sent[0], sent[1], "«Retry» sent another choice")
+
+            followed.clear()
+            sendAddress()
+            assertNoAnswer(followed.single(), retry = false)
+        }
+
+    /** Types an apartment into the address form and leaves it, which sends it; waits for what that led to. */
+    private fun ComposeUiTest.sendAddress() {
+        onNodeWithTag(fieldTag("apt")).performTextClearance()
+        onNodeWithTag(fieldTag("apt")).performTextInput("5B")
+        onNodeWithTag(fieldTag("apt")).performImeAction()
+        waitUntil(timeoutMillis = 5_000) { followed.isNotEmpty() }
+    }
+
     /** B-79: a tile in «Your order» opens its product, and «Back to cart» goes to the cart; neither is a command. */
     @Test
     fun `the summary's tiles open their products and back to cart goes to the cart`() =
@@ -438,5 +542,7 @@ class CheckoutWiringTest {
         const val CHOICE = "/api/v1/me/checkout"
         const val ADDRESSES = "/api/v1/me/addresses"
         const val ORDERS = "/api/v1/orders"
+        const val FILLED = "That delivery window just filled up — pick another"
+        const val CHANGED = "Your order changed since the page was drawn — check it and place it again"
     }
 }

@@ -8,7 +8,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -25,7 +27,12 @@ import io.github.youndie.haul.read
 import io.github.youndie.haul.registry.haulRegistry
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
+import io.github.youndie.haul.shell.MESSAGE_TAG
+import io.github.youndie.haul.shell.NO_ANSWER
+import io.github.youndie.haul.shell.RETRY
 import io.github.youndie.haul.shell.Storefront
+import io.github.youndie.haul.shell.assertNoAnswer
+import io.github.youndie.haul.shell.told
 import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.ui.LocalHaulNow
 import io.github.youndie.kompot.KompotAction
@@ -35,9 +42,11 @@ import io.github.youndie.kompot.form.FormController
 import io.github.youndie.kompot.form.FormSchema
 import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.RefreshAction
+import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -51,12 +60,14 @@ import kotlin.time.Instant
 class CartWiringTest {
     private val sent = CopyOnWriteArrayList<CartCommand>()
     private val followed = CopyOnWriteArrayList<KompotAction>()
-    private var refusing = false
+
+    /** What the server does with a command instead of answering `refresh`: refuses it, or is not there. */
+    private var failure: (() -> Throwable)? = null
 
     private val commands =
         CartCommands { command ->
             sent += command
-            if (refusing) throw CartRefused(422, ErrorCode.PromoExpired, "This code has expired")
+            failure?.let { throw it() }
             RefreshAction
         }
 
@@ -209,14 +220,44 @@ class CartWiringTest {
             assertEquals(listOf<CartCommand>(CartCommand.RemovePromo(PROMO)), sent.toList())
         }
 
-    /** The server keeps a refused code and why (Cart_PromoError), so a refusal redraws the cart too. */
+    /**
+     * The server keeps a refused code and why (Cart_PromoError), so a refusal redraws the cart too, and the
+     * field says why: no message over the page says it twice (B-92).
+     */
     @Test
     fun `a refused code still draws the cart again`() =
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
-            refusing = true
+            failure = { CartRefused(422, ErrorCode.PromoExpired, "This code has expired") }
             cart(PROMO_ERROR)
             press(PROMO_APPLY_TAG)
             assertEquals(listOf<CartCommand>(CartCommand.ApplyPromo(PROMO, PromoEntry("SUMMER5"))), sent.toList())
+            assertEquals(listOf<KompotAction>(RefreshAction), followed.toList())
+        }
+
+    /** B-92: a refusal the tree does not draw — a quantity past the stock — draws the cart again and says why. */
+    @Test
+    fun `a refused quantity draws the cart again and says why`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            failure = { CartRefused(409, ErrorCode.OutOfStock, "Only 1 left in stock") }
+            cart(CONTENT)
+            press("cart-line-more:$MUG")
+            assertEquals(listOf(told("Only 1 left in stock")), followed.toList())
+        }
+
+    /** B-92: a press with no answer says so, and its «Retry» sends the same command again. */
+    @Test
+    fun `a press with no answer says so and Retry sends it again`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            failure = { IOException("connection refused") }
+            cart(CONTENT)
+            press(DELETE_SELECTED_TAG)
+            val again = assertNotNull(assertNoAnswer(followed.single(), retry = true))
+            failure = null
+            followed.clear()
+            runOnIdle { again.press() }
+            waitUntil(timeoutMillis = 5_000) { followed.isNotEmpty() }
+            assertEquals(2, sent.size)
+            assertEquals(sent[0], sent[1], "«Retry» sent another command")
             assertEquals(listOf<KompotAction>(RefreshAction), followed.toList())
         }
 
@@ -275,6 +316,50 @@ class CartWiringTest {
             waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
             assertEquals(listOf("/ui/cart", "/ui/cart"), requests.toList())
             assertEquals(listOf<CartCommand>(CartCommand.ChangeLine(mugUrl, LineChange(quantity = 2))), sent.toList())
+        }
+
+    /**
+     * B-92 in the storefront: a press with no answer leaves the cart as it was under «Couldn't reach the store»,
+     * whose «Retry» sends the press again — the cart then fetched again, the message gone — and a refusal draws
+     * the cart again under the server's words.
+     */
+    @Test
+    fun `in the storefront no answer says so and Retry presses again and a refusal says why`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            val requests = CopyOnWriteArrayList<String>()
+            val transport =
+                HaulTransport { path ->
+                    requests += path
+                    HaulResponse(200, read(CONTENT))
+                }
+            setContent {
+                HaulTheme(FixtureFonts.fonts, compact = false) {
+                    Storefront(
+                        transport,
+                        FakeHistory("/cart"),
+                        signIn = {},
+                        clock = FixedClock,
+                        cartCommands = commands,
+                    )
+                }
+            }
+            failure = { IOException("connection refused") }
+            onNodeWithTag("cart-line-more:$MUG").performClick()
+            waitUntil(timeoutMillis = 5_000) { exists(MESSAGE_TAG) }
+            onNode(hasText(NO_ANSWER) and hasAnyAncestor(hasTestTag(MESSAGE_TAG))).assertExists()
+            assertEquals(listOf("/ui/cart"), requests.toList(), "a press with no answer redrew the cart")
+
+            failure = null
+            onNode(hasText(RETRY) and hasAnyAncestor(hasTestTag(MESSAGE_TAG))).performClick()
+            waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
+            assertEquals(List(2) { CartCommand.ChangeLine(mugUrl, LineChange(quantity = 2)) }, sent.toList())
+            onNodeWithTag(MESSAGE_TAG).assertDoesNotExist()
+
+            failure = { CartRefused(409, ErrorCode.OutOfStock, "Only 1 left in stock") }
+            onNodeWithTag("cart-line-more:$MUG").performClick()
+            waitUntil(timeoutMillis = 5_000) { requests.size == 3 }
+            waitUntil(timeoutMillis = 5_000) { exists(MESSAGE_TAG) }
+            onNode(hasText("Only 1 left in stock") and hasAnyAncestor(hasTestTag(MESSAGE_TAG))).assertExists()
         }
 
     @Test

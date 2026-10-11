@@ -17,9 +17,12 @@ internal fun linePress(command: LineCommand?): (() -> Unit)? {
     val actions = LocalHaulActions.current
     val scope = rememberCoroutineScope()
     if (cart == null || actions == null || command == null) return null
-    return {
+
+    fun press() {
         scope.launch {
-            cart.run(listOf(CartCommand.ChangeLine(command.url, command.change)), command.next)?.let(actions::handle)
+            val change = CartCommand.ChangeLine(command.url, command.change)
+            cart.run(listOf(change), command.next, again = ::press)?.let(actions::handle)
         }
     }
+    return ::press
 }

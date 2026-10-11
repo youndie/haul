@@ -2,6 +2,8 @@ package io.github.youndie.haul.feature.checkout
 
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.FieldError
+import io.github.youndie.haul.shell.assertNoAnswer
+import io.github.youndie.haul.shell.told
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.RefreshAction
@@ -122,22 +124,54 @@ class CheckoutCommandsTest {
     }
 
     /**
-     * What the screen follows: the answer; after a refusal a `refresh` all the same — the server keeps a
-     * refused form and clears a window that filled up — and after no answer nothing.
+     * What the screen follows (B-92): the answer; after a refusal a `refresh` all the same, with the server's
+     * words in a message — but a refused form and a window that filled up at placement are drawn by the next
+     * tree, the form's errors under its fields and the window's notice, and say nothing more.
      */
     @Test
-    fun `a refusal still redraws and no answer leaves the page`() {
+    fun `a refusal redraws and says why unless the tree says it`() {
         val choose = CheckoutCommand.Choose(CHOICE, CheckoutChoice(slotId = "2025-10-08T15"))
+        val place = CheckoutCommand.Place(ORDERS, "q-1", "k-1")
+        val address = CheckoutCommand.SaveAddress(ADDRESSES, AddressEntry(city = "Brooklyn, NY"))
         assertEquals(RefreshAction, runBlocking { commands.run(choose) })
+
+        answer = HttpStatusCode.Conflict to """{"code":"slot_unavailable","message":"$FILLED"}"""
+        assertEquals(told(FILLED), runBlocking { commands.run(choose) }, "a full window chosen is said")
+        assertEquals(RefreshAction, runBlocking { commands.run(place) }, "the tree names a window that filled")
+
+        answer = HttpStatusCode.Conflict to """{"code":"cart_changed","message":"$CHANGED","field":"quote"}"""
+        assertEquals(told(CHANGED), runBlocking { commands.run(place) })
+
         answer =
-            HttpStatusCode.Conflict to
-            """{"code":"slot_unavailable","message":"That delivery window just filled up — pick another"}"""
-        assertEquals(RefreshAction, runBlocking { commands.run(choose) })
+            HttpStatusCode.BadRequest to
+            """{"code":"validation_failed","message":"Check the address","field":"street",""" +
+            """"fields":[{"field":"street","code":"field_required","message":"Enter the street address"}]}"""
+        assertEquals(RefreshAction, runBlocking { commands.run(address) }, "the tree draws the form's errors")
+    }
+
+    /**
+     * No answer leaves the page and says so (B-92); «Retry» is offered for a choice, a `PUT`, and for placing,
+     * whose key makes a second press the same order — not for the address form, a `POST`.
+     */
+    @Test
+    fun `no answer says so with Retry for a choice and a placement`() {
         unreachable = true
-        assertNull(runBlocking { commands.run(choose) })
+        var again = 0
+        val press = { again += 1 }
+        val choose = CheckoutCommand.Choose(CHOICE, CheckoutChoice(slotId = "2025-10-08T15"))
+        assertNoAnswer(runBlocking { commands.run(choose, press) }, retry = true)?.press?.invoke()
+        assertNoAnswer(runBlocking { commands.run(CheckoutCommand.Place(ORDERS, "q-1", "k-1"), press) }, retry = true)
+            ?.press
+            ?.invoke()
+        assertEquals(2, again)
+        val address = CheckoutCommand.SaveAddress(ADDRESSES, AddressEntry(city = "Brooklyn, NY"))
+        assertNoAnswer(runBlocking { commands.run(address, press) }, retry = false)
     }
 
     private companion object {
+        const val FILLED = "That delivery window just filled up — pick another"
+        const val CHANGED = "Your order changed since the page was drawn — check it and place it again"
+        const val ORDERS = "/api/v1/orders"
         const val CHOICE = "/api/v1/me/checkout"
         const val ADDRESSES = "/api/v1/me/addresses"
     }

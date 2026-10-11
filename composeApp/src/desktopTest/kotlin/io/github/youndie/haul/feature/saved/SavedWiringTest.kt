@@ -16,13 +16,17 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import io.github.youndie.haul.CANVAS_NOW
+import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.FixtureFonts
 import io.github.youndie.haul.decode
 import io.github.youndie.haul.feature.cart.CartCommand
 import io.github.youndie.haul.feature.cart.CartCommands
+import io.github.youndie.haul.feature.cart.CartRefused
 import io.github.youndie.haul.feature.cart.LocalCartCommands
 import io.github.youndie.haul.feature.cart.lineTag
 import io.github.youndie.haul.registry.haulRegistry
+import io.github.youndie.haul.shell.assertNoAnswer
+import io.github.youndie.haul.shell.told
 import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.ui.CartLine
 import io.github.youndie.haul.ui.LocalHaulNow
@@ -39,9 +43,11 @@ import io.github.youndie.kompot.form.FormController
 import io.github.youndie.kompot.form.FormSchema
 import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.RefreshAction
+import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 /**
  * The Saved list's presses (B-20), drawn from the server's own trees (`resources/bodies/saved_*.json`,
@@ -55,9 +61,13 @@ class SavedWiringTest {
     private val sent = CopyOnWriteArrayList<CartCommand>()
     private val followed = CopyOnWriteArrayList<KompotAction>()
 
+    /** What the server does with a command instead of answering `refresh`: refuses it, or is not there. */
+    private var failure: (() -> Throwable)? = null
+
     private val commands =
         CartCommands { command ->
             sent += command
+            failure?.let { throw it() }
             RefreshAction
         }
 
@@ -87,6 +97,44 @@ class SavedWiringTest {
                 sent.toList(),
             )
             assertEquals(listOf<KompotAction>(RefreshAction), followed.toList())
+        }
+
+    /**
+     * B-92: a heart the server refuses draws the list again and says why; one with no answer says so, and its
+     * «Retry» sends the same heart again — a `DELETE` of what is saved is the same twice.
+     */
+    @Test
+    fun `a refused heart says why and one with no answer offers Retry`() =
+        runDesktopComposeUiTest(WIDTH, 2_000) {
+            draw(decode("saved_content.json"))
+            failure = { CartRefused(404, ErrorCode.ProductNotFound, "No product «p-sony-wh-1000xm6»") }
+            onAllNodesWithContentDescription(UNSAVE)[1].performClick()
+            waitUntil(timeoutMillis = 5_000) { followed.size == 1 }
+            assertEquals(listOf(told("No product «p-sony-wh-1000xm6»")), followed.toList())
+
+            failure = { IOException("connection refused") }
+            onAllNodesWithContentDescription(UNSAVE)[1].performClick()
+            waitUntil(timeoutMillis = 5_000) { followed.size == 2 }
+            val again = assertNotNull(assertNoAnswer(followed.last(), retry = true))
+            failure = null
+            runOnIdle { again.press() }
+            waitUntil(timeoutMillis = 5_000) { followed.size == 3 }
+            assertEquals(RefreshAction, followed.last())
+            assertEquals(
+                List(3) { CartCommand.Heart("/api/v1/me/saved/p-sony-wh-1000xm6", save = false) },
+                sent.toList(),
+            )
+        }
+
+    /** B-92: «Save for later» with no answer says so, without «Retry»: a `POST` is pressed again by hand. */
+    @Test
+    fun `save for later with no answer says so without Retry`() =
+        runDesktopComposeUiTest(WIDTH, 1_400) {
+            failure = { IOException("connection refused") }
+            draw(decode("cart_content.json"))
+            onNodeWithTag(lineTag("save", line("p-stoneware-mug-0"))).performClick()
+            waitUntil(timeoutMillis = 5_000) { followed.isNotEmpty() }
+            assertNoAnswer(followed.single(), retry = false)
         }
 
     /** The filter's chips and the page numbers go to their own addresses; nothing is sent. */

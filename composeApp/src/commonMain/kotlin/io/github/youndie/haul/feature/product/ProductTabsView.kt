@@ -477,8 +477,9 @@ private fun ReviewCard(
 
 /**
  * What pressing «Helpful» on [review] does (B-43): a customer's vote — the review's `HelpfulCommand` —
- * sent through [LocalTreeCommands], its answer, `refresh`, handed to the screen's handler; a guest's
- * `navigate` to sign in followed as it is. Nothing on the customer's own review, which carries neither.
+ * sent through [LocalTreeCommands], its answer, `refresh`, handed to the screen's handler — or what a refusal
+ * or no answer says instead (B-92); a guest's `navigate` to sign in followed as it is. Nothing on the
+ * customer's own review, which carries neither.
  */
 @Composable
 private fun helpfulPress(review: Review): (() -> Unit)? {
@@ -486,11 +487,12 @@ private fun helpfulPress(review: Review): (() -> Unit)? {
     val commands = LocalTreeCommands.current
     val actions = LocalHaulActions.current
     val scope = rememberCoroutineScope()
-    return if (commands == null || actions == null) {
-        null
-    } else {
-        { scope.launch { commands.vote(TreeCommand.Vote(command.url, command.vote))?.let(actions::handle) } }
+    if (commands == null || actions == null) return null
+
+    fun press() {
+        scope.launch { actions.handle(commands.vote(TreeCommand.Vote(command.url, command.vote), again = ::press)) }
     }
+    return ::press
 }
 
 /** The questions: the count, who answers and «Ask a question» beside the questions; stacked on a phone. */

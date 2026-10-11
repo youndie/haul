@@ -14,6 +14,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import io.github.youndie.haul.CANVAS_NOW
+import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.FixtureFonts
 import io.github.youndie.haul.decode
 import io.github.youndie.haul.feature.cart.CartCommand
@@ -21,6 +22,8 @@ import io.github.youndie.haul.feature.cart.CartCommands
 import io.github.youndie.haul.feature.cart.CartRefused
 import io.github.youndie.haul.feature.cart.LocalCartCommands
 import io.github.youndie.haul.registry.haulRegistry
+import io.github.youndie.haul.shell.assertNoAnswer
+import io.github.youndie.haul.shell.told
 import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.ui.LocalHaulNow
 import io.github.youndie.haul.ui.OrderBody
@@ -34,7 +37,7 @@ import io.github.youndie.kompot.form.FormSchema
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.PresentAction
-import io.github.youndie.kompot.standard.RefreshAction
+import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -51,12 +54,14 @@ import kotlin.test.assertTrue
 class OrderWiringTest {
     private val sent = CopyOnWriteArrayList<CartCommand>()
     private val followed = CopyOnWriteArrayList<KompotAction>()
-    private var refuse = false
+
+    /** What the server does with a reorder instead of answering it: refuses it, or is not there. */
+    private var failure: (() -> Throwable)? = null
 
     private val commands =
         CartCommands { command ->
             sent += command
-            if (refuse) throw CartRefused(404, null, null)
+            failure?.let { throw it() }
             NavigateAction("/cart")
         }
 
@@ -102,15 +107,29 @@ class OrderWiringTest {
             )
         }
 
-    /** A reorder the server refuses draws the order again — `refresh` — rather than leaving the page. */
+    /**
+     * A reorder the server refuses draws the order again — `refresh` — rather than leaving the page, and says
+     * why in the server's words (B-92).
+     */
     @Test
-    fun `a refused reorder draws the order again`() =
+    fun `a refused reorder draws the order again and says why`() =
         runDesktopComposeUiTest(WIDTH, 1_200) {
-            refuse = true
+            failure = { CartRefused(404, ErrorCode.OrderNotFound, "No order «HL-46102» among yours") }
             order(decode("order_delivered.json"))
             onNodeWithTag(REORDER_TAG).performClick()
             waitForIdle()
-            assertEquals(listOf<KompotAction>(RefreshAction), followed.toList())
+            assertEquals(listOf(told("No order «HL-46102» among yours")), followed.toList())
+        }
+
+    /** B-92: a reorder with no answer says so, without «Retry»: a second reorder that did arrive adds the lines twice. */
+    @Test
+    fun `a reorder with no answer says so without Retry`() =
+        runDesktopComposeUiTest(WIDTH, 1_200) {
+            failure = { IOException("connection refused") }
+            order(decode("order_delivered.json"))
+            onNodeWithTag(REORDER_TAG).performClick()
+            waitForIdle()
+            assertNoAnswer(followed.single(), retry = false)
         }
 
     /** A cancelled order's «Back to cart», in the banner and in the summary, opens the cart and sends nothing. */

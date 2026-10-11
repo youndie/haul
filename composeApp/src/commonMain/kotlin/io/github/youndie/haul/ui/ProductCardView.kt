@@ -200,9 +200,12 @@ internal fun rememberHeartPress(
     val scope = rememberCoroutineScope()
     if (actions == null) return null
     if (command != null && cart != null) {
-        return {
-            scope.launch { cart.run(listOf(CartCommand.Heart(command.url, command.save)))?.let(actions::handle) }
+        fun press() {
+            scope.launch {
+                cart.run(listOf(CartCommand.Heart(command.url, command.save)), again = ::press)?.let(actions::handle)
+            }
         }
+        return ::press
     }
     return action?.let { { actions.handle(it) } }
 }
