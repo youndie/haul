@@ -1,0 +1,578 @@
+{
+    "type": "column",
+    "id": "order-page",
+    "children": [
+        {
+            "type": "haul_header",
+            "id": "header",
+            "deliverTo": "Brooklyn, NY 11211",
+            "deliveryPromise": "Free delivery over $35",
+            "customerName": "Maya",
+            "cartCount": 3,
+            "searchPlaceholder": "Search 2.4 million products",
+            "categories": [
+                "Electronics",
+                "Home & Kitchen",
+                "Fashion",
+                "Beauty",
+                "Kids & Toys",
+                "Sports",
+                "Grocery",
+                "Auto",
+                "Books",
+                "Pets"
+            ],
+            "account": {
+                "type": "navigate",
+                "deeplink": "/account"
+            },
+            "catalog": [
+                {
+                    "label": "Electronics",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/electronics"
+                    }
+                },
+                {
+                    "label": "Home & Kitchen",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/home-kitchen"
+                    }
+                },
+                {
+                    "label": "Fashion",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/fashion"
+                    }
+                },
+                {
+                    "label": "Beauty",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/beauty"
+                    }
+                },
+                {
+                    "label": "Kids & Toys",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/kids-toys"
+                    }
+                },
+                {
+                    "label": "Sports",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/sports"
+                    }
+                },
+                {
+                    "label": "Grocery",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/grocery"
+                    }
+                },
+                {
+                    "label": "Auto",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/auto"
+                    }
+                },
+                {
+                    "label": "Books",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/books"
+                    }
+                },
+                {
+                    "label": "Pets",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/pets"
+                    }
+                },
+                {
+                    "label": "Garden",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/garden"
+                    }
+                },
+                {
+                    "label": "Office",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/office"
+                    }
+                },
+                {
+                    "label": "Health",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/health"
+                    }
+                },
+                {
+                    "label": "Music",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/music"
+                    }
+                },
+                {
+                    "label": "Movies",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/movies"
+                    }
+                },
+                {
+                    "label": "Games",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/games"
+                    }
+                },
+                {
+                    "label": "Tools",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/tools"
+                    }
+                },
+                {
+                    "label": "Baby",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/baby"
+                    }
+                },
+                {
+                    "label": "Jewelry",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/jewelry"
+                    }
+                },
+                {
+                    "label": "Shoes",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/shoes"
+                    }
+                },
+                {
+                    "label": "Luggage",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/luggage"
+                    }
+                },
+                {
+                    "label": "Crafts",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/crafts"
+                    }
+                },
+                {
+                    "label": "Outdoors",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/outdoors"
+                    }
+                },
+                {
+                    "label": "Party",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/party"
+                    }
+                },
+                {
+                    "label": "Furniture",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/furniture"
+                    }
+                },
+                {
+                    "label": "Lighting",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/lighting"
+                    }
+                },
+                {
+                    "label": "Appliances",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/appliances"
+                    }
+                },
+                {
+                    "label": "Computers",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/computers"
+                    }
+                },
+                {
+                    "label": "Phones",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/phones"
+                    }
+                },
+                {
+                    "label": "Cameras",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/cameras"
+                    }
+                },
+                {
+                    "label": "Watches",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/watches"
+                    }
+                },
+                {
+                    "label": "Bags",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/bags"
+                    }
+                }
+            ],
+            "deals": {
+                "type": "navigate",
+                "deeplink": "/deals"
+            },
+            "cart": {
+                "type": "navigate",
+                "deeplink": "/cart"
+            },
+            "orders": {
+                "type": "navigate",
+                "deeplink": "/account/orders"
+            },
+            "saved": {
+                "type": "navigate",
+                "deeplink": "/account/saved"
+            },
+            "plus": {
+                "type": "navigate",
+                "deeplink": "/account"
+            },
+            "scopes": [
+                {
+                    "label": "Electronics",
+                    "category": "electronics"
+                },
+                {
+                    "label": "Home & Kitchen",
+                    "category": "home-kitchen"
+                },
+                {
+                    "label": "Fashion",
+                    "category": "fashion"
+                },
+                {
+                    "label": "Beauty",
+                    "category": "beauty"
+                },
+                {
+                    "label": "Kids & Toys",
+                    "category": "kids-toys"
+                },
+                {
+                    "label": "Sports",
+                    "category": "sports"
+                },
+                {
+                    "label": "Grocery",
+                    "category": "grocery"
+                },
+                {
+                    "label": "Auto",
+                    "category": "auto"
+                },
+                {
+                    "label": "Books",
+                    "category": "books"
+                },
+                {
+                    "label": "Pets",
+                    "category": "pets"
+                },
+                {
+                    "label": "Garden",
+                    "category": "garden"
+                },
+                {
+                    "label": "Office",
+                    "category": "office"
+                },
+                {
+                    "label": "Health",
+                    "category": "health"
+                },
+                {
+                    "label": "Music",
+                    "category": "music"
+                },
+                {
+                    "label": "Movies",
+                    "category": "movies"
+                },
+                {
+                    "label": "Games",
+                    "category": "games"
+                },
+                {
+                    "label": "Tools",
+                    "category": "tools"
+                },
+                {
+                    "label": "Baby",
+                    "category": "baby"
+                },
+                {
+                    "label": "Jewelry",
+                    "category": "jewelry"
+                },
+                {
+                    "label": "Shoes",
+                    "category": "shoes"
+                },
+                {
+                    "label": "Luggage",
+                    "category": "luggage"
+                },
+                {
+                    "label": "Crafts",
+                    "category": "crafts"
+                },
+                {
+                    "label": "Outdoors",
+                    "category": "outdoors"
+                },
+                {
+                    "label": "Party",
+                    "category": "party"
+                },
+                {
+                    "label": "Furniture",
+                    "category": "furniture"
+                },
+                {
+                    "label": "Lighting",
+                    "category": "lighting"
+                },
+                {
+                    "label": "Appliances",
+                    "category": "appliances"
+                },
+                {
+                    "label": "Computers",
+                    "category": "computers"
+                },
+                {
+                    "label": "Phones",
+                    "category": "phones"
+                },
+                {
+                    "label": "Cameras",
+                    "category": "cameras"
+                },
+                {
+                    "label": "Watches",
+                    "category": "watches"
+                },
+                {
+                    "label": "Bags",
+                    "category": "bags"
+                }
+            ]
+        },
+        {
+            "type": "haul_order_body",
+            "id": "order",
+            "crumbs": [
+                {
+                    "label": "Account",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/account"
+                    }
+                },
+                {
+                    "label": "Orders",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/account/orders"
+                    }
+                },
+                {
+                    "label": "#HL-44019"
+                }
+            ],
+            "meta": "#HL-44019 · Placed Aug 30 · $87.50",
+            "title": "Return refunded",
+            "accent": "refunded",
+            "lead": "$35.00 is back on your card ···· 4821.",
+            "steps": {
+                "labels": [
+                    "Requested",
+                    "Picked up",
+                    "Refunded"
+                ],
+                "current": 2,
+                "arrived": true
+            },
+            "shipments": [
+                {
+                    "id": "HL-44019-1",
+                    "seller": "Homeworks",
+                    "status": "Delivered",
+                    "eta": "Delivered Sep 2",
+                    "items": [
+                        {
+                            "title": "Silicone Food Storage Bags, Set of 6",
+                            "details": "Clear · 1 × $24.50",
+                            "tone": "#E3F5D8",
+                            "action": {
+                                "type": "navigate",
+                                "deeplink": "/p/p-silicone-bags"
+                            },
+                            "review": {
+                                "label": "Write a review",
+                                "action": {
+                                    "type": "present",
+                                    "content": {
+                                        "type": "haul_review_form",
+                                        "id": "review-form",
+                                        "title": "Write a review",
+                                        "product": {
+                                            "name": "Silicone Food Storage Bags, Set of 6",
+                                            "detail": "Clear",
+                                            "tone": "#E3F5D8"
+                                        },
+                                        "ratingLabel": "Your rating",
+                                        "titleLabel": "Title",
+                                        "bodyLabel": "Review",
+                                        "bodyHint": "At least 20 characters",
+                                        "submitLabel": "Post",
+                                        "cancelLabel": "Cancel",
+                                        "url": "/api/v1/products/p-silicone-bags/reviews",
+                                        "close": {
+                                            "type": "close"
+                                        }
+                                    },
+                                    "kind": "dialog"
+                                }
+                            }
+                        },
+                        {
+                            "title": "USB-C Charging Cable, 2 m, 2-pack",
+                            "details": "White · 1 × $28",
+                            "tone": "#E6E4FF",
+                            "action": {
+                                "type": "navigate",
+                                "deeplink": "/p/p-usb-c-cable"
+                            },
+                            "review": {
+                                "label": "Write a review",
+                                "action": {
+                                    "type": "present",
+                                    "content": {
+                                        "type": "haul_review_form",
+                                        "id": "review-form",
+                                        "title": "Write a review",
+                                        "product": {
+                                            "name": "USB-C Charging Cable, 2 m, 2-pack",
+                                            "detail": "White",
+                                            "tone": "#E6E4FF"
+                                        },
+                                        "ratingLabel": "Your rating",
+                                        "titleLabel": "Title",
+                                        "bodyLabel": "Review",
+                                        "bodyHint": "At least 20 characters",
+                                        "submitLabel": "Post",
+                                        "cancelLabel": "Cancel",
+                                        "url": "/api/v1/products/p-usb-c-cable/reviews",
+                                        "close": {
+                                            "type": "close"
+                                        }
+                                    },
+                                    "kind": "dialog"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": "return",
+                    "seller": "Returned items",
+                    "status": "Refunded",
+                    "eta": "Refunded Sep 19",
+                    "returned": true,
+                    "items": [
+                        {
+                            "title": "Building Blocks Space Station, 1,200 pcs",
+                            "details": "Ages 8+ · 1 × $35",
+                            "tone": "#FFF1C9",
+                            "action": {
+                                "type": "navigate",
+                                "deeplink": "/p/p-space-station-blocks"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "summary": {
+                "title": "Summary",
+                "rows": [
+                    {
+                        "label": "Items (3)",
+                        "value": "$87.50"
+                    },
+                    {
+                        "label": "Delivery",
+                        "value": "Free"
+                    },
+                    {
+                        "label": "Refunded",
+                        "value": "−$35.00",
+                        "saving": true
+                    }
+                ],
+                "totalLabel": "Paid",
+                "total": "$52.50",
+                "facts": [
+                    {
+                        "kind": "card",
+                        "title": "Card ···· 4821",
+                        "detail": "$35.00 refunded Sep 19"
+                    },
+                    {
+                        "kind": "points",
+                        "title": "−69 points",
+                        "detail": "Points earned on the returned lines were reversed"
+                    }
+                ],
+                "reorderLabel": "Reorder",
+                "reorderUrl": "/api/v1/me/orders/HL-44019/reorder",
+                "returnNote": "One return per order: what you kept can't be sent back."
+            }
+        }
+    ]
+}

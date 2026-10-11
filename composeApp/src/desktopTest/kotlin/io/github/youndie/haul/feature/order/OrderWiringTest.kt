@@ -8,6 +8,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -15,13 +17,18 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import io.github.youndie.haul.CANVAS_NOW
 import io.github.youndie.haul.ErrorCode
+import io.github.youndie.haul.FakeHistory
 import io.github.youndie.haul.FixtureFonts
 import io.github.youndie.haul.decode
 import io.github.youndie.haul.feature.cart.CartCommand
 import io.github.youndie.haul.feature.cart.CartCommands
 import io.github.youndie.haul.feature.cart.CartRefused
 import io.github.youndie.haul.feature.cart.LocalCartCommands
+import io.github.youndie.haul.read
 import io.github.youndie.haul.registry.haulRegistry
+import io.github.youndie.haul.shell.HaulResponse
+import io.github.youndie.haul.shell.HaulTransport
+import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.shell.assertNoAnswer
 import io.github.youndie.haul.shell.told
 import io.github.youndie.haul.theme.HaulTheme
@@ -35,8 +42,11 @@ import io.github.youndie.kompot.KompotScreen
 import io.github.youndie.kompot.form.FormController
 import io.github.youndie.kompot.form.FormSchema
 import io.github.youndie.kompot.standard.ColumnComponent
+import io.github.youndie.kompot.standard.MessageLevel
 import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.PresentAction
+import io.github.youndie.kompot.standard.SequenceAction
+import io.github.youndie.kompot.standard.ShowMessageAction
 import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
@@ -174,7 +184,79 @@ class OrderWiringTest {
             onNodeWithTag(PLAN_TAG).assertDoesNotExist()
         }
 
+    /**
+     * B-101: once a return of some of the lines is in, «Return items» is gone and the rule that took it is drawn where
+     * it was; «Reorder» stays, and sends the order's reorder.
+     */
+    @Test
+    fun `a partly returned order says the one return rule where its button was and still reorders`() =
+        runDesktopComposeUiTest(WIDTH, 1_600) {
+            val tree = decode("order_partly_returned.json")
+            order(tree)
+            val note = assertNotNull(body(tree).summary.returnNote, "the fixture says no rule")
+            onNodeWithTag(RETURN_NOTE_TAG).assertTextEquals(note)
+            onNodeWithTag(RETURN_TAG).assertDoesNotExist()
+            onNodeWithTag(REORDER_TAG).performClick()
+            waitForIdle()
+            assertEquals(listOf(CartCommand.Reorder(assertNotNull(body(tree).summary.reorderUrl))), sent.toList())
+        }
+
+    /** A whole return leaves nothing to ask about: no rule, and «Reorder» stays (B-101). */
+    @Test
+    fun `a wholly returned order draws no rule and still reorders`() =
+        runDesktopComposeUiTest(WIDTH, 1_400) {
+            order(decode("order_returned.json"))
+            onNodeWithTag(RETURN_NOTE_TAG).assertDoesNotExist()
+            onNodeWithTag(REORDER_TAG).assertExists()
+        }
+
+    /**
+     * B-101 in the storefront: a reorder some of whose lines could not go in lands on the cart with the server's
+     * message naming them over it; one none of whose lines could stays on the order under its message.
+     */
+    @Test
+    fun `in the storefront a reorder says what it could not put back`() =
+        runDesktopComposeUiTest(WIDTH, 1_400) {
+            var answer: KompotAction = SequenceAction(listOf(NavigateAction("/cart"), SHORT))
+            val requests = CopyOnWriteArrayList<String>()
+            val transport =
+                HaulTransport { path ->
+                    requests += path
+                    when (path) {
+                        "/ui$ORDER" -> HaulResponse(200, read("order_delivered.json"))
+                        "/ui/cart" -> HaulResponse(200, read("cart_content.json"))
+                        else -> error("nothing answers $path")
+                    }
+                }
+            val reorders = CartCommands { answer }
+            val history = FakeHistory(ORDER)
+            setContent {
+                HaulTheme(FixtureFonts.fonts, compact = false) {
+                    CompositionLocalProvider(LocalHaulNow provides CANVAS_NOW) {
+                        Storefront(transport, history, signIn = {}, cartCommands = reorders)
+                    }
+                }
+            }
+            waitUntil(timeoutMillis = 5_000) { onAllNodesWithTag(REORDER_TAG).fetchSemanticsNodes().isNotEmpty() }
+            onNodeWithTag(REORDER_TAG).performClick()
+            waitUntil(timeoutMillis = 5_000) { "/ui/cart" in requests }
+            waitUntil(timeoutMillis = 5_000) { onAllNodesWithText(SHORT.text).fetchSemanticsNodes().isNotEmpty() }
+            assertEquals(listOf(ORDER, "/cart"), history.entries)
+
+            answer = NONE
+            history.back()
+            waitUntil(timeoutMillis = 5_000) { onAllNodesWithTag(REORDER_TAG).fetchSemanticsNodes().isNotEmpty() }
+            onNodeWithTag(REORDER_TAG).performClick()
+            waitUntil(timeoutMillis = 5_000) { onAllNodesWithText(NONE.text).fetchSemanticsNodes().isNotEmpty() }
+            onNodeWithTag(REORDER_TAG).assertExists()
+            assertEquals(ORDER, history.location, "a reorder of nothing left the order")
+        }
+
     private companion object {
         const val WIDTH = 1440
+        const val ORDER = "/account/orders/HL-46102"
+        const val SERUM = "Vitamin C Brightening Serum, 30 ml"
+        val SHORT = ShowMessageAction("Added what was in stock — $SERUM isn't available now.", MessageLevel.ERROR)
+        val NONE = ShowMessageAction("Nothing was added: $SERUM isn't available now.", MessageLevel.ERROR)
     }
 }

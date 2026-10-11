@@ -90,6 +90,16 @@ internal fun OrderReturnedWide() = Fixture(compact = false) { Page { Body("order
 @Composable
 internal fun OrderReturnedPhone() = Fixture(compact = true) { Page { Body("order_returned.json") } }
 
+// No artboard: a return of some of the lines (B-101) — the kept lines in their shipment, «Reorder», and the rule that
+// took «Return items» away where it was.
+@ViddikScreenshot(name = "PartlyReturned", group = "Order", width = 1440, height = 1200)
+@Composable
+internal fun OrderPartlyReturnedWide() = Fixture(compact = false) { Page { Body("order_partly_returned.json") } }
+
+@ViddikScreenshot(name = "PartlyReturned_Phone", group = "Order", width = 390, height = 1700)
+@Composable
+internal fun OrderPartlyReturnedPhone() = Fixture(compact = true) { Page { Body("order_partly_returned.json") } }
+
 @ViddikScreenshot(name = "Cancelled", group = "Order", width = 1440, height = 1193)
 @Composable
 internal fun OrderCancelledWide() = Fixture(compact = false) { Page { Body("order_cancelled.json") } }

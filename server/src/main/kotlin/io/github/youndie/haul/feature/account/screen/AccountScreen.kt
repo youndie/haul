@@ -21,6 +21,7 @@ import io.github.youndie.haul.feature.order.OrderPaths
 import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.screen.OrderCard
 import io.github.youndie.haul.feature.order.screen.OrderScreen
+import io.github.youndie.haul.feature.returns.domain.ReturnRefunds
 import io.github.youndie.haul.feature.reviews.domain.ReviewCommands
 import io.github.youndie.haul.feature.saved.SavedPaths
 import io.github.youndie.haul.feature.saved.screen.SavedFilter
@@ -109,12 +110,19 @@ internal class AccountScreen(
                 .toMap()
         val orders =
             tracked.map { order ->
-                val state = OrderState.of(order.progress)
+                val placed = order.order.placed
+                // Refunded for some lines and not all (B-101): «Partly returned», at what was paid and kept — the
+                // order page's «Paid». A whole return keeps the order's total, as the canvas draws it.
+                val partly =
+                    order.returned?.takeIf {
+                        order.progress == OrderProgress.Returned && it.lines.size < placed.lines.size
+                    }
+                val state = if (partly != null) OrderState.PartlyReturned else OrderState.of(order.progress)
                 AccountOrder(
                     id = order.order.id,
                     state = state,
-                    placedAt = order.order.placed.placedAt,
-                    totalCents = order.order.placed.totalCents,
+                    placedAt = placed.placedAt,
+                    totalCents = placed.totalCents - (partly?.let { ReturnRefunds.moneyBack(order.order, it) } ?: 0),
                     tones =
                         order.order.placed.lines
                             .map { tones[it.skuId].orEmpty() },
@@ -186,7 +194,7 @@ internal enum class HistoryFilterKey(
             All -> true
             Active -> state.active
             Delivered -> state == OrderState.Delivered || state == OrderState.PickedUp
-            Returned -> state == OrderState.Returned || state == OrderState.Returning
+            Returned -> state.kind == HistoryStatusKind.Returned
             Cancelled -> state == OrderState.Cancelled
         }
 
@@ -200,7 +208,9 @@ internal enum class HistoryFilterKey(
  * Where an order is, as the history's chip says it. [active] is on its way or waiting to be collected —
  * the overview's «Active orders» and the menu's count. [Returned] and [Returning] are the returns' (B-21):
  * refunded, or asked for and not refunded yet — a return in flight has a label of its own, in Blush like a
- * returned one and under the same «Returned» filter, with «Details» rather than «Reorder», as its page has.
+ * returned one and under the same «Returned» filter, with «Details» rather than «Reorder», as the canvas's
+ * history draws it; the order's page offers «Reorder» again since B-101. [PartlyReturned] is a refunded return of
+ * some of the lines (B-101), never [of] a progress alone: the account reads the return to tell it from [Returned].
  */
 internal enum class OrderState(
     val label: String,
@@ -215,6 +225,7 @@ internal enum class OrderState(
     PickedUp("Picked up", HistoryStatusKind.Done, false),
     Returning("Returning", HistoryStatusKind.Returned, false),
     Returned("Returned", HistoryStatusKind.Returned, false),
+    PartlyReturned("Partly returned", HistoryStatusKind.Returned, false),
     Cancelled("Cancelled", HistoryStatusKind.Done, false),
     ;
 
@@ -235,8 +246,9 @@ internal enum class OrderState(
 }
 
 /**
- * One of the customer's orders as the account draws it: its [state], when it was placed and for how much,
- * one tile per line ([tones]), and — while it is on its way — its [card] (`OrderScreen.card`).
+ * One of the customer's orders as the account draws it: its [state], when it was placed and for how much
+ * ([totalCents] — what was paid and kept once part of it is refunded, B-101), one tile per line ([tones]), and —
+ * while it is on its way — its [card] (`OrderScreen.card`).
  */
 internal data class AccountOrder(
     val id: String,

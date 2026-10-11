@@ -516,7 +516,7 @@ private fun Summary(
             if (fact.kind == OrderFactKind.Card) totals.plan?.let { Plan(it) }
         }
         val reorder = totals.reorderLabel
-        if (reorder != null || totals.returnLabel != null) {
+        if (reorder != null || totals.returnLabel != null || totals.returnNote != null) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 reorder?.let {
                     HaulButton(
@@ -539,6 +539,14 @@ private fun Summary(
                         border = HaulColors.onSurface,
                         textSize = 16f,
                         onClick = following(totals.returnAction),
+                    )
+                }
+                // Once a return is in, the rule that took «Return items» away, where it was (B-101).
+                totals.returnNote?.let {
+                    Text(
+                        it,
+                        normal(14f).copy(color = HaulColors.onSurfaceVariant),
+                        Modifier.fillMaxWidth().testTag(RETURN_NOTE_TAG),
                     )
                 }
             }
@@ -706,6 +714,9 @@ private val MONO_LINE: Dp = (12f * 1.4f).dp
 
 /** The ring around the current step's dot: `box-shadow: 0 0 0 4px`. */
 private val RING: Dp = 4.dp
+
+/** The rule drawn where «Return items» was once a return is in (B-101), for the tests that read it. */
+internal const val RETURN_NOTE_TAG: String = "order-return-note"
 
 /** «Reorder», for the tests that press it. */
 internal const val REORDER_TAG: String = "order-reorder"

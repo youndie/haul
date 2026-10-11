@@ -47,6 +47,9 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 
+/** The rule drawn where «Return items» was, once a return of some of the lines is in (B-101). */
+private const val ONE_RETURN = "One return per order: what you kept can't be sent back."
+
 /**
  * Returns over HTTP (feature-orders, endpoint-orders `POST /api/v1/me/orders/{id}/returns`, B-21), against
  * shildik and a seeded PostgreSQL of each test's own. Maya's order — Sony's headphones $349.00, Brooklyn Home
@@ -181,7 +184,9 @@ class ReturnRoutesTest {
                 assertEquals(listOf(2, 1), requested.shipments.map { it.items.size })
                 assertEquals(listOf(false, true), requested.shipments.map { it.returned })
                 assertNull(requested.summary.returnAction, "a second return is offered")
-                assertNull(requested.summary.reorderUrl)
+                // B-101: the rule where «Return items» was, and the order still reordered — a return unbuys nothing.
+                assertEquals(ONE_RETURN, requested.summary.returnNote)
+                assertEquals(OrderPaths.reorder(orderId), requested.summary.reorderUrl)
             }
             assertEquals(Triple(ReturnStatus.REQUESTED, 34_900, 698), ledger.storedReturn(orderId))
 
@@ -213,6 +218,8 @@ class ReturnRoutesTest {
                     summary.facts.map { it.kind to it.detail },
                 )
                 assertEquals("−698 points", summary.facts.last().title)
+                assertEquals(ONE_RETURN, summary.returnNote)
+                assertEquals(OrderPaths.reorder(orderId), summary.reorderUrl)
             }
         }
 

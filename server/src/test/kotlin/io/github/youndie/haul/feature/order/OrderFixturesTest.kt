@@ -52,8 +52,8 @@ import kotlin.time.toJavaDuration
  * fresh store gives — through placement itself, at the canvas's «now». The other orders are research §6's
  * history, which no seed holds: #HL-48211 in transit, #HL-47960 waiting at 214 Bedford Ave, #HL-46102
  * delivered (its «Return items» the return dialog, B-21) and again as if paid partly with points (the
- * dialog's «+ N points back», B-50), #HL-48303 declined, #HL-44019 returned — and
- * #HL-48230 on Haul Pay with its schedule (B-24); no artboard draws these two. Each is written as the order it is
+ * dialog's «+ N points back», B-50), #HL-48303 declined, #HL-44019 returned and again as if only one line had
+ * gone back (B-101) — and #HL-48230 on Haul Pay with its schedule (B-24); no artboard draws these three. Each is written as the order it is
  * ([SampleOrders]: its lines, its shipments and where they are) and drawn by the same builder the route uses ([OrderScreen.page]), over the seeded
  * catalog, Maya's address and the points. Three of them bought products the seed does not sell (the yoga
  * mat, the sweater, the serum), so their tiles, options and sellers are given with the order.
@@ -235,6 +235,15 @@ class OrderFixturesTest {
                                 "#E6E4FF",
                             )
                     check(RETURNED, page(SampleOrders.returned(mayas), returnedItems))
+                    // Its kept lines stay in their shipment, under the seller's name, which no artboard gives.
+                    check(
+                        PARTLY_RETURNED,
+                        page(
+                            SampleOrders.partlyReturned(mayas),
+                            returnedItems,
+                            mapOf(SampleOrders.HOMEWORKS to "Homeworks"),
+                        ),
+                    )
 
                     assertEquals(
                         emptyList(),
@@ -254,6 +263,7 @@ class OrderFixturesTest {
         const val DELIVERED_WITH_POINTS = "order_delivered_with_points.json"
         const val CANCELLED = "order_cancelled.json"
         const val RETURNED = "order_returned.json"
+        const val PARTLY_RETURNED = "order_partly_returned.json"
 
         const val WEDNESDAY_3PM = "2025-10-08T15"
     }
