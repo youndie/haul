@@ -1,7 +1,7 @@
 ---
 id: B-102
 title: "server: the catalog's filters show exactly what is applied"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-11-qa

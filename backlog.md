@@ -48,7 +48,7 @@ A stage is a field on the item, not a directory.
 |---|---|---|---|---|
 | [B-100](docs/backlog/B-100-cart-controls-look-what-they-do.md) `[ ]` | client + server: the cart's controls look what they do | P2 | M | - |
 | [B-101](docs/backlog/B-101-returns-and-reorder-say-their-rules.md) `[ ]` | server + client: returns and reorder say what they did and what is left | P2 | S | - |
-| [B-102](docs/backlog/B-102-catalog-filters-say-what-is-applied.md) `[ ]` | server: the catalog's filters show exactly what is applied | P2 | S | - |
+| [B-102](docs/backlog/B-102-catalog-filters-say-what-is-applied.md) `[~]` | server: the catalog's filters show exactly what is applied | P2 | S | - |
 | [B-103](docs/backlog/B-103-search-panel-keeps-the-scope.md) `[ ]` | server: the search panel keeps the query and the scope | P2 | S | - |
 | [B-104](docs/backlog/B-104-product-page-polish.md) `[ ]` | client + server: the product page keeps what the shopper chose | P2 | S | - |
 | [B-105](docs/backlog/B-105-shell-header-knows-the-customer.md) `[ ]` | client: a page opened directly knows who is signed in | P2 | S | - |
