@@ -42,18 +42,17 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (6)
+## Open (5)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-112](docs/backlog/B-112-first-press-focuses-the-field.md) `[?]` | client: the first press on a text field focuses it | P1 | M | - |
-| [B-114](docs/backlog/B-114-qa-test-cases.md) `[~]` | docs: a QA test-case catalogue the stand is walked against | P1 | M | - |
 | [B-78](docs/backlog/B-78-placeholders-on-the-stand.md) `[ ]` | server + client: the stand shows pictures, not placeholder labels | P3 | M | - |
 | [B-85](docs/backlog/B-85-canvas-behind-the-code.md) `[ ]` | design: the canvas draws what the store now has | P3 | M | - |
 | [B-86](docs/backlog/B-86-reviews-photos-and-histogram.md) `[ ]` | client + server: review photos open and the histogram filters | P3 | M | - |
 | [B-87](docs/backlog/B-87-fallback-rows.md) `[ ]` | server: what home and the empty cart show when no deal is live | P3 | S | - |
 
-## Closed (108)
+## Closed (109)
 
 **Skeleton**
 
@@ -186,6 +185,7 @@ A stage is a field on the item, not a directory.
 - [B-110](docs/backlog/B-110-order-updates-log-noise.md) `[x]` - server: a client leaving the order page is not an error
 - [B-111](docs/backlog/B-111-tests-seed-fast.md) `[x]` - test: a test database is seeded as fast as before B-99
 - [B-113](docs/backlog/B-113-goldens-show-what-the-code-draws.md) `[x]` - test: every golden shows what the code draws now
+- [B-114](docs/backlog/B-114-qa-test-cases.md) `[x]` - docs: a QA test-case catalogue the stand is walked against
 - [B-91](docs/backlog/B-91-order-line-price-is-a-line-total.md) `[x]` - server: an order line's price is a unit price, and a return refunds what was paid
 - [B-92](docs/backlog/B-92-a-failed-command-says-so.md) `[x]` - client: a command that fails or is refused tells the shopper
 - [B-93](docs/backlog/B-93-refresh-after-an-in-place-tab.md) `[x]` - client: a press after switching a product tab redraws the page
