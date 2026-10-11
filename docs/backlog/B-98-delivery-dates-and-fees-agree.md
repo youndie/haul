@@ -1,7 +1,7 @@
 ---
 id: B-98
 title: "server: delivery dates, fees and the address agree across pages"
-status: open
+status: wip
 priority: P2
 size: M
 stage: stage-11-qa
