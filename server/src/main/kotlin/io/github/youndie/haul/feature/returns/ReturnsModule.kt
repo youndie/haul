@@ -13,7 +13,7 @@ import org.koin.dsl.module
 internal val returnsModule =
     module {
         single<ReturnRepository> { ExposedReturns(get()) }
-        single { RequestReturn(orders = get(), shipments = get(), returns = get(), clock = get()) }
+        single { RequestReturn(orders = get(), shipments = get(), returns = get(), clock = get(), trail = get()) }
         single {
             ReturnSimulator(
                 returns = get(),
@@ -25,6 +25,7 @@ internal val returnsModule =
                 clock = get(),
                 pace = get(),
                 moves = get(),
+                trail = get(),
             )
         }
     }

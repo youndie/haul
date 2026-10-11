@@ -45,6 +45,7 @@ internal val orderModule =
                             carts = get(),
                             points = get(),
                             moves = get(),
+                            trail = get(),
                         ),
                     ),
             )

@@ -11,6 +11,8 @@ import io.github.youndie.haul.feature.payment.domain.HaulPayPlans
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
 import io.github.youndie.haul.feature.payment.domain.Refund
 import io.github.youndie.haul.feature.payment.domain.RefundOutcome
+import io.github.youndie.haul.ops.OrderLines
+import io.github.youndie.haul.ops.OrderTrail
 import io.github.youndie.petich.PetichClock
 import org.slf4j.LoggerFactory
 import java.time.Instant
@@ -46,7 +48,8 @@ private val log = LoggerFactory.getLogger("io.github.youndie.haul.returns")
  * shelf. Every reason restocks: the simulated world has no damaged goods to write off.
  *
  * Every move is conditional on the status it leaves, so two passes at once move a return once. Each order whose
- * return a pass moved is told to [moves] (B-29), so a page watching it is drawn again.
+ * return a pass moved is told to [moves] (B-29), so a page watching it is drawn again. Each move and the refund
+ * given through the processor are lines of the order's [trail] (B-109).
  */
 internal class ReturnSimulator(
     private val returns: ReturnRepository,
@@ -58,6 +61,7 @@ internal class ReturnSimulator(
     private val clock: PetichClock,
     private val pace: FulfilmentPace,
     private val moves: OrderMoves = OrderMoves(),
+    private val trail: OrderTrail = OrderTrail.NONE,
 ) {
     /** One pass; the number of moves it made. */
     suspend fun advance(): Int {
@@ -89,6 +93,12 @@ internal class ReturnSimulator(
                 restock(orderReturn, due)
             }
             if (!returns.move(orderReturn.orderId, status, to, due)) break
+            trail.record(
+                orderReturn.orderId,
+                OrderLines.RETURN_MOVED,
+                OrderLines.STATUS to to,
+                OrderLines.AT to due.toString(),
+            )
             status = to
             since = due
             moves++
@@ -149,6 +159,7 @@ internal class ReturnSimulator(
         val key = refundKey(order.id)
         return when (val outcome = payments.refund(key, Refund(order.id, given, at))) {
             is RefundOutcome.Refunded -> {
+                trail.record(order.id, OrderLines.RETURN_REFUNDED, OrderLines.CENTS to given.toString())
                 true
             }
 

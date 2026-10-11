@@ -25,6 +25,7 @@ import io.github.youndie.haul.feature.payment.domain.Refund
 import io.github.youndie.haul.feature.payment.domain.RefundOutcome
 import io.github.youndie.haul.feature.payment.paymentModule
 import io.github.youndie.haul.feature.search.searchModule
+import io.github.youndie.haul.ops.OrderTrail
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.testing.CANVAS_NOW
 import io.github.youndie.haul.testing.Ledger
@@ -110,6 +111,7 @@ class PlacementRestartTest {
                 single<PetichClock> { SAGA_CLOCK }
                 single { DeliveryCalendar { CANVAS_NOW.now() } }
                 single { ProductPhotos(null) }
+                single { OrderTrail.NONE }
             },
             catalogModule,
             searchModule,

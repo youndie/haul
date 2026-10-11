@@ -53,6 +53,16 @@ private val log = LoggerFactory.getLogger("io.github.youndie.haul.ops.Observabil
 private val FLUSH_GRACE = 3.seconds
 
 /**
+ * What the installed agents give the rest of the server: [reportFailure] to call with an exception the server
+ * answered 500 for — katcher's report, or nothing — and [trail], where an order's saga and simulators write
+ * what happened to it — tracy, or [OrderTrail.NONE].
+ */
+internal class Observers(
+    val reportFailure: (Throwable) -> Unit,
+    val trail: OrderTrail,
+)
+
+/**
  * Installs the agents [settings] names, and says at `warn` which ones it did not: a server that sends
  * nothing and a server nobody uses draw the same empty dashboard.
  *
@@ -60,10 +70,11 @@ private val FLUSH_GRACE = 3.seconds
  * The buffered records leave on `ApplicationStopping` — the ones explaining a shutdown are the least
  * replaceable there are, and tracy 0.2 and katcher flush only when asked.
  *
- * Returns what to call with an exception the server answered 500 for: katcher's report, or nothing.
+ * Returns what the rest of the server writes to them through ([Observers]).
  */
-internal fun Application.installObservability(settings: ObservabilitySettings): (Throwable) -> Unit {
-    val delivery = settings.tracy?.let { installTracy(it, settings) }
+internal fun Application.installObservability(settings: ObservabilitySettings): Observers {
+    val agent = settings.tracy?.let { installTracy(it, settings) }
+    val delivery = agent?.delivery
     if (delivery == null) log.warn("tracy is off (HAUL_TRACY_ENDPOINT/HAUL_TRACY_KEY): no trace, no shipped log")
 
     val metrik = settings.metrik
@@ -100,8 +111,17 @@ internal fun Application.installObservability(settings: ObservabilitySettings): 
             }
         }
     }
-    return if (katcher != null) { error -> Katcher.catch(error) } else { _ -> }
+    return Observers(
+        reportFailure = if (katcher != null) { error -> Katcher.catch(error) } else { _ -> },
+        trail = agent?.let { TracyOrderTrail(it.agent) } ?: OrderTrail.NONE,
+    )
 }
+
+/** tracy's agent, which records are written to, and the loop that delivers them. */
+private class InstalledTracy(
+    val agent: TracyAgent,
+    val delivery: TracyDelivery,
+)
 
 /**
  * tracy's server plugin and its delivery loop. The sample rate is the agent's own (1 %) unless the
@@ -115,7 +135,7 @@ internal fun Application.installObservability(settings: ObservabilitySettings): 
 private fun Application.installTracy(
     tracy: AgentEndpoint,
     settings: ObservabilitySettings,
-): TracyDelivery {
+): InstalledTracy {
     val rate = settings.tracySampleRate
     val config =
         if (rate == null) {
@@ -132,5 +152,5 @@ private fun Application.installTracy(
         }
     val agent = TracyAgent(config, clock = { System.currentTimeMillis() })
     install(Tracy) { this.agent = agent }
-    return TracyDelivery(agent, config).also { it.start(this) }
+    return InstalledTracy(agent, TracyDelivery(agent, config).also { it.start(this) })
 }

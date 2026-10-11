@@ -31,6 +31,7 @@ import io.github.youndie.haul.feature.returns.returnsModule
 import io.github.youndie.haul.feature.reviews.reviewsModule
 import io.github.youndie.haul.feature.saved.savedModule
 import io.github.youndie.haul.feature.search.searchModule
+import io.github.youndie.haul.ops.OrderTrail
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.petich.PetichClock
@@ -66,13 +67,15 @@ internal val MAYA: CartOwner.Customer = CartOwner.Customer(SampleCustomers.MAYA,
  * The production graph over [dataSource] — placement, the saga, the payment simulator and the fulfilment
  * simulator — with [clock] as the saga's and the world's clock and [pace] as the world's pace. Nothing runs
  * by itself: a test places through [place] and moves the world through [advance], one pass at a time.
- * [overrides] replace bindings of the graph — a card processor that holds its answer, say.
+ * [overrides] replace bindings of the graph — a card processor that holds its answer, say. [trail] is where
+ * the order's saga and simulators write what happened to it (B-109); nowhere, unless a test reads it.
  */
 internal class FulfilmentWorld(
     private val dataSource: DataSource,
     val clock: TestClock = TestClock(),
     pace: FulfilmentPace = FulfilmentPace.STORE,
     overrides: Module = module { },
+    trail: OrderTrail = OrderTrail.NONE,
 ) : AutoCloseable {
     private val application =
         koinApplication {
@@ -86,6 +89,7 @@ internal class FulfilmentWorld(
                     single { pace }
                     single { DeliveryCalendar { CANVAS_NOW.now() } }
                     single { ProductPhotos(null) }
+                    single { trail }
                 },
                 catalogModule,
                 searchModule,

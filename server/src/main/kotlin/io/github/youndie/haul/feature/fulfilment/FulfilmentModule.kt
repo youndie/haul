@@ -24,6 +24,7 @@ internal val fulfilmentModule =
                 clock = get(),
                 pace = get(),
                 moves = get(),
+                trail = get(),
             )
         }
         single {
