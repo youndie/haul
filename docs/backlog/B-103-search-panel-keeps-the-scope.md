@@ -1,7 +1,7 @@
 ---
 id: B-103
 title: "server: the search panel keeps the query and the scope"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-11-qa
