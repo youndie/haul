@@ -1,7 +1,7 @@
 ---
 id: B-95
 title: "client: a press to the page already shown refreshes it"
-status: open
+status: wip
 priority: P1
 size: S
 stage: stage-11-qa
