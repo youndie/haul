@@ -41,7 +41,7 @@ class BoughtThisMonthTest {
         sku: String,
         seller: String,
         quantity: Int,
-    ) = OrderLine(sku, seller, sku, quantity, 10_000, 10_000)
+    ) = OrderLine(sku, seller, sku, quantity, 10_000 * quantity, 10_000 * quantity)
 
     private fun marshall(quantity: Int) = line(MARSHALL, SampleHeadphones.MARSHALL_STORE, quantity)
 
@@ -52,7 +52,7 @@ class BoughtThisMonthTest {
         status: OrderStatus,
         vararg lines: OrderLine,
     ) = runBlocking {
-        val total = lines.sumOf { it.priceCents * it.quantity }
+        val total = lines.sumOf { it.totalCents }
         orders.open(
             NewOrder(
                 id = id,

@@ -262,7 +262,7 @@ internal class CheckoutScreen(
                                 .sortedBy { option -> option.key != "colour" }
                                 .joinToString(" · ") { option -> option.value },
                         quantity = it.stored.quantity,
-                        price = money(it.priceCents),
+                        price = money(it.totalCents),
                         tone = it.item.product.tone,
                         label = it.item.product.label,
                         action = productLink(it.item.product.id),

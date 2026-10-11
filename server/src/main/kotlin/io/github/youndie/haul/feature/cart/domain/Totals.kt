@@ -23,10 +23,20 @@ internal data class PricedLine(
     /** In the selection that totals and checkout count: ticked, in stock, unchanged. */
     val counted: Boolean get() = stored.selected && !changed && !outOfStock
 
-    /** What the line costs before discounts: the old price where there is one. */
-    val listCents: Int get() = (sku.oldPriceCents?.takeIf { it > sku.priceCents } ?: sku.priceCents) * stored.quantity
+    /**
+     * What the whole line costs before discounts — the old price where there is one — times the quantity: a
+     * line total, not a unit price.
+     */
+    val listTotalCents: Int get() =
+        (sku.oldPriceCents?.takeIf { it > sku.priceCents } ?: sku.priceCents) *
+            stored.quantity
 
-    val priceCents: Int get() = sku.priceCents * stored.quantity
+    /**
+     * What the whole line costs at the price charged: the SKU's price times the quantity. A line total, not a
+     * unit price — an order line keeps it as it is ([io.github.youndie.haul.feature.order.domain.OrderLine.totalCents]),
+     * and a reader that multiplies it by the quantity again counts the quantity twice (B-91).
+     */
+    val totalCents: Int get() = sku.priceCents * stored.quantity
 }
 
 /**
@@ -63,8 +73,8 @@ internal data class Totals(
             now: OffsetDateTime,
         ): Totals {
             val counted = lines.filter { it.counted }
-            val items = counted.sumOf { it.listCents }
-            val atPrice = counted.sumOf { it.priceCents }
+            val items = counted.sumOf { it.listTotalCents }
+            val atPrice = counted.sumOf { it.totalCents }
             val promoCents = promo?.takeIf { it.activeAt(now) }?.discountOn(atPrice) ?: 0
             val fee = if (counted.isEmpty() || atPrice >= FREE_DELIVERY_FROM_CENTS) 0 else DELIVERY_CENTS
             val delivery = if (plus) 0 else fee

@@ -559,11 +559,11 @@ private class OrderPage(
         )
     }
 
-    /** «Moss · M · 1 × $80»: the options, the quantity and the price paid. */
+    /** «Moss · M · 2 × $80»: the options, the quantity and the price of one as paid — not the line's total (B-91). */
     private fun details(line: OrderLine): String =
         listOfNotNull(
             view.products[line.skuId]?.options?.ifEmpty { null },
-            "${line.quantity} × ${money(line.priceCents)}",
+            "${line.quantity} × ${money(line.unitCents)}",
         ).joinToString(" · ")
 
     /** When or where a shipment arrives, or that it did: the mono line at the right of its seller. */

@@ -44,14 +44,19 @@ internal data class OrderPayload(
     /** The delivery fee Plus took off (B-23). */
     val deliveryWaivedCents: Int = 0,
 ) : PetichPayload() {
+    /**
+     * A line as placed, its money line totals as [OrderLine] keeps them. The serial names are the ones every
+     * saga in flight was stored under, so a payload written before the fields were named for what they hold
+     * (B-91) reads the same.
+     */
     @Serializable
     data class Line(
         val skuId: String,
         val sellerId: String,
         val title: String,
         val quantity: Int,
-        val priceCents: Int,
-        val listCents: Int,
+        @SerialName("priceCents") val totalCents: Int,
+        @SerialName("listCents") val listTotalCents: Int,
     )
 
     val placedAtTime: OffsetDateTime get() = OffsetDateTime.parse(placedAt)
@@ -74,7 +79,17 @@ internal data class OrderPayload(
             totalCents = totalCents,
             points = points,
             placedAt = placedAtTime,
-            lines = lines.map { OrderLine(it.skuId, it.sellerId, it.title, it.quantity, it.priceCents, it.listCents) },
+            lines =
+                lines.map {
+                    OrderLine(
+                        it.skuId,
+                        it.sellerId,
+                        it.title,
+                        it.quantity,
+                        it.totalCents,
+                        it.listTotalCents,
+                    )
+                },
             pointsRedeemed = pointsRedeemed,
             deliveryWaivedCents = deliveryWaivedCents,
         )

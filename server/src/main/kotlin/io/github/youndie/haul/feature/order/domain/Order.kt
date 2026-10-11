@@ -48,15 +48,23 @@ internal object ShipmentStatus {
     val ALL: List<String> = LIFECYCLE + CANCELLED
 }
 
-/** A line as bought: the SKU, its seller, its title, and the price it was bought at. */
+/**
+ * A line as bought: the SKU, its seller, its title, how many, and what the whole line cost — [totalCents] at the
+ * price paid and [listTotalCents] at the list price, each already times [quantity] (the cart's
+ * `PricedLine.totalCents`, copied at placement). They are line totals, not unit prices: a reader that multiplies
+ * them by the quantity counts it twice (B-91), and a page that writes the price of one reads [unitCents].
+ */
 internal data class OrderLine(
     val skuId: String,
     val sellerId: String,
     val title: String,
     val quantity: Int,
-    val priceCents: Int,
-    val listCents: Int,
-)
+    val totalCents: Int,
+    val listTotalCents: Int,
+) {
+    /** The price of one, paid: «2 × $349» of a $698 line. Exact, the total being the unit price times [quantity]. */
+    val unitCents: Int get() = totalCents / quantity
+}
 
 /**
  * One seller's part of an order (research §5: «one per seller»). [pickupCode] is a pickup shipment's,
