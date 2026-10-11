@@ -1742,6 +1742,13 @@ typed in, which is still the field's (walked in the browser with frames held bac
 pressed kept its query). What most likely lost a field's text in B-69 and in the review walk is a press that did
 not focus the field at all (B-83's findings).
 
+**Found in B-112: in a page that draws, the first press on a field focuses it.** Ninety fresh loads in headless
+Chromium (`scripts/first-press-check.py`) — the search field, the price «from», the promo code; the pane's click,
+an unfocused window, frames held to one a second — focused and typed into every field every time. What failed in
+the hidden pane was a press on a page it had not drawn yet: a hidden pane runs few animation frames, Compose
+composes an arrived screen only in one, and the press lands on the skeleton. Whether anything changes for that
+is the owner's question (B-112).
+
 **Risk 1. The canvas and the code drift apart without anyone seeing it.** A renderer changed for one
 screen changes every screen that uses the component. Mitigation: one reference PNG per artboard
 (125), exported from the canvas into the client's snapshot directory, and `viddikDesignParity` in
