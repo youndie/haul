@@ -50,8 +50,9 @@ testcontainers in two `UniqueIdsTest` cases and a timing failure in `LiveOrderTe
 - **Times.** `:server:test` on CI, from the `> Task :server:test` lines of the `gradle` job's log (main pushes):
   before B-99 225, 245, 243, 285, 301, 327 s (runs 38123088374 … 38131746260; `gradle` 6.7–9.0 min); B-99's merge
   c2a50567 821 s (`gradle` 17.3 min), its PR runs 488–827 s, haul#121's push 839 s with two failures; this branch
-  280 s (run 38138510648, with this item's own pool fix; `gradle` 7.2 min). On the build box: 446 tests, 310 s summed
-  over the suites.
+  on main after B-100 (827915ad, run 38143865881, three attempts, all green): 255, 437, 366 s (`gradle` 6.8, 10.7,
+  9.2 min) — CI's shared runners vary by half from one attempt to the next, as the pre-B-99 runs do; B-100 added 13
+  tests. On the build box: 459 tests, 364 s summed over the suites.
 - **Mutation.** The seeder ignoring `generatedReviews` → «…gets them on the next start that fills» red (60,847
   generated reviews written by the tests' seed); a start that skips the fill on an already-seeded database → the
   same test red on the digest (and B-99's own); `main` passing `generatedReviews = false` → the e2e red at «the
@@ -62,6 +63,9 @@ testcontainers in two `UniqueIdsTest` cases and a timing failure in `LiveOrderTe
   (the default flipped, `iconst_1` → `iconst_0`) ran against the unmutated image and passed. CI builds on a fresh
   runner and is not affected; a check on the box that must see such a change needs `docker build --no-cache` or a
   pruned builder.
-- **Checks.** Build box: `:composeApp:wasmJsBrowserDistribution`; `check :server:installDist` (server 446 tests,
-  client, `viddikVerify`, ktlint) green; `scripts/e2e.sh` against an image from the branch green. CI on the branch:
-  see the pull request for the three consecutive runs.
+- **Checks**, after rebasing on B-100. Build box: `:composeApp:wasmJsBrowserDistribution`; `:server:check
+  :server:installDist` (459 tests) and `check -x :server:test` (client, `viddikVerify`, ktlint) green — `check`
+  in one run was killed twice at `:server:test` beside the wasm compile, so it ran in two; `scripts/e2e.sh` green
+  against an image whose server jar is the branch's (md5 checked, see the BuildKit note). CI: three consecutive
+  green runs of 827915ad (run 38143865881, attempts 1–3), no `Could not create new connection`, no LiveOrderTest
+  timing failure.
