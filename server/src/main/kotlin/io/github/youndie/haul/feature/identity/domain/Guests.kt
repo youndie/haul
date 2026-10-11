@@ -11,11 +11,16 @@ internal sealed class IdentityError(
     val field: String? = null,
 ) : Exception(message) {
     /**
-     * Neither a guest id the server issued nor a customer token (endpoint-cart: «neither is `401`»).
-     * An id the server never issued, or one whose guest is gone, is the same as none: the client
-     * creates a new guest.
+     * Neither a customer token nor a guest id (endpoint-cart: «neither is `401`»), or a guest on a page
+     * only a customer may open: the client keeps the guest it has and asks for a sign-in.
      */
     class Unauthenticated : IdentityError(ErrorCode.Unauthenticated, "Create a guest or sign in first")
+
+    /**
+     * A cart route named a guest the server never issued, or one whose guest is gone — a stand reseeded
+     * under a browser: `401 guest_not_found`, the one answer on which the client replaces its guest (B-115).
+     */
+    class UnknownGuest : IdentityError(ErrorCode.GuestNotFound, "No such guest: create a new one", GUEST_HEADER)
 
     /** The guest cart to merge names no guest the server issued (endpoint-identity). */
     class GuestNotFound : IdentityError(ErrorCode.GuestNotFound, "No such guest to merge", GUEST_HEADER)

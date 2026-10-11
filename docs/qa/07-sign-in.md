@@ -111,17 +111,22 @@ and only Maya and Sam can sign in; on a local stack, the e2e's shildik.
 
 - **Who:** guest
 - **Width:** 1440, 390
-- **Preconditions:** none.
+- **Preconditions:** a line in the cart; note `haul.guest` in the page's `localStorage`.
 - **Steps:**
   1. Open `/checkout` by its address.
-  2. Press «Sign in to continue» and sign in.
-  3. Open `/account/orders/HL-48302` (any order) and close the sign-in window instead.
+  2. Open `/account/orders/HL-48302` (any order) by its address, then go to the cart.
+  3. Open `/checkout` again, press «Sign in to continue» and sign in.
+  4. Sign out, open `/account/orders/HL-48302` and close the sign-in window instead.
 - **Expected:**
-  - Step 1: «Sign in to continue» — no error page, and no popup until the press.
-  - Step 2: the checkout, loaded again for the customer (or the cart, if nothing is selected — TC-CHK-11).
-  - Step 3: the home page. A page still refused after a sign-in is an error page; the prompt does not loop.
-- **Decided in:** B-44, B-66
-- **Coverage:** `SignInPromptTest` «a guest opening the checkout signs in and lands on the checkout»;
+  - Step 1: «Sign in to continue» — no error page, and no popup until the press. No `POST /api/v1/guests`.
+  - Step 2: the same prompt; the cart still holds the line, the header counts it, and `haul.guest` is the one
+    noted — «Whatever is in your cart comes with you» holds.
+  - Step 3: the checkout, loaded again for the customer (or the cart, if nothing is selected — TC-CHK-11).
+  - Step 4: the home page. A page still refused after a sign-in is an error page; the prompt does not loop.
+- **Decided in:** B-44, B-66, B-115
+- **Coverage:** `IdentityTest` «a guest on a customer's page stays the same guest»;
+  `server:CartRoutesTest` «no guest is 401 unauthenticated and an unknown one 401 guest_not_found»;
+  `SignInPromptTest` «a guest opening the checkout signs in and lands on the checkout»;
   `SignInPromptTest` «a guest opening an order signs in and lands on the order»;
   `SignInPromptTest` «a sign-in that does not go through lands on the home page»;
   `SignInPromptTest` «a page still refused after a sign-in draws the error page and asks no more»
@@ -156,10 +161,12 @@ and only Maya and Sam can sign in; on a local stack, the e2e's shildik.
 - **Expected:**
   - Step 1: the chip works; the token was renewed once and the request sent again — nothing seen.
   - Step 2: the page is taken down and asks for a sign-in (not an error page, and the customer's page is not left
-    on screen for a guest); after it, the page again.
-- **Decided in:** B-12, B-44, B-62
+    on screen for a guest); after it, the page again. Until then she is the guest she was before signing in: the
+    same `haul.guest`, no `POST /api/v1/guests`.
+- **Decided in:** B-12, B-44, B-62, B-115
 - **Coverage:** `IdentityTest` «a lapsed token is renewed once and the request sent again»;
   `IdentityTest` «a token that cannot be renewed signs the customer out, back to the guest»;
+  `IdentityTest` «a lapsed sign-in leaves the shopper the guest they were»;
   `KeptPageTest` «a sign-in lapsed within a screen takes the page down and asks for one»;
   `SignInPromptTest` «a lapsed sign-in that cannot be renewed asks again and lands on the page»;
   manual: the stand's five-minute token is real time, which the tests stand in for with a fake transport

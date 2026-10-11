@@ -1,6 +1,8 @@
 package io.github.youndie.haul.feature.identity
 
+import io.github.youndie.haul.ErrorCode
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CancellationException
@@ -21,8 +23,9 @@ import kotlinx.coroutines.sync.withLock
  * - Signing in runs the provider's flow ([SignInFlow]), keeps the tokens, and merges the guest cart
  *   into the customer's on the server ([SignInSettings.mergeUrl]).
  * - A `401` on a request ([send]) is answered once: a signed-in customer's token is renewed, or the
- *   customer is signed out when it cannot be; a guest the server no longer knows is replaced. Then
- *   the request is sent again.
+ *   customer is signed out when it cannot be; a guest the server no longer knows (`guest_not_found`) is
+ *   replaced. Then the request is sent again. Any other `401` — a guest on a page only a customer may
+ *   open — is the answer, and the guest is kept with its cart (B-115).
  * - When the browser blocks the popup, the sign-in can run in this tab instead ([here], B-66): it leaves
  *   for the provider's page and is finished, the same way, when the tab comes back to `/sign-in`.
  */
@@ -46,13 +49,34 @@ public class Identity(
 
     /**
      * Sends a request built by [request] with the current [headers], and once more after a `401` that
-     * a renewed token or a new guest can answer.
+     * a renewed token or a new guest can answer: a lapsed token is renewed at most once, and a guest is
+     * replaced at most once — only when the server says it does not know it (`guest_not_found`). A
+     * customer signed out because the token could not be renewed is the guest they were (B-115).
      */
     public suspend fun send(request: suspend (headers: Map<String, String>) -> HttpResponse): HttpResponse {
-        val first = request(headers())
-        if (first.status != HttpStatusCode.Unauthorized) return first
-        recover()
-        return request(headers())
+        var renewedOnce = false
+        var replacedOnce = false
+        while (true) {
+            val response = request(headers())
+            if (response.status != HttpStatusCode.Unauthorized) return response
+            val tokens = state.value.tokens
+            when {
+                tokens != null && !renewedOnce -> {
+                    renewedOnce = true
+                    val renewed = tokens.refreshToken?.let { renewed(it) }
+                    update { it.copy(tokens = renewed) }
+                }
+
+                tokens == null && !replacedOnce && errorCode(response.bodyAsText()) == ErrorCode.GuestNotFound -> {
+                    replacedOnce = true
+                    update { it.copy(guestId = null) }
+                }
+
+                else -> {
+                    return response
+                }
+            }
+        }
     }
 
     /**
@@ -100,23 +124,20 @@ public class Identity(
     ) {
         val guest = state.value.guestId
         update { it.copy(tokens = tokens) }
-        if (guest != null) api.merge(settings.mergeUrl, guest, tokens.accessToken)
+        if (guest == null) return
+        try {
+            api.merge(settings.mergeUrl, guest, tokens.accessToken)
+        } catch (e: IdentityFailure) {
+            // A guest the server does not know has no cart to merge; it is forgotten, not kept (B-115).
+            if (e.code != ErrorCode.GuestNotFound) throw e
+            update { it.copy(guestId = null) }
+        }
     }
 
     private suspend fun guest(): String =
         guestLock.withLock {
             state.value.guestId ?: api.createGuest().also { id -> update { it.copy(guestId = id) } }
         }
-
-    private suspend fun recover() {
-        val tokens = state.value.tokens
-        if (tokens == null) {
-            update { it.copy(guestId = null) }
-            return
-        }
-        val renewed = tokens.refreshToken?.let { renewed(it) }
-        update { it.copy(tokens = renewed) }
-    }
 
     @Suppress(
         "ktlint:kapkan:swallowed-failure",

@@ -9,6 +9,7 @@ import io.ktor.client.request.HttpRequestData
 import io.ktor.client.request.HttpResponseData
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -33,18 +34,38 @@ class IdentityTest {
     private var guests = 0
     private var signInOff = false
 
-    /** `401` for these bearer tokens and guest ids — what the server says of a lapsed token or a forgotten guest. */
-    private val refused = mutableSetOf<String>()
+    /** Bearer tokens answered `401 unauthenticated` — what the server says of a lapsed token. */
+    private val lapsed = mutableSetOf<String>()
+
+    /** Guest ids answered `401 guest_not_found` — guests the server does not know (a reseeded stand). */
+    private val forgotten = mutableSetOf<String>()
+
+    /** Every guest id answered `401 guest_not_found`, the ones issued from now on included. */
+    private var forgetsEveryGuest = false
 
     private val http =
         HttpClient(
             MockEngine { request ->
                 requests += request
-                val credential =
-                    request.headers[HttpHeaders.Authorization]?.removePrefix("Bearer ") ?: request.headers[GUEST_HEADER]
+                val bearer = request.headers[HttpHeaders.Authorization]?.removePrefix("Bearer ")
+                val guest = request.headers[GUEST_HEADER]
+                val path = request.url.encodedPath
                 when {
-                    credential != null && credential in refused -> {
-                        respond("""{"code":"unauthenticated","message":"no"}""", HttpStatusCode.Unauthorized, JSON)
+                    bearer != null && bearer in lapsed -> {
+                        respond(UNAUTHENTICATED, HttpStatusCode.Unauthorized, JSON)
+                    }
+
+                    path == settings.mergeUrl && guest != null && guest.isForgotten() -> {
+                        respond(GUEST_NOT_FOUND, HttpStatusCode.NotFound, JSON)
+                    }
+
+                    bearer == null && guest != null && guest.isForgotten() -> {
+                        respond(GUEST_NOT_FOUND, HttpStatusCode.Unauthorized, JSON)
+                    }
+
+                    // A page only a customer may open: a guest — one the server knows — is not one.
+                    path == CHECKOUT && bearer == null -> {
+                        respond(UNAUTHENTICATED, HttpStatusCode.Unauthorized, JSON)
                     }
 
                     request.url.encodedPath == IdentityApi.GUESTS -> {
@@ -61,6 +82,8 @@ class IdentityTest {
                 }
             },
         )
+
+    private fun String.isForgotten(): Boolean = forgetsEveryGuest || this in forgotten
 
     private fun MockRequestHandleScope.settingsAnswer(): HttpResponseData =
         if (signInOff) {
@@ -89,9 +112,13 @@ class IdentityTest {
     private val store = MemorySessionStore()
     private val identity = Identity(IdentityApi(http), provider, store)
 
-    private suspend fun home() =
+    private suspend fun home() = page("/ui/home")
+
+    private suspend fun checkout() = page(CHECKOUT)
+
+    private suspend fun page(path: String) =
         identity.send { headers ->
-            http.get("/ui/home") {
+            http.get(path) {
                 headers.forEach { (k, v) -> header(k, v) }
             }
         }
@@ -132,7 +159,7 @@ class IdentityTest {
     fun `a lapsed token is renewed once and the request sent again`() =
         runBlocking {
             identity.signIn()
-            refused += "access-1"
+            lapsed += "access-1"
 
             assertEquals(HttpStatusCode.OK, home().status)
 
@@ -146,7 +173,7 @@ class IdentityTest {
         runBlocking {
             home()
             identity.signIn()
-            refused += "access-1"
+            lapsed += "access-1"
             provider.renewed = null
 
             assertEquals(HttpStatusCode.OK, home().status)
@@ -159,11 +186,96 @@ class IdentityTest {
     fun `a guest the server forgot is replaced`() =
         runBlocking {
             home()
-            refused += "g-1"
+            forgotten += "g-1"
 
             assertEquals(HttpStatusCode.OK, home().status)
 
             assertEquals("g-2", store.load().guestId)
+            assertEquals("g-2", requests.last().headers[GUEST_HEADER])
+        }
+
+    /** A server that knows no guest at all gets one new guest per request, not a loop of them. */
+    @Test
+    fun `a guest is replaced once per request`() =
+        runBlocking {
+            home()
+            forgetsEveryGuest = true
+
+            val refused = home()
+
+            assertEquals(HttpStatusCode.Unauthorized, refused.status)
+            assertEquals(2, guests)
+            assertEquals(listOf("g-1", "g-1", "g-2"), screens().map { it.headers[GUEST_HEADER] })
+        }
+
+    /**
+     * B-115, TC-SIGN-06: a guest who opens `/checkout` or an order by its address is told to sign in by
+     * the page's `401 unauthenticated` — the expected answer, not a guest the server forgot. The guest, and
+     * with it the cart, stays; the `401` reaches the shell, which draws the prompt.
+     */
+    @Test
+    fun `a guest on a customer's page stays the same guest`() =
+        runBlocking {
+            home()
+
+            val refused = checkout()
+            checkout()
+
+            assertEquals(HttpStatusCode.Unauthorized, refused.status)
+            assertEquals(UNAUTHENTICATED, refused.bodyAsText(), "the body the shell reads")
+            assertEquals(1, guests)
+            assertEquals(Session(guestId = "g-1"), store.load())
+            home()
+            assertEquals(listOf("g-1", "g-1", "g-1", "g-1"), screens().map { it.headers[GUEST_HEADER] })
+        }
+
+    /**
+     * B-115: a sign-in that lapsed past renewing is the guest the shopper was — on the request that found
+     * it out and on every customer's page after it, as «Sign out» leaves it.
+     */
+    @Test
+    fun `a lapsed sign-in leaves the shopper the guest they were`() =
+        runBlocking {
+            home()
+            identity.signIn()
+            lapsed += "access-1"
+            provider.renewed = null
+
+            assertEquals(HttpStatusCode.Unauthorized, checkout().status)
+            assertEquals(HttpStatusCode.Unauthorized, checkout().status)
+
+            assertEquals(listOf("refresh-1"), provider.refreshedWith)
+            assertEquals(1, guests)
+            assertEquals(Session(guestId = "g-1"), store.load())
+            assertEquals("g-1", requests.last().headers[GUEST_HEADER])
+        }
+
+    /** The guest a lapsed sign-in falls back to may be one the server forgot meanwhile: it is replaced, once. */
+    @Test
+    fun `a lapsed sign-in over a forgotten guest gets a new one`() =
+        runBlocking {
+            home()
+            identity.signIn()
+            lapsed += "access-1"
+            provider.renewed = null
+            forgotten += "g-1"
+
+            assertEquals(HttpStatusCode.OK, home().status)
+
+            assertEquals(Session(guestId = "g-2"), store.load())
+            assertEquals("g-2", requests.last().headers[GUEST_HEADER])
+        }
+
+    /** A guest the server forgot has no cart to merge: the sign-in goes through and the guest is dropped. */
+    @Test
+    fun `signing in over a forgotten guest keeps the tokens and drops the guest`() =
+        runBlocking {
+            home()
+            forgotten += "g-1"
+
+            identity.signIn()
+
+            assertEquals(Session(tokens = Tokens("access-1", "refresh-1")), store.load())
         }
 
     @Test
@@ -263,7 +375,12 @@ class IdentityTest {
             checkNotNull(back) { "no sign-in in this tab came back" }.also { back = null }
     }
 
+    private fun screens(): List<HttpRequestData> = requests.filter { it.url.encodedPath.startsWith("/ui/") }
+
     private companion object {
+        const val CHECKOUT = "/ui/checkout"
+        const val UNAUTHENTICATED = """{"code":"unauthenticated","message":"no"}"""
+        const val GUEST_NOT_FOUND = """{"code":"guest_not_found","message":"no such guest"}"""
         val JSON = headersOf(HttpHeaders.ContentType, "application/json")
     }
 }

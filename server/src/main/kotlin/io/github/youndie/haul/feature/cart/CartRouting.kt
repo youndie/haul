@@ -25,8 +25,9 @@ import org.koin.ktor.ext.inject
 
 /**
  * The cart (endpoint-cart), in the public tier: the caller is a customer by a verified bearer token,
- * or else a guest named by `X-Haul-Guest`; a request with neither — or naming a guest the server never
- * issued — is `401 unauthenticated`. A token and a guest id together are the customer (feature-identity).
+ * or else a guest named by `X-Haul-Guest`; a request with neither is `401 unauthenticated`, and one naming a
+ * guest the server never issued `401 guest_not_found` — the client replaces its guest on that one alone
+ * (B-115). A token and a guest id together are the customer (feature-identity).
  * Every command answers `refresh`, which redraws the cart and the header's count — but a card's «+» and the
  * product page's «Add to cart», whose address names the node they redraw, answer `update` of the header and
  * that node ([LineAnswers], B-63), followed by «Added to your cart» (B-75, B-81). Every refusal is a [CartError]
@@ -41,19 +42,23 @@ internal fun Route.cartRouting() {
 
     suspend fun ApplicationCall.caller(): Caller = callers.of(this)
 
-    suspend fun ApplicationCall.owner(): CartOwner = caller().owner() ?: throw IdentityError.Unauthenticated()
+    /** Why a request with no cart is refused: it named no guest, or one the server does not know. */
+    fun ApplicationCall.refusal(): IdentityError =
+        if (callers.guestId(this) == null) IdentityError.Unauthenticated() else IdentityError.UnknownGuest()
+
+    suspend fun ApplicationCall.owner(): CartOwner = caller().owner() ?: throw refusal()
 
     suspend fun ApplicationCall.refresh() = respondKompotAction(haulWireJson, RefreshAction)
 
     get(CartPaths.SCREEN) {
         val caller = call.caller()
-        val owner = caller.owner() ?: throw IdentityError.Unauthenticated()
+        val owner = caller.owner() ?: throw call.refusal()
         call.respondKompotComponent(haulWireJson, screen.build(owner, viewers.of(caller)))
     }
 
     put(CartPaths.LINE) {
         val caller = call.caller()
-        val owner = caller.owner() ?: throw IdentityError.Unauthenticated()
+        val owner = caller.owner() ?: throw call.refusal()
         val skuId = call.parameters["skuId"]!!
         commands.changeLine(owner, skuId, call.body(LineChange.serializer()))
         call.respondKompotAction(haulWireJson, answers.after(call.request.queryParameters, skuId, viewers.of(caller)))
