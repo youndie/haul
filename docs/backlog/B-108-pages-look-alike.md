@@ -107,4 +107,7 @@ Each line of the QA pass, fixed or kept with the reason; research has «Decided 
 On the WSL box (Ubuntu 24.04) before the rebase on B-90: `:composeApp:wasmJsBrowserDistribution` green; `check
 :server:installDist` green (server 471 tests, client 373, 0 failed; `viddikVerify`, ktlint); `scripts/e2e.sh`
 against `haul/server:b108` green (WholePathTest, ShoppersConfigTest 5, SyntheticShopperTest 2). On the Mac: `make
-check` and `make docs-against BASE=origin/main` clean, every anchor found. Not walked in a browser.
+check` and `make docs-against BASE=origin/main` clean, every anchor found. After the rebase on B-90 (#135), again on
+the WSL box: `:composeApp:wasmJsBrowserDistribution` green; `check :server:installDist` green (server 474, client
+377, 0 failed; `viddikVerify`, ktlint); `scripts/e2e.sh` green; on the Mac `make check` and `make docs-against
+BASE=origin/main` clean. Not walked in a browser.
