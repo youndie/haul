@@ -415,10 +415,10 @@ internal class SearchScreen(
     companion object {
         /**
          * What a category chip, a sort or a page changes on the results (B-63): the chips with the sort, the grid
-         * and the pages — and the header, whose search picker reads the page's scope (B-72): «All» leaves it, and
-         * a leaf's chip names the leaf there (B-119).
+         * and the pages — the header, whose search picker reads the page's scope (B-72): «All» leaves it, and a
+         * leaf's chip names the leaf there (B-119) — and the title, which counts the chip's results (B-119).
          */
-        val PARTS = listOf("header", "categories", "grid", "pagination")
+        val PARTS = listOf("header", "title", "categories", "grid", "pagination")
 
         /** The search's own order (B-103): the most relevant first, as the database matched them. */
         const val RELEVANCE = "Relevance"

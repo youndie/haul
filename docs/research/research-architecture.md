@@ -535,7 +535,7 @@ page would gain or lose a section an `update` cannot add or take away — is `na
 | Endpoint (kind `load`, kompot SPEC §16.1) | Tier | Pressed from | The parts |
 |---|---|---|---|
 | `GET /ui/parts/c/{categoryPath}?…` (the whole path, B-68) | public | a kind, a facet, «Show N more», an applied chip, «Clear all», a sort, a page, the price range (B-69, below) | `title`, `kinds` (a leaf's kinds, or a category's subcategories, which `navigate`; B-102), `results` |
-| `GET /ui/parts/search?q=…` | public | a category chip, a sort (B-77, the end of the chips' row), «Show N more», a page | `header` (its picker reads the scope, B-72), `categories`, `grid`, `pagination` |
+| `GET /ui/parts/search?q=…` | public | a category chip, a sort (B-77, the end of the chips' row), «Show N more», a page | `header` (its picker reads the scope, B-72), `title` (it counts the chip's results, B-119), `categories`, `grid`, `pagination` |
 | `GET /ui/parts/deals?page=…` | public | a page or «Show N more» between grids that start past the first page; to or from a grid with the first page, whose «Deals of the day» the others lack, the press is still `navigate` — «Show N more» from the first page included, which the shell draws behind the kept page (B-62) | `grid`, `pagination` |
 | `GET /ui/parts/account/orders?status=…` | customer (`401`) | a chip of the history | `account` |
 | `GET /ui/parts/account/saved?…` | customer (`401`) | a filter or a page of the Saved list | `account` |

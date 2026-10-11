@@ -35,6 +35,10 @@ Found outside the catalogue by its first run ([run](../qa/runs/2026-10-11-v0.4.0
   many» is not kept: the «All» chip beside it already says it. One result reads «1 result». The page for a scope
   the query finds nothing in (B-90) titles «0 results», as its chosen chip reads, and keeps «N results in other
   categories.» under it.
+- **The title is one of the search's parts now** (`SearchScreen.PARTS`: `header`, `title`, `categories`,
+  `grid`, `pagination`). A chip's `load` replaced the chips and the grid but left the title the page was opened
+  with, so a chip pressed in place would have gone on reading every match; `PartsRoutesTest` «every category
+  chip and page of a search answers the parts of the page it opens» caught it (red until `title` was added).
 - **The chips** (`SearchScreen.names`, `Catalog.kt` `nameOf`): a chip is its category's name, and where that
   name repeats among the page's chips it carries its top-level category, «Party · Limited» (the item's form, with
   « · »; the suggest panel's «Sports › Running shoes» is left as it is), then every level if that still repeats.
@@ -57,6 +61,9 @@ Found outside the catalogue by its first run ([run](../qa/runs/2026-10-11-v0.4.0
   …» and the B-90 test red; chips named by `category.name` → «no two chips …» and «the picker names …» red; no
   inner scope in `Frame.scopes` → «the picker names …» and the `LineAnswersTest` case red; `LineAnswers` without
   the categories → the `LineAnswersTest` case red.
+- **Seen on the way.** The first full `check` had `UniqueIdsTest` «every page a customer opens draws each id
+  once» red on `/ui/account/orders/HL-48302` answering `404 order_not_found` for Maya; it passed alone and in the
+  next full run, and touches no search code — a flake, recorded here rather than as an item.
 - **Goldens.** None changed: the search fixtures are hand-written trees (`search_results.json`, «All» chosen,
   the canvas's «14,870 results» over «All 14,870»), and the canvas draws neither a chosen leaf chip nor a
   repeated name. The canvas's title, too, counts «All»'s results with «All» chosen, which the rule keeps.
