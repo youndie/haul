@@ -1,7 +1,7 @@
 ---
 id: B-88
 title: "server: a returned unit goes back to stock"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-10-review
