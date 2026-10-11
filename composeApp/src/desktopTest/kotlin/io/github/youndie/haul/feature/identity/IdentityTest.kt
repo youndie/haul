@@ -345,30 +345,50 @@ class IdentityTest {
             assertTrue(requests.none { it.url.encodedPath == settings.mergeUrl })
         }
 
+    /** B-116: back from the provider's page, which never answered: said once, and forgotten. */
+    @Test
+    fun `a sign-in in this tab the provider never answered is forgotten once it is told`() =
+        runBlocking {
+            val here = Here()
+            val identity = Identity(IdentityApi(http), provider, store, here)
+            identity.signInHere("/cart")
+
+            assertFalse(identity.returnedFromSignIn)
+            assertTrue(identity.forgetUnansweredSignIn())
+            assertFalse(identity.forgetUnansweredSignIn(), "the same sign-in was reported twice")
+            assertFalse(identity.signedIn)
+        }
+
     @Test
     fun `an identity without a sign-in in this tab offers none`() =
         runBlocking {
             assertFailsWith<SignInUnavailable> { identity.signInHere("/checkout") }
             assertFalse(identity.canSignInHere)
             assertFalse(identity.returnedFromSignIn)
+            assertFalse(identity.forgetUnansweredSignIn())
         }
 
     /** The provider's page in this tab, as far as the identity sees it: where it was sent, and what came back. */
     private class Here : SignInHere {
         val left = mutableListOf<String?>()
         private var back: SignedInHere? = null
+        private var pending = false
 
         fun comesBack(signedIn: SignedInHere) {
             back = signedIn
+            pending = false
         }
 
         override val returned: Boolean get() = back != null
+
+        override fun forgetUnanswered(): Boolean = pending.also { pending = false }
 
         override suspend fun leave(
             settings: SignInSettings,
             next: String?,
         ) {
             left += next
+            pending = true
         }
 
         override suspend fun finish(settings: SignInSettings): SignedInHere =

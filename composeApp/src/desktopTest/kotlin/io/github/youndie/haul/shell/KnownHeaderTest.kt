@@ -259,6 +259,8 @@ class KnownHeaderTest {
 
         override val returnedFromSignIn: Boolean = false
 
+        override fun forgetUnansweredSignIn(): Boolean = false
+
         override suspend fun finishSignInHere(): String? = null
     }
 

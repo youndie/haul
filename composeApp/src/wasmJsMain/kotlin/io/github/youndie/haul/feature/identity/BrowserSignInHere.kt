@@ -1,13 +1,17 @@
+@file:OptIn(kotlin.js.ExperimentalWasmJsInterop::class)
+
 package io.github.youndie.haul.feature.identity
 
 import io.ktor.http.Url
 import kotlinx.browser.sessionStorage
 import kotlinx.browser.window
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.Json
 import org.publicvalue.multiplatform.oidc.ExperimentalOpenIdConnect
 import org.publicvalue.multiplatform.oidc.flows.continueLogin
 import org.publicvalue.multiplatform.oidc.types.AuthCodeRequest
+import kotlin.coroutines.resume
 
 /**
  * The sign-in in this tab, for a browser that blocks the popup (B-66). The same request the popup's flow
@@ -19,12 +23,23 @@ import org.publicvalue.multiplatform.oidc.types.AuthCodeRequest
  *
  * Storage that refuses is a sign-in that cannot leave: [leave] throws rather than leave the shopper at
  * the provider with nothing to come back to.
+ *
+ * The shopper's back from the provider's page, which never answered (B-116), arrives one of two ways. A
+ * new load of `/sign-in` finds the request waiting with no answer beside it ([forgetUnanswered]); a
+ * browser that kept the page in its back-forward cache shows the same page again, the one that left —
+ * nothing loads, and [leave] itself, still waiting, hears it (`pageshow`, `persisted`).
  */
 @OptIn(ExperimentalOpenIdConnect::class)
 internal class BrowserSignInHere(
     private val redirectUri: String,
 ) : SignInHere {
     override val returned: Boolean get() = read(ANSWER) != null && read(REQUEST) != null
+
+    override fun forgetUnanswered(): Boolean {
+        if (read(REQUEST) == null || read(ANSWER) != null) return false
+        listOf(REQUEST, NEXT).forEach(::forget)
+        return true
+    }
 
     override suspend fun leave(
         settings: SignInSettings,
@@ -35,9 +50,19 @@ internal class BrowserSignInHere(
         sessionStorage.setItem(REQUEST, REQUEST_JSON.encodeToString(AuthCodeRequest.serializer(), request))
         if (next == null) sessionStorage.removeItem(NEXT) else sessionStorage.setItem(NEXT, next)
         window.location.assign(request.url.toString())
-        // The page is on its way out; nothing after this runs in it.
+        // The page is on its way out. A browser that keeps it shows it again on a back from the provider's page.
+        shownAgain()
+        if (forgetUnanswered()) throw SignInNotAnswered()
+        // Answered meanwhile, by a page load of its own: what this page knows of the shopper is stale.
+        window.location.reload()
         awaitCancellation()
     }
+
+    /** Waits for this page to be shown again from the browser's back-forward cache. */
+    private suspend fun shownAgain(): Unit =
+        suspendCancellableCoroutine { waiting ->
+            onceShownAgain { if (waiting.isActive) waiting.resume(Unit) }
+        }
 
     override suspend fun finish(settings: SignInSettings): SignedInHere {
         val request = read(REQUEST)
@@ -88,3 +113,10 @@ internal class BrowserSignInHere(
         const val ANSWER = "haul.sign-in.answer"
     }
 }
+
+/** Calls [shown] once, the first time this page is shown again from the back-forward cache. */
+@JsFun(
+    "(shown) => window.addEventListener('pageshow', function again(event) { " +
+        "if (event.persisted) { window.removeEventListener('pageshow', again); shown(); } })",
+)
+private external fun onceShownAgain(shown: () -> Unit)
