@@ -462,7 +462,8 @@ public class SearchNoResultsRenderer : KompotComponentRenderer<SearchNoResults> 
 }
 
 // The cart (screen-cart). A press is a command to the server (`LocalCartCommands`, the storefront's),
-// and the server's answer — `refresh` — goes to the screen's handler, which draws the cart again.
+// and the server's answer — `refresh` — goes to the screen's handler, which draws the cart again; a refusal
+// draws it again and says why, and no answer says so, with «Retry» (B-92, `CartCommands.run`).
 
 @KompotComponentMarker
 public class CartBodyRenderer : KompotComponentRenderer<CartBody> {
@@ -475,14 +476,20 @@ public class CartBodyRenderer : KompotComponentRenderer<CartBody> {
         val commands = LocalCartCommands.current
         val scope = rememberCoroutineScope()
         CartBodyView(component) { batch ->
-            if (commands != null) scope.launch { commands.run(batch)?.let(actionHandler::handle) }
+            if (commands != null) {
+                fun press() {
+                    scope.launch { commands.run(batch, again = ::press)?.let(actionHandler::handle) }
+                }
+                press()
+            }
         }
     }
 }
 
 // The checkout (screen-checkout). A choice or the address form is a command to the server
 // (`LocalCheckoutCommands`, the storefront's), whose `refresh` goes to the screen's handler; «Place
-// order» is the same seam with the quote and its key, drawn as Placing until the server answers.
+// order» is the same seam with the quote and its key, drawn as Placing until the server answers. A refusal
+// or no answer is told as `CheckoutCommands.run` says (B-92).
 
 @KompotComponentMarker
 public class CheckoutHeaderRenderer : KompotComponentRenderer<CheckoutHeader> {
@@ -515,18 +522,29 @@ public class CheckoutBodyRenderer : KompotComponentRenderer<CheckoutBody> {
             component,
             placing = placing,
             onCommand = { command ->
-                if (commands != null) scope.launch { commands.run(command)?.let(actionHandler::handle) }
+                if (commands != null) {
+                    fun press() {
+                        scope.launch { actionHandler.handle(commands.run(command, again = ::press)) }
+                    }
+                    press()
+                }
             },
             onPlace = {
                 val url = component.summary.placeUrl
-                if (commands != null && url != null && !placing) {
-                    placing = true
-                    scope.launch {
-                        val answer = commands.run(CheckoutCommand.Place(url, component.summary.quote, key))
-                        // An order placed goes to its page; anything else leaves the checkout to be drawn again.
-                        if (answer !is NavigateAction) placing = false
-                        answer?.let(actionHandler::handle)
+                val place = url?.let { CheckoutCommand.Place(it, component.summary.quote, key) }
+                if (commands != null && place != null) {
+                    // «Retry» after no answer is the same press, under the same key: one order, however many.
+                    fun press() {
+                        if (placing) return
+                        placing = true
+                        scope.launch {
+                            val answer = commands.run(place, again = ::press)
+                            // An order placed goes to its page; anything else leaves the checkout to be drawn again.
+                            if (answer !is NavigateAction) placing = false
+                            actionHandler.handle(answer)
+                        }
                     }
+                    press()
                 }
             },
         )
@@ -535,7 +553,7 @@ public class CheckoutBodyRenderer : KompotComponentRenderer<CheckoutBody> {
 
 // The order's page (screen-order). Its links follow the tree's actions; «Reorder» is a cart command
 // (`LocalCartCommands`, the storefront's), whose answer — `navigate` to the cart — goes to the screen's
-// handler, and a refusal draws the order again.
+// handler; a refusal draws the order again and says why, and no answer says so (B-92).
 
 @KompotComponentMarker
 public class OrderBodyRenderer : KompotComponentRenderer<OrderBody> {
@@ -558,7 +576,7 @@ public class OrderBodyRenderer : KompotComponentRenderer<OrderBody> {
 
 // The account (screen-account). Its links follow the tree's actions; a row's «Reorder» is the order page's
 // cart command (`LocalCartCommands`), whose answer — `navigate` to the cart — goes to the screen's handler,
-// and a refusal draws the account again.
+// and a refusal draws the account again and says why, and no answer says so (B-92).
 
 @KompotComponentMarker
 public class AccountBodyRenderer : KompotComponentRenderer<AccountBody> {

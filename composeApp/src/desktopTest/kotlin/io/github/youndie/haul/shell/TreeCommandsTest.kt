@@ -143,7 +143,8 @@ class TreeCommandsTest {
     /**
      * B-43: «Helpful» is a `PUT` of the vote the tree carries — the state, not a toggle — and its answer,
      * `refresh`, is what the screen follows. A refusal is a `refresh` too, so the page shows what the
-     * server has; no answer is nothing to follow.
+     * server has, and says why in the server's words (B-92); no answer says so, with «Retry», which is the
+     * same press — a `PUT` sent twice is sent once.
      */
     @Test
     fun `a vote is put where the review says and its answer or refusal redraws the page`() =
@@ -161,10 +162,12 @@ class TreeCommandsTest {
                 HttpStatusCode.Conflict to """{"code":"own_review","message":"You cannot vote on your own review"}"""
             val refused = assertFailsWith<CommandRefused> { commands.send(command) }
             assertEquals(ErrorCode.OwnReview, refused.code)
-            assertEquals(RefreshAction, commands.vote(command))
+            assertEquals(told("You cannot vote on your own review"), commands.vote(command))
 
             unreachable = true
-            assertNull(commands.vote(command))
+            var again = 0
+            assertNoAnswer(commands.vote(command) { again += 1 }, retry = true)?.press?.invoke()
+            assertEquals(1, again, "«Retry» is not the press it was given")
         }
 
     private companion object {

@@ -6,9 +6,10 @@ import io.github.youndie.haul.ErrorBody
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.FieldError
 import io.github.youndie.haul.registry.haulJson
+import io.github.youndie.haul.shell.noAnswer
+import io.github.youndie.haul.shell.refusal
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.decodeKompotAction
-import io.github.youndie.kompot.standard.RefreshAction
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
 import io.ktor.client.request.request
@@ -65,26 +66,35 @@ public fun interface CheckoutCommands {
 }
 
 /**
- * What the screen follows after [command]: the server's answer. A refusal is a `refresh`: the server
- * keeps a refused address form and draws it again with its errors (`Checkout_Validation`), and a window
- * that filled up is cleared in the next tree (`Checkout_PlaceError`). No answer at all is `null`: the
- * page stays as it was.
+ * What the screen follows after [command]: the server's answer. A refusal is a `refresh` — the page drawn as
+ * the server now has it — with the server's reason in a message (B-92), except where the next tree draws the
+ * reason itself: the server keeps a refused address form and draws it again with its errors
+ * (`Checkout_Validation`), and a window that filled up at placement is cleared and named in the next tree
+ * (`Checkout_PlaceError`). No answer at all leaves the page as it was and says so, with «Retry» — [again],
+ * the same press — for a choice (a `PUT`) and for placing, whose key makes a retry the same order (B-16).
  */
 @Suppress(
     "ktlint:kapkan:swallowed-failure",
-    "A command that got no answer changed nothing the shopper can see; the page stays as the server last drew it and the next press tries again.",
+    "A command that got no answer changed nothing the shopper can see; the page stays as the server last drew it and says so.",
 )
-public suspend fun CheckoutCommands.run(command: CheckoutCommand): KompotAction? =
+public suspend fun CheckoutCommands.run(
+    command: CheckoutCommand,
+    again: (() -> Unit)? = null,
+): KompotAction =
     try {
         send(command)
     } catch (cancelled: CancellationException) {
         throw cancelled
-    } catch (_: CheckoutRefused) {
-        RefreshAction
+    } catch (refused: CheckoutRefused) {
+        refusal(refused.reason, drawn = refused.drawnBy(command))
     } catch (_: Throwable) {
         // Throwable: in the browser a failed fetch is a JavaScript error, no `Exception` on Wasm.
-        null
+        noAnswer(again?.takeIf { command !is CheckoutCommand.SaveAddress })
     }
+
+/** Whether the tree that follows this refusal of [command] draws its reason at the control already. */
+private fun CheckoutRefused.drawnBy(command: CheckoutCommand): Boolean =
+    fields.isNotEmpty() || (command is CheckoutCommand.Place && code == ErrorCode.SlotUnavailable)
 
 /** The server refused a command: its status and, when the body said, its [code], [reason] and [fields]. */
 public class CheckoutRefused(

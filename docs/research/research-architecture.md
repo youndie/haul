@@ -418,6 +418,23 @@ around it (the search field at 1440, the heart and the account on a phone); empt
 middle of that width. The cost against the canvas: every header drawn with an empty cart — a guest's, the
 placeholder's — has a cart button 34 px wider at 1440 and 32 px on a phone than the canvas's Home_Guest.
 
+**Decided in B-92, a command that fails or is refused tells the shopper** (owner's call). One rule for every command
+a press sends — the cart's, the Saved list's heart and «Save for later», the checkout's choices, address form and
+«Place order», «Reorder» on an order or the account, «Helpful», the review, question and return dialogs and the Plus
+trial: an answer is followed as before; a **refusal** draws the page again (`refresh`, the trial's `close` first)
+and says why in the server's words — `ErrorBody.message` — in B-75's message over the page, at the `error` level
+(the alert mark); **no answer** leaves the page as it was under «Couldn't reach the store», with «Retry» when sending
+the press twice does what sending it once does: a `PUT` or a `DELETE`, and «Place order», whose key makes a retry
+the same order (B-16). A `POST` that adds — «Reorder», «Save for later», «OK» on a changed line, the address form,
+the dialogs — offers no «Retry»; its own button is the press again. Two exceptions keep a reason from being said
+twice: a refusal the next tree already draws at the control — a promo code the server stores (Cart_PromoError), an
+address form's errors under its fields (Checkout_Validation), a window that filled up at placement
+(Checkout_PlaceError) — is the `refresh` alone; and a dialog with a place of its own for what went wrong (the
+review, question and return dialogs) says it there, «Couldn't reach the store» in place of «That didn't go
+through». The rule lives in `shell/CommandAnswers.kt` (`refusal`, `noAnswer`); «Retry» is `PressAgain`, the
+client's own action — never on the wire — which the screen's handler runs. A `load` that does not arrive keeps
+B-62's notice, which already had its «Retry».
+
 **Decided in B-22, a route over the screen.** A dialog the canvas draws over a page («Write a review»,
 «Ask a question») is kompot's `present` of a component the server built — the form, its labels and the
 URL it posts to — carried by the control that opens it, so it has no address of its own and

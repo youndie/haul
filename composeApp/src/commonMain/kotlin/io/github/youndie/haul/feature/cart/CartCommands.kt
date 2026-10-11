@@ -5,9 +5,10 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import io.github.youndie.haul.ErrorBody
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.registry.haulJson
+import io.github.youndie.haul.shell.noAnswer
+import io.github.youndie.haul.shell.refusal
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.decodeKompotAction
-import io.github.youndie.kompot.standard.RefreshAction
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
 import io.ktor.client.request.request
@@ -92,17 +93,20 @@ public fun interface CartCommands {
 /**
  * Sends [batch] in order — «Select all» is one command per line — and returns what the screen follows
  * next: [next] when the tree gave one («Buy now»'s way to checkout, B-48), else the server's last
- * answer (`refresh`). A refusal stops the batch and is a `refresh` too, [next] or not: the server
- * remembers a refused promo code and the next tree draws it with the reason, and any other refusal is
- * drawn as the cart now is. No answer at all is `null`: the page stays as it was.
+ * answer (`refresh`); `null` only for an empty batch. A refusal stops the batch and is a `refresh` too,
+ * [next] or not, with the server's reason in a message (B-92) — but a refused promo code, which the server
+ * remembers and the next tree draws under its field (Cart_PromoError), says it there alone. No answer at
+ * all leaves the page as it was and says so, with «Retry» — [again], the same press — when every command
+ * of the batch may be sent twice.
  */
 @Suppress(
     "ktlint:kapkan:swallowed-failure",
-    "A command that got no answer changed nothing the shopper can see; the page stays as the server last drew it and the next press tries again.",
+    "A command that got no answer changed nothing the shopper can see; the page stays as the server last drew it and says so.",
 )
 public suspend fun CartCommands.run(
     batch: List<CartCommand>,
     next: KompotAction? = null,
+    again: (() -> Unit)? = null,
 ): KompotAction? {
     var answer: KompotAction? = null
     for (command in batch) {
@@ -111,15 +115,30 @@ public suspend fun CartCommands.run(
                 send(command)
             } catch (cancelled: CancellationException) {
                 throw cancelled
-            } catch (_: CartRefused) {
-                return RefreshAction
+            } catch (refused: CartRefused) {
+                return refusal(
+                    refused.reason,
+                    drawn = command is CartCommand.ApplyPromo && refused.code in STORED_PROMO,
+                )
             } catch (_: Throwable) {
                 // Throwable: in the browser a failed fetch is a JavaScript error, no `Exception` on Wasm.
-                return null
+                return noAnswer(again?.takeIf { batch.all { it.idempotent } })
             }
     }
     return next ?: answer
 }
+
+/**
+ * The refusals of a promo code the server stores with the cart and draws under the field (research, «Decided in
+ * B-11»); one more code while another is applied is refused without being stored, and is said in a message.
+ */
+private val STORED_PROMO = setOf(ErrorCode.PromoNotFound, ErrorCode.PromoExpired, ErrorCode.PromoNotApplicable)
+
+/**
+ * Whether sending [this] twice does what sending it once does: a `PUT` or a `DELETE`. A `POST` is not — a
+ * «Reorder» adds the order's lines again — even where the server would refuse the second (save for later).
+ */
+internal val CartCommand.idempotent: Boolean get() = request().first != HttpMethod.Post
 
 /** The server refused a command: its status and, when the body said, its [code] and [reason]. */
 public class CartRefused(

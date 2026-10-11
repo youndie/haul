@@ -2,6 +2,9 @@ package io.github.youndie.haul.feature.product
 
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -22,7 +25,9 @@ import io.github.youndie.haul.read
 import io.github.youndie.haul.shell.CommandRefused
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
-import io.github.youndie.haul.shell.NOT_SENT
+import io.github.youndie.haul.shell.MESSAGE_TAG
+import io.github.youndie.haul.shell.NO_ANSWER
+import io.github.youndie.haul.shell.RETRY
 import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.shell.TreeCommand
 import io.github.youndie.haul.shell.TreeCommands
@@ -157,6 +162,7 @@ class ReviewWiringTest {
             onNodeWithText("Keep it to 120 characters").assertExists()
         }
 
+    /** No answer keeps the dialog and what was typed, and says so where the press was: B-92's words. */
     @Test
     fun `no answer keeps the dialog and what was typed`() =
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
@@ -164,7 +170,7 @@ class ReviewWiringTest {
             reviews()
             writeReview(GOOD)
             waitUntil(timeoutMillis = 5_000) { sent.isNotEmpty() }
-            onNodeWithText(NOT_SENT).assertExists()
+            onNodeWithText(NO_ANSWER).assertExists()
             onNodeWithText(GOOD.title).assertExists()
         }
 
@@ -238,21 +244,36 @@ class ReviewWiringTest {
             assertEquals(listOf("/ui$REVIEWS_ADDRESS", "/ui$REVIEWS_ADDRESS"), requests.toList())
         }
 
-    /** A refused vote (the review gone, or the voter's own) draws the page as the server has it; no answer leaves it. */
+    /**
+     * A vote with no answer leaves the page and says so (B-92), and the message's «Retry» sends the same vote
+     * again; a refused vote (the review gone, or the voter's own) draws the page as the server has it, under
+     * the server's words.
+     */
     @Test
-    fun `a refused vote redraws the page and one with no answer does not`() =
+    fun `a vote with no answer offers Retry and a refused one redraws the page and says why`() =
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
             answer = { throw IOException("connection refused") }
             reviews()
             onAllNodesWithTag(HELPFUL_TAG)[0].performClick()
-            waitUntil(timeoutMillis = 5_000) { sent.size == 1 }
-            waitForIdle()
+            waitUntil(timeoutMillis = 5_000) { message(NO_ANSWER) }
             assertEquals(1, requests.size)
-            answer = { throw CommandRefused(409, ErrorCode.OwnReview, "You cannot vote on your own review") }
-            onAllNodesWithTag(HELPFUL_TAG)[0].performClick()
+
+            answer = { RefreshAction }
+            onNode(hasText(RETRY) and hasAnyAncestor(hasTestTag(MESSAGE_TAG))).performClick()
             waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
             assertEquals(2, sent.size)
+            assertEquals(sent[0], sent[1], "«Retry» sent another vote")
+
+            answer = { throw CommandRefused(409, ErrorCode.OwnReview, "You cannot vote on your own review") }
+            onAllNodesWithTag(HELPFUL_TAG)[0].performClick()
+            waitUntil(timeoutMillis = 5_000) { requests.size == 3 }
+            waitUntil(timeoutMillis = 5_000) { message("You cannot vote on your own review") }
+            assertEquals(3, sent.size)
         }
+
+    /** Whether the message over the page says [text]. */
+    private fun ComposeUiTest.message(text: String): Boolean =
+        onAllNodes(hasText(text) and hasAnyAncestor(hasTestTag(MESSAGE_TAG))).fetchSemanticsNodes().isNotEmpty()
 
     /** A guest's «Helpful» is the way to sign in, as the server builds it: sign-in runs and no vote is sent. */
     @Test

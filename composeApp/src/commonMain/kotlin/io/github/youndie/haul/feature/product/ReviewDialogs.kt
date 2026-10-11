@@ -46,7 +46,7 @@ import io.github.youndie.haul.feature.reviews.reviewProblems
 import io.github.youndie.haul.groupedCount
 import io.github.youndie.haul.shell.CommandOutcome
 import io.github.youndie.haul.shell.LocalTreeCommands
-import io.github.youndie.haul.shell.NOT_SENT
+import io.github.youndie.haul.shell.NO_ANSWER
 import io.github.youndie.haul.shell.TreeCommand
 import io.github.youndie.haul.shell.run
 import io.github.youndie.haul.theme.HaulColors
@@ -298,7 +298,7 @@ internal fun settle(
         }
 
         CommandOutcome.NoAnswer -> {
-            FormProblems(message = NOT_SENT)
+            FormProblems(message = NO_ANSWER)
         }
     }
 

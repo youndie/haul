@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.home
 
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
@@ -16,6 +17,9 @@ import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.shell.CommandRefused
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
+import io.github.youndie.haul.shell.MESSAGE_TAG
+import io.github.youndie.haul.shell.NO_ANSWER
+import io.github.youndie.haul.shell.RETRY
 import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.shell.TreeCommand
 import io.github.youndie.haul.shell.TreeCommands
@@ -26,6 +30,7 @@ import io.github.youndie.kompot.standard.CloseAction
 import io.github.youndie.kompot.standard.RefreshAction
 import io.github.youndie.kompot.standard.SequenceAction
 import kotlinx.serialization.PolymorphicSerializer
+import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -96,8 +101,9 @@ class PlusTrialWiringTest {
             assertEquals(listOf("/ui/home"), requests.toList())
         }
 
+    /** A refused trial — a member already — closes the dialog, draws the page again and says why (B-92). */
     @Test
-    fun `a refused trial closes the dialog and draws the page again`() =
+    fun `a refused trial closes the dialog and says why over the page drawn again`() =
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
             answer = { throw CommandRefused(409, ErrorCode.AlreadyMember, "You are a Haul Plus member already") }
             openDialog()
@@ -105,7 +111,33 @@ class PlusTrialWiringTest {
             waitClosed()
             waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
             assertEquals(listOf<TreeCommand>(TreeCommand.StartTrial(TRIAL)), sent.toList())
+            waitUntil(timeoutMillis = 5_000) { message("You are a Haul Plus member already") }
         }
+
+    /**
+     * B-92: a trial with no answer keeps the dialog and says so over it, without «Retry» — the dialog's own «Start
+     * trial» is the press again, and it is pressable.
+     */
+    @Test
+    fun `a trial with no answer keeps the dialog and says so`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            answer = { throw IOException("connection refused") }
+            openDialog()
+            onNodeWithTag(PLUS_START_TAG).performClick()
+            waitUntil(timeoutMillis = 5_000) { message(NO_ANSWER) }
+            onNodeWithTag(PLUS_START_TAG).assertExists()
+            onNode(hasText(RETRY) and hasAnyAncestor(hasTestTag(MESSAGE_TAG))).assertDoesNotExist()
+            assertEquals(listOf("/ui/home"), requests.toList())
+
+            answer = { CLOSE_AND_REFRESH }
+            onNodeWithTag(PLUS_START_TAG).performClick()
+            waitClosed()
+            assertEquals(2, sent.size)
+        }
+
+    /** Whether the message over the page says [text]. */
+    private fun ComposeUiTest.message(text: String): Boolean =
+        onAllNodes(hasText(text) and hasAnyAncestor(hasTestTag(MESSAGE_TAG))).fetchSemanticsNodes().isNotEmpty()
 
     private companion object {
         const val WIDTH = 1440

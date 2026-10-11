@@ -255,31 +255,43 @@ public fun Storefront(
     val panelActions =
         remember(navigator, signing) {
             val navigate = navigating(navigator)
-            presenting(
-                KompotActionHandler { action ->
-                    when {
-                        SignInActions.claims(action) -> {
-                            // A sign-in that returns to the page already shown loads it again: opening it would
-                            // do nothing — a guest's «Saved» over the Saved list's error page.
-                            val actions =
-                                signing.actions(
-                                    navigator.address,
-                                    redraw = navigator::reload,
-                                    open = navigator::openOrReload,
-                                )
-                            scope.launch { actions.handle(action) }
-                        }
+            lateinit var panel: KompotActionHandler
+            panel =
+                presenting(
+                    KompotActionHandler { action ->
+                        when {
+                            // What a dialog over such a page says — the Plus trial's (B-92) — as over any page.
+                            action is ShowMessageAction -> {
+                                messages.show(action, panel::handle)
+                            }
 
-                        action is RefreshAction -> {
-                            navigator.reload()
-                        }
+                            action is PressAgain -> {
+                                action.press()
+                            }
 
-                        else -> {
-                            navigate.handle(action)
+                            SignInActions.claims(action) -> {
+                                // A sign-in that returns to the page already shown loads it again: opening it would
+                                // do nothing — a guest's «Saved» over the Saved list's error page.
+                                val actions =
+                                    signing.actions(
+                                        navigator.address,
+                                        redraw = navigator::reload,
+                                        open = navigator::openOrReload,
+                                    )
+                                scope.launch { actions.handle(action) }
+                            }
+
+                            action is RefreshAction -> {
+                                navigator.reload()
+                            }
+
+                            else -> {
+                                navigate.handle(action)
+                            }
                         }
-                    }
-                },
-            ) { shellPresented = it }
+                    },
+                ) { shellPresented = it }
+            panel
         }
     CompositionLocalProvider(
         LocalHaulNow provides now,
@@ -548,11 +560,14 @@ private fun Shown(
             top =
                 presenting(
                     KompotActionHandler { action ->
-                        // A message's own button is a new action like any other: it goes through the whole chain.
-                        if (action is ShowMessageAction) {
-                            messages.show(action, top::handle)
-                        } else {
-                            scope.launch { if (!signInActions.handle(action)) navigate.handle(action) }
+                        when (action) {
+                            // A message's own button is a new action like any other: it goes through the whole chain.
+                            is ShowMessageAction -> messages.show(action, top::handle)
+
+                            // A message's «Retry» (B-92): the press that got no answer, sent again.
+                            is PressAgain -> action.press()
+
+                            else -> scope.launch { if (!signInActions.handle(action)) navigate.handle(action) }
                         }
                     }.withRefresh(scope) { refresh.refresh() }
                         .withUpdates(inPlace.overrides) { deeplink, history ->

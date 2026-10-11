@@ -12,7 +12,6 @@ import io.github.youndie.haul.feature.reviews.ReviewEntry
 import io.github.youndie.haul.registry.haulJson
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.decodeKompotAction
-import io.github.youndie.kompot.standard.RefreshAction
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
 import io.ktor.client.request.request
@@ -96,7 +95,7 @@ public sealed interface CommandOutcome {
         val message: String?,
     ) : CommandOutcome
 
-    /** No answer: the dialog stays as it was, and says so. */
+    /** No answer: the dialog stays as it was, with what was typed, and says so ([NO_ANSWER], B-92). */
     public data object NoAnswer : CommandOutcome
 }
 
@@ -118,27 +117,31 @@ public suspend fun TreeCommands.run(command: TreeCommand): CommandOutcome =
     }
 
 /**
- * A «Helpful» press sent, and what the screen follows next: the server's answer, `refresh`. A refusal —
- * the review gone, or the voter's own — is a `refresh` too, so the page is drawn as the server now has it;
- * no answer at all is `null`, and the page stays as it was.
+ * A «Helpful» press sent, and what the screen follows next: the server's answer, `refresh`. A refusal — the
+ * review gone, or the voter's own — is a `refresh` too, so the page is drawn as the server now has it, with the
+ * server's reason in a message (B-92); no answer at all leaves the page as it was and says so, with «Retry» —
+ * [again], the same press: a vote is a `PUT` of what the shopper thinks, so sending it twice is sending it once.
  */
 @Suppress(
     "ktlint:kapkan:swallowed-failure",
-    "A vote that got no answer changed nothing the shopper can see; the page stays as the server last drew it and the next press tries again.",
+    "A vote that got no answer changed nothing the shopper can see; the page stays as the server last drew it and says so.",
 )
-public suspend fun TreeCommands.vote(command: TreeCommand.Vote): KompotAction? =
+public suspend fun TreeCommands.vote(
+    command: TreeCommand.Vote,
+    again: (() -> Unit)? = null,
+): KompotAction =
     try {
         send(command)
     } catch (cancelled: CancellationException) {
         throw cancelled
-    } catch (_: CommandRefused) {
-        RefreshAction
+    } catch (refused: CommandRefused) {
+        refusal(refused.reason)
     } catch (_: Throwable) {
         // Throwable: in the browser a failed fetch is a JavaScript error, no `Exception` on Wasm.
-        null
+        noAnswer(again)
     }
 
-/** What a dialog says when its command got no answer, or a refusal that named nothing. */
+/** What a dialog says when the server refused its command without naming why (a proxy's page). */
 internal const val NOT_SENT: String = "That didn’t go through. Try again."
 
 /**

@@ -33,6 +33,8 @@ import io.github.youndie.haul.shell.CommandRefused
 import io.github.youndie.haul.shell.LocalTreeCommands
 import io.github.youndie.haul.shell.TreeCommand
 import io.github.youndie.haul.shell.TreeCommands
+import io.github.youndie.haul.shell.noAnswer
+import io.github.youndie.haul.shell.refusal
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
@@ -246,7 +248,7 @@ internal fun PlusTrialDialogPresented(
             if (commands != null && !sending) {
                 sending = true
                 scope.launch {
-                    commands.startTrial(dialog.url, close)?.let(handle)
+                    handle(commands.startTrial(dialog.url, close))
                     sending = false
                 }
             }
@@ -256,26 +258,27 @@ internal fun PlusTrialDialogPresented(
 }
 
 /**
- * What the trial's `POST` was answered with, as an action to follow: the server's own on success, the
- * dialog closed and the page drawn again on a refusal; `null` for no answer at all.
+ * What the trial's `POST` was answered with, as an action to follow: the server's own on success; on a
+ * refusal — a member already — the dialog closed, the page drawn again and the server's reason in a message
+ * (B-92); no answer at all, a message over the dialog, which stays — its «Start trial» is the press again.
  */
 @Suppress(
     "ktlint:kapkan:swallowed-failure",
-    "A trial that got no answer started nothing the shopper can see; the dialog stays and the next press tries again.",
+    "A trial that got no answer started nothing the shopper can see; the dialog stays, says so, and the next press tries again.",
 )
 internal suspend fun TreeCommands.startTrial(
     url: String,
     close: KompotAction?,
-): KompotAction? =
+): KompotAction =
     try {
         send(TreeCommand.StartTrial(url))
     } catch (cancelled: CancellationException) {
         throw cancelled
-    } catch (_: CommandRefused) {
-        SequenceAction(listOfNotNull(close, RefreshAction))
+    } catch (refused: CommandRefused) {
+        refusal(refused.reason, then = SequenceAction(listOfNotNull(close, RefreshAction)))
     } catch (_: Throwable) {
         // Throwable: in the browser a failed fetch is a JavaScript error, which is no `Exception` on Wasm.
-        null
+        noAnswer(again = null)
     }
 
 /** The card's shadow, black at 50 % (`box-shadow: 0 40px 100px -20px rgba(0,0,0,.5)`), as the review dialogs'. */

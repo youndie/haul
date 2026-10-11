@@ -3,6 +3,7 @@ package io.github.youndie.haul.feature.order
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -18,6 +19,7 @@ import io.github.youndie.haul.read
 import io.github.youndie.haul.shell.CommandRefused
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
+import io.github.youndie.haul.shell.NO_ANSWER
 import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.shell.TreeCommand
 import io.github.youndie.haul.shell.TreeCommands
@@ -26,6 +28,7 @@ import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.standard.CloseAction
 import io.github.youndie.kompot.standard.RefreshAction
 import io.github.youndie.kompot.standard.SequenceAction
+import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -155,6 +158,31 @@ class ReturnWiringTest {
             onNodeWithText("Returns for this order closed on Oct 26").assertExists()
             onNodeWithTag(SUBMIT_TAG).assertExists()
             assertEquals(1, requests.size)
+        }
+
+    /**
+     * B-92: a return with no answer says so in the dialog, where the press was — «Couldn't reach the store» — and
+     * the dialog stays with what was chosen; its «Request return» is the press again.
+     */
+    @Test
+    fun `a return with no answer says so in the dialog`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            answer = { throw IOException("connection refused") }
+            delivered()
+            onNodeWithTag(lineTag(0)).performClick()
+            onNodeWithTag(REASON_TAG).performClick()
+            onNodeWithTag(reasonTag("damaged")).performClick()
+            onNodeWithTag(SUBMIT_TAG).performClick()
+            waitUntil(timeoutMillis = 5_000) { sent.isNotEmpty() }
+            waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText(NO_ANSWER)).fetchSemanticsNodes().isNotEmpty() }
+            onNodeWithTag(SUBMIT_TAG).assertExists()
+            assertEquals(1, requests.size)
+
+            answer = { CLOSED }
+            onNodeWithTag(SUBMIT_TAG).performClick()
+            waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
+            assertEquals(2, sent.size)
+            assertEquals(sent[0], sent[1], "the second press sent another return")
         }
 
     @Test
