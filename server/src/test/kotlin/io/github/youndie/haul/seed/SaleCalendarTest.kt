@@ -3,11 +3,14 @@ package io.github.youndie.haul.seed
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.StoreClock
 import io.github.youndie.haul.db.Databases
+import io.github.youndie.haul.feature.account.AccountPaths
 import io.github.youndie.haul.feature.cart.LineChange
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
+import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.testing.CANVAS_NOW
 import io.github.youndie.haul.testing.PostgresHarness
 import io.github.youndie.haul.testing.SeededDatabase
+import io.github.youndie.haul.testing.ShildikHarness
 import io.github.youndie.haul.testing.all
 import io.github.youndie.haul.testing.applyPromo
 import io.github.youndie.haul.testing.assertError
@@ -18,14 +21,21 @@ import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.putLine
 import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.testing.tree
+import io.github.youndie.haul.ui.AccountBody
+import io.github.youndie.haul.ui.AccountTileKind
 import io.github.youndie.haul.ui.CampaignHero
 import io.github.youndie.haul.ui.PageTitle
+import io.github.youndie.haul.ui.PlusBlock
 import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.SectionHeader
 import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.decodeKompotComponent
 import io.ktor.client.HttpClient
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -60,7 +70,8 @@ class SaleCalendarTest {
     /**
      * On the canvas's day the seed is the canvas's, row for row — which is what keeps every fixture, body and
      * golden as it was — and on any other day it differs only in the sale's windows, each moved by the same
-     * whole number of days: the campaigns', the deals' and the sale's promo code's (B-61), never `SUMMER5`'s.
+     * whole number of days: the campaigns', the deals' and the sale's promo code's (B-61), never `SUMMER5`'s;
+     * and in the year Maya's carried Plus savings count in, the day's (B-123).
      */
     @Test
     fun `only the sale's windows move with the seeding day`() {
@@ -73,9 +84,17 @@ class SaleCalendarTest {
         val stand = CatalogSeed.generate(STAND_DAY)
         assertEquals(
             canvas,
-            stand.copy(campaigns = canvas.campaigns, deals = canvas.deals, promoCodes = canvas.promoCodes),
-            "more than the windows",
+            stand.copy(
+                campaigns = canvas.campaigns,
+                deals = canvas.deals,
+                promoCodes = canvas.promoCodes,
+                memberships = canvas.memberships,
+            ),
+            "more than the windows and the savings' year",
         )
+        assertEquals(listOf(2025), canvas.memberships.map { it.carriedSavingsYear }, "the canvas's savings moved")
+        assertEquals(canvas.memberships, stand.memberships.map { it.copy(carriedSavingsYear = 2025) })
+        assertEquals(listOf(STAND_DAY.year), stand.memberships.map { it.carriedSavingsYear })
         assertEquals(
             canvas.deals,
             stand.deals.map { it.copy(startsAt = it.startsAt.back(), endsAt = it.endsAt.back()) },
@@ -189,6 +208,56 @@ class SaleCalendarTest {
         assertEquals("Autumn mega sale · Jan 14 — 21", stand.hero)
         assertEquals("2026-01-15T00:00-05:00", stand.countdown)
     }
+
+    /**
+     * The bug B-123 fixes: a stand seeded on Jan 14, 2026 carried Maya's $186 into the canvas's 2025, so her home
+     * drew a Plus block with no saving and her account «$0 Saved on delivery this year». Now the savings are the
+     * seeding day's year's: that evening both read $186, as the canvas does on Oct 7, 2025.
+     */
+    @Test
+    fun `a stand seeded on another day shows Maya's carried Plus savings`() =
+        PostgresHarness.freshDatabase().use { database ->
+            check(
+                Seeder.seedIfEmpty(
+                    Databases.connect(database),
+                    CatalogSeed.generate(STAND_DAY),
+                    generatedReviews = false,
+                ),
+            )
+            val maya = ShildikHarness.accessToken(ShildikHarness.person("Maya Kowalski", SampleCustomers.MAYA))
+            haulTest(database, signIn = ShildikHarness.signIn, clock = StoreClock { STAND_NOW.toZonedDateTime() }) {
+                val home = screen("/ui/home", maya).only<PlusBlock>()
+                assertTrue(home.member, "the control: Maya is a member")
+                assertEquals("You saved $186 on delivery this year", home.title)
+                assertEquals("Renews Feb 2", home.renewal)
+                val tile =
+                    screen(AccountPaths.SCREEN, maya)
+                        .only<AccountBody>()
+                        .tiles
+                        .single { it.kind == AccountTileKind.Plus }
+                assertEquals("$186" to "Saved on delivery this year · renews Feb 2", tile.figure to tile.text)
+            }
+        }
+
+    /**
+     * A database seeded before B-123 holds Maya's $186 under 2025 for good: the seed leaves a membership it finds
+     * as it is. The start that finds the seed's own savings under the canvas's year moves them to its own year —
+     * once: a start a year later leaves them there, and savings of another amount are the store's and stay.
+     */
+    @Test
+    fun `savings a stand carried under the canvas's year move to the year it starts in`() =
+        seededFreshDatabase().use { dataSource ->
+            val database = Databases.connect(dataSource)
+            assertEquals(2025, dataSource.carriedYear(), "the control: seeded on the canvas's day")
+            Seeder.seedIfEmpty(database, CatalogSeed.generate(STAND_DAY), generatedReviews = false)
+            assertEquals(STAND_DAY.year, dataSource.carriedYear(), "the canvas's year stayed")
+            Seeder.seedIfEmpty(database, CatalogSeed.generate(STAND_DAY.plusYears(1)), generatedReviews = false)
+            assertEquals(STAND_DAY.year, dataSource.carriedYear(), "a stand's own year moved")
+
+            dataSource.sql("UPDATE memberships SET carried_savings_cents = 5000, carried_savings_year = 2025")
+            Seeder.seedIfEmpty(database, CatalogSeed.generate(STAND_DAY), generatedReviews = false)
+            assertEquals(2025, dataSource.carriedYear(), "the store's own savings moved")
+        }
 
     /**
      * A stand seeded on the canvas's day and started again the day after: every sample deal ended at midnight,
@@ -382,6 +451,29 @@ class SaleCalendarTest {
         val wait = SaleRedater.untilNextLook(halfASecondToMidnight, 1.hours)
         assertEquals(1.seconds, wait, "a look spins until midnight")
     }
+
+    /** [path]'s tree as [token]'s bearer sees it. */
+    private suspend fun HttpClient.screen(
+        path: String,
+        token: String,
+    ): KompotComponent {
+        val response = get(path) { bearerAuth(token) }
+        assertEquals(HttpStatusCode.OK, response.status, response.bodyAsText())
+        return haulWireJson.decodeKompotComponent(response.bodyAsText())
+    }
+
+    /** The year Maya's membership carries her savings in. */
+    private fun DataSource.carriedYear(): Int? =
+        connection.use { c ->
+            c.createStatement().use { statement ->
+                statement
+                    .executeQuery("SELECT carried_savings_year FROM memberships WHERE customer_id = 'maya'")
+                    .use { rows ->
+                        check(rows.next()) { "Maya has no membership" }
+                        rows.getObject(1) as Int?
+                    }
+            }
+        }
 
     /** A guest's cart holding the headphones, so a promo code has something to count against. */
     private suspend fun HttpClient.cartWithHeadphones(): String =

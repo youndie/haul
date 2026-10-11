@@ -1195,8 +1195,9 @@ The canvas contradicted itself in three places and left one promise unbacked; th
 - **Delivery savings this year** are the fees Plus waived on the member's placed orders since January 1 in the store's
   zone (`orders.delivery_waived_cents`: $5.99 under $35 of items, research D7), plus what a membership carried in from
   before the store kept orders (`memberships.carried_savings_cents`, counted in its year only) — the seed's $186 for
-  Maya, whose orders no seed holds. Her 2,480 points are an `opening` row. Both are seeded once, also into a database
-  seeded before they existed.
+  Maya, whose orders no seed holds, carried into the seeding day's year as the sale is the seeding day's week (B-123:
+  under the canvas's 2025 a stand seeded later showed her $0; a database seeded so is moved once, on its next start).
+  Her 2,480 points are an `opening` row. Both are seeded once, also into a database seeded before they existed.
 - **The offer**: «Try 30 days free» on the home page's Plus block and on the account's tile presents the trial's
   dialog (`PlusTrialDialog`), whose «Start trial» is `POST /api/v1/me/plus/trial` answered `201` with `close`,
   `refresh`; a guest is sent to sign in first. A member's home page draws what Plus saved this year and when it renews.

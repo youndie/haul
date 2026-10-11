@@ -24,10 +24,11 @@ internal object SampleCustomers {
 
     /**
      * Maya's membership: «Plus since 2023, renews Nov 2» — a trial begun on Oct 3, 2023, paid from Nov 2 and
-     * renewing on the 2nd since — with research §6's «$186 saved on delivery» this year carried in, since no
-     * seed holds the orders that saved it. Sam has none.
+     * renewing on the 2nd since — with research §6's «$186 saved on delivery» carried in, since no seed holds the
+     * orders that saved it. Carried into [year], the seeding day's (B-123): the canvas's 2025 in every test, the
+     * year a stand is seeded in on a stand, whose «this year» the tile and the home block read. Sam has none.
      */
-    val memberships: List<PlusMembership> =
+    fun memberships(year: Int): List<PlusMembership> =
         listOf(
             PlusMembership(
                 customerId = MAYA,
@@ -35,7 +36,7 @@ internal object SampleCustomers {
                 trial = true,
                 paidFrom = LocalDate.parse("2023-11-02"),
                 carriedSavingsCents = 18_600,
-                carriedSavingsYear = 2025,
+                carriedSavingsYear = year,
             ),
         )
 
