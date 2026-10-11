@@ -52,7 +52,7 @@ A stage is a field on the item, not a directory.
 | [B-86](docs/backlog/B-86-reviews-photos-and-histogram.md) `[ ]` | client + server: review photos open and the histogram filters | P3 | M | - |
 | [B-87](docs/backlog/B-87-fallback-rows.md) `[ ]` | server: what home and the empty cart show when no deal is live | P3 | S | - |
 
-## Closed (107)
+## Closed (108)
 
 **Skeleton**
 
@@ -184,6 +184,7 @@ A stage is a field on the item, not a directory.
 - [B-109](docs/backlog/B-109-saga-steps-in-tracy.md) `[x]` - server: an order's saga is visible in tracy
 - [B-110](docs/backlog/B-110-order-updates-log-noise.md) `[x]` - server: a client leaving the order page is not an error
 - [B-111](docs/backlog/B-111-tests-seed-fast.md) `[x]` - test: a test database is seeded as fast as before B-99
+- [B-113](docs/backlog/B-113-goldens-show-what-the-code-draws.md) `[x]` - test: every golden shows what the code draws now
 - [B-91](docs/backlog/B-91-order-line-price-is-a-line-total.md) `[x]` - server: an order line's price is a unit price, and a return refunds what was paid
 - [B-92](docs/backlog/B-92-a-failed-command-says-so.md) `[x]` - client: a command that fails or is refused tells the shopper
 - [B-93](docs/backlog/B-93-refresh-after-an-in-place-tab.md) `[x]` - client: a press after switching a product tab redraws the page

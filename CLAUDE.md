@@ -51,6 +51,12 @@ Goldens (`composeApp/src/desktopTest/snapshots`) are recorded on Linux, where CI
 bundled variable fonts rasterise a few glyph edges differently on macOS (research, risk 1). Record in a
 Linux checkout and commit the PNGs; `viddikVerify` runs as part of `check`.
 
+After a change of copy, glyphs or fonts, record with `viddikRecord --force`: without it a recording keeps
+any golden `viddikVerify` already accepts, and a changed word or a recut glyph is a few hundred pixels —
+well under a page's tolerance — so the golden goes on showing the old text (B-84 found 24 such). Record in
+a copy outside the mutagen replica (mutagen reverts files written on it), bring back only the PNGs that
+changed, and look at each.
+
 ## Rules
 
 - Code, comments, KDoc, test names, exception messages, commits and pull requests in English;
