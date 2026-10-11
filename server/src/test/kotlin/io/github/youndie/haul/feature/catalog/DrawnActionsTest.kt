@@ -302,13 +302,13 @@ class DrawnActionsTest {
             assertEquals(2, follow(pagination.moreAction).only<HaulPagination>().current)
         }
 
-    /** B-77: the search has the sort the server parses, and a category chip keeps it. */
+    /** B-77: the search has the sort the server parses, and a category chip keeps it; relevance first (B-103). */
     @Test
     fun `the search's sort offers every order and the chips keep it`() =
         haulTest {
             val chips = tree("/ui/search?q=everyday").only<FilterChips>()
-            assertEquals("Popular", chips.sortLabel)
-            assertEquals(Sort.entries.map { it.label }, chips.sorts.map { it.label })
+            assertEquals("Relevance", chips.sortLabel)
+            assertEquals(listOf("Relevance") + Sort.entries.map { it.label }, chips.sorts.map { it.label })
             val cheapest = chips.sorts.single { it.label == Sort.PriceAscending.label }.action
             assertEquals(LoadAction("/ui/parts/search?q=everyday&sort=price-asc"), cheapest)
             val sorted = follow(cheapest)

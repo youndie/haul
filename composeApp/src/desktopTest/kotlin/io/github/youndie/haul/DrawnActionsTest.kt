@@ -592,13 +592,14 @@ class DrawnActionsTest {
 
     /**
      * B-72: the search field's picker chooses a top-level category, and the search the shopper then submits is
-     * in it; the picker opens nothing else.
+     * in it; the picker opens nothing else. B-103: the suggest panel is asked for in the scope too, so what it
+     * counts and opens is the search the field would run.
      */
     @Test
     fun `the search picker scopes the next search to its category`() =
         runDesktopComposeUiTest(WIDTH, 1_000) {
             answer("/ui/home", page(scoped))
-            answer("/ui/search/suggest?q=mug", recent(emptyList(), null))
+            answer("/ui/search/suggest?q=mug&category=home-kitchen", recent(emptyList(), null))
             destinations("/search?q=mug&category=home-kitchen")
             storefront()
             onNodeWithTag(SCOPE_PICKER_TAG).assertTextContains(ALL_CATEGORIES).performClick()
@@ -609,6 +610,8 @@ class DrawnActionsTest {
 
             onNodeWithTag(SEARCH_FIELD_TAG).performClick()
             onNodeWithTag(SEARCH_FIELD_TAG).performTextInput("mug")
+            waitUntil(timeoutMillis = 5_000) { requests.size > 1 }
+            assertEquals(listOf("/ui/home", "/ui/search/suggest?q=mug&category=home-kitchen"), requests)
             onNodeWithTag(SEARCH_FIELD_TAG).performKeyInput { pressKey(Key.Enter) }
             onNodeWithText(NEXT).assertExists()
             assertEquals(listOf("/", "/search?q=mug&category=home-kitchen"), history.entries)
