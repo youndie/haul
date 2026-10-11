@@ -1,7 +1,7 @@
 ---
 id: B-120
 title: "fix: a product with nothing in stock promises no delivery date"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-12-qa-run
