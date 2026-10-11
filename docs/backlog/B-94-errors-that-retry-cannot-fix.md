@@ -1,7 +1,7 @@
 ---
 id: B-94
 title: "client + server: an error page says what happened and offers what helps"
-status: open
+status: wip
 priority: P1
 size: S
 stage: stage-11-qa

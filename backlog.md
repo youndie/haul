@@ -46,7 +46,7 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-94](docs/backlog/B-94-errors-that-retry-cannot-fix.md) `[ ]` | client + server: an error page says what happened and offers what helps | P1 | S | - |
+| [B-94](docs/backlog/B-94-errors-that-retry-cannot-fix.md) `[~]` | client + server: an error page says what happened and offers what helps | P1 | S | - |
 | [B-95](docs/backlog/B-95-same-address-presses-do-nothing.md) `[ ]` | client: a press to the page already shown refreshes it | P1 | S | - |
 | [B-97](docs/backlog/B-97-checkout-state-is-the-servers.md) `[ ]` | client + server: what checkout shows is what it will place | P1 | M | - |
 | [B-100](docs/backlog/B-100-cart-controls-look-what-they-do.md) `[ ]` | client + server: the cart's controls look what they do | P2 | M | - |
