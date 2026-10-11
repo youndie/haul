@@ -1,7 +1,7 @@
 ---
 id: B-107
 title: "server: the store does not promise what it does not have"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-11-qa
