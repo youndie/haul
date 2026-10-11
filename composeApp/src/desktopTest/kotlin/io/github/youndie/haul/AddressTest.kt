@@ -93,4 +93,13 @@ class AddressTest {
         assertEquals("/ui/search/suggest?q=caf%C3%A9%20%26%20bar", Address.suggest("café & bar"))
         assertEquals("/ui/search/suggest?q=mug&category=home-kitchen", Address.suggest("mug", "home-kitchen"))
     }
+
+    /** B-117: a link cut off mid-escape is the server's to refuse; reading it must not throw. */
+    @Test
+    fun `a search query that does not decode is no query, and spoils no other parameter`() {
+        assertNull(Address("/search?q=%zz").query)
+        assertNull(Address("/search?q=%E0%A4%A").query)
+        assertEquals("mug", Address("/search?q=mug&brand=%zz").query)
+        assertEquals("mug", Address("/search?%zz&q=mug").query)
+    }
 }

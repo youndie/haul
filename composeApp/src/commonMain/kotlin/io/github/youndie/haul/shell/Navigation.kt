@@ -6,6 +6,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.youndie.haul.StorefrontPage
+import io.ktor.http.URLDecodeException
+import io.ktor.http.decodeURLQueryComponent
 import io.ktor.http.encodeURLParameter
 import io.ktor.http.parseQueryString
 
@@ -74,14 +76,28 @@ public data class Address(
     /** Where the server keeps this page's tree: `/` is `/ui/home`, any other address the same under `/ui`. */
     val screen: String = if (path == "/") "/ui/home" + value.removePrefix("/") else "/ui$value"
 
-    /** The search's query, decoded; `null` off the search page or without one. */
+    /** The search's query, decoded; `null` off the search page, without one, or with one that does not decode. */
     val query: String? get() = if (kind == PageKind.Search) parameter("q") else null
 
+    /**
+     * [name]'s first value, decoded — `null` when the query has none or it does not decode. A link cut off
+     * mid-escape (`/search?q=%zz`, B-117) is the server's to refuse, and the page says it is out of date; the
+     * whole query decoded at once threw instead, from the composition that draws the page's placeholders.
+     */
     private fun parameter(name: String): String? =
-        value
-            .substringAfter('?', "")
-            .takeIf { it.isNotEmpty() }
-            ?.let { parseQueryString(it)[name] }
+        parseQueryString(value.substringAfter('?', ""), decode = false)
+            .entries()
+            .firstOrNull { (written, _) -> written.decodedOrNull(plusIsSpace = false) == name }
+            ?.value
+            ?.firstOrNull()
+            ?.decodedOrNull(plusIsSpace = true)
+
+    private fun String.decodedOrNull(plusIsSpace: Boolean): String? =
+        try {
+            decodeURLQueryComponent(plusIsSpace = plusIsSpace)
+        } catch (_: URLDecodeException) {
+            null
+        }
 
     public companion object {
         /**

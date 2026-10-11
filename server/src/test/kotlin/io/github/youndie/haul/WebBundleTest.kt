@@ -15,8 +15,15 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.fullPath
+import io.ktor.server.cio.CIO
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.get
+import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
+import kotlinx.coroutines.runBlocking
 import java.io.File
+import java.net.Socket
 import java.nio.file.Files
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -58,6 +65,9 @@ class WebBundleTest {
 
     private suspend fun HttpClient.module(acceptEncoding: String?): HttpResponse =
         get("/$MODULE") { acceptEncoding?.let { header(HttpHeaders.AcceptEncoding, it) } }
+
+    private suspend fun HttpResponse.errorBody(): ErrorBody =
+        haulWireJson.decodeFromString(ErrorBody.serializer(), bodyAsText())
 
     private fun HttpResponse.varies(): Boolean =
         headers.getAll(HttpHeaders.Vary).orEmpty().any { HttpHeaders.AcceptEncoding in it }
@@ -215,6 +225,94 @@ class WebBundleTest {
             }
         }
 
+    /**
+     * A storefront address whose query does not decode is still the page (B-117): the tree under `/ui` refuses
+     * the query naming no parameter — what the client draws as «This link is out of date» — and an API route that
+     * reads its query refuses it too. Before, the page request itself answered the API's JSON, shown as the page.
+     * Sent over a socket to the engine the stand runs: Ktor's own client decodes a query before it sends one.
+     */
+    @Test
+    fun `a storefront address whose query does not decode still answers the page, its tree refuses it`() =
+        onCio { port ->
+            MALFORMED.forEach { address ->
+                val page = rawGet(port, address)
+
+                assertEquals(HttpStatusCode.OK.value, page.status, address)
+                assertEquals(ContentType.Text.Html, page.contentType, address)
+                assertTrue("composeApp.js" in page.body, address)
+                assertEquals("no-cache", page.headers[HttpHeaders.CacheControl.lowercase()], address)
+
+                val tree = rawGet(port, "/ui$address")
+
+                assertEquals(HttpStatusCode.BadRequest.value, tree.status, address)
+                assertEquals(ContentType.Application.Json, tree.contentType, address)
+                val refusal = haulWireJson.decodeFromString(ErrorBody.serializer(), tree.body)
+                assertEquals(ErrorCode.ValidationFailed, refusal.code, address)
+                assertNull(refusal.field, address)
+            }
+            val api = rawGet(port, "$QUERY_READER?%zz")
+
+            assertEquals(HttpStatusCode.BadRequest.value, api.status)
+            assertEquals(ContentType.Application.Json, api.contentType)
+            assertEquals(
+                ErrorCode.ValidationFailed,
+                haulWireJson.decodeFromString(ErrorBody.serializer(), api.body).code,
+            )
+        }
+
+    /** The application with the bundle on CIO, the stand's engine, on a free port, for [block]. */
+    private fun onCio(block: (port: Int) -> Unit) {
+        val server =
+            embeddedServer(CIO, port = 0) {
+                haulModule(SeededDatabase.dataSource, CANVAS_NOW, commit = "test", web = bundle, sagaClock = SAGA_CLOCK)
+                // An API route that reads its query, as any would: the public `GET`s under `/api` read none today.
+                routing { get(QUERY_READER) { call.respondText(call.request.queryParameters.toString()) } }
+            }.start(wait = false)
+        try {
+            block(
+                runBlocking {
+                    server.engine
+                        .resolvedConnectors()
+                        .first()
+                        .port
+                },
+            )
+        } finally {
+            server.stop(gracePeriodMillis = 0, timeoutMillis = 2_000)
+        }
+    }
+
+    /** What a browser sends for [address], byte for byte, as a browser asking for a page would. */
+    private fun rawGet(
+        port: Int,
+        address: String,
+    ): RawResponse =
+        Socket("127.0.0.1", port).use { socket ->
+            socket.soTimeout = 10_000
+            val request = "GET $address HTTP/1.1\r\nHost: haul\r\nAccept-Encoding: $BROWSER\r\nConnection: close\r\n"
+            socket.getOutputStream().write("$request\r\n".toByteArray())
+            val (head, body) =
+                socket
+                    .getInputStream()
+                    .readBytes()
+                    .decodeToString()
+                    .split("\r\n\r\n", limit = 2)
+            val (status, headers) = head.split("\r\n").let { it.first() to it.drop(1) }
+            RawResponse(
+                status = status.split(' ')[1].toInt(),
+                headers = headers.associate { it.substringBefore(':').lowercase() to it.substringAfter(':').trim() },
+                body = body,
+            )
+        }
+
+    private class RawResponse(
+        val status: Int,
+        val headers: Map<String, String>,
+        val body: String,
+    ) {
+        val contentType: ContentType? get() = headers["content-type"]?.let { ContentType.parse(it).withoutParameters() }
+    }
+
     @Test
     fun `the bundle's own files are still the files`() =
         withBundle {
@@ -227,6 +325,7 @@ class WebBundleTest {
         const val MODULE = "bfa5198fb2fe683c613a.wasm"
         const val BROWSER = "gzip, deflate, br, zstd"
         const val IMMUTABLE = "public, max-age=31536000, immutable"
+        const val QUERY_READER = "/api/v1/test/query"
 
         /** Every shape of `StorefrontPage`, as the server's `NavigateAction`s write them. */
         val STOREFRONT =
@@ -248,6 +347,15 @@ class WebBundleTest {
                 "/account/saved",
                 "/account/saved?filter=price-dropped&page=2",
                 "/sign-in",
+            )
+
+        /** The run's four (TC-ERR-04 step 4): a value cut off mid-escape, a name and values that are no escape. */
+        val MALFORMED =
+            listOf(
+                "/c/electronics?brand=%E0%A4%A",
+                "/search?q=%zz",
+                "/c/electronics?%zz",
+                "/p/p-sony-wh-1000xm6?sku=%zz",
             )
 
         val NOT_STOREFRONT =
