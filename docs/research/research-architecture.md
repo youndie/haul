@@ -184,7 +184,17 @@ client alone.
   «Buy now» is `ProductDetails.buy`, the same line selected, then `/checkout` for a customer or
   `/sign-in?next=%2Fcheckout` for a guest — the address the cart's «Sign in to check out» uses, so a
   guest never reaches checkout through a page refused first (B-44's prompt is for addresses opened
-  directly). At the line's limit «Buy now» only selects the line; out of stock neither is offered.
+  directly). Out of stock neither is offered. **Decided in B-100 (the owner's call):** «Buy now» checks out
+  that product alone and never adds to its line — `LineChange(selected = true, alone = true)`: the line at
+  the quantity the cart already holds, or one when it holds none, is the only one left selected, the cart's
+  other lines stay in it unticked, and the price and stock the line shows become the ones the shopper saw
+  (the product page showed them), so a line changed since it was added does not leave checkout empty. Of the
+  two quantities the owner allowed — one, or what the cart holds — the cart's is taken: the buy box says
+  «2 in your cart» right under the button, so checkout shows what the page said, and nothing the shopper
+  chose is undone. The cost: the other lines are unticked when the shopper comes back to the cart. A
+  guest's «Buy now» goes through sign-in's merge, which keeps the customer's own stored lines as they were
+  ticked and sums a SKU both carts hold, so a guest whose account already has a ticked cart reaches checkout
+  with more than the product (B-100's findings).
 - A list of choices («Catalog»'s categories, the sort's orders) travels as `Link`s and opens as a
   menu in the client. No artboard draws a menu open; the menu is drawn from the theme's tokens.
 - **«Show N more» appends** (owner's call in B-77). An `update` replaces a node by its id and has no
@@ -477,6 +487,19 @@ review, question and return dialogs) says it there, «Couldn't reach the store»
 through». The rule lives in `shell/CommandAnswers.kt` (`refusal`, `noAnswer`); «Retry» is `PressAgain`, the
 client's own action — never on the wire — which the screen's handler runs. A `load` that does not arrive keeps
 B-62's notice, which already had its «Retry».
+
+**Decided in B-100, the cart's controls look what they do.** A control with nothing to do is greyed and presses
+nothing, as the buy box's buttons out of stock are (B-75): checkout with nothing ticked (`HaulButton`'s
+`enabled`, Paper's grey under a muted label), «Delete selected» with nothing ticked (muted instead of Cobalt), the
+stepper's «−» at one and «+» at the line's limit; each is disabled for assistive technology too (`inert`).
+«Save for later» answers `sequence[refresh, show_message]` — «Moved to your Saved list» with «View saved» — since
+the line leaves the page it was pressed on; the Saved list is the one place a saved product is drawn (B-20), so the
+cart has no section of its own for it. The summary's rows add up to the total: «Discount» is the sale alone, the
+promo code's row («Promo · AUTUMN10») beside it instead of inside it, and a row that takes nothing off is not
+drawn — no «Discount −$0.00» in the sale red, on the cart and at checkout, as the order's page already left it
+out. The cost against the canvas: `Cart_PromoApplied` draws «Discount −$190.00» over the code's −$50.00, the cart
+now «−$140.00»; and the stepper's «−» at one, black on every Cart artboard, is muted. A line's tile and title
+open the product at the line's SKU (`/p/<product>?sku=<sku>`), not at the product's default.
 
 **Decided in B-22, a route over the screen.** A dialog the canvas draws over a page («Write a review»,
 «Ask a question») is kompot's `present` of a component the server built — the form, its labels and the
@@ -948,7 +971,8 @@ The canvas contradicted itself in three places and left one promise unbacked; th
 - **«Save for later» moves the line**: the product goes into the Saved list and the line leaves the cart
   (`POST /api/v1/cart/lines/{skuId}/save-for-later`), as the phrase means in a shop. The save comes first, so a
   failure between the two leaves the line in the cart with the product saved, and the same press finishes the move;
-  a second press after a finished move finds no line (`404 line_not_found`).
+  a second press after a finished move finds no line (`404 line_not_found`). Since B-100 the press says where the
+  line went: «Moved to your Saved list» with «View saved».
 - **The price at saving is the product's**, not a SKU's: the cheapest SKU in stock then — the price its card shows —
   or the cheapest at all when none is. A product has **dropped** when its cheapest SKU in stock now is below that
   price; the mark is the difference («Price dropped −$200»), and a product with nothing in stock has not dropped,

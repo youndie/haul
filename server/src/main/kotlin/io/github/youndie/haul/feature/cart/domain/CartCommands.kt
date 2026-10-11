@@ -19,14 +19,22 @@ internal class CartCommands(
     private val catalog: CatalogRepository,
     private val clock: StoreClock,
 ) {
-    /** Adds the SKU, or changes its line's quantity or selection. */
+    /**
+     * Adds the SKU, or changes its line's quantity or selection. [LineChange.alone] is «Buy now» (B-100): the
+     * line, added at one when the cart has none and otherwise at the quantity it has, is the only one left
+     * selected, and its price and stock become the ones the shopper saw — the product page showed them — so a
+     * line changed since it was added does not leave checkout empty.
+     */
     suspend fun changeLine(
         owner: CartOwner,
         skuId: String,
         change: LineChange,
     ) {
-        if (change.quantity == null && change.selected == null) {
+        if (change.quantity == null && change.selected == null && change.alone != true) {
             throw CartError.Invalid("quantity", "Send a quantity, a selection or both")
+        }
+        if (change.alone == true && change.selected == false) {
+            throw CartError.Invalid("selected", "A line bought alone is selected")
         }
         change.quantity?.let {
             if (it !in 1..MAX_QUANTITY) throw CartError.Invalid("quantity", "A quantity is 1 to $MAX_QUANTITY, not $it")
@@ -40,8 +48,8 @@ internal class CartCommands(
         if (change.quantity != null && quantity > sku.stock) {
             throw CartError.OutOfStock("Only ${sku.stock} left in stock")
         }
-        carts.putLine(
-            owner,
+        val alone = change.alone == true
+        val line =
             existing?.copy(quantity = quantity, selected = change.selected ?: existing.selected)
                 ?: StoredLine(
                     skuId = skuId,
@@ -50,8 +58,16 @@ internal class CartCommands(
                     seenPriceCents = sku.priceCents,
                     seenInStock = true,
                     addedAt = clock.now().toOffsetDateTime(),
-                ),
-        )
+                )
+        val seen = line.copy(selected = true, seenPriceCents = sku.priceCents, seenInStock = sku.stock > 0)
+        carts.putLine(owner, if (alone) seen else line)
+        if (alone) {
+            carts
+                .cart(owner)
+                .lines
+                .filter { it.skuId != skuId && it.selected }
+                .forEach { carts.putLine(owner, it.copy(selected = false)) }
+        }
     }
 
     /** «Remove» and «Delete selected». */

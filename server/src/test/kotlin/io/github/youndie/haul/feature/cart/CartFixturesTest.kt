@@ -40,8 +40,8 @@ import kotlin.test.assertTrue
 /**
  * The client draws the Cart screen's goldens from wire bodies (`composeApp/src/desktopTest/resources/
  * bodies/cart_*.json`), and this holds each one equal to the tree the server builds for the artboard's
- * cart — Maya's seeded cart at the canvas's «now», as Plus, with AUTUMN10, after SUMMER5, with the
- * mug's price changed, as a guest, and emptied.
+ * cart — Maya's seeded cart at the canvas's «now», as Plus, with nothing ticked (no artboard, B-100), with
+ * AUTUMN10, after SUMMER5, with the mug's price changed, as a guest, and emptied.
  *
  * A body written by hand drifts from the wire without a sound: B-12 found a guest fixture that spelled
  * out a `null` the server leaves out, and the client refused every real guest's header while the
@@ -103,6 +103,12 @@ class CartFixturesTest {
             }
 
             check("cart_content.json", mayas())
+
+            // Nothing ticked (B-100): no artboard draws it; the golden shows checkout and «Delete selected» idle.
+            val skus = listOf(SONY_HEADPHONES, DUVET_COVER, STONEWARE_MUG).map { "$it-0" }
+            skus.forEach { commands.changeLine(maya, it, LineChange(selected = false)) }
+            check("cart_nothing_selected.json", mayas())
+            skus.forEach { commands.changeLine(maya, it, LineChange(selected = true)) }
 
             commands.applyPromo(maya, "AUTUMN10")
             check("cart_promo_applied.json", mayas())

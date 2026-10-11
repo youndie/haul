@@ -442,7 +442,7 @@
                             "url": "/api/v1/cart/lines/p-sony-wh-1000xm6-0",
                             "action": {
                                 "type": "navigate",
-                                "deeplink": "/p/p-sony-wh-1000xm6"
+                                "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0"
                             },
                             "saveUrl": "/api/v1/cart/lines/p-sony-wh-1000xm6-0/save-for-later"
                         }
@@ -470,7 +470,7 @@
                             "url": "/api/v1/cart/lines/p-linen-duvet-cover-set-0",
                             "action": {
                                 "type": "navigate",
-                                "deeplink": "/p/p-linen-duvet-cover-set"
+                                "deeplink": "/p/p-linen-duvet-cover-set?sku=p-linen-duvet-cover-set-0"
                             },
                             "saveUrl": "/api/v1/cart/lines/p-linen-duvet-cover-set-0/save-for-later"
                         },
@@ -494,7 +494,7 @@
                             "acknowledgeUrl": "/api/v1/cart/lines/p-stoneware-mug-0/acknowledge",
                             "action": {
                                 "type": "navigate",
-                                "deeplink": "/p/p-stoneware-mug"
+                                "deeplink": "/p/p-stoneware-mug?sku=p-stoneware-mug-0"
                             },
                             "saveUrl": "/api/v1/cart/lines/p-stoneware-mug-0/save-for-later"
                         }

@@ -49,6 +49,7 @@ import io.github.youndie.haul.ui.awaitTypedInput
 import io.github.youndie.haul.ui.following
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
+import io.github.youndie.haul.ui.inert
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.toneColor
 import io.github.youndie.kompot.standard.NavigateAction
@@ -130,25 +131,19 @@ private fun SelectionRow(
             Text(selection.selectAllLabel, style, softWrap = false)
         }
         Spacer(Modifier.weight(1f))
+        // With nothing ticked there is nothing to delete, and the link looks it: muted, not Cobalt (B-100).
+        val delete = Modifier.testTag(DELETE_SELECTED_TAG)
         Text(
             selection.deleteLabel,
-            style.copy(color = HaulColors.primary),
-            Modifier.testTag(DELETE_SELECTED_TAG).pressable(
-                if (selectedLines.isEmpty()) {
-                    null
-                } else {
-                    {
-                        onCommand(
-                            listOf(
-                                CartCommand.RemoveLines(
-                                    selection.linesUrl,
-                                    LinesRemoval(selectedLines.map { it.skuId }),
-                                ),
-                            ),
-                        )
-                    }
-                },
-            ),
+            style.copy(color = if (selectedLines.isEmpty()) HaulColors.outlineMuted else HaulColors.primary),
+            if (selectedLines.isEmpty()) {
+                delete.inert()
+            } else {
+                delete.pressable {
+                    val removal = LinesRemoval(selectedLines.map { it.skuId })
+                    onCommand(listOf(CartCommand.RemoveLines(selection.linesUrl, removal)))
+                }
+            },
             softWrap = false,
         )
     }
@@ -387,7 +382,10 @@ private fun LineActions(
     }
 }
 
-/** − quantity +: one less down to one, one more up to [CartLine.maxQuantity]. */
+/**
+ * − quantity +: one less down to one, one more up to [CartLine.maxQuantity]. A step that has nowhere to go —
+ * «−» at one, «+» at the limit — is muted and presses nothing (B-100).
+ */
 @Composable
 private fun Stepper(
     line: CartLine,
@@ -395,19 +393,31 @@ private fun Stepper(
 ) {
     val style = HaulType.text(16f, 700).copy(textAlign = TextAlign.Center)
 
-    fun to(quantity: Int): (() -> Unit)? =
-        if (quantity in 1..line.maxQuantity && quantity != line.quantity) {
-            { onCommand(listOf(CartCommand.ChangeLine(line.url, LineChange(quantity = quantity)))) }
-        } else {
-            null
-        }
+    @Composable
+    fun Step(
+        sign: String,
+        tag: String,
+        quantity: Int,
+    ) {
+        val goes = quantity in 1..line.maxQuantity && quantity != line.quantity
+        val step = Modifier.width(44.dp).testTag(lineTag(tag, line))
+        Text(
+            sign,
+            if (goes) style else style.copy(color = HaulColors.outlineMuted),
+            if (goes) {
+                step.pressable { onCommand(listOf(CartCommand.ChangeLine(line.url, LineChange(quantity = quantity)))) }
+            } else {
+                step.inert()
+            },
+        )
+    }
     Row(
         Modifier.height(48.dp).background(HaulColors.background, RoundedCornerShape(14.dp)),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("−", style, Modifier.width(44.dp).testTag(lineTag("less", line)).pressable(to(line.quantity - 1)))
+        Step("−", "less", line.quantity - 1)
         Text(line.quantity.toString(), style, Modifier.width(24.dp))
-        Text("+", style, Modifier.width(44.dp).testTag(lineTag("more", line)).pressable(to(line.quantity + 1)))
+        Step("+", "more", line.quantity + 1)
     }
 }
 
@@ -535,7 +545,9 @@ private fun SummaryCard(
             content = HaulColors.onPrimary,
             textSize = 18f,
             icon = if (signIn) null else HaulIcons.arrowRight,
-            onClick = if (summary.checkoutEnabled) following(summary.checkoutAction) else null,
+            // Nothing selected, nothing to check out: the button looks it rather than live and dead (B-100).
+            enabled = summary.checkoutEnabled,
+            onClick = following(summary.checkoutAction),
         )
         summary.points?.let { Points(it, summary.pointsAccent) }
     }

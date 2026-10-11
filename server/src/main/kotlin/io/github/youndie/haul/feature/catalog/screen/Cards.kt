@@ -147,7 +147,11 @@ internal suspend fun dealsOfTheDay(
     )
 }
 
-internal fun productLink(productId: String): NavigateAction = NavigateAction("/p/$productId")
+/** The product page of [productId], at [skuId] when one is named — a cart line's, whose page shows its SKU (B-100). */
+internal fun productLink(
+    productId: String,
+    skuId: String? = null,
+): NavigateAction = NavigateAction("/p/$productId" + skuId?.let { "?sku=$it" }.orEmpty())
 
 /** A link to [category]'s page at its one address (B-68), whatever page it is drawn on. */
 internal fun categoryLink(
