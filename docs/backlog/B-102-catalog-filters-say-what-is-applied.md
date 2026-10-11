@@ -64,5 +64,6 @@ Found in the QA pass of 2026-10-10 (v0.3.0):
 - **Goldens**: none changed.
 - **Where the checks ran**: on the Linux build machine — `:composeApp:wasmJsBrowserDistribution`; `check
   :server:installDist` (443 server and 329 client tests, 0 failed; `viddikVerify` and ktlint in it);
-  `scripts/e2e.sh` (the whole path and the shoppers, green). `make check` and `make docs-against BASE=origin/main`
-  on the Mac.
+  `scripts/e2e.sh` (the whole path and the shoppers, green). After rebasing onto B-99 (#120), which changed the seed:
+  `:composeApp:wasmJsBrowserDistribution` and `check :server:installDist` again (449 server and 333 client tests,
+  0 failed). `make check` and `make docs-against BASE=origin/main` on the Mac.
