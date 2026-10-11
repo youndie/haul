@@ -10,6 +10,8 @@ import io.github.youndie.haul.feature.payment.domain.Capture
 import io.github.youndie.haul.feature.payment.domain.CaptureOutcome
 import io.github.youndie.haul.feature.payment.domain.HaulPayPlans
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
+import io.github.youndie.haul.ops.OrderLines
+import io.github.youndie.haul.ops.OrderTrail
 import io.github.youndie.petich.PetichClock
 import org.slf4j.LoggerFactory
 import java.time.Instant
@@ -48,7 +50,8 @@ private val log = LoggerFactory.getLogger("io.github.youndie.haul.fulfilment")
  * clock can do; the store's «now» is not it.
  *
  * Each order a pass moved is told to [moves] once, after the pass (B-29): its page, if somebody is looking,
- * is drawn again where the order now is.
+ * is drawn again where the order now is. Each move and each capture is a line of the order's [trail] (B-109),
+ * stamped with the moment it came due.
  */
 internal class FulfilmentSimulator(
     private val shipments: FulfilmentRepository,
@@ -59,6 +62,7 @@ internal class FulfilmentSimulator(
     private val clock: PetichClock,
     private val pace: FulfilmentPace,
     private val moves: OrderMoves = OrderMoves(),
+    private val trail: OrderTrail = OrderTrail.NONE,
 ) {
     /** One pass; the number of moves it made. */
     suspend fun advance(): Int {
@@ -78,7 +82,7 @@ internal class FulfilmentSimulator(
     ): Int {
         var since =
             shipment.since ?: run {
-                shipments.receive(shipment.id, now)
+                if (shipments.receive(shipment.id, now)) trail.moved(shipment, ShipmentStatus.PLACED, now)
                 return 0
             }
         var status = shipment.status
@@ -98,6 +102,7 @@ internal class FulfilmentSimulator(
                     null
                 }
             if (!shipments.move(shipment.id, status, step.to, due, code)) break
+            trail.moved(shipment, step.to, due)
             status = step.to
             since = due
             moves++
@@ -147,6 +152,12 @@ internal class FulfilmentSimulator(
         if (share == 0) return true
         return when (val outcome = payments.capture(shipment.id, Capture(order.id, share, at))) {
             is CaptureOutcome.Captured -> {
+                trail.record(
+                    order.id,
+                    OrderLines.SHIPMENT_CAPTURED,
+                    OrderLines.SHIPMENT to shipment.id,
+                    OrderLines.CENTS to share.toString(),
+                )
                 true
             }
 
@@ -163,6 +174,19 @@ internal class FulfilmentSimulator(
         }
     }
 }
+
+/** [shipment] at [status] since [at], on its order's trail. */
+private suspend fun OrderTrail.moved(
+    shipment: ActiveShipment,
+    status: String,
+    at: Instant,
+) = record(
+    shipment.orderId,
+    OrderLines.SHIPMENT_MOVED,
+    OrderLines.SHIPMENT to shipment.id,
+    OrderLines.STATUS to status,
+    OrderLines.AT to at.toString(),
+)
 
 /** Where a shipment has arrived: the statuses that credit its points. */
 private val ARRIVED = setOf(ShipmentStatus.DELIVERED, ShipmentStatus.PICKED_UP)

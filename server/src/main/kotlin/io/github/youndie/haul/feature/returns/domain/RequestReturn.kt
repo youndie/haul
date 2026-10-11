@@ -8,6 +8,8 @@ import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus
 import io.github.youndie.haul.feature.returns.ReturnEntry
 import io.github.youndie.haul.feature.returns.returnProblems
+import io.github.youndie.haul.ops.OrderLines
+import io.github.youndie.haul.ops.OrderTrail
 import io.github.youndie.petich.PetichClock
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -24,13 +26,15 @@ import java.util.Locale
  * «Late return»).
  *
  * The 30 days are counted against [clock], the simulator's, because the arrival they count from was stamped
- * by it (`shipment_events`); the store's «now» is not that clock.
+ * by it (`shipment_events`); the store's «now» is not that clock. A return asked for is a line of the order's
+ * [trail] (B-109), in the request's trace.
  */
 internal class RequestReturn(
     private val orders: OrderRepository,
     private val shipments: FulfilmentRepository,
     private val returns: ReturnRepository,
     private val clock: PetichClock,
+    private val trail: OrderTrail = OrderTrail.NONE,
 ) {
     suspend fun request(
         customerId: String,
@@ -77,6 +81,12 @@ internal class RequestReturn(
                 requestedAt = now,
             )
         if (!returns.request(request)) throw ReturnError.AlreadyReturned(orderId)
+        trail.record(
+            order.id,
+            OrderLines.RETURN_REQUESTED,
+            OrderLines.REASON to entry.reason,
+            OrderLines.CENTS to refund.toString(),
+        )
     }
 
     private companion object {

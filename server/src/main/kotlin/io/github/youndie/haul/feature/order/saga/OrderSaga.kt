@@ -14,6 +14,7 @@ import io.github.youndie.haul.feature.order.domain.StockReservations
 import io.github.youndie.haul.feature.payment.domain.Authorisation
 import io.github.youndie.haul.feature.payment.domain.AuthorisationOutcome
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
+import io.github.youndie.haul.ops.OrderTrail
 import io.github.youndie.petich.PetichAnnouncement
 import io.github.youndie.petich.PetichAnnouncementContext
 import io.github.youndie.petich.PetichDefinition
@@ -38,7 +39,8 @@ internal const val ORDER_SAGA = "order"
  *
  * Where the order ends up is told to [moves] (B-56), as the simulators tell theirs: placed by [Confirm],
  * cancelled by [OpenOrder]'s compensation — so a page that opened while the order was placing is drawn again
- * where it went, by this process or by the sweeper of the next one.
+ * where it went, by this process or by the sweeper of the next one. How each member ended is written to the
+ * order's [trail] (B-109, [traced]): a span per run, a line per outcome, filed in tracy under the order.
  */
 internal fun orderSaga(
     stock: StockReservations,
@@ -48,15 +50,16 @@ internal fun orderSaga(
     carts: CartRepository,
     points: PointsLedger,
     moves: OrderMoves = OrderMoves(),
+    trail: OrderTrail = OrderTrail.NONE,
 ): PetichDefinition<OrderPayload> =
     petichDefinition(ORDER_SAGA) {
-        step("reserve-stock", ReserveStock(stock))
-        step("reserve-slot", ReserveSlot(slots))
-        step("redeem-points", RedeemPoints(points))
-        step("open-order", OpenOrder(orders, moves))
-        step("authorise-payment", AuthorisePayment(payments, orders))
-        step("confirm", Confirm(orders, moves))
-        announce("clear-cart", ClearBoughtLines(carts))
+        traced(trail, "reserve-stock", ReserveStock(stock))
+        traced(trail, "reserve-slot", ReserveSlot(slots))
+        traced(trail, "redeem-points", RedeemPoints(points))
+        traced(trail, "open-order", OpenOrder(orders, moves))
+        traced(trail, "authorise-payment", AuthorisePayment(payments, orders))
+        traced(trail, "confirm", Confirm(orders, moves))
+        tracedAnnouncement(trail, "clear-cart", ClearBoughtLines(carts))
     }
 
 /** Every line's units off its SKU's stock, held by the order; a shortage refuses the saga (`out_of_stock`). */

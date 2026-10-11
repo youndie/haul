@@ -115,7 +115,7 @@ internal fun Application.haulModule(
     fulfilment: FulfilmentSettings = FulfilmentSettings.MANUAL,
     saleLook: Duration? = null,
 ) {
-    val reportFailure = installObservability(observability)
+    val observers = installObservability(observability)
     installSignIn(signIn)
     val database = Databases.connect(dataSource)
     install(Koin) {
@@ -128,6 +128,7 @@ internal fun Application.haulModule(
                 single { fulfilment.pace }
                 single { DeliveryCalendar(clock::now) }
                 single { ProductPhotos(photoStore) }
+                single { observers.trail }
             },
             catalogModule,
             searchModule,
@@ -183,7 +184,7 @@ internal fun Application.haulModule(
             ->
             call.respondError(error.code, error.message, error.field, error.fields)
         }
-        unexpectedFailures(report = reportFailure)
+        unexpectedFailures(report = observers.reportFailure)
     }
     // A category answers at one address; any other form of it is redirected there (B-68).
     install(OneCategoryAddress)

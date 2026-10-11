@@ -70,6 +70,7 @@ import io.github.youndie.haul.feature.saved.screen.SavedScreen
 import io.github.youndie.haul.feature.search.domain.RecentSearches
 import io.github.youndie.haul.feature.search.screen.SearchScreen
 import io.github.youndie.haul.feature.search.searchModule
+import io.github.youndie.haul.ops.OrderTrail
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.shell.Viewers
 import io.github.youndie.haul.testing.SAGA_CLOCK
@@ -108,6 +109,7 @@ class KoinGraphTest {
                         single { ProductPhotos(null) }
                         single { SAGA_CLOCK }
                         single { FulfilmentPace.STORE }
+                        single { OrderTrail.NONE }
                     },
                     catalogModule,
                     searchModule,
