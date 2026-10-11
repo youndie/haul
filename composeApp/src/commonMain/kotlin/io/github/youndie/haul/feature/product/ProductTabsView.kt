@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -32,14 +33,17 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
@@ -70,8 +74,10 @@ import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.toneColor
+import io.github.youndie.haul.ui.widestWord
 import io.github.youndie.kompot.KompotAction
 import kotlinx.coroutines.launch
+import kotlin.math.floor
 
 // The lower half of the product page: the tab row and the four tabs' content, each with the margins
 // the page gives it (Product_Description, _Specifications, _Reviews, _Questions and their _Phone twins).
@@ -246,14 +252,47 @@ private fun Fact(
             .padding(if (compact) 20.dp else 28.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Text(
-            fact.title,
-            HaulType.display(if (compact) 44f else 56f, 800, letterSpacing = -0.01f, lineHeight = 0.9f),
-            softWrap = false,
-        )
+        FactTitle(fact.title, if (compact) 44f else 56f)
         Text(fact.text, HaulType.text(15f).copy(color = HaulColors.onSurfaceVariant))
     }
 }
+
+/**
+ * A fact tile's title at the tile's display [size] where it fits — the canvas's «40 h» does — and otherwise
+ * wrapped between its words, and smaller until its widest word fits the tile (B-104): a specification's name
+ * such as «Noise cancelling» or «Connectivity» was cut at the tile's edge. The size only shrinks while the
+ * title is shown, so a measurement that asks twice settles rather than swings.
+ */
+@Composable
+private fun FactTitle(
+    title: String,
+    size: Float,
+) {
+    var fitted by remember(title, size) { mutableFloatStateOf(size) }
+    // The size this composition draws at, which a measurement since may already have asked to shrink.
+    val drawn = fitted
+    val style = HaulType.display(drawn, 800, letterSpacing = -0.01f, lineHeight = 0.9f)
+    val measurer = rememberTextMeasurer()
+    Text(
+        title,
+        style,
+        Modifier.layout { measurable, constraints ->
+            val width = constraints.maxWidth
+            if (constraints.hasBoundedWidth && width > 0 && drawn > FACT_TITLE_MIN) {
+                val widest = widestWord(measurer, AnnotatedString(title), style)
+                if (widest > width) {
+                    val smaller = maxOf(FACT_TITLE_MIN, minOf(floor(drawn * width / widest * 2f) / 2f, drawn - 0.5f))
+                    if (smaller < fitted) fitted = smaller
+                }
+            }
+            val placeable = measurable.measure(constraints)
+            layout(placeable.width, placeable.height) { placeable.place(0, 0) }
+        },
+    )
+}
+
+/** The smallest a fact's title shrinks to: still larger than the line under it. */
+private const val FACT_TITLE_MIN = 16f
 
 /** The specifications in white cards: two side by side at 1440 (the first takes the odd row), one on a phone. */
 @Composable

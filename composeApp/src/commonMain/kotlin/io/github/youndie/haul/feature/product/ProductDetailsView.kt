@@ -18,8 +18,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -132,8 +134,10 @@ private fun Photo(
     modifier: Modifier,
     radius: Dp,
 ) {
+    var refused by remember(details.share) { mutableStateOf(false) }
     Box(
         modifier
+            .testTag(GALLERY_TAG)
             .aspectRatio(1f)
             .clip(RoundedCornerShape(radius)),
     ) {
@@ -176,10 +180,22 @@ private fun Photo(
                     .background(HaulColors.surfaceContainerLowest, CircleShape),
                 contentAlignment = Alignment.Center,
             ) { Heart(details.saved, 20.dp) }
-            details.share?.let { Share(it) }
+            details.share?.let { Share(it, refused = { refused = it }) }
+        }
+        // Under the two buttons, the link the browser would not copy (B-104).
+        val copier = LocalLinkCopier.current
+        val share = details.share
+        if (refused && copier != null && share != null) {
+            ShareFallback(
+                copier.address(share),
+                Modifier.align(Alignment.TopEnd).padding(start = 14.dp, end = 14.dp, top = 66.dp),
+            ) { refused = false }
         }
     }
 }
+
+/** The product's photo, and its placeholder while the page loads, which stands where the photo arrives (B-104). */
+public const val GALLERY_TAG: String = "product-gallery"
 
 /** The buy box's «Save» out of stock, for the tests that press it. */
 internal const val SAVE_TAG: String = "buy-box-save"
@@ -188,15 +204,29 @@ internal const val SAVE_TAG: String = "buy-box-save"
 internal const val COPY_LINK: String = "Copy link"
 internal const val LINK_COPIED: String = "Link copied"
 
+/** What the share button says when the browser kept the link off the clipboard, over the link to copy by hand. */
+internal const val COPY_REFUSED: String = "Couldn't copy the link. Copy it from here:"
+
+/** The panel holding the link to copy by hand, for the tests that look for it. */
+internal const val SHARE_FALLBACK_TAG: String = "share-fallback"
+
+/** What closes that panel, to a screen reader and the tests. */
+internal const val CLOSE_LINK: String = "Close"
+
 /** How long the share button shows its check after a link was copied. */
 private const val COPIED_MS = 2_000L
 
 /**
  * The share button (B-71): copies the link to the product at its SKU — [path], on the page's own origin — through
- * [LocalLinkCopier], then shows a check for a moment. Nobody to copy it (a screenshot) presses nothing.
+ * [LocalLinkCopier], then shows a check for a moment. When the browser refuses, it says so through [refused], and
+ * the photo shows the whole link under the buttons to select and copy by hand ([ShareFallback]), until it is closed
+ * or a press copies after all (B-104). Nobody to copy it (a screenshot) presses nothing.
  */
 @Composable
-private fun Share(path: String) {
+private fun Share(
+    path: String,
+    refused: (Boolean) -> Unit,
+) {
     val copier = LocalLinkCopier.current
     var copied by remember(path) { mutableStateOf(false) }
     LaunchedEffect(copied) {
@@ -207,13 +237,50 @@ private fun Share(path: String) {
     }
     Box(
         Modifier
-            .pressable(copier?.let { { it.copy(path) { done -> if (done) copied = true } } })
-            .semantics { contentDescription = if (copied) LINK_COPIED else COPY_LINK }
+            .pressable(
+                copier?.let {
+                    {
+                        it.copy(path) { done ->
+                            copied = done
+                            refused(!done)
+                        }
+                    }
+                },
+            ).semantics { contentDescription = if (copied) LINK_COPIED else COPY_LINK }
             .size(44.dp)
             .background(HaulColors.surfaceContainerLowest, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         Icon(if (copied) HaulIcons.check else HaulIcons.share, 20.dp, HaulColors.onSurface)
+    }
+}
+
+/** The link the browser would not copy, to select and copy by hand, under the message that says why it is there. */
+@Composable
+internal fun ShareFallback(
+    link: String,
+    modifier: Modifier,
+    close: () -> Unit,
+) {
+    Row(
+        modifier
+            .testTag(SHARE_FALLBACK_TAG)
+            .widthIn(max = 320.dp)
+            .background(HaulColors.surfaceContainerLowest, RoundedCornerShape(16.dp))
+            .padding(start = 16.dp, top = 12.dp, bottom = 14.dp, end = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Column(Modifier.weight(1f, fill = false), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(COPY_REFUSED, HaulType.text(14f, 600))
+            SelectionContainer { Text(link, HaulType.text(14f).copy(color = HaulColors.primary)) }
+        }
+        Box(
+            Modifier
+                .pressable(close)
+                .semantics { contentDescription = CLOSE_LINK }
+                .size(28.dp),
+            contentAlignment = Alignment.Center,
+        ) { Icon(HaulIcons.close, 16.dp, HaulColors.onSurface) }
     }
 }
 

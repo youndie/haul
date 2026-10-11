@@ -92,6 +92,12 @@ public fun interface LinkCopier {
         path: String,
         done: (Boolean) -> Unit,
     )
+
+    /**
+     * The whole link to [path], which the share button shows to copy by hand when [copy] says it could not
+     * (B-104): the browser's origin and the path; the path alone where there is no origin to know.
+     */
+    public fun address(path: String): String = path
 }
 
 /** Whoever copies links: the browser's clipboard in the app; `null` — a screenshot — copies nothing. */

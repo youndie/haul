@@ -24,6 +24,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextDecoration
@@ -31,6 +32,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.feature.checkout.CheckoutHeaderView
 import io.github.youndie.haul.feature.identity.SignInActions
+import io.github.youndie.haul.feature.product.GALLERY_TAG
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.HaulType.browserLeading
@@ -568,7 +570,7 @@ public fun NotFoundShell(
     }
 }
 
-/** A product page before its tree: crumbs, the gallery, the identity and the buy box as placeholders. */
+/** A product page before its tree: crumbs, the photo, the identity and the buy box as placeholders. */
 @Composable
 public fun ProductLoading() {
     val compact = LocalHaulCompact.current
@@ -589,18 +591,15 @@ public fun ProductLoading() {
             )
             if (compact) {
                 Column(verticalArrangement = Arrangement.spacedBy(22.dp)) {
-                    Skeleton(Modifier.fillMaxWidth().aspectRatio(1f), 24.dp)
+                    Skeleton(Modifier.fillMaxWidth().aspectRatio(1f).testTag(GALLERY_TAG), 24.dp)
                     IdentitySkeleton(titleHeight = 34.dp)
                     BuyBoxSkeleton(Modifier.fillMaxWidth())
                 }
             } else {
                 Row(horizontalArrangement = Arrangement.spacedBy(40.dp)) {
-                    Row(Modifier.weight(1.3f), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                        Column(Modifier.width(76.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            repeat(5) { Skeleton(Modifier.fillMaxWidth().aspectRatio(1f), 14.dp) }
-                        }
-                        Skeleton(Modifier.weight(1f).aspectRatio(1f), 28.dp)
-                    }
+                    // The photo takes the gallery's width, as the page draws it since B-71 dropped the
+                    // thumbnails: no column the page arrives without (B-104).
+                    Skeleton(Modifier.weight(1.3f).aspectRatio(1f).testTag(GALLERY_TAG), 28.dp)
                     Box(Modifier.weight(1f)) { IdentitySkeleton(titleHeight = 48.dp) }
                     BuyBoxSkeleton(Modifier.width(384.dp))
                 }

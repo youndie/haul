@@ -52,10 +52,11 @@ import kotlin.test.assertEquals
 /**
  * B-71 in the client: what looks pressable on the product page does what its tree says. The brand opens its
  * address; «2,341 reviews» and «All specifications» open their tabs and bring the tab row into view, where the
- * tab changes; the share button copies the product's link and says so; «Saved» out of stock takes the product
- * off the Saved list; «Show more reviews» and «Show more questions» load ten more in place. What is not wired is
- * not pressable: the viewer's own review reads «Your review», and there is no chevron or thumbnail to press. The
- * pages are the server's bodies for the Product artboards (`resources/bodies/`).
+ * tab changes; the share button copies the product's link and says so, or, when the browser refuses, shows the
+ * link to copy by hand (B-104); «Saved» out of stock takes the product off the Saved list; «Show more reviews»
+ * and «Show more questions» load ten more in place. What is not wired is not pressable: the viewer's own review
+ * reads «Your review», and there is no chevron or thumbnail to press. The pages are the server's bodies for the
+ * Product artboards (`resources/bodies/`).
  */
 @OptIn(ExperimentalTestApi::class)
 class ProductPageLinksTest {
@@ -79,14 +80,16 @@ class ProductPageLinksTest {
         pages[path] = haulWireJson.encodeToString(PolymorphicSerializer(KompotAction::class), action)
     }
 
-    private fun ComposeUiTest.storefront(page: KompotComponent) {
+    private fun ComposeUiTest.storefront(
+        page: KompotComponent,
+        links: LinkCopier = LinkCopier { path, done -> done(copied.add(path)) },
+    ) {
         serve("/ui$PRODUCT", page)
         val transport =
             HaulTransport { path ->
                 requests += path
                 HaulResponse(200, pages[path] ?: error("nothing answers $path"))
             }
-        val links = LinkCopier { path, done -> done(copied.add(path)) }
         val votes = TreeCommands { RefreshAction }
         val cart =
             CartCommands { command ->
@@ -159,6 +162,43 @@ class ProductPageLinksTest {
             onNodeWithContentDescription(LINK_COPIED).assertExists()
             assertEquals(listOf("/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0"), copied.toList())
             assertEquals(listOf("/ui$PRODUCT"), requests.toList(), "copying a link loaded a page")
+        }
+
+    /**
+     * B-104: a browser that keeps the link off the clipboard leaves the button as it was and says so, over the
+     * whole link to copy by hand; closing it takes it away, and a press that copies after all says «copied».
+     */
+    @Test
+    fun `share the browser refuses shows the link to copy by hand`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            var allowed = false
+            val refusing =
+                object : LinkCopier {
+                    override fun copy(
+                        path: String,
+                        done: (Boolean) -> Unit,
+                    ) = done(allowed && copied.add(path))
+
+                    override fun address(path: String): String = ORIGIN + path
+                }
+            storefront(decode("product_description.json"), refusing)
+            onNodeWithTag(SHARE_FALLBACK_TAG).assertDoesNotExist()
+            onNodeWithContentDescription(COPY_LINK).performClick()
+            onNodeWithContentDescription(COPY_LINK).assertExists()
+            onNodeWithTag(SHARE_FALLBACK_TAG).assertIsDisplayed()
+            onNodeWithText(COPY_REFUSED).assertIsDisplayed()
+            onNodeWithText("$ORIGIN/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0").assertIsDisplayed()
+            onNodeWithContentDescription(CLOSE_LINK).performClick()
+            onNodeWithTag(SHARE_FALLBACK_TAG).assertDoesNotExist()
+
+            onNodeWithContentDescription(COPY_LINK).performClick()
+            onNodeWithTag(SHARE_FALLBACK_TAG).assertIsDisplayed()
+            allowed = true
+            onNodeWithContentDescription(COPY_LINK).performClick()
+            onNodeWithContentDescription(LINK_COPIED).assertExists()
+            onNodeWithTag(SHARE_FALLBACK_TAG).assertDoesNotExist()
+            assertEquals(listOf("/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0"), copied.toList())
+            assertEquals(listOf("/ui$PRODUCT"), requests.toList(), "a refused copy loaded a page")
         }
 
     /** Out of stock, a saved product's «Save» reads «Saved» and takes it off the list, as the heart does. */
@@ -313,6 +353,7 @@ class ProductPageLinksTest {
         const val MORE_REVIEWS = "$PARTS/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=reviews&shown=20"
         const val MORE_QUESTIONS = "$PARTS/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=questions&shown=20"
         const val NEXT = "The next page"
+        const val ORIGIN = "https://haul.test"
 
         val NEXT_PAGE: KompotComponent =
             ColumnComponent(id = "page", children = listOf(TextComponent(id = "next", text = NEXT)))

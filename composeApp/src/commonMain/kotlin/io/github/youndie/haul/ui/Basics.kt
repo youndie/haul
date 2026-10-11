@@ -499,7 +499,7 @@ private const val ARCHIVO_ASCENT = 0.878f
 private const val ARCHIVO_DESCENT = 0.21f
 
 /** The widest run of [text] no line can break inside: words split at spaces and after hyphens and dashes. */
-private fun widestWord(
+internal fun widestWord(
     measurer: TextMeasurer,
     text: AnnotatedString,
     style: TextStyle,
