@@ -1,7 +1,7 @@
 ---
 id: B-109
 title: "server: an order's saga is visible in tracy"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-11-qa
