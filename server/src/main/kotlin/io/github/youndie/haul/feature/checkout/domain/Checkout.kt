@@ -69,6 +69,9 @@ internal data class Address(
      */
     fun entry(): AddressEntry =
         AddressEntry(street, apt.orEmpty(), city, zip, doorCode.orEmpty(), courierNote.orEmpty())
+
+    /** «Brooklyn, NY 11211»: where it is, as the header's «Delivering to» and the product page say it (B-98). */
+    val place: String get() = "$city $zip"
 }
 
 /**
@@ -98,7 +101,15 @@ internal data class StoredCheckout(
     val payment: String? = null,
     val draft: AddressEntry? = null,
     val usePoints: Boolean = false,
-)
+) {
+    /**
+     * The address a courier delivers to, whatever the method chosen now: the one chosen while it is still
+     * the customer's, else the newest of [addresses]. The quote's address, the one the address form edits
+     * and the place every page names (B-98) are this one.
+     */
+    fun deliveredTo(addresses: List<Address>): Address? =
+        addresses.firstOrNull { it.id == addressId } ?: addresses.firstOrNull()
+}
 
 /** The checkout's storage. Every method takes the customer, and a read of a checkout never written is the default. */
 internal interface CheckoutRepository {

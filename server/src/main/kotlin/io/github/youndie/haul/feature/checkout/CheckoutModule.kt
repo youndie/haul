@@ -21,6 +21,7 @@ internal val checkoutModule =
                 cartCommands = get(),
                 ledger = get(),
                 clock = get(),
+                calendar = get(),
             )
         }
         single { CheckoutScreen(get()) }

@@ -37,8 +37,6 @@ import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 /**
  * `GET /ui/checkout` (screen-checkout, feature-checkout): the checkout's own header and one
@@ -96,8 +94,9 @@ internal class CheckoutScreen(
     private fun step(state: CheckoutState): Int = STEPS.indexOf(if (state.placeable) REVIEW else DELIVERY)
 
     /**
-     * Each way to receive with when — the courier's first window («Tomorrow, Oct 8»), a pickup a day
-     * later — and where: the nearest point's distance, the nearest locker's hours.
+     * Each way to receive with when — the courier's first window («Tomorrow, Oct 8», or «Thu, Oct 9» when no
+     * line comes sooner: the delivery calendar's day, B-98), a pickup a day later — and where: the nearest
+     * point's distance, the nearest locker's hours.
      */
     private fun methods(state: CheckoutState): DeliveryMethods {
         val fee = state.quote.totals.deliveryCents
@@ -107,7 +106,7 @@ internal class CheckoutScreen(
         val pickup = day(state.pickupDay)
         val details =
             mapOf(
-                DeliveryMethod.Courier to "Tomorrow, " + MONTH_DAY.format(state.firstDay),
+                DeliveryMethod.Courier to state.firstDayLabel,
                 DeliveryMethod.PickupPoint to
                     listOfNotNull(pickup, nearest(DeliveryMethod.PickupPoint)?.distance()?.let { "$it away" })
                         .joinToString(" · "),
@@ -349,7 +348,5 @@ internal class CheckoutScreen(
 
         /** How the button's hint names a required field at fault («Fill in the street address and ZIP»). */
         val FIELD_NAMES = mapOf("street" to "street address", "city" to "city", "zip" to "ZIP")
-
-        val MONTH_DAY: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM d", Locale.US)
     }
 }

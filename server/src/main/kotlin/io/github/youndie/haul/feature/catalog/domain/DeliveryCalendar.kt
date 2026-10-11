@@ -14,6 +14,10 @@ import java.util.Locale
  * The rules are research D7's: a courier delivers the day after an order placed before the 23:30
  * cut-off, plus the seller's dispatch days; after the cut-off, one day later; a pickup point or a
  * locker one day after the courier. Days are the store's, New York's.
+ *
+ * It is the one calendar of every page (B-98): a card, the product page, the cart, the checkout's
+ * windows and the order page all read their days from here, so a product promised for Thursday is
+ * offered from Thursday at checkout and tracked to Thursday on its order.
  */
 internal class DeliveryCalendar(
     private val now: () -> ZonedDateTime,
@@ -22,15 +26,25 @@ internal class DeliveryCalendar(
 
     private fun beforeCutoff(): Boolean = now().withZoneSameInstant(STORE).toLocalTime().isBefore(CUTOFF)
 
-    fun courier(item: Listed): LocalDate =
-        today().plusDays(1L + item.product.dispatchDays + if (beforeCutoff()) 0 else 1)
+    fun courier(item: Listed): LocalDate = courierDay(now(), item.product.dispatchDays)
 
-    fun pickup(item: Listed): LocalDate = courier(item).plusDays(1)
+    /**
+     * The first day a courier comes for any of [items] — the earliest of their days, the day after an order
+     * placed now when there are none. Checkout offers its windows from it; a slower seller's shipment comes on
+     * its own day, as the cart names it per seller and the order page per shipment (B-98).
+     */
+    fun courier(items: Collection<Listed>): LocalDate = items.minOfOrNull(::courier) ?: courierDay(now(), 0)
+
+    fun pickup(item: Listed): LocalDate = pickupDay(courier(item))
 
     fun isTomorrow(item: Listed): Boolean = courier(item) == today().plusDays(1)
 
     /** «Tomorrow», or «Thu, Oct 9». */
     fun label(date: LocalDate): String = if (date == today().plusDays(1)) "Tomorrow" else DAY.format(date)
+
+    /** «Tomorrow, Oct 8», or «Thu, Oct 9»: a day that keeps its date when it is tomorrow (checkout's methods). */
+    fun dated(date: LocalDate): String =
+        if (date == today().plusDays(1)) "Tomorrow, " + MONTH_DAY.format(date) else DAY.format(date)
 
     /** «Order within 3 h 42 min» while the cut-off is ahead today; `null` after it. */
     fun cutoffLabel(): String? {
@@ -44,5 +58,23 @@ internal class DeliveryCalendar(
         val STORE: ZoneId = ZoneId.of("America/New_York")
         val CUTOFF: LocalTime = LocalTime.of(23, 30)
         private val DAY = DateTimeFormatter.ofPattern("EEE, MMM d", Locale.US)
+        private val MONTH_DAY = DateTimeFormatter.ofPattern("MMM d", Locale.US)
+
+        /**
+         * The courier's day for an order placed [at] from a seller that dispatches in [dispatchDays]: the day
+         * after, plus the dispatch days, one more after the cut-off (D7). The order page reads an order's days
+         * from the moment it was placed, the other pages from now.
+         */
+        fun courierDay(
+            at: ZonedDateTime,
+            dispatchDays: Int,
+        ): LocalDate {
+            val local = at.withZoneSameInstant(STORE)
+            val late = if (local.toLocalTime().isBefore(CUTOFF)) 0L else 1L
+            return local.toLocalDate().plusDays(1L + dispatchDays + late)
+        }
+
+        /** A pickup point or a locker has it a day after the courier would bring it (D7). */
+        fun pickupDay(courier: LocalDate): LocalDate = courier.plusDays(1)
     }
 }

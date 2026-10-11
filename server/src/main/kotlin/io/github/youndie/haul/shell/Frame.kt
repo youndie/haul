@@ -17,7 +17,8 @@ import io.github.youndie.kompot.standard.NavigateAction
  * Who is looking: what the header shows and which blocks a screen offers. [customerId] is a signed-in
  * customer's id, `null` for a guest, and [customer] the customer as signed in (their membership, B-23);
  * [inCart] is how many of each SKU their cart holds, by SKU id; [saved] the products in their Saved list,
- * whose hearts are drawn filled (B-20); [Viewers] tells them from a request.
+ * whose hearts are drawn filled (B-20); [place] the city and ZIP of the address a courier delivers to them, `null`
+ * until they have one (B-98); [Viewers] tells them from a request.
  */
 internal data class Viewer(
     val firstName: String? = null,
@@ -26,6 +27,7 @@ internal data class Viewer(
     val inCart: Map<String, Int> = emptyMap(),
     val saved: Set<String> = emptySet(),
     val customer: Customer? = null,
+    val place: String? = null,
 ) {
     /** Whose prices the viewer's screens draw: a member's — a trial included — or everybody's (B-53). */
     val prices: PriceList get() = PriceList.of(customer?.plus == true)
@@ -71,7 +73,7 @@ internal object Frame {
         scope: String? = null,
     ) = HaulHeader(
         id = "header",
-        deliverTo = DEFAULT_PLACE,
+        deliverTo = place(viewer),
         deliveryPromise = "Free delivery over $35",
         customerName = viewer.firstName,
         cartCount = viewer.cartCount,
@@ -146,6 +148,12 @@ internal object Frame {
 
     /** The store's default place, until a customer's address says otherwise (feature-browse). */
     private const val DEFAULT_PLACE = "Brooklyn, NY 11211"
+
+    /**
+     * Where the viewer's things go: «Brooklyn, NY 11211» — the city and ZIP of the address a courier delivers
+     * to ([Viewer.place]), or the store's default to a guest and to a customer with no address (B-98).
+     */
+    fun place(viewer: Viewer): String = viewer.place ?: DEFAULT_PLACE
 
     /**
      * The footer (B-72): only the words that have a page, each leading there — «Deals» to today's deals,

@@ -29,6 +29,7 @@ internal class CheckoutCommands(
     private val cartCommands: CartCommands,
     private val ledger: PointsLedger,
     private val clock: StoreClock,
+    private val calendar: DeliveryCalendar,
 ) {
     /**
      * The checkout as it stands: the quote, with every choice not made — or no longer possible — filled
@@ -63,7 +64,7 @@ internal class CheckoutCommands(
                 totals = basis.totals,
                 plus = owner.plus,
                 method = method,
-                address = if (method == DeliveryMethod.Courier) delivered(stored, addresses) else null,
+                address = if (method == DeliveryMethod.Courier) stored.deliveredTo(addresses) else null,
                 point = points.firstOrNull { it.id == stored.pointId } ?: points.firstOrNull(),
                 slot = slot,
                 payment = payment,
@@ -77,6 +78,7 @@ internal class CheckoutCommands(
             slots = loads,
             payments = allowed.filter { it.listed || it == payment },
             firstDay = basis.offered.first().day,
+            firstDayLabel = calendar.dated(basis.offered.first().day),
             filledSlot = filled,
             expiredPromo = basis.expiredPromo,
             draft = stored.draft,
@@ -167,19 +169,9 @@ internal class CheckoutCommands(
             checkouts.save(owner.id, stored.copy(method = DeliveryMethod.Courier, draft = entry))
             throw CheckoutError.AddressRefused(problems)
         }
-        val editing = delivered(stored, checkouts.addresses(owner.id))
+        val editing = stored.deliveredTo(checkouts.addresses(owner.id))
         checkouts.saveAddress(owner.id, entry.trimmed(), editing?.id, clock.now().toOffsetDateTime())
     }
-
-    /**
-     * The address a courier delivers to, whatever the method chosen now: the one chosen while it is still
-     * the customer's, else the newest. The quote's address and the one the address form edits are this
-     * one, so the form always rewrites the address it shows.
-     */
-    private fun delivered(
-        stored: StoredCheckout,
-        addresses: List<Address>,
-    ): Address? = addresses.firstOrNull { it.id == stored.addressId } ?: addresses.firstOrNull()
 
     /** The cart's side of the quote, which every command needs: the lines, the code, the totals, the windows. */
     private suspend fun basis(owner: CartOwner.Customer): Basis {
@@ -194,16 +186,10 @@ internal class CheckoutCommands(
             promo = promo,
             expiredPromo = applied?.takeIf { promo == null }?.code,
             totals = Totals.of(lines, promo, owner.plus, now),
-            // «The next 5 days from tomorrow» (feature-checkout), whatever the items' dispatch days: the
-            // canvas offers Maya Wed 8 for a cart whose duvet and mugs dispatch in a day.
-            offered =
-                Slot.offered(
-                    clock
-                        .now()
-                        .withZoneSameInstant(DeliveryCalendar.STORE)
-                        .toLocalDate()
-                        .plusDays(1),
-                ),
+            // Five days from the first day a courier comes (B-98): the earliest line's, as the cart and the
+            // product page name it — the canvas's Wed 8 for Maya, whose headphones come tomorrow. A line from a
+            // slower seller comes on its own day, which the cart and the order page name.
+            offered = Slot.offered(calendar.courier(lines.map { it.item })),
         )
     }
 

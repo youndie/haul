@@ -266,16 +266,18 @@ private class OrderPage(
                 val verb = if (progress == OrderProgress.PickedUp) "Picked up" else "Delivered"
                 val shown = day?.let(MONTH_DAY::format)
                 val last = day?.let(ReturnWindow::lastDay)
-                Triple(
-                    listOfNotNull(verb, shown).joinToString(" "),
-                    shown,
+                val returns =
                     last?.let {
                         if (today.isAfter(it)) {
                             "Returns closed on ${MONTH_DAY.format(it)}."
                         } else {
                             "Returns are open until ${MONTH_DAY.format(it)}."
                         }
-                    },
+                    }
+                Triple(
+                    listOfNotNull(verb, shown).joinToString(" "),
+                    shown,
+                    listOfNotNull(early(day), returns).joinToString(" ").ifEmpty { null },
                 )
             }
 
@@ -599,23 +601,43 @@ private class OrderPage(
             }
         }
 
-    /**
-     * The day a shipment still on its way arrives, never before today: the courier's day for an order
-     * placed when this one was — the day after, plus the seller's dispatch days, one more after the
-     * 23:30 cut-off, one more again for a point or a locker (research D7) — or the window chosen, when
-     * that is later.
-     */
+    /** The day a shipment still on its way arrives, never before today: the day it is [due], when not cancelled. */
     private fun arrival(shipment: TrackedShipment): LocalDate? {
         if (shipment.status == ShipmentStatus.CANCELLED) return null
-        val at = placed.placedAt.atZoneSameInstant(STORE)
+        return maxOf(due(shipment), today)
+    }
+
+    /**
+     * The day a shipment was promised for, from the delivery calendar every page reads (B-98): the courier's
+     * day for an order placed when this one was — the day after, plus the seller's dispatch days, one more
+     * after the 23:30 cut-off, one more again for a point or a locker (research D7) — or the window chosen,
+     * when that is later.
+     */
+    private fun due(shipment: TrackedShipment): LocalDate {
         val dispatch =
             placed.lines
                 .filter { it.sellerId == shipment.sellerId }
                 .maxOfOrNull { view.products[it.skuId]?.dispatchDays ?: 0 } ?: 0
-        val late = if (at.toLocalTime().isBefore(DeliveryCalendar.CUTOFF)) 0 else 1
-        val earliest = at.toLocalDate().plusDays(1L + dispatch + late + if (pickup) 1 else 0)
-        val promised = slot?.day?.takeIf { !pickup && it.isAfter(earliest) } ?: earliest
-        return maxOf(promised, today)
+        val courier = DeliveryCalendar.courierDay(placed.placedAt.atZoneSameInstant(STORE), dispatch)
+        val earliest = if (pickup) DeliveryCalendar.pickupDay(courier) else courier
+        return slot?.day?.takeIf { !pickup && it.isAfter(earliest) } ?: earliest
+    }
+
+    /**
+     * Why an order arrived before the day it was promised for (B-98): the store's deliveries are simulated, and
+     * the simulator's pace does not wait for the window (research, «Decided in B-17»). The date drawn stays
+     * the day it really arrived; this says so instead of leaving «Delivered Oct 10» beside a window on Oct 15.
+     * `null` for an order that arrived on its day or after.
+     */
+    private fun early(arrived: LocalDate?): String? {
+        arrived ?: return null
+        val promised =
+            view.tracked.shipments
+                .filter { it.status != ShipmentStatus.CANCELLED }
+                .maxOfOrNull(::due)
+        if (promised == null || !arrived.isBefore(promised)) return null
+        val booked = if (slot?.day == promised) "the window it was booked for" else "the day it was due"
+        return "Deliveries here are simulated: this one came ahead of ${DAY.format(promised)}, $booked."
     }
 
     /** «tomorrow», «today», or the day itself. */

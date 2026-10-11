@@ -4,6 +4,7 @@ import io.github.youndie.haul.FieldError
 import io.github.youndie.haul.feature.cart.domain.PricedLine
 import io.github.youndie.haul.feature.cart.domain.PromoCode
 import io.github.youndie.haul.feature.cart.domain.Totals
+import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.checkout.AddressEntry
 import io.github.youndie.haul.feature.checkout.DeliveryMethod
 import io.github.youndie.haul.feature.membership.domain.PointsRules
@@ -80,8 +81,9 @@ internal data class Quote(
  * Everything the Checkout tree draws: the [quote] and what the shopper can change it to.
  *
  * [points] are the places of the method chosen, [places] every point and locker (each method says
- * how near its nearest is). [firstDay] is the earliest courier day, the first window's; a pickup is a
- * day after it (research D7). [filledSlot] is the window they had chosen filling up since
+ * how near its nearest is). [firstDay] is the earliest courier day, the first window's — the delivery
+ * calendar's day for the earliest line (B-98) — and [firstDayLabel] says it as the courier's method does
+ * («Tomorrow, Oct 8», «Thu, Oct 9»); a pickup is a day after it (research D7). [filledSlot] is the window they had chosen filling up since
  * (`Checkout_PlaceError`: the window is cleared and they are told); [expiredPromo] is the cart's code
  * that expired after it was applied and no longer counts (endpoint-cart's quirk: checkout must not
  * honour it). [draft] is the last address form refused, with its [draftProblems]. [redeemable] is how
@@ -96,6 +98,7 @@ internal data class CheckoutState(
     val slots: List<SlotLoad>,
     val payments: List<PaymentMethod>,
     val firstDay: LocalDate,
+    val firstDayLabel: String,
     val filledSlot: Slot?,
     val expiredPromo: String?,
     val draft: AddressEntry?,
@@ -106,7 +109,7 @@ internal data class CheckoutState(
     val slotFilled: Boolean get() = filledSlot != null
 
     /** A pickup point's or a locker's day: one after the courier's (research D7). */
-    val pickupDay: LocalDate get() = firstDay.plusDays(1)
+    val pickupDay: LocalDate get() = DeliveryCalendar.pickupDay(firstDay)
 
     /**
      * The refused form's problems that hold «Place order»: the form is the courier's, so only while the
