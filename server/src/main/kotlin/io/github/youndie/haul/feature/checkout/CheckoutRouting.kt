@@ -3,6 +3,8 @@ package io.github.youndie.haul.feature.checkout
 import io.github.youndie.haul.feature.cart.domain.CartOwner
 import io.github.youndie.haul.feature.checkout.domain.CheckoutCommands
 import io.github.youndie.haul.feature.checkout.domain.CheckoutError
+import io.github.youndie.haul.feature.checkout.domain.PaymentMethod
+import io.github.youndie.haul.feature.checkout.domain.TestCardAccess
 import io.github.youndie.haul.feature.checkout.screen.CheckoutScreen
 import io.github.youndie.haul.feature.identity.Caller
 import io.github.youndie.haul.feature.identity.Callers
@@ -44,6 +46,7 @@ internal fun Route.checkoutRouting() {
     val commands by inject<CheckoutCommands>()
     val callers by inject<Callers>()
     val placement by inject<Placement>()
+    val testCard by inject<TestCardAccess>()
 
     suspend fun ApplicationCall.customer(): CartOwner.Customer {
         val customer = (callers.of(this) as? Caller.Customer)?.customer ?: throw IdentityError.Unauthenticated()
@@ -56,7 +59,14 @@ internal fun Route.checkoutRouting() {
 
     put(CheckoutPaths.CHOICE) {
         val customer = call.customer()
-        commands.choose(customer, call.body(CheckoutChoice.serializer()))
+        val choice = call.body(CheckoutChoice.serializer())
+        // The test card is the synthetic shoppers' alone (B-89): chosen only with the stand's key.
+        if (choice.payment == PaymentMethod.TestCard.id &&
+            !testCard.admits(call.request.headers[TEST_CARD_KEY_HEADER])
+        ) {
+            throw CheckoutError.PaymentNotAllowed(PaymentMethod.TestCard.refusal())
+        }
+        commands.choose(customer, choice)
         call.respondKompotAction(haulWireJson, RefreshAction)
     }
 

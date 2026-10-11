@@ -17,7 +17,9 @@
 # signing in with the demo password from the release's Secret — on a fast clock (SPEED, default a day in ten
 # seconds) and a short interval, waits for WALKS walks to finish (default 3) within DEADLINE seconds (default
 # 600), and asks the database what they left: the orders, the sagas, the returns and refunds. tracy and metrik
-# are not in a kind cluster, so what they would show is read from the rows they would be about.
+# are not in a kind cluster, so what they would show is read from the rows they would be about. Every
+# DECLINE_EVERY-th walk (default 10, the chart's) pays with the card that always declines (B-89): DECLINE_EVERY=2
+# shows one in the default three walks, as a `cancelled` order and a `REJECTED` saga.
 #
 # The stand's own pace is SPEED=288 INTERVAL=600 POLL=30 WAIT=3600 (the chart's defaults): a walk then takes
 # about twenty minutes, longer than the five a sign-in's access token lives, which the fast default never
@@ -59,7 +61,8 @@ VALUES=(--set "server.image=${IMAGE%:*}" --set "server.version=${IMAGE##*:}" --s
 if [ "${SHOPPERS:-}" = true ]; then
   VALUES+=(--set shoppers.enabled=true --set "shoppers.image=${SHOPPERS_IMAGE%:*}"
     --set "shoppers.version=${SHOPPERS_IMAGE##*:}" --set "shoppers.interval=${INTERVAL:-15}"
-    --set "shoppers.poll=${POLL:-2}" --set "shoppers.wait=${WAIT:-300}")
+    --set "shoppers.poll=${POLL:-2}" --set "shoppers.wait=${WAIT:-300}"
+    --set "shoppers.declineEvery=${DECLINE_EVERY:-10}")
 fi
 
 # Installed, then upgraded with the same values — the second deploy the stand gets on every change. The

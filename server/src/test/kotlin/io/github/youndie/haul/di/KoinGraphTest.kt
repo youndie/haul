@@ -24,6 +24,7 @@ import io.github.youndie.haul.feature.checkout.checkoutModule
 import io.github.youndie.haul.feature.checkout.domain.CheckoutCommands
 import io.github.youndie.haul.feature.checkout.domain.CheckoutRepository
 import io.github.youndie.haul.feature.checkout.domain.DeliverySlots
+import io.github.youndie.haul.feature.checkout.domain.TestCardAccess
 import io.github.youndie.haul.feature.checkout.screen.CheckoutScreen
 import io.github.youndie.haul.feature.fulfilment.domain.FulfilmentPace
 import io.github.youndie.haul.feature.fulfilment.domain.FulfilmentRepository
@@ -110,6 +111,7 @@ class KoinGraphTest {
                         single { SAGA_CLOCK }
                         single { FulfilmentPace.STORE }
                         single { OrderTrail.NONE }
+                        single { TestCardAccess.NONE }
                     },
                     catalogModule,
                     searchModule,
@@ -154,6 +156,7 @@ class KoinGraphTest {
         assertNotNull(koin.get<CheckoutRepository>())
         assertNotNull(koin.get<DeliverySlots>())
         assertNotNull(koin.get<CheckoutCommands>())
+        assertNotNull(koin.get<TestCardAccess>())
         assertNotNull(koin.get<CheckoutScreen>())
         assertNotNull(koin.get<PaymentProcessor>())
         assertNotNull(koin.get<InstalmentRepository>())

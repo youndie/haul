@@ -11,8 +11,9 @@ import io.github.youndie.haul.feature.checkout.DeliveryMethod
  * methods — so every customer pays with the payment simulator's cards (research §6): ···· 4821, which
  * it approves, and the test card ···· 0002, which it declines (B-16). The canvas lists only the first
  * (`Checkout_Content`): the test card is not [listed] — the tree shows it only once it is the one
- * chosen — and is chosen by its id. [card] is whether the money moves at shipping («Your card is
- * charged when the order ships»).
+ * chosen — and is chosen by its id, only by a request that carries the stand's key: the synthetic shoppers'
+ * ([TestCardAccess], B-89). [card] is whether the money moves at shipping («Your card is charged when the
+ * order ships»).
  */
 internal enum class PaymentMethod(
     val id: String,

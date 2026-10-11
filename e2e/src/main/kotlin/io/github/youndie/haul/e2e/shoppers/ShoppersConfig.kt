@@ -14,6 +14,10 @@ import kotlin.time.Duration.Companion.seconds
  * @property wait how long a walk waits for its order to arrive, and again for its refund, before giving up.
  * @property inFlight walks at once at most; a start that would pass it is skipped, not queued.
  * @property walks walks to take before stopping, `0` for no end — what a stand runs.
+ * @property declineEvery every how many walks one pays with the test card that always declines (B-89) and sees
+ *   its order refused, so the stand's traffic runs the order saga's compensation; `10` is one walk in ten, `0` none.
+ * @property testCardKey the stand's key that opens the test card (the server's `HAUL_TEST_CARD_KEY`); required
+ *   while [declineEvery] is not `0`, and never printed.
  */
 internal data class ShoppersConfig(
     val origin: String,
@@ -25,7 +29,16 @@ internal data class ShoppersConfig(
     val wait: Duration = 3600.seconds,
     val inFlight: Int = 4,
     val walks: Int = 0,
+    val declineEvery: Int = 10,
+    val testCardKey: TestCardKey? = null,
 ) {
+    init {
+        require(declineEvery == 0 || testCardKey != null) { "a walk that declines needs the test card's key" }
+    }
+
+    /** Whether walk [number] (from 1) pays with the declining card: every [declineEvery]th, never the first of ten. */
+    fun declines(number: Int): Boolean = declineEvery > 0 && number % declineEvery == 0
+
     companion object {
         const val ORIGIN = "HAUL_SHOPPERS_ORIGIN"
         const val REDIRECT = "HAUL_SHOPPERS_REDIRECT"
@@ -36,6 +49,8 @@ internal data class ShoppersConfig(
         const val WAIT = "HAUL_SHOPPERS_WAIT_SECONDS"
         const val IN_FLIGHT = "HAUL_SHOPPERS_IN_FLIGHT"
         const val WALKS = "HAUL_SHOPPERS_WALKS"
+        const val DECLINE_EVERY = "HAUL_SHOPPERS_DECLINE_EVERY"
+        const val TEST_CARD_KEY = "HAUL_SHOPPERS_TEST_CARD_KEY"
 
         /**
          * The configuration [env] describes, or [IllegalArgumentException] naming the variable that is
@@ -62,6 +77,7 @@ internal data class ShoppersConfig(
             }
             val people = required(PEOPLE).split(',').map { it.trim() }.filter { it.isNotEmpty() }
             require(people.isNotEmpty()) { "$PEOPLE names nobody" }
+            val declineEvery = number(DECLINE_EVERY, 10, least = 0)
             return ShoppersConfig(
                 origin = origin,
                 redirect = required(REDIRECT),
@@ -72,6 +88,8 @@ internal data class ShoppersConfig(
                 wait = number(WAIT, 3600, least = 1).seconds,
                 inFlight = number(IN_FLIGHT, 4, least = 1),
                 walks = number(WALKS, 0, least = 0),
+                declineEvery = declineEvery,
+                testCardKey = if (declineEvery == 0) null else TestCardKey(required(TEST_CARD_KEY)),
             )
         }
     }
@@ -80,6 +98,14 @@ internal data class ShoppersConfig(
 /** A password that says nothing when printed, so a configuration logged whole leaks nothing. */
 @JvmInline
 internal value class Password(
+    val value: String,
+) {
+    override fun toString(): String = "<hidden>"
+}
+
+/** The stand's key that opens the test card ···· 0002 (B-89); it says nothing when printed, like the [Password]. */
+@JvmInline
+internal value class TestCardKey(
     val value: String,
 ) {
     override fun toString(): String = "<hidden>"

@@ -145,6 +145,12 @@ shoppers:
   wait: 3600
   # Walks at once at most; a start past it is skipped and logged.
   inFlight: 4
+  # Every how many walks one pays with the test card ···· 0002, which the payment simulator always declines, and
+  # sees its order refused — so the order saga's compensation (stock and window released, the order cancelled) is
+  # part of the stand's traffic and of tracy (B-89). 10 is one walk in ten; 0 is none. The card is never offered
+  # to a visitor: the server takes it only from a request carrying a key derived from `shildik.masterKeys`, which
+  # only the shoppers are given.
+  declineEvery: 10
   resources:
     requests:
       cpu: 10m

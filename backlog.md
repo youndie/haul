@@ -42,7 +42,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (8)
+## Open (7)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -53,9 +53,8 @@ A stage is a field on the item, not a directory.
 | [B-85](docs/backlog/B-85-canvas-behind-the-code.md) `[ ]` | design: the canvas draws what the store now has | P3 | M | - |
 | [B-86](docs/backlog/B-86-reviews-photos-and-histogram.md) `[ ]` | client + server: review photos open and the histogram filters | P3 | M | - |
 | [B-87](docs/backlog/B-87-fallback-rows.md) `[ ]` | server: what home and the empty cart show when no deal is live | P3 | S | - |
-| [B-89](docs/backlog/B-89-traffic-exercises-compensation.md) `[ ]` | e2e: the synthetic shoppers also walk a declined payment | P3 | S | - |
 
-## Closed (104)
+## Closed (105)
 
 **Skeleton**
 
@@ -169,6 +168,7 @@ A stage is a field on the item, not a directory.
 - [B-82](docs/backlog/B-82-tablet-widths.md) `[x]` - client: the store reads well between a phone and 1440
 - [B-83](docs/backlog/B-83-typed-input-before-every-press.md) `[x]` - client: every press that reads a field sees what was typed
 - [B-88](docs/backlog/B-88-a-return-restocks.md) `[x]` - server: a returned unit goes back to stock
+- [B-89](docs/backlog/B-89-traffic-exercises-compensation.md) `[x]` - e2e: the synthetic shoppers also walk a declined payment
 - [B-90](docs/backlog/B-90-review-loop-leftovers.md) `[x]` - client + server: the small leftovers of the review loop
 
 **QA**

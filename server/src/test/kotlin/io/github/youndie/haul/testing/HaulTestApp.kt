@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariDataSource
 import io.github.youndie.haul.StoreClock
 import io.github.youndie.haul.db.Databases
 import io.github.youndie.haul.feature.catalog.domain.PhotoStore
+import io.github.youndie.haul.feature.checkout.domain.TestCardAccess
 import io.github.youndie.haul.feature.identity.SignInConfig
 import io.github.youndie.haul.haulModule
 import io.github.youndie.haul.haulWireJson
@@ -65,7 +66,8 @@ internal val CANVAS_NOW: StoreClock = StoreClock { CatalogSeed.NOW.toZonedDateTi
  * that has to stand somewhere else in the calendar (B-53's early-access window) — over the shared seeded
  * database — or over [dataSource], for a test that has to change the catalog under the routes — with
  * no object storage unless a test hands it [photoStore] (B-30). Sign-in is off unless [signIn] names a
- * realm (`ShildikHarness.signIn` for a running shildik).
+ * realm (`ShildikHarness.signIn` for a running shildik). The test card ···· 0002 is nobody's unless [testCardKey]
+ * opens it, as `HAUL_TEST_CARD_KEY` does on a stand (B-89).
  */
 internal fun haulTest(
     dataSource: DataSource = SeededDatabase.dataSource,
@@ -73,6 +75,7 @@ internal fun haulTest(
     signIn: SignInConfig? = null,
     sagaClock: PetichClock = SAGA_CLOCK,
     clock: StoreClock = CANVAS_NOW,
+    testCardKey: String? = null,
     block: suspend HttpClient.() -> Unit,
 ) = testApplication {
     application {
@@ -83,6 +86,7 @@ internal fun haulTest(
             photoStore = photoStore,
             signIn = signIn,
             sagaClock = sagaClock,
+            testCard = TestCardAccess(testCardKey),
         )
     }
     client.block()

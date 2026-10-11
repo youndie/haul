@@ -20,6 +20,9 @@
 {{- if not $logins }}
 {{- fail "haul: shoppers.people is empty — the shoppers need someone of shildik.demoPeople to sign in as" }}
 {{- end }}
+{{- if not (regexMatch "^[0-9]+$" (toString $shoppers.declineEvery)) }}
+{{- fail (printf "haul: shoppers.declineEvery=%v is not a whole number — every how many walks one pays with the declining card, 0 for none" $shoppers.declineEvery) }}
+{{- end }}
 {{- range $name := list "interval" "poll" "wait" "inFlight" }}
 {{- $value := index $shoppers $name }}
 {{- if not (regexMatch "^[1-9][0-9]*$" (toString $value)) }}
@@ -33,7 +36,8 @@ Service, as nothing outside the cluster sees them, and sign in where the server 
 host, which the cluster reaches (B-27) — through the storefront's own client and its registered return page.
 
 The password is the release's shildik Secret's `demo-password`, by reference: it never appears in a
-values file or in this render. No probes: the process has no port, and a walk that fails says so in the
+values file or in this render. Every `declineEvery`th walk pays with the test card that always declines (B-89),
+chosen with the key the server holds too (`haul.testCardKey`), read from the release's Secret by reference. No probes: the process has no port, and a walk that fails says so in the
 log and the next one starts anyway. One replica: a second would double the rate, which is `interval`'s job.
 */}}
 apiVersion: apps/v1
@@ -57,6 +61,11 @@ spec:
       labels:
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/name: haul-shoppers
+      {{- with include "haul.testCardKey" . }}
+      annotations:
+        # A new test card key restarts the server (its Secret's checksum); the shoppers follow it here.
+        checksum/test-card-key: {{ . | sha256sum }}
+      {{- end }}
     spec:
       enableServiceLinks: false
       {{- with .Values.server.imagePullSecrets }}
@@ -89,6 +98,15 @@ spec:
               value: {{ $shoppers.wait | toString | quote }}
             - name: HAUL_SHOPPERS_IN_FLIGHT
               value: {{ $shoppers.inFlight | toString | quote }}
+            - name: HAUL_SHOPPERS_DECLINE_EVERY
+              value: {{ $shoppers.declineEvery | toString | quote }}
+            {{- if include "haul.testCardKey" . }}
+            - name: HAUL_SHOPPERS_TEST_CARD_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: test-card-key
+            {{- end }}
           resources: {{- toYaml $shoppers.resources | nindent 12 }}
           securityContext:
             allowPrivilegeEscalation: false

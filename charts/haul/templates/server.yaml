@@ -116,6 +116,13 @@ spec:
             {{- include "haul.agentEnv" (dict "name" "metrik" "agent" .Values.observability.metrik "root" .) | nindent 12 }}
             {{- include "haul.agentEnv" (dict "name" "tracy" "agent" .Values.observability.tracy "root" .) | nindent 12 }}
             {{- include "haul.agentEnv" (dict "name" "katcher" "agent" .Values.observability.katcher "root" .) | nindent 12 }}
+            {{- if include "haul.testCardKey" . }}
+            - name: HAUL_TEST_CARD_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: test-card-key
+            {{- end }}
           ports:
             - name: http
               containerPort: 8080

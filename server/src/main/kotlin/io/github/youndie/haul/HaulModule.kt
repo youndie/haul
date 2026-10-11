@@ -16,6 +16,7 @@ import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.checkout.checkoutModule
 import io.github.youndie.haul.feature.checkout.checkoutRouting
 import io.github.youndie.haul.feature.checkout.domain.CheckoutError
+import io.github.youndie.haul.feature.checkout.domain.TestCardAccess
 import io.github.youndie.haul.feature.fulfilment.FulfilmentRunner
 import io.github.youndie.haul.feature.fulfilment.FulfilmentSettings
 import io.github.youndie.haul.feature.fulfilment.fulfilmentModule
@@ -99,6 +100,9 @@ internal fun interface StoreClock {
  * `HAUL_FULFILMENT_SPEED`; a test gets [FulfilmentSettings.MANUAL] and moves shipments by calling the
  * simulator itself. Its clock is [sagaClock], for the same reason: its stamps outlive the process.
  *
+ * [testCard] is who may choose the test card ···· 0002 (B-89): `main` opens it to requests carrying
+ * `HAUL_TEST_CARD_KEY`, the synthetic shoppers'; [TestCardAccess.NONE] — a test that does not say — opens it to nobody.
+ *
  * [saleLook] keeps a seeded stand's sample sale on the store's day while it runs (B-70, [SaleRedater]): looked
  * at each store midnight and at least every [saleLook]. `main` passes it only when it seeds (`HAUL_SEED`); `null`
  * — a test, or a store that was never seeded — runs nothing.
@@ -114,6 +118,7 @@ internal fun Application.haulModule(
     sagaClock: PetichClock,
     fulfilment: FulfilmentSettings = FulfilmentSettings.MANUAL,
     saleLook: Duration? = null,
+    testCard: TestCardAccess = TestCardAccess.NONE,
 ) {
     val observers = installObservability(observability)
     installSignIn(signIn)
@@ -129,6 +134,7 @@ internal fun Application.haulModule(
                 single { DeliveryCalendar(clock::now) }
                 single { ProductPhotos(photoStore) }
                 single { observers.trail }
+                single { testCard }
             },
             catalogModule,
             searchModule,

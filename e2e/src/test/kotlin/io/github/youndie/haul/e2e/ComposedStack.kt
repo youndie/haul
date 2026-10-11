@@ -21,8 +21,9 @@ import kotlin.time.TimeSource
 /**
  * The stack the whole path runs against, started from the test: PostgreSQL, shildik with a realm, and
  * the server's own image — the one `scripts/image-build.sh` builds, named by `haul.e2e.image` — with
- * the configuration a stand gives it (`ServerConfig`): the database, the seed, the realm, and the
- * fulfilment clock run [FULFILMENT_SPEED] times the store's pace.
+ * the configuration a stand gives it (`ServerConfig`): the database, the seed, the realm, the
+ * fulfilment clock run [FULFILMENT_SPEED] times the store's pace, and the key the shoppers' declining walks
+ * choose the test card with ([TEST_CARD_KEY]).
  *
  * **Why the server shares the host's network.** The issuer is a URL both sides must reach by the same
  * name: shildik writes it into every token as `iss`, the server reads the keys from the discovery that
@@ -52,6 +53,9 @@ internal object ComposedStack {
 
     /** Where the code comes back to: never opened, the test reads the code off the redirect. */
     const val REDIRECT = "http://127.0.0.1/signed-in.html"
+
+    /** The key that opens the test card ···· 0002 to the synthetic shoppers (B-89), as a stand's chart derives one. */
+    const val TEST_CARD_KEY = "e2e-test-card-key-0002"
 
     private val image: String =
         checkNotNull(System.getProperty("haul.e2e.image")) {
@@ -119,6 +123,7 @@ internal object ComposedStack {
             withEnv("HAUL_FULFILMENT_SPEED", FULFILMENT_SPEED.toString())
             withEnv("HAUL_ENVIRONMENT", "e2e")
             withEnv("HAUL_COMMIT", "e2e")
+            withEnv("HAUL_TEST_CARD_KEY", TEST_CARD_KEY)
             // On the host's network there is no mapped port to wait on; readiness is polled below.
             start()
         }
@@ -140,6 +145,12 @@ internal object ComposedStack {
             "SELECT coalesce(sum(quantity), 0) FROM stock_reservations WHERE holder = ?",
             orderId,
         ) { it.getInt(1) }.single()
+
+    /** The order's status and why it was cancelled, `null` for one that was not: its row in `orders`. */
+    fun orderStatus(orderId: String): Pair<String, String?> =
+        query("SELECT status, cancel_reason FROM orders WHERE id = ?", orderId) {
+            it.getString(1) to it.getString(2)
+        }.single()
 
     private fun <T> query(
         sql: String,

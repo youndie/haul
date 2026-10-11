@@ -65,6 +65,17 @@ class ServerConfigTest {
         }
     }
 
+    /** The test card's key (B-89): unset, nobody may choose the card; one short enough to guess refuses the start. */
+    @Test
+    fun `the test card's key is absent unless set and refused when short`() {
+        assertNull(config().testCardKey)
+        assertNull(config("HAUL_TEST_CARD_KEY" to " ").testCardKey)
+        assertEquals("0123456789abcdef", config("HAUL_TEST_CARD_KEY" to "0123456789abcdef").testCardKey)
+        val short =
+            assertFailsWith<IllegalArgumentException> { config("HAUL_TEST_CARD_KEY" to "guessable").testCardKey }
+        assertTrue("HAUL_TEST_CARD_KEY" in short.message.orEmpty(), short.message)
+    }
+
     @Test
     fun `the agent key never reaches a log line through toString`() {
         val tracy =

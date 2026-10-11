@@ -3,6 +3,7 @@ package io.github.youndie.haul
 import io.github.youndie.haul.db.Databases
 import io.github.youndie.haul.feature.catalog.data.PhotoStoreException
 import io.github.youndie.haul.feature.catalog.data.S3PhotoStore
+import io.github.youndie.haul.feature.checkout.domain.TestCardAccess
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SaleRedater
 import io.github.youndie.haul.seed.SeedPhotos
@@ -55,6 +56,7 @@ public fun main() {
             config.signIn,
             sagaClock = sagaClock(),
             fulfilment = config.fulfilment,
+            testCard = TestCardAccess(config.testCardKey),
             // A seeded stand keeps its sale on the store's day while it runs, not only at start (B-70).
             saleLook = if (config.seed) SaleRedater.LOOK else null,
         )

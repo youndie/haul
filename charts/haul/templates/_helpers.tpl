@@ -72,3 +72,17 @@ on the storefront's own host (the client builds `<origin>/signed-in.html`, `Main
 {{- define "haul.redirectUri" -}}
 https://{{ include "haul.require" (dict "name" "hostname" "because" "the storefront's public client registers https://<hostname>/signed-in.html as its return page" "value" .Values.hostname) }}/signed-in.html
 {{- end }}
+
+{{/*
+The key that opens the test card ···· 0002 — the one the payment simulator always declines — to the synthetic
+shoppers (B-89; the server's `HAUL_TEST_CARD_KEY`). Derived from the provider's master keys, a secret the release
+already holds and keeps across upgrades, so it is stable, is never written in a values file, and is nothing new
+for a deploy to pass; a one-way hash, so it gives the master keys away to nobody. Empty unless the shoppers run
+and some of their walks decline: then the server has no key, and the test card is nobody's.
+*/}}
+{{- define "haul.testCardKey" -}}
+{{- $shoppers := .Values.shoppers }}
+{{- if and $shoppers.enabled (regexMatch "^[1-9][0-9]*$" (toString $shoppers.declineEvery)) -}}
+{{- printf "haul-test-card-0002:%s" (include "haul.require" (dict "name" "shildik.masterKeys" "because" "the test card's key is derived from it" "value" .Values.shildik.masterKeys)) | sha256sum -}}
+{{- end -}}
+{{- end }}
