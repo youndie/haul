@@ -120,7 +120,7 @@ the server's own: `503`).
   3. On the missing order, press «Go to your orders».
   4. As a guest with a line in the cart, reload `/p/p-does-not-exist`.
 - **Expected:**
-  - Step 1: «This product isn't here», the category's and the order's not-found pages; another customer's order is
+  - Step 1: «This product is no longer available», the category's and the order's not-found pages; another customer's order is
     answered exactly as a missing one.
   - Step 2: first «Account» with no count (the client's own customer header, its menu with «Sign out»), then her
     name, her count and the category words with their addresses — never «Sign in», never the guest's header.
@@ -149,7 +149,8 @@ the server's own: `503`).
   4. Sign out over a page with no tree.
 - **Expected:**
   - Step 1: each goes where it would from any page; before any tree has been drawn a category word opens the
-    catalog's root `/c`. After a tree, the last tree's links.
+    catalog's root `/c`. After a tree, the last tree's links. The account is the one exception: while the header
+    alone has not arrived (offline) its slot is a placeholder that presses nothing (B-105).
   - Step 2: the trial's dialog over the page; its answer draws the page again.
   - Step 3: the menu opens and its entries lead somewhere; its account row is the sign-in or the account.
   - Step 4: the guest's header, asked anew — not the customer's name left behind.

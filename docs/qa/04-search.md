@@ -42,8 +42,8 @@ long search is walked in [catalog and filters](03-catalog-and-filters.md) (TC-CA
 ### TC-SRCH-03 — The scope picker scopes the next search, the panel and the results
 
 - **Who:** guest
-- **Width:** 1440, 390
-- **Preconditions:** the home page.
+- **Width:** 1440
+- **Preconditions:** the home page. (The phone's header has no picker: the canvas draws its field alone.)
 - **Steps:**
   1. Press «All categories ▾» and choose «Home & Kitchen».
   2. Type `mug`; read the panel; press Enter.
