@@ -784,6 +784,15 @@ the account need a shildik token; signing in merges the guest cart.
   (`CHECKOUT_SHELL_HEADER.current = -1`): which step it is is the stored checkout's. The summary's tiles open
   their products, and «Back to cart» beside «Your order» (`CheckoutSummary.back`) is the way back that is not
   the browser's — in the title's row, so the page keeps the canvas's layout.
+- **What checkout shows is what it places (B-97).** Any press outside the address form leaves it and sends it — the
+  held «Place order» and blank space as much as Tab or Enter — after `awaitTypedInput` (B-76), so the press reads
+  what was typed just before it; a drag is a scroll and sends nothing. «Place order» with an address typed and not
+  yet in the quote sends the address and places nothing: the next tree quotes it, and the next press places it. A
+  day's tile stays the client's own and asks the server nothing: while a day other than the chosen window's is
+  shown, the button is held with `DeliverySlots.otherDayHint` («Pick a delivery window») until one of its windows
+  is chosen, which is a choice like any other. Asking the server on a tile was the other way; it would need a
+  stored day with no window and a round trip per tile, for a state the window's choice settles anyway. The
+  summary's delivery day stays the server's throughout.
 
 ### D6. Product decisions taken by the owner on the brief (2026-10-08)
 
