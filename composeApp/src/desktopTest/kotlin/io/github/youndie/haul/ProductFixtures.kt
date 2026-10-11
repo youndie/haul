@@ -1,19 +1,30 @@
 package io.github.youndie.haul
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.feature.product.DialogOverlay
 import io.github.youndie.haul.feature.product.ProductNotFound
 import io.github.youndie.haul.feature.product.QuestionFormView
 import io.github.youndie.haul.feature.product.ReviewFormView
+import io.github.youndie.haul.feature.product.ShareFallback
 import io.github.youndie.haul.feature.reviews.QuestionEntry
 import io.github.youndie.haul.feature.reviews.ReviewEntry
 import io.github.youndie.haul.shell.ErrorShell
 import io.github.youndie.haul.shell.ProductLoading
 import io.github.youndie.haul.shell.ShellFailure
 import io.github.youndie.haul.ui.HaulHeader
+import io.github.youndie.haul.ui.Highlight
+import io.github.youndie.haul.ui.ProductDescription
 import io.github.youndie.haul.ui.QuestionForm
 import io.github.youndie.haul.ui.ReviewForm
+import io.github.youndie.haul.ui.toneColor
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.ColumnComponent
@@ -41,6 +52,48 @@ internal fun ProductDescription() = Fixture(compact = false) { Page { Body("prod
 @ViddikScreenshot(name = "Description_Phone", group = "Product", width = 390, height = 2720)
 @Composable
 internal fun ProductDescriptionPhone() = Fixture(compact = true) { Page { Body("product_description.json") } }
+
+/**
+ * Product_Description with the tiles the server sends for the seeded headphones — the first four
+ * specifications, «Noise cancelling» and «Connectivity» among them — wrapped and shrunk to fit their tiles
+ * rather than cut (B-104). No artboard draws them.
+ */
+@ViddikScreenshot(name = "Description_SpecFacts", group = "Product", width = 1440, height = 1560)
+@Composable
+internal fun ProductDescriptionSpecFacts() = Fixture(compact = false) { Page { Render(remember { specFacts() }) } }
+
+@ViddikScreenshot(name = "Description_SpecFacts_Phone", group = "Product", width = 390, height = 2720)
+@Composable
+internal fun ProductDescriptionSpecFactsPhone() = Fixture(compact = true) { Page { Render(remember { specFacts() }) } }
+
+/**
+ * The share button's answer when the browser keeps the link off the clipboard (B-104): what it says and the
+ * whole link to copy by hand, over the corner of the photo it opens on. No artboard draws it.
+ */
+@ViddikScreenshot(name = "ShareRefused", group = "Product", width = 390, height = 180)
+@Composable
+internal fun ProductShareRefused() =
+    Fixture(compact = true) {
+        Box(Modifier.fillMaxSize().background(toneColor("#E6E4FF"))) {
+            ShareFallback(
+                "https://haul.kotlin.website/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0",
+                Modifier.align(Alignment.TopEnd).padding(14.dp),
+            ) {}
+        }
+    }
+
+/** Product_Description's page with the seeded headphones' first four specifications as the tiles. */
+private fun specFacts(): KompotComponent {
+    val page = decode("product_description.json") as ColumnComponent
+    val facts =
+        listOf(
+            Highlight("Battery", "Up to 40 hours, 3 min charge = 3 h"),
+            Highlight("Noise cancelling", "Adaptive, 12 microphones"),
+            Highlight("Connectivity", "Bluetooth 5.4 · LDAC · multipoint"),
+            Highlight("Weight", "250 g"),
+        )
+    return page.copy(children = page.children.map { if (it is ProductDescription) it.copy(facts = facts) else it })
+}
 
 @ViddikScreenshot(name = "Specifications", group = "Product", width = 1440, height = 1624)
 @Composable
