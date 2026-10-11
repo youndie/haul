@@ -24,7 +24,8 @@ import kotlin.random.Random
  * canvas's, moved to the day [generate] is given — the canvas's day [CANVAS_DAY] in every test, so each row
  * is the canvas's, and the store's day on a stand, so a stand seeded today opens the Autumn mega sale and
  * the deals of the day today, as the canvas does on Oct 7. The sale's promo code moves with it (B-61):
- * `AUTUMN10` names its campaign, `SUMMER5` names none and stays expired. Only the windows move; prices,
+ * `AUTUMN10` names its campaign, `SUMMER5` names none and stays expired. So does the year Maya's carried Plus
+ * savings count in (B-123): «saved on delivery this year» is the seeding day's year. Only these move; prices,
  * products and every other date stay the canvas's.
  */
 internal object CatalogSeed {
@@ -47,7 +48,7 @@ internal object CatalogSeed {
     private const val PRODUCTS_PER_LEAF = 15
     private const val GENERATED_SELLERS = 38
 
-    /** The catalog, its sale dated from [day] (the canvas's day: [CANVAS_DAY]). */
+    /** The catalog, its sale dated from [day] (the canvas's day: [CANVAS_DAY]) and Maya's savings in its year. */
     fun generate(day: LocalDate): SeedCatalog {
         val random = Random(RANDOM_SEED)
         val categories = categories()
@@ -104,7 +105,7 @@ internal object CatalogSeed {
             SampleReviews.ratingCounts,
             SampleReviews.questions,
             SampleSaved.mayas(products, skus, deals),
-            memberships = SampleCustomers.memberships,
+            memberships = SampleCustomers.memberships(day.year),
             openingPoints = SampleCustomers.openingPoints,
             views = SampleViews.mayas,
         )

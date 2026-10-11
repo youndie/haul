@@ -288,6 +288,11 @@ internal object Seeder {
      * The memberships and the opening balances of [catalog], for the customers that exist: a membership
      * the customer has already, or an opening balance written before — spent since, perhaps — is left as it
      * is (the membership's key is the customer, the balance's its ledger key).
+     *
+     * One exception (B-123): a database seeded before the carried savings followed the seeding day holds the
+     * seed's own savings — the customer's, the amount the seed carries — under the canvas's year, long past on
+     * any stand, so its member saved nothing «this year». Those move once to [catalog]'s year, the
+     * year of the start that finds them; a row under any other year, or with any other amount, is the store's.
      */
     private fun seedLoyalty(catalog: SeedCatalog) {
         val known =
@@ -306,6 +311,17 @@ internal object Seeder {
                 it[carriedSavingsYear] = membership.carriedSavingsYear
             }
         }
+        catalog.memberships
+            .filter { it.customerId in known && it.carriedSavingsYear !in setOf(null, CatalogSeed.CANVAS_DAY.year) }
+            .forEach { membership ->
+                MembershipsTable.update({
+                    (MembershipsTable.customerId eq membership.customerId) and
+                        (MembershipsTable.carriedSavingsCents eq membership.carriedSavingsCents) and
+                        (MembershipsTable.carriedSavingsYear eq CatalogSeed.CANVAS_DAY.year)
+                }) {
+                    it[carriedSavingsYear] = membership.carriedSavingsYear
+                }
+            }
         catalog.openingPoints.filterKeys { it in known }.forEach { (customer, points) ->
             val opening = PointsMovement.opening(customer, points, CatalogSeed.NOW)
             PointsEntriesTable.insertIgnore {

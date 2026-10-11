@@ -134,6 +134,7 @@ their place, «Picked for you», the Plus block. A card's «+» is walked here o
   - Step 1: a guest and Sam see «Try 30 days free»; Maya sees no upsell, but what Plus saved her this year ($186 on
     the seed, plus the fees waived on her orders since) and when it renews.
   - Step 2: the sign-in.
-- **Decided in:** B-23
+- **Decided in:** B-23; B-123 (the $186 is the seeding day's year's, so a stand seeded after 2025 shows it too)
 - **Coverage:** `MembershipRoutesTest` «the trial is offered to a non-member and the savings shown to a member»;
-  `HomeRoutesTest` «a guest sees the campaign the deals and the Plus offer»; golden `Home_Content`
+  `HomeRoutesTest` «a guest sees the campaign the deals and the Plus offer»; `SaleCalendarTest` «a stand seeded on
+  another day shows Maya's carried Plus savings»; golden `Home_Content`
