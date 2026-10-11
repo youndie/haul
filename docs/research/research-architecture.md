@@ -753,9 +753,10 @@ the account need a shildik token; signing in merges the guest cart.
   capacity`) per holder, idempotent per holder, with `release` as placement's compensation; built and
   raced here, called by B-16.
 - **The numbers** (decisions, not observations — neither the canvas nor the brief names them): windows
-  09:00, 12:00, 15:00 and 18:00, three hours each, on the five days from tomorrow in the store's time
-  zone whatever the items' dispatch days (the canvas offers Maya Wed 8 for a duvet and mugs that dispatch
-  in a day), 20 orders a window. The delivery fee is the cart's, the same for every method.
+  09:00, 12:00, 15:00 and 18:00, three hours each, on five days in the store's time zone, 20 orders a
+  window. The first day was tomorrow whatever the items' dispatch days until B-98; it is now the delivery
+  calendar's day for the cart's earliest line (D7, «Decided in B-98»), which is still Wed 8 for Maya, whose
+  headphones come tomorrow. The delivery fee is the cart's, the same for every method.
 - **Every customer pays with the simulator's cards.** v1 has no way to add a card (no artboard; D6 hides
   the account's payment methods), so the payment options are fixed: card ···· 4821 (approves), test
   card ···· 0002 (declines), Haul Pay for totals from $50 to $2,000, pay on delivery except to a locker.
@@ -769,7 +770,7 @@ the account need a shildik token; signing in merges the guest cart.
   the numbered sections beside the order at 1440, under it on a phone. The address is an inline form
   holding the address delivered to, sent when the shopper leaves it; saved addresses are not listed.
   A method says when and where («Tomorrow, Oct 8», «Thu, Oct 9 · 240 m away» — a pickup a day after
-  the courier, D7), the summary names the delivery day, and the button says why it is held («Pick a
+  the courier, D7; a cart whose first line comes on Thursday reads «Thu, Oct 9», B-98), the summary names the delivery day, and the button says why it is held («Pick a
   delivery window», «Fill in the street address and ZIP»). The points toggle the canvas draws is the
   server's since B-23 (below).
 - **The form edits the address it holds (B-40).** A save rewrites the address delivered to — the chosen one,
@@ -1190,6 +1191,34 @@ Delivery is free over $35 or for Plus, otherwise $5.99; 1 point per whole dollar
 at the canvas's «now»); deals of the day end at local midnight; a pickup is held 5 days; returns
 within 30 days of delivery. These are decisions, not observations; the feature documents' scenarios
 are written against them and verified against the code before they go `active`.
+
+**Decided in B-98, one delivery calendar, one fee, one place.**
+
+- **Every page reads its days from `DeliveryCalendar`** (`feature/catalog/domain/DeliveryCalendar.kt`): a card,
+  the product page, the cart per seller, checkout's windows and the order page per shipment. The rule is the one
+  above — the day after, plus the seller's dispatch days, one more after the cut-off, a pickup a day after the
+  courier — and the order page applies it to the moment the order was placed (`DeliveryCalendar.courierDay`)
+  instead of a copy of it. Checkout used to offer windows from tomorrow whatever the cart held, so a duvet the
+  product page promised for Thursday was offered Wednesday, and after the cut-off every window was a day early.
+- **Checkout's windows start on the cart's earliest line's day**, not its latest: the courier's method names
+  that day («Tomorrow, Oct 8», or «Thu, Oct 9» when no line comes sooner), a pickup the day after it, and a line
+  of a slower seller comes on its own day — the day the cart names for that seller and the order page for that
+  shipment. Starting from the latest line was the other way: the summary's delivery day would then hold for
+  every shipment, but it would move the canvas's checkout (Maya is offered Wed 8 beside a cart that says the
+  duvet comes Thu, Oct 9) and every order page placed from it.
+- **The product page's delivery price is the cart's** (`Totals.deliveryCents`, for the SKU alone): «Free» from
+  $35 or to a Plus member, $5.99 otherwise — for a pickup point as well, since the fee is the cart's and the same
+  for every method. It drew $5.99 to a member and «Free» for every pickup.
+- **The place is the customer's**: the header's «Delivering to» and the product page's «To …» name the city and
+  ZIP of the address a courier delivers to — the one chosen at checkout, else the newest
+  (`StoredCheckout.deliveredTo`, read into `Viewer.place`) — and «Brooklyn, NY 11211», the store's default, to a
+  guest and to a customer with no address yet. Maya's address is in Brooklyn, so the canvas is unchanged.
+- **An order that arrived before its day says why** rather than taking the window's date: the fulfilment
+  simulator's pace does not wait for the window (B-17), and on a stand run faster still an order booked for
+  Thu Oct 15 was delivered Oct 10. The page keeps the day it arrived — a date the shipment's history holds — and
+  the line under the title reads «Deliveries here are simulated: this one came ahead of Thu, Oct 15, the window
+  it was booked for.» (or «…, the day it was due.» without a window). Showing the window's date instead would
+  put a delivery in the future and start the return window on a day that has not come.
 
 ### D8. Product photography is out of v1
 
