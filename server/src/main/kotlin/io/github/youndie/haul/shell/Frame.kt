@@ -110,13 +110,7 @@ internal object Frame {
      * strip's words without a page are text (B-72): `null`, nothing to press.
      */
     private fun plus(viewer: Viewer): KompotAction? =
-        if (viewer.customer?.plus ==
-            true
-        ) {
-            null
-        } else {
-            PlusOffer.trial(viewer)
-        }
+        PlusOffer.trial(viewer).takeUnless { viewer.customer?.plus == true }
 
     /**
      * The header alone, for whoever asks (B-105): the client draws it over a page that came with no tree — one
