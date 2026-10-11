@@ -1,0 +1,529 @@
+{
+    "type": "column",
+    "id": "cart-page",
+    "children": [
+        {
+            "type": "haul_header",
+            "id": "header",
+            "deliverTo": "Brooklyn, NY 11211",
+            "deliveryPromise": "Free delivery over $35",
+            "customerName": "Maya",
+            "cartCount": 3,
+            "searchPlaceholder": "Search 2.4 million products",
+            "categories": [
+                "Electronics",
+                "Home & Kitchen",
+                "Fashion",
+                "Beauty",
+                "Kids & Toys",
+                "Sports",
+                "Grocery",
+                "Auto",
+                "Books",
+                "Pets"
+            ],
+            "account": {
+                "type": "navigate",
+                "deeplink": "/account"
+            },
+            "catalog": [
+                {
+                    "label": "Electronics",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/electronics"
+                    }
+                },
+                {
+                    "label": "Home & Kitchen",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/home-kitchen"
+                    }
+                },
+                {
+                    "label": "Fashion",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/fashion"
+                    }
+                },
+                {
+                    "label": "Beauty",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/beauty"
+                    }
+                },
+                {
+                    "label": "Kids & Toys",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/kids-toys"
+                    }
+                },
+                {
+                    "label": "Sports",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/sports"
+                    }
+                },
+                {
+                    "label": "Grocery",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/grocery"
+                    }
+                },
+                {
+                    "label": "Auto",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/auto"
+                    }
+                },
+                {
+                    "label": "Books",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/books"
+                    }
+                },
+                {
+                    "label": "Pets",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/pets"
+                    }
+                },
+                {
+                    "label": "Garden",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/garden"
+                    }
+                },
+                {
+                    "label": "Office",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/office"
+                    }
+                },
+                {
+                    "label": "Health",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/health"
+                    }
+                },
+                {
+                    "label": "Music",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/music"
+                    }
+                },
+                {
+                    "label": "Movies",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/movies"
+                    }
+                },
+                {
+                    "label": "Games",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/games"
+                    }
+                },
+                {
+                    "label": "Tools",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/tools"
+                    }
+                },
+                {
+                    "label": "Baby",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/baby"
+                    }
+                },
+                {
+                    "label": "Jewelry",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/jewelry"
+                    }
+                },
+                {
+                    "label": "Shoes",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/shoes"
+                    }
+                },
+                {
+                    "label": "Luggage",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/luggage"
+                    }
+                },
+                {
+                    "label": "Crafts",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/crafts"
+                    }
+                },
+                {
+                    "label": "Outdoors",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/outdoors"
+                    }
+                },
+                {
+                    "label": "Party",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/party"
+                    }
+                },
+                {
+                    "label": "Furniture",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/furniture"
+                    }
+                },
+                {
+                    "label": "Lighting",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/lighting"
+                    }
+                },
+                {
+                    "label": "Appliances",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/appliances"
+                    }
+                },
+                {
+                    "label": "Computers",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/computers"
+                    }
+                },
+                {
+                    "label": "Phones",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/phones"
+                    }
+                },
+                {
+                    "label": "Cameras",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/cameras"
+                    }
+                },
+                {
+                    "label": "Watches",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/watches"
+                    }
+                },
+                {
+                    "label": "Bags",
+                    "action": {
+                        "type": "navigate",
+                        "deeplink": "/c/bags"
+                    }
+                }
+            ],
+            "deals": {
+                "type": "navigate",
+                "deeplink": "/deals"
+            },
+            "cart": {
+                "type": "navigate",
+                "deeplink": "/cart"
+            },
+            "orders": {
+                "type": "navigate",
+                "deeplink": "/account/orders"
+            },
+            "saved": {
+                "type": "navigate",
+                "deeplink": "/account/saved"
+            },
+            "plus": {
+                "type": "navigate",
+                "deeplink": "/account"
+            },
+            "scopes": [
+                {
+                    "label": "Electronics",
+                    "category": "electronics"
+                },
+                {
+                    "label": "Home & Kitchen",
+                    "category": "home-kitchen"
+                },
+                {
+                    "label": "Fashion",
+                    "category": "fashion"
+                },
+                {
+                    "label": "Beauty",
+                    "category": "beauty"
+                },
+                {
+                    "label": "Kids & Toys",
+                    "category": "kids-toys"
+                },
+                {
+                    "label": "Sports",
+                    "category": "sports"
+                },
+                {
+                    "label": "Grocery",
+                    "category": "grocery"
+                },
+                {
+                    "label": "Auto",
+                    "category": "auto"
+                },
+                {
+                    "label": "Books",
+                    "category": "books"
+                },
+                {
+                    "label": "Pets",
+                    "category": "pets"
+                },
+                {
+                    "label": "Garden",
+                    "category": "garden"
+                },
+                {
+                    "label": "Office",
+                    "category": "office"
+                },
+                {
+                    "label": "Health",
+                    "category": "health"
+                },
+                {
+                    "label": "Music",
+                    "category": "music"
+                },
+                {
+                    "label": "Movies",
+                    "category": "movies"
+                },
+                {
+                    "label": "Games",
+                    "category": "games"
+                },
+                {
+                    "label": "Tools",
+                    "category": "tools"
+                },
+                {
+                    "label": "Baby",
+                    "category": "baby"
+                },
+                {
+                    "label": "Jewelry",
+                    "category": "jewelry"
+                },
+                {
+                    "label": "Shoes",
+                    "category": "shoes"
+                },
+                {
+                    "label": "Luggage",
+                    "category": "luggage"
+                },
+                {
+                    "label": "Crafts",
+                    "category": "crafts"
+                },
+                {
+                    "label": "Outdoors",
+                    "category": "outdoors"
+                },
+                {
+                    "label": "Party",
+                    "category": "party"
+                },
+                {
+                    "label": "Furniture",
+                    "category": "furniture"
+                },
+                {
+                    "label": "Lighting",
+                    "category": "lighting"
+                },
+                {
+                    "label": "Appliances",
+                    "category": "appliances"
+                },
+                {
+                    "label": "Computers",
+                    "category": "computers"
+                },
+                {
+                    "label": "Phones",
+                    "category": "phones"
+                },
+                {
+                    "label": "Cameras",
+                    "category": "cameras"
+                },
+                {
+                    "label": "Watches",
+                    "category": "watches"
+                },
+                {
+                    "label": "Bags",
+                    "category": "bags"
+                }
+            ]
+        },
+        {
+            "type": "haul_page_title",
+            "id": "title",
+            "title": "Cart",
+            "count": "3 items",
+            "badge": true
+        },
+        {
+            "type": "haul_cart_body",
+            "id": "cart",
+            "selection": {
+                "id": "selection",
+                "allSelected": false,
+                "selectedCount": 0,
+                "linesUrl": "/api/v1/cart/lines"
+            },
+            "groups": [
+                {
+                    "id": "group-s-sony-official-store",
+                    "seller": "Sony Official Store",
+                    "delivery": "Courier · Tomorrow",
+                    "lines": [
+                        {
+                            "id": "line-p-sony-wh-1000xm6-0",
+                            "skuId": "p-sony-wh-1000xm6-0",
+                            "productId": "p-sony-wh-1000xm6",
+                            "title": "Sony WH-1000XM6 Wireless Noise Cancelling Headphones",
+                            "options": "Midnight Black · Headphones only",
+                            "tone": "#E6E4FF",
+                            "label": "headphones",
+                            "price": "$349",
+                            "oldPrice": "$449",
+                            "quantity": 1,
+                            "maxQuantity": 10,
+                            "selected": false,
+                            "selectable": true,
+                            "url": "/api/v1/cart/lines/p-sony-wh-1000xm6-0",
+                            "action": {
+                                "type": "navigate",
+                                "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0"
+                            },
+                            "saveUrl": "/api/v1/cart/lines/p-sony-wh-1000xm6-0/save-for-later"
+                        }
+                    ]
+                },
+                {
+                    "id": "group-s-brooklyn-home-co",
+                    "seller": "Brooklyn Home Co.",
+                    "delivery": "Courier · Thu, Oct 9",
+                    "lines": [
+                        {
+                            "id": "line-p-linen-duvet-cover-set-0",
+                            "skuId": "p-linen-duvet-cover-set-0",
+                            "productId": "p-linen-duvet-cover-set",
+                            "title": "Linen Duvet Cover Set, Queen",
+                            "options": "Oat · 3 pieces",
+                            "tone": "#F1EBDD",
+                            "label": "bedding",
+                            "price": "$139",
+                            "oldPrice": "$179",
+                            "quantity": 1,
+                            "maxQuantity": 10,
+                            "selected": false,
+                            "selectable": true,
+                            "url": "/api/v1/cart/lines/p-linen-duvet-cover-set-0",
+                            "action": {
+                                "type": "navigate",
+                                "deeplink": "/p/p-linen-duvet-cover-set?sku=p-linen-duvet-cover-set-0"
+                            },
+                            "saveUrl": "/api/v1/cart/lines/p-linen-duvet-cover-set-0/save-for-later"
+                        },
+                        {
+                            "id": "line-p-stoneware-mug-0",
+                            "skuId": "p-stoneware-mug-0",
+                            "productId": "p-stoneware-mug",
+                            "title": "Stoneware Mug, 12 oz",
+                            "options": "Sage · Set of 2",
+                            "tone": "#E3F5D8",
+                            "label": "mug",
+                            "price": "$24",
+                            "quantity": 1,
+                            "maxQuantity": 10,
+                            "selected": false,
+                            "selectable": true,
+                            "url": "/api/v1/cart/lines/p-stoneware-mug-0",
+                            "action": {
+                                "type": "navigate",
+                                "deeplink": "/p/p-stoneware-mug?sku=p-stoneware-mug-0"
+                            },
+                            "saveUrl": "/api/v1/cart/lines/p-stoneware-mug-0/save-for-later"
+                        }
+                    ]
+                }
+            ],
+            "summary": {
+                "id": "summary",
+                "rows": [
+                    {
+                        "label": "Items (0)",
+                        "value": "$0.00"
+                    },
+                    {
+                        "label": "Delivery",
+                        "value": "Free"
+                    }
+                ],
+                "totalLabel": "Total",
+                "total": "$0",
+                "promo": {
+                    "id": "promo",
+                    "url": "/api/v1/cart/promo"
+                },
+                "points": "You'll earn 0 points on this order",
+                "pointsAccent": "0 points",
+                "checkoutLabel": "Checkout",
+                "checkoutEnabled": false,
+                "checkoutAction": {
+                    "type": "navigate",
+                    "deeplink": "/checkout"
+                }
+            }
+        }
+    ]
+}

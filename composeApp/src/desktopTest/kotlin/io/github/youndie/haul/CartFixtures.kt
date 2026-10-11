@@ -5,7 +5,8 @@ import io.github.youndie.haul.shell.CartError
 import io.github.youndie.haul.shell.CartLoading
 import io.github.youndie.viddik.annotations.ViddikScreenshot
 
-// One fixture per artboard of the Cart screen (B-13), at the artboard's size. The six server states are
+// One fixture per artboard of the Cart screen (B-13), at the artboard's size, and one state no artboard draws
+// (NothingSelected, B-100). The server states are
 // the server's own trees (`resources/bodies/cart_*.json`, held equal to them by the server's
 // `CartFixturesTest`) drawn through the app's registry; Loading and Error are the client's own.
 
@@ -24,6 +25,15 @@ internal fun CartContentWide() = Fixture(compact = false) { Page { Body("cart_co
 @ViddikScreenshot(name = "Content_Phone", group = "Cart", width = 390, height = 1668)
 @Composable
 internal fun CartContentPhone() = Fixture(compact = true) { Page { Body("cart_content.json") } }
+
+// No artboard draws a cart with nothing ticked (B-100): checkout and «Delete selected» greyed, no «Discount» row.
+@ViddikScreenshot(name = "NothingSelected", group = "Cart", width = 1440, height = 1179)
+@Composable
+internal fun CartNothingSelectedWide() = Fixture(compact = false) { Page { Body("cart_nothing_selected.json") } }
+
+@ViddikScreenshot(name = "NothingSelected_Phone", group = "Cart", width = 390, height = 1668)
+@Composable
+internal fun CartNothingSelectedPhone() = Fixture(compact = true) { Page { Body("cart_nothing_selected.json") } }
 
 @ViddikScreenshot(name = "Empty", group = "Cart", width = 1440, height = 1216)
 @Composable

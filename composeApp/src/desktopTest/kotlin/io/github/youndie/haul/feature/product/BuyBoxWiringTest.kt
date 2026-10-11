@@ -219,7 +219,7 @@ class BuyBoxWiringTest {
         const val NEXT = "The next page"
 
         val ADD = LineCommand(LINE, LineChange(quantity = 1))
-        val BUY_AS_CUSTOMER = LineCommand(LINE, LineChange(quantity = 1, selected = true), NavigateAction("/checkout"))
+        val BUY_AS_CUSTOMER = LineCommand(LINE, LineChange(selected = true, alone = true), NavigateAction("/checkout"))
 
         val NEXT_PAGE: KompotComponent =
             ColumnComponent(id = "page", children = listOf(TextComponent(id = "next", text = NEXT)))

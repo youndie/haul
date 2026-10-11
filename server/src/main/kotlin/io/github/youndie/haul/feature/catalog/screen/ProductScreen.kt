@@ -257,22 +257,22 @@ internal class ProductScreen(
     ): Link? = viewer.inCart[sku.id]?.takeIf { it > 0 }?.let { Link("$it in your cart", NavigateAction(Frame.CART)) }
 
     /**
-     * «Buy now» (B-48): what «Add to cart» puts in, with the line selected — checkout takes the selected
-     * lines only, and a line the shopper had unticked would otherwise be left behind — then checkout. A
-     * guest goes there through sign-in, by the address the cart's «Sign in to check out» uses, so both
-     * ways to checkout run the same sign-in and the same merge, and none goes through a page refused
-     * first. At the line's limit there is nothing to add, and «Buy now» still buys what is there: the
-     * line is only selected. Out of stock there is nothing to buy.
+     * «Buy now» (B-48): the SKU shown and nothing else goes to checkout (B-100, the owner's decision) — the line
+     * selected alone ([LineChange.alone]), every other line of the cart unticked and left in it, at the quantity
+     * the cart already holds or one when it holds none; «Buy now» never adds to a line, so pressed twice it
+     * buys one, not two. Checkout takes the selected lines only, so this is how it takes the product alone. A
+     * guest goes there through sign-in, by the address the cart's «Sign in to check out» uses, so both ways to
+     * checkout run the same sign-in and the same merge, and none goes through a page refused first. Out of
+     * stock there is nothing to buy.
      */
     private fun buyNow(
         sku: Sku,
         viewer: Viewer,
     ): LineCommand? {
         if (sku.stock <= 0) return null
-        val add = addToCart(sku, viewer.inCart)?.change
         return LineCommand(
             url = CartPaths.line(sku.id),
-            change = LineChange(quantity = add?.quantity, selected = true),
+            change = LineChange(selected = true, alone = true),
             next = NavigateAction(if (viewer.customerId == null) CartScreen.SIGN_IN else CartScreen.CHECKOUT),
         )
     }

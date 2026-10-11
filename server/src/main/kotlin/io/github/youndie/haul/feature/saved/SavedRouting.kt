@@ -19,7 +19,10 @@ import io.github.youndie.haul.shell.respondParts
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.ktor.respondKompotAction
 import io.github.youndie.kompot.ktor.respondKompotComponent
+import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.RefreshAction
+import io.github.youndie.kompot.standard.SequenceAction
+import io.github.youndie.kompot.standard.ShowMessageAction
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
@@ -33,7 +36,8 @@ import org.koin.ktor.ext.inject
  * token never reaches here, and a list is only ever its caller's. The page is `/ui/account/saved`, the
  * account's body, filtered by `filter` and paged by `page`; the heart is `PUT` and `DELETE` on a product
  * (`/api/v1/me/saved/{productId}`), «Save for later» a `POST` on a cart line. Every command answers
- * `refresh`.
+ * `refresh`; «Save for later» also says where the line went ([MOVED], B-100), since the cart it is pressed on
+ * no longer shows it.
  */
 internal fun Route.savedRouting() {
     val screen by inject<AccountScreen>()
@@ -77,9 +81,17 @@ internal fun Route.savedRouting() {
     post(CartPaths.SAVE_FOR_LATER) {
         val customer = call.caller().customer
         commands.saveForLater(CartOwner.Customer(customer.id, customer.plus), call.parameters["skuId"]!!)
-        call.refresh()
+        call.respondKompotAction(haulWireJson, SequenceAction(listOf(RefreshAction, MOVED)))
     }
 }
+
+/**
+ * What «Save for later» says once the line has moved (B-100): the line leaves the cart the press was on, and
+ * the message names where it went, with the way there — the Saved list is the one place a saved product is
+ * drawn (B-20), so the cart has no section of its own for it.
+ */
+internal val MOVED: ShowMessageAction =
+    ShowMessageAction("Moved to your Saved list", actionLabel = "View saved", action = NavigateAction(Frame.SAVED))
 
 /** The Saved list's paths: the server's strings (CLAUDE.md), handed to the client inside the trees. */
 internal object SavedPaths {

@@ -93,6 +93,8 @@ class CartRoutesTest {
             assertEquals("Midnight Black · Headphones only", line.options)
             // The tree says where the line's commands go; the client builds no path.
             assertEquals("/api/v1/cart/lines/$headphones" to null, line.url to line.acknowledgeUrl)
+            // The tile and the title open the product at the line's SKU, not at the product's default (B-100).
+            assertEquals(NavigateAction("/p/${SampleCatalog.SONY_HEADPHONES}?sku=$headphones"), line.action)
             assertEquals(
                 CartSelection("selection", allSelected = true, selectedCount = 3, linesUrl = "/api/v1/cart/lines"),
                 tree.only<CartSelection>(),
@@ -135,11 +137,12 @@ class CartRoutesTest {
                 ),
                 tree.only<PromoField>(),
             )
-            // 10 % of $512 is $51.20, and AUTUMN10 stops at $50; the discount includes the promo.
+            // 10 % of $512 is $51.20, and AUTUMN10 stops at $50. The code has its own row beside the sale's
+            // discount, not inside it, so the rows add up to the total (B-100): 652 − 140 − 50 = 462.
             assertEquals(
                 listOf(
                     SummaryRow("Items (3)", "$652.00"),
-                    SummaryRow("Discount", "−$190.00", saving = true),
+                    SummaryRow("Discount", "−$140.00", saving = true),
                     SummaryRow("Promo · AUTUMN10", "−$50.00", saving = true),
                     SummaryRow("Delivery", "Free"),
                 ),
@@ -296,9 +299,10 @@ class CartRoutesTest {
             assertEquals(3, tree.only<HaulHeader>().cartCount, "an unselected line is still in the cart")
 
             removeLines(guest, duvet).assertRefresh()
-            // The mug alone is under $35: delivery is $5.99 for a guest (research D7).
+            // The mug alone is under $35: delivery is $5.99 for a guest (research D7). Nothing is on sale, so
+            // there is no «Discount −$0.00» in the sale red (B-100).
             val mugOnly = cart(guest)
-            assertEquals(mapOf("Items (1)" to "$24.00", "Discount" to "−$0.00", "Delivery" to "$5.99"), mugOnly.rows())
+            assertEquals(mapOf("Items (1)" to "$24.00", "Delivery" to "$5.99"), mugOnly.rows())
             assertEquals("$29.99", mugOnly.only<OrderSummary>().total)
 
             removeLines(guest, headphones, mug).assertRefresh()
@@ -355,6 +359,57 @@ class CartRoutesTest {
             val summary = cart(guest).only<OrderSummary>()
             assertFalse(summary.checkoutEnabled)
             assertEquals("$0", summary.total)
+        }
+
+    /**
+     * «Buy now»'s change (B-100): the line is the only one left selected — the others stay in the cart,
+     * unticked — at the quantity it has, or one when the cart had none; with the line unticked it is refused.
+     */
+    @Test
+    fun `a line bought alone is the only one selected`() =
+        haulTest {
+            val guest = mayasCart()
+            putLine(guest, duvet, LineChange(quantity = 2)).assertRefresh()
+            putLine(guest, duvet, LineChange(alone = true)).assertRefresh()
+            val tree = cart(guest)
+            assertEquals(
+                listOf(headphones to false, duvet to true, mug to false),
+                tree.all().filterIsInstance<CartLine>().map { it.skuId to it.selected },
+            )
+            assertEquals(
+                2,
+                tree
+                    .all()
+                    .filterIsInstance<CartLine>()
+                    .single { it.skuId == duvet }
+                    .quantity,
+            )
+            assertEquals(
+                "Items (2)",
+                tree
+                    .only<OrderSummary>()
+                    .rows
+                    .first()
+                    .label,
+            )
+
+            val fresh = guest()
+            putLine(fresh, mug, LineChange(alone = true)).assertRefresh()
+            val added = cart(fresh).all().filterIsInstance<CartLine>()
+            assertEquals(listOf(mug to 1), added.map { it.skuId to it.quantity })
+            putLine(fresh, mug, LineChange(selected = false, alone = true))
+                .assertError(HttpStatusCode.BadRequest, ErrorCode.ValidationFailed)
+        }
+
+    /** A line of the travel-case bundle opens the product page at the bundle, not at «Headphones only» (B-100). */
+    @Test
+    fun `a line opens the product at its own SKU`() =
+        haulTest {
+            val guest = guest()
+            val travel = "${SampleCatalog.SONY_HEADPHONES}-1"
+            putLine(guest, travel, LineChange(quantity = 1)).assertRefresh()
+            val line = cart(guest).all().filterIsInstance<CartLine>().single()
+            assertEquals(NavigateAction("/p/${SampleCatalog.SONY_HEADPHONES}?sku=$travel"), line.action)
         }
 
     @Test

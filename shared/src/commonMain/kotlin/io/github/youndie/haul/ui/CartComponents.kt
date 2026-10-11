@@ -41,8 +41,9 @@ public data class CartBody(
  *
  * The stepper and the box send a `LineChange` with `PUT` to [url]; «OK» is a `POST` to [acknowledgeUrl];
  * «Remove» is `CartSelection.linesUrl` with this [skuId]. «Save for later» (B-20) moves the line to the
- * customer's Saved list — a `POST` to [saveUrl], answered `refresh` — and is a guest's way to sign in
- * ([saveAction]), the Saved list being a customer's.
+ * customer's Saved list — a `POST` to [saveUrl], answered `refresh` and a message with the way to the list
+ * (B-100) — and is a guest's way to sign in ([saveAction]), the Saved list being a customer's. [action], the
+ * tile's and the title's, opens the product at this line's SKU.
  */
 @Serializable
 @SerialName("haul_cart_line")
@@ -69,7 +70,7 @@ public data class CartLine(
     val removeLabel: String = "Remove",
     val url: String,
     val acknowledgeUrl: String? = null,
-    /** Where a tap on the tile or the title goes: the product page. */
+    /** Where a tap on the tile or the title goes: the product page at this line's SKU (B-100). */
     val action: @Polymorphic KompotAction? = null,
     val saveUrl: String? = null,
     val saveAction: @Polymorphic KompotAction? = null,
@@ -130,7 +131,8 @@ public data class PromoField(
 
 /**
  * A row of the summary: «Items (3) $652.00», «Discount −$140.00», «Promo · AUTUMN10 −$50.00»,
- * «Delivery Free». A [saving] row's value is money taken off, drawn in the sale red.
+ * «Delivery Free». A [saving] row's value is money taken off, drawn in the sale red; the rows add up to
+ * the total (B-100).
  */
 @Serializable
 public data class SummaryRow(

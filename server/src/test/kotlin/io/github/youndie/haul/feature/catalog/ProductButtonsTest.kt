@@ -77,18 +77,18 @@ class ProductButtonsTest {
         }
 
     /**
-     * A guest's «Buy now» adds as «Add to cart» does, selected, and goes to checkout through sign-in, by
-     * the address the cart's «Sign in to check out» uses; a line the guest had unticked is ticked again,
-     * or checkout would leave it behind.
+     * A guest's «Buy now» puts the SKU shown in at one, selected, and goes to checkout through sign-in, by the
+     * address the cart's «Sign in to check out» uses. Pressed again it adds nothing (B-100): the line keeps
+     * the quantity it has, and a line the guest had unticked is ticked again, or checkout would leave it behind.
      */
     @Test
-    fun `a guest's buy now adds the SKU shown and goes to checkout through sign-in`() =
+    fun `a guest's buy now puts the SKU shown in once and goes to checkout through sign-in`() =
         haulTest {
             val guest = guest()
             val sku = "$SONY_HEADPHONES-0"
             val buy = assertNotNull(details(guest, sku).buy, "the headphones in stock offer no «Buy now»")
             assertEquals(CartPaths.line(sku), buy.url)
-            assertEquals(LineChange(quantity = 1, selected = true), buy.change)
+            assertEquals(LineChange(selected = true, alone = true), buy.change)
             assertEquals(NavigateAction("/sign-in?next=%2Fcheckout"), buy.next)
 
             send(guest, buy).assertRefresh()
@@ -97,29 +97,41 @@ class ProductButtonsTest {
 
             putLine(guest, sku, LineChange(selected = false)).assertRefresh()
             val again = assertNotNull(details(guest, sku).buy)
-            assertEquals(LineChange(quantity = 2, selected = true), again.change)
+            assertEquals(LineChange(selected = true, alone = true), again.change)
             send(guest, again).assertRefresh()
             val line = cart(guest).all().filterIsInstance<CartLine>().single()
-            assertEquals(2, line.quantity)
+            assertEquals(1, line.quantity, "a second «Buy now» added one more")
             assertTrue(line.selected, "«Buy now» left the line unticked, so checkout would not take it")
         }
 
-    /** A customer's «Buy now» goes straight to checkout, and checkout opens on the line it put in. */
+    /**
+     * B-100, the owner's decision: a customer's «Buy now» goes straight to checkout with that product alone —
+     * at the quantity the cart already holds, without adding — and the cart's other lines stay in it, unticked.
+     */
     @Test
-    fun `a customer's buy now adds the SKU shown and opens checkout`() {
+    fun `a customer's buy now checks out the SKU shown alone at the quantity the cart holds`() {
         val token = ShildikHarness.accessToken(ShildikHarness.person("Buy Now"))
         haulTest(signIn = ShildikHarness.signIn) {
-            val sku = "$STONEWARE_MUG-0"
+            val mug = "$STONEWARE_MUG-0"
+            val headphones = "$SONY_HEADPHONES-0"
+            putLine(headphones, LineChange(quantity = 1)) { bearerAuth(token) }.assertRefresh()
+            putLine(mug, LineChange(quantity = 2)) { bearerAuth(token) }.assertRefresh()
             val buy =
-                assertNotNull(tree("/ui/p/$STONEWARE_MUG?sku=$sku") { bearerAuth(token) }.only<ProductDetails>().buy)
-            assertEquals(LineChange(quantity = 1, selected = true), buy.change)
+                assertNotNull(tree("/ui/p/$STONEWARE_MUG?sku=$mug") { bearerAuth(token) }.only<ProductDetails>().buy)
+            assertEquals(LineChange(selected = true, alone = true), buy.change)
             assertEquals(NavigateAction("/checkout"), buy.next)
 
             send(buy) { bearerAuth(token) }.assertRefresh()
             val next = assertNotNull(buy.next as? NavigateAction).deeplink
             assertEquals(CheckoutPaths.SCREEN, "/ui$next", "«Buy now» goes elsewhere than the checkout's tree")
             val items = tree("/ui$next") { bearerAuth(token) }.only<CheckoutSummary>().items
-            assertEquals(listOf("Stoneware Mug, 12 oz" to 1), items.map { it.title to it.quantity })
+            assertEquals(listOf("Stoneware Mug, 12 oz" to 2), items.map { it.title to it.quantity })
+            val cart = tree(CartPaths.SCREEN) { bearerAuth(token) }.all().filterIsInstance<CartLine>()
+            assertEquals(
+                listOf(Triple(headphones, 1, false), Triple(mug, 2, true)),
+                cart.map { Triple(it.skuId, it.quantity, it.selected) },
+                "the other line left the cart, or stayed ticked for checkout",
+            )
         }
     }
 
@@ -137,7 +149,7 @@ class ProductButtonsTest {
             val atTen = details(guest, mug)
             assertNull(atTen.add, "ten mugs in the cart and «Add to cart» still offered")
             val buy = assertNotNull(atTen.buy, "at the limit «Buy now» has nothing to buy")
-            assertEquals(LineChange(selected = true), buy.change)
+            assertEquals(LineChange(selected = true, alone = true), buy.change)
             send(guest, buy).assertRefresh()
             assertEquals(listOf(mug to 10), lines(guest), "«Buy now» at the limit changed the quantity")
 
@@ -145,7 +157,7 @@ class ProductButtonsTest {
             putLine(guest, scarce.id, LineChange(quantity = scarce.stock)).assertRefresh()
             val all = details(guest, scarce.id)
             assertNull(all.add, "${scarce.id}: the whole stock in the cart and «Add to cart» still offered")
-            assertEquals(LineChange(selected = true), assertNotNull(all.buy).change)
+            assertEquals(LineChange(selected = true, alone = true), assertNotNull(all.buy).change)
         }
 
     /** The page's out-of-stock state (`Product_OutOfStock`): neither button is offered. */
@@ -192,6 +204,13 @@ class ProductButtonsTest {
         guest: String,
         command: LineCommand,
     ): HttpResponse = send(command) { header(GUEST_HEADER, guest) }
+
+    /** A line change sent as the cart's stepper sends it, with whatever [request] says the caller is. */
+    private suspend fun HttpClient.putLine(
+        skuId: String,
+        change: LineChange,
+        request: HttpRequestBuilder.() -> Unit,
+    ): HttpResponse = send(LineCommand(CartPaths.line(skuId), change), request)
 
     private suspend fun HttpClient.lines(guest: String): List<Pair<String, Int>> =
         cart(guest).all().filterIsInstance<CartLine>().map { it.skuId to it.quantity }

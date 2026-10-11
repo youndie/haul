@@ -12,11 +12,16 @@ import kotlinx.serialization.Serializable
  * A change to one line, `PUT` to `CartLine.url`. A SKU not yet in the cart is added with [quantity]
  * (1 when absent), selected unless [selected] says otherwise; a line already there changes only the
  * fields given. At least one field is required.
+ *
+ * [alone] is «Buy now» (B-100): the line is selected and every other line of the cart unticked, so
+ * checkout takes this product alone; the line's price and stock become the ones the shopper saw, as the
+ * product page showed them. It cannot be sent with [selected] `false`.
  */
 @Serializable
 public data class LineChange(
     val quantity: Int? = null,
     val selected: Boolean? = null,
+    val alone: Boolean? = null,
 )
 
 /** «Remove» and «Delete selected», `DELETE` to `CartSelection.linesUrl`: the SKUs whose lines go. */

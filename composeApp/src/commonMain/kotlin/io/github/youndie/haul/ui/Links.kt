@@ -10,6 +10,8 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.withLink
@@ -44,6 +46,12 @@ internal fun Modifier.pressable(onPress: (() -> Unit)?): Modifier =
         pointerHoverIcon(PointerIcon.Hand)
             .clickable(interactionSource = null, indication = null, role = Role.Button, onClick = onPress)
     }
+
+/**
+ * A control that has nothing to do right now and is drawn greyed for it (B-100): not pressable, and disabled for
+ * assistive technology, as the look says.
+ */
+internal fun Modifier.inert(): Modifier = semantics { disabled() }
 
 /**
  * A control that has nothing to do right now (a card's «+» with nothing to add, B-75) and sits over one that

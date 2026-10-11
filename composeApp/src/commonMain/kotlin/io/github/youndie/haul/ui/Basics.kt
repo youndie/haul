@@ -125,7 +125,9 @@ internal fun Modifier.negativeBottomMargin(less: Dp): Modifier =
 /**
  * The canvas's button: a filled or outlined pill-cornered block, its label in Archivo 700 and an
  * optional icon after (or, with [iconFirst], before) it, 10 px apart. [onClick] makes it a button;
- * without one it is drawn and does nothing.
+ * without one it is drawn and does nothing. A button that is not [enabled] has nothing to do and looks it
+ * (B-100), as the buy box's buttons out of stock do (B-75): Paper's grey under a muted label, filled or
+ * outlined alike — an outline is filled to its edge, so the button keeps its size — and it presses nothing.
  */
 @Composable
 internal fun HaulButton(
@@ -142,23 +144,32 @@ internal fun HaulButton(
     iconSize: Dp = 20.dp,
     iconFirst: Boolean = false,
     gap: Dp = 10.dp,
+    enabled: Boolean = true,
     onClick: (() -> Unit)? = null,
 ) {
     val shape = RoundedCornerShape(radius)
+    val drawnFill = if (enabled) fill else HaulColors.outlineVariant
+    val drawnBorder = if (enabled || border == null) border else HaulColors.outlineVariant
+    val drawnContent = if (enabled) content else HaulColors.outlineMuted
     Row(
         modifier
-            .pressable(onClick)
+            .then(if (enabled) Modifier.pressable(onClick) else Modifier.inert())
             .height(height)
-            .then(if (fill != null) Modifier.background(fill, shape) else Modifier)
+            .then(if (drawnFill != null) Modifier.background(drawnFill, shape) else Modifier)
             // A CSS border takes room of its own, outside the padding.
-            .then(if (border != null) Modifier.border(2.dp, border, shape).padding(horizontal = 2.dp) else Modifier)
-            .padding(horizontal = horizontal),
+            .then(
+                if (drawnBorder != null) {
+                    Modifier.border(2.dp, drawnBorder, shape).padding(horizontal = 2.dp)
+                } else {
+                    Modifier
+                },
+            ).padding(horizontal = horizontal),
         horizontalArrangement = Arrangement.spacedBy(gap, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (icon != null && iconFirst) Icon(icon, iconSize, content)
-        Text(label, HaulType.text(textSize, 700).copy(color = content), softWrap = false)
-        if (icon != null && !iconFirst) Icon(icon, iconSize, content)
+        if (icon != null && iconFirst) Icon(icon, iconSize, drawnContent)
+        Text(label, HaulType.text(textSize, 700).copy(color = drawnContent), softWrap = false)
+        if (icon != null && !iconFirst) Icon(icon, iconSize, drawnContent)
     }
 }
 

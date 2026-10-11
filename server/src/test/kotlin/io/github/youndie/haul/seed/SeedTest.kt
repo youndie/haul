@@ -16,36 +16,39 @@ class SeedTest {
      */
     @Test
     fun `a fresh database is seeded to the same hash twice`() {
-        val first = PostgresHarness.freshDatabase()
-        val second = PostgresHarness.freshDatabase()
+        val digests =
+            List(2) {
+                PostgresHarness.freshDatabase().use { dataSource ->
+                    assertTrue(
+                        Seeder.seedIfEmpty(Databases.connect(dataSource), CatalogSeed.generate(CatalogSeed.CANVAS_DAY)),
+                    )
+                    SeedDigest.of(dataSource)
+                }
+            }
 
-        assertTrue(Seeder.seedIfEmpty(Databases.connect(first), CatalogSeed.generate(CatalogSeed.CANVAS_DAY)))
-        assertTrue(Seeder.seedIfEmpty(Databases.connect(second), CatalogSeed.generate(CatalogSeed.CANVAS_DAY)))
-
-        val digest = SeedDigest.of(first)
-        assertEquals(digest, SeedDigest.of(second), "two seeds of a fresh database differ")
+        assertEquals(digests[0], digests[1], "two seeds of a fresh database differ")
         // Positive control: the hash is over rows, not over two empty catalogs.
         assertNotEquals(
-            SeedDigest.of(PostgresHarness.freshDatabase()),
-            digest,
+            PostgresHarness.freshDatabase().use { SeedDigest.of(it) },
+            digests[0],
             "the digest does not see the seeded rows",
         )
     }
 
     /** Every replica seeds on start; the second one must find the catalog and leave it alone. */
     @Test
-    fun `a second seed of the same database inserts nothing`() {
-        val dataSource = PostgresHarness.freshDatabase()
-        val database = Databases.connect(dataSource)
-        assertTrue(Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY)))
-        val digest = SeedDigest.of(dataSource)
+    fun `a second seed of the same database inserts nothing`() =
+        PostgresHarness.freshDatabase().use { dataSource ->
+            val database = Databases.connect(dataSource)
+            assertTrue(Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY)))
+            val digest = SeedDigest.of(dataSource)
 
-        assertFalse(
-            Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY)),
-            "the second seed reported inserting",
-        )
-        assertEquals(digest, SeedDigest.of(dataSource), "the second seed changed the catalog")
-    }
+            assertFalse(
+                Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY)),
+                "the second seed reported inserting",
+            )
+            assertEquals(digest, SeedDigest.of(dataSource), "the second seed changed the catalog")
+        }
 
     /** The sample data of research §6 is what every artboard shows; the generator must not lose it. */
     @Test

@@ -11,6 +11,7 @@ import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.testing.ShildikHarness
+import io.github.youndie.haul.testing.action
 import io.github.youndie.haul.testing.after
 import io.github.youndie.haul.testing.all
 import io.github.youndie.haul.testing.answer
@@ -33,6 +34,9 @@ import io.github.youndie.kompot.commands.LoadAction
 import io.github.youndie.kompot.commands.UpdateAction
 import io.github.youndie.kompot.decodeKompotComponent
 import io.github.youndie.kompot.standard.NavigateAction
+import io.github.youndie.kompot.standard.RefreshAction
+import io.github.youndie.kompot.standard.SequenceAction
+import io.github.youndie.kompot.standard.ShowMessageAction
 import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.delete
@@ -293,7 +297,8 @@ class SavedRoutesTest {
 
     /**
      * «Save for later» moves a cart line to the Saved list (B-20): the mug leaves Maya's cart and is the
-     * newest in her list; a second press finds no line (`404 line_not_found`) and changes nothing.
+     * newest in her list, and the answer says where it went, with the way there (B-100); a second press finds
+     * no line (`404 line_not_found`) and changes nothing.
      */
     @Test
     fun `save for later moves a line from the cart to the list`() =
@@ -307,7 +312,9 @@ class SavedRoutesTest {
             assertEquals(CartPaths.saveForLater("$STONEWARE_MUG-0"), url)
             assertNull(line.saveAction)
 
-            post(url) { bearerAuth(maya) }.assertRefresh()
+            val toSaved = NavigateAction("/account/saved")
+            val moved = ShowMessageAction("Moved to your Saved list", actionLabel = "View saved", action = toSaved)
+            assertEquals(SequenceAction(listOf(RefreshAction, moved)), post(url) { bearerAuth(maya) }.action())
             val cart = tree(maya, CartPaths.SCREEN).all().filterIsInstance<CartLine>()
             assertEquals(listOf(SONY_HEADPHONES, "p-linen-duvet-cover-set"), cart.map { it.productId })
             assertEquals(

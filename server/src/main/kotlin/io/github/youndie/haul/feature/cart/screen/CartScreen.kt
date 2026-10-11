@@ -136,7 +136,7 @@ internal class CartScreen(
             acknowledgeLabel = if (line.changed) "OK" else null,
             url = CartPaths.line(line.sku.id),
             acknowledgeUrl = if (line.changed) CartPaths.acknowledge(line.sku.id) else null,
-            action = productLink(line.item.product.id),
+            action = productLink(line.item.product.id, line.sku.id),
             saveUrl = if (owner is CartOwner.Customer) CartPaths.saveForLater(line.sku.id) else null,
             saveAction = if (owner is CartOwner.Guest) NavigateAction(Frame.SIGN_IN) else null,
         )
@@ -262,10 +262,12 @@ internal class CartScreen(
 }
 
 /**
- * The summary's rows over [totals] — «Items (3) $652.00» for the [units] counted, «Discount −$140.00»,
- * the promo code inside the discount when it took something off («Promo · AUTUMN10 −$50.00»), «Delivery
- * Free» — the same on the cart and at checkout; the savings are marked to be drawn in the sale red.
- * Checkout names the day in the delivery row ([delivery] «Delivery · Wed, Oct 8»).
+ * The summary's rows over [totals] — «Items (3) $652.00» for the [units] counted, «Discount −$140.00», the
+ * promo code's own row when it took something off («Promo · AUTUMN10 −$50.00»), «Delivery Free» — the same
+ * on the cart and at checkout; the savings are marked to be drawn in the sale red. The rows add up to the
+ * total (B-100): «Discount» is the sale alone, the code's row beside it rather than inside it, and a row
+ * that takes nothing off is not drawn, as the order's page leaves it out. Checkout names the day in the
+ * delivery row ([delivery] «Delivery · Wed, Oct 8»).
  */
 internal fun summaryRows(
     totals: Totals,
@@ -276,7 +278,9 @@ internal fun summaryRows(
 ): List<SummaryRow> =
     buildList {
         add(SummaryRow("Items ($units)", CartScreen.exact(totals.itemsCents)))
-        add(SummaryRow("Discount", "−" + CartScreen.exact(totals.discountCents), saving = true))
+        if (totals.productDiscountCents > 0) {
+            add(SummaryRow("Discount", "−" + CartScreen.exact(totals.productDiscountCents), saving = true))
+        }
         if (promoCode != null && totals.promoCents > 0) {
             add(SummaryRow("Promo · $promoCode", "−" + CartScreen.exact(totals.promoCents), saving = true))
         }

@@ -8,6 +8,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
@@ -24,6 +26,7 @@ import io.github.youndie.haul.decode
 import io.github.youndie.haul.feature.checkout.PLACE_TAG
 import io.github.youndie.haul.feature.identity.SignInUnavailable
 import io.github.youndie.haul.read
+import io.github.youndie.haul.registry.haulJson
 import io.github.youndie.haul.registry.haulRegistry
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
@@ -37,11 +40,15 @@ import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.ui.LocalHaulNow
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotActionHandler
+import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.KompotScreen
 import io.github.youndie.kompot.form.FormController
 import io.github.youndie.kompot.form.FormSchema
 import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.RefreshAction
+import io.github.youndie.kompot.standard.SequenceAction
+import io.github.youndie.kompot.standard.ShowMessageAction
+import kotlinx.serialization.PolymorphicSerializer
 import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
@@ -64,21 +71,26 @@ class CartWiringTest {
     /** What the server does with a command instead of answering `refresh`: refuses it, or is not there. */
     private var failure: (() -> Throwable)? = null
 
+    /** What the server answers a command it accepts: `refresh`, unless a test says otherwise. */
+    private var answer: (CartCommand) -> KompotAction = { RefreshAction }
+
     private val commands =
         CartCommands { command ->
             sent += command
             failure?.let { throw it() }
-            RefreshAction
+            answer(command)
         }
 
-    private fun ComposeUiTest.cart(body: String) =
+    private fun ComposeUiTest.cart(body: String) = cart(decode(body))
+
+    private fun ComposeUiTest.cart(tree: KompotComponent) =
         setContent {
             HaulTheme(FixtureFonts.fonts, compact = false) {
                 CompositionLocalProvider(LocalCartCommands provides commands, LocalHaulNow provides CANVAS_NOW) {
                     val forms = remember { FormController(FormSchema(formId = "none", fields = emptyList())) }
                     Box(Modifier.verticalScroll(rememberScrollState())) {
                         KompotScreen(
-                            decode(body),
+                            tree,
                             remember { haulRegistry() },
                             forms,
                             KompotActionHandler {
@@ -114,11 +126,47 @@ class CartWiringTest {
             assertEquals(listOf<KompotAction>(RefreshAction), followed.toList())
         }
 
+    /** B-100: «−» at one has nowhere to go and looks it — muted, disabled — while «+» beside it is live. */
     @Test
-    fun `minus at one sends nothing`() =
+    fun `minus at one is idle and sends nothing`() =
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
             cart(CONTENT)
+            onNodeWithTag("cart-line-less:$MUG").assertIsNotEnabled()
+            onNodeWithTag("cart-line-more:$MUG").assertIsEnabled()
             pressInert("cart-line-less:$MUG")
+        }
+
+    /** B-100: at the line's limit «+» is idle as «−» is at one; the headphones' line here holds all it can. */
+    @Test
+    fun `plus at the line's limit is idle and sends nothing`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            val atLimit = read(CONTENT).replaceFirst("\"maxQuantity\": 10", "\"maxQuantity\": 1")
+            cart(haulJson.decodeFromString(PolymorphicSerializer(KompotComponent::class), atLimit))
+            onNodeWithTag("cart-line-more:$HEADPHONES").assertIsNotEnabled()
+            onNodeWithTag("cart-line-more:$MUG").assertIsEnabled()
+            pressInert("cart-line-more:$HEADPHONES")
+        }
+
+    /**
+     * B-100, nothing ticked (`cart_nothing_selected.json`): checkout and «Delete selected» have nothing to do and
+     * look it — disabled, greyed — where with every line ticked both are live.
+     */
+    @Test
+    fun `with nothing ticked checkout and delete selected are idle`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            cart(NOTHING_SELECTED)
+            onNodeWithTag(CHECKOUT_TAG).assertIsNotEnabled()
+            onNodeWithTag(DELETE_SELECTED_TAG).assertIsNotEnabled()
+            pressInert(CHECKOUT_TAG)
+            pressInert(DELETE_SELECTED_TAG)
+        }
+
+    @Test
+    fun `with lines ticked checkout and delete selected are live`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            cart(CONTENT)
+            onNodeWithTag(CHECKOUT_TAG).assertIsEnabled()
+            onNodeWithTag(DELETE_SELECTED_TAG).assertIsEnabled()
         }
 
     @Test
@@ -285,7 +333,44 @@ class CartWiringTest {
             cart(CONTENT)
             onNodeWithText("Stoneware Mug, 12 oz").performClick()
             waitUntil(timeoutMillis = 5_000) { followed.isNotEmpty() }
-            assertEquals(listOf<KompotAction>(NavigateAction("/p/p-stoneware-mug")), followed.toList())
+            assertEquals(listOf<KompotAction>(NavigateAction("/p/p-stoneware-mug?sku=$MUG")), followed.toList())
+        }
+
+    /**
+     * B-100 in the storefront: «Save for later» is answered with the cart again and where the line went — the
+     * Saved list, with the way there — said over the page.
+     */
+    @Test
+    fun `in the storefront save for later says where the line went`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            val requests = CopyOnWriteArrayList<String>()
+            val transport =
+                HaulTransport { path ->
+                    requests += path
+                    HaulResponse(200, read(CONTENT))
+                }
+            val toSaved = NavigateAction(SAVED)
+            val moved = ShowMessageAction("Moved to your Saved list", actionLabel = "View saved", action = toSaved)
+            answer = { command ->
+                if (command is CartCommand.SaveForLater) SequenceAction(listOf(RefreshAction, moved)) else RefreshAction
+            }
+            setContent {
+                HaulTheme(FixtureFonts.fonts, compact = false) {
+                    Storefront(
+                        transport,
+                        FakeHistory("/cart"),
+                        signIn = {},
+                        clock = FixedClock,
+                        cartCommands = commands,
+                    )
+                }
+            }
+            onNodeWithTag("cart-line-save:$MUG").performClick()
+            waitUntil(timeoutMillis = 5_000) { exists(MESSAGE_TAG) }
+            assertEquals(listOf<CartCommand>(CartCommand.SaveForLater("$mugUrl/save-for-later")), sent.toList())
+            assertEquals(listOf("/ui/cart", "/ui/cart"), requests.toList(), "the cart was not drawn again")
+            onNode(hasText("Moved to your Saved list") and hasAnyAncestor(hasTestTag(MESSAGE_TAG))).assertExists()
+            onNode(hasText("View saved") and hasAnyAncestor(hasTestTag(MESSAGE_TAG))).assertExists()
         }
 
     /**
@@ -457,6 +542,8 @@ class CartWiringTest {
         const val PROMO_APPLIED = "cart_promo_applied.json"
         const val PROMO_ERROR = "cart_promo_error.json"
         const val GUEST = "cart_guest.json"
+        const val NOTHING_SELECTED = "cart_nothing_selected.json"
+        const val SAVED = "/account/saved"
         const val CHECKOUT = "checkout_content.json"
         const val LINES = "/api/v1/cart/lines"
         const val PROMO = "/api/v1/cart/promo"
