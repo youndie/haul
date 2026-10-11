@@ -574,8 +574,10 @@ and on the stand.
   refunds of an order never add up to more than its captures. Pay on delivery is paid back by the courier,
   outside the processor.
 - **What a line gives back** is its share of the items as paid — the order's items are at list price and its
-  discount holds the sale and the code, so the code is shared over the lines in proportion to their price paid;
-  the delivery is kept. The points taken back are the order's in proportion to the refund (the canvas's 87 × 2 =
+  discount holds the sale and the code, so the code is shared over the lines in proportion to what each cost at
+  the price paid; the delivery is kept. What a line cost is its total, the price times the quantity, which is what
+  an order line keeps (`OrderLine.totalCents`, column `price_cents`): a reader that multiplies it by the quantity
+  again counts it twice, and the price of one is `unitCents` (B-91). The points taken back are the order's in proportion to the refund (the canvas's 87 × 2 =
   174); there is no points ledger yet (B-23), so they are the return's own number, drawn once refunded.
 - **The order's progress** is `returning` while its return is requested or picked up and `returned` once it is
   refunded (`OrderProgress.of`, reading `Order.returnStatus`): the order page draws the return's three steps,
@@ -1574,7 +1576,7 @@ The names go into the code unchanged.
 | `PromoCode` | code | — | one per order |
 | `SavedItem` | (`Customer`, `Product`) | `Customer` | the price at saving time |
 | `ProductView`, `RecentSearch` | (`Customer`, …) | `Customer` | last 20 views, last 10 searches |
-| `Order` | `HL-<5 digits>` | `Customer` | status derived from its shipments; a copy of the address it was placed to |
+| `Order` | `HL-<5 digits>` | `Customer` | status derived from its shipments; a copy of the address it was placed to; its lines keep line totals (price × quantity), not unit prices (B-91) |
 | `Shipment` | server id | `Order` | one per seller: `placed`, `packed`, `in_transit`, `ready_for_pickup`, `delivered`, `picked_up`, `cancelled` |
 | `DeliveryMethod` | closed set | — | `courier`, `pickup_point`, `parcel_locker` |
 | `PickupPoint`, `DeliverySlot` | server id; (date, window) | — | slots: next 5 days × 4 windows, with capacity |
