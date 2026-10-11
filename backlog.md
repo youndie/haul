@@ -43,12 +43,11 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (20)
+## Open (19)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-112](docs/backlog/B-112-first-press-focuses-the-field.md) `[?]` | client: the first press on a text field focuses it | P1 | M | - |
-| [B-115](docs/backlog/B-115-a-guest-keeps-the-cart-on-a-customers-page.md) `[~]` | fix: a guest who opens a customer's page by its address keeps the cart | P1 | S | - |
 | [B-116](docs/backlog/B-116-back-from-the-provider-says-the-sign-in-did-not-go-through.md) `[ ]` | fix: back from the provider's page says the sign-in did not go through | P2 | S | - |
 | [B-117](docs/backlog/B-117-a-malformed-link-opens-the-store.md) `[ ]` | fix: a page address with broken percent-encoding opens the store | P2 | S | - |
 | [B-119](docs/backlog/B-119-search-chips-and-title-say-what-is-shown.md) `[ ]` | fix: a search's title, chips and picker say what the grid shows | P2 | S/M | - |
@@ -68,7 +67,7 @@ A stage is a field on the item, not a directory.
 | [B-86](docs/backlog/B-86-reviews-photos-and-histogram.md) `[ ]` | client + server: review photos open and the histogram filters | P3 | M | - |
 | [B-87](docs/backlog/B-87-fallback-rows.md) `[ ]` | server: what home and the empty cart show when no deal is live | P3 | S | - |
 
-## Closed (109)
+## Closed (110)
 
 **Skeleton**
 
@@ -211,6 +210,10 @@ A stage is a field on the item, not a directory.
 - [B-97](docs/backlog/B-97-checkout-state-is-the-servers.md) `[x]` - client + server: what checkout shows is what it will place
 - [B-98](docs/backlog/B-98-delivery-dates-and-fees-agree.md) `[x]` - server: delivery dates, fees and the address agree across pages
 - [B-99](docs/backlog/B-99-reviews-and-questions-tell-the-truth.md) `[x]` - server + client: reviews and questions behave as they say
+
+**QA run**
+
+- [B-115](docs/backlog/B-115-a-guest-keeps-the-cart-on-a-customers-page.md) `[x]` - fix: a guest who opens a customer's page by its address keeps the cart
 
 <!-- END INDEX -->
 
