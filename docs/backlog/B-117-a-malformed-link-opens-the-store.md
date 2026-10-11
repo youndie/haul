@@ -1,7 +1,7 @@
 ---
 id: B-117
 title: "fix: a page address with broken percent-encoding opens the store"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-12-qa-run

@@ -49,7 +49,7 @@ A stage is a field on the item, not a directory.
 |---|---|---|---|---|
 | [B-112](docs/backlog/B-112-first-press-focuses-the-field.md) `[?]` | client: the first press on a text field focuses it | P1 | M | - |
 | [B-116](docs/backlog/B-116-back-from-the-provider-says-the-sign-in-did-not-go-through.md) `[ ]` | fix: back from the provider's page says the sign-in did not go through | P2 | S | - |
-| [B-117](docs/backlog/B-117-a-malformed-link-opens-the-store.md) `[ ]` | fix: a page address with broken percent-encoding opens the store | P2 | S | - |
+| [B-117](docs/backlog/B-117-a-malformed-link-opens-the-store.md) `[~]` | fix: a page address with broken percent-encoding opens the store | P2 | S | - |
 | [B-119](docs/backlog/B-119-search-chips-and-title-say-what-is-shown.md) `[ ]` | fix: a search's title, chips and picker say what the grid shows | P2 | S/M | - |
 | [B-120](docs/backlog/B-120-out-of-stock-promises-no-delivery.md) `[ ]` | fix: a product with nothing in stock promises no delivery date | P2 | S | - |
 | [B-123](docs/backlog/B-123-maya-s-plus-savings-follow-the-seeding-year.md) `[ ]` | fix: Maya's carried Plus savings belong to the year the stand was seeded | P2 | XS | - |
