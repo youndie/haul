@@ -41,6 +41,7 @@ import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.domain.Placement
 import io.github.youndie.haul.feature.order.domain.Reorder
 import io.github.youndie.haul.feature.order.domain.StockReservations
+import io.github.youndie.haul.feature.order.domain.StockReturns
 import io.github.youndie.haul.feature.order.orderModule
 import io.github.youndie.haul.feature.order.saga.SagaStorage
 import io.github.youndie.haul.feature.order.screen.OrderScreen
@@ -157,6 +158,7 @@ class KoinGraphTest {
         assertNotNull(koin.get<HaulPayPlans>())
         assertNotNull(koin.get<OrderRepository>())
         assertNotNull(koin.get<StockReservations>())
+        assertNotNull(koin.get<StockReturns>())
         assertNotNull(koin.get<SagaStorage>())
         assertNotNull(koin.get<PetichEngine>())
         assertNotNull(koin.get<SuspendedPetichSweeper>())

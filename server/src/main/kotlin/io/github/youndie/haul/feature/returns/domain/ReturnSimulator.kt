@@ -6,6 +6,7 @@ import io.github.youndie.haul.feature.membership.domain.PointsLedger
 import io.github.youndie.haul.feature.membership.domain.PointsMovement
 import io.github.youndie.haul.feature.order.domain.OrderMoves
 import io.github.youndie.haul.feature.order.domain.OrderRepository
+import io.github.youndie.haul.feature.order.domain.StockReturns
 import io.github.youndie.haul.feature.payment.domain.HaulPayPlans
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
 import io.github.youndie.haul.feature.payment.domain.Refund
@@ -38,6 +39,12 @@ private val log = LoggerFactory.getLogger("io.github.youndie.haul.returns")
  * `returned:<order>` — kept apart from the cancellation's give-back, which an order that was delivered never
  * had); that part of the refund is not paid in money, and the rest is what the return dialog said (B-50).
  *
+ * **The returned units go back to stock with the refund** (B-88), after the points and before the move, once by
+ * their key (`return:<order>`, [restockKey]): the refund is the moment the seller has the parcel back (B-21), so
+ * the unit is sellable from then — at `picked_up` it is still in the courier's van. A return held by a refused
+ * refund puts nothing back until it is refunded; a return never reads «refunded» with its units still off the
+ * shelf. Every reason restocks: the simulated world has no damaged goods to write off.
+ *
  * Every move is conditional on the status it leaves, so two passes at once move a return once. Each order whose
  * return a pass moved is told to [moves] (B-29), so a page watching it is drawn again.
  */
@@ -47,6 +54,7 @@ internal class ReturnSimulator(
     private val payments: PaymentProcessor,
     private val plans: HaulPayPlans,
     private val points: PointsLedger,
+    private val stock: StockReturns,
     private val clock: PetichClock,
     private val pace: FulfilmentPace,
     private val moves: OrderMoves = OrderMoves(),
@@ -76,7 +84,10 @@ internal class ReturnSimulator(
             val due = since + after.toJavaDuration()
             if (due.isAfter(now)) break
             if (to == ReturnStatus.REFUNDED && !refunded(orderReturn, due)) break
-            if (to == ReturnStatus.REFUNDED) settlePoints(orderReturn, due)
+            if (to == ReturnStatus.REFUNDED) {
+                settlePoints(orderReturn, due)
+                restock(orderReturn, due)
+            }
             if (!returns.move(orderReturn.orderId, status, to, due)) break
             status = to
             since = due
@@ -102,6 +113,20 @@ internal class ReturnSimulator(
         ) {
             points.record(PointsMovement.returned(customer, order.id, back, stamp, returnId = "return-${order.id}"))
         }
+    }
+
+    /** [orderReturn]'s lines' units back on their SKUs' stock, as of [at]; once, by [restockKey]. */
+    private suspend fun restock(
+        orderReturn: OrderReturn,
+        at: Instant,
+    ) {
+        val order = orders.order(orderReturn.orderId) ?: error("the return of ${orderReturn.orderId} has no order")
+        val units =
+            orderReturn.lines
+                .map { order.placed.lines[it.position] }
+                .groupingBy { it.skuId }
+                .fold(0) { sum, line -> sum + line.quantity }
+        stock.restock(restockKey(order.id), units, at.atOffset(ZoneOffset.UTC))
     }
 
     /** Whether [orderReturn]'s refund was given back — now, or by an earlier pass — or goes back another way. */
@@ -142,5 +167,8 @@ internal class ReturnSimulator(
     companion object {
         /** The processor's key of an order's refund: one return per order, so one refund. */
         fun refundKey(orderId: String): String = "refund:$orderId"
+
+        /** The key an order's returned units come back under: one return per order, so one restock. */
+        fun restockKey(orderId: String): String = "return:$orderId"
     }
 }

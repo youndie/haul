@@ -7,6 +7,7 @@ import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.domain.Placement
 import io.github.youndie.haul.feature.order.domain.Reorder
 import io.github.youndie.haul.feature.order.domain.StockReservations
+import io.github.youndie.haul.feature.order.domain.StockReturns
 import io.github.youndie.haul.feature.order.saga.SagaStorage
 import io.github.youndie.haul.feature.order.saga.orderEngine
 import io.github.youndie.haul.feature.order.saga.orderSaga
@@ -29,6 +30,7 @@ internal val orderModule =
         single { SagaStorage(get(), get()) }
         single<OrderRepository> { ExposedOrders(get()) }
         single<StockReservations> { ExposedStock(get()) }
+        single<StockReturns> { ExposedStock(get()) }
         single<PetichEngine> {
             orderEngine(
                 storage = get(),

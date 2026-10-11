@@ -174,6 +174,23 @@ internal interface StockReservations {
 }
 
 /**
+ * Units that come back to the shelf after they were sold (B-88): a returned line's units, once the seller has
+ * the parcel back. Not a release — the order's reservation stays what it took; this is its own entry, named by
+ * [key], so a pass that dies after it and is run again puts nothing back twice.
+ */
+internal interface StockReturns {
+    /**
+     * Adds every one of [quantities] (SKU → units) back to its stock under [key], once: `false`, adding
+     * nothing, when [key] has come back already.
+     */
+    suspend fun restock(
+        key: String,
+        quantities: Map<String, Int>,
+        at: OffsetDateTime,
+    ): Boolean
+}
+
+/**
  * What placement, the order's page and its reorder can refuse with, besides checkout's and the cart's own
  * refusals; the application answers each with its status.
  */
