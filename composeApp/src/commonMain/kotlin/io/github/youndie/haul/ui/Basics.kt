@@ -258,20 +258,21 @@ internal fun Text(
     softWrap: Boolean = true,
     maxLines: Int = Int.MAX_VALUE,
 ) {
+    val legible = HaulType.legibleFigures(text, style)
     // The line boxes are measured here rather than read back from the text's own layout: an intrinsic
     // measurement (a row as tall as its tallest cell) comes before any layout, and must crop too.
     val measurer = rememberTextMeasurer()
     val overflow = if (maxLines == Int.MAX_VALUE) TextOverflow.Clip else TextOverflow.Ellipsis
     val crops = style.lineHeight.isSpecified
     BasicText(
-        text,
+        legible,
         modifier.layout { measurable, constraints ->
             val placeable = measurable.measure(constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity))
             var top = 0
             var bottom = placeable.height
             if (crops) {
                 val width = Constraints(maxWidth = constraints.maxWidth)
-                val lines = measurer.measure(text, style, overflow, softWrap, maxLines, constraints = width)
+                val lines = measurer.measure(legible, style, overflow, softWrap, maxLines, constraints = width)
                 // Where CSS puts the first line box: the leading (line height minus ascent and descent)
                 // split evenly, so the box's top is (line height + ascent − descent) / 2 above the
                 // baseline. Skia rounds its own line top down, a pixel off at a negative leading.
@@ -456,16 +457,18 @@ internal fun BalancedText(
     style: TextStyle,
     modifier: Modifier = Modifier,
 ) {
+    val legible = HaulType.legibleFigures(text, style)
     val measurer = rememberTextMeasurer()
     Text(
-        text,
+        legible,
         modifier.layout { measurable, constraints ->
-            fun lines(width: Int) = measurer.measure(text, style, constraints = Constraints(maxWidth = width)).lineCount
+            fun lines(width: Int) =
+                measurer.measure(legible, style, constraints = Constraints(maxWidth = width)).lineCount
             val full = constraints.maxWidth
             val count = lines(full)
             var width = full
             if (count > 1) {
-                var low = minOf(widestWord(measurer, text, style), full)
+                var low = minOf(widestWord(measurer, legible, style), full)
                 var high = full
                 while (low < high) {
                     val mid = (low + high) / 2

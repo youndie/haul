@@ -273,13 +273,14 @@ private fun FactTitle(
     val drawn = fitted
     val style = HaulType.display(drawn, 800, letterSpacing = -0.01f, lineHeight = 0.9f)
     val measurer = rememberTextMeasurer()
+    val legible = HaulType.legibleFigures(AnnotatedString(title), style)
     Text(
         title,
         style,
         Modifier.layout { measurable, constraints ->
             val width = constraints.maxWidth
             if (constraints.hasBoundedWidth && width > 0 && drawn > FACT_TITLE_MIN) {
-                val widest = widestWord(measurer, AnnotatedString(title), style)
+                val widest = widestWord(measurer, legible, style)
                 if (widest > width) {
                     val smaller = maxOf(FACT_TITLE_MIN, minOf(floor(drawn * width / widest * 2f) / 2f, drawn - 0.5f))
                     if (smaller < fitted) fitted = smaller

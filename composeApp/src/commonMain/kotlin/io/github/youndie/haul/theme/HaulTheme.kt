@@ -3,9 +3,13 @@ package io.github.youndie.haul.theme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
@@ -60,7 +64,10 @@ public object HaulType {
         lineHeight: Float? = null,
     ): TextStyle = style(LocalHaulFonts.current.archivo, size, weight, lineHeight?.let { (size * it).sp })
 
-    /** Bodoni Moda — headlines, prices, the logo; the optical size follows the pixel size. */
+    /**
+     * Bodoni Moda — headlines, prices, the logo; the optical size follows the pixel size. The app's text
+     * draws its figures and punctuation through [legibleFigures].
+     */
     @Composable
     public fun display(
         size: Float,
@@ -77,6 +84,48 @@ public object HaulType {
                     lineHeight
             ).sp,
         ).copy(letterSpacing = letterSpacing.em)
+
+    /**
+     * [text] as a [display] [style] draws it legibly: its figures and punctuation — every character that is
+     * not a letter or a space — at [legibleOpticalSize] instead of the canvas's optical size, the letters
+     * as the canvas draws them. At the canvas's size the face's hairlines are 0.2 px: a hyphen and a dash
+     * vanish («WH 1000XM6», «#HL 48303») and a 4 loses its diagonal and bar and reads as a 1 («$31.19»,
+     * «1.8»), B-106. A figure's and a mark's advance is the same at every optical size (a «#» or a «/»
+     * moves by half a pixel at most), so no line breaks elsewhere; a letter's is not, which is why the
+     * letters keep the canvas's cut. A character a span already gives a family of its own keeps it; a
+     * [style] that is not Bodoni Moda's leaves [text] as it is.
+     */
+    @Composable
+    public fun legibleFigures(
+        text: AnnotatedString,
+        style: TextStyle,
+    ): AnnotatedString {
+        val fonts = LocalHaulFonts.current
+        val size = style.fontSize
+        if (!size.isSp || style.fontFamily != fonts.bodoni(size.value.coerceIn(BODONI_OPSZ_MIN, BODONI_OPSZ_MAX))) {
+            return text
+        }
+        val figures = fonts.bodoni(legibleOpticalSize(size.value))
+        return remember(text, figures) {
+            val chosen = text.spanStyles.filter { it.item.fontFamily != null }
+
+            fun isFigure(index: Int): Boolean =
+                text[index].let { !it.isLetter() && !it.isWhitespace() } &&
+                    chosen.none { index in it.start until it.end }
+            buildAnnotatedString {
+                append(text)
+                var start = -1
+                for (index in 0..text.length) {
+                    val figure = index < text.length && isFigure(index)
+                    if (figure && start < 0) start = index
+                    if (!figure && start >= 0) {
+                        addStyle(SpanStyle(fontFamily = figures), start, index)
+                        start = -1
+                    }
+                }
+            }
+        }
+    }
 
     /** CSS's leading: the space a line height adds (or takes) split evenly above and below, nothing trimmed. */
     public fun TextStyle.browserLeading(): TextStyle = copy(lineHeightStyle = BROWSER_LEADING)
