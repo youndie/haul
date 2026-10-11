@@ -1,7 +1,7 @@
 ---
 id: B-84
 title: "test: screenshot fixtures do not depend on their order"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-10-review
