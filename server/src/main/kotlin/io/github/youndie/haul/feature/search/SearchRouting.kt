@@ -52,7 +52,8 @@ internal fun Route.searchRouting() {
     }
 
     get("/ui/search/suggest") {
-        call.respondKompotComponent(haulWireJson, screen.suggest(call.request.queryParameters["q"], viewers.of(call)))
+        val query = call.request.queryParameters
+        call.respondKompotComponent(haulWireJson, screen.suggest(query["q"], query["category"], viewers.of(call)))
     }
 }
 
@@ -72,9 +73,15 @@ internal fun Route.customerSearchRouting() {
     }
 }
 
-/** The search page's query; the query text itself is checked by the screen, the rest here. */
+/**
+ * The search page's query; the query text itself is checked by the screen, the rest here. No `sort`, or
+ * `sort=relevance`, is relevance (B-103).
+ */
 internal fun searchRequest(query: Parameters): SearchRequest {
-    val sort = query["sort"]?.let { Sort.of(it) ?: throw CatalogError.Invalid("sort", "No sort «$it»") } ?: Sort.Popular
+    val sort =
+        query["sort"]?.takeUnless { it == SearchScreen.RELEVANCE_KEY }?.let {
+            Sort.of(it) ?: throw CatalogError.Invalid("sort", "No sort «$it»")
+        }
     val page =
         query["page"]?.let {
             it.toIntOrNull()?.takeIf { p -> p >= 1 }

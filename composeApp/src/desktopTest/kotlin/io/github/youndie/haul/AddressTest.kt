@@ -90,5 +90,6 @@ class AddressTest {
         // B-72: in the category the field's picker chose.
         assertEquals("/search?q=running%20shoes&category=sports", Address.search("running shoes", "sports"))
         assertEquals("/ui/search/suggest?q=caf%C3%A9%20%26%20bar", Address.suggest("café & bar"))
+        assertEquals("/ui/search/suggest?q=mug&category=home-kitchen", Address.suggest("mug", "home-kitchen"))
     }
 }

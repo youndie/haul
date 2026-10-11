@@ -45,14 +45,15 @@ class OneCategoryAddressTest {
 
     /**
      * Every link to a category on every page that draws one — the header, home's tiles, the catalog's root, a
-     * category's breadcrumbs, a search's popular tiles and suggestions, a product's breadcrumbs — is the
-     * category's address, and its page answers there with no redirect.
+     * category's breadcrumbs, a search's popular tiles, a product's breadcrumbs — is the category's address, and
+     * its page answers there with no redirect. A search's category suggestion is a search in the category since
+     * B-103, not a link to it.
      */
     @Test
     fun `every link to a category is its one address`() =
         haulTest {
             val links = PAGES.flatMap { categoryLinks(tree(it).json()) }.toSet()
-            // Not only the header's top-level categories: a subcategory and a leaf, from breadcrumbs and suggestions.
+            // Not only the header's top-level categories: a subcategory and a leaf, from breadcrumbs.
             listOf("/c/electronics/audio", "/c/electronics/audio/headphones", "/c/sports/running-gear/running-shoes")
                 .forEach { assertTrue(it in links, "no page links $it; the links: $links") }
             val still = config { followRedirects = false }
@@ -137,6 +138,13 @@ class OneCategoryAddressTest {
                 "/ui/search?q=zzqxv",
                 "/ui/search/suggest?q=running%20sh",
                 "/ui/p/${SampleCatalog.SONY_HEADPHONES}",
+                "/ui/p/" +
+                    CatalogSeed
+                        .generate(
+                            CatalogSeed.CANVAS_DAY,
+                        ).products
+                        .first { it.categorySlug == "running-shoes" }
+                        .id,
                 "/ui/deals",
             )
 

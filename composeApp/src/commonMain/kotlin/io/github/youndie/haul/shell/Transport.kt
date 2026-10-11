@@ -222,12 +222,16 @@ private const val TYPE = "type"
 private const val SCREEN = "screen"
 
 /**
- * The suggest panel for what the shopper has typed, or `null` when there is none to show: a query the
- * server refuses (too short) or a request that failed closes the panel rather than drawing an error.
+ * The suggest panel for what the shopper has typed in the [scope] the field's picker chose (B-103), or `null`
+ * when there is none to show: a query the server refuses (too short) or a request that failed closes the panel
+ * rather than drawing an error.
  */
-internal suspend fun HaulTransport.suggest(query: String): SearchSuggestPanel? =
+internal suspend fun HaulTransport.suggest(
+    query: String,
+    scope: String? = null,
+): SearchSuggestPanel? =
     try {
-        tree(Address.suggest(query)) as? SearchSuggestPanel
+        tree(Address.suggest(query, scope)) as? SearchSuggestPanel
     } catch (failed: ScreenFailed) {
         null
     }

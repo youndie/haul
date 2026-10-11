@@ -186,7 +186,8 @@ public fun Storefront(
     val focus = LocalFocusManager.current
     val scope = rememberCoroutineScope()
 
-    // The header's search field: typing asks for the suggest panel once the shopper pauses, Enter opens
+    // The header's search field: typing asks for the suggest panel once the shopper pauses — in the picker's
+    // scope, and again when the picker changes it (B-103) — Enter opens
     // the results — or, once the arrow keys are on one of the panel's queries, that query's (B-77). A query
     // the server refuses, or a request that fails, shows no panel. The panel stays open when the field loses
     // focus — pressing a suggestion takes the focus, and closing the panel under the press would lose the
@@ -201,12 +202,12 @@ public fun Storefront(
     var panel by remember { mutableStateOf<SearchSuggestPanel?>(null) }
     LaunchedEffect(panel) { search.offer(panel?.suggestions?.map { it.action }.orEmpty()) }
     val typed = search.text.text.trim()
-    LaunchedEffect(typed, search.typed) {
+    LaunchedEffect(typed, search.typed, search.scope) {
         if (!search.typed || typed.isEmpty()) {
             panel = null
         } else {
             delay(SUGGEST_DELAY_MS)
-            panel = transport.suggest(typed)
+            panel = transport.suggest(typed, search.scope)
         }
     }
     val dismiss = {
@@ -236,7 +237,10 @@ public fun Storefront(
         } else {
             {
                 scope.launch {
-                    if (commands.answered { send("DELETE", clearUrl, null) }) panel = transport.suggest(typed)
+                    if (commands.answered { send("DELETE", clearUrl, null) }) {
+                        panel =
+                            transport.suggest(typed, search.scope)
+                    }
                 }
                 Unit
             }

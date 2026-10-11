@@ -205,7 +205,12 @@ client alone.
   (`server/.../feature/catalog/screen/Cards.kt`, `pageNumbers`). The Saved list draws the same numbers.
 - **The search has the sort** (B-77) the route always parsed: `FilterChips.sortLabel` and `sorts` end the
   category chips' row — at its right edge at 1440, over it on a phone — the same orders and menu as a
-  category's, each a `load` from the first page; a category chip keeps the sort. The
+  category's, each a `load` from the first page; a category chip keeps the sort. Since B-103 the search's
+  own order, «Relevance», comes first and is its default: the order the database matched in
+  (`ts_rank`, then the most reviewed), which «Popular» as the default had thrown away. Its address has no
+  `sort` (`sort=relevance` is taken too), so «Popular» is now `sort=popular` on a search; a category page
+  has no relevance and keeps «Popular» as its default. The chip chosen and the sort shown carry nothing,
+  as on a category (B-102). The
   no-results tips («01 Check the spelling», …) are advice, drawn as text with their numbers, not on the
   white pills the queries to try use, which run a search when pressed. No artboard draws the sort and the
   canvas draws the tips as pills, so `Search_Results`, `Search_Autocomplete` and `Search_NoResults` (and
@@ -270,6 +275,13 @@ whatever their style, so the ones with no page are left out rather than drawn as
   leaf's chip after a scope sets the picker back to «All categories»; a card's «+» keeps the scope in its
   answer's header (`&category=`, `LineAnswers.SCOPE`). Without scopes on the wire — the shell's header before
   any tree (B-67) — or without a field to type in, the picker opens nothing.
+- **The suggest panel is in the picker's scope too** (B-103; it ignored it until then). The client asks for
+  `/ui/search/suggest?q=…&category=<slug>` (`Address.suggest`), and again when the picker changes; the panel's
+  products, categories and counts and «All N results» are the matches under the scope, and every search it
+  opens — a query, a recent search, «All N results» — stays in it. A category suggestion opens the query in that
+  category (`/search?q=…&category=<leaf>`), the count it shows, where it used to open the whole category
+  without the query. A scope the catalog does not have is `404`, as on the results, and the client shows no
+  panel.
 - Rejected: plain text for the dead words (B-49's answer, which the stand walk showed did not read as text);
   a picker that runs the search as soon as a category is chosen (it would leave the page while the shopper
   may not have typed yet).

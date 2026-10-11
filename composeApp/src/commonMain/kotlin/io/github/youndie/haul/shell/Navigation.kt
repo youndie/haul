@@ -99,8 +99,16 @@ public data class Address(
         ): String =
             "/search?q=" + query.encodeURLParameter() + (category?.let { "&category=" + it.encodeURLParameter() } ?: "")
 
-        /** The suggest panel for what the shopper has typed so far. */
-        public fun suggest(query: String): String = "/ui/search/suggest?q=" + query.encodeURLParameter()
+        /**
+         * The suggest panel for what the shopper has typed so far, in the [category] the field's picker chose: the
+         * panel counts and opens the results there, as the search it leads to does (B-103).
+         */
+        public fun suggest(
+            query: String,
+            category: String? = null,
+        ): String =
+            "/ui/search/suggest?q=" + query.encodeURLParameter() +
+                (category?.let { "&category=" + it.encodeURLParameter() } ?: "")
     }
 }
 
