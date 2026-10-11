@@ -23,10 +23,10 @@ import io.ktor.http.encodeURLParameter
  *
  * Which node it is, the tree that drew the control wrote into the command's own address ([ANSWER]): a card
  * — built the same from the product and the SKU on every page that draws it, [card] — or the product page's
- * buy box ([DETAILS]); on the search page, also the search the header shows ([QUERY]) and the category it is
- * in ([SCOPE], B-72), which the header would otherwise lose. A command without it — the cart page's own lines, and the empty cart's picks, whose line the page
- * then lists (B-95) — is answered `refresh`, as is one
- * whose SKU is no longer listed: there is no node to send.
+ * buy box ([DETAILS]) on its tab ([TAB], B-104); on the search page, also the search the header shows
+ * ([QUERY]) and the category it is in ([SCOPE], B-72), which the header would otherwise lose. A command
+ * without it — the cart page's own lines, and the empty cart's picks, whose line the page then lists (B-95)
+ * — is answered `refresh`, as is one whose SKU is no longer listed: there is no node to send.
  *
  * Either press also says so (B-75, B-81): its answer is `sequence[update, show_message]`, the message [ADDED]
  * with the way to the cart ([VIEW_CART]), which the client draws as a notice over the page. A `refresh` says
@@ -50,7 +50,7 @@ internal class LineAnswers(
         val node: KompotComponent =
             when (answer) {
                 CARD -> card(item, calendar, photos, viewer, sku, query[QUERY], scope = query[SCOPE])
-                DETAILS -> product.details(item, sku, viewer)
+                DETAILS -> product.details(item, sku, viewer, query[TAB]?.let(ProductTab::of) ?: ProductTab.Description)
                 else -> return RefreshAction
             }
         val header = Frame.header(viewer, navigation(catalog.categories()), query[QUERY], query[SCOPE])
@@ -80,8 +80,15 @@ internal class LineAnswers(
         /** The search the page's header shows, which the header redrawn keeps. */
         const val QUERY = "q"
 
-        /** What the buy box's «Add to cart» adds to its line's address. */
-        const val DETAILS_ANSWER = "?$ANSWER=$DETAILS"
+        /** The product page's tab the buy box is drawn on, whose variants the buy box redrawn keeps (B-104). */
+        const val TAB = "tab"
+
+        /**
+         * What the buy box's «Add to cart» adds to its line's address on [tab]: the tab too, but for the
+         * description, so the buy box redrawn keeps its variants on the tab (B-104).
+         */
+        fun detailsAnswer(tab: ProductTab): String =
+            "?$ANSWER=$DETAILS" + if (tab == ProductTab.Description) "" else "&$TAB=${tab.key}"
 
         /** The category the page's search is in, which the header's picker redrawn keeps (B-72). */
         const val SCOPE = "category"

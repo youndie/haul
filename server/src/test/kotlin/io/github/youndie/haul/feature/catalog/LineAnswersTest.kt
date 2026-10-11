@@ -156,7 +156,8 @@ class LineAnswersTest {
 
     /**
      * B-75: «Add to cart» answers the header and the buy box, which now says the line is in the cart, then says
-     * so in a message — `sequence[update, show_message]` — whose button opens the cart.
+     * so in a message — `sequence[update, show_message]` — whose button opens the cart. Pressed on the reviews
+     * tab, the buy box it answers with is the reviews tab's, its variants staying there (B-104).
      */
     @Test
     fun `add to cart answers the header and the buy box and says so`() =
@@ -170,6 +171,13 @@ class LineAnswersTest {
             val after = assertNotNull(answer.update()).updates.last().component as ProductDetails
             assertEquals(LineChange(quantity = 2), after.add?.change)
             assertEquals(Link("1 in your cart", NavigateAction("/cart")), after.inCart)
+            // B-104: the buy box redrawn on the reviews keeps its variants on the reviews.
+            for (option in after.variants.flatMap { it.options }) {
+                assertEquals(
+                    NavigateAction("/p/${SampleCatalog.SONY_HEADPHONES}?sku=${option.skuId}&tab=reviews"),
+                    option.action,
+                )
+            }
         }
 
     /**

@@ -95,7 +95,7 @@ internal class ProductScreen(
         val sections =
             listOf(
                 Breadcrumbs("breadcrumbs", crumbs(item, categories)),
-                details(item, sku, seller, categories, viewer, boughtThisMonth.label(item.product)),
+                details(item, sku, seller, categories, viewer, boughtThisMonth.label(item.product), tab),
                 ProductTabs(
                     id = "tabs",
                     tabs =
@@ -148,16 +148,17 @@ internal class ProductScreen(
     }
 
     /**
-     * The buy box of [item] at [sku] for [viewer], as the page at that SKU draws it: what «Add to cart»
+     * The buy box of [item] at [sku] for [viewer], as the page at that SKU on [tab] draws it: what «Add to cart»
      * answers with besides the header (B-63, [LineAnswers]).
      */
     suspend fun details(
         item: Listed,
         sku: Sku,
         viewer: Viewer,
+        tab: ProductTab,
     ): ProductDetails {
         val seller = catalog.seller(item.product.sellerId) ?: error("product ${item.product.id} names no seller")
-        return details(item, sku, seller, catalog.categories(), viewer, boughtThisMonth.label(item.product))
+        return details(item, sku, seller, catalog.categories(), viewer, boughtThisMonth.label(item.product), tab)
     }
 
     private fun details(
@@ -167,6 +168,7 @@ internal class ProductScreen(
         categories: List<Category>,
         viewer: Viewer,
         bought: String?,
+        tab: ProductTab,
     ): ProductDetails {
         val inStock = sku.stock > 0
         val saved = item.product.id in viewer.saved
@@ -189,7 +191,7 @@ internal class ProductScreen(
             rating = item.product.rating.toPlainString(),
             reviews = "${count(item.product.reviewsCount)} reviews",
             bought = bought,
-            variants = variants(item, sku),
+            variants = variants(item, sku, tab),
             highlights = highlights(item),
             price = money(sku.priceCents),
             oldPrice = sku.oldPriceCents?.takeIf { it > sku.priceCents }?.let(::money),
@@ -227,7 +229,7 @@ internal class ProductScreen(
             saved = saved,
             heartCommand = heart(item.product.id, saved, viewer),
             heartAction = heartAction(viewer),
-            add = addToCart(sku, viewer.inCart, LineAnswers.DETAILS_ANSWER),
+            add = addToCart(sku, viewer.inCart, LineAnswers.detailsAnswer(tab)),
             buy = buyNow(sku, viewer),
             inCart = inCart(sku, viewer),
             brandAction = NavigateAction(brandLink(item, categories)),
@@ -280,11 +282,13 @@ internal class ProductScreen(
     /**
      * One group per option the SKUs vary in (colour, then bundle), in the order the SKUs list them. An
      * option points at the SKU that has it with the other choices kept, and is unavailable when that
-     * SKU is out of stock or does not exist.
+     * SKU is out of stock or does not exist. It opens that SKU on [tab], the tab it was picked on: a colour
+     * picked under the reviews stays on the reviews (B-104).
      */
     private fun variants(
         item: Listed,
         selected: Sku,
+        tab: ProductTab,
     ): List<VariantGroup> {
         val keys = item.skus.flatMap { it.options.keys }.distinct()
         return keys.mapNotNull { key ->
@@ -304,7 +308,7 @@ internal class ProductScreen(
                             skuId = target.id,
                             selected = selected.options[key] == value,
                             available = target.stock > 0,
-                            action = NavigateAction("/p/${item.product.id}?sku=${target.id}"),
+                            action = NavigateAction(variantAddress(item, target, tab)),
                         )
                     },
             )
@@ -365,6 +369,20 @@ internal class ProductScreen(
         ): String =
             "/p/${item.product.id}?sku=${sku.id}&tab=${tab.key}" +
                 if (shown > ReviewTabs.SHOWN) "&$SHOWN=$shown" else ""
+
+        /** The page of [item] at [sku] on [tab], as a variant picked there opens it: the description's without `tab`. */
+        private fun variantAddress(
+            item: Listed,
+            sku: Sku,
+            tab: ProductTab,
+        ): String =
+            if (tab ==
+                ProductTab.Description
+            ) {
+                "/p/${item.product.id}?sku=${sku.id}"
+            } else {
+                address(item, sku, tab)
+            }
 
         /** The query parameter naming how many reviews or questions the tab lists (B-71). */
         const val SHOWN = "shown"

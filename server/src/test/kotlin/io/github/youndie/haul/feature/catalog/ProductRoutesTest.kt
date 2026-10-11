@@ -8,6 +8,7 @@ import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.tree
 import io.github.youndie.haul.ui.ProductDescription
 import io.github.youndie.haul.ui.ProductDetails
+import io.github.youndie.haul.ui.ProductTabs
 import io.github.youndie.kompot.decodeKompotComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import io.ktor.client.request.get
@@ -126,6 +127,37 @@ class ProductRoutesTest {
                 tree("/ui" + (action as NavigateAction).deeplink)
             }
             tree("/ui" + details.share)
+        }
+
+    /**
+     * B-104: a colour or a bundle picked on the specifications, reviews or questions tab opens that SKU on the
+     * same tab, not on the description; picked on the description, the address names no tab, as before.
+     */
+    @Test
+    fun `a variant picked on a tab keeps the tab`() =
+        haulTest {
+            for (tab in listOf("specifications", "reviews", "questions")) {
+                val details = tree("/ui/p/$sony?sku=$sony-0&tab=$tab").only<ProductDetails>()
+                val options = details.variants.flatMap { it.options }
+                for (option in options) {
+                    assertEquals(NavigateAction("/p/$sony?sku=${option.skuId}&tab=$tab"), option.action, option.label)
+                }
+                val travel = options.single { it.label == "+ Travel case" }.action as NavigateAction
+                val opened = tree("/ui" + travel.deeplink)
+                assertEquals("$sony-1", opened.only<ProductDetails>().skuId)
+                assertEquals(
+                    tab,
+                    opened
+                        .only<ProductTabs>()
+                        .tabs
+                        .single { it.selected }
+                        .key,
+                )
+            }
+            val described = tree("/ui/p/$sony?sku=$sony-0").only<ProductDetails>()
+            for (option in described.variants.flatMap { it.options }) {
+                assertEquals(NavigateAction("/p/$sony?sku=${option.skuId}"), option.action, option.label)
+            }
         }
 
     /** Scenario «Unknown product». */
