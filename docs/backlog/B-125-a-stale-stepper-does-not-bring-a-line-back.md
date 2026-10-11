@@ -44,8 +44,9 @@ also what a card's «+» uses to add.
   «This item is no longer in your cart» (`CartError.NO_LONGER_IN_CART`) for all three. The client needed nothing:
   a refused command is already the cart drawn again with the reason at the error level (B-92,
   `shell/CommandAnswers.kt`).
-- **What it does not cover.** A product card's own stepper, where a card draws one, still adds on «+» by design; a
-  stale page's «−» on a card is not a cart line and was not in the case.
+- **What it does not cover, by design.** A card draws only «+», whose `LineChange` is the line's next quantity
+  (B-37); on a stale page it still adds — at that quantity — after the line was removed elsewhere, because «+» is
+  how a card adds (the item's rejected option).
 
 ## Acceptance
 
