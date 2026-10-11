@@ -1,7 +1,7 @@
 ---
 id: B-108
 title: "client + server: the same thing looks the same on every page"
-status: wip
+status: done
 priority: P3
 size: M
 stage: stage-11-qa
@@ -69,3 +69,42 @@ Each line of the QA pass, fixed or kept with the reason; research has «Decided 
   (`ProductCardView.kt`, `Prices`). Six deal cards across at 1440 with cents broke «$432.9 / 9».
 - **«Added to your cart» stands out over the dark Plus block**: the message has a 2 px ring of the page's white
   and a 16 dp shadow (`MessageNotice`).
+- **Tests.** Server: `OrderRoutesTest` («an order placed with a promo code draws its promo row»; the declined order's
+  «Back to cart» is its notice's), `MembershipRoutesTest` (the pill is the trial's dialog for Sam, nothing for Maya
+  and for Sam once his trial started; a member's footer «Haul Plus» is text), `PhotoRoutesTest` (Maya's cart line,
+  checkout's line, the placed order's line and the suggest panel's products carry the card's photo). Client:
+  `StorefrontTest` (`/c` and `/deals` draw their placeholders on their way), `AddressTest`, `ReachablePagesTest` (one
+  page draws no number, two draw both), `KeptPageTest` (a page number at the foot of a phone page opens the next at
+  the top; «Show N more» keeps the scroll), `AccountWiringTest` (an active card opens its order from its number and
+  its pickup code, wide and on a phone), `LinePhotosTest` (cart, checkout, order and suggest tiles draw the photo
+  the tree names), `WidthsTest` («a deals row keeps its prices whole» at 1280: the short pair side by side, the long
+  one stacked, nothing broken), `OrderWiringTest` (one «Back to cart»). The client bodies lost a member's header
+  `plus` (22 bodies) and the cancelled order's summary `back`.
+- **Mutations**, on the committed change, each red, restored, `git status` clean (disjoint ones in one run): the
+  order's rows as one «Discount» (promo test); the notice without its link (declined test); a member's pill an
+  action (`MembershipRoutesTest`); the cart line without its photo (`PhotoRoutesTest`); `/deals` drawing the header
+  alone (`StorefrontTest`); a lone «1» drawn (`ReachablePagesTest`); a page number keeping the scroll
+  (`KeptPageTest`); the active card pressable only on «Details» — removing the card's press (three
+  `AccountWiringTest` tests); `LineTile` ignoring the photo (all four `LinePhotosTest`); the prices always side by
+  side (`WidthsTest`); the message without its ring and shadow (five `Shell_Message*` goldens in `viddikVerify`).
+- **Goldens.** New, no artboard: `Categories_Loading`, `_Phone`, `Deals_Loading`, `_Phone`, `Shell_Message_OverPlus`.
+  Re-recorded: `Shell_Message`, `_Phone`, `_NoAnswer`, `_Refused_Phone` (ring and shadow); `Order_Cancelled` and
+  `_Phone` (the summary's «Back to cart» gone; the canvas draws it, so their parity moves by that button). The
+  card's price row first moved every card golden — a `Layout` narrower than its weighted cell was centred in it —
+  and was fixed to fill the cell, after which `viddikVerify` reported only the eleven above. Recorded on the Linux
+  build box in a copy outside the mutagen replica; each looked at.
+
+## Findings (2026-10-11)
+
+- **Before any tree, the client's own customer header (B-105) still points «HAUL PLUS» at the account**: the
+  client does not know whether the customer is a member; the server's header replaces it once it arrives.
+- **The return dialog's lines keep their plain tiles** (`ReturnLine` has no photo); not in the QA list.
+- **`DealsLoading` at 1440 runs past its 1700 px golden** (the second row of «On sale» is cut): the golden is the
+  page's top, as the other loading goldens are.
+
+## Where the checks ran (2026-10-11)
+
+On the WSL box (Ubuntu 24.04) before the rebase on B-90: `:composeApp:wasmJsBrowserDistribution` green; `check
+:server:installDist` green (server 471 tests, client 373, 0 failed; `viddikVerify`, ktlint); `scripts/e2e.sh`
+against `haul/server:b108` green (WholePathTest, ShoppersConfigTest 5, SyntheticShopperTest 2). On the Mac: `make
+check` and `make docs-against BASE=origin/main` clean, every anchor found. Not walked in a browser.
