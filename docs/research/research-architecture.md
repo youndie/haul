@@ -1868,6 +1868,15 @@ screen changes every screen that uses the component. Mitigation: one reference P
 (125), exported from the canvas into the client's snapshot directory, and `viddikDesignParity` in
 every client item's acceptance. Open: the tolerance, set from the first measured screen.
 
+**Found in B-84: a parity number does not depend on what ran before the fixture.** The whole module rendered in
+the registry's order in one JVM, by size in two forks, with every fixture in a scene of its own, and a group
+alone gave the same pixels for all 161 fixtures. A number that moves between two runs moved with the code: the
+Search_* artboards' 2–3 % → 5–35 % that B-75 and B-72 read as leaking state was B-77's sort control and tips as
+text, measured on a branch before and after its merge. Two traps sit beside this: a recording without `--force`
+keeps a golden the verification accepts, so a change below the tolerance — a placeholder's words, a glyph's cut —
+leaves the old golden in the tree (24 of them on `main` at B-84); and a parity percentage compares the canvas,
+which B-85 has yet to bring up to the decided departures.
+
 **Risk 2. The browser cannot sign in with shildik's own client** (§1.4, consequence 5).
 Mitigation: B-12 starts by proving the authorisation-code flow with PKCE from wasmJs against a local
 shildik before any UI is built on it. **Settled in B-12** (D5): kotlin-multiplatform-oidc in a popup.
