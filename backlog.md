@@ -42,7 +42,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (21)
+## Open (20)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -56,7 +56,6 @@ A stage is a field on the item, not a directory.
 | [B-109](docs/backlog/B-109-saga-steps-in-tracy.md) `[ ]` | server: an order's saga is visible in tracy | P2 | S | - |
 | [B-82](docs/backlog/B-82-tablet-widths.md) `[ ]` | client: the store reads well between a phone and 1440 | P2 | M | - |
 | [B-83](docs/backlog/B-83-typed-input-before-every-press.md) `[ ]` | client: every press that reads a field sees what was typed | P2 | S | - |
-| [B-99](docs/backlog/B-99-reviews-and-questions-tell-the-truth.md) `[~]` | server + client: reviews and questions behave as they say | P2 | M | - |
 | [B-107](docs/backlog/B-107-copy-that-promises-nothing.md) `[ ]` | server: the store does not promise what it does not have | P3 | S | - |
 | [B-108](docs/backlog/B-108-pages-look-alike.md) `[ ]` | client + server: the same thing looks the same on every page | P3 | M | - |
 | [B-110](docs/backlog/B-110-order-updates-log-noise.md) `[ ]` | server: a client leaving the order page is not an error | P3 | XS | - |
@@ -68,7 +67,7 @@ A stage is a field on the item, not a directory.
 | [B-89](docs/backlog/B-89-traffic-exercises-compensation.md) `[ ]` | e2e: the synthetic shoppers also walk a declined payment | P3 | S | - |
 | [B-90](docs/backlog/B-90-review-loop-leftovers.md) `[ ]` | client + server: the small leftovers of the review loop | P3 | S | - |
 
-## Closed (89)
+## Closed (90)
 
 **Skeleton**
 
@@ -191,6 +190,7 @@ A stage is a field on the item, not a directory.
 - [B-96](docs/backlog/B-96-home-rows-share-ids.md) `[x]` - server: home never draws one product twice
 - [B-97](docs/backlog/B-97-checkout-state-is-the-servers.md) `[x]` - client + server: what checkout shows is what it will place
 - [B-98](docs/backlog/B-98-delivery-dates-and-fees-agree.md) `[x]` - server: delivery dates, fees and the address agree across pages
+- [B-99](docs/backlog/B-99-reviews-and-questions-tell-the-truth.md) `[x]` - server + client: reviews and questions behave as they say
 
 <!-- END INDEX -->
 
