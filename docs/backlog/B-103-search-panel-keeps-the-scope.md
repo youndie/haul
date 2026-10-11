@@ -50,3 +50,8 @@ Found in the QA pass of 2026-10-10 (v0.3.0), code audit:
   `categoryLink`, the scope filter dropped from the panel, «Popular» as the order without a sort, the chosen chip's
   action kept, the shown sort's action kept, and the client asking for the panel without the scope each turned its
   test red.
+- `OneCategoryAddressTest` found the leaf's link `/c/sports/running-gear/running-shoes` on the search panel; it now
+  finds it in a running-shoe product's breadcrumbs, because the panel no longer links to category pages.
+- Checks, on the Linux build box, after rebasing on B-101 and B-102: `:composeApp:wasmJsBrowserDistribution`;
+  `check :server:installDist` (455 server tests, 336 client tests, `viddikVerify`, ktlint) green; `scripts/e2e.sh`
+  against an image built from the branch green. `make check` and `make docs-against BASE=origin/main` clean on the Mac.
