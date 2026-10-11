@@ -335,7 +335,8 @@ the search worked, and landing straight on a 404 or the prompt gave the same dea
   each entry of «Catalog» opens the catalog's root, `/c`, every top-level category, one press from the one
   meant. Rejected: copying the seed's slugs into the client (paths are the server's strings, and a store
   with other categories would get 404s); drawing the words as plain text or not at all (the placeholders'
-  artboards draw the row, and the shopper cannot tell a dead word from a live one).
+  artboards draw the row, and the shopper cannot tell a dead word from a live one). Since B-105 that is a
+  guest's header only, and only until the server answers the header alone (below).
 - **A `present` of that header is drawn over the page**: the last tree's «HAUL PLUS» for a customer who is
   not a member (the trial's dialog, B-49), which the shell's handler used to drop because the screen's
   `presented` lives inside a screen that a page of the shell's own does not have. The dialog's answer
@@ -346,6 +347,31 @@ the search worked, and landing straight on a 404 or the prompt gave the same dea
 - **The phone header's menu opens over a placeholder too** (B-73 kept it shut there, a button drawn and
   dead): it lists what the header carries, and its account row is the sign-in or the account, while the slot
   itself stays a placeholder.
+
+**Decided in B-105, a page that came with no tree knows who is looking.** Reloading a missing order, product
+or category as a signed-in customer drew B-67's guest header: «Sign in» (which sent her to the sign-in page and
+straight back), no count, every category word to `/c`. The header is the server's to draw, so the client asks
+for it:
+
+- **`GET /ui/header`** (public, `Frame.HEADER`) answers the header alone, as every page draws it for whoever
+  asks — the customer's name, the cart's count, the category words with their addresses, «HAUL PLUS» as the
+  offer makes it (`server/.../feature/catalog/CatalogRouting.kt`). The shell asks for it when a page came with no
+  tree — not there, refused, an error, the sign-in prompt — and no header has been drawn for who is looking
+  (`AskForHeader`, `shell/ShellHeaders.kt`): once per visit and load, and an answer that does not arrive leaves
+  the header the client has. Placeholders and error pages still draw it as a placeholder (B-67), so their pixels
+  are unchanged. The sign-in page asks for none: it is a way through, and a customer is sent on at once.
+- **A header is kept for whom it was drawn** (`ShellHeaders`): a tree's or the header alone, tagged with
+  whether the shopper was signed in (`SessionControls.signedIn`) when it was drawn. A sign-in or a sign-out over
+  a page with no tree no longer leaves the other shopper's header (a guest's «Maya» after signing out over a
+  404); the page asks again.
+- **Until the server answers, the client's own header follows the session**: `SHELL_HEADER` for a guest,
+  `CUSTOMER_SHELL_HEADER` for a customer — the account slot reads «Account» and opens the account's menu with
+  «Sign out», no count (the client does not know it), «Orders» and «Saved» lead straight to them and «HAUL PLUS»
+  to the account; the category words are still the catalog's root.
+- Rejected: sending the header with the `404` (an error body is the contract's `ErrorBody`, and B-94 refused
+  a `200` for a refusal); the client keeping the last header across reloads in the browser's storage (a count
+  and a name that may be stale, and the categories still a guess on a first visit); reading the customer's name
+  out of the access token (the client never reads the token, and the count would still be unknown).
 
 **Decided in B-62, a screen is a path** (owner's call). `/c/mugs?brand=Ostra` and `/c/mugs` are one
 screen, `/c/mugs` and `/p/…` two. A new address of the same path — a facet, a sort, a page of results, a

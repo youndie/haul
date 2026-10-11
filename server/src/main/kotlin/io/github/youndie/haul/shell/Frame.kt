@@ -109,6 +109,12 @@ internal object Frame {
     private fun plus(viewer: Viewer): KompotAction =
         if (viewer.customer?.plus == true) NavigateAction(ACCOUNT) else PlusOffer.trial(viewer)
 
+    /**
+     * The header alone, for whoever asks (B-105): the client draws it over a page that came with no tree — one
+     * that is not there, a refusal, an error — when it lands there before any tree has drawn the header.
+     */
+    const val HEADER = "/ui/header"
+
     /** How many categories the header's row names. */
     private const val ROW = 10
 

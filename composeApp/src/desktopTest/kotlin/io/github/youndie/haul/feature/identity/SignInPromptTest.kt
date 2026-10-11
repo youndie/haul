@@ -16,6 +16,7 @@ import io.github.youndie.haul.feature.order.REORDER_TAG
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.read
 import io.github.youndie.haul.registry.haulJson
+import io.github.youndie.haul.shell.HEADER_TREE
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
 import io.github.youndie.haul.shell.SIGN_IN_PROMPT_LABEL
@@ -218,7 +219,8 @@ class SignInPromptTest {
     ) {
         val transport =
             HaulTransport { path ->
-                requests += path
+                // These tests count the page's loads; the header alone (B-105) is asked beside them and not counted.
+                if (path != HEADER_TREE) requests += path
                 answer(path)
             }
         setContent {

@@ -9,6 +9,7 @@ import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.PlusBlock
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.SectionHeader
+import io.github.youndie.kompot.standard.NavigateAction
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -43,5 +44,20 @@ class HomeRoutesTest {
                     }.countdownEndsAt,
             )
             assertFalse(home.only<PlusBlock>().member)
+        }
+
+    /**
+     * B-105: the header alone is the one every page draws — the client draws it over a page that came with no
+     * tree, so its category words lead to their categories, as the tree's do, rather than to the catalog's root.
+     */
+    @Test
+    fun `the header alone is the one the home page draws`() =
+        haulTest {
+            val header = tree("/ui/header")
+            assertEquals(tree("/ui/home").only<HaulHeader>(), header)
+            assertEquals(
+                NavigateAction("/c/electronics"),
+                (header as HaulHeader).catalog.single { it.label == "Electronics" }.action,
+            )
         }
 }

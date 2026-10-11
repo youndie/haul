@@ -1,6 +1,7 @@
 package io.github.youndie.haul.feature.catalog
 
 import io.github.youndie.haul.feature.catalog.domain.CatalogError
+import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Filters
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.Sort
@@ -11,9 +12,11 @@ import io.github.youndie.haul.feature.catalog.screen.DealsScreen
 import io.github.youndie.haul.feature.catalog.screen.HomeScreen
 import io.github.youndie.haul.feature.catalog.screen.ProductScreen
 import io.github.youndie.haul.feature.catalog.screen.ProductTab
+import io.github.youndie.haul.feature.catalog.screen.navigation
 import io.github.youndie.haul.feature.recommendations.domain.RecordView
 import io.github.youndie.haul.feature.reviews.screen.ReviewTabs
 import io.github.youndie.haul.haulWireJson
+import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.shell.Parts
 import io.github.youndie.haul.shell.Viewers
 import io.github.youndie.haul.shell.node
@@ -46,8 +49,18 @@ internal fun Route.catalogRouting() {
     val photos by inject<ProductPhotos>()
     val viewers by inject<Viewers>()
     val recordView by inject<RecordView>()
+    val categories by inject<CatalogRepository>()
 
     get("/ui/home") { call.respondKompotComponent(haulWireJson, home.build(viewers.of(call))) }
+
+    // The header alone (B-105), as every page draws it for whoever asks: what the client draws over a page that
+    // came with no tree — one that is not there, a refusal, an error — when no tree has drawn one yet.
+    get(Frame.HEADER) {
+        call.respondKompotComponent(
+            haulWireJson,
+            Frame.header(viewers.of(call), navigation(categories.categories()), query = null),
+        )
+    }
 
     get("/ui/deals") {
         call.respondKompotComponent(

@@ -141,7 +141,10 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * closes it. So is the phone header's menu ([HeaderMenuState], B-73), which any new page closes.
  *
  * The header over a page the shell draws itself — a placeholder, an error, a page that is not there, the
- * sign-in's — is the last tree's, or [SHELL_HEADER] before any ([LocalShellHeader], B-67), and its presses
+ * sign-in's — is the last the server drew for who is looking ([LocalShellHeader], B-67): a tree's, or, on a
+ * page that came with no tree, the header alone asked of [transport] ([AskForHeader], B-105); before either,
+ * the client's own for a guest or for a customer, as [session] says ([ShellHeaders]). The sign-in page asks
+ * for no header: it is a way through. Its presses
  * are followed here: a link opens, sign-in's go through [Signing], a `present` (a non-member's «HAUL PLUS»)
  * draws its dialog over the page until a `close` or a visit, and a `refresh` loads the page again.
  *
@@ -246,9 +249,12 @@ public fun Storefront(
             }
         }
 
-    // The header the client last drew: a page that is not there is drawn under it (Product_NotFound), and so
-    // are a page's placeholders and errors, as a placeholder (B-67).
-    var header by remember { mutableStateOf<HaulHeader?>(null) }
+    // The header the server last drew for who is looking — a tree's, or the header alone (B-105): a page that is
+    // not there is drawn under it (Product_NotFound), and so are a page's placeholders and errors, as a
+    // placeholder (B-67). Who is looking is read again on each visit and each header drawn.
+    val headers = remember { ShellHeaders() }
+    val signedIn = session?.signedIn == true
+    val shellHeader = headers.of(signedIn)
     var signedOut by remember { mutableIntStateOf(0) }
     val home = remember(navigator) { { navigator.open("/") } }
     // The sign-in page a blocked popup led to: it says why (B-66).
@@ -305,8 +311,8 @@ public fun Storefront(
         LocalTreeCommands provides treeCommands,
         LocalFiltersSheet provides filters,
         LocalHeaderMenu provides menu,
-        // The header of a page the shell draws itself: the last tree's, whose links are the server's (B-67).
-        LocalShellHeader provides (header ?: SHELL_HEADER),
+        // The header of a page the shell draws itself: the server's last for who is looking (B-67, B-105).
+        LocalShellHeader provides shellHeader,
     ) {
         SearchSuggestOverlay(
             panel,
@@ -327,7 +333,7 @@ public fun Storefront(
                 key(visit) {
                     Scrolled(rememberScrollState()) {
                         val blocked = blockedAt == address.value
-                        SignInPage(address, header ?: SHELL_HEADER, signing, navigator, blocked)
+                        SignInPage(address, shellHeader, signing, navigator, blocked)
                     }
                 }
                 shellPresented?.let { PresentedOverlay(it, registry) { shellPresented = null } }
@@ -388,14 +394,15 @@ public fun Storefront(
                                     }
 
                                     loader.screen == null -> {
+                                        AskForHeader(headers, transport, signedIn, visit, loads)
                                         Scrolled(scroll) {
                                             if (cause.asksForSignIn && signedInFor != loads) {
-                                                SignInPrompt(address, header ?: SHELL_HEADER, signing, navigator) {
+                                                SignInPrompt(address, shellHeader, signing, navigator) {
                                                     loads += 1
                                                     signedInFor = loads
                                                 }
                                             } else {
-                                                Failed(address, cause, recovery, header ?: SHELL_HEADER, retry, home) {
+                                                Failed(address, cause, recovery, shellHeader, retry, home) {
                                                     navigator.open(address.path)
                                                 }
                                             }
@@ -428,7 +435,7 @@ public fun Storefront(
                                     live,
                                     InPlace(overrides, loading) { unanswered = it },
                                     messages,
-                                    { header = it },
+                                    { headers.drawn(it, session?.signedIn == true) },
                                     { signedOut += 1 },
                                 ) {
                                     presented =
