@@ -16,6 +16,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import java.time.Instant
+import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.TimeUnit
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -119,17 +121,7 @@ class ReturnRestocksTest {
                             }
                     }
                 world.clock.at(asked + 2.days)
-                val first =
-                    ReturnSimulator(
-                        returns = dying,
-                        orders = world.koin.get(),
-                        payments = world.payments,
-                        plans = world.koin.get(),
-                        points = world.koin.get(),
-                        stock = world.koin.get(),
-                        clock = world.clock,
-                        pace = FulfilmentPace.STORE,
-                    )
+                val first = simulator(world, dying)
                 assertFailsWith<IllegalStateException> { runBlocking { first.advance() } }
                 assertEquals(PICKED_UP, world.status(order), "the move never landed")
                 assertEquals(before.getValue(sony), world.ledger.stock().getValue(sony), "the restock did")
@@ -140,18 +132,52 @@ class ReturnRestocksTest {
             }
         }
 
-    /** Two passes at once — a rolling deploy runs two — put the units back once between them. */
+    /**
+     * Two passes at once — a rolling deploy runs two — that both reach the refund before either moves the return
+     * (held at the move until both are there): the units come back once between them.
+     */
     @Test
     fun `two passes at once restock a return once`() =
         seededFreshDatabase().use { dataSource ->
             FulfilmentWorld(dataSource).use { world ->
                 val (order, before) = world.returned(listOf(0))
+                world.advanceReturns(asked + 1.days)
+
+                val real = world.koin.get<ReturnRepository>()
+                val bothThere = CyclicBarrier(2)
+                val held =
+                    object : ReturnRepository by real {
+                        override suspend fun move(
+                            orderId: String,
+                            from: String,
+                            to: String,
+                            at: Instant,
+                        ): Boolean {
+                            if (to == REFUNDED) bothThere.await(10, TimeUnit.SECONDS)
+                            return real.move(orderId, from, to, at)
+                        }
+                    }
                 world.clock.at(asked + 3.days)
+                val moves =
+                    runBlocking { List(2) { async(Dispatchers.IO) { simulator(world, held).advance() } }.awaitAll() }
 
-                runBlocking { List(2) { async(Dispatchers.IO) { world.returns.advance() } }.awaitAll() }
-
+                assertEquals(1, moves.sum(), "the return moved once between the two: $moves")
                 assertEquals(REFUNDED, world.status(order))
                 assertEquals(before.getValue(sony), world.ledger.stock().getValue(sony))
             }
         }
+
+    private fun simulator(
+        world: FulfilmentWorld,
+        returns: ReturnRepository,
+    ) = ReturnSimulator(
+        returns = returns,
+        orders = world.koin.get(),
+        payments = world.payments,
+        plans = world.koin.get(),
+        points = world.koin.get(),
+        stock = world.koin.get(),
+        clock = world.clock,
+        pace = FulfilmentPace.STORE,
+    )
 }
