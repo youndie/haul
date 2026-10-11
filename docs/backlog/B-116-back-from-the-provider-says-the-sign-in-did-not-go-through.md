@@ -1,7 +1,7 @@
 ---
 id: B-116
 title: "fix: back from the provider's page says the sign-in did not go through"
-status: wip
+status: done
 priority: P2
 size: S
 stage: stage-12-qa-run
@@ -28,3 +28,30 @@ started and never finished.
   again; pressing it starts a fresh sign-in; a plain visit to `/sign-in` with nothing pending is unchanged.
 - Anchors: `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/SignInPage.kt`,
   `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/SignInHere.kt`.
+
+## Findings
+
+- **The answer never travels in `/sign-in`'s address.** The provider returns to `signed-in.html`, which keeps
+  the address beside the request (`haul.sign-in.answer`) and goes on to a bare `/sign-in`. So «no `code`/`error`
+  in its address» is, in this storefront, a request (`haul.sign-in.request`) with no answer beside it:
+  `BrowserSignInHere.forgetUnanswered` reads exactly that, forgets the request and its `next`, and
+  `SignInPage` starts in `Failed` when it says there was one. A plain `/sign-in` with nothing pending still
+  starts in `Asking`.
+- **Back arrives two ways, and both are real.** In headless Chrome 149 (CDP, popups made to fail by
+  `window.open = () => null`, a stub provider on another origin) the back off the provider's page restored
+  the storefront from the back-forward cache three times in three (a marker on `window` survived, `pageshow`
+  fired with `persisted: true`): no load, no Compose start, the page that left shown again in «The browser
+  blocked the window». Its sign-in was still suspended in `leave`, which now waits for that `pageshow`,
+  forgets the request and throws `SignInNotAnswered`, and the page turns to «The sign-in didn't go through».
+  When the back came later, or the page had run JavaScript while cached, Chrome reported
+  `backForwardCacheNotUsed: JavaScriptExecution` and loaded the page anew — the first way. The app's browser
+  pane never restores from the cache (`notRestoredReasons: masked`), which is why the run saw a new load.
+- **Walked in a browser:** the app's pane and headless Chrome, against the built bundle with a stub sign-in
+  API and a stub provider that never answers (and refuses on request): blocked → «Sign in on this page» →
+  provider → back shows «The sign-in didn't go through» with the request gone from session storage; a reload
+  then asks as before; its «Sign in on this page» leaves with a new `state`; a refusal still lands on the
+  same page.
+- Not changed: a request left by a shopper who went from the provider's page somewhere other than back (typed
+  another store address) waits until the tab's next `/sign-in`, which then says the sign-in did not go
+  through. And a request forgotten on the way back is gone if the shopper then goes forward to the provider's
+  page and signs in there: `signed-in.html` finds nothing waiting and stays on its blank page.

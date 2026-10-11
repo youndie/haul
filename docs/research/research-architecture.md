@@ -939,7 +939,11 @@ the account need a shildik token; signing in merges the guest cart.
   the tab itself (`BrowserSignInHere`): the request and `next` wait in the tab's session storage, the
   provider returns to the same `signed-in.html`, which, opened by no storefront window and finding a
   request, keeps the answer beside it and goes on to `/sign-in`, where the exchange and the merge run as
-  the popup's do. The popup stays the first way: it keeps the page the shopper is on, and the tab's way
+  the popup's do. The browser's back off the provider's page, which never answered, is a sign-in that did
+  not go through (B-116): a new load of `/sign-in` finds the request with no answer beside it, and a page
+  the browser kept in its back-forward cache — Chrome does, when the back comes quickly — hears the back
+  as `pageshow` with `persisted` in the sign-in still waiting to leave; either way the page says it did
+  not go through, offers another, and forgets the request. The popup stays the first way: it keeps the page the shopper is on, and the tab's way
   costs a second start of the bundle. A guest's «Orders» and «Saved» carry their `next`
   (`Frame.SIGN_IN_TO_ORDERS`, `SIGN_IN_TO_SAVED`).
 - **Signing out** (B-66) is the customer's account slot, a menu on both widths — the account and «Sign
