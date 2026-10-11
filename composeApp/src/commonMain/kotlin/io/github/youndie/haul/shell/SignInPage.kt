@@ -155,7 +155,7 @@ internal fun SignInPage(
                 NotFoundShell(
                     header = header,
                     eyebrow = "Sign in",
-                    // No hyphen in the title: the display face draws none (walked in the browser pane).
+                    // Worded without a hyphen when the display face drew none (B-66); it draws one since B-106.
                     title = "The browser blocked the window",
                     accent = "blocked",
                     text =
