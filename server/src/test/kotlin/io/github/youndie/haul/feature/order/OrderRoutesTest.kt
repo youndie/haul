@@ -273,7 +273,10 @@ class OrderRoutesTest {
             val none = reorder(maya, url)
             assertEquals(HttpStatusCode.OK, none.status, none.bodyAsText())
             assertEquals(
-                ShowMessageAction("Nothing was added: $sony, $duvet and $mug aren't available now.", MessageLevel.ERROR),
+                ShowMessageAction(
+                    "Nothing was added: $sony, $duvet and $mug aren't available now.",
+                    MessageLevel.ERROR,
+                ),
                 haulWireJson.decodeKompotAction(none.bodyAsText()),
             )
             assertEquals(emptyList(), cartOf(maya), "a reorder of nothing in stock put something in")
