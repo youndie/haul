@@ -527,7 +527,7 @@ public const val CLOSE_FILTERS: String = "Close filters"
 
 /**
  * The phone's filter sheet over the category page (Catalog_FiltersSheet_Phone): the title with how
- * many filters are applied and «Clear all», the facets scrolling between, the button that shows the
+ * many filters are applied and «Clear all» (while one is), the facets scrolling between, the button that shows the
  * result pinned at the bottom. «×» is [onClose] (B-49): the sheet is the client's own, opened by
  * «Filters» without asking the server, so closing it asks nothing either. «Show N items» is [onShow]
  * (B-54): the page under the sheet already shows those results — each press in the sheet opened them —
@@ -559,12 +559,15 @@ public fun FiltersSheet(
                 softWrap = false,
             )
             Spacer(Modifier.weight(1f))
-            Text(
-                applied.clearLabel,
-                HaulType.text(15f, 600).copy(color = HaulColors.primary),
-                Modifier.follows(applied.clearAction).padding(horizontal = 8.dp),
-                softWrap = false,
-            )
+            // «Clear all» only while something is applied (B-102).
+            if (applied.filterCount > 0) {
+                Text(
+                    applied.clearLabel,
+                    HaulType.text(15f, 600).copy(color = HaulColors.primary),
+                    Modifier.follows(applied.clearAction).padding(horizontal = 8.dp),
+                    softWrap = false,
+                )
+            }
             Box(
                 Modifier
                     .size(44.dp)

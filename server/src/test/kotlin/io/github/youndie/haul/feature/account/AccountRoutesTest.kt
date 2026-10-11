@@ -162,7 +162,8 @@ class AccountRoutesTest {
             )
             assertEquals(
                 listOf(
-                    LoadAction("/ui/parts/account/orders"),
+                    // «All» is the page these chips are on: it carries nothing (B-102).
+                    null,
                     LoadAction("/ui/parts/account/orders?status=active"),
                     LoadAction("/ui/parts/account/orders?status=delivered"),
                     LoadAction("/ui/parts/account/orders?status=returned"),
@@ -184,6 +185,8 @@ class AccountRoutesTest {
             val cancelled =
                 checkNotNull(account(maya, "${AccountPaths.ORDERS}?status=cancelled").only<AccountBody>().history)
             assertEquals(listOf("Cancelled"), cancelled.filters.filter { it.selected }.map { it.label })
+            assertEquals(null, cancelled.filters.single { it.selected }.action, "the chip of the page it is on")
+            assertEquals(LoadAction("/ui/parts/account/orders"), cancelled.filters.single { it.label == "All" }.action)
             val row = cancelled.rows.single()
             assertEquals(declined, row.id)
             assertEquals(

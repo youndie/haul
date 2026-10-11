@@ -429,12 +429,16 @@ private fun AppliedChip(chip: Chip) {
     }
 }
 
-/** «Clear all»: follows `AppliedFilters.clearAction`, the page without its filters. */
+/**
+ * «Clear all»: follows `AppliedFilters.clearAction`, the page without its filters — only while a filter is
+ * applied (B-102): with none, a link-coloured word that clears nothing promised a press.
+ */
 @Composable
 private fun ClearAll(
     applied: AppliedFilters,
     modifier: Modifier = Modifier,
 ) {
+    if (applied.filterCount == 0) return
     Text(
         applied.clearLabel,
         HaulType.text(14f, 600).copy(color = HaulColors.primary),

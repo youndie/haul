@@ -68,7 +68,8 @@ class CatalogRoutesTest {
 
     /**
      * B-75: an option another filter has left with nothing to show — a count of 0 — carries no action, so the
-     * client draws it faded and pressing it opens nothing; ticked, it keeps its action, which unticks it.
+     * client draws it faded and pressing it opens nothing; ticked, it keeps its action, which unticks it. The
+     * rating's ticked option is the exception (B-102): a radio has nothing to untick, so it carries nothing.
      */
     @Test
     fun `an option with nothing to show presses nothing unless it is ticked`() =
@@ -84,7 +85,10 @@ class CatalogRoutesTest {
             empty.forEach { (key, it) -> assertNull(it.action, "$key «${it.label}» shows nothing and still presses") }
             val tickedEmpty = options.filter { (_, it) -> it.count == 0 && it.selected }
             assertTrue(tickedEmpty.isNotEmpty(), "no ticked option was left empty — the exception is unchecked")
-            (options - empty.toSet()).forEach { (key, it) ->
+            val chosen = options.filter { (key, it) -> key == "rating" && it.selected }
+            assertEquals(listOf("Any rating"), chosen.map { (_, it) -> it.label })
+            chosen.forEach { (_, it) -> assertNull(it.action, "the rating ticked presses") }
+            (options - empty.toSet() - chosen.toSet()).forEach { (key, it) ->
                 assertNotNull(it.action, "$key «${it.label}» (${it.count}) presses nothing")
             }
         }

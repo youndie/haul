@@ -42,13 +42,12 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (20)
+## Open (19)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-100](docs/backlog/B-100-cart-controls-look-what-they-do.md) `[ ]` | client + server: the cart's controls look what they do | P2 | M | - |
 | [B-101](docs/backlog/B-101-returns-and-reorder-say-their-rules.md) `[ ]` | server + client: returns and reorder say what they did and what is left | P2 | S | - |
-| [B-102](docs/backlog/B-102-catalog-filters-say-what-is-applied.md) `[ ]` | server: the catalog's filters show exactly what is applied | P2 | S | - |
 | [B-103](docs/backlog/B-103-search-panel-keeps-the-scope.md) `[ ]` | server: the search panel keeps the query and the scope | P2 | S | - |
 | [B-104](docs/backlog/B-104-product-page-polish.md) `[ ]` | client + server: the product page keeps what the shopper chose | P2 | S | - |
 | [B-105](docs/backlog/B-105-shell-header-knows-the-customer.md) `[ ]` | client: a page opened directly knows who is signed in | P2 | S | - |
@@ -67,7 +66,7 @@ A stage is a field on the item, not a directory.
 | [B-89](docs/backlog/B-89-traffic-exercises-compensation.md) `[ ]` | e2e: the synthetic shoppers also walk a declined payment | P3 | S | - |
 | [B-90](docs/backlog/B-90-review-loop-leftovers.md) `[ ]` | client + server: the small leftovers of the review loop | P3 | S | - |
 
-## Closed (90)
+## Closed (91)
 
 **Skeleton**
 
@@ -182,6 +181,7 @@ A stage is a field on the item, not a directory.
 
 **QA**
 
+- [B-102](docs/backlog/B-102-catalog-filters-say-what-is-applied.md) `[x]` - server: the catalog's filters show exactly what is applied
 - [B-91](docs/backlog/B-91-order-line-price-is-a-line-total.md) `[x]` - server: an order line's price is a unit price, and a return refunds what was paid
 - [B-92](docs/backlog/B-92-a-failed-command-says-so.md) `[x]` - client: a command that fails or is refused tells the shopper
 - [B-93](docs/backlog/B-93-refresh-after-an-in-place-tab.md) `[x]` - client: a press after switching a product tab redraws the page

@@ -445,11 +445,7 @@
                     {
                         "label": "All",
                         "count": "6",
-                        "selected": true,
-                        "action": {
-                            "type": "load",
-                            "url": "/ui/parts/account/orders"
-                        }
+                        "selected": true
                     },
                     {
                         "label": "Active",

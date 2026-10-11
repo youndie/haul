@@ -472,8 +472,9 @@ private class AccountPageBuilder(
                         label = key.label,
                         count = count(view.orders.count { key.matches(it.state) }),
                         selected = key == filter,
-                        // A chip filters the page it is on: its parts load in place (B-63).
-                        action = Parts.load(AccountPaths.orders(key)),
+                        // A chip filters the page it is on: its parts load in place (B-63). The chip selected is
+                        // the page already, and carries nothing (B-102).
+                        action = if (key == filter) null else Parts.load(AccountPaths.orders(key)),
                     )
                 },
             rows = rows.map(::row),

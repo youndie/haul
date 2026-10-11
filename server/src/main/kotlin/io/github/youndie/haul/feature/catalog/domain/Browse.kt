@@ -12,13 +12,7 @@ internal data class Filters(
     val kind: String? = null,
     val deliveryTomorrow: Boolean = false,
     val ratingAtLeast: BigDecimal? = null,
-) {
-    val count: Int
-        get() =
-            brands.size + features.size + colours.size +
-                (if (priceMinDollars != null || priceMaxDollars != null) 1 else 0) +
-                (if (deliveryTomorrow) 1 else 0) + (if (ratingAtLeast != null) 1 else 0)
-}
+)
 
 internal enum class Sort(
     val key: String,

@@ -3,6 +3,7 @@ package io.github.youndie.haul.feature.catalog.screen
 import io.github.youndie.haul.feature.catalog.domain.Browse
 import io.github.youndie.haul.feature.catalog.domain.CatalogError
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
+import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.FacetKey
 import io.github.youndie.haul.feature.catalog.domain.Filters
@@ -58,7 +59,9 @@ internal data class CatalogRequest(
  *
  * Every press that only filters, sorts or pages the category — a kind, a facet, «Show N more», an applied
  * chip, «Clear all», a sort, a page — loads the [PARTS] of its address rather than opening it (B-63): the
- * title, the kinds and the results are all a filter changes.
+ * title, the kinds and the results are all a filter changes. What is already chosen — the selected kind, the
+ * sort shown, the rating ticked — carries nothing, and «Clear all» only exists while a chip does (B-102): a
+ * press that would answer the page it is on is not sent.
  */
 internal class CatalogScreen(
     private val catalog: CatalogRepository,
@@ -73,12 +76,19 @@ internal class CatalogScreen(
         val categories = catalog.categories()
         val slug = request.path.trimEnd('/').substringAfterLast('/')
         val category = categories.firstOrNull { it.slug == slug } ?: throw CatalogError.CategoryNotFound(slug)
+        val subcategories = categories.filter { it.parentSlug == category.slug }.sortedBy { it.position }
         val all = catalog.listedIn(categories.descendants(category), viewer.prices)
-        val page = browse.page(all, request.filters, request.sort, request.page, request.from)
+        // A category with subcategories offers them, not kinds: its products' kinds are its first leaf's,
+        // headphone kinds over speakers and TVs (B-102). A kind the row does not offer — any kind there, or
+        // one a leaf has no product of — is not applied, so nothing filters the page without a chip saying so.
+        val leafKinds =
+            if (subcategories.isEmpty()) all.mapNotNull { it.product.kind }.distinct().sorted() else emptyList()
+        val filters = request.filters.let { if (it.kind != null && it.kind !in leafKinds) it.copy(kind = null) else it }
+        val page = browse.page(all, filters, request.sort, request.page, request.from)
         val url =
             CatalogUrl(
                 categories.pathOf(category),
-                request.filters,
+                filters,
                 request.sort,
                 page.from..page.page,
                 request.brandsExpanded,
@@ -94,24 +104,32 @@ internal class CatalogScreen(
                 },
             )
         sections += PageTitle("title", category.name, "${count(page.total)} items")
-        kinds(all, request, url)?.let { sections += it }
+        kinds(leafKinds, subcategories, categories, filters, url)?.let { sections += it }
+        // What is applied is what has a chip, counted from the chips: «Filters 2» over one chip was a count
+        // of filters two of which had none (B-102). «Clear all» goes only where there is something to clear.
+        val chips = applied(filters, url)
+        val clear = chips.takeIf { it.isNotEmpty() }?.let { Parts.load(url.cleared()) }
         val applied =
             AppliedFilters(
                 id = "applied",
-                chips = applied(request.filters, url),
+                chips = chips,
                 clearLabel = "Clear all",
                 sortLabel = request.sort.label,
-                filterCount = request.filters.count,
-                clearAction = Parts.load(url.cleared()),
-                sorts = Sort.entries.map { Link(it.label, Parts.load(url.sorted(it))) },
+                filterCount = chips.size,
+                clearAction = clear,
+                sorts =
+                    Sort.entries.map { sort ->
+                        Link(sort.label, Parts.load(url.sorted(sort)).takeUnless { sort == request.sort })
+                    },
             )
+        val facets = facets(all, request.copy(filters = filters), url)
         // One component for the facets and the results, because a wide page puts them side by side and
         // a phone moves the facets into a sheet (B-07).
         sections +=
             if (page.items.isEmpty()) {
                 FilteredResults(
                     id = "results",
-                    facets = facets(all, request, url),
+                    facets = facets,
                     applied = applied,
                     showLabel = "Show 0 items",
                     empty =
@@ -119,15 +137,15 @@ internal class CatalogScreen(
                             "empty",
                             "No items match these filters",
                             "Try removing a filter or two.",
-                            "Clear all",
-                            Parts.load(url.cleared()),
+                            "Clear all".takeIf { clear != null },
+                            clear,
                             accent = "filters",
                         ),
                 )
             } else {
                 FilteredResults(
                     id = "results",
-                    facets = facets(all, request, url),
+                    facets = facets,
                     applied = applied,
                     showLabel = "Show ${count(page.total)} items",
                     grid =
@@ -171,30 +189,28 @@ internal class CatalogScreen(
         return Frame.page("categories-page", viewer, navigation(categories), sections, footer = true)
     }
 
+    /**
+     * The pill row under the title: a category's subcategories, each to its page, or a leaf's [kinds] with
+     * «All», the one selected carrying nothing (B-102). A leaf without kinds has no row.
+     */
     private fun kinds(
-        all: List<Listed>,
-        request: CatalogRequest,
+        kinds: List<String>,
+        subcategories: List<Category>,
+        categories: List<Category>,
+        filters: Filters,
         url: CatalogUrl,
     ): FilterChips? {
-        val kinds = all.mapNotNull { it.product.kind }.distinct().sorted()
+        if (subcategories.isNotEmpty()) {
+            return FilterChips("kinds", subcategories.map { Chip(it.name, false, categoryLink(it, categories)) })
+        }
         if (kinds.isEmpty()) return null
         return FilterChips(
             id = "kinds",
             chips =
-                listOf(
-                    Chip(
-                        "All",
-                        request.filters.kind == null,
-                        Parts.load(url.with(request.filters.copy(kind = null))),
-                    ),
-                ) +
-                    kinds.map {
-                        Chip(
-                            it,
-                            request.filters.kind == it,
-                            Parts.load(url.with(request.filters.copy(kind = it))),
-                        )
-                    },
+                (listOf("All" to null) + kinds.map { it to it }).map { (label, kind) ->
+                    val selected = filters.kind == kind
+                    Chip(label, selected, if (selected) null else Parts.load(url.with(filters.copy(kind = kind))))
+                },
         )
     }
 
@@ -274,16 +290,16 @@ internal class CatalogScreen(
                         kind = "radio",
                         options =
                             RATINGS.map { (label, value) ->
+                                val selected = filters.ratingAtLeast == value
                                 FacetOption(
                                     label,
-                                    selected = filters.ratingAtLeast == value,
+                                    selected = selected,
+                                    // The rating ticked — «Any rating» on a page without one — is where it goes.
                                     action =
                                         toggle(
                                             url,
                                             filters,
-                                        ) {
-                                            copy(ratingAtLeast = value)
-                                        },
+                                        ) { copy(ratingAtLeast = value) }.takeUnless { selected },
                                 )
                             },
                     ),
@@ -346,7 +362,17 @@ internal class CatalogScreen(
                 },
             ) +
             filters.features.sorted().map { Chip(it, true, toggle(url, filters) { copy(features = features - it) }) } +
-            filters.colours.sorted().map { Chip(it, true, toggle(url, filters) { copy(colours = colours - it) }) }
+            filters.colours.sorted().map { Chip(it, true, toggle(url, filters) { copy(colours = colours - it) }) } +
+            listOfNotNull(
+                Chip(DELIVERY_CHIP, true, toggle(url, filters) { copy(deliveryTomorrow = false) })
+                    .takeIf { filters.deliveryTomorrow },
+                filters.ratingAtLeast?.let { rating ->
+                    Chip(ratingLabel(rating), true, toggle(url, filters) { copy(ratingAtLeast = null) })
+                },
+            )
+
+    /** The applied rating's chip, «Rating: 4.5 and up», in the facet's own words (the route takes no other rating). */
+    private fun ratingLabel(rating: BigDecimal): String = "Rating: " + RATINGS.first { it.second == rating }.first
 
     /** The applied range's chip: «$80 – $400», or the one bound set, «From $80», «Up to $400» (B-69). */
     private fun priceLabel(
@@ -391,6 +417,7 @@ internal class CatalogScreen(
         private const val GRID_COLUMNS = 4
         private const val BRANDS_SHOWN = 6
         private const val ROOT_TITLE = "Catalog"
+        private const val DELIVERY_CHIP = "Delivery: Tomorrow"
         private const val CENTS = 100
         private const val PRICE_STEP = 100
         private val RATINGS =
@@ -441,8 +468,11 @@ internal class CatalogUrl(
     /** The page as it is — filters, sort and pages — with the brand facet listing every brand: «Show N more». */
     fun brandsExpanded(): String = render(filters, sort, shown, expanded = true)
 
-    /** No filters, the sort kept: «Clear all». */
-    fun cleared(): String = render(Filters())
+    /**
+     * No filters, the kind and the sort kept: «Clear all». The kind is the row above, not an applied chip, so
+     * clearing the chips leaves it as it is (B-102).
+     */
+    fun cleared(): String = render(Filters(kind = filters.kind))
 
     fun sorted(next: Sort): String = render(filters, next)
 
