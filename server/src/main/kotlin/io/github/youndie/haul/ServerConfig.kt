@@ -65,6 +65,20 @@ internal class ServerConfig(
             return FulfilmentSettings.running(speed)
         }
 
+    /**
+     * The key a request must carry to choose the test card ···· 0002, which the payment simulator always declines
+     * (B-89, `TestCardAccess`): the synthetic shoppers', so a share of their walks runs the order saga's
+     * compensation. Unset, nobody may choose the card. A key shorter than [MIN_TEST_CARD_KEY] refuses the start: one
+     * short enough to guess hands the declining card to any visitor.
+     */
+    val testCardKey: String?
+        get() =
+            env("HAUL_TEST_CARD_KEY")?.takeIf { it.isNotBlank() }?.also {
+                require(it.length >= MIN_TEST_CARD_KEY) {
+                    "HAUL_TEST_CARD_KEY is shorter than $MIN_TEST_CARD_KEY characters — a key that short can be guessed"
+                }
+            }
+
     /** The commit the image was built from, for `/version`; `dev` when nobody said. */
     val commit: String get() = env("HAUL_COMMIT") ?: "dev"
 
@@ -131,5 +145,6 @@ internal class ServerConfig(
 
     private companion object {
         const val DEFAULT_PORT = 8080
+        const val MIN_TEST_CARD_KEY = 16
     }
 }

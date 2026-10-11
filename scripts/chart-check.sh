@@ -96,6 +96,33 @@ shoppers_say "they walk the server's Service" 'value: "http://haul"'
 shoppers_say "they sign in as Sam by default" 'value: "sam@example.com"'
 shoppers_say "they return to the storefront's page" 'value: "https://haul.example/signed-in.html"'
 shoppers_say "the password is the Secret's demo password" "$(printf 'name: haul-shildik\n                  key: demo-password')"
+# B-89: one walk in ten pays with the declining card, with a key the release derives and hands over by reference.
+shoppers_say "one walk in ten declines by default" "$(printf 'name: HAUL_SHOPPERS_DECLINE_EVERY\n              value: \"10\"')"
+shoppers_say "the test card's key is the Secret's" "$(printf 'name: HAUL_SHOPPERS_TEST_CARD_KEY\n              valueFrom:\n                secretKeyRef:\n                  name: haul-secrets\n                  key: test-card-key')"
+SHOPPERS_SERVER=$(helm template haul "$CHART" "${SHOPPERS[@]}" -s templates/server.yaml -s templates/secret.yaml 2>&1)
+case "$SHOPPERS_SERVER" in
+  *"name: HAUL_TEST_CARD_KEY"*"key: test-card-key"*"test-card-key: \""*) say "the shoppers' render: the server holds the same key" ok ;;
+  *) say "the shoppers' render: the server holds the same key" "FAILED"; failed=1 ;;
+esac
+key_of() { helm template haul "$CHART" "$@" -s templates/secret.yaml 2>&1 | grep 'test-card-key:'; }
+[ -n "$(key_of "${SHOPPERS[@]}")" ] && [ "$(key_of "${SHOPPERS[@]}")" = "$(key_of "${SHOPPERS[@]}")" ] \
+  && [ "$(key_of "${SHOPPERS[@]}")" != "$(key_of "${SHOPPERS[@]}" --set shildik.masterKeys=other)" ] \
+  && say "the test card's key: stable, and the master keys' own" ok \
+  || { say "the test card's key: stable, and the master keys' own" FAILED; failed=1; }
+case "$(printf '%s\n' "$SHOPPERS_SERVER" | grep 'test-card-key:')" in
+  *'"ci"'*) say "the test card's key is not the master keys" "FAILED"; failed=1 ;;
+  *) say "the test card's key is not the master keys" ok ;;
+esac
+case "$(helm template haul "$CHART" "${STAND[@]}" -s templates/server.yaml -s templates/secret.yaml 2>&1)" in
+  *HAUL_TEST_CARD_KEY*|*"key: test-card-key"*|*"  test-card-key: "*) say "no shoppers: the test card is nobody's" "FAILED — a key is rendered"; failed=1 ;;
+  *) say "no shoppers: the test card is nobody's" ok ;;
+esac
+NONE_DECLINE=$(helm template haul "$CHART" "${SHOPPERS[@]}" --set shoppers.declineEvery=0 2>&1)
+case "$NONE_DECLINE" in
+  *HAUL_TEST_CARD_KEY*|*"key: test-card-key"*|*"  test-card-key: "*) say "no declining walks: the test card is nobody's" "FAILED — a key is rendered"; failed=1 ;;
+  *'value: "0"'*) say "no declining walks: the test card is nobody's" ok ;;
+  *) say "no declining walks: the test card is nobody's" "FAILED — no render"; echo "$NONE_DECLINE" | tail -3; failed=1 ;;
+esac
 password_value=$(printf '%s\n' "$SHOPPERS_RENDER" | grep -A1 'name: HAUL_SHOPPERS_PASSWORD' | tail -1)
 case "$password_value" in
   *valueFrom:*) say "the shoppers' render: no literal password" ok ;;
@@ -132,6 +159,8 @@ refuses "shoppers as somebody not in the realm" "shoppers.people names erin" "${
 refuses "shoppers as nobody" "shoppers.people is empty" "${SHOPPERS[@]}" --set 'shoppers.people=null'
 refuses "shoppers at a rate of zero" "shoppers.interval=0 is not a positive whole number" "${SHOPPERS[@]}" \
   --set shoppers.interval=0
+refuses "a share of declining walks that is not a whole number" "shoppers.declineEvery=often is not a whole number" \
+  "${SHOPPERS[@]}" --set shoppers.declineEvery=often
 
 # The hook's script is rendered into a ConfigMap and first run in a cluster: a syntax error would
 # surface there, as a failed release. Compiled here instead, where one costs a second.

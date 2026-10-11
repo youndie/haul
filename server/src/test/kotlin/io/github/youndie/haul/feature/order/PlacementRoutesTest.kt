@@ -10,6 +10,7 @@ import io.github.youndie.haul.feature.checkout.CheckoutPaths
 import io.github.youndie.haul.feature.checkout.DeliveryMethod
 import io.github.youndie.haul.feature.checkout.IDEMPOTENCY_KEY_HEADER
 import io.github.youndie.haul.feature.checkout.PlaceOrderRequest
+import io.github.youndie.haul.feature.checkout.TEST_CARD_KEY_HEADER
 import io.github.youndie.haul.feature.checkout.domain.CheckoutError
 import io.github.youndie.haul.feature.order.data.ExposedOrders
 import io.github.youndie.haul.feature.order.domain.CancelReason
@@ -71,7 +72,7 @@ class PlacementRoutesTest {
     private fun asMaya(block: suspend HttpClient.(token: String, database: DataSource) -> Unit) =
         seededFreshDatabase().use { database ->
             val token = ShildikHarness.accessToken(ShildikHarness.person("Maya Kowalski", SampleCustomers.MAYA))
-            haulTest(database, signIn = ShildikHarness.signIn) { block(token, database) }
+            haulTest(database, signIn = ShildikHarness.signIn, testCardKey = TEST_CARD_KEY) { block(token, database) }
         }
 
     private suspend fun HttpClient.checkout(token: String): KompotComponent {
@@ -83,8 +84,10 @@ class PlacementRoutesTest {
     private suspend fun HttpClient.choose(
         token: String,
         choice: CheckoutChoice,
+        testCardKey: String? = null,
     ) = put(CheckoutPaths.CHOICE) {
         bearerAuth(token)
+        testCardKey?.let { header(TEST_CARD_KEY_HEADER, it) }
         contentType(ContentType.Application.Json)
         setBody(haulWireJson.encodeToString(CheckoutChoice.serializer(), choice))
     }.assertRefresh()
@@ -183,7 +186,8 @@ class PlacementRoutesTest {
         asMaya { token, database ->
             val ledger = Ledger(database)
             val stockBefore = ledger.stock()
-            choose(token, CheckoutChoice(slotId = wednesday3pm, payment = "card-0002"))
+            // The test card is chosen with the stand's key, as the synthetic shoppers choose it (B-89).
+            choose(token, CheckoutChoice(slotId = wednesday3pm, payment = "card-0002"), TEST_CARD_KEY)
             val summary = checkout(token).only<CheckoutSummary>()
 
             val orderId = place(token, "maya-declined", summary).assertPlaced()
@@ -492,3 +496,6 @@ class PlacementRoutesTest {
             response.assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
         }
 }
+
+/** The stand's key for the test card in these tests: any string of sixteen characters or more. */
+private const val TEST_CARD_KEY = "placement-routes-test-card-key"

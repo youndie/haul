@@ -22,7 +22,8 @@ import kotlin.time.DurationUnit
  * one walk per interval, at most `inFlight` at once, and a start that would pass that is skipped and said.
  *
  * Every walk ends in one line — what it bought, the order, how long the clock took — or in the step it
- * failed at; a failure never stops the next walk. With `walks` set it stops after that many and exits 1
+ * failed at; a failure never stops the next walk. Every `declineEvery`th walk pays with the card that always
+ * declines and ends at the refusal (B-89), so the order saga's compensation is part of the traffic. With `walks` set it stops after that many and exits 1
  * if any failed (the throwaway checks run it that way); a stand runs it with no end.
  *
  * A configuration that cannot run exits 2 naming the variable, before any request.
@@ -51,6 +52,7 @@ internal class Shoppers(
         log(
             "walking ${config.origin} as ${config.people.joinToString()}: one walk every ${config.interval}, " +
                 "at most ${config.inFlight} at once, the order read every ${config.poll} for up to ${config.wait}" +
+                (if (config.declineEvery > 0) ", every ${config.declineEvery}th paid with the declining card" else "") +
                 if (config.walks > 0) ", ${config.walks} walks" else "",
         )
         awaitStorefront()
@@ -114,6 +116,7 @@ internal class Shoppers(
             cart = carts.computeIfAbsent(login) { ReentrantLock() },
             poll = config.poll,
             wait = config.wait,
+            testCardKey = config.testCardKey.takeIf { config.declines(number) },
         )
     }
 
@@ -122,9 +125,14 @@ internal class Shoppers(
             val done = walk.take()
             val order = done.order.substringAfterLast('/')
             log(
-                "walk ${done.number} as ${done.login}: «${done.product}», order $order " +
-                    "placed after ${done.placedAfter.short()}, delivered after ${done.deliveredAfter.short()}, " +
-                    "refunded after ${done.refundedAfter.short()}, sign-in renewed ${done.renewals} times",
+                if (done.declined) {
+                    "walk ${done.number} as ${done.login}: «${done.product}», order $order paid with the declining " +
+                        "card and refused after ${done.placedAfter.short()}, its lines back in the cart and removed"
+                } else {
+                    "walk ${done.number} as ${done.login}: «${done.product}», order $order " +
+                        "placed after ${done.placedAfter.short()}, delivered after ${done.deliveredAfter?.short()}, " +
+                        "refunded after ${done.refundedAfter?.short()}, sign-in renewed ${done.renewals} times"
+                },
             )
         } catch (e: WalkFailed) {
             failed.incrementAndGet()

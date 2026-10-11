@@ -62,6 +62,14 @@ public data class AddressEntry(
 public const val IDEMPOTENCY_KEY_HEADER: String = "Idempotency-Key"
 
 /**
+ * The header a choice of the test card ···· 0002 — the one the payment simulator always declines — must carry
+ * the stand's key in (B-89). The storefront never sends it and never lists the card: only the synthetic
+ * shoppers have the key, so a share of their walks runs the order saga's compensation, and a visitor who names
+ * the card by its id is refused as for any way to pay the checkout does not offer.
+ */
+public const val TEST_CARD_KEY_HEADER: String = "X-Haul-Test-Card"
+
+/**
  * «Place order», `POST` to `CheckoutSummary.placeUrl` with an [IDEMPOTENCY_KEY_HEADER]: [quote] is the
  * fingerprint the summary carried (`CheckoutSummary.quote`). The server computes the quote again and
  * places only that one; a quote that changed since the page was drawn is refused (`409 cart_changed`).

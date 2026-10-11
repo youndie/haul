@@ -6,11 +6,13 @@ import io.github.youndie.haul.e2e.Transport
 import io.github.youndie.haul.e2e.Tree
 import io.github.youndie.haul.e2e.deeplink
 import io.github.youndie.haul.feature.cart.LineChange
+import io.github.youndie.haul.feature.cart.LinesRemoval
 import io.github.youndie.haul.feature.checkout.AddressEntry
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.checkout.DeliveryMethod
 import io.github.youndie.haul.feature.checkout.IDEMPOTENCY_KEY_HEADER
 import io.github.youndie.haul.feature.checkout.PlaceOrderRequest
+import io.github.youndie.haul.feature.checkout.TEST_CARD_KEY_HEADER
 import io.github.youndie.haul.feature.identity.GuestDto
 import io.github.youndie.haul.feature.identity.SignInSettings
 import io.github.youndie.haul.feature.returns.ReturnEntry
@@ -52,6 +54,13 @@ import kotlin.time.TimeSource
  *
  * **One walk per person between the sign-in and the placement** ([cart]): the cart is the customer's, and
  * a second walk of the same person merging its line in between would have it placed by the first.
+ *
+ * **A walk given the [testCardKey] declines** (B-89): it pays with the test card ···· 0002, which the payment
+ * simulator always declines and which the storefront never lists — named by its id, with the stand's key in
+ * `TEST_CARD_KEY_HEADER` — and sees the order refused: cancelled, the card named, its lines back in the cart. The
+ * saga undid what it had done (the stock, the window); the walk then puts the listed card back and removes the
+ * lines, still holding the [cart], so the next walk of the person finds the checkout as a visitor would and buys
+ * nothing twice.
  */
 internal class Walk(
     val number: Int,
@@ -64,6 +73,7 @@ internal class Walk(
     private val wait: Duration,
     private val random: Random = Random.Default,
     transport: Transport = Transport.DIRECT,
+    private val testCardKey: TestCardKey? = null,
 ) {
     private val shop = Storefront(origin, transport)
     private val started = TimeSource.Monotonic.markNow()
@@ -79,9 +89,16 @@ internal class Walk(
         val placed =
             cart.withLock {
                 step("sign in as $login and take the cart along") { signInAndMerge() }
-                step("check out by courier and place the order") { checkOutAndPlace() }
+                if (testCardKey == null) {
+                    step("check out by courier and place the order") { checkOutAndPlace() }
+                } else {
+                    step("pay with the declining card and see the order refused") { checkOutAndDecline(testCardKey) }
+                }
             }
         val placedAfter = started.elapsedNow()
+        if (testCardKey != null) {
+            return Walked(number, login, product, placed, placedAfter, null, null, shop.renewals, declined = true)
+        }
 
         val form = step("wait for the order to arrive") { delivered(placed) }
         val deliveredAfter = started.elapsedNow()
@@ -124,8 +141,70 @@ internal class Walk(
         shop.guest = null
     }
 
-    /** The order's address, from placement's `navigate`. */
+    /** The order's address, from placement's `navigate`, paid with the card the checkout lists. */
     private fun checkOutAndPlace(): String {
+        val (address, body) = checkOut()
+        choose(body.payment.url, CheckoutChoice(payment = listedCard(body)))
+        return place(address)
+    }
+
+    /**
+     * The declining card chosen by its id with the stand's [key], the order placed and seen refused — cancelled, the
+     * card named — and then the checkout and the cart left as a visitor finds them: the listed card chosen again
+     * (while the declined lines are back in the cart, since a checkout with nothing to quote takes no choice) and
+     * those lines removed. The order's address.
+     */
+    private fun checkOutAndDecline(key: TestCardKey): String {
+        val (address, body) = checkOut()
+        val listed = CheckoutChoice(payment = listedCard(body))
+        choose(body.payment.url, CheckoutChoice(payment = DECLINING_CARD), mapOf(TEST_CARD_KEY_HEADER to key.value))
+        val order =
+            try {
+                place(address).also { refused(it) }
+            } catch (e: Exception) {
+                // So the declining card is not left chosen for whoever signs in as this person next; a reset that fails
+                // too travels with the walk's failure rather than replacing it.
+                try {
+                    choose(body.payment.url, listed)
+                } catch (reset: Exception) {
+                    e.addSuppressed(reset)
+                }
+                throw e
+            }
+        choose(body.payment.url, listed)
+        val back = cartTree().one(CartBody.serializer())
+        val lines =
+            back.groups
+                .flatMap { it.lines }
+                .filter { it.selected }
+                .map { it.skuId }
+        check(lines.isNotEmpty()) { "the declined order's lines did not come back to the cart" }
+        val removed =
+            shop.send(
+                "DELETE",
+                back.selection.linesUrl,
+                haulWireJson.encodeToString(LinesRemoval.serializer(), LinesRemoval(lines)),
+            )
+        check(removed.status == 200) { "${removed.request} answered ${removed.status}: ${removed.body.take(300)}" }
+        return order
+    }
+
+    /** The order's page says the card was declined: cancelled, nothing charged, the way back to the cart. */
+    private fun refused(order: String) {
+        val page = shop.page(order).one(OrderBody.serializer())
+        check(page.summary.voided && page.notice?.title?.contains("declined") == true) {
+            "the order paid with the declining card reads «${page.title}» / «${page.notice?.title}», not refused"
+        }
+    }
+
+    /** The card the checkout lists, the one that approves: the first «Card …» option. */
+    private fun listedCard(body: CheckoutBody): String =
+        body.payment.options
+            .first { it.label.startsWith("Card") && it.id != DECLINING_CARD }
+            .id
+
+    /** Checkout by courier with the address and a window chosen: its address and the body to pay from. */
+    private fun checkOut(): Pair<String, CheckoutBody> {
         val address =
             cartTree()
                 .one(CartBody.serializer())
@@ -153,9 +232,11 @@ internal class Walk(
                 "no window has room"
             }
         choose(slots.url, CheckoutChoice(slotId = window.id))
-        val card = body.payment.options.first { it.label.startsWith("Card") }
-        choose(body.payment.url, CheckoutChoice(payment = card.id))
+        return address to body
+    }
 
+    /** The checkout at [address] placed under a fresh key: the order's address, from placement's `navigate`. */
+    private fun place(address: String): String {
         val summary = shop.page(address).one(CheckoutBody.serializer()).summary
         check(summary.placeEnabled) { "the checkout cannot be placed: ${summary.placeHint}" }
         val placeUrl = checkNotNull(summary.placeUrl) { "the checkout names nowhere to place" }
@@ -194,8 +275,9 @@ internal class Walk(
     private fun choose(
         url: String,
         choice: CheckoutChoice,
+        headers: Map<String, String> = emptyMap(),
     ) = check(
-        shop.send("PUT", url, haulWireJson.encodeToString(CheckoutChoice.serializer(), choice)).action() ==
+        shop.send("PUT", url, haulWireJson.encodeToString(CheckoutChoice.serializer(), choice), headers).action() ==
             RefreshAction,
     ) { "the checkout did not take $choice" }
 
@@ -234,6 +316,9 @@ internal class Walk(
         const val SIGN_IN_SETTINGS = "/api/v1/sign-in"
 
         val ADDRESS = AddressEntry(street = "1 Kent Avenue", city = "Brooklyn", zip = "11249")
+
+        /** The payment simulator's test card, which it always declines; not listed, named by its id (B-89). */
+        const val DECLINING_CARD = "card-0002"
     }
 }
 
@@ -244,10 +329,13 @@ internal data class Walked(
     val product: String,
     val order: String,
     val placedAfter: Duration,
-    val deliveredAfter: Duration,
-    val refundedAfter: Duration,
+    /** `null` for a [declined] walk, whose order never ships. */
+    val deliveredAfter: Duration?,
+    val refundedAfter: Duration?,
     /** How many times the walk's bearer was refused and renewed on the way. */
     val renewals: Int,
+    /** Paid with the declining card and saw the order refused (B-89). */
+    val declined: Boolean = false,
 )
 
 /** A walk that stopped at [step]; the message names the step and what went wrong there. */

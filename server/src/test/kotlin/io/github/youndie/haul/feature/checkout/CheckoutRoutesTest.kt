@@ -80,11 +80,12 @@ class CheckoutRoutesTest {
         name: String,
         id: String? = null,
         dataSource: DataSource = SeededDatabase.dataSource,
+        testCardKey: String? = null,
         block: suspend HttpClient.(token: String) -> Unit,
     ) {
         val sub = if (id == null) ShildikHarness.person(name) else ShildikHarness.person(name, id)
         val token = ShildikHarness.accessToken(sub)
-        haulTest(dataSource, signIn = ShildikHarness.signIn) { block(token) }
+        haulTest(dataSource, signIn = ShildikHarness.signIn, testCardKey = testCardKey) { block(token) }
     }
 
     private suspend fun HttpClient.checkout(token: String): KompotComponent {
@@ -110,9 +111,11 @@ class CheckoutRoutesTest {
     private suspend fun HttpClient.choose(
         token: String,
         choice: CheckoutChoice,
+        testCardKey: String? = null,
     ): HttpResponse =
         put(CheckoutPaths.CHOICE) {
             bearerAuth(token)
+            testCardKey?.let { header(TEST_CARD_KEY_HEADER, it) }
             contentType(ContentType.Application.Json)
             setBody(haulWireJson.encodeToString(CheckoutChoice.serializer(), choice))
         }
@@ -494,6 +497,38 @@ class CheckoutRoutesTest {
                 .assertError(HttpStatusCode.UnprocessableEntity, ErrorCode.PaymentMethodNotAllowed)
         }
 
+    /**
+     * The test card ···· 0002 is the synthetic shoppers' alone (B-89): a choice of it without the stand's key, or
+     * with another, is refused as a way to pay that is not offered, and the checkout keeps the card it had and
+     * still does not list the test card; with the key it is chosen and drawn as the chosen one.
+     */
+    @Test
+    fun `the test card is chosen only with the stand's key`() =
+        signedIn("Sam Ortiz", testCardKey = TEST_CARD_KEY) { token ->
+            mayasLines(token)
+            val declining = CheckoutChoice(payment = "card-0002")
+            for (presented in listOf(null, "", "not-the-stand-key", TEST_CARD_KEY.dropLast(1))) {
+                choose(token, declining, presented)
+                    .assertError(HttpStatusCode.UnprocessableEntity, ErrorCode.PaymentMethodNotAllowed)
+            }
+            val refused = checkout(token).only<PaymentMethods>()
+            assertEquals(listOf("card-4821", "haul_pay", "pay_on_delivery"), refused.options.map { it.id })
+            assertEquals("card-4821", refused.options.single { it.selected }.id)
+
+            choose(token, declining, TEST_CARD_KEY).assertRefresh()
+            val chosen = checkout(token).only<PaymentMethods>().options.single { it.selected }
+            assertEquals("card-0002" to "Test card: always declined", chosen.id to chosen.detail)
+        }
+
+    /** A server with no key (`HAUL_TEST_CARD_KEY` unset) gives the test card to nobody, whatever the header says. */
+    @Test
+    fun `without a key on the server the test card is nobody's`() =
+        signedIn("Sam Ortiz") { token ->
+            mayasLines(token)
+            choose(token, CheckoutChoice(payment = "card-0002"), TEST_CARD_KEY)
+                .assertError(HttpStatusCode.UnprocessableEntity, ErrorCode.PaymentMethodNotAllowed)
+        }
+
     /** «Haul Pay is offered for totals between $50 and $2,000» (feature-checkout): a $24 order is not. */
     @Test
     fun `Haul Pay is refused for a total under fifty dollars`() =
@@ -665,3 +700,6 @@ class CheckoutRoutesTest {
                 .assertError(HttpStatusCode.NotFound, ErrorCode.AddressNotFound)
         }
 }
+
+/** The stand's key for the test card in these tests: any string of sixteen characters or more. */
+private const val TEST_CARD_KEY = "checkout-routes-test-card-key"

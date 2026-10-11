@@ -5,9 +5,13 @@ import io.github.youndie.haul.e2e.SignIn
 import io.github.youndie.haul.e2e.Storefront
 import io.github.youndie.haul.e2e.Transport
 import io.github.youndie.haul.e2e.deeplink
+import io.github.youndie.haul.feature.checkout.CheckoutChoice
+import io.github.youndie.haul.feature.checkout.TEST_CARD_KEY_HEADER
 import io.github.youndie.haul.feature.identity.SignInSettings
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.ui.AccountBody
+import io.github.youndie.haul.ui.CartBody
+import io.github.youndie.haul.ui.EmptyState
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HistoryStatusKind
 import kotlinx.serialization.json.jsonObject
@@ -53,6 +57,7 @@ class SyntheticShopperTest {
                 wait = 2.minutes,
                 inFlight = 2,
                 walks = 2,
+                declineEvery = 0,
             )
         val stockBefore = ComposedStack.stock()
         assertTrue(Shoppers(config).run(), "a walk failed; its line above names the step\n${ComposedStack.serverLog()}")
@@ -87,6 +92,88 @@ class SyntheticShopperTest {
                 "${stockBefore[sku]} → $units"
             }
         assertEquals(emptyMap(), changed, "the walks left the stock changed")
+    }
+
+    /**
+     * B-89: a walk that pays with the declining card. Before it, the same customer — a visitor, signed in as the
+     * shoppers' person — names the test card by its id without the stand's key, and with a wrong one, and is refused
+     * as for a way to pay the checkout does not offer. Then one walk with the key: the order is placed and refused —
+     * cancelled for `payment_declined`, the unit it reserved released, the stock as it was — and the walk leaves the
+     * customer's cart empty and the history holding the one cancelled order.
+     */
+    @Test
+    fun `a walk that pays with the declining card sees the order refused and the stock released`() {
+        val id = "shopper-${UUID.randomUUID()}"
+        val login = ComposedStack.shildikAdmin.person(id, "Dee Declined", PASSWORD)
+        val shop = Storefront(ComposedStack.origin)
+        val settings =
+            haulWireJson.decodeFromString(SignInSettings.serializer(), shop.send("GET", "/api/v1/sign-in").body)
+        shop.token = ComposedStack.shildikAdmin.accessToken(settings, ComposedStack.REDIRECT, login, PASSWORD)
+        val declining = haulWireJson.encodeToString(CheckoutChoice.serializer(), CheckoutChoice(payment = "card-0002"))
+        for (key in listOf(null, "not-the-stand-key-at-all")) {
+            // The address the checkout tree's payment options name (`PaymentMethods.url`).
+            val answer =
+                shop.send(
+                    "PUT",
+                    CHECKOUT_CHOICE,
+                    declining,
+                    key?.let { mapOf(TEST_CARD_KEY_HEADER to it) }.orEmpty(),
+                )
+            assertEquals(422, answer.status, "a visitor chose the declining card with key $key: ${answer.body}")
+            assertTrue("payment_method_not_allowed" in answer.body, answer.body)
+        }
+
+        val config =
+            ShoppersConfig(
+                origin = ComposedStack.origin,
+                redirect = ComposedStack.REDIRECT,
+                people = listOf(login),
+                password = Password(PASSWORD),
+                interval = Duration.ZERO,
+                poll = 500.milliseconds,
+                wait = 2.minutes,
+                walks = 1,
+                declineEvery = 1,
+                testCardKey = TestCardKey(ComposedStack.TEST_CARD_KEY),
+            )
+        val stockBefore = ComposedStack.stock()
+        assertTrue(
+            Shoppers(config).run(),
+            "the walk failed; its line above names the step\n${ComposedStack.serverLog()}",
+        )
+
+        val rows =
+            shop
+                .page(
+                    shop
+                        .page("/")
+                        .one(HaulHeader.serializer())
+                        .orders
+                        .deeplink("the header's «Orders»"),
+                ).one(AccountBody.serializer())
+                .history
+                ?.rows
+                .orEmpty()
+        assertEquals(listOf("Cancelled"), rows.map { it.status }, "the walk left ${rows.map { it.status }}")
+        val order =
+            rows
+                .single()
+                .action
+                .deeplink("the history row")
+                .substringAfterLast('/')
+        assertEquals("cancelled" to "payment_declined", ComposedStack.orderStatus(order))
+        assertEquals(0, ComposedStack.reserved(order), "the declined order still holds stock")
+        assertEquals(stockBefore, ComposedStack.stock(), "the declined walk left the stock changed")
+        val cart =
+            shop.page(
+                shop
+                    .page("/")
+                    .one(HaulHeader.serializer())
+                    .cart
+                    .deeplink("the header's cart"),
+            )
+        assertEquals(emptyList(), cart.all(CartBody.serializer()), "the walk left its lines in the cart")
+        assertEquals("Your cart is empty", cart.one(EmptyState.serializer()).title)
     }
 
     /**
@@ -186,6 +273,9 @@ class SyntheticShopperTest {
 
     private companion object {
         const val PASSWORD = "shoppers-horse-battery-staple"
+
+        /** Checkout's choices, as the checkout tree names them (`PaymentMethods.url`); a visitor may send anything here. */
+        const val CHECKOUT_CHOICE = "/api/v1/me/checkout"
 
         /** The second [token] was issued in: its `iat`, read from the payload without checking the signature. */
         fun issuedAt(token: String): Long {
