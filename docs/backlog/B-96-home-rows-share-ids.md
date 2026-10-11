@@ -1,7 +1,7 @@
 ---
 id: B-96
 title: "server: home never draws one product twice"
-status: open
+status: wip
 priority: P1
 size: S
 stage: stage-11-qa
