@@ -31,7 +31,11 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.server.testing.testApplication
 import javax.sql.DataSource
 
-/** One seeded database for every route test: the seed is read-only to the browse routes. */
+/**
+ * One seeded database for every route test: the seed is read-only to the browse routes. It is the stand's
+ * seed, the generated reviews and questions included ([Seeder.seedIfEmpty]): seeded once, it is what the
+ * product pages, the review tabs and the client's wire bodies are compared against.
+ */
 internal object SeededDatabase {
     val dataSource: DataSource by lazy {
         PostgresHarness.freshDatabase().also {
@@ -84,10 +88,21 @@ internal fun haulTest(
     client.block()
 }
 
-/** A database of its own, migrated and seeded: for a test that writes to the catalog. */
-internal fun seededFreshDatabase(): HikariDataSource =
+/**
+ * A database of its own, migrated and seeded: for a test that writes to the catalog. Without the generated
+ * reviews and questions unless [generatedReviews] asks for them (B-111): they are most of a fresh seed's time,
+ * paid by every test that writes, and only a test that reads a product's reviews needs them — without them a
+ * product keeps its counts over the catalogue's own rows, and has no histogram.
+ */
+internal fun seededFreshDatabase(generatedReviews: Boolean = false): HikariDataSource =
     PostgresHarness.freshDatabase().also {
-        check(Seeder.seedIfEmpty(Databases.connect(it), CatalogSeed.generate(CatalogSeed.CANVAS_DAY)))
+        check(
+            Seeder.seedIfEmpty(
+                Databases.connect(it),
+                CatalogSeed.generate(CatalogSeed.CANVAS_DAY),
+                generatedReviews = generatedReviews,
+            ),
+        )
     }
 
 internal suspend fun HttpClient.tree(path: String): KompotComponent {

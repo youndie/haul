@@ -143,7 +143,13 @@ class SaleCalendarTest {
     @Test
     fun `a stand seeded on another day takes the sale's code during its sale and refuses it after`() =
         PostgresHarness.freshDatabase().use { database ->
-            check(Seeder.seedIfEmpty(Databases.connect(database), CatalogSeed.generate(STAND_DAY)))
+            check(
+                Seeder.seedIfEmpty(
+                    Databases.connect(database),
+                    CatalogSeed.generate(STAND_DAY),
+                    generatedReviews = false,
+                ),
+            )
             val saleEnds = STAND_DAY.plusDays(SALE_DAYS).atStartOfDay(DeliveryCalendar.STORE)
             haulTest(database, clock = StoreClock { STAND_NOW.toZonedDateTime() }) {
                 applyPromo(cartWithHeadphones(), AUTUMN10).assertRefresh()
@@ -167,7 +173,13 @@ class SaleCalendarTest {
         val canvas = drawn(SeededDatabase.dataSource, CANVAS_NOW)
         val stand =
             PostgresHarness.freshDatabase().use { database ->
-                check(Seeder.seedIfEmpty(Databases.connect(database), CatalogSeed.generate(STAND_DAY)))
+                check(
+                    Seeder.seedIfEmpty(
+                        Databases.connect(database),
+                        CatalogSeed.generate(STAND_DAY),
+                        generatedReviews = false,
+                    ),
+                )
                 drawn(database, StoreClock { STAND_NOW.toZonedDateTime() })
             }
         assertEquals(6, canvas.deals.size, "the control: the canvas draws its six deals")

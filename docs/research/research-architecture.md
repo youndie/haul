@@ -528,6 +528,18 @@ recounted from them, a customer's own review counted once; a database that has t
 nothing. Rows built in Kotlin and batch-inserted through Exposed were rejected unmeasured: the per-row round
 trip is what `INSERT … SELECT` avoids, and the server's suite seeds about ninety databases.
 
+**Decided in B-111, the server's tests seed only the rows they read.** B-99's fill ran on every seeding start,
+the tests' included, and the suite seeds about ninety databases: `:server:test` on CI went from 225–327 s to
+821 s (`gradle` from 7–9 to 17 minutes). `Seeder.seedIfEmpty` takes `generatedReviews`, `true` unless a caller
+says otherwise; `seededFreshDatabase()` — a test's own database — passes `false` unless the test lists past the
+seed's own reviews (the review routes' «yours first» and «counted» cases, the review fixtures), and such a database
+keeps the catalogue's counts over the canvas's rows, with no histogram. The shared `SeededDatabase`, `SeedTest`
+and `SeedReviewsTest` seed in full, and so does every start of the image: `main` never passes the switch, the
+stand and the e2e run `main`, and a database seeded without the fill gets every row on the next start that fills
+(`SeedReviewsTest`; the e2e reads the headphones' 2,341 and 86 off the image). CI's other failure of those days, `Could not create new connection` (haul#121),
+was test pools left open against the container's hundred connections, closed by B-100 (`PostgresHarness` refuses
+a ninth open database). With both, `:server:test` took 280 s on CI.
+
 **Decided in B-99, what the review controls promise.** A customer who has reviewed a product is offered their
 review, never a second «Write a review» the route refuses (`409 review_exists`): on the product page theirs leads
 the list and the button's place reads «You reviewed this on Oct 7» (`ProductReviews.action` absent); on a

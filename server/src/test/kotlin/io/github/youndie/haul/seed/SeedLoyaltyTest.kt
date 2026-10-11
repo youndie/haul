@@ -29,13 +29,16 @@ class SeedLoyaltyTest {
     @Test
     fun `a database seeded before the ledger gets Maya's membership and points once`() {
         val database = Databases.connect(dataSource)
-        Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY))
+        Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY), generatedReviews = false)
         transaction(database) {
             PointsEntriesTable.deleteAll()
             MembershipsTable.deleteAll()
         }
 
-        assertFalse(Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY)), "the catalog was there")
+        assertFalse(
+            Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY), generatedReviews = false),
+            "the catalog was there",
+        )
         val ledger = ExposedPointsLedger(database)
         runBlocking {
             assertEquals(2_480, ledger.balance(SampleCustomers.MAYA))
@@ -46,7 +49,7 @@ class SeedLoyaltyTest {
             ledger.redeem(PointsMovement.redeemed(SampleCustomers.MAYA, "HL-1", 2_480, CatalogSeed.NOW))
         }
 
-        Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY))
+        Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY), generatedReviews = false)
         assertEquals(0, runBlocking { ledger.balance(SampleCustomers.MAYA) }, "the opening balance is not seeded twice")
     }
 }

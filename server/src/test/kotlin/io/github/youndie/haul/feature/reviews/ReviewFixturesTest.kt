@@ -60,8 +60,8 @@ class ReviewFixturesTest {
                 listOfNotNull(
                     compare("product_reviews.json", seeded, ProductTab.Reviews),
                     compare("product_questions.json", seeded, ProductTab.Questions),
-                    // B-99: Maya has reviewed the headphones and found Aisha's review helpful.
-                    seededFreshDatabase().use { dataSource ->
+                    // B-99: Maya has reviewed the headphones and found Aisha's review helpful — among all 2,341.
+                    seededFreshDatabase(generatedReviews = true).use { dataSource ->
                         val database = Databases.connect(dataSource)
                         val reviews = ExposedReviews(database)
                         reviews.write(

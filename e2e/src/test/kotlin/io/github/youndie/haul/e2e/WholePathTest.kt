@@ -23,6 +23,8 @@ import io.github.youndie.haul.ui.HistoryStatusKind
 import io.github.youndie.haul.ui.OrderBody
 import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.haul.ui.ProductGrid
+import io.github.youndie.haul.ui.ProductQuestions
+import io.github.youndie.haul.ui.ProductReviews
 import io.github.youndie.haul.ui.ReturnForm
 import io.github.youndie.kompot.commands.LoadAction
 import io.github.youndie.kompot.commands.UpdateAction
@@ -169,6 +171,18 @@ class WholePathTest {
                 card to productAddress
             }
         val price = cents(card.price)
+
+        step("the headphones' reviews and questions are as many as they count") {
+            // The image's start seeds every review and question a product counts (B-99) — the server's own tests
+            // seed most of their databases without them (B-111), so this is where the stand's seed is held to it.
+            val reviews = shop.page("$HEADPHONES?tab=reviews").one(ProductReviews.serializer())
+            assertEquals("out of 5 · 2,341 reviews", reviews.caption)
+            assertEquals(10, reviews.reviews.size, "the reviews tab does not list ten of 2,341")
+            assertEquals("Show more reviews", reviews.moreLabel, "the reviews tab offers no more of 2,341")
+            val questions = shop.page("$HEADPHONES?tab=questions").one(ProductQuestions.serializer())
+            assertEquals(10, questions.questions.size, "the questions tab does not list ten of 86")
+            assertEquals("Show more questions", questions.moreLabel, "the questions tab offers no more of 86")
+        }
 
         step("add it to the guest's cart with the product page's «Add to cart»") {
             val product = shop.page(productAddress).one(ProductDetails.serializer())
@@ -505,6 +519,9 @@ class WholePathTest {
         const val SIGN_IN_SETTINGS = "/api/v1/sign-in"
 
         const val PASSWORD = "e2e-horse-battery-staple"
+
+        /** The canvas's headphones, which the seed gives 2,341 reviews and 86 questions (the server's `SampleCatalog`). */
+        const val HEADPHONES = "/p/p-sony-wh-1000xm6"
         val ADDRESS = AddressEntry(street = "1 Kent Avenue", city = "Brooklyn", zip = "11249")
         val ADDRESS_FIELDS = setOf("street", "city", "zip")
     }
