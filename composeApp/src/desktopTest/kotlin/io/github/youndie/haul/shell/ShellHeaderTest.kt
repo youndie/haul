@@ -34,6 +34,7 @@ import io.github.youndie.kompot.standard.SequenceAction
 import io.github.youndie.kompot.standard.TextComponent
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.serialization.PolymorphicSerializer
+import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -177,6 +178,34 @@ class ShellHeaderTest {
             assertEquals(listOf<TreeCommand>(TreeCommand.StartTrial(TRIAL.url)), trials.toList())
             waitUntil(timeoutMillis = 5_000) { !exists(hasTestTag(PLUS_START_TAG)) }
             assertEquals(listOf("/deals", "/p/gone"), history.entries)
+        }
+
+    /**
+     * B-92 over a page the shell draws: the trial from its header that gets no answer keeps the dialog and says so
+     * over it, as it does over a tree's page — the shell's own handler draws the message too.
+     */
+    @Test
+    fun `a trial with no answer over a page the shell draws says so`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            val history = FakeHistory("/deals")
+            history.entries += "/p/gone"
+            val commands = TreeCommands { throw IOException("connection refused") }
+            storefront(history, treeCommands = commands) { path ->
+                if (path == "/ui/p/gone") {
+                    HaulResponse(404, """{"code":"product_not_found","message":"gone"}""")
+                } else {
+                    destination(path, TREE_HEADER.copy(plus = PresentAction(TRIAL, "dialog")))
+                }
+            }
+            waitUntil(timeoutMillis = 5_000) { exists(hasText(pageAt("/deals"))) }
+            history.forward()
+            waitUntil(timeoutMillis = 5_000) { exists(hasText("This product is no longer available")) }
+
+            press(hasText("HAUL PLUS") and hasClickAction())
+            waitUntil(timeoutMillis = 5_000) { exists(hasTestTag(PLUS_START_TAG)) }
+            onNodeWithTag(PLUS_START_TAG).performClick()
+            waitUntil(timeoutMillis = 5_000) { exists(hasText(NO_ANSWER) and hasAnyAncestor(hasTestTag(MESSAGE_TAG))) }
+            onNodeWithTag(PLUS_START_TAG).assertExists()
         }
 
     /**
