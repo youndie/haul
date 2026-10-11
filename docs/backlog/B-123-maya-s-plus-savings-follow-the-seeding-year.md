@@ -1,7 +1,7 @@
 ---
 id: B-123
 title: "fix: Maya's carried Plus savings belong to the year the stand was seeded"
-status: open
+status: wip
 priority: P2
 size: XS
 stage: stage-12-qa-run
