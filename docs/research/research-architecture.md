@@ -1263,9 +1263,24 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   (`CampaignWindow.liveFor` — a Plus member's from its early access); the campaign row is the hero's, so without it
   the banners are not drawn either. Each banner is drawn until its campaign ends — not only while it is live, since
   the canvas draws the free-delivery weekend days before it opens.
-- **The empty cart's line** («Today's deals end at midnight — up to −70 % in the Autumn mega sale.») names today's
+- **The empty cart's line** («Today's deals end at midnight — up to −70% in the Autumn mega sale.») names today's
   deals and the sale, so it is drawn only while a deal is live and the sale is live for the cart's owner; otherwise
   `EmptyState.text` is left out (it became optional on the wire), and the title and «See today's deals» stay.
+
+**Decided in B-107, the store does not promise what it does not have.** Words a visitor reads are drawn from data or
+left out:
+
+- **The sale is named by its campaign row.** `campaigns.name` (V29) is what the hero's eyebrow
+  («Autumn mega sale · Oct 7 — 14») and the empty cart's line call it; the line's figure is the campaign's title, its
+  first letter lowered (`CartScreen.saleLine`). Both had the autumn sale written into the code. V29 names a campaign
+  written before it after its slug, which is the name the seed gives each of its own (`CampaignNameMigrationTest`).
+- **The search field reads «Search products».** The canvas's «Search 2.4 million products» counted a catalogue of
+  hundreds; the header is drawn before a page has read the catalogue, and the shell's own header has none to count,
+  so the number is left out rather than counted (`Frame.SEARCH_PLACEHOLDER`).
+- **No «Get the app» block in the footer**, since there is no app: `HaulFooter.appTitle` and `appText` left the wire,
+  and the block's place at 1440 stays empty so the footer keeps the canvas's frame.
+- **Checkout's note is only «Your card is charged when the order ships.»** — for a card; «By placing the order you
+  agree to the Terms of Sale.» named a page the store does not have, and with no card there is no note.
 
 **Decided in B-70, a running stand keeps its deals of the day.**
 
@@ -1883,8 +1898,8 @@ yours» answers `404`, the same as «does not exist».
 ## 6. Sample data
 
 The values every artboard, preview, scenario and screenshot fixture shows. Seeded alongside a larger
-generated catalog; the canvas's counts (12,408 items, 14,870 results, 2.4 million products) are copy
-for fixtures, not a target for the database.
+generated catalog; the canvas's counts (12,408 items, 14,870 results) are copy for fixtures, not a target
+for the database. The canvas's «Search 2.4 million products» is not drawn at all (B-107).
 
 | Entity | Values |
 |---|---|

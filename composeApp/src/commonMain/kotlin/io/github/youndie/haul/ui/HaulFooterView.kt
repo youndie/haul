@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -26,12 +25,12 @@ import io.github.youndie.haul.theme.HaulType.browserLeading
 import io.github.youndie.haul.theme.LocalHaulCompact
 
 /**
- * The footer (`HaulFooter` on the wire), with the gap the page leaves above it: up to four link columns and
- * «Get the app» at 1440, two columns a row and no app block at 390, the wordmark cut off by the page's end.
- * A word follows its entry in `FooterColumn.linked` (B-72); one without is drawn as text, nothing to press.
- * The footer keeps the canvas's frame with fewer words in it: four column places at 1440 («Get the app» stays
- * at the end), two rows of two on a phone, four lines to a column — so it is as tall as the canvas draws it and
- * the wordmark is cut where it was.
+ * The footer (`HaulFooter` on the wire), with the gap the page leaves above it: up to four link columns at 1440,
+ * two columns a row at 390, the wordmark cut off by the page's end. A word follows its entry in
+ * `FooterColumn.linked` (B-72); one without is drawn as text, nothing to press. The footer keeps the canvas's
+ * frame with fewer words in it: four column places at 1440 and the place of the canvas's «Get the app» block at
+ * the end, left empty since there is no app (B-107), two rows of two on a phone, four lines to a column — so it
+ * is as tall as the canvas draws it and the wordmark is cut where it was.
  */
 @Composable
 public fun HaulFooterView(footer: HaulFooter) {
@@ -65,19 +64,8 @@ public fun HaulFooterView(footer: HaulFooter) {
                 Row(horizontalArrangement = Arrangement.spacedBy(32.dp)) {
                     footer.columns.forEach { LinkColumn(it, compact = false, Modifier.weight(1f)) }
                     repeat(COLUMNS - footer.columns.size) { Box(Modifier.weight(1f)) }
-                    Column(Modifier.weight(1.4f)) {
-                        ColumnTitle(footer.appTitle, compact = false)
-                        Text(
-                            footer.appText,
-                            HaulType
-                                .text(
-                                    15f,
-                                    lineHeight = 1.5f,
-                                ).browserLeading()
-                                .copy(color = HaulColors.inverseOnSurfaceVariant),
-                            Modifier.widthIn(max = 280.dp),
-                        )
-                    }
+                    // The canvas's «Get the app» place, empty: there is no app (B-107).
+                    Box(Modifier.weight(1.4f))
                 }
             }
             // On a desktop as large as the page is wide enough for (B-82): 420 px of «Haul.» ran past the edge at

@@ -162,6 +162,7 @@ internal object SampleCatalog {
         listOf(
             SeedCampaign(
                 slug = AUTUMN_MEGA_SALE,
+                name = "Autumn mega sale",
                 title = "Up to −70%",
                 subtitle = "1.2 million items marked down across 32 categories",
                 position = 0,
@@ -172,6 +173,7 @@ internal object SampleCatalog {
             ),
             SeedCampaign(
                 slug = "tech-week",
+                name = "Tech week",
                 title = "Laptops from $399",
                 subtitle = "Tech week",
                 position = 1,
@@ -182,6 +184,7 @@ internal object SampleCatalog {
             ),
             SeedCampaign(
                 slug = "free-delivery-weekend",
+                name = "Free delivery weekend",
                 title = "Free delivery on everything",
                 subtitle = "600K items from local sellers",
                 position = 2,

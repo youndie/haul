@@ -242,7 +242,7 @@ class KnownHeaderTest {
                 deliverTo = "Brooklyn, NY 11211",
                 deliveryPromise = "Free delivery over $35",
                 cartCount = 2,
-                searchPlaceholder = "Search 2.4 million products",
+                searchPlaceholder = "Search products",
                 categories = listOf("Electronics"),
                 account = NavigateAction("/sign-in"),
                 catalog = listOf(Link("Electronics", NavigateAction("/c/electronics"))),

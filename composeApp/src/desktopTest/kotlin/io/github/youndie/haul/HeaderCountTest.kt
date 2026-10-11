@@ -71,7 +71,7 @@ class HeaderCountTest {
                 deliveryPromise = "Free delivery over $35",
                 customerName = null,
                 cartCount = 0,
-                searchPlaceholder = "Search 2.4 million products",
+                searchPlaceholder = "Search products",
                 categories = listOf("Electronics"),
             )
     }

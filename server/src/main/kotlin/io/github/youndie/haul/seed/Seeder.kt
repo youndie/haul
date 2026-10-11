@@ -111,6 +111,7 @@ internal object Seeder {
             // Campaigns before the SKUs, which name them (V26).
             CampaignsTable.batchInsert(catalog.campaigns) {
                 this[CampaignsTable.slug] = it.slug
+                this[CampaignsTable.name] = it.name
                 this[CampaignsTable.title] = it.title
                 this[CampaignsTable.subtitle] = it.subtitle
                 this[CampaignsTable.position] = it.position

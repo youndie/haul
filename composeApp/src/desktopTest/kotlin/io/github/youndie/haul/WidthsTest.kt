@@ -133,7 +133,7 @@ class WidthsTest {
                 deliveryPromise = "Free delivery over $35",
                 customerName = "Maya",
                 cartCount = 12,
-                searchPlaceholder = "Search 2.4 million products",
+                searchPlaceholder = "Search products",
                 categories =
                     listOf(
                         "Electronics",

@@ -126,7 +126,7 @@ internal class HomeScreen(
     private fun hero(campaign: Campaign) =
         CampaignHero(
             id = "campaign-${campaign.slug}",
-            eyebrow = "Autumn mega sale · ${dates(campaign)}",
+            eyebrow = "${campaign.name} · ${dates(campaign)}",
             title = campaign.title,
             subtitle = campaign.subtitle,
             actionLabel = "Shop the sale",

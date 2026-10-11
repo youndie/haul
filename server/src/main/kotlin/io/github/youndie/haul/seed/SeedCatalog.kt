@@ -102,6 +102,8 @@ internal data class SeedSku(
 
 internal data class SeedCampaign(
     val slug: String,
+    /** What the hero and the empty cart call it (B-107, V29). */
+    val name: String,
     val title: String,
     val subtitle: String,
     val position: Int,

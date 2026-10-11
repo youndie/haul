@@ -427,7 +427,7 @@ class SignInEverywhereTest {
                 deliveryPromise = "Free delivery over $35",
                 customerName = null,
                 cartCount = 0,
-                searchPlaceholder = "Search 2.4 million products",
+                searchPlaceholder = "Search products",
                 categories = listOf("Electronics"),
                 account = NavigateAction("/sign-in"),
                 orders = NavigateAction("/sign-in?next=%2Faccount%2Forders"),

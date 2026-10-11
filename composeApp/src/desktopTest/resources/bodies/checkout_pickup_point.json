@@ -166,7 +166,7 @@
                 ],
                 "totalLabel": "Total",
                 "total": "$512",
-                "note": "By placing the order you agree to the Terms of Sale. Your card is charged when the order ships.",
+                "note": "Your card is charged when the order ships.",
                 "placeLabel": "Place order · $512.00",
                 "placingLabel": "Placing order…",
                 "placeEnabled": true,

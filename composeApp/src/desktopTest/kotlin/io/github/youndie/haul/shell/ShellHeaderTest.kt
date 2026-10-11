@@ -404,7 +404,7 @@ class ShellHeaderTest {
                 deliveryPromise = "Free delivery over $35",
                 customerName = "Sam",
                 cartCount = 2,
-                searchPlaceholder = "Search 2.4 million products",
+                searchPlaceholder = "Search products",
                 categories = listOf("Electronics"),
                 account = NavigateAction("/account"),
                 catalog = listOf(Link("Electronics", NavigateAction("/c/electronics"))),

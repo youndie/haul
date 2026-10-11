@@ -9,6 +9,7 @@ import io.github.youndie.haul.feature.cart.domain.PricedLine
 import io.github.youndie.haul.feature.cart.domain.PromoCode
 import io.github.youndie.haul.feature.cart.domain.StoredCart
 import io.github.youndie.haul.feature.cart.domain.Totals
+import io.github.youndie.haul.feature.catalog.domain.Campaign
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
@@ -204,7 +205,7 @@ internal class CartScreen(
         // The line names both today's deals and the sale, so it is drawn only while both are live (B-59):
         // before, it promised deals and −70 % on a stand that had neither left.
         val at = clock.now().toOffsetDateTime()
-        val sale = deals.isNotEmpty() && liveSale(catalog.campaigns(), owner.prices, at) != null
+        val sale = liveSale(catalog.campaigns(), owner.prices, at)?.takeIf { deals.isNotEmpty() }
         val empty =
             listOf(
                 title(count = null),
@@ -212,7 +213,7 @@ internal class CartScreen(
                     id = "empty",
                     title = "Your cart is empty",
                     accent = "empty",
-                    text = if (sale) SALE_LINE else null,
+                    text = sale?.let(::saleLine),
                     actionLabel = "See today’s deals",
                     action = NavigateAction(Frame.DEALS),
                     primary = true,
@@ -238,8 +239,14 @@ internal class CartScreen(
     companion object {
         private const val PICKS = 6
 
-        /** The empty cart's sale line, the canvas's (Cart_Empty). */
-        const val SALE_LINE = "Today’s deals end at midnight — up to −70 % in the Autumn mega sale."
+        /**
+         * The empty cart's sale line (Cart_Empty), drawn from the sale itself (B-107): «Today’s deals end at
+         * midnight — up to −70% in the Autumn mega sale.» — its title, the first letter lowered to run on, and its
+         * name. The canvas wrote the sale's words into the line, which then named the autumn sale whatever the
+         * sale was.
+         */
+        fun saleLine(sale: Campaign): String =
+            "Today’s deals end at midnight — ${sale.title.replaceFirstChar { it.lowercase() }} in the ${sale.name}."
 
         /** Checkout asks a guest to sign in first (feature-cart); the client opens the provider's page. */
         const val SIGN_IN = "${Frame.SIGN_IN}?next=%2Fcheckout"
