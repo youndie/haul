@@ -922,7 +922,8 @@ the account need a shildik token; signing in merges the guest cart.
   the account's payment methods), so the payment options are fixed: card ···· 4821 (approves), test
   card ···· 0002 (declines), Haul Pay for totals from $50 to $2,000, pay on delivery except to a locker.
   The canvas lists only the card ···· 4821 (B-15): the test card is chosen by its id
-  (`CheckoutChoice.payment`) and drawn only once it is the one chosen.
+  (`CheckoutChoice.payment`) and drawn only once it is the one chosen — and since B-89 only by a request that
+  carries the stand's key, the synthetic shoppers' («Decided in B-89» below).
 - **The address form** keeps research §5's fields (street, apt, city, ZIP, door code, courier note; no
   state, so Maya's city is «Brooklyn, NY»). A form at fault is `400 validation_failed` with every field
   at fault in `ErrorBody.fields` (`field_required`, `field_invalid`), and is stored and drawn again with
@@ -979,7 +980,7 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   random window, placement, delivery, the line returned, the refund, the history. `ghcr.io/youndie/haul-shoppers`
   is published by `stand.yaml` under the server's tag; `scripts/shoppers-check.sh` builds it on every pull request
   and makes it refuse an empty configuration. Not a load test: one walk per `interval`, at most `inFlight` at once.
-- **In the chart, off by default** (`shoppers.enabled`, `templates/shoppers.yaml`, chart 0.2.1). The pod walks the
+- **In the chart, off by default** (`shoppers.enabled`, `templates/shoppers.yaml`, chart 0.2.1; the declining walks are 0.3.0). The pod walks the
   server's Service and signs in where the server says, by the storefront's PKCE flow through `haul-web`.
 - **Signed in as the stand's demo people, never as a guest.** A guest's «Checkout» goes to sign-in, so a guest walk
   places nothing. The password is the release's shildik Secret's `demo-password`, by reference — never a value, and
@@ -993,8 +994,8 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   Two walks started together without the lock still passed once, so its need is reasoned, not shown.
 - **What a walk produces**, at the stand's speed 288: one order saga completed, the fulfilment simulator's moves
   over about ten minutes, a return and its refund over about ten more — so the default `interval: 600` keeps two
-  or three walks waiting at once. There is no declined payment among them: the test card that declines is not
-  offered by the checkout.
+  or three walks waiting at once. Until B-89 there was no declined payment among them, since the test card that
+  declines is not offered by the checkout; now one walk in ten pays with it («Decided in B-89»).
 - **A walk keeps its sign-in alive** (found on the stand after v0.3.0). shildik's access token lives five minutes and
   a walk at speed 288 lives about twenty, so the walk keeps the refresh token the storefront's `offline_access` scope
   gets and, when a request comes back `401`, renews and sends it once more — what the storefront's client does
@@ -1006,6 +1007,41 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   **A shildik token is not unique within its second**: no `jti`, `iat` in whole seconds, RS256 deterministic — a
   refresh in the second of the sign-in returns the same access token. Harmless for a real expiry (five minutes
   later), but a test that marks a token expired by its text must let a second pass first (B-31, iteration 3).
+
+**Decided in B-89, the declining walks.**
+
+- **One walk in ten pays with the test card ···· 0002** (`shoppers.declineEvery: 10`, `HAUL_SHOPPERS_DECLINE_EVERY`;
+  `0` for none): walks 10, 20, … — never the first, so a stand just turned on shows the whole path first. Such a walk
+  does everything up to placement as the others do, then sees the order refused: cancelled, «Your card ···· 0002 was
+  declined», its lines back in the cart. The saga's compensation — the order cancelled, the points given back, the
+  window and the stock released — is what it adds to the traffic, and what tracy shows under the order (B-109):
+  `order saga step refused` for `authorise-payment` with `payment_declined`, then `order saga step undone` for
+  `open-order`, `redeem-points`, `reserve-slot` and `reserve-stock`. Deterministic, not random: one in ten is
+  the same share every hour, and a check can tell which walk declined.
+- **The card is reached by a key only the shoppers hold, not by a customer of their own.** The server takes
+  `card-0002` from `PUT /api/v1/me/checkout` only when the request carries `HAUL_TEST_CARD_KEY` in
+  `X-Haul-Test-Card` (`TestCardAccess`, compared in constant time); anyone else naming it by its id is
+  `422 payment_method_not_allowed`, as for any way to pay the checkout does not offer, and with no key configured the
+  card is nobody's — the default, so a stand without declining shoppers has no way to it at all. The rejected
+  alternative, a shopper-only customer whose card declines, would have tied a card's answer to a person (the
+  simulator declines a card, not a customer) and would still be open to anybody who signs in as that person — the
+  shoppers sign in as the demo people, whose password is the stand's demo password.
+- **The key is derived, not configured**: the chart writes `sha256("haul-test-card-0002:" + shildik.masterKeys)` into
+  the release's Secret while the shoppers run with `declineEvery` above 0 (`haul.testCardKey`), and hands it to the
+  server and to the shoppers by reference. The master keys are already a secret the release holds and keeps across
+  upgrades, so the key is stable, never in a values file, and nothing new for the deploy to pass; a one-way hash
+  gives the master keys to nobody. Rotating the master keys rotates the key; both pods restart on it (the server by
+  its Secret's checksum, the shoppers by the key's). A key under 16 characters refuses the server's start.
+- **A declining walk leaves the checkout and the cart as a visitor finds them**, still holding the person's cart
+  lock: the listed card chosen again (before the lines go — a checkout with nothing to quote takes no choice) and the
+  lines the saga gave back removed. So the next walk buys nothing twice, and somebody who signs in as the shoppers'
+  person does not find the declining card chosen. **What is left open**: between the walk's choice and its reset —
+  under a second at the stand's pace — that person's checkout shows the card as chosen; and a walk that dies in
+  between (the pod killed) leaves it chosen until the next walk of the person chooses the listed card. The server
+  does not hide a stored test card from a request without the key; nothing a visitor can do selects it.
+- **What the walk sees and what it cannot**: the refusal on the order page and the lines back in the cart. The
+  stock is never on the wire (B-88), so «the stock released» is held by `SyntheticShopperTest` against the database:
+  the order `cancelled` for `payment_declined`, no `stock_reservations` left for it, every SKU's stock as before.
 
 **Decided in B-19, the account.**
 
