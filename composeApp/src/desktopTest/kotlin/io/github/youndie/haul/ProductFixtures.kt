@@ -53,6 +53,14 @@ internal fun ProductDescription() = Fixture(compact = false) { Page { Body("prod
 @Composable
 internal fun ProductDescriptionPhone() = Fixture(compact = true) { Page { Body("product_description.json") } }
 
+/** The product at 1024 (B-82): the buy box under the title, beside the photo; the facts under the copy. */
+@ViddikScreenshot(name = "Description_1024", group = "Product", width = 1024, height = 2365)
+@Composable
+internal fun ProductDescriptionMedium() =
+    Fixture(compact = false, medium = true) {
+        Page { Body("product_description.json") }
+    }
+
 /**
  * Product_Description with the tiles the server sends for the seeded headphones — the first four
  * specifications, «Noise cancelling» and «Connectivity» among them — wrapped and shrunk to fit their tiles

@@ -6,6 +6,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,6 +33,7 @@ import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.HaulType.browserLeading
 import io.github.youndie.haul.theme.LocalHaulCompact
+import io.github.youndie.haul.theme.LocalHaulMedium
 import io.github.youndie.haul.ui.AppliedFilters
 import io.github.youndie.haul.ui.BaselineWrapRow
 import io.github.youndie.haul.ui.Breadcrumbs
@@ -266,7 +268,14 @@ public fun FilterChipsView(chips: FilterChips) {
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                pills(Modifier.weight(1f))
+                // Below 1280 the pills run past the sort control (B-82): they scroll sideways, as on a phone.
+                pills(
+                    if (LocalHaulMedium.current) {
+                        Modifier.weight(1f).horizontalScroll(rememberScrollState())
+                    } else {
+                        Modifier.weight(1f)
+                    },
+                )
                 SortMenu(sort, chips.sorts, Modifier.height(44.dp), textSize = 14f)
             }
         }
@@ -352,16 +361,27 @@ private fun Results(
     }
 }
 
+/**
+ * The filters applied and «Clear all» on as many lines as they take, the sort control at the first line's end
+ * (B-82): in one row the filters took the width first, and four of them with «Clear all» cut the sort to «Sort:»
+ * at 1024 and «Popul» at 1280. At 1440 they take one line, as the artboards draw them.
+ */
 @Composable
 private fun WideApplied(applied: AppliedFilters) {
     Row(
         Modifier.fillMaxWidth().padding(bottom = 28.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        applied.chips.forEach { AppliedChip(it) }
-        ClearAll(applied, Modifier.padding(start = 4.dp))
-        Spacer(Modifier.weight(1f))
+        FlowRow(
+            Modifier.weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            itemVerticalAlignment = Alignment.CenterVertically,
+        ) {
+            applied.chips.forEach { AppliedChip(it) }
+            ClearAll(applied, Modifier.padding(start = 4.dp))
+        }
         Sort(applied, Modifier.height(44.dp), textSize = 14f)
     }
 }

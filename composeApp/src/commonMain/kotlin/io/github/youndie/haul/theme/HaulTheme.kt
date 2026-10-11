@@ -40,15 +40,26 @@ public val LocalHaulFonts: androidx.compose.runtime.ProvidableCompositionLocal<H
 public val LocalHaulCompact: androidx.compose.runtime.ProvidableCompositionLocal<Boolean> =
     staticCompositionLocalOf { false }
 
+/**
+ * Whether the desktop page is narrower than its arrangement at 1440 holds (B-82): from 1024 to 1279 px no
+ * artboard draws, and what the 1440 arrangement squeezes there is rearranged — the header's search field on a
+ * row of its own, a cart line drawn as the phone's, the product's buy box under its title, the campaign's
+ * figures and the banners' titles smaller. Never set together with [LocalHaulCompact].
+ */
+public val LocalHaulMedium: androidx.compose.runtime.ProvidableCompositionLocal<Boolean> =
+    staticCompositionLocalOf { false }
+
 @Composable
 public fun HaulTheme(
     fonts: HaulFonts,
     compact: Boolean,
+    medium: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     CompositionLocalProvider(
         LocalHaulFonts provides fonts,
         LocalHaulCompact provides compact,
+        LocalHaulMedium provides (medium && !compact),
         LocalKompotDesignSystem provides HaulDesignSystem,
         content = content,
     )
@@ -62,7 +73,19 @@ public object HaulType {
         size: Float,
         weight: Int = 400,
         lineHeight: Float? = null,
-    ): TextStyle = style(LocalHaulFonts.current.archivo, size, weight, lineHeight?.let { (size * it).sp })
+    ): TextStyle =
+        style(
+            LocalHaulFonts.current,
+            LocalHaulFonts.current.archivo,
+            size,
+            weight,
+            lineHeight?.let {
+                (
+                    size *
+                        it
+                ).sp
+            },
+        )
 
     /**
      * Bodoni Moda — headlines, prices, the logo; the optical size follows the pixel size. The app's text
@@ -74,9 +97,19 @@ public object HaulType {
         weight: Int,
         letterSpacing: Float = 0f,
         lineHeight: Float = 1f,
+    ): TextStyle = display(LocalHaulFonts.current, size, weight, letterSpacing, lineHeight)
+
+    /** [display] in [fonts]: for a size chosen while measuring, where no composition locals are read (B-82). */
+    public fun display(
+        fonts: HaulFonts,
+        size: Float,
+        weight: Int,
+        letterSpacing: Float = 0f,
+        lineHeight: Float = 1f,
     ): TextStyle =
         style(
-            LocalHaulFonts.current.bodoni(size.coerceIn(BODONI_OPSZ_MIN, BODONI_OPSZ_MAX)),
+            fonts,
+            fonts.bodoni(size.coerceIn(BODONI_OPSZ_MIN, BODONI_OPSZ_MAX)),
             size,
             weight,
             (
@@ -138,10 +171,17 @@ public object HaulType {
         size: Float,
         weight: Int,
         letterSpacing: Float,
-    ): TextStyle = style(LocalHaulFonts.current.mono, size, weight, size.sp).copy(letterSpacing = letterSpacing.em)
+    ): TextStyle =
+        style(
+            LocalHaulFonts.current,
+            LocalHaulFonts.current.mono,
+            size,
+            weight,
+            size.sp,
+        ).copy(letterSpacing = letterSpacing.em)
 
-    @Composable
     private fun style(
+        fonts: HaulFonts,
         family: FontFamily,
         size: Float,
         weight: Int,
@@ -155,7 +195,7 @@ public object HaulType {
             // A set line height is laid out as CSS does: the leading split evenly, nothing trimmed.
             lineHeightStyle = if (lineHeight != null) BROWSER_LEADING else null,
             color = HaulColors.onSurface,
-            platformStyle = LocalHaulFonts.current.platformStyle,
+            platformStyle = fonts.platformStyle,
         )
 
     private const val BODONI_OPSZ_MIN = 6f

@@ -9,7 +9,7 @@
     <style>
         html, body { margin: 0; height: 100%; background: #F5F3EE; overscroll-behavior: none; }
         /* The page before the bundle runs (B-80): the header's shape and a line sweeping under it, the
-           measures of HaulHeaderView, the colours of HaulColors. Shapes only — the words need the fonts, which
+           measures of HaulHeaderView at each of its widths, the colours of HaulColors. Shapes only — the words need the fonts, which
            arrive after the bundle. Main.kt removes it in the frame Compose first draws. */
         #haul-frame { position: fixed; inset: 0 0 auto 0; z-index: 1; background: #FFF; }
         #haul-frame i { display: block; flex: none; background: #E9E6E0; border-radius: 5px; }
@@ -33,7 +33,13 @@
         #haul-frame svg { display: block; width: 100%; height: 3px; }
         #haul-frame .sweep { animation: haul-sweep 1.2s linear infinite; }
         @keyframes haul-sweep { from { transform: translateX(-30px); } to { transform: translateX(100px); } }
-        @media (max-width: 767.98px) {
+        /* Below 1280 the search field takes a row of its own under the logo's (B-82): 20 px around each 56. */
+        @media (min-width: 1024px) and (max-width: 1279.98px) {
+            #haul-frame .row { flex-wrap: wrap; row-gap: 20px; height: auto; padding: 20px 48px; }
+            #haul-frame .catalog { margin-right: auto; }
+            #haul-frame .search { order: 1; flex-basis: 100%; }
+        }
+        @media (max-width: 1023.98px) {
             #haul-frame .strip { height: 32px; }
             #haul-frame .row { flex-wrap: wrap; gap: 4px; height: auto; padding: 0 16px 12px; }
             #haul-frame .menu, #haul-frame .heart, #haul-frame .account { display: block; }

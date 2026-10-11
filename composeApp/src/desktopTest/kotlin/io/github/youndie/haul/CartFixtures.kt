@@ -26,6 +26,11 @@ internal fun CartContentWide() = Fixture(compact = false) { Page { Body("cart_co
 @Composable
 internal fun CartContentPhone() = Fixture(compact = true) { Page { Body("cart_content.json") } }
 
+// The cart at 1024 (B-82): the phone's lines beside the summary, where 1440's left the title no width.
+@ViddikScreenshot(name = "Content_1024", group = "Cart", width = 1024, height = 1291)
+@Composable
+internal fun CartContentMedium() = Fixture(compact = false, medium = true) { Page { Body("cart_content.json") } }
+
 // No artboard draws a cart with nothing ticked (B-100): checkout and «Delete selected» greyed, no «Discount» row.
 @ViddikScreenshot(name = "NothingSelected", group = "Cart", width = 1440, height = 1179)
 @Composable

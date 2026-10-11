@@ -59,6 +59,7 @@ import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.HaulType.browserLeading
 import io.github.youndie.haul.theme.LocalHaulCompact
+import io.github.youndie.haul.theme.LocalHaulMedium
 import io.github.youndie.haul.ui.CheckoutAddress
 import io.github.youndie.haul.ui.CheckoutBody
 import io.github.youndie.haul.ui.CheckoutHeader
@@ -292,7 +293,9 @@ public fun CheckoutBodyView(
                 if (draft?.changed != true) onPlace()
             }
         }
-        if (compact) {
+        // Below 1280 the summary beside the sections left a delivery option 129 px at 1024 and cut its name
+        // («Pickup poi»): the summary goes under the sections, as on a phone (B-82).
+        if (compact || LocalHaulMedium.current) {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 sections(Modifier.fillMaxWidth())
                 Summary(summary, placing, place, Modifier.fillMaxWidth())
