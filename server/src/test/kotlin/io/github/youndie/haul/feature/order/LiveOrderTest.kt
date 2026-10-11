@@ -99,7 +99,16 @@ class LiveOrderTest {
                     world.advance(Duration.ZERO)
                     world.advance(48.hours)
 
-                    val heard = runBlocking { withTimeout(10.seconds) { mayas.receive() }.body() }
+                    // The moves before it may be heard first, in whichever order the publishes land: read
+                    // until the order is in transit, within the same ten seconds.
+                    val heard =
+                        runBlocking {
+                            withTimeout(10.seconds) {
+                                var body = mayas.receive().body()
+                                while (body.steps?.current != 2) body = mayas.receive().body()
+                                body
+                            }
+                        }
                     assertEquals(2, heard.steps?.current, "the order is not in transit: ${heard.steps}")
                     assertEquals("#$orderId", heard.crumbs.last().label)
                     assertTrue(samsUnderHerNumber.tryReceive().isFailure, "Sam heard Maya's order")
