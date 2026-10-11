@@ -59,3 +59,7 @@ The Account and Saved error pages always say «on our side», even when the netw
   stale-link page and Saved's failure → their tests.
 - **Goldens**: two new, `Search_TooShort` and `Search_TooShort_Phone` (no artboard; the not-found layout under the
   shell's header with the query in the field), recorded on the Linux build machine; no existing golden moved.
+- **Where it ran**: the Linux build machine (WSL) — `:composeApp:wasmJsBrowserDistribution` alone, then `check
+  :server:installDist` (`:composeApp:desktopTest` 295, `viddikVerify`, ktlint; `:server:test` 425 on the branch
+  rebased onto B-96, `0e530acd`), then `scripts/e2e.sh` against an image built from that head (the whole path and
+  both synthetic-shopper walks). The Mac: `make check`, `make docs-against BASE=origin/main`.
