@@ -42,7 +42,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (24)
+## Open (23)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -70,7 +70,7 @@ A stage is a field on the item, not a directory.
 | [B-89](docs/backlog/B-89-traffic-exercises-compensation.md) `[ ]` | e2e: the synthetic shoppers also walk a declined payment | P3 | S | - |
 | [B-90](docs/backlog/B-90-review-loop-leftovers.md) `[ ]` | client + server: the small leftovers of the review loop | P3 | S | - |
 
-## Closed (86)
+## Closed (87)
 
 **Skeleton**
 

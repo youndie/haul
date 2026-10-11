@@ -48,7 +48,11 @@ on the stand) takes a unit for good, and at that rate a category's first page ru
   claim ignored (adding on every run) — the died-between and two-passes tests red (the two-passes test needed the
   barrier at the move: written first without it, the second pass lost the race at the move to `picked_up`, never
   reached the restock, and the test passed under this mutation); the restock moved to the pickup step — the first test red («nothing
-  is back on the shelf while the courier has it»).
+  is back on the shelf while the courier has it»); no units restocked, in the image — `SyntheticShopperTest` red,
+  «the walks left the stock changed … {p-016-12-0=82 → 81, p-029-07-1=142 → 141}».
+- **Where it ran**: `make check` and `make docs-against BASE=origin/main` on the Mac; on the Linux build machine,
+  after the rebase onto B-92 and B-94, `:composeApp:wasmJsBrowserDistribution`, `check :server:installDist`
+  (server and client tests, `viddikVerify`, ktlint) and `scripts/e2e.sh` (all eight e2e tests) green.
 - **Not done, for the owner**: the units the stand's walks took before this change stay taken (the seed runs only
   on an empty catalog, and B-91 read 50 refunded returns there; a refunded return is never active again, so the
   simulator will not reach them). A backfill — each refunded return's lines into `stock_restocks` under
