@@ -77,4 +77,6 @@ Found in the QA pass of 2026-10-10 (v0.3.0), signed-in walk:
   `check :server:installDist` (439 server and 330 client tests, 0 failed; `viddikVerify`), then `ktlintCheck` after
   wrapping one test line it had flagged; `scripts/e2e.sh` against an image built from the branch (the whole path,
   the shoppers' config and both synthetic-shopper walks). On the Mac: `make check`, `make docs-against
-  BASE=origin/main`.
+  BASE=origin/main`. After rebasing onto B-99 (#120): `:composeApp:wasmJsBrowserDistribution` and `check
+  :server:installDist` again on the Linux build machine (445 server and 334 client tests, 0 failed; `viddikVerify`,
+  ktlint), `make check` and `make docs-against BASE=origin/main` on the Mac.
