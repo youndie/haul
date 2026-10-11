@@ -57,7 +57,6 @@ A stage is a field on the item, not a directory.
 | [B-109](docs/backlog/B-109-saga-steps-in-tracy.md) `[ ]` | server: an order's saga is visible in tracy | P2 | S | - |
 | [B-82](docs/backlog/B-82-tablet-widths.md) `[ ]` | client: the store reads well between a phone and 1440 | P2 | M | - |
 | [B-83](docs/backlog/B-83-typed-input-before-every-press.md) `[ ]` | client: every press that reads a field sees what was typed | P2 | S | - |
-| [B-88](docs/backlog/B-88-a-return-restocks.md) `[~]` | server: a returned unit goes back to stock | P2 | S | - |
 | [B-98](docs/backlog/B-98-delivery-dates-and-fees-agree.md) `[ ]` | server: delivery dates, fees and the address agree across pages | P2 | M | - |
 | [B-99](docs/backlog/B-99-reviews-and-questions-tell-the-truth.md) `[ ]` | server + client: reviews and questions behave as they say | P2 | M | - |
 | [B-107](docs/backlog/B-107-copy-that-promises-nothing.md) `[ ]` | server: the store does not promise what it does not have | P3 | S | - |
@@ -182,6 +181,7 @@ A stage is a field on the item, not a directory.
 - [B-79](docs/backlog/B-79-checkout-step-indicator-and-links.md) `[x]` - client + server: checkout's step indicator and summary tell the truth
 - [B-80](docs/backlog/B-80-blank-first-load.md) `[x]` - client: the first load shows something before the app starts
 - [B-81](docs/backlog/B-81-card-plus-says-added.md) `[x]` - server + client: a card's «+» says the item was added
+- [B-88](docs/backlog/B-88-a-return-restocks.md) `[x]` - server: a returned unit goes back to stock
 
 **QA**
 
