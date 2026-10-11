@@ -1,7 +1,7 @@
 ---
 id: B-113
 title: "test: every golden shows what the code draws now"
-status: open
+status: wip
 priority: P3
 size: XS
 stage: stage-11-qa
