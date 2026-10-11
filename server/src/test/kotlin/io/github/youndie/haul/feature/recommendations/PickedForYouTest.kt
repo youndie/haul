@@ -168,6 +168,39 @@ class PickedForYouTest {
             assertTrue(picks.items.none { it.product.id in bought })
         }
 
+    /**
+     * B-96: what the page already draws above the block is left out as a viewed product is, from the views' picks
+     * and from the popular row alike, and the row still has six. Drawn above: the six most reviewed — home's
+     * «Popular on Haul» — and the best headphones.
+     */
+    @Test
+    fun `a product the page already draws is never picked`() =
+        runBlocking {
+            val onPage =
+                popular.popular(emptySet(), 6).toSet() +
+                    category("headphones")
+                        .filter { it.inStock }
+                        .sortedWith(BEST)
+                        .first()
+                        .product.id
+            val fromPopular = picker(emptyList())("c-fa", PriceList.Public, onPage)
+            assertEquals(PickBasis.Popular, fromPopular.basis)
+            assertEquals(6, fromPopular.items.size, "the row has holes")
+            assertTrue(fromPopular.items.none { it.product.id in onPage }, "a product on the page was picked again")
+
+            val viewed =
+                category("headphones")
+                    .filter { it.inStock }
+                    .sortedWith(BEST)
+                    .drop(1)
+                    .take(3)
+            val fromViews = picker(views(*viewed.toTypedArray()))("c-fa", PriceList.Public, onPage)
+            assertEquals(PickBasis.RecentViews, fromViews.basis)
+            assertEquals(6, fromViews.items.size, "the row has holes")
+            assertTrue(fromViews.items.none { it.product.id in onPage }, "a product on the page was picked again")
+            assertTopRated("headphones", fromViews.items, viewed.map { it.product.id }.toSet() + onPage)
+        }
+
     /** Fixtures and goldens are drawn from these rows, so the same views give the same picks. */
     @Test
     fun `the same views give the same picks`() =

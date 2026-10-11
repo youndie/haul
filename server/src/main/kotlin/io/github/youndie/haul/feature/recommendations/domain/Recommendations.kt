@@ -77,19 +77,24 @@ internal data class Picks(
  * [TOTAL], the row is filled from the popular products under the same exclusions and the same cap per
  * category, so the six-column row the canvas draws is never left with holes; the basis stays the views
  * as long as one pick came from them.
+ *
+ * A product the page already draws in a row above the block is left out as a viewed one is (B-96): with no
+ * deal live, home's «Popular on Haul» and «Popular right now» read the same most reviewed products, and one
+ * card drawn twice is one id twice on a page (B-65) — a «+» update would replace both.
  */
 internal class PickedForYou(
     private val views: ProductViews,
     private val sources: PickSources,
     private val catalog: CatalogRepository,
 ) {
-    /** [customerId]'s picks, their prices drawn for [prices] (B-53). */
+    /** [customerId]'s picks, their prices drawn for [prices] (B-53), none of the products in [onPage]. */
     suspend operator fun invoke(
         customerId: String,
         prices: PriceList,
+        onPage: Set<String> = emptySet(),
     ): Picks {
         val viewed = views.recent(customerId)
-        val excluded = viewed.map { it.productId }.toSet() + sources.bought(customerId)
+        val excluded = viewed.map { it.productId }.toSet() + sources.bought(customerId) + onPage
         if (viewed.size < MIN_VIEWS) return Picks(PickBasis.Popular, popular(excluded, emptyList(), prices))
 
         val picks = mutableListOf<Listed>()
