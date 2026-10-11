@@ -283,14 +283,10 @@ class ShellHeaderTest {
             val signed = signIns
             press(control)
             when {
-                // A guest's «Saved» on the Saved list: signed in, the page already shown is loaded again.
-                to == start && signsIn -> {
-                    waitUntil(timeoutMillis = 5_000) { requests.size > asked }
-                }
-
-                // The cart's button on the cart is the page already shown, which a link does not open again.
+                // The page already shown — a guest's «Saved» on the Saved list once signed in, the cart's button
+                // on the cart — is loaded again, with no new entry (B-95).
                 to == start -> {
-                    waitForIdle()
+                    waitUntil(timeoutMillis = 5_000) { requests.size > asked }
                     assertEquals(listOf(start), history.entries)
                 }
 

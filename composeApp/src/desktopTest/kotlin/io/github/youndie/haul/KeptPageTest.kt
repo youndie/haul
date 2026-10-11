@@ -35,6 +35,7 @@ import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.ButtonComponent
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
+import io.github.youndie.kompot.standard.PresentAction
 import io.github.youndie.kompot.standard.TextComponent
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.serialization.PolymorphicSerializer
@@ -163,6 +164,64 @@ class KeptPageTest {
         }
 
     /**
+     * B-95: a press to the address already shown — the cart's «View cart» on the cart, its header's Cart —
+     * used to do nothing at all. It is a visit like any other now, with no history entry: the page loads again
+     * behind itself, keeping its scroll under the loading line, and what arrives is drawn in place.
+     */
+    @Test
+    fun `a press to the address shown loads it again behind the page`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            val again = ButtonComponent(id = "again", text = AGAIN, action = NavigateAction(MUGS))
+            answer("/ui$MUGS", ok(page(header, again, grid("Stoneware"))), ok(page(header, again, grid("Ostra"))))
+            storefront()
+            waitForText(card("Stoneware", 0))
+            scrollBy(SCROLL)
+            val before = scrolled()
+            assertTrue(before > 0f, "the page did not scroll")
+
+            val arriving = gate("/ui$MUGS")
+            onNodeWithText(AGAIN).performSemanticsAction(SemanticsActions.OnClick)
+            waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
+            waitForIdle()
+            onNodeWithTag(LOADING_TAG).assertDoesNotExist()
+            onNodeWithTag(LOADING_LINE_TAG).assertExists()
+            onNodeWithText(card("Stoneware", 0)).assertExists()
+
+            arriving.complete(Unit)
+            waitForText(card("Ostra", 0))
+            onNodeWithTag(LOADING_LINE_TAG).assertDoesNotExist()
+            assertEquals(before, scrolled(), "the page loaded again moved the scroll")
+            assertEquals(listOf("/ui$MUGS", "/ui$MUGS"), requests.toList())
+            assertEquals(listOf(MUGS), history.entries)
+        }
+
+    /** B-95: a press to the address shown from a dialog over it closes the dialog, as a visit does. */
+    @Test
+    fun `a press to the address shown closes what was presented over it`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            val dialog =
+                ColumnComponent(
+                    id = "dialog",
+                    children =
+                        listOf(
+                            TextComponent(id = "said", text = DIALOG),
+                            ButtonComponent(id = "again", text = AGAIN, action = NavigateAction(MUGS)),
+                        ),
+                )
+            val open = ButtonComponent(id = "open", text = OPEN_DIALOG, action = PresentAction(dialog))
+            answer("/ui$MUGS", ok(page(header, open, grid("Stoneware"))))
+            storefront()
+            waitForText(OPEN_DIALOG)
+            onNodeWithText(OPEN_DIALOG).performClick()
+            waitForText(DIALOG)
+
+            onNodeWithText(AGAIN).performClick()
+            waitUntil(timeoutMillis = 5_000) { requests.size == 2 && !exists(DIALOG) }
+            onNodeWithText(card("Stoneware", 0)).assertExists()
+            assertEquals(listOf(MUGS), history.entries)
+        }
+
+    /**
      * Another path is another screen, as before B-62: a product opened from the results draws its
      * placeholder and starts at the top, and back from it returns to the catalog.
      */
@@ -255,6 +314,9 @@ class KeptPageTest {
         const val CUSTOMER = "Maya"
         const val CRUMB = "Kitchen mugs"
         const val PRODUCT = "The product page"
+        const val AGAIN = "Kitchen mugs again"
+        const val OPEN_DIALOG = "Open the dialog"
+        const val DIALOG = "The dialog over the page"
 
         val SERVER_ERROR = HaulResponse(500, """{"code":"internal","message":"boom"}""")
         val UNAUTHENTICATED = HaulResponse(401, """{"code":"unauthenticated","message":"Sign in first"}""")

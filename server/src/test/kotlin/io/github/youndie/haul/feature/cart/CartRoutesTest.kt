@@ -212,6 +212,30 @@ class CartRoutesTest {
             assertTrue(tree.all().none { it is CartLine })
         }
 
+    /**
+     * B-95: «+» on a pick of the empty cart changes the whole page — the cart gets its first line — so it is
+     * answered `refresh`, not an update of the card and the header that left «Your cart is empty» drawn over
+     * a count of one; the cart drawn again lists the line.
+     */
+    @Test
+    fun `a pick's plus on the empty cart is answered with the cart and its line`() =
+        haulTest {
+            val guest = guest()
+            val add = cart(guest).only<ProductGrid>().cards.firstNotNullOf { it.add }
+            put(add.url) {
+                header(GUEST_HEADER, guest)
+                contentType(ContentType.Application.Json)
+                setBody(haulWireJson.encodeToString(LineChange.serializer(), add.change))
+            }.assertRefresh()
+            val after = cart(guest)
+            assertEquals(
+                listOf(add.url.substringAfterLast('/')),
+                after.all().filterIsInstance<CartLine>().map { it.skuId },
+            )
+            assertTrue(after.all().none { it is EmptyState }, "the cart with a line still says it is empty")
+            assertEquals(1, after.only<HaulHeader>().cartCount)
+        }
+
     /** Quantity 1…10 and never above stock; a SKU with stock 0 cannot be added (feature-product «Out of stock»). */
     @Test
     fun `quantities stay within one to ten and the stock`() =

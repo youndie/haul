@@ -225,9 +225,11 @@ internal class CartScreen(
                 // The picks are the day's deals, not recommendations (feature-recommendations), so the
                 // subtitle says so rather than the canvas's «Based on your recent views».
                 SectionHeader("picked-title", "Picked for you", subtitle = "From today’s deals", accent = "you"),
+                // A pick's «+» changes the page, not only the card: the cart it is on gets its first line, so it
+                // is answered with the page again rather than an update of the card (B-95).
                 ProductGrid(
                     "picked",
-                    picks.take(PICKS).map { card(it, calendar, photos, viewer) },
+                    picks.take(PICKS).map { card(it, calendar, photos, viewer, inPlace = false) },
                     columns = PICKS,
                 ),
             )

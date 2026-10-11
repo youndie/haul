@@ -3,6 +3,7 @@ package io.github.youndie.haul
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -257,8 +258,8 @@ class StorefrontTest {
         }
 
     /**
-     * B-41: a sign-in whose `next` is the page already shown draws it again in place — opening the
-     * address being shown does nothing, and the header would keep saying «Sign in».
+     * B-41: a sign-in whose `next` is the page already shown draws it again in place, so the header no
+     * longer says «Sign in», and takes no history entry.
      */
     @Test
     fun `a sign-in that returns to the page shown draws it again in place`() =
@@ -310,6 +311,42 @@ class StorefrontTest {
             onNodeWithText("running shoes").assertDoesNotExist()
             assertEquals(listOf("/", "/search?q=run"), history.entries)
         }
+
+    /**
+     * B-95: the query already shown, submitted again, used to do nothing and leave the panel open. It loads the
+     * results again in place, with no new entry, and the panel closes.
+     */
+    @Test
+    fun `the query already shown submitted again loads the results again and closes the panel`() =
+        runDesktopComposeUiTest(CANVAS_WIDTH, 1_000) {
+            searchAgain { field -> field.performKeyInput { pressKey(Key.Enter) } }
+        }
+
+    /** B-95: the same for a suggestion that leads to the search already shown. */
+    @Test
+    fun `a suggestion to the search already shown loads it again and closes the panel`() =
+        runDesktopComposeUiTest(CANVAS_WIDTH, 1_000) {
+            searchAgain { onNodeWithText(HERE).performClick() }
+        }
+
+    /** On the results for «run», the panel opened over them and [press]ed to the same address. */
+    private fun ComposeUiTest.searchAgain(press: ComposeUiTest.(field: SemanticsNodeInteraction) -> Unit) {
+        history.entries[0] = "/search?q=run"
+        answer("/ui/search?q=run", ok(product), ok(page(header, TextComponent(id = "again", text = AGAIN))))
+        answer("/ui/search/suggest?q=run", ok(suggestHere))
+        storefront()
+        onNodeWithText(PRODUCT_TEXT).assertExists()
+
+        val field = onNodeWithTag(SEARCH_FIELD_TAG)
+        field.performClick()
+        field.performTextInput("run")
+        waitUntil(timeoutMillis = 5_000) { exists(HERE) }
+        press(field)
+        waitUntil(timeoutMillis = 5_000) { exists(AGAIN) }
+        waitUntil(timeoutMillis = 5_000) { !exists(HERE) }
+        assertEquals(listOf("/ui/search?q=run", "/ui/search/suggest?q=run", "/ui/search?q=run"), requests)
+        assertEquals(listOf("/search?q=run"), history.entries)
+    }
 
     @Test
     fun `a suggestion follows its own action`() =
@@ -398,6 +435,10 @@ class StorefrontTest {
         const val CANVAS_WIDTH = 1440
         const val CARD_TITLE = "Sony WH-1000XM6"
         const val PRODUCT_TEXT = "The next page"
+        const val AGAIN = "The results again"
+
+        /** The one query of [suggestHere], drawn as typed and completed. */
+        const val HERE = "run here"
         const val CUSTOMER = "Maya"
         const val SIGN_IN_HERE = "Sign in here"
         const val ORDER = "/account/orders/HL-99999"
@@ -434,6 +475,20 @@ class StorefrontTest {
 
         val home = page(header, ProductGrid(id = "grid", cards = listOf(card), columns = 6))
         val product = page(header, TextComponent(id = "next", text = PRODUCT_TEXT))
+
+        /** A panel whose one query is the search already shown. */
+        val suggestHere =
+            SearchSuggestPanel(
+                id = "suggest",
+                query = "run",
+                suggestions =
+                    listOf(
+                        QuerySuggestion(typed = "run", completion = " here", action = NavigateAction("/search?q=run")),
+                    ),
+                categories = emptyList(),
+                products = emptyList(),
+                allResultsLabel = "All 3 results",
+            )
 
         val suggest =
             SearchSuggestPanel(
