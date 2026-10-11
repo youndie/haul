@@ -1,6 +1,9 @@
 package io.github.youndie.haul.shell
 
+import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.PriceList
+import io.github.youndie.haul.feature.catalog.domain.lineage
+import io.github.youndie.haul.feature.catalog.domain.nameOf
 import io.github.youndie.haul.feature.identity.domain.Customer
 import io.github.youndie.haul.feature.membership.screen.PlusOffer
 import io.github.youndie.haul.ui.FooterColumn
@@ -52,44 +55,72 @@ internal object Frame {
         query: String? = null,
         footer: Boolean = false,
         scope: String? = null,
+        categories: List<Category> = emptyList(),
     ): KompotComponent =
         ColumnComponent(
             id = id,
             children =
-                listOf(header(viewer, navigation, query, scope)) + sections +
+                listOf(header(viewer, navigation, query, scope, categories)) + sections +
                     (if (footer) listOf(footer(viewer)) else emptyList()),
         )
 
     /**
      * The header of every page but checkout, [query] the search it shows and [scope] the category it is
      * searched in: a node of its own (`header`), which «+» and «Add to cart» answer with (B-63). The search
-     * picker offers every top-level category (B-72); a [scope] that is not one of them — a leaf's chip — reads
-     * as «All categories».
+     * picker offers every top-level category (B-72); a [scope] below the top level — a leaf's chip — is one more
+     * choice, named with its top-level category («Party · Limited») and offered after it, so the picker reads the
+     * scope the results are in (B-119; it read «All categories» there). [categories] are what names it; without
+     * them, or for a slug they do not have, the picker reads «All categories».
      */
     fun header(
         viewer: Viewer,
         navigation: List<Link>,
         query: String?,
         scope: String? = null,
-    ) = HaulHeader(
-        id = "header",
-        deliverTo = place(viewer),
-        deliveryPromise = "Free delivery over $35",
-        customerName = viewer.firstName,
-        cartCount = viewer.cartCount,
-        searchPlaceholder = SEARCH_PLACEHOLDER,
-        query = query,
-        categories = navigation.take(ROW).map { it.label },
-        account = NavigateAction(if (viewer.customerId == null) SIGN_IN else ACCOUNT),
-        catalog = navigation,
-        deals = NavigateAction(DEALS),
-        cart = NavigateAction(CART),
-        orders = NavigateAction(if (viewer.customerId == null) SIGN_IN_TO_ORDERS else ORDERS),
-        saved = NavigateAction(if (viewer.customerId == null) SIGN_IN_TO_SAVED else SAVED),
-        plus = plus(viewer),
-        scopes = scopes(navigation),
-        scope = scope?.takeIf { s -> scopes(navigation).any { it.category == s } },
-    )
+        categories: List<Category> = emptyList(),
+    ): HaulHeader {
+        val scopes = scopes(navigation, scope, categories)
+        return HaulHeader(
+            id = "header",
+            deliverTo = place(viewer),
+            deliveryPromise = "Free delivery over $35",
+            customerName = viewer.firstName,
+            cartCount = viewer.cartCount,
+            searchPlaceholder = SEARCH_PLACEHOLDER,
+            query = query,
+            categories = navigation.take(ROW).map { it.label },
+            account = NavigateAction(if (viewer.customerId == null) SIGN_IN else ACCOUNT),
+            catalog = navigation,
+            deals = NavigateAction(DEALS),
+            cart = NavigateAction(CART),
+            orders = NavigateAction(if (viewer.customerId == null) SIGN_IN_TO_ORDERS else ORDERS),
+            saved = NavigateAction(if (viewer.customerId == null) SIGN_IN_TO_SAVED else SAVED),
+            plus = plus(viewer),
+            scopes = scopes,
+            scope = scope?.takeIf { s -> scopes.any { it.category == s } },
+        )
+    }
+
+    /**
+     * The picker's choices on a page searched in [scope]: the top-level ones, and [scope] after its top-level
+     * category when it is below the top level (B-119).
+     */
+    private fun scopes(
+        navigation: List<Link>,
+        scope: String?,
+        categories: List<Category>,
+    ): List<SearchScope> {
+        val top = scopes(navigation)
+        val inner =
+            scope
+                ?.takeIf { s -> top.none { it.category == s } }
+                ?.let { s -> categories.firstOrNull { it.slug == s } }
+                ?.takeIf { it.parentSlug != null }
+                ?: return top
+        val after = top.indexOfFirst { it.category == categories.lineage(inner).first().slug } + 1
+        val choice = SearchScope(categories.nameOf(inner), inner.slug)
+        return if (after == 0) top + choice else top.take(after) + choice + top.drop(after)
+    }
 
     /**
      * The search picker's choices: the top-level categories of [navigation], each with its slug — a top-level

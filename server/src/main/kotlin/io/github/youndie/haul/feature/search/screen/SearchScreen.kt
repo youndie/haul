@@ -14,6 +14,7 @@ import io.github.youndie.haul.feature.catalog.domain.Sort
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.descendants
 import io.github.youndie.haul.feature.catalog.domain.money
+import io.github.youndie.haul.feature.catalog.domain.nameOf
 import io.github.youndie.haul.feature.catalog.screen.CatalogUrl
 import io.github.youndie.haul.feature.catalog.screen.card
 import io.github.youndie.haul.feature.catalog.screen.categoryLink
@@ -144,6 +145,9 @@ internal class SearchScreen(
      * grid under its chip at 0: the page says so — «Nothing for “mug” in Fashion» — and offers the search in
      * every category. That page has no grid to load parts into, so its chips open their pages, and it has no
      * sort: there is nothing to order.
+     *
+     * What the page names is what the grid holds (B-119): the title counts the chosen chip's results — «All»'s
+     * every match — and the header's picker names the chip's category, a leaf's too ([Frame.header]).
      */
     suspend fun results(
         request: SearchRequest,
@@ -177,12 +181,7 @@ internal class SearchScreen(
 
         val sections =
             listOf(
-                PageTitle(
-                    "title",
-                    query.text.replaceFirstChar { it.uppercase() },
-                    "${count(all.size)} results",
-                    quoted = true,
-                ),
+                PageTitle("title", query.text.replaceFirstChar { it.uppercase() }, results(shown.size), quoted = true),
                 FilterChips(
                     id = "categories",
                     chips = chips(request, all.size, scope, shown.size, byLeaf, categories, press),
@@ -210,12 +209,13 @@ internal class SearchScreen(
             sections,
             query = query.text,
             scope = request.category,
+            categories = categories,
         )
     }
 
     /**
      * A search whose [scope] has none of its results, while [total] are in other categories (B-90): the title
-     * and the chips as on the results — the scope's chosen at 0 — then what happened and the way to every
+     * and the chips as on the results — the scope's chosen at 0, and the title too (B-119) — then what happened and the way to every
      * category, where the grid would be. Its chips open their pages (`navigate`): the page they open has the
      * grid this one has not, which a `load` could not add.
      */
@@ -231,17 +231,12 @@ internal class SearchScreen(
         val press = { category: String? -> searchLink(query.text, category, request.sort) }
         val sections =
             listOf(
-                PageTitle(
-                    "title",
-                    query.text.replaceFirstChar { it.uppercase() },
-                    "${count(total)} results",
-                    quoted = true,
-                ),
+                PageTitle("title", query.text.replaceFirstChar { it.uppercase() }, results(0), quoted = true),
                 FilterChips(id = "categories", chips = chips(request, total, scope, 0, byLeaf, categories, press)),
                 EmptyState(
                     id = "nothing-in-scope",
                     title = "Nothing for “${query.text}” in ${scope.name}",
-                    text = "${count(total)} ${if (total == 1) "result" else "results"} in other categories.",
+                    text = "${results(total)} in other categories.",
                     actionLabel = "Search all categories",
                     action = press(null),
                     accent = scope.name,
@@ -254,6 +249,7 @@ internal class SearchScreen(
             sections,
             query = query.text,
             scope = request.category,
+            categories = categories,
         )
     }
 
@@ -267,7 +263,7 @@ internal class SearchScreen(
 
     /**
      * The category chips: «All» with every match, the [scope] the picker chose when no leaf chip stands for it
-     * (holding [inScope]), and a chip per leaf; each [press]ed to its results.
+     * (holding [inScope]), and a chip per leaf; each [press]ed to its results. No two read the same ([names]).
      */
     private fun chips(
         request: SearchRequest,
@@ -277,17 +273,41 @@ internal class SearchScreen(
         byLeaf: List<Map.Entry<String, Int>>,
         categories: List<Category>,
         press: (String?) -> KompotAction,
-    ): List<Chip> =
-        listOf(chip("All", null, total, request, press)) +
-            listOfNotNull(
-                scope?.takeIf { s -> byLeaf.none { it.key == s.slug } }?.let {
-                    chip(it.name, it.slug, inScope, request, press)
-                },
-            ) +
-            byLeaf.mapNotNull { (slug, n) ->
-                val leaf = categories.firstOrNull { it.slug == slug } ?: return@mapNotNull null
-                chip(leaf.name, slug, n, request, press)
-            }
+    ): List<Chip> {
+        val scoped = scope?.takeIf { s -> byLeaf.none { it.key == s.slug } }?.let { it to inScope }
+        val leaves =
+            byLeaf.mapNotNull { (slug, n) -> categories.firstOrNull { it.slug == slug }?.let { it to n } }
+        val chosen = listOfNotNull(scoped) + leaves
+        val names = names(chosen.map { it.first }, categories)
+        return listOf(chip("All", null, total, request, press)) +
+            chosen.map { (category, n) -> chip(names.getValue(category.slug), category.slug, n, request, press) }
+    }
+
+    /**
+     * What each of [chosen] is called on its chip (B-119): its name, and where a name repeats — the seed's
+     * «Classics» and «Limited» are leaves of every top-level category — with its top-level category, «Party ·
+     * Limited», then with every level, until no two read the same. A repeated chip is not hidden: each holds
+     * different results.
+     */
+    private fun names(
+        chosen: List<Category>,
+        categories: List<Category>,
+    ): Map<String, String> {
+        val depth = chosen.associate { it.slug to 0 }.toMutableMap()
+        while (true) {
+            val named = chosen.associate { it.slug to categories.nameOf(it, depth.getValue(it.slug)) }
+            val repeated =
+                named.entries
+                    .groupBy { it.value }
+                    .values
+                    .filter { it.size > 1 }
+                    .flatten()
+                    .map { it.key }
+                    .filter { depth.getValue(it) < MAX_DEPTH }
+            if (repeated.isEmpty()) return named
+            repeated.forEach { depth[it] = depth.getValue(it) + 1 }
+        }
+    }
 
     private suspend fun noResults(
         query: Query,
@@ -329,6 +349,9 @@ internal class SearchScreen(
         val selected = request.category == category
         return Chip(label, selected, press(category).takeUnless { selected }, count(n))
     }
+
+    /** «1 result», «1,204 results». */
+    private fun results(n: Int): String = "${count(n)} ${if (n == 1) "result" else "results"}"
 
     /** What the sort control says for [sort]: its own label, «Relevance» for the search's order. */
     private fun label(sort: Sort?): String = sort?.label ?: RELEVANCE
@@ -392,8 +415,8 @@ internal class SearchScreen(
     companion object {
         /**
          * What a category chip, a sort or a page changes on the results (B-63): the chips with the sort, the grid
-         * and the pages — and the header, whose search picker reads the page's scope (B-72): «All» or a leaf's
-         * chip after a top-level scope leaves it.
+         * and the pages — and the header, whose search picker reads the page's scope (B-72): «All» leaves it, and
+         * a leaf's chip names the leaf there (B-119).
          */
         val PARTS = listOf("header", "categories", "grid", "pagination")
 
@@ -414,6 +437,9 @@ internal class SearchScreen(
         const val CATEGORIES = 3
         const val TOP_PRODUCTS = 3
         private const val GRID_COLUMNS = 5
+
+        /** The deepest a chip's name goes ([names]): every level of its category. */
+        private const val MAX_DEPTH = 2
         private const val POPULAR_CATEGORIES = 8
 
         private val TIPS =

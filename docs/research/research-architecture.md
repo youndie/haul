@@ -324,9 +324,12 @@ whatever their style, so the ones with no page are left out rather than drawn as
   picker is a menu kept in the client (`SearchInput.scope`): a choice changes no page, and the next search is
   `/search?q=…&category=<slug>` — `Address.search` stays the one address the client builds. The search's
   `category` now holds the category and every category under it (it matched a leaf's products only), and a
-  top-level scope is drawn as a chosen chip after «All». The search's parts include the header, so «All» or a
-  leaf's chip after a scope sets the picker back to «All categories»; a card's «+» keeps the scope in its
-  answer's header (`&category=`, `LineAnswers.SCOPE`). Without scopes on the wire — the shell's header before
+  top-level scope is drawn as a chosen chip after «All». The search's parts include the header, so «All» sets
+  the picker back to «All categories», and a leaf's chip names the leaf there (B-119; until then it read «All
+  categories» over the leaf's results): a search in a category below the top level adds that category to the
+  header's `scopes`, named with its top-level one — «Party · Limited» — and offered right after it, so the picker
+  reads it and the next search stays in it. A card's «+» keeps the scope in its answer's header (`&category=`,
+  `LineAnswers.SCOPE`). Without scopes on the wire — the shell's header before
   any tree (B-67) — or without a field to type in, the picker opens nothing. Since B-105 a page that stays
   without a tree draws the header alone the shell asks for, scopes included, so the picker works there (B-90
   holds it in `KnownHeaderTest`); it is still drawn and opens nothing while the first page loads (the tree brings
@@ -334,10 +337,17 @@ whatever their style, so the ones with no page are left out rather than drawn as
   (B-66 keeps it free of server requests) and when the header alone does not arrive.
 - **A scope the query finds nothing in says so** (B-90). With the query's results all in other categories, the
   scope's chip read 0 over an empty grid. The page is now the title and the chips as before — the scope's
-  chosen at 0 — then an `EmptyState`, «Nothing for “mug” in Fashion», «N results in other categories.» and
+  chosen at 0, and since B-119 the title «0 results» with it — then an `EmptyState`, «Nothing for “mug” in Fashion», «N results in other categories.» and
   «Search all categories». It has no grid, no pages and no sort, so its chips `navigate` rather than `load`:
   the pages they open have the grid an `update` could not add (a `load` of its parts is answered with the
   whole page, as for a category gone).
+- **What a search's page names is what its grid holds** (B-119). The title counts the chosen chip's results —
+  «15 results» under one «Classics 15», where it counted every match, «600 results» — and «All»'s are every
+  match. A chip's name is its category's, and where that repeats on the page — the seed's generic leaves,
+  «Classics», «New in», «Signature» and «Limited», sit under every top-level category, so `classic` drew ten
+  «Classics 15» — it carries its top-level category, «Party · Limited», then every level if that still repeats
+  (`SearchScreen.names`, `nameOf`). Rejected: hiding the repeated chips — they hold different results. The picker
+  names the chip's category (above).
 - **The suggest panel is in the picker's scope too** (B-103; it ignored it until then). The client asks for
   `/ui/search/suggest?q=…&category=<slug>` (`Address.suggest`), and again when the picker changes; the panel's
   products, categories and counts and «All N results» are the matches under the scope, and every search it

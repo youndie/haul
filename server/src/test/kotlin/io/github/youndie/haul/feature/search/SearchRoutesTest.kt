@@ -23,6 +23,7 @@ import io.github.youndie.haul.ui.QuerySuggestion
 import io.github.youndie.haul.ui.SearchNoResults
 import io.github.youndie.haul.ui.SearchScope
 import io.github.youndie.haul.ui.SearchSuggestPanel
+import io.github.youndie.kompot.commands.LoadAction
 import io.github.youndie.kompot.standard.NavigateAction
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -154,7 +155,8 @@ class SearchRoutesTest {
     /**
      * B-72: the header's picker offers every top-level category, and a search in one of them is a scope — the
      * results in it and in every category under it, the scope drawn as a chosen chip after «All» and in the
-     * picker. A leaf's chip narrows as before, and the picker reads «All categories» there.
+     * picker. A leaf's chip narrows as before; the picker names it there since B-119
+     * (`SearchSaysWhatIsShownTest`).
      */
     @Test
     fun `a search in a top-level category holds the results under it`() =
@@ -188,22 +190,16 @@ class SearchRoutesTest {
             val chips = sports.only<FilterChips>().chips
             assertEquals(listOf("All", "Sports"), chips.take(2).map { it.label })
             assertEquals(listOf(false, true), chips.take(2).map { it.selected }, "the scope is not the chosen chip")
-            val names =
-                catalog.categories
-                    .filter { it.slug in under }
-                    .map { it.name }
-                    .toSet()
             val inSports =
                 everywhere
                     .only<FilterChips>()
                     .chips
                     .drop(1)
-                    .filter { it.label in names }
+                    .filter { (it.action as LoadAction).url.substringAfter("category=") in under }
             assertEquals(inSports.sumOf { it.count!!.replace(",", "").toInt() }.toString(), chips[1].count)
             assertEquals("sports", sports.only<HaulHeader>().scope, "the picker does not read the scope")
 
             val leaf = tree("/ui/search?q=running%20shoes&category=running-shoes")
-            assertEquals(null, leaf.only<HaulHeader>().scope, "a leaf is not a choice of the picker")
             assertEquals(
                 listOf(true),
                 leaf.only<FilterChips>().chips.filter { it.selected }.map {
@@ -246,6 +242,8 @@ class SearchRoutesTest {
                 nothing.text,
             )
             assertEquals(empty.slug, page.only<HaulHeader>().scope, "the picker does not read the scope")
+            // B-119: the title counts what the page shows, as the chosen scope's chip does.
+            assertEquals("0 results", page.only<PageTitle>().count)
 
             val chips = page.only<FilterChips>()
             assertEquals(listOf("All", empty.name), chips.chips.take(2).map { it.label })

@@ -24,6 +24,27 @@ internal fun List<Category>.lineage(category: Category): List<Category> =
  */
 internal fun List<Category>.pathOf(category: Category): String = lineage(category).joinToString("/") { it.slug }
 
+/**
+ * [category]'s name with as much of its [lineage] as [depth] asks for, joined by « · » (B-119): `0` the name
+ * alone, «Limited»; `1` the top-level category and the name, «Party · Limited»; `2` or more every level,
+ * «Party · Premium · Limited». A top-level category is its name at any depth. The seed's generic leaves repeat
+ * a name under every top-level category, so where two categories are named side by side the name alone is not
+ * enough to tell them apart.
+ */
+internal fun List<Category>.nameOf(
+    category: Category,
+    depth: Int = 1,
+): String {
+    val lineage = lineage(category)
+    val shown =
+        when {
+            depth <= 0 || lineage.size == 1 -> listOf(category)
+            depth == 1 -> listOf(lineage.first(), category)
+            else -> lineage
+        }
+    return shown.joinToString(" · ") { it.name }
+}
+
 /** The slugs of [category] and of every category under it, at any depth. */
 internal fun List<Category>.descendants(category: Category): Set<String> =
     setOf(category.slug) + filter { it.parentSlug == category.slug }.flatMap { descendants(it) }
