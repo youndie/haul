@@ -62,3 +62,7 @@ Found in the QA pass of 2026-10-10 (v0.3.0):
   given its action back and the kind applied on any category (the no-reload, chosen and subcategory tests red, the
   others green).
 - **Goldens**: none changed.
+- **Where the checks ran**: on the Linux build machine — `:composeApp:wasmJsBrowserDistribution`; `check
+  :server:installDist` (443 server and 329 client tests, 0 failed; `viddikVerify` and ktlint in it);
+  `scripts/e2e.sh` (the whole path and the shoppers, green). `make check` and `make docs-against BASE=origin/main`
+  on the Mac.
