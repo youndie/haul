@@ -29,8 +29,10 @@ import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.RefreshAction
 import io.github.youndie.kompot.standard.TextComponent
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.serialization.PolymorphicSerializer
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -40,7 +42,8 @@ import kotlin.test.assertEquals
  * scoped search, back within the screen — used to leave the refresh writing into the tree of the address
  * before, which nothing drew any more: the server answered with the new page and the shopper kept the old one
  * until a reload. A `load` answered in place (B-63) is covered too, and so is the arrival a refresh is (B-64):
- * what an update wrote over the page goes with it. A fake transport serves each address's trees in turn.
+ * what an update wrote over the page goes with it; a refresh that lands after the shopper moved on is dropped.
+ * A fake transport serves each address's trees in turn, gated where an answer has to be caught on its way.
  */
 @OptIn(ExperimentalTestApi::class)
 class RefreshInPlaceTest {
@@ -54,11 +57,20 @@ class RefreshInPlaceTest {
         answers[path] = ArrayDeque(responses.toList())
     }
 
+    /** The next request of a path waits until the test completes its gate: an answer still on its way. */
+    private val gates = mutableMapOf<String, CompletableDeferred<Unit>>()
+
+    /** How many requests have had their answer. */
+    private val answered = AtomicInteger()
+
+    private fun gate(path: String) = CompletableDeferred<Unit>().also { gates[path] = it }
+
     private val transport =
         HaulTransport { path ->
             requests += path
+            gates.remove(path)?.await()
             val queue = answers[path] ?: error("nothing answers $path")
-            if (queue.size > 1) queue.removeFirst() else queue.first()
+            (if (queue.size > 1) queue.removeFirst() else queue.first()).also { answered.incrementAndGet() }
         }
 
     /** «Helpful»'s command, answered as the server answers it: `refresh`. */
@@ -221,6 +233,32 @@ class RefreshInPlaceTest {
             waitUntil(timeoutMillis = 5_000) { requests.size == 4 }
             waitForText(drawn(to, 1))
             onNodeWithText(written).assertDoesNotExist()
+        }
+
+    /**
+     * A refresh that reads the address when it runs must not draw the page the shopper left: pressed, then
+     * another address of the screen opened while its answer is on its way, it lands on a page it is not for.
+     */
+    @Test
+    fun `a refresh that lands after the shopper moved on leaves the page they moved to`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            val to = "$MUGS?brand=Ostra"
+            answer("/ui$MUGS", ok(probe(MUGS, 1, to)), ok(probe(MUGS, 2, to)))
+            answer("/ui$to", ok(probe(to, 1, MUGS)))
+            storefront(FakeHistory(MUGS))
+            waitForText(drawn(MUGS, 1))
+
+            val landing = gate("/ui$MUGS")
+            onNodeWithText(REFRESH).performClick()
+            waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
+            onNodeWithText(GO).performClick()
+            waitForText(drawn(to, 1))
+
+            landing.complete(Unit)
+            waitUntil(timeoutMillis = 5_000) { answered.get() == 3 }
+            waitForIdle()
+            onNodeWithText(drawn(to, 1)).assertExists()
+            onNodeWithText(drawn(MUGS, 2)).assertDoesNotExist()
         }
 
     /** [from], then a `navigate` to [to] on the same screen, then a refresh: the tree it brings is drawn. */

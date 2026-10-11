@@ -519,7 +519,8 @@ private fun Shown(
     val scope = rememberCoroutineScope()
     // One refresh for the screen, reading the address and the tree drawn when it runs (B-93). A new address of
     // the screen (B-62) arrives before its tree, and a refresh remembered with the address then wrote into the
-    // tree before it, which nothing drew any more: the server's new page answered and the old one stayed.
+    // tree before it, which nothing drew any more: the server's new page answered and the old one stayed. A
+    // refresh that lands once the shopper has moved to another address is the page they left, and is dropped.
     val at by rememberUpdatedState(address)
     val draw by rememberUpdatedState { arrived: KompotComponent ->
         tree = arrived
@@ -529,7 +530,10 @@ private fun Shown(
     val refresh =
         remember {
             ScreenRefresh {
-                scope.launch { transport.treeOrNull(at.screen, signedOut)?.let(draw) }
+                val asked = at
+                scope.launch {
+                    transport.treeOrNull(asked.screen, signedOut)?.let { if (at == asked) draw(it) }
+                }
             }
         }
     val actions =
