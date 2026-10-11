@@ -29,6 +29,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
@@ -67,6 +68,7 @@ import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.standard.NavigateAction
+import kotlinx.coroutines.launch
 
 /**
  * The header's search field as the page around the header sees it: whether the shopper is typing in
@@ -615,11 +617,24 @@ private fun SearchField(
             DrawnQuery(header, field, textSize, Modifier.weight(1f))
         }
         trailing()
+        val scope = rememberCoroutineScope()
         Box(
             Modifier
+                .testTag(SEARCH_BUTTON_TAG)
                 .size(button)
                 .background(HaulColors.secondaryContainer, RoundedCornerShape(buttonRadius))
-                .pressable(input?.let { it::submit }),
+                .pressable(
+                    input?.let {
+                        {
+                            // What was typed just before the press may not be in the field yet (B-76, B-83);
+                            // Enter needs no wait, it arrives behind the keys it follows.
+                            scope.launch {
+                                awaitTypedInput()
+                                it.submit()
+                            }
+                        }
+                    },
+                ),
             contentAlignment = Alignment.Center,
         ) { Icon(HaulIcons.search, glyph, HaulColors.onSurface) }
     }
@@ -721,6 +736,9 @@ private fun EditableQuery(
 
 /** The tag of the header's editable search field, for the tests that type into it. */
 public const val SEARCH_FIELD_TAG: String = "search-field"
+
+/** The tag of the header's search button, for the tests that press it. */
+public const val SEARCH_BUTTON_TAG: String = "search-button"
 
 @Composable
 private fun Shortcut(

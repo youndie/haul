@@ -59,6 +59,7 @@ import io.github.youndie.haul.ui.Icon
 import io.github.youndie.haul.ui.QuestionForm
 import io.github.youndie.haul.ui.ReviewForm
 import io.github.youndie.haul.ui.Text
+import io.github.youndie.haul.ui.awaitTypedInput
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.toneColor
@@ -224,15 +225,17 @@ internal fun ReviewDialog(
         },
         problems = problems,
         onPost = {
-            val found = reviewProblems(draft)
-            when {
-                found.isNotEmpty() -> {
-                    problems = FormProblems.of(found)
-                }
+            scope.launch {
+                // What was typed just before the press may not be in the draft yet (B-76, B-83).
+                awaitTypedInput()
+                val found = reviewProblems(draft)
+                when {
+                    found.isNotEmpty() -> {
+                        problems = FormProblems.of(found)
+                    }
 
-                commands != null && !sending -> {
-                    sending = true
-                    scope.launch {
+                    commands != null && !sending -> {
+                        sending = true
                         problems = settle(commands.run(TreeCommand.Review(form.url, draft)), handle)
                         sending = false
                     }
@@ -263,15 +266,17 @@ internal fun QuestionDialog(
         },
         problems = problems,
         onSend = {
-            val found = questionProblems(draft)
-            when {
-                found.isNotEmpty() -> {
-                    problems = FormProblems.of(found)
-                }
+            scope.launch {
+                // What was typed just before the press may not be in the draft yet (B-76, B-83).
+                awaitTypedInput()
+                val found = questionProblems(draft)
+                when {
+                    found.isNotEmpty() -> {
+                        problems = FormProblems.of(found)
+                    }
 
-                commands != null && !sending -> {
-                    sending = true
-                    scope.launch {
+                    commands != null && !sending -> {
+                        sending = true
                         problems = settle(commands.run(TreeCommand.Ask(form.url, draft)), handle)
                         sending = false
                     }

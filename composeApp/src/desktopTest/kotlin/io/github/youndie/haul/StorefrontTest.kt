@@ -25,6 +25,7 @@ import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.QuerySuggestion
+import io.github.youndie.haul.ui.SEARCH_BUTTON_TAG
 import io.github.youndie.haul.ui.SEARCH_FIELD_TAG
 import io.github.youndie.haul.ui.SearchSuggestPanel
 import io.github.youndie.haul.ui.SectionHeader
@@ -311,6 +312,28 @@ class StorefrontTest {
             field.performKeyInput { pressKey(Key.Enter) }
             onNodeWithText(PRODUCT_TEXT).assertExists()
             onNodeWithText("running shoes").assertDoesNotExist()
+            assertEquals(listOf("/", "/search?q=run"), history.entries)
+        }
+
+    /**
+     * B-83: in the browser a keystroke reaches the field at the next animation frame while a press is handled at
+     * once (B-76), so the search button pressed straight after typing searched for what the field held before.
+     * Here the query lands after the press and before the next frame, as it does there.
+     */
+    @Test
+    fun `the search button searches for a query typed just before the press`() =
+        runDesktopComposeUiTest(CANVAS_WIDTH, 1_000) {
+            answer("/ui/home", ok(home))
+            answer("/ui/search/suggest?q=run", ok(suggest))
+            answer("/ui/search?q=run", ok(product))
+            storefront()
+            val field = onNodeWithTag(SEARCH_FIELD_TAG)
+            field.performClick()
+            mainClock.autoAdvance = false
+            onNodeWithTag(SEARCH_BUTTON_TAG).performClick()
+            field.performTextInput("run")
+            mainClock.autoAdvance = true
+            onNodeWithText(PRODUCT_TEXT).assertExists()
             assertEquals(listOf("/", "/search?q=run"), history.entries)
         }
 

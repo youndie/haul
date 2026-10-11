@@ -207,6 +207,49 @@ class ReviewWiringTest {
             onNodeWithTag(SUBMIT_TAG).assertDoesNotExist()
         }
 
+    /**
+     * B-83, Product_ReviewDialog: in the browser a keystroke reaches the field at the next animation frame while a
+     * press is handled at once (B-76), so «Post» pressed straight after typing read the draft without the last of
+     * it — on the stand the first «Post» sent nothing. Here the review's text lands after the press and before
+     * the next frame, as it does there.
+     */
+    @Test
+    fun `post sends a review typed just before the press`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            reviews()
+            onNodeWithTag(WRITE_REVIEW_TAG).performClick()
+            onNodeWithTag(starTag(GOOD.rating)).performClick()
+            onNodeWithTag(TITLE_TAG).performTextInput(GOOD.title)
+            onNodeWithTag(BODY_TAG).performClick()
+            mainClock.autoAdvance = false
+            onNodeWithTag(SUBMIT_TAG).performClick()
+            onNodeWithTag(BODY_TAG).performTextInput(GOOD.body)
+            mainClock.autoAdvance = true
+            waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
+            assertEquals(listOf<TreeCommand>(TreeCommand.Review(REVIEWS_URL, GOOD)), sent.toList())
+            onNodeWithText("Write at least 20 characters").assertDoesNotExist()
+        }
+
+    /** B-83, Product_QuestionDialog: the same for «Send». */
+    @Test
+    fun `send sends a question typed just before the press`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            storefront(QUESTIONS_ADDRESS, read("product_questions.json"))
+            onNodeWithTag(ASK_TAG).performClick()
+            onNodeWithTag(QUESTION_TAG).performClick()
+            mainClock.autoAdvance = false
+            onNodeWithTag(SUBMIT_TAG).performClick()
+            onNodeWithTag(QUESTION_TAG).performTextInput("Do the ear cushions come off for cleaning?")
+            mainClock.autoAdvance = true
+            waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
+            assertEquals(
+                listOf<TreeCommand>(
+                    TreeCommand.Ask(QUESTIONS_URL, QuestionEntry("Do the ear cushions come off for cleaning?")),
+                ),
+                sent.toList(),
+            )
+        }
+
     /** A guest's «Write a review» is the way to sign in, as the server builds it: sign-in runs, no dialog. */
     @Test
     fun `a guest is sent to sign in`() =
