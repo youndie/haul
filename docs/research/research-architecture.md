@@ -536,11 +536,9 @@ seed's own reviews (the review routes' «yours first» and «counted» cases, th
 keeps the catalogue's counts over the canvas's rows, with no histogram. The shared `SeededDatabase`, `SeedTest`
 and `SeedReviewsTest` seed in full, and so does every start of the image: `main` never passes the switch, the
 stand and the e2e run `main`, and a database seeded without the fill gets every row on the next start that fills
-(`SeedReviewsTest`; the e2e reads the headphones' 2,341 and 86 off the image). The same item found why CI also
-failed with `Could not create new connection` (haul#121): some twenty tests left their Hikari pools open, four
-connections each, against the container's hundred, so whichever test came after the hundredth waited out
-testcontainers' two minutes. Every pool is closed now, and `PostgresHarness` refuses a new database past forty open
-connections, naming the databases and the test lines that made them. After both: 280 s on CI.
+(`SeedReviewsTest`; the e2e reads the headphones' 2,341 and 86 off the image). CI's other failure of those days, `Could not create new connection` (haul#121),
+was test pools left open against the container's hundred connections, closed by B-100 (`PostgresHarness` refuses
+a ninth open database). With both, `:server:test` took 280 s on CI.
 
 **Decided in B-99, what the review controls promise.** A customer who has reviewed a product is offered their
 review, never a second «Write a review» the route refuses (`409 review_exists`): on the product page theirs leads
