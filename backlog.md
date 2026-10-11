@@ -46,7 +46,7 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-105](docs/backlog/B-105-shell-header-knows-the-customer.md) `[ ]` | client: a page opened directly knows who is signed in | P2 | S | - |
+| [B-105](docs/backlog/B-105-shell-header-knows-the-customer.md) `[~]` | client: a page opened directly knows who is signed in | P2 | S | - |
 | [B-106](docs/backlog/B-106-display-face-loses-characters.md) `[ ]` | client: the display face draws every character it is given | P2 | S | - |
 | [B-109](docs/backlog/B-109-saga-steps-in-tracy.md) `[ ]` | server: an order's saga is visible in tracy | P2 | S | - |
 | [B-82](docs/backlog/B-82-tablet-widths.md) `[ ]` | client: the store reads well between a phone and 1440 | P2 | M | - |
