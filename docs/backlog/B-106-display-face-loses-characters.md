@@ -1,7 +1,7 @@
 ---
 id: B-106
 title: "client: the display face draws every character it is given"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-11-qa
