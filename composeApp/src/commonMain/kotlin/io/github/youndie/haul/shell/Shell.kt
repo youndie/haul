@@ -103,7 +103,7 @@ public val SHELL_HEADER: HaulHeader =
 // The server's addresses (`Frame` on the server) the shell's own header follows before a tree names them.
 private const val CATALOG = "/c"
 private const val DEALS = "/deals"
-private const val CART = "/cart"
+internal const val CART: String = "/cart"
 private const val ORDERS = "/account/orders"
 private const val SAVED = "/account/saved"
 
@@ -132,6 +132,22 @@ public enum class ShellFailure(
 
     /** The server answered with an error of its own. */
     Server("Something went wrong on our side. Try again in a moment."),
+    ;
+
+    /**
+     * A page's own reassurance — «Your query is still in the field.» — and what to do: the artboard's «Try again
+     * in a moment» after an error of the server's, the connection to check when there was no answer (B-94).
+     */
+    internal fun with(reassurance: String): String =
+        when (this) {
+            Unreachable -> "We couldn’t reach Haul. $reassurance Check your connection and try again."
+            Server -> "$reassurance Try again in a moment."
+        }
+
+    internal companion object {
+        /** The failure [cause] is: no answer at all, or anything the server answered. */
+        fun of(cause: Throwable): ShellFailure = if (cause is ScreenFailed.Unreachable) Unreachable else Server
+    }
 }
 
 /**
@@ -149,20 +165,67 @@ public fun ErrorShell(
     }, accented("$subject didn’t\u00A0load", "load"), failure.message, balanced = false, onRetry)
 }
 
-/** A failed search (Search_Error): the query stays in the field, and the shopper is told so. */
+/**
+ * A failed search (Search_Error): the query stays in the field, and the shopper is told so — and whether the
+ * server could not be reached or answered with an error of its own ([failure]).
+ */
 @Composable
 public fun SearchError(
     query: String,
+    failure: ShellFailure = ShellFailure.Server,
     onRetry: () -> Unit = {},
 ) {
     ErrorPage(
         { PendingHeader(query) },
         accented("Search didn’t respond", "respond"),
-        "Your query is still in the field. Try again in a moment.",
+        failure.with("Your query is still in the field."),
         // `text-wrap: balance` keeps «didn’t respond» together at 1440 and breaks it on a phone,
         // where the two words do not fit one line.
         balanced = true,
         onRetry = onRetry,
+    )
+}
+
+/**
+ * A search for fewer characters than the server matches (`400 query_too_short`, B-94): said as it is, under
+ * [header] with the query still in its field, and no Retry — the same query gets the same answer.
+ */
+@Composable
+public fun SearchTooShort(
+    query: String,
+    header: HaulHeader = LocalShellHeader.current,
+) {
+    NotFoundShell(
+        header = header.copy(query = query),
+        eyebrow = "Search",
+        title = "Keep typing",
+        accent = "typing",
+        text = "Search needs at least two characters. Your query is still in the field: add to it and press Enter.",
+        actionLabel = null,
+    )
+}
+
+/**
+ * An old or edited link the server refuses (`400`) for a reason no parameter of it names (B-94): under
+ * [header], said to be out of date, with the page at its path — [onOpenPath], when the link has a query — or
+ * home ([onHome]) as the way on. A parameter the server names is dropped without a page ([Recovery.Redirect]).
+ */
+@Composable
+internal fun StaleLink(
+    address: Address,
+    header: HaulHeader,
+    onOpenPath: () -> Unit,
+    onHome: () -> Unit,
+) {
+    val hasQuery = '?' in address.value
+    NotFoundShell(
+        header = header,
+        eyebrow = "link",
+        title = "This link is out of date",
+        accent = "out of date",
+        text = "Part of its address is no longer valid: the page may have changed since the link was made.",
+        actionLabel = if (hasQuery) "Open the page" else "Go to the home page",
+        onAction = if (hasQuery) onOpenPath else onHome,
     )
 }
 
@@ -636,13 +699,16 @@ public fun SearchLoading(query: String) {
 
 private val SEARCH_CHIP_WIDTHS = listOf(100, 140, 150, 130, 100, 90)
 
-/** A failed cart (Cart_Error): nothing in it was lost, which is what the shopper is told. */
+/** A failed cart (Cart_Error): nothing in it was lost, which is what the shopper is told, and why ([failure]). */
 @Composable
-public fun CartError(onRetry: () -> Unit = {}) {
+public fun CartError(
+    failure: ShellFailure = ShellFailure.Server,
+    onRetry: () -> Unit = {},
+) {
     ErrorPage(
         { PendingHeader() },
         accented("Your cart didn’t load", "load"),
-        "Nothing in it was lost. Try again in a moment.",
+        failure.with("Nothing in it was lost."),
         // `text-wrap: balance`: «Your cart / didn’t load» at both widths.
         balanced = true,
         onRetry = onRetry,
@@ -752,13 +818,19 @@ public val CHECKOUT_SHELL_HEADER: CheckoutHeader =
         secureLabel = "Secure checkout",
     )
 
-/** A failed checkout (Checkout_Error): the cart is as it was, which is what the shopper is told. */
+/**
+ * A failed checkout (Checkout_Error): the cart is as it was, which is what the shopper is told, and why
+ * ([failure]). A checkout with nothing to check out is the cart, not this page (B-94).
+ */
 @Composable
-public fun CheckoutError(onRetry: () -> Unit = {}) {
+public fun CheckoutError(
+    failure: ShellFailure = ShellFailure.Server,
+    onRetry: () -> Unit = {},
+) {
     ErrorPage(
         { CheckoutHeaderView(CHECKOUT_SHELL_HEADER, onHome = LocalLogoAction.current) },
         accented("Checkout didn’t load", "load"),
-        "Your cart is unchanged. Try again in a moment.",
+        failure.with("Your cart is unchanged."),
         // `text-wrap: balance`: «Checkout / didn’t load» at both widths.
         balanced = true,
         onRetry = onRetry,
@@ -946,13 +1018,16 @@ private fun OrderSummarySkeleton(modifier: Modifier) {
     }
 }
 
-/** A failed account (Account_Error): «Your account didn’t *load*», and Retry. */
+/** A failed account (Account_Error): «Your account didn’t *load*», why ([failure]), and Retry. */
 @Composable
-public fun AccountError(onRetry: () -> Unit = {}) {
+public fun AccountError(
+    failure: ShellFailure = ShellFailure.Server,
+    onRetry: () -> Unit = {},
+) {
     ErrorPage(
         { PendingHeader() },
         accented("Your account didn’t load", "load"),
-        ShellFailure.Server.message,
+        failure.message,
         // `text-wrap: balance`: «Your account / didn’t load» at both widths.
         balanced = true,
         onRetry = onRetry,
@@ -1009,13 +1084,16 @@ public fun SavedLoading() {
     }
 }
 
-/** A failed Saved list (Saved_Error): «Saved didn’t *load*», and Retry. */
+/** A failed Saved list (Saved_Error): «Saved didn’t *load*», why ([failure]), and Retry. */
 @Composable
-public fun SavedError(onRetry: () -> Unit = {}) {
+public fun SavedError(
+    failure: ShellFailure = ShellFailure.Server,
+    onRetry: () -> Unit = {},
+) {
     ErrorPage(
         { PendingHeader() },
         accented("Saved didn’t load", "load"),
-        ShellFailure.Server.message,
+        failure.message,
         // `text-wrap: balance`: one line at 1440, «Saved / didn’t load» on a phone.
         balanced = true,
         onRetry = onRetry,

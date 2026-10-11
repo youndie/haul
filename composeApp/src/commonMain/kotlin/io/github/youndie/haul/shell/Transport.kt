@@ -109,13 +109,17 @@ public sealed class ScreenFailed(
         public val code: ErrorCode?,
     ) : ScreenFailed(path, "not found ($code)")
 
-    /** Any other answer that is not a tree: an error of the server's, or a body this build cannot read. */
+    /**
+     * Any other answer that is not a tree: an error of the server's, or a body this build cannot read. [field]
+     * is the one the server named at fault — for a screen, the query parameter it refused (B-94).
+     */
     public class Refused(
         path: String,
         public val status: Int,
         public val code: ErrorCode?,
         cause: Throwable? = null,
-    ) : ScreenFailed(path, "status $status ($code)", cause)
+        public val field: String? = null,
+    ) : ScreenFailed(path, "status $status ($code${field?.let { ", $it" }.orEmpty()})", cause)
 }
 
 /**
@@ -158,7 +162,8 @@ internal suspend fun HaulTransport.screen(path: String): LoadedScreen {
         }
 
         else -> {
-            throw ScreenFailed.Refused(path, response.status, errorCode(response.body))
+            val error = errorBody(response.body)
+            throw ScreenFailed.Refused(path, response.status, error?.code, field = error?.field)
         }
     }
 }
@@ -192,7 +197,8 @@ internal suspend fun HaulTransport.action(path: String): KompotAction {
         }
 
         else -> {
-            throw ScreenFailed.Refused(path, response.status, errorCode(response.body))
+            val error = errorBody(response.body)
+            throw ScreenFailed.Refused(path, response.status, error?.code, field = error?.field)
         }
     }
 }
@@ -226,9 +232,11 @@ internal suspend fun HaulTransport.suggest(query: String): SearchSuggestPanel? =
         null
     }
 
-private fun errorCode(body: String): ErrorCode? =
+private fun errorCode(body: String): ErrorCode? = errorBody(body)?.code
+
+private fun errorBody(body: String): ErrorBody? =
     try {
-        haulJson.decodeFromString(ErrorBody.serializer(), body).code
+        haulJson.decodeFromString(ErrorBody.serializer(), body)
     } catch (unreadable: IllegalArgumentException) {
         null
     }

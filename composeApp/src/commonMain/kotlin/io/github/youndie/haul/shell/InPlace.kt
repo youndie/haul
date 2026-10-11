@@ -25,6 +25,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
@@ -71,7 +72,9 @@ internal fun LoadingLine(modifier: Modifier = Modifier) {
 
 /**
  * A load of this screen that did not arrive, over the page that stayed: what happened and Retry, which
- * asks for the same address again. The page under it still answers its presses.
+ * asks for the same address again — unless the server refused the request as made (a search too short, a
+ * parameter that is not one), which Retry would only send again (B-94). The page under it still answers its
+ * presses.
  */
 @Composable
 internal fun NotUpdatedNotice(
@@ -94,25 +97,29 @@ internal fun NotUpdatedNotice(
             Text(NOT_UPDATED_TITLE, normal(15f, 700).copy(color = HaulColors.inverseOnSurface))
             Text(cause.notUpdatedReason, normal(14f).copy(color = HaulColors.inverseOnSurfaceVariant))
         }
-        HaulButton(
-            "Retry",
-            height = 44.dp,
-            radius = 12.dp,
-            horizontal = 18.dp,
-            fill = HaulColors.secondaryContainer,
-            content = HaulColors.onSecondaryContainer,
-            textSize = 15f,
-            onClick = onRetry,
-        )
+        if (cause.retryHelps) {
+            HaulButton(
+                "Retry",
+                height = 44.dp,
+                radius = 12.dp,
+                horizontal = 18.dp,
+                fill = HaulColors.secondaryContainer,
+                content = HaulColors.onSecondaryContainer,
+                textSize = 15f,
+                onClick = onRetry,
+            )
+        }
     }
 }
 
 /** Why the page asked for is not the one shown, in the words the error pages use. */
 private val Throwable.notUpdatedReason: String
     get() =
-        when (this) {
-            is ScreenFailed.Unreachable -> ShellFailure.Unreachable.message
-            is ScreenFailed.NotFound -> "The link may be old, or the page has moved."
+        when {
+            this is ScreenFailed.Unreachable -> ShellFailure.Unreachable.message
+            this is ScreenFailed.NotFound -> "The link may be old, or the page has moved."
+            this is ScreenFailed.Refused && code == ErrorCode.QueryTooShort -> "Search needs at least two characters."
+            !retryHelps -> "This link is out of date: part of its address is no longer valid."
             else -> ShellFailure.Server.message
         }
 

@@ -373,7 +373,17 @@ public fun Storefront(
                             },
                             loading = { Scrolled(scroll) { Box(Modifier.testTag(LOADING_TAG)) { Loading(address) } } },
                             failed = { cause, retry ->
+                                // A refusal Retry cannot change leads somewhere instead (B-94): the cart for an
+                                // empty checkout, the page without a parameter an old link got wrong.
+                                val recovery = address.recovery(cause)
                                 when {
+                                    recovery is Recovery.Redirect -> {
+                                        LaunchedEffect(cause) { navigator.redirect(recovery.location) }
+                                        if (loader.screen == null) {
+                                            Scrolled(scroll) { Box(Modifier.testTag(LOADING_TAG)) { Loading(address) } }
+                                        }
+                                    }
+
                                     loader.screen == null -> {
                                         Scrolled(scroll) {
                                             if (cause.asksForSignIn && signedInFor != loads) {
@@ -382,7 +392,9 @@ public fun Storefront(
                                                     signedInFor = loads
                                                 }
                                             } else {
-                                                Failed(address, cause, header ?: SHELL_HEADER, retry, home)
+                                                Failed(address, cause, recovery, header ?: SHELL_HEADER, retry, home) {
+                                                    navigator.open(address.path)
+                                                }
                                             }
                                         }
                                     }
@@ -706,17 +718,30 @@ private fun Loading(address: Address) {
 
 /**
  * The page when its tree did not arrive: not there (`404`) under the header last drawn, with the way
- * home; otherwise why, and Retry. A search keeps its query in the field.
+ * home; a search too short or a stale link ([recovery], B-94) said as such under it; otherwise whether the
+ * server could not be reached or answered with an error of its own, and Retry. A search keeps its query in
+ * the field.
  */
 @Composable
 private fun Failed(
     address: Address,
     cause: Throwable,
+    recovery: Recovery?,
     header: HaulHeader,
     retry: () -> Unit,
     home: () -> Unit,
+    openPath: () -> Unit,
 ) {
+    val failure = ShellFailure.of(cause)
     when {
+        recovery == Recovery.QueryTooShort -> {
+            SearchTooShort(address.query.orEmpty(), header)
+        }
+
+        recovery == Recovery.StaleLink -> {
+            StaleLink(address, header, onOpenPath = openPath, onHome = home)
+        }
+
         cause is ScreenFailed.NotFound && address.kind == PageKind.Product -> {
             ProductNotFound(header, onHome = home)
         }
@@ -739,27 +764,26 @@ private fun Failed(
         }
 
         address.kind == PageKind.Search -> {
-            SearchError(address.query.orEmpty(), retry)
+            SearchError(address.query.orEmpty(), failure, retry)
         }
 
         address.kind == PageKind.Cart -> {
-            CartError(retry)
+            CartError(failure, retry)
         }
 
         address.kind == PageKind.Checkout -> {
-            CheckoutError(retry)
+            CheckoutError(failure, retry)
         }
 
         address.kind == PageKind.Account -> {
-            AccountError(retry)
+            AccountError(failure, retry)
         }
 
         address.kind == PageKind.Saved -> {
-            SavedError(retry)
+            SavedError(failure, retry)
         }
 
         else -> {
-            val failure = if (cause is ScreenFailed.Unreachable) ShellFailure.Unreachable else ShellFailure.Server
             ErrorShell(address.kind.subject, failure, retry)
         }
     }
