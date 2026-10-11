@@ -48,7 +48,7 @@ A stage is a field on the item, not a directory.
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-112](docs/backlog/B-112-first-press-focuses-the-field.md) `[?]` | client: the first press on a text field focuses it | P1 | M | - |
-| [B-115](docs/backlog/B-115-a-guest-keeps-the-cart-on-a-customers-page.md) `[ ]` | fix: a guest who opens a customer's page by its address keeps the cart | P1 | S | - |
+| [B-115](docs/backlog/B-115-a-guest-keeps-the-cart-on-a-customers-page.md) `[~]` | fix: a guest who opens a customer's page by its address keeps the cart | P1 | S | - |
 | [B-116](docs/backlog/B-116-back-from-the-provider-says-the-sign-in-did-not-go-through.md) `[ ]` | fix: back from the provider's page says the sign-in did not go through | P2 | S | - |
 | [B-117](docs/backlog/B-117-a-malformed-link-opens-the-store.md) `[ ]` | fix: a page address with broken percent-encoding opens the store | P2 | S | - |
 | [B-119](docs/backlog/B-119-search-chips-and-title-say-what-is-shown.md) `[ ]` | fix: a search's title, chips and picker say what the grid shows | P2 | S/M | - |

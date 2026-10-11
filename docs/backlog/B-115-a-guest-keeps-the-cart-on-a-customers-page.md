@@ -1,7 +1,7 @@
 ---
 id: B-115
 title: "fix: a guest who opens a customer's page by its address keeps the cart"
-status: open
+status: wip
 priority: P1
 size: S
 stage: stage-12-qa-run
