@@ -1,7 +1,7 @@
 ---
 id: B-97
 title: "client + server: what checkout shows is what it will place"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-11-qa
