@@ -95,6 +95,15 @@ internal object StockReservationsTable : Table("stock_reservations") {
     override val primaryKey = PrimaryKey(holder, skuId, name = "pk_stock_reservations")
 }
 
+/** V28 (B-88): the units a return put back on the shelf, one row per SKU under the return's key. */
+internal object StockRestocksTable : Table("stock_restocks") {
+    val key = text("key")
+    val skuId = text("sku_id").references(SkusTable.id, onDelete = ReferenceOption.RESTRICT)
+    val quantity = integer("quantity").check("stock_restocks_quantity_check") { it greater 0 }
+    val restockedAt = timestampWithTimeZone("restocked_at")
+    override val primaryKey = PrimaryKey(key, skuId, name = "pk_stock_restocks")
+}
+
 /** Every table placement writes, parents before children. */
 internal val orderTables: List<Table> =
     listOf(
@@ -105,4 +114,5 @@ internal val orderTables: List<Table> =
         OrderLinesTable,
         ShipmentsTable,
         StockReservationsTable,
+        StockRestocksTable,
     )

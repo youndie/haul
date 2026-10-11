@@ -36,6 +36,8 @@ dependencies {
     // The stack is started from the test itself, as the server's own suite starts PostgreSQL and
     // shildik: no compose file to keep beside the code that depends on it.
     testImplementation(libs.testcontainers.postgresql)
+    // The stock a walk must leave as it found (B-88) is not on the wire; the test reads it off the database.
+    testImplementation(libs.postgresql)
 }
 
 tasks.test {

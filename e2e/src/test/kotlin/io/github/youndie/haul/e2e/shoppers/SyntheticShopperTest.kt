@@ -30,7 +30,8 @@ import kotlin.time.Duration.Companion.minutes
  * customer, started together, each buying a product, waiting out the fast clock, returning it and seeing
  * the refund. Afterwards the customer's own history — read with a token of its own, not the walks' — holds
  * two orders, both returned: two placement sagas run to the end, and the fulfilment and refund simulators
- * moved both.
+ * moved both — and the stock is what it was before the walks (B-88): each took its unit at placement and the
+ * refund put it back.
  *
  * Not shown here: that the walks' per-person cart lock is needed. Two walks started together without it
  * still passed once (B-31's findings). It stays: the cart is one per customer, and nothing promises that two
@@ -53,6 +54,7 @@ class SyntheticShopperTest {
                 inFlight = 2,
                 walks = 2,
             )
+        val stockBefore = ComposedStack.stock()
         assertTrue(Shoppers(config).run(), "a walk failed; its line above names the step\n${ComposedStack.serverLog()}")
 
         val shop = Storefront(ComposedStack.origin)
@@ -77,6 +79,14 @@ class SyntheticShopperTest {
                 .orEmpty()
         assertEquals(2, rows.size, "the walks left ${rows.map { it.status }}")
         assertTrue(rows.all { it.statusKind == HistoryStatusKind.Returned }, "${rows.map { it.status }}")
+
+        val placed = rows.map { it.action.deeplink("a history row").substringAfterLast('/') }
+        assertTrue(placed.all { ComposedStack.reserved(it) > 0 }, "every walk took its unit at placement: $placed")
+        val changed =
+            ComposedStack.stock().filter { (sku, units) -> units != stockBefore[sku] }.mapValues { (sku, units) ->
+                "${stockBefore[sku]} → $units"
+            }
+        assertEquals(emptyMap(), changed, "the walks left the stock changed")
     }
 
     /**

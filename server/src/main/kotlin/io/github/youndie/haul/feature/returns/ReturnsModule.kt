@@ -21,6 +21,7 @@ internal val returnsModule =
                 payments = get(),
                 plans = get(),
                 points = get(),
+                stock = get(),
                 clock = get(),
                 pace = get(),
                 moves = get(),

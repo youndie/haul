@@ -614,6 +614,13 @@ and on the stand.
   `refund:<order>`. The ledger gains `payment_refunds`: a key refunded once answers what it gave, and the
   refunds of an order never add up to more than its captures. Pay on delivery is paid back by the courier,
   outside the processor.
+- **The returned units go back to stock with the refund** (B-88), not at «picked up»: the refund is the moment the
+  seller has the parcel back, and while the courier carries it the unit cannot be sold. They come back after the
+  points and before the move, once by `return:<order>` (`StockReturns.restock`, the table `stock_restocks`, V28):
+  a pass that died after the restock and runs again adds nothing. The order's `stock_reservations` stay what
+  placement took — releasing them would put back the lines the shopper kept. Every reason restocks, «Arrived
+  damaged» included: the simulated world writes nothing off. A return held by a refused refund puts nothing back
+  until it is refunded.
 - **What a line gives back** is its share of the items as paid — the order's items are at list price and its
   discount holds the sale and the code, so the code is shared over the lines in proportion to what each cost at
   the price paid; the delivery is kept. What a line cost is its total, the price times the quantity, which is what
@@ -808,8 +815,9 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   never printed (`Password` prints `<hidden>`, sign-in failures name the status only). The render refuses shoppers
   without `shildik.enabled`, without a demo password, or as anybody not in `shildik.demoPeople`.
 - **Sam, not Maya, by default.** Maya's seeded cart would be bought by her first walk and her Plus and points would
-  move; Sam's account has nothing seeded to lose. Every walk leaves one returned order in his history and takes one
-  unit of stock a refund does not put back.
+  move; Sam's account has nothing seeded to lose. Every walk leaves one returned order in his history; the unit it
+  takes at placement comes back with the refund (B-88), so the walks leave the stock as they found it
+  (`SyntheticShopperTest` reads it off the database before and after).
 - **One walk per person between the sign-in and the placement** (a lock per person): the cart is the customer's.
   Two walks started together without the lock still passed once, so its need is reasoned, not shown.
 - **What a walk produces**, at the stand's speed 288: one order saga completed, the fulfilment simulator's moves

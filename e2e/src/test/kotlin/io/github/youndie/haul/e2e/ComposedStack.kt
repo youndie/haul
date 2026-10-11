@@ -12,6 +12,7 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.sql.DriverManager
 import java.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -125,6 +126,34 @@ internal object ComposedStack {
     init {
         awaitReady()
     }
+
+    /**
+     * Every SKU's stock, read off the server's database (B-88): the wire never carries the count — a product
+     * page says only whether it is in stock — so a test that holds the stack to «the walk leaves the stock as it
+     * was» reads the rows, as the server's own suite reads them past its repositories.
+     */
+    fun stock(): Map<String, Int> = query("SELECT id, stock FROM skus") { it.getString(1) to it.getInt(2) }.toMap()
+
+    /** The units placement took for [orderId] and holds: its rows in `stock_reservations`. */
+    fun reserved(orderId: String): Int =
+        query(
+            "SELECT coalesce(sum(quantity), 0) FROM stock_reservations WHERE holder = ?",
+            orderId,
+        ) { it.getInt(1) }.single()
+
+    private fun <T> query(
+        sql: String,
+        vararg parameters: String,
+        row: (java.sql.ResultSet) -> T,
+    ): List<T> =
+        DriverManager.getConnection(postgres.jdbcUrl, postgres.username, postgres.password).use { connection ->
+            connection.prepareStatement(sql).use { statement ->
+                parameters.forEachIndexed { index, value -> statement.setString(index + 1, value) }
+                statement.executeQuery().use { rows ->
+                    generateSequence { if (rows.next()) row(rows) else null }.toList()
+                }
+            }
+        }
 
     /** What the server printed, for a failure message: the last [lines] of it. */
     fun serverLog(lines: Int = 80): String =

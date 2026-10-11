@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.order.data
 
 import io.github.youndie.haul.feature.catalog.data.SkusTable
 import io.github.youndie.haul.feature.order.domain.StockReservations
+import io.github.youndie.haul.feature.order.domain.StockReturns
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.v1.core.and
@@ -23,10 +24,15 @@ import java.time.OffsetDateTime
  * racing for the last units, the second waits on the first's row lock, re-reads the row, and updates
  * nothing. All of an order's SKUs are taken in one transaction, so a shortage on any one leaves the
  * others untouched.
+ *
+ * A return's units come back ([restock], B-88) the way they were taken, claimed first: the return's rows in
+ * `stock_restocks` are inserted before a unit is added, so a second run under the same key — a pass that died
+ * before the return moved — inserts nothing and adds nothing.
  */
 internal class ExposedStock(
     private val database: Database,
-) : StockReservations {
+) : StockReservations,
+    StockReturns {
     private suspend fun <T> tx(block: () -> T): T = withContext(Dispatchers.IO) { transaction(database) { block() } }
 
     override suspend fun reserve(
@@ -80,6 +86,27 @@ internal class ExposedStock(
                 SkusTable.update({ SkusTable.id eq sku }) { it[stock] = SkusTable.stock + units }
             }
             true
+        }
+
+    override suspend fun restock(
+        key: String,
+        quantities: Map<String, Int>,
+        at: OffsetDateTime,
+    ): Boolean =
+        tx {
+            // In the SKUs' order, as reserve takes them, so a restock and a placement over the same SKUs cannot deadlock.
+            quantities.toSortedMap().filterValues { it > 0 }.count { (sku, units) ->
+                val claimed =
+                    StockRestocksTable
+                        .insertIgnore {
+                            it[StockRestocksTable.key] = key
+                            it[skuId] = sku
+                            it[quantity] = units
+                            it[restockedAt] = at
+                        }.insertedCount
+                if (claimed == 1) SkusTable.update({ SkusTable.id eq sku }) { it[stock] = SkusTable.stock + units }
+                claimed == 1
+            } > 0
         }
 
     private class Shortage : RuntimeException("not enough stock")
