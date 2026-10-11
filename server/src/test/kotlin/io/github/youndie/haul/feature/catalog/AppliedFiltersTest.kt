@@ -17,7 +17,6 @@ import io.github.youndie.kompot.standard.NavigateAction
 import io.ktor.client.HttpClient
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -163,7 +162,8 @@ class AppliedFiltersTest {
     private suspend fun HttpClient.assertNoPressReloads(address: String) {
         val page = tree("/ui$address")
         page.loads().forEach { url ->
-            assertNotEquals(page.json(), tree("/ui" + url.removePrefix(Parts.PREFIX)).json(), "$address: $url")
+            // Not assertNotEquals: its message would be the whole page, twice.
+            assertTrue(page.json() != tree("/ui" + url.removePrefix(Parts.PREFIX)).json(), "$address: $url loads it")
         }
     }
 
