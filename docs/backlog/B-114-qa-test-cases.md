@@ -1,7 +1,7 @@
 ---
 id: B-114
 title: "docs: a QA test-case catalogue the stand is walked against"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-11-qa

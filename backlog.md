@@ -47,7 +47,7 @@ A stage is a field on the item, not a directory.
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-112](docs/backlog/B-112-first-press-focuses-the-field.md) `[?]` | client: the first press on a text field focuses it | P1 | M | - |
-| [B-114](docs/backlog/B-114-qa-test-cases.md) `[ ]` | docs: a QA test-case catalogue the stand is walked against | P1 | M | - |
+| [B-114](docs/backlog/B-114-qa-test-cases.md) `[~]` | docs: a QA test-case catalogue the stand is walked against | P1 | M | - |
 | [B-78](docs/backlog/B-78-placeholders-on-the-stand.md) `[ ]` | server + client: the stand shows pictures, not placeholder labels | P3 | M | - |
 | [B-85](docs/backlog/B-85-canvas-behind-the-code.md) `[ ]` | design: the canvas draws what the store now has | P3 | M | - |
 | [B-86](docs/backlog/B-86-reviews-photos-and-histogram.md) `[ ]` | client + server: review photos open and the histogram filters | P3 | M | - |
