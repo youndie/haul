@@ -20,7 +20,9 @@ import kotlin.coroutines.cancellation.CancellationException
  * (katcher, when it is on), and then answered by what it is, every code through [respondError] so the
  * status is the one `status(code)` gives it:
  * - one of Ktor's own client errors keeps its status — a malformed request is the sender's fault and
- *   must not count against the error budget; a `400` carries `validation_failed`, the rest no body;
+ *   must not count against the error budget; a `400` carries `validation_failed`, the rest no body. A query
+ *   that does not decode is one: `/ui/…` and `/api/…` answer it here, a storefront page's address is the page
+ *   whatever its query ([PageAtAnyQuery], B-117) — the browser would show this JSON as the page's text;
  * - a database that cannot be reached is `unavailable` / `503`: an outage, worth retrying;
  * - anything else is `internal` / `500`: a bug, with nothing of the exception in the body.
  *

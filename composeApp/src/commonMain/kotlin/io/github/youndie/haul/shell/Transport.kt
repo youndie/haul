@@ -17,6 +17,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
+import io.ktor.http.URLDecodeException
 import io.ktor.http.content.TextContent
 import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.JsonObject
@@ -141,6 +142,8 @@ internal suspend fun HaulTransport.screen(path: String): LoadedScreen {
             get(path)
         } catch (cancelled: CancellationException) {
             throw cancelled
+        } catch (malformed: URLDecodeException) {
+            throw malformed.refusal(path)
         } catch (error: Throwable) {
             // Throwable, not Exception: in the browser a failed fetch arrives as a JavaScript error,
             // which is no `Exception` on Kotlin/Wasm — caught narrower, an unreachable server was drawn
@@ -179,6 +182,8 @@ internal suspend fun HaulTransport.action(path: String): KompotAction {
             get(path)
         } catch (cancelled: CancellationException) {
             throw cancelled
+        } catch (malformed: URLDecodeException) {
+            throw malformed.refusal(path)
         } catch (error: Throwable) {
             // Throwable: a failed fetch in the browser is a JavaScript error (see [screen]).
             throw ScreenFailed.Unreachable(path, error)
@@ -202,6 +207,18 @@ internal suspend fun HaulTransport.action(path: String): KompotAction {
         }
     }
 }
+
+/**
+ * A request whose query does not decode, refused here as the server refuses one — `400 validation_failed`, naming
+ * no parameter (`ErrorAnswers.kt`) — because it cannot be sent at all (B-117): Ktor's client decodes a URL's query
+ * when it builds the request, and throws on a link cut off mid-escape (`/c/electronics?brand=%E0%A4%A`) or an escape
+ * that is none (`/search?q=%zz`). Caught as a missing network, it was «We couldn't reach Haul» with a Retry that
+ * fails the same way; as the refusal it is, the page says the link is out of date ([recovery]).
+ */
+private fun URLDecodeException.refusal(path: String): ScreenFailed.Refused =
+    ScreenFailed.Refused(path, BAD_REQUEST, ErrorCode.ValidationFailed, cause = this)
+
+private const val BAD_REQUEST = 400
 
 /**
  * A bare tree, or kompot's `KompotScreenResponse` around one: the envelope a screen with a channel comes in

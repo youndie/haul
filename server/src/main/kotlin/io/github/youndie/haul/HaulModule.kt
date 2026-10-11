@@ -87,7 +87,8 @@ internal fun interface StoreClock {
  * precompressed files, its cache headers). Every API route is more specific than the static one, so a
  * screen route always wins. The page answers the storefront's own addresses ([StorefrontPage], B-36),
  * so a reloaded or shared `/p/...` opens; there is deliberately no catch-all fallback to `index.html` —
- * it would answer an unknown `/ui/...` with a page and a 200 instead of the 404 the client draws.
+ * it would answer an unknown `/ui/...` with a page and a 200 instead of the 404 the client draws. A storefront
+ * address whose query does not decode is the page too, answered before routing ([PageAtAnyQuery], B-117).
  *
  * [photoStore] is the object storage product photos are kept in (B-30); `null` — no storage
  * configured — serves no photos, and every tile is the placeholder.
@@ -199,6 +200,8 @@ internal fun Application.haulModule(
     }
     // A category answers at one address; any other form of it is redirected there (B-68).
     install(OneCategoryAddress)
+    // A page's address is the page whatever its query, one that does not decode included (B-117).
+    web?.let { install(PageAtAnyQuery) { bundle = it } }
     routing {
         probes(commit = commit, ready = { databaseAnswers(dataSource) })
         // Public: a guest, a customer or nobody. A token is optional, and one that does not verify is

@@ -22,6 +22,13 @@ import io.github.youndie.haul.ui.SEARCH_FIELD_TAG
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.TextComponent
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.fullPath
+import io.ktor.http.headersOf
 import kotlinx.serialization.PolymorphicSerializer
 import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
@@ -123,6 +130,41 @@ class RefusedPagesTest {
             assertEquals(listOf("/c/mugs?page=2", "/c/mugs"), history.entries)
         }
 
+    /**
+     * A link cut off mid-escape or with an escape that is none (B-117), opened through the browser's own transport:
+     * Ktor's client cannot send a query it cannot decode, so the tree request is refused before it leaves, as the
+     * server refuses one (`400 validation_failed`, no parameter named) — not «We couldn't reach Haul» with a Retry
+     * that fails the same way — and the search's query is read without throwing from the page's placeholders.
+     */
+    @Test
+    fun `a link whose query does not decode is out of date and leads to its page`() =
+        MALFORMED.forEach { location ->
+            val path = location.substringBefore('?')
+            val sent = CopyOnWriteArrayList<String>()
+            val http =
+                HttpClient(
+                    MockEngine { request ->
+                        sent += request.url.fullPath
+                        val tree =
+                            haulWireJson.encodeToString(
+                                PolymorphicSerializer(KompotComponent::class),
+                                page("The page at $path"),
+                            )
+                        respond(tree, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+                    },
+                )
+            at(location) {
+                storefront(ktorTransport(http, "http://haul.test"))
+                onNodeWithText("This link is out of date").assertExists()
+                onNodeWithText("Retry").assertDoesNotExist()
+                onNodeWithText("Open the page").performClick()
+                onNodeWithText("The page at $path").assertExists()
+                assertEquals(listOf(location, path), history.entries, location)
+                // The header the out-of-date page is drawn under aside, only the page at its path was asked for.
+                assertEquals(listOf("/ui$path"), sent.filter { it != HEADER_TREE }, location)
+            }
+        }
+
     @Test
     fun `an account that could not be reached says so, not our side`() =
         unreachable("/account", ShellFailure.Unreachable.message)
@@ -173,7 +215,7 @@ class RefusedPagesTest {
         test()
     }
 
-    private fun ComposeUiTest.storefront() =
+    private fun ComposeUiTest.storefront(transport: HaulTransport = this@RefusedPagesTest.transport) =
         setContent {
             HaulTheme(FixtureFonts.fonts, compact = false) {
                 Storefront(transport, history, signIn = {}, clock = FIXED)
@@ -184,6 +226,15 @@ class RefusedPagesTest {
         onAllNodes(hasText(text)).fetchSemanticsNodes().isNotEmpty()
 
     private companion object {
+        /** The four the v0.4.0 run opened (TC-ERR-04 step 4). */
+        val MALFORMED =
+            listOf(
+                "/c/electronics?brand=%E0%A4%A",
+                "/search?q=%zz",
+                "/c/electronics?%zz",
+                "/p/p-sony-wh-1000xm6?sku=%zz",
+            )
+
         val FIXED =
             object : Clock {
                 override fun now(): Instant = CANVAS_NOW
