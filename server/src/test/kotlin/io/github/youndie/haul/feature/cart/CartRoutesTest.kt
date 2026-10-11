@@ -6,6 +6,7 @@ import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.SampleCatalog
 import io.github.youndie.haul.testing.ShildikHarness
 import io.github.youndie.haul.testing.acknowledge
+import io.github.youndie.haul.testing.action
 import io.github.youndie.haul.testing.all
 import io.github.youndie.haul.testing.applyPromo
 import io.github.youndie.haul.testing.assertError
@@ -15,6 +16,7 @@ import io.github.youndie.haul.testing.guest
 import io.github.youndie.haul.testing.haulTest
 import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.putLine
+import io.github.youndie.haul.testing.putLineAt
 import io.github.youndie.haul.testing.removeLines
 import io.github.youndie.haul.testing.removePromo
 import io.github.youndie.haul.ui.CartGroup
@@ -91,8 +93,9 @@ class CartRoutesTest {
             val line = groups.first().lines.single()
             assertEquals("$349" to "$449", line.price to line.oldPrice)
             assertEquals("Midnight Black · Headphones only", line.options)
-            // The tree says where the line's commands go; the client builds no path.
-            assertEquals("/api/v1/cart/lines/$headphones" to null, line.url to line.acknowledgeUrl)
+            // The tree says where the line's commands go; the client builds no path. The line's own controls
+            // change the line that is there and never add it (B-125).
+            assertEquals("/api/v1/cart/lines/$headphones?existing=true" to null, line.url to line.acknowledgeUrl)
             // The tile and the title open the product at the line's SKU, not at the product's default (B-100).
             assertEquals(NavigateAction("/p/${SampleCatalog.SONY_HEADPHONES}?sku=$headphones"), line.action)
             assertEquals(
@@ -421,6 +424,40 @@ class CartRoutesTest {
             putLine(guest, travel, LineChange(quantity = 1)).assertRefresh()
             val line = cart(guest).all().filterIsInstance<CartLine>().single()
             assertEquals(NavigateAction("/p/${SampleCatalog.SONY_HEADPHONES}?sku=$travel"), line.action)
+        }
+
+    /**
+     * TC-ERR-08 step 1 (B-125): the cart drawn in one tab, the line removed in another. The stale page's stepper
+     * and box send to the address its line carries, which changes a line and never adds one: refused in a
+     * shopper's words, and the line stays gone. A card's «+» on the same SKU still adds it, and the stepper of a
+     * line that is there still changes it.
+     */
+    @Test
+    fun `a stale stepper does not bring a removed line back and a card's plus still adds`() =
+        haulTest {
+            suspend fun lines(guest: String) = cart(guest).all().filterIsInstance<CartLine>()
+
+            val guest = mayasCart()
+            val stale = lines(guest).single { it.skuId == headphones }
+            removeLines(guest, headphones).assertRefresh()
+
+            val refused = putLineAt(guest, stale.url, LineChange(quantity = 2))
+            assertEquals(
+                "This item is no longer in your cart",
+                refused.assertError(HttpStatusCode.NotFound, ErrorCode.LineNotFound).message,
+            )
+            putLineAt(guest, stale.url, LineChange(selected = true))
+                .assertError(HttpStatusCode.NotFound, ErrorCode.LineNotFound)
+            assertEquals(listOf(duvet, mug), lines(guest).map { it.skuId }, "the removed line came back")
+
+            val mugLine = lines(guest).single { it.skuId == mug }
+            putLineAt(guest, mugLine.url, LineChange(quantity = 2)).assertRefresh()
+            assertEquals(2, lines(guest).single { it.skuId == mug }.quantity)
+
+            // A card's «+» is the same line `PUT` without the flag, at the address a card carries (DrawnActionsTest).
+            putLineAt(guest, CartPaths.line(headphones) + "?answer=card", LineChange(quantity = 1)).action()
+            val quantities = lines(guest).associate { it.skuId to it.quantity }
+            assertEquals(mapOf(duvet to 1, mug to 2, headphones to 1), quantities)
         }
 
     @Test

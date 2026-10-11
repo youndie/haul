@@ -39,7 +39,8 @@ public data class CartBody(
  * now $26», «Out of stock»), [changeDetail] what it was before («It was $24 when you added it»), and
  * [acknowledgeLabel] the button that accepts it («OK») — `null` on all three when nothing changed.
  *
- * The stepper and the box send a `LineChange` with `PUT` to [url]; «OK» is a `POST` to [acknowledgeUrl];
+ * The stepper and the box send a `LineChange` with `PUT` to [url], which changes this line and never adds it
+ * back once it is gone (B-125: `404 line_not_found`, the cart drawn again); «OK» is a `POST` to [acknowledgeUrl];
  * «Remove» is `CartSelection.linesUrl` with this [skuId]. «Save for later» (B-20) moves the line to the
  * customer's Saved list — a `POST` to [saveUrl], answered `refresh` and a message with the way to the list
  * (B-100) — and is a guest's way to sign in ([saveAction]), the Saved list being a customer's. [action], the

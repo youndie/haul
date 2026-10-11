@@ -122,7 +122,7 @@ class CartWiringTest {
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
             cart(CONTENT)
             press("cart-line-more:$MUG")
-            assertEquals(listOf<CartCommand>(CartCommand.ChangeLine(mugUrl, LineChange(quantity = 2))), sent.toList())
+            assertEquals(listOf<CartCommand>(CartCommand.ChangeLine(mugLine, LineChange(quantity = 2))), sent.toList())
             assertEquals(listOf<KompotAction>(RefreshAction), followed.toList())
         }
 
@@ -175,7 +175,7 @@ class CartWiringTest {
             cart(CONTENT)
             press("cart-line-box:$MUG")
             assertEquals(
-                listOf<CartCommand>(CartCommand.ChangeLine(mugUrl, LineChange(selected = false))),
+                listOf<CartCommand>(CartCommand.ChangeLine(mugLine, LineChange(selected = false))),
                 sent.toList(),
             )
         }
@@ -199,7 +199,7 @@ class CartWiringTest {
                     HEADPHONES,
                     DUVET,
                     MUG,
-                ).map { CartCommand.ChangeLine("$LINES/$it", LineChange(selected = false)) },
+                ).map { CartCommand.ChangeLine("$LINES/$it?existing=true", LineChange(selected = false)) },
                 sent.toList(),
             )
             assertEquals(listOf<KompotAction>(RefreshAction), followed.toList())
@@ -400,7 +400,7 @@ class CartWiringTest {
             onNodeWithTag("cart-line-more:$MUG").performClick()
             waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
             assertEquals(listOf("/ui/cart", "/ui/cart"), requests.toList())
-            assertEquals(listOf<CartCommand>(CartCommand.ChangeLine(mugUrl, LineChange(quantity = 2))), sent.toList())
+            assertEquals(listOf<CartCommand>(CartCommand.ChangeLine(mugLine, LineChange(quantity = 2))), sent.toList())
         }
 
     /**
@@ -437,7 +437,7 @@ class CartWiringTest {
             failure = null
             onNode(hasText(RETRY) and hasAnyAncestor(hasTestTag(MESSAGE_TAG))).performClick()
             waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
-            assertEquals(List(2) { CartCommand.ChangeLine(mugUrl, LineChange(quantity = 2)) }, sent.toList())
+            assertEquals(List(2) { CartCommand.ChangeLine(mugLine, LineChange(quantity = 2)) }, sent.toList())
             onNodeWithTag(MESSAGE_TAG).assertDoesNotExist()
 
             failure = { CartRefused(409, ErrorCode.OutOfStock, "Only 1 left in stock") }
@@ -529,6 +529,9 @@ class CartWiringTest {
         onAllNodes(hasTestTag(tag)).fetchSemanticsNodes().isNotEmpty()
 
     private val mugUrl = "$LINES/$MUG"
+
+    /** The mug line's own address, as the tree writes it: a change of the line that is there (B-125). */
+    private val mugLine = "$mugUrl?existing=true"
 
     private object FixedClock : Clock {
         override fun now(): Instant = CANVAS_NOW

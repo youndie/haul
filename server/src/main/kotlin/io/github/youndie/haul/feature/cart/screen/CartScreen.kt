@@ -136,7 +136,7 @@ internal class CartScreen(
             change = change,
             changeDetail = CartCommands.changeDetail(line),
             acknowledgeLabel = if (line.changed) "OK" else null,
-            url = CartPaths.line(line.sku.id),
+            url = CartPaths.existingLine(line.sku.id),
             acknowledgeUrl = if (line.changed) CartPaths.acknowledge(line.sku.id) else null,
             action = productLink(line.item.product.id, line.sku.id),
             saveUrl = if (owner is CartOwner.Customer) CartPaths.saveForLater(line.sku.id) else null,

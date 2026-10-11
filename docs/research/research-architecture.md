@@ -870,7 +870,15 @@ the account need a shildik token; signing in merges the guest cart.
   `LineChange`, `LinesRemoval`, `PromoEntry` from `shared/.../feature/cart/`) and answer kompot's
   `refresh` — but a card's «+» and «Add to cart», `update` (B-63) followed by their message (B-75, B-81). Their paths are the server's strings: each component of the tree carries the URL its
   commands go to (`CartLine.url`, `acknowledgeUrl`, `CartSelection.linesUrl`, `PromoField.url`), so
-  the client builds none. kompot's own `perform` action was the alternative and was not taken: it is
+  the client builds none. **Decided in B-125:** the line `PUT` is an upsert — how a card's «+», «Add to cart» and
+  «Buy now» add — but `CartLine.url`, where the cart's own stepper and box send, carries `?existing=true`
+  (`CartPaths.existingLine`): a change of the line the page drew, so a line removed meanwhile in another tab is
+  `404 line_not_found` («This item is no longer in your cart», B-92's message over the cart drawn again) instead
+  of coming back at the stepper's quantity. A flag in the address the tree writes, as `?answer=card` is, was
+  taken over a field in `LineChange` (the client would set it at three presses), a route or method of its own (a
+  new command in the client) and a compare-and-set on the quantity seen (more than the case needs): the server
+  alone changes, and every control drawn on the line — «−», «+», the box, «Select all» — is covered by the one
+  address. kompot's own `perform` action was the alternative and was not taken: it is
   sent as a `POST` with a payload of form values, which have no integer and no list and are fixed in
   the tree, while the promo code is what the shopper types; how the client sends a command is B-13's.
 - A line remembers the price and the stock the shopper saw (`seen_price_cents`, `seen_in_stock`); it
