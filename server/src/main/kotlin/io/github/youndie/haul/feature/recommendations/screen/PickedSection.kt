@@ -14,7 +14,7 @@ import kotlin.coroutines.cancellation.CancellationException
 /**
  * The home page's «Picked for you» (feature-recommendations, `Home_Content`): the title, the subtitle that
  * says what the picks are made from, and a row of cards as the deals' are drawn. A guest gets nothing, and
- * nothing is read for them.
+ * nothing is read for them. A product the page draws above the block is not picked again (B-96).
  *
  * The block is the page's extra, not its point: a failure inside it drops the block and is logged, and the
  * home page answers without it (endpoint-recommendations left the choice to B-25). A database that cannot be
@@ -25,11 +25,15 @@ internal class PickedSection(
     private val calendar: DeliveryCalendar,
     private val photos: ProductPhotos,
 ) {
-    suspend fun build(viewer: Viewer): List<KompotComponent> {
+    /** The block for [viewer], under the rows above it whose products are [onPage]. */
+    suspend fun build(
+        viewer: Viewer,
+        onPage: Set<String> = emptySet(),
+    ): List<KompotComponent> {
         val customerId = viewer.customerId ?: return emptyList()
         val picks =
             try {
-                pickedForYou(customerId, viewer.prices)
+                pickedForYou(customerId, viewer.prices, onPage)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

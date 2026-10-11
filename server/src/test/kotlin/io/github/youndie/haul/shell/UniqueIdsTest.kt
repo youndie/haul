@@ -1,20 +1,26 @@
 package io.github.youndie.haul.shell
 
+import io.github.youndie.haul.StoreClock
 import io.github.youndie.haul.feature.cart.CartPaths
 import io.github.youndie.haul.feature.cart.LineChange
 import io.github.youndie.haul.feature.cart.LineCommand
+import io.github.youndie.haul.feature.catalog.screen.HomeScreen
 import io.github.youndie.haul.feature.catalog.screen.LineAnswers
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.checkout.CheckoutPaths
 import io.github.youndie.haul.feature.identity.GUEST_HEADER
 import io.github.youndie.haul.feature.order.OrderPaths
+import io.github.youndie.haul.feature.recommendations.screen.PickedSection
 import io.github.youndie.haul.haulWireJson
+import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog
 import io.github.youndie.haul.seed.SampleCustomers
+import io.github.youndie.haul.testing.CANVAS_NOW
 import io.github.youndie.haul.testing.FulfilmentWorld
 import io.github.youndie.haul.testing.ShildikHarness
 import io.github.youndie.haul.testing.action
 import io.github.youndie.haul.testing.after
+import io.github.youndie.haul.testing.all
 import io.github.youndie.haul.testing.answer
 import io.github.youndie.haul.testing.guest
 import io.github.youndie.haul.testing.haulTest
@@ -22,6 +28,7 @@ import io.github.youndie.haul.testing.liveTree
 import io.github.youndie.haul.testing.loads
 import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.testing.update
+import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.commands.UpdateAction
@@ -57,6 +64,7 @@ class UniqueIdsTest {
     private val maya by lazy {
         ShildikHarness.accessToken(ShildikHarness.person("Maya Kowalski", SampleCustomers.MAYA))
     }
+    private val sam by lazy { ShildikHarness.accessToken(ShildikHarness.person("Sam Ortiz", SampleCustomers.SAM)) }
 
     /** Who is asking: a guest's header or a customer's token on every request. */
     private class Who(
@@ -201,18 +209,31 @@ class UniqueIdsTest {
         )
     }
 
-    @Test
-    fun `every page a guest opens draws each id once`() =
-        haulTest {
+    /** A guest's walk at the store's [clock]: every page, then the cart with the lines the presses put in it. */
+    private fun guestWalk(clock: StoreClock) =
+        haulTest(clock = clock) {
             val findings = Findings()
             val guest = guest()
             val who = Who { header(GUEST_HEADER, guest) }
             GUEST_PAGES.forEach { everything(findings, it, who) }
-            // The cart empty above, and now with the lines the presses put in it.
             everything(findings, CartPaths.SCREEN, who)
             assertTrue(findings.trees > GUEST_PAGES.size * 2, "only ${findings.trees} trees were checked")
             findings.assertNone()
         }
+
+    /** A customer's walk: the cart first, every page, the cart again with the lines the presses put in it. */
+    private suspend fun HttpClient.customerWalk(
+        findings: Findings,
+        who: Who,
+    ) {
+        everything(findings, CartPaths.SCREEN, who)
+        (GUEST_PAGES + CUSTOMER_PAGES).forEach { everything(findings, it, who) }
+        everything(findings, CartPaths.SCREEN, who)
+        everything(findings, CheckoutPaths.SCREEN, who, press = false)
+    }
+
+    @Test
+    fun `every page a guest opens draws each id once`() = guestWalk(CANVAS_NOW)
 
     @Test
     fun `every page a customer opens draws each id once`() =
@@ -222,18 +243,48 @@ class UniqueIdsTest {
                 val findings = Findings()
                 val who = Who { bearerAuth(maya) }
                 // Maya's cart went into the order: empty first, then with the lines the presses put in it.
-                everything(findings, CartPaths.SCREEN, who)
-                (GUEST_PAGES + CUSTOMER_PAGES).forEach { everything(findings, it, who) }
-                everything(findings, CartPaths.SCREEN, who)
-                everything(findings, CheckoutPaths.SCREEN, who, press = false)
+                customerWalk(findings, who)
                 val order = OrderPaths.SCREEN.replace("{id}", orderId)
                 findings.check(order, listOf(liveTree(body(order, who), "order:$orderId")))
                 findings.assertNone()
             }
         }
 
+    /**
+     * B-96: with no deal live, home draws «Popular on Haul» in the deals' place (B-70) — a page the walks above,
+     * at the canvas's «now», never open.
+     */
+    @Test
+    fun `with no live deal every page a guest opens draws each id once`() = guestWalk(NO_DEAL)
+
+    /**
+     * B-96: with no deal live, a customer's home draws «Popular on Haul» and «Picked for you» both. Sam has viewed
+     * nothing, so his picks are «Popular right now», read from the same most reviewed products as the row above
+     * them; Maya's are from her views. The control: the moment is one with no deal, and Sam's home draws both rows.
+     */
+    @Test
+    fun `with no live deal every page a customer opens draws each id once`() =
+        seededFreshDatabase().use { database ->
+            haulTest(database, signIn = ShildikHarness.signIn, clock = NO_DEAL) {
+                val findings = Findings()
+                val sam = Who { bearerAuth(sam) }
+                val grids = page("/ui/home", sam).all().filterIsInstance<ProductGrid>().map { it.id }
+                assertTrue("deals" !in grids, "the control: a deal is live at $NO_DEAL")
+                assertTrue(
+                    grids.containsAll(listOf(HomeScreen.POPULAR, PickedSection.GRID_ID)),
+                    "the control: Sam's home draws no popular row or no picks: $grids",
+                )
+                customerWalk(findings, sam)
+                customerWalk(findings, Who { bearerAuth(maya) })
+                findings.assertNone()
+            }
+        }
+
     private companion object {
         const val OWN_PACKAGES = "io.github.youndie."
+
+        /** The moment the seed's deals of the day end: the sale is still live, no deal is (B-70). */
+        val NO_DEAL = StoreClock { CatalogSeed.DEALS_END.toZonedDateTime() }
 
         /** Every page a guest opens, with the filters, pages and tabs that draw something the bare page does not. */
         val GUEST_PAGES =

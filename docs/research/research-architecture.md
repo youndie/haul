@@ -369,7 +369,8 @@ page would gain or lose a section an `update` cannot add or take away — is `na
 
 A part is found by its id, so an id names one node of a page (kompot SPEC §4.2) — the order's live frame and the
 override store rely on it too. `server/.../shell/UniqueIdsTest.kt` holds it over every page a guest and a customer
-open and every `update` above, the nodes sent and the page after them; a page whose section already carries the
+open and every `update` above, the nodes sent and the page after them — at the canvas's «now» and again once the
+day's deals have ended, when home draws B-70's popular row (B-96); a page whose section already carries the
 page's name has the root `<name>-page` (B-65: until then the account's parts were its whole page, root included).
 
 The query is the page's own, refused the same way (`400 validation_failed`); the search's parts do not record
@@ -901,6 +902,11 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   cancelled, two of a category, six in all. Viewed categories that run out before six are filled from the popular
   row under the same exclusions and the same two-per-category cap, so the six-column row has no holes; the subtitle
   stays «Based on your recent views» while one pick came from the views. «Bought» does not include the cart.
+- **A product the page already draws is not picked** (B-96): the home passes the products of the rows above the
+  block — the deals of the day, or B-70's «Popular on Haul» with no deal live — and they are left out as a viewed
+  product is, the row still filled to six. Without it a customer with fewer than three views saw the same most
+  reviewed products in «Popular on Haul» and «Popular right now»: the same `card-<id>` twice on one page, which an
+  `update` of the card replaced both of. Whichever row sits above, the block gives way: a product is drawn once.
 - **Fewer than 3 views** (or views whose categories have nothing left) is the popular row: the catalog's own
   «Popular» order, most reviews then id, in stock, without what was viewed or bought, two of a category — «Popular
   right now». A customer who has viewed nothing gets it; a guest gets no block.
@@ -1068,7 +1074,8 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   look, a store that was never seeded, a store whose own deals ended — home draws «Popular on Haul» in the deals'
   place: the six most reviewed products in stock, drawn as every card is, at the viewer's prices. Without it a
   guest's home had no product at all (hero, banners, tiles, Plus, footer). The measure needs no window, so the row is
-  there whatever the sale's calendar; it is never drawn beside live deals, so the canvas's home is unchanged.
+  there whatever the sale's calendar; it is never drawn beside live deals, so the canvas's home is unchanged. A
+  customer's «Picked for you» under it leaves its products out (B-96).
   `/deals` keeps «On sale» and gains nothing; the empty cart's picks stay deals-only (B-58).
 
 **How the stand is built (B-27).** One image serves the page and the API: the server's distribution

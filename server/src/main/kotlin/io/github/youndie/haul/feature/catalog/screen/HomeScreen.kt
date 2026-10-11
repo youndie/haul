@@ -34,7 +34,8 @@ import java.util.Locale
  * home always has a row of products (B-70) — and the Plus block: the offer to a guest and a
  * non-member — whose «Try 30 days free» is sign-in or the trial's dialog — and a member's savings and renewal
  * (feature-membership, [PlusOffer]). A customer sees «Picked for you» ([PickedSection],
- * feature-recommendations) after it, where the canvas puts it.
+ * feature-recommendations) after it, where the canvas puts it, without the products a row above already draws:
+ * a product is drawn once on a page, whichever row draws it first (B-96).
  */
 internal class HomeScreen(
     private val catalog: CatalogRepository,
@@ -94,7 +95,7 @@ internal class HomeScreen(
             }
         }
         sections += PlusOffer.block(viewer, viewer.customer?.let { loyalty.standing(it) })
-        sections += picked.build(viewer)
+        sections += picked.build(viewer, onPage = productsIn(sections))
         return Frame.page("home", viewer, navigation(categories), sections, footer = true)
     }
 
@@ -114,6 +115,13 @@ internal class HomeScreen(
             .sortedWith(compareByDescending<Listed> { it.product.reviewsCount }.thenBy { it.product.id })
             .take(DEAL_COLUMNS)
             .map { card(it, calendar, photos, viewer) }
+
+    /** The products the rows in [sections] draw, whichever rows those are. */
+    private fun productsIn(sections: List<KompotComponent>): Set<String> =
+        sections
+            .filterIsInstance<ProductGrid>()
+            .flatMap { grid -> grid.cards.map { it.productId } }
+            .toSet()
 
     private fun hero(campaign: Campaign) =
         CampaignHero(
