@@ -1679,6 +1679,17 @@ frame; in a hidden or background tab, where frames are throttled, that is second
 review saw «Apply» send nothing. Such a press waits for the input first (`ui/TypedInput.kt`,
 `awaitTypedInput`); the desktop target applies input at once, so only a test that holds the clock sees it.
 
+**Found in B-83: every press that reads a field waits, Enter does not, and a focus move keeps the keys.** The
+presses that read a field are the cart's «Apply» (B-76), the price range's (B-69), checkout's press outside the
+address and «Place order» (B-97), the header's search button and the review and question dialogs' «Post» and
+«Send» (B-83); each waits for `awaitTypedInput` before it reads. Enter needs no wait: its `keydown` is applied in
+the same frame as the keys before it, in order. A press that moves the focus to another field right after typing
+does not lose the keys either: the pending frame applies them through the edit session of the field they were
+typed in, which is still the field's (walked in the browser with frames held back four seconds — the price
+«from» typed and «to» pressed within 30 ms kept and applied its bound; the search field typed and the price
+pressed kept its query). What most likely lost a field's text in B-69 and in the review walk is a press that did
+not focus the field at all (B-83's findings).
+
 **Risk 1. The canvas and the code drift apart without anyone seeing it.** A renderer changed for one
 screen changes every screen that uses the component. Mitigation: one reference PNG per artboard
 (125), exported from the canvas into the client's snapshot directory, and `viddikDesignParity` in
