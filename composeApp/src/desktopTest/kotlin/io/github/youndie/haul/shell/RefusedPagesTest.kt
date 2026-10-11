@@ -155,9 +155,12 @@ class RefusedPagesTest {
                 )
             at(location) {
                 storefront(ktorTransport(http, "http://haul.test"))
+                waitUntil(timeoutMillis = 5_000) { exists("This link is out of date") }
                 onNodeWithText("This link is out of date").assertExists()
                 onNodeWithText("Retry").assertDoesNotExist()
                 onNodeWithText("Open the page").performClick()
+                // The mock engine answers on Ktor's own dispatcher, off the test's clock: wait for the page itself.
+                waitUntil(timeoutMillis = 5_000) { exists("The page at $path") }
                 onNodeWithText("The page at $path").assertExists()
                 assertEquals(listOf(location, path), history.entries, location)
                 // The header the out-of-date page is drawn under aside, only the page at its path was asked for.
