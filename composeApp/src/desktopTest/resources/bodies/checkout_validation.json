@@ -244,6 +244,7 @@
                         ]
                     }
                 ],
+                "otherDayHint": "Pick a delivery window",
                 "url": "/api/v1/me/checkout"
             },
             "payment": {

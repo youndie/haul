@@ -159,7 +159,8 @@ internal class CheckoutScreen(
 
     /**
      * Five days of windows. The day shown is the chosen window's, or the one that filled up, or the
-     * first; a full window says so in its label.
+     * first; a full window says so in its label. Showing another day is the client's own, and holds the
+     * button with the words it says when no window is chosen (B-97).
      */
     private fun slots(state: CheckoutState): DeliverySlots {
         val shownDay =
@@ -188,6 +189,7 @@ internal class CheckoutScreen(
                     )
                 },
             notice = state.filledSlot?.let { "Pick another window for ${day(it.day)}" },
+            otherDayHint = PICK_WINDOW,
             url = CheckoutPaths.CHOICE,
         )
     }
@@ -302,7 +304,7 @@ internal class CheckoutScreen(
             missing.isNotEmpty() -> "Fill in the " + missing.joinedWithAnd()
             state.quote.method != DeliveryMethod.Courier -> "Pick a place to collect the order"
             state.quote.address == null -> "Fill in the delivery address"
-            else -> "Pick a delivery window"
+            else -> PICK_WINDOW
         }
     }
 
@@ -324,6 +326,7 @@ internal class CheckoutScreen(
     private companion object {
         const val DELIVERY = "Delivery"
         const val REVIEW = "Review"
+        const val PICK_WINDOW = "Pick a delivery window"
         val STEPS = listOf(DELIVERY, "Payment", REVIEW)
 
         val METHODS =

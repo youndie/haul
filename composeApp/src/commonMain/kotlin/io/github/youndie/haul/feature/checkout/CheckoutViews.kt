@@ -2,6 +2,8 @@ package io.github.youndie.haul.feature.checkout
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,10 +23,13 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -32,8 +37,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.selected
@@ -65,11 +75,13 @@ import io.github.youndie.haul.ui.PickupPoints
 import io.github.youndie.haul.ui.PointsToggle
 import io.github.youndie.haul.ui.SummaryRow
 import io.github.youndie.haul.ui.Text
+import io.github.youndie.haul.ui.awaitTypedInput
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.toneColor
+import kotlinx.coroutines.launch
 
 // The Checkout screen (screen-checkout): the checkout's own header, then the numbered sections in one
 // column with the order beside them at 1440 and under them on a phone. The numbers are the artboards'
@@ -189,6 +201,12 @@ private fun Secure(label: String) {
  * The checkout under its header: the title, the notices and the numbered sections, and the order.
  * [placing] is the order on its way (`Checkout_Placing`): the sections at half strength and inert, the
  * button saying so. [onPlace] places the order the summary quotes.
+ *
+ * What the page shows is what «Place order» places (B-97). Any press outside the address form leaves it,
+ * which sends what was typed — a press on the held button or on blank space as much as Tab or Enter — and
+ * «Place order» with an address not yet sent sends the address instead: the order it would place is the
+ * one the summary quotes, to the address the server holds. While another day than the chosen window's is
+ * shown, the button is held until one of that day's windows is chosen.
  */
 @Composable
 public fun CheckoutBodyView(
@@ -199,13 +217,44 @@ public fun CheckoutBodyView(
 ) {
     val compact = LocalHaulCompact.current
     val send: (CheckoutCommand) -> Unit = { if (!placing) onCommand(it) }
+    val scope = rememberCoroutineScope()
+    val focus = LocalFocusManager.current
+    val address = body.address
+    // Which field has focus outlives a redraw — the field keeps it — while what was typed is the form's.
+    val focused = remember { mutableStateOf<String?>(null) }
+    val draft = remember(address?.form) { address?.let { AddressDraft(it.form, focused) } }
+    val latestAddress by rememberUpdatedState(address)
+    val latestSend by rememberUpdatedState(send)
+    val bounds = remember { FormBounds() }
+    val slots = body.slots
+    var shownDay by remember(slots?.days) { mutableStateOf(slots?.days?.indexOfFirst { it.selected } ?: -1) }
+    val chosenDay = slots?.days?.indexOfFirst { day -> day.slots.any { it.selected } } ?: -1
+    val summary =
+        if (chosenDay >= 0 && shownDay != chosenDay) {
+            body.summary.copy(placeEnabled = false, placeHint = slots?.otherDayHint)
+        } else {
+            body.summary
+        }
     Column(
-        Modifier.fillMaxWidth().padding(
-            start = gutter(),
-            end = gutter(),
-            top = if (compact) 24.dp else 40.dp,
-            bottom = if (compact) 64.dp else 96.dp,
-        ),
+        Modifier
+            .onGloballyPositioned { bounds.page = it }
+            .onPressOutside(bounds, draft) {
+                val left = draft ?: return@onPressOutside
+                scope.launch {
+                    // What was typed just before the press reaches the field first (B-76).
+                    awaitTypedInput()
+                    when {
+                        left.focused != null -> focus.clearFocus()
+                        left.changed -> latestAddress?.let { left.send(it.url, latestSend) }
+                    }
+                }
+            }.fillMaxWidth()
+            .padding(
+                start = gutter(),
+                end = gutter(),
+                top = if (compact) 24.dp else 40.dp,
+                bottom = if (compact) 64.dp else 96.dp,
+            ),
     ) {
         Text(
             body.title,
@@ -224,24 +273,35 @@ public fun CheckoutBodyView(
                 var number = 0
                 val dim = if (placing) Modifier.alpha(0.5f) else Modifier
                 Section(++number, body.methods.title, dim) { Methods(body.methods, send) }
-                body.address?.let { address ->
-                    Section(++number, address.title, dim) { AddressForm(address, enabled = !placing, send) }
+                if (address != null && draft != null) {
+                    Section(++number, address.title, dim.onGloballyPositioned { bounds.form = it }) {
+                        AddressForm(address, draft, enabled = !placing, send)
+                    }
                 }
-                body.slots?.let { slots -> Section(++number, slots.title, dim) { Slots(slots, send) } }
+                slots?.let {
+                    Section(++number, it.title, dim) { Slots(it, shownDay, { day -> shownDay = day }, send) }
+                }
                 body.points?.let { points -> Section(++number, points.title, dim) { Points(points, send) } }
                 Section(++number, body.payment.title, dim) { Payment(body.payment, send) }
+            }
+        }
+        // An address typed and not yet sent is not in the quote: the press sends it (above) and places nothing.
+        val place: () -> Unit = {
+            scope.launch {
+                awaitTypedInput()
+                if (draft?.changed != true) onPlace()
             }
         }
         if (compact) {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 sections(Modifier.fillMaxWidth())
-                Summary(body.summary, placing, onPlace, Modifier.fillMaxWidth())
+                Summary(summary, placing, place, Modifier.fillMaxWidth())
             }
         } else {
             Row {
                 sections(Modifier.weight(1f))
                 Spacer(Modifier.width(40.dp))
-                Summary(body.summary, placing, onPlace, Modifier.width(420.dp))
+                Summary(summary, placing, place, Modifier.width(420.dp))
             }
         }
     }
@@ -371,39 +431,95 @@ private fun OptionCard(
 }
 
 /**
+ * What the shopper has typed into the address form over [form], the fields the server drew, and which
+ * field has focus. [changed] is a form that differs from the server's: not yet sent, or sent and not yet
+ * answered — either way not the address the quote is for.
+ */
+@Stable
+private class AddressDraft(
+    val form: List<FormField>,
+    focused: MutableState<String?>,
+) {
+    val values = mutableStateMapOf(*form.map { it.name to it.value }.toTypedArray())
+    var focused: String? by focused
+
+    val changed: Boolean get() = form.any { values[it.name].orEmpty() != it.value }
+
+    fun send(
+        url: String,
+        send: (CheckoutCommand) -> Unit,
+    ) {
+        send(CheckoutCommand.SaveAddress(url, entry(values)))
+    }
+}
+
+/**
+ * [onPress] once a press on this element is released outside [bounds]' form — seen before the control under
+ * it handles the same press, and not for a drag, which is a scroll. [key] restarts it.
+ */
+private fun Modifier.onPressOutside(
+    bounds: FormBounds,
+    key: Any?,
+    onPress: () -> Unit,
+): Modifier =
+    pointerInput(key) {
+        awaitEachGesture {
+            val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+            if (bounds.contains(down.position)) return@awaitEachGesture
+            var dragged = false
+            do {
+                val event = awaitPointerEvent(PointerEventPass.Initial)
+                dragged = dragged ||
+                    event.changes.any { (it.position - down.position).getDistance() > viewConfiguration.touchSlop }
+            } while (event.changes.any { it.pressed })
+            if (!dragged) onPress()
+        }
+    }
+
+/** Where the address form is on the page, so a press can tell whether it landed in it. */
+private class FormBounds {
+    var page: LayoutCoordinates? = null
+    var form: LayoutCoordinates? = null
+
+    fun contains(position: Offset): Boolean {
+        val page = page ?: return false
+        val form = form?.takeIf { it.isAttached && page.isAttached } ?: return false
+        return page.localBoundingBoxOf(form).contains(position)
+    }
+}
+
+/**
  * The address form: the fields hold the address delivered to, and what the shopper changes is sent as
- * an [AddressEntry] once they leave the form (or press Enter in a field) — the server keeps a refused
- * form and draws it again with an error under each field at fault, and the button says what to fill in.
+ * an [AddressEntry] once they leave the form — Tab out of it, Enter in a field, or any press outside it
+ * ([CheckoutBodyView]) — the server keeps a refused form and draws it again with an error under each
+ * field at fault, and the button says what to fill in.
  */
 @Composable
 private fun AddressForm(
     address: CheckoutAddress,
+    draft: AddressDraft,
     enabled: Boolean,
     send: (CheckoutCommand) -> Unit,
 ) {
     val compact = LocalHaulCompact.current
-    val values = remember(address.form) { mutableStateMapOf(*address.form.map { it.name to it.value }.toTypedArray()) }
-    var focused by remember { mutableStateOf<String?>(null) }
     val latest by rememberUpdatedState(address)
     val focus = LocalFocusManager.current
     // Focus moving from one field to the next passes through no `null`: the form is sent only once the
     // shopper has left it, and only when something in it changed.
-    LaunchedEffect(focused) {
-        if (focused != null) return@LaunchedEffect
-        val form = latest.form
-        if (form.any { values[it.name].orEmpty() != it.value }) {
-            send(CheckoutCommand.SaveAddress(latest.url, entry(values)))
-        }
+    LaunchedEffect(draft, draft.focused) {
+        if (draft.focused == null && draft.changed) draft.send(latest.url, send)
     }
     val spans = address.form.map { (if (compact) PHONE_SPANS else WIDE_SPANS)[it.name] ?: if (compact) 2 else 4 }
     SpanGrid(columns = if (compact) 2 else 4, gap = 16.dp, rowGap = 16.dp, spans = spans) {
         address.form.forEach { field ->
             FieldCell(
                 field,
-                values[field.name].orEmpty(),
+                draft.values[field.name].orEmpty(),
                 enabled,
-                onValue = { values[field.name] = it },
-                onFocus = { has -> focused = if (has) field.name else focused.takeUnless { it == field.name } },
+                onValue = { draft.values[field.name] = it },
+                onFocus = { has ->
+                    draft.focused = if (has) field.name else draft.focused.takeUnless { it == field.name }
+                },
                 onDone = { focus.clearFocus() },
             )
         }
@@ -489,18 +605,19 @@ private fun FieldCell(
 }
 
 /**
- * «Delivery time»: the five days as tiles — the one shown in ink — and that day's windows as pills, the
- * chosen one in acid, a full one struck through. Showing another day is the page's own; choosing a
- * window is a command.
+ * «Delivery time»: the five days as tiles — the one [shown] in ink — and that day's windows as pills, the
+ * chosen one in acid, a full one struck through. Showing another day is the page's own ([onShow], which
+ * holds «Place order» while it is not the chosen window's day); choosing a window is a command.
  */
 @Composable
 private fun Slots(
     slots: DeliverySlots,
+    shownDay: Int,
+    onShow: (Int) -> Unit,
     send: (CheckoutCommand) -> Unit,
 ) {
     val compact = LocalHaulCompact.current
-    val initial = slots.days.indexOfFirst { it.selected }.coerceAtLeast(0)
-    var shown by remember(slots.days) { mutableStateOf(initial) }
+    val shown = shownDay.coerceAtLeast(0)
     slots.notice?.let { notice ->
         Row(
             Modifier.padding(bottom = 16.dp),
@@ -523,7 +640,7 @@ private fun Slots(
             Column(
                 Modifier
                     .testTag(dayTag(index))
-                    .pressable { shown = index }
+                    .pressable { onShow(index) }
                     .then(
                         if (selected) {
                             Modifier.background(HaulColors.inverseSurface, shape)

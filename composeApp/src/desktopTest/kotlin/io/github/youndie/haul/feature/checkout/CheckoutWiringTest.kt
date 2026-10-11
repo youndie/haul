@@ -252,6 +252,137 @@ class CheckoutWiringTest {
             assertEquals(emptyList(), sent.toList())
         }
 
+    /**
+     * B-97: a press on the held «Place order» leaves the form and sends it — with what was typed just before the
+     * press, which in the browser reaches the field a frame after the press does (B-76): the clock is held while
+     * the press and then the typing go in, the browser's order.
+     */
+    @Test
+    fun `a press on the held button sends the address typed just before it`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            checkout(VALIDATION)
+            onNodeWithTag(fieldTag("zip")).performTextInput("11211")
+            onNodeWithTag(fieldTag("street")).performClick()
+            waitForIdle()
+            assertEquals(emptyList(), sent.toList(), "the form was sent while the shopper was still in it")
+            mainClock.autoAdvance = false
+            onNodeWithTag(PLACE_TAG).performClick()
+            onNodeWithTag(fieldTag("street")).performTextInput("148 Wythe Avenue")
+            mainClock.autoAdvance = true
+            waitUntil(timeoutMillis = 5_000) { followed.isNotEmpty() }
+            assertEquals(
+                listOf<CheckoutCommand>(
+                    CheckoutCommand.SaveAddress(
+                        ADDRESSES,
+                        AddressEntry("148 Wythe Avenue", "4F", "Brooklyn, NY", "11211"),
+                    ),
+                ),
+                sent.toList(),
+            )
+            assertEquals(listOf<KompotAction>(RefreshAction), followed.toList())
+        }
+
+    /** B-97: a press on nothing in particular — the page's title — leaves the form as Tab or Enter does. */
+    @Test
+    fun `a press on blank space sends the address`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            checkout(CONTENT)
+            onNodeWithTag(fieldTag("apt")).performTextClearance()
+            onNodeWithTag(fieldTag("apt")).performTextInput("5B")
+            onNodeWithText("Checkout").performClick()
+            waitUntil(timeoutMillis = 5_000) { followed.isNotEmpty() }
+            assertEquals(
+                listOf<CheckoutCommand>(
+                    CheckoutCommand.SaveAddress(
+                        ADDRESSES,
+                        AddressEntry("148 Wythe Avenue", "5B", "Brooklyn, NY", "11211"),
+                    ),
+                ),
+                sent.toList(),
+            )
+        }
+
+    /**
+     * B-97: an address that got no answer is still not the one quoted, so the next press outside the form sends it
+     * again — the message offers no «Retry» for a `POST` (B-92), and «Place order» would place the old address.
+     */
+    @Test
+    fun `an address that got no answer is sent again by the next press`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            failure = { IOException("connection refused") }
+            checkout(CONTENT)
+            sendAddress()
+            assertNoAnswer(followed.single(), retry = false)
+
+            failure = { null }
+            followed.clear()
+            onNodeWithTag(PLACE_TAG).performClick()
+            waitUntil(timeoutMillis = 5_000) { followed.isNotEmpty() }
+            assertEquals(2, sent.size)
+            assertEquals(sent[0], sent[1], "the next press sent something else")
+            assertTrue(sent[1] is CheckoutCommand.SaveAddress)
+        }
+
+    /** A press inside the form — another field, a label — is not leaving it: nothing is sent while the shopper is in it. */
+    @Test
+    fun `a press inside the form sends nothing`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            checkout(CONTENT)
+            onNodeWithTag(fieldTag("apt")).performTextInput("5B")
+            onNodeWithText("APT / SUITE").performClick()
+            waitForIdle()
+            assertEquals(emptyList(), sent.toList(), "the form was sent while the shopper was still in it")
+        }
+
+    /**
+     * B-97: «Place order» with an address typed and not yet in the quote places nothing — the order would go
+     * where the summary does not say — and sends the address, which the next tree quotes. Typed after the press
+     * and before the next frame, as in the browser: the press still sees it (B-76).
+     */
+    @Test
+    fun `place order with an address not yet sent sends the address and places nothing`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            checkout(CONTENT)
+            onNodeWithTag(fieldTag("apt")).performClick()
+            mainClock.autoAdvance = false
+            onNodeWithTag(PLACE_TAG).performClick()
+            onNodeWithTag(fieldTag("apt")).performTextInput("-2")
+            mainClock.autoAdvance = true
+            waitUntil(timeoutMillis = 5_000) { followed.isNotEmpty() }
+            waitForIdle()
+            assertEquals(
+                listOf<CheckoutCommand>(
+                    CheckoutCommand.SaveAddress(
+                        ADDRESSES,
+                        AddressEntry("148 Wythe Avenue", "4F-2", "Brooklyn, NY", "11211"),
+                    ),
+                ),
+                sent.toList(),
+            )
+            assertEquals(listOf<KompotAction>(RefreshAction), followed.toList())
+        }
+
+    /**
+     * B-97: showing another day than the chosen window's holds «Place order» — it says to pick a window — while
+     * the summary keeps the day the server holds; back on that day the order can be placed again.
+     */
+    @Test
+    fun `another day holds place order until one of its windows is chosen`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            checkout(CONTENT)
+            onNodeWithText("Pick a delivery window").assertDoesNotExist()
+            pressInert(dayTag(1))
+            onNodeWithText("Pick a delivery window").assertExists()
+            onNodeWithText("Delivery · Wed, Oct 8").assertExists()
+            pressInert(PLACE_TAG)
+
+            onNodeWithTag(dayTag(0)).performClick()
+            onNodeWithText("Pick a delivery window").assertDoesNotExist()
+            onNodeWithTag(PLACE_TAG).performClick()
+            waitUntil(timeoutMillis = 5_000) { sent.isNotEmpty() }
+            assertTrue(sent.single() is CheckoutCommand.Place)
+        }
+
     /** Checkout_Validation: the form drawn again with what was sent, and what to fill in under it. */
     @Test
     fun `a refused form is drawn with its errors`() =
