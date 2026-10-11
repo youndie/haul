@@ -1,7 +1,7 @@
 ---
 id: B-92
 title: "client: a command that fails or is refused tells the shopper"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-11-qa
