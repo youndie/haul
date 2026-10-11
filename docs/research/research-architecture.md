@@ -1304,6 +1304,28 @@ and a key.
 - **The stand's metrik, tracy and katcher are the cluster's own, by their in-cluster Services**;
   katcher waits for the app to be registered in it, since its key is an app's, issued there.
 
+**Decided in B-109, an order's saga in tracy (2026-10-11).** Until then tracy held the request spans and nothing
+else: no code wrote a record through the agent and no appender was attached, so the saga, the simulators and every
+refund were invisible to it — the empty `top_templates` and the zero stored records were the wiring, not a loss.
+
+- **An order writes its own trail** (`ops/OrderTrail.kt`): one line per thing that happened to it, through
+  tracy's API with `orderId` as an indexed field — the entity key `get_entity orderId=<id>` reads. Every saga
+  member's outcome (`order saga step done`, `… refused` with the reason, `… threw`, `… undone`), each shipment's
+  move and the capture that lets it leave, the return asked for, collected and refunded: placement → delivery →
+  return in one list. The messages are constants (`OrderLines`), so tracy groups them; what came from the order
+  is in the fields.
+- **The members are wrapped in haul** (`feature/order/saga/TracedMembers.kt`), **not fed from petich's
+  `PetichTracer`**: a tracer's event names the saga, whose id is the customer's and their Idempotency-Key's, and
+  only a member holds the payload that names the order. The engine's `LinePetichTracer` stays as it is, at `debug`.
+- **Inside `POST /api/v1/orders` each member is a span** (`saga reserve-stock`, `saga open-order undo`) under the
+  request's, and its lines join the request's trace and its tail decision. The agent keeps one reference per
+  order per trace whatever it decides, so a trace dropped by the sample rate still answers `get_entity` — with
+  the bodies gone. Outside a request (the simulators' passes, the sweeper) each line is an entry of its own and
+  is always kept.
+- **SLF4J still does not reach tracy.** The agent's Logback appender takes MDC as plain fields — never an entity
+  key — and attaching it means Logback at compile scope; the saga's own warnings (a rollback given up, a
+  shipment held) stay in the pod's log. Recorded in B-109's findings, not done there.
+
 ### D7. Numbers the canvas implies, fixed here
 
 Delivery is free over $35 or for Plus, otherwise $5.99; 1 point per whole dollar, ×2 for Plus,
