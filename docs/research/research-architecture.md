@@ -72,7 +72,8 @@ reference one, server-sent events at `GET /ui/updates?topic=` (kompot SPEC §16.
 B-29:** a channel is one customer's — delivered by the order and its customer, refused like the page
 (`404 order_not_found`) to anybody else; every stream opens with the order as it is, so a move made
 while the page loaded or reconnected is not lost, and the browser reconnects by itself (a second,
-doubling to thirty) rather than reloading the page. The bus is in memory: one process serves the
+doubling to thirty) rather than reloading the page. A page that leaves ends its stream quietly: the broken pipe its next
+write meets is a line at `debug`, not an unhandled error for katcher (B-110). The bus is in memory: one process serves the
 pages and runs the simulated world, and a second replica would need kompot's Redis bus.
 
 ### 1.3 petich storage

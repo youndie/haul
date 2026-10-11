@@ -9,6 +9,7 @@ import io.ktor.server.plugins.statuspages.StatusPagesConfig
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
 import io.ktor.server.response.respondText
+import io.ktor.utils.io.ClosedWriteChannelException
 import org.slf4j.LoggerFactory
 import java.sql.SQLException
 import java.sql.SQLTransientConnectionException
@@ -23,12 +24,18 @@ import kotlin.coroutines.cancellation.CancellationException
  * - a database that cannot be reached is `unavailable` / `503`: an outage, worth retrying;
  * - anything else is `internal` / `500`: a bug, with nothing of the exception in the body.
  *
- * Cancellation is rethrown, not answered: a call cancelled or timed out is Ktor's to finish.
+ * Cancellation is rethrown, not answered: a call cancelled or timed out is Ktor's to finish. A client that
+ * left while it was being answered ([isClientGone]) — a reader leaving the order page closes its update stream
+ * (B-110) — is a line at `debug`, neither reported nor answered: there is nobody to answer, and nothing failed.
  */
 internal fun StatusPagesConfig.unexpectedFailures(report: (Throwable) -> Unit) {
     exception<Throwable> { call, error ->
         if (error is CancellationException) throw error
         val request = "${call.request.httpMethod.value} ${call.request.path()}"
+        if (call.response.isCommitted && error.isClientGone()) {
+            log.debug("{}: the client left mid-answer ({})", request, error.message)
+            return@exception
+        }
         val clientStatus = error.clientErrorStatus()
         // The log before the report: katcher caches to disk, and a crash would leave the log empty.
         when (clientStatus) {
@@ -56,14 +63,27 @@ private fun Throwable.clientErrorStatus(): HttpStatusCode? =
     }
 
 /**
+ * Whether the connection to the client closed under a write: Ktor's [ClosedWriteChannelException] (a broken
+ * pipe, a reset), as the stream's heartbeat meets it, or wrapped in the [io.ktor.util.cio.ChannelWriteException]
+ * a response's own write is rethrown as. Asked only of a response already under way, so a write of ours
+ * that failed before the answer began — to another service, say — is still a failure.
+ */
+private fun Throwable.isClientGone(): Boolean = causes().any { it is ClosedWriteChannelException }
+
+/**
  * Whether no database connection could be had at all, as opposed to a statement that failed: Hikari's
  * «connection is not available» after its timeout, or an SQLSTATE of class `08` (connection exception),
  * however deep it was wrapped.
  */
 private fun Throwable.isDatabaseUnreachable(): Boolean =
-    generateSequence(this) { it.cause?.takeIf { cause -> cause !== it } }
-        .take(MAX_CAUSES)
-        .any { it is SQLTransientConnectionException || (it is SQLException && it.sqlState?.startsWith("08") == true) }
+    causes().any {
+        it is SQLTransientConnectionException ||
+            (it is SQLException && it.sqlState?.startsWith("08") == true)
+    }
+
+/** This and what caused it, however deep it was wrapped (within reason). */
+private fun Throwable.causes(): Sequence<Throwable> =
+    generateSequence(this) { it.cause?.takeIf { cause -> cause !== it } }.take(MAX_CAUSES)
 
 private const val MAX_CAUSES = 16
 
