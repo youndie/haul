@@ -54,6 +54,10 @@ public data class ProductSuggestion(
  * typed and where its row goes — that search's results (B-49), so the client builds no address from
  * the text. «Clear» empties [recent]: a `DELETE` to [clearUrl], answered `refresh` (endpoint-search); a
  * guest, who has none, has no [clearUrl].
+ *
+ * With no [query] it is the empty field pressed (B-124): [recent] and «Clear» alone — no queries, categories,
+ * products or [allResultsAction], and an empty [allResultsLabel] — which the client draws without the products'
+ * column, and does not draw at all when [recent] is empty.
  */
 @Serializable
 @SerialName("haul_search_suggest_panel")

@@ -173,12 +173,19 @@ long search is walked in [catalog and filters](03-catalog-and-filters.md) (TC-CA
   3. Press «Clear».
   4. As a guest, press the empty field.
 - **Expected:**
-  - Step 1: the last ten, newest first, the repeated one moved to the top.
+  - Step 1: at once, a panel of the recent searches alone with «Recent · Clear» — the last ten, newest first, the
+    repeated one moved to the top; no products, no «All N results».
   - Step 2: that search runs (in the picker's scope).
-  - Step 3: the list empties and the panel offers none.
-  - Step 4: nothing to clear.
-- **Decided in:** B-09, B-49, B-103
-- **Coverage:** `RecentSearchesTest` «the last ten are kept newest first and a repeat moves to the top»;
+  - Step 3: the list empties and the panel closes: nothing recent, nothing to show.
+  - Step 4: no panel, and no request to `/ui/search/suggest`.
+- **Decided in:** B-09, B-49, B-103, B-124
+- **Coverage:** `RecentSearchesRoutesTest` «the empty field offers a customer's recent searches alone, newest first,
+  in the scope»; `RecentSearchesRoutesTest` «the empty field offers a guest nothing and one character is still too
+  short»; `composeApp:EmptyFieldRecallTest` «a customer pressing the empty field sees their recent searches and a
+  row runs its search in the scope»; `composeApp:EmptyFieldRecallTest` «a guest's empty field asks for nothing»;
+  `composeApp:EmptyFieldRecallTest` «clear empties the empty field's panel and it closes»; golden `Search_Recent`;
+  golden `Search_Recent_Phone`;
+  `RecentSearchesTest` «the last ten are kept newest first and a repeat moves to the top»;
   `RecentSearchesRoutesTest` «a recent search's row runs that search again»;
   `RecentSearchesRoutesTest` «clear empties a customer's recent searches and the panel no longer offers it»;
   `RecentSearchesRoutesTest` «clearing needs a sign-in and a guest is offered nothing to clear»;

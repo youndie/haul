@@ -80,13 +80,17 @@ internal class SearchScreen(
      * and «All N results» are the matches under the scope, and every search the panel opens — a query, a recent
      * search, «All N results» — stays in it. A category suggestion opens the query in that category, the count it
      * shows. A scope the catalog does not have is [CatalogError.CategoryNotFound], as on the results.
+     *
+     * No query — the empty field pressed (B-124) — is recall, not a search: the panel is the customer's recent
+     * searches alone, newest first, each in the scope, with «Clear»; a guest's has nothing. Anything typed is a
+     * query, so one character is still [io.github.youndie.haul.feature.search.domain.SearchError.QueryTooShort].
      */
     suspend fun suggest(
         raw: String?,
         scope: String?,
         viewer: Viewer,
     ): SearchSuggestPanel {
-        val query = Query.of(raw)
+        val query = if (raw.isNullOrBlank()) null else Query.of(raw)
         val categories = catalog.categories()
         val within =
             scope?.let { slug ->
@@ -94,9 +98,21 @@ internal class SearchScreen(
                     categories.firstOrNull { it.slug == slug } ?: throw CatalogError.CategoryNotFound(slug),
                 )
             }
+        val recentSearches = viewer.customerId?.let { recent.list(it) }.orEmpty()
+        if (query == null) {
+            return SearchSuggestPanel(
+                id = "suggest",
+                query = "",
+                suggestions = emptyList(),
+                categories = emptyList(),
+                products = emptyList(),
+                allResultsLabel = "",
+                recent = recentSearches.map { Link(it, searchLink(it, scope)) },
+                clearUrl = if (recentSearches.isEmpty()) null else RECENT_SEARCHES,
+            )
+        }
         val matches = search.matching(query).filter { within == null || it.categorySlug in within }
         val products = catalog.listed(matches.take(TOP_PRODUCTS).map { it.productId }, viewer.prices)
-        val recentSearches = viewer.customerId?.let { recent.list(it) }.orEmpty()
         return SearchSuggestPanel(
             id = "suggest",
             query = query.text,

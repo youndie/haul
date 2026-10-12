@@ -43,12 +43,11 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (13)
+## Open (12)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-112](docs/backlog/B-112-first-press-focuses-the-field.md) `[?]` | client: the first press on a text field focuses it | P1 | M | - |
-| [B-124](docs/backlog/B-124-the-empty-search-field-offers-recent-searches.md) `[ ]` | fix: pressing the empty search field offers a customer's recent searches | P2 | S | - |
 | [B-126](docs/backlog/B-126-the-accessible-tree-follows-the-page.md) `[ ]` | fix: the accessible tree follows the page after a popup, and every button has a name | P2 | M | - |
 | [B-118](docs/backlog/B-118-a-click-outside-applies-the-price-bound.md) `[ ]` | fix: a click outside a price field applies the bound typed into it | P3 | S | - |
 | [B-121](docs/backlog/B-121-small-presses-and-copy-from-the-v040-run.md) `[ ]` | fix: the small presses and lines the v0.4.0 run noticed | P3 | S | - |
@@ -61,7 +60,7 @@ A stage is a field on the item, not a directory.
 | [B-86](docs/backlog/B-86-reviews-photos-and-histogram.md) `[ ]` | client + server: review photos open and the histogram filters | P3 | M | - |
 | [B-87](docs/backlog/B-87-fallback-rows.md) `[ ]` | server: what home and the empty cart show when no deal is live | P3 | S | - |
 
-## Closed (116)
+## Closed (117)
 
 **Skeleton**
 
@@ -213,6 +212,7 @@ A stage is a field on the item, not a directory.
 - [B-119](docs/backlog/B-119-search-chips-and-title-say-what-is-shown.md) `[x]` - fix: a search's title, chips and picker say what the grid shows
 - [B-120](docs/backlog/B-120-out-of-stock-promises-no-delivery.md) `[x]` - fix: a product with nothing in stock promises no delivery date
 - [B-123](docs/backlog/B-123-maya-s-plus-savings-follow-the-seeding-year.md) `[x]` - fix: Maya's carried Plus savings belong to the year the stand was seeded
+- [B-124](docs/backlog/B-124-the-empty-search-field-offers-recent-searches.md) `[x]` - fix: pressing the empty search field offers a customer's recent searches
 - [B-125](docs/backlog/B-125-a-stale-stepper-does-not-bring-a-line-back.md) `[x]` - fix: a stepper on a line removed elsewhere does not bring it back
 
 <!-- END INDEX -->

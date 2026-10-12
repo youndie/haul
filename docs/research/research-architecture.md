@@ -359,6 +359,22 @@ whatever their style, so the ones with no page are left out rather than drawn as
   a picker that runs the search as soon as a category is chosen (it would leave the page while the shopper
   may not have typed yet).
 
+**Decided in B-124, the empty field is recall.** A customer pressing the empty search field — or emptying it while
+in it — is offered their recent searches at once: the last ten, newest first, «Clear», each row in the picker's
+scope; a guest's empty field asks nothing. Until then the press drew a caret, and the recent list showed only once
+two letters were typed — suggest filtered by history, not recall. The wire is the suggest route with an empty `q`
+(`/ui/search/suggest?q=&category=…`, `SearchScreen.suggest`): the same `SearchSuggestPanel` with `query` empty,
+the recent searches alone and no queries, categories, products or «All N results»; for a guest the same panel
+with nothing in it, the route staying public. One character is still `400 query_too_short` — anything typed is a
+query. The client draws that panel without the products' column (`SearchSuggestPanelView`), and a panel with no
+query and nothing recent — a guest's, or one just cleared — is no panel (`HaulTransport.suggest`). The shell asks
+at once rather than after the typing pause, keeps the panel when the focus leaves the field for a press on it, and
+drops it once anything is typed (`Storefront`). Rejected: a route of its own (`/ui/search/recent`) — a second
+address for the same panel, with the scope's `404` and «Clear»'s asking-again to repeat; `401` for a guest — the
+route is public and the client does not ask for one anyway; dropping suggest's minimum to nothing — it would
+match the whole catalog for an empty query. No artboard draws it: `Search_Recent` and `Search_Recent_Phone` are
+the goldens, over the home page.
+
 **Decided in B-73, the phone header reaches what the 1440 one does.** The canvas's phone header has the
 logo, the heart, the account, the cart, the search field and a category row cut at the edge — no
 «Catalog», no «Orders», no «HAUL PLUS», and ten of the 32 top-level categories, the rest past the edge.
