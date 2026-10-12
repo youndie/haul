@@ -43,15 +43,14 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (3)
+## Open (2)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-140](docs/backlog/B-140-the-outage-tests-hold-on-a-busy-runner.md) `[~]` | test: the database outage tests hold on a busy runner | P1 | S | - |
 | [B-78](docs/backlog/B-78-placeholders-on-the-stand.md) `[ ]` | server + client: the stand shows pictures, not placeholder labels | P3 | M | - |
 | [B-85](docs/backlog/B-85-canvas-behind-the-code.md) `[ ]` | design: the canvas draws what the store now has | P3 | M | - |
 
-## Closed (137)
+## Closed (138)
 
 **Skeleton**
 
@@ -225,6 +224,7 @@ A stage is a field on the item, not a directory.
 - [B-137](docs/backlog/B-137-the-store-writes-curly-apostrophes.md) `[x]` - fix: every sentence the store writes uses ’, not a straight apostrophe
 - [B-138](docs/backlog/B-138-the-cold-sign-in-menu-asks-on-press.md) `[x]` - client: the cold sign-in page's menu and picker ask for the header when pressed
 - [B-139](docs/backlog/B-139-the-saga-rides-out-a-short-outage.md) `[x]` - server: the order saga rides out a short database outage
+- [B-140](docs/backlog/B-140-the-outage-tests-hold-on-a-busy-runner.md) `[x]` - test: the database outage tests hold on a busy runner
 
 <!-- END INDEX -->
 

@@ -837,8 +837,16 @@ and on the stand.
   compensates an order the shopper meant to place. The pool opens connections through `ReconnectingDriver`,
   which asks a refusing database again every 200 ms for up to 1 s, because Hikari's own retry sleeps up to 5 s
   between tries and found a database back after a 5 s outage only at 10 s — past the member's phase.
-  Measured (`PlacementOutageTest`): 5 s down mid-member, placed, answered 6.4 s after the stop; 12 s down,
-  undone and answered 13.4 s after the stop; a page in either outage `503` in 2.0 s.
+  **Saga work is also handed only a live connection (B-140)**: Hikari does not check a connection used in the
+  last 500 ms, so an outage right after a busy moment handed the member the connections the shutdown had closed,
+  Exposed's three tries failed on them in milliseconds and the order was compensated; under the patience each
+  connection is asked `isValid` and a dead one is evicted (`FailFastDataSource`). Past about 7 s of outage
+  Hikari's sleeps between tries reach 0.64 s and then 1.28 s, so the line between riding out and compensating
+  is nearer 9 s than the phase's 10 s on the saga's clock: a database back 9.8 s after the stop began was undone.
+  Measured (`PlacementOutageTest`, the outage counted from the stop being asked for to PostgreSQL accepting
+  connections, right after a burst of pages): 5 s asked, back at about 6 s, placed, answered 6.7–6.9 s after the
+  stop began on the WSL box and 5.2 s on a hosted runner; 12 s asked, undone, answered 13.6 s after; a page in
+  either outage `503` in 2.0 s.
 - **The key is the customer's own**: the saga's id is a hash of the customer and the `Idempotency-Key`,
   and a key is claimed (petich-idempotency) only by a placement that passed the quote checks — a stale
   quote does not spend it. The same key with the same quote answers the saga's outcome again; with a
