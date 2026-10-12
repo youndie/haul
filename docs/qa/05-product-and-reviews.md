@@ -78,7 +78,7 @@ search for `sony`).
 - **Expected:**
   - Step 1: the icon turns to a check for two seconds; the link pasted is the page's own origin with
     `/p/<id>?sku=<sku>`.
-  - Step 2: under the photo, «Couldn't copy the link. Copy it from here:» over the whole link, selectable, with a
+  - Step 2: under the photo, «Couldn’t copy the link. Copy it from here:» over the whole link, selectable, with a
     close button.
 - **Decided in:** B-71, B-104
 - **Coverage:** `ProductPageLinksTest` «share copies the product's link and says it did»;

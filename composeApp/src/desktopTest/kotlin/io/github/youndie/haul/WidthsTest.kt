@@ -12,15 +12,18 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.theme.HaulColors
+import io.github.youndie.haul.ui.ADD_TO_CART
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HaulHeaderView
 import io.github.youndie.haul.ui.LocalHaulNow
+import io.github.youndie.haul.ui.PRICE_GAP
 import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.ProductGridView
@@ -95,6 +98,36 @@ class WidthsTest {
             assertTrue(
                 under.top > wide.center.y && under.left < wide.right,
                 "an old price that does not fit beside the price is not under it: $wide, $under",
+            )
+        }
+
+    /**
+     * B-136: on the 390 deals row a 160 px card's «$193.90 $277» fitted its room to the pixel, so the old price
+     * touched «+». The prices keep [PRICE_GAP]'s distance from «+» as from each other; at 390 the old price goes
+     * under.
+     */
+    @Test
+    fun `a phone's deal card keeps its old price off the plus`() =
+        runDesktopComposeUiTest(390, 600) {
+            val card =
+                ProductCard(
+                    id = "deal",
+                    productId = "p-002-08",
+                    title = "Northwind Travel TVs",
+                    price = "$193.90",
+                    oldPrice = "$277",
+                    rating = "4.8",
+                    reviews = "1,204",
+                    delivery = "Tomorrow",
+                    tone = "#E3F5D8",
+                    label = "deal",
+                )
+            atWidth { ProductGridView(ProductGrid("deals", listOf(card), columns = 6, scroll = true), gutter = 16.dp) }
+            val struck = onAllNodesWithText("$277").fetchSemanticsNodes().single().boundsInRoot
+            val plus = onAllNodesWithContentDescription(ADD_TO_CART).fetchSemanticsNodes().single().boundsInRoot
+            assertTrue(
+                plus.left - struck.right >= with(density) { PRICE_GAP.toPx() },
+                "the old price ${struck.right} against «+» at ${plus.left}",
             )
         }
 

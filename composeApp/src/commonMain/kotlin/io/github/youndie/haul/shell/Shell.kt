@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -50,6 +51,7 @@ import io.github.youndie.haul.ui.LocalLogoAction
 import io.github.youndie.haul.ui.Skeleton
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.accented
+import io.github.youndie.haul.ui.columnsIn
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.kompot.standard.NavigateAction
@@ -398,7 +400,10 @@ private fun LoadingSection(
     }
 }
 
-/** Six product placeholders: a row of six at 1440, a row of 160-wide ones running off the edge on a phone. */
+/**
+ * Six product placeholders: a row of six at 1440, as many as fit below it (four and two at 1024), a row of 160-wide
+ * ones running off the edge on a phone.
+ */
 @Composable
 private fun ProductRow() {
     if (LocalHaulCompact.current) {
@@ -410,14 +415,36 @@ private fun ProductRow() {
         }
     } else {
         Box(Modifier.padding(horizontal = gutter())) {
-            Grid(columns = 6, count = 6, columnGap = 24.dp, rowGap = 0.dp) { CardSkeleton(it) }
+            CardGrid(columns = 6, count = 6, columnGap = 24.dp, rowGap = 40.dp)
         }
     }
 }
 
+/**
+ * Card placeholders [columns] across, or — on a desktop narrower than they hold — as many as the page's own grid
+ * draws there ([columnsIn], B-82): at 1024 the category's twelve were four across beside the facets and its cards
+ * three, so the page jumped once its tree arrived (B-136).
+ */
+@Composable
+private fun CardGrid(
+    columns: Int,
+    count: Int,
+    columnGap: Dp,
+    rowGap: Dp,
+) {
+    val compact = LocalHaulCompact.current
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val fitted = if (compact) columns else columnsIn(maxWidth, columnGap, columns)
+        Grid(columns = fitted, count = count, columnGap = columnGap, rowGap = rowGap) { CardSkeleton(it) }
+    }
+}
+
+/** The tag on a card's placeholder, for the test that measures them. */
+internal const val CARD_SKELETON_TAG: String = "card-skeleton"
+
 @Composable
 private fun CardSkeleton(modifier: Modifier) {
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(modifier.testTag(CARD_SKELETON_TAG), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Skeleton(Modifier.fillMaxWidth().aspectRatio(1f), 18.dp)
         Skeleton(Modifier.fillMaxWidth(0.45f).height(22.dp), 6.dp)
         Skeleton(Modifier.fillMaxWidth().height(14.dp), 5.dp)
@@ -498,7 +525,7 @@ public fun CatalogLoading() {
                             Spacer(Modifier.weight(1f))
                             Skeleton(Modifier.size(150.dp, 44.dp), 12.dp)
                         }
-                        Grid(columns = 4, count = 12, columnGap = 24.dp, rowGap = 40.dp) { CardSkeleton(it) }
+                        CardGrid(columns = 4, count = 12, columnGap = 24.dp, rowGap = 40.dp)
                     }
                 }
             }
@@ -579,12 +606,12 @@ public fun DealsLoading() {
         LoadingSection(if (compact) 220.dp else 420.dp) { ProductRow() }
         LoadingSection(if (compact) 140.dp else 240.dp) {
             Box(Modifier.padding(horizontal = gutter)) {
-                Grid(
+                CardGrid(
                     columns = if (compact) 2 else 4,
                     count = 8,
                     columnGap = if (compact) 12.dp else 24.dp,
                     rowGap = if (compact) 28.dp else 40.dp,
-                ) { CardSkeleton(it) }
+                )
             }
         }
         Spacer(Modifier.height(if (compact) 64.dp else 80.dp))
@@ -820,7 +847,7 @@ public fun SearchLoading(query: String) {
             if (compact) {
                 Grid(columns = 2, count = 10, columnGap = 12.dp, rowGap = 28.dp) { CardSkeleton(it) }
             } else {
-                Grid(columns = 5, count = 10, columnGap = 24.dp, rowGap = 40.dp) { CardSkeleton(it) }
+                CardGrid(columns = 5, count = 10, columnGap = 24.dp, rowGap = 40.dp)
             }
         }
     }
@@ -1207,7 +1234,7 @@ public fun SavedLoading() {
             if (compact) {
                 Grid(columns = 2, count = 12, columnGap = 12.dp, rowGap = 28.dp) { CardSkeleton(it) }
             } else {
-                Grid(columns = 4, count = 12, columnGap = 24.dp, rowGap = 40.dp) { CardSkeleton(it) }
+                CardGrid(columns = 4, count = 12, columnGap = 24.dp, rowGap = 40.dp)
             }
         }
     }

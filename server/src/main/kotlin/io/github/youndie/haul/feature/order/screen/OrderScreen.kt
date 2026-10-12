@@ -860,13 +860,15 @@ private class OrderPage(
                 val shipment = view.tracked.shipments.firstOrNull { it.sellerId == line.sellerId }
                 val at = shipment?.let { it.history[ShipmentStatus.DELIVERED] ?: it.history[ShipmentStatus.PICKED_UP] }
                 if (at == null || !ReturnWindow.open(at, now)) return@mapNotNull null
+                val bought = view.products[line.skuId]
                 ReturnLine(
                     position,
                     line.title,
                     details(line),
-                    view.products[line.skuId]?.tone.orEmpty(),
+                    bought?.tone.orEmpty(),
                     refunds.getValue(position),
                     pointsBack.getValue(position),
+                    image = bought?.image,
                 )
             }
         if (lines.isEmpty()) return null

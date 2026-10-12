@@ -1,9 +1,12 @@
 package io.github.youndie.haul
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithTag
@@ -13,8 +16,12 @@ import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.ui.CART_BUTTON_TAG
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HaulHeaderView
+import io.github.youndie.haul.ui.LocalHaulActions
+import io.github.youndie.kompot.KompotActionHandler
+import io.github.youndie.kompot.standard.NavigateAction
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 /**
  * B-75: the cart's count appearing moves nothing in the header. It used to: the count widened the cart button,
@@ -58,6 +65,31 @@ class HeaderCountTest {
             header(compact = true)
             val drawn = drawnAt("Sign in", COUNTS)
             assertEquals(List(COUNTS.size) { drawn.first() }, drawn, "the header moved as the count went $COUNTS")
+        }
+
+    /**
+     * B-136: the phone's cart button is its name alone — «Cart 3», «Cart» — with no words of its own beside it. It
+     * carried the badge's «3» as its text too, and the browser's mirror kept that «3» after the cart was emptied,
+     * though the name had gone back to «Cart».
+     */
+    @Test
+    fun `on a phone the cart button reads its name and nothing else`() =
+        runDesktopComposeUiTest(390, 220) {
+            // Pressable, as the store draws it: a press merges what is inside the button into the button.
+            setContent {
+                HaulTheme(FixtureFonts.fonts, compact = true) {
+                    CompositionLocalProvider(LocalHaulActions provides KompotActionHandler { }) {
+                        HaulHeaderView(HEADER.copy(cartCount = count, cart = NavigateAction("/cart")))
+                    }
+                }
+            }
+            listOf(3 to "Cart 3", 0 to "Cart").forEach { (inCart, name) ->
+                count = inCart
+                waitForIdle()
+                val config = onNodeWithTag(CART_BUTTON_TAG).fetchSemanticsNode().config
+                assertEquals(listOf(name), config.getOrNull(SemanticsProperties.ContentDescription), "at $inCart")
+                assertNull(config.getOrNull(SemanticsProperties.Text), "the button's own words at $inCart")
+            }
         }
 
     private companion object {

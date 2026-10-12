@@ -250,6 +250,8 @@ public data class ReturnLine(
     val tone: String,
     val refundCents: Int,
     val pointsBack: Int = 0,
+    /** Where the product's stored photo is served, drawn over the tile as the order's own line draws it (B-136). */
+    val image: String? = null,
 )
 
 /** A reason to return, by its [id] (what `ReturnEntry.reason` names) and its [label] («Doesn’t fit»). */

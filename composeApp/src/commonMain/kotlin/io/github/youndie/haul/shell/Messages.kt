@@ -46,7 +46,10 @@ private val MESSAGE_SHAPE = RoundedCornerShape(16.dp)
 /** The tag on the message drawn over the page, for the tests that wait for it. */
 public const val MESSAGE_TAG: String = "page-message"
 
-/** How long a message stays; one with a button stays longer, for the time to reach it. */
+/**
+ * How long a message stays; one with a button stays longer, for the time to reach it. A failure with a button —
+ * «Couldn't reach the store» and «Retry» — has no time (B-136): it stays until it is answered or the page changes.
+ */
 internal const val MESSAGE_MS: Long = 4_000
 internal const val MESSAGE_WITH_ACTION_MS: Long = 6_000
 
@@ -74,6 +77,14 @@ internal class MessageState {
         if (shown == message) shown = null
     }
 
+    /**
+     * A page visited: a message that waits for its answer is the page's, and its «Retry» would press on a page that
+     * is gone (B-92's findings), so it goes; a timed one — «Added to your cart» — runs out its time over the next page.
+     */
+    fun visited() {
+        if (shown?.untilAnswered == true) shown = null
+    }
+
     /** One message raised; [number] tells two raised with the same words apart, so each gets its full time. */
     class Shown(
         val message: ShowMessageAction,
@@ -83,16 +94,27 @@ internal class MessageState {
         /** The button, when the message has both its halves: words without an action press nothing. */
         val button: Pair<String, KompotAction>? =
             message.actionLabel?.let { label -> message.action?.let { label to it } }
+
+        /**
+         * A failure the shopper can still act on stays until they do (B-136): «Retry» gone after six seconds left a
+         * connection that came back later with nothing to press.
+         */
+        val untilAnswered: Boolean get() = button != null && message.level == MessageLevel.ERROR
     }
 }
 
-/** The message [state] holds, at the bottom of the page, until its time is up or its button is pressed. */
+/**
+ * The message [state] holds, at the bottom of the page, until its time is up or its button is pressed — or, for one
+ * with no time ([MessageState.Shown.untilAnswered]), until its button is pressed or the page changes.
+ */
 @Composable
 internal fun MessageHost(state: MessageState) {
     val shown = state.shown ?: return
-    LaunchedEffect(shown) {
-        delay(if (shown.button != null) MESSAGE_WITH_ACTION_MS else MESSAGE_MS)
-        state.dismiss(shown)
+    if (!shown.untilAnswered) {
+        LaunchedEffect(shown) {
+            delay(if (shown.button != null) MESSAGE_WITH_ACTION_MS else MESSAGE_MS)
+            state.dismiss(shown)
+        }
     }
     Box(Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.BottomCenter) {
         MessageNotice(

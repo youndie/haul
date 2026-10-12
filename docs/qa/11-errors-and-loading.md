@@ -17,9 +17,10 @@ the server's own: `503`).
 - **Expected:**
   - Step 1: each draws its own placeholder under the header (itself a placeholder: no name, no count) — never the
     header alone over nothing, and never the previous page's content; `/c` and `/deals` too. Checkout's marks no
-    step.
-- **Decided in:** B-67, B-79, B-108
+    step. A placeholder's cards are as many across as the page's (at 1024 three beside a category's facets).
+- **Decided in:** B-67, B-79, B-108, B-136
 - **Coverage:** `StorefrontTest` «a page on its way draws its placeholders until the tree arrives»;
+  `LoadingCardsTest` «no card placeholder is narrower than the page's own cards at any desktop width»;
   `StorefrontTest` «the catalog's root and the deals draw their placeholders on their way»;
   `CheckoutWiringTest` «the checkout before its tree marks no step»;
   golden `Home_Loading`; golden `Categories_Loading`; golden `Deals_Loading`; golden `Product_Loading`;
@@ -186,17 +187,19 @@ the server's own: `503`).
 - **Expected:**
   - Step 1: the line stays gone — the stepper changes a line and never adds one back (B-125) — the cart drawn again,
     and «This item is no longer in your cart» in a message at the error level (the alert mark).
-  - Step 2: the page as it was, under «Couldn't reach the store» with «Retry»; Retry sends the press again.
+  - Step 2: the page as it was, under «Couldn't reach the store» with «Retry», which stays until it is pressed or the
+    page changes (B-136); Retry sends the press again.
   - Step 3: a heart and «Helpful» get «Retry» (sent twice is sent once); «Save for later» gets the message without
     «Retry» — its own button is the press again.
   - Step 4: the field says why; no message on top (a refusal the next tree draws is not said twice).
-- **Decided in:** B-75, B-92, B-125
+- **Decided in:** B-75, B-92, B-125, B-136
 - **Coverage:** `CartRoutesTest` «a stale stepper does not bring a removed line back and a card's plus still adds»;
   `CommandAnswersTest` «a refusal draws the page again and then says why in the server's words»;
   `CommandAnswersTest` «a refusal the tree draws is the page drawn again and nothing more»;
   `CommandAnswersTest` «no answer says so with Retry which is the press given»;
   `CommandAnswersTest` «no answer without a press to send again has no button»;
   `CartWiringTest` «in the storefront no answer says so and Retry presses again and a refusal says why»;
+  `CartWiringTest` «in the storefront no answer with Retry stays until the page changes»;
   `SavedWiringTest` «a refused heart says why and one with no answer offers Retry»;
   `SavedWiringTest` «save for later with no answer says so without Retry»;
   `ReviewWiringTest` «a vote with no answer offers Retry and a refused one redraws the page and says why»;

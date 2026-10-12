@@ -50,12 +50,12 @@ import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Icon
+import io.github.youndie.haul.ui.LineTile
 import io.github.youndie.haul.ui.ReturnForm
 import io.github.youndie.haul.ui.ReturnLine
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.pressable
-import io.github.youndie.haul.ui.toneColor
 import io.github.youndie.kompot.KompotAction
 import kotlinx.coroutines.launch
 
@@ -216,7 +216,7 @@ private fun Line(
         ) {
             Checkbox(ticked)
             val tile = if (compact) 72.dp else 88.dp
-            Box(Modifier.size(tile).background(toneColor(line.tone), RoundedCornerShape(14.dp)))
+            LineTile(line.image, line.tone, 14.dp, Modifier.size(tile))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Text(line.title, HaulType.text(if (compact) 15f else 16f, 600, lineHeight = 1.3f))
                 Text(line.details, normal(14f).copy(color = HaulColors.outline))

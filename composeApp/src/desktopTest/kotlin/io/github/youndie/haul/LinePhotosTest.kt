@@ -7,14 +7,20 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
+import io.github.youndie.haul.feature.order.ReturnFormView
+import io.github.youndie.haul.feature.returns.ReturnEntry
 import io.github.youndie.haul.feature.search.SearchSuggestOverlay
 import io.github.youndie.haul.registry.haulJson
 import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.ui.LocalHaulNow
 import io.github.youndie.haul.ui.LocalPhotoLoader
+import io.github.youndie.haul.ui.OrderBody
 import io.github.youndie.haul.ui.PhotoLoader
+import io.github.youndie.haul.ui.ReturnForm
 import io.github.youndie.haul.ui.SearchSuggestPanel
 import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.standard.ColumnComponent
+import io.github.youndie.kompot.standard.PresentAction
 import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -44,6 +50,30 @@ class LinePhotosTest {
     @Test
     fun `the suggest panel's top products draw their photos`() = photos("search_suggest.json", kind = "suggestion")
 
+    /** B-136: the return dialog's lines drew the bare tone tile where the same lines on the order draw the photo. */
+    @Test
+    fun `the return dialog's lines draw their photos`() =
+        runDesktopComposeUiTest(1_440, 3_000) {
+            val page = decode("order_delivered.json") as ColumnComponent
+            val body = page.children.filterIsInstance<OrderBody>().single()
+            val form = (body.summary.returnAction as PresentAction).content as ReturnForm
+            val photographed = form.copy(lines = form.lines.map { it.copy(image = "/images/products/p/1.png") })
+            assertTrue(form.lines.isNotEmpty(), "order_delivered.json offers no line to return")
+            setContent {
+                HaulTheme(FixtureFonts.fonts, compact = false) {
+                    CompositionLocalProvider(LocalPhotoLoader provides marking, LocalHaulNow provides CANVAS_NOW) {
+                        ReturnFormView(photographed, ReturnEntry())
+                    }
+                }
+            }
+            waitForIdle()
+            assertEquals(
+                form.lines.size,
+                onAllNodes(hasTestTag(PHOTO), useUnmergedTree = true).fetchSemanticsNodes().size,
+                "the return dialog's photos drawn",
+            )
+        }
+
     private fun photos(
         body: String,
         kind: String,
@@ -53,17 +83,7 @@ class LinePhotosTest {
         assertTrue(lines > 0, "$body has no $kind to put a photo on")
         setContent {
             HaulTheme(FixtureFonts.fonts, compact = false) {
-                CompositionLocalProvider(
-                    LocalPhotoLoader provides
-                        PhotoLoader {
-                            _,
-                            modifier,
-                            _,
-                            ->
-                            Box(modifier) { Box(Modifier.matchParentSize().testTag(PHOTO)) }
-                        },
-                    LocalHaulNow provides CANVAS_NOW,
-                ) {
+                CompositionLocalProvider(LocalPhotoLoader provides marking, LocalHaulNow provides CANVAS_NOW) {
                     Page {
                         // The panel is drawn over the page it opens on, as the header draws it; anything else is a page.
                         when (
@@ -124,5 +144,11 @@ class LinePhotosTest {
 
     private companion object {
         const val PHOTO = "line-photo"
+
+        /** A loader that draws a marked box for every photo it is asked for, so the test counts them. */
+        val marking =
+            PhotoLoader { _, modifier, _ ->
+                Box(modifier) { Box(Modifier.matchParentSize().testTag(PHOTO)) }
+            }
     }
 }

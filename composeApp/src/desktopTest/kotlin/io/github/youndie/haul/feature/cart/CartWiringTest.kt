@@ -31,6 +31,7 @@ import io.github.youndie.haul.registry.haulRegistry
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
 import io.github.youndie.haul.shell.MESSAGE_TAG
+import io.github.youndie.haul.shell.MESSAGE_WITH_ACTION_MS
 import io.github.youndie.haul.shell.NO_ANSWER
 import io.github.youndie.haul.shell.RETRY
 import io.github.youndie.haul.shell.Storefront
@@ -445,6 +446,39 @@ class CartWiringTest {
             waitUntil(timeoutMillis = 5_000) { requests.size == 3 }
             waitUntil(timeoutMillis = 5_000) { exists(MESSAGE_TAG) }
             onNode(hasText("Only 1 left in stock") and hasAnyAncestor(hasTestTag(MESSAGE_TAG))).assertExists()
+        }
+
+    /**
+     * B-136: «Couldn't reach the store» with «Retry» has no time — a connection that comes back a minute later still
+     * has its «Retry» — and goes when the page changes, where its press would land on a page that is gone.
+     */
+    @Test
+    fun `in the storefront no answer with Retry stays until the page changes`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            val requests = CopyOnWriteArrayList<String>()
+            val transport =
+                HaulTransport { path ->
+                    requests += path
+                    HaulResponse(200, read(CONTENT))
+                }
+            val history = FakeHistory("/").apply { push("/cart") }
+            setContent {
+                HaulTheme(FixtureFonts.fonts, compact = false) {
+                    Storefront(transport, history, signIn = {}, clock = FixedClock, cartCommands = commands)
+                }
+            }
+            failure = { IOException("connection refused") }
+            onNodeWithTag("cart-line-more:$MUG").performClick()
+            waitUntil(timeoutMillis = 5_000) { exists(MESSAGE_TAG) }
+
+            mainClock.advanceTimeBy(MESSAGE_WITH_ACTION_MS * 10)
+            waitForIdle()
+            onNode(hasText(RETRY) and hasAnyAncestor(hasTestTag(MESSAGE_TAG))).assertExists()
+
+            history.back()
+            waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
+            waitForIdle()
+            onNodeWithTag(MESSAGE_TAG).assertDoesNotExist()
         }
 
     @Test
