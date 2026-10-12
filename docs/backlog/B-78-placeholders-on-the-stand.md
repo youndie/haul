@@ -119,3 +119,12 @@ in B-78», D9 «Measured in B-78».
   of the pictures would cut their 24 KiB on the home page to about a third. Not taken: optimising is not this item.
 - **Order fixtures of canvas products** (`OrderFixturesTest.bought`) name the category their picture is drawn for: the
   canvas's yoga mat, sweater, serum, blocks, food bags and cable are in no seeded category.
+
+## Where the checks ran (2026-10-13)
+
+On the Linux build box (WSL2, Ubuntu 24.04), after the rebase on B-140 (#172): `:composeApp:wasmJsBrowserDistribution`
+green; `check :server:installDist` green (server 531 tests, client 446, 0 failed; `viddikVerify`, ktlint);
+`scripts/e2e.sh haul/server:b78` green (WholePathTest, ShoppersConfigTest 6, SyntheticShopperTest 3); goldens recorded and
+parity measured there in a copy outside the mutagen replica. The first-load campaign ran before the rebase, on this
+branch's image at `b67412f2`'s code (B-140 touched only the server's saga). On the Mac: `make check` and `make
+docs-against BASE=origin/main` clean, every anchor found. Not walked in a browser beyond the harness's screenshots.
