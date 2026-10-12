@@ -139,6 +139,24 @@ class ProductPageLinksTest {
             assertEquals(listOf(PRODUCT, REVIEWS), history.entries)
         }
 
+    /**
+     * B-121: on the reviews tab «2,341 reviews» opens the address shown — loaded again (B-95), the same tab arriving —
+     * and the tab row stayed out of sight. The press asks for the row itself.
+     */
+    @Test
+    fun `the reviews count on the reviews tab brings the tabs into view`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            history.entries[0] = REVIEWS
+            serve("/ui$REVIEWS", decode("product_reviews.json"))
+            storefront(decode("product_reviews.json"))
+            onNodeWithTag(TABS_TAG).assertIsNotDisplayed()
+            onNodeWithText("2,341 reviews").performClick()
+            waitUntil(timeoutMillis = 5_000) { requests.count { it == "/ui$REVIEWS" } == 2 }
+            waitForIdle()
+            onNodeWithTag(TABS_TAG).assertIsDisplayed()
+            assertEquals(listOf(REVIEWS), history.entries)
+        }
+
     @Test
     fun `all specifications opens the specifications tab and brings the tabs into view`() =
         runDesktopComposeUiTest(WIDTH, HEIGHT) {

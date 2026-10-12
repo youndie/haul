@@ -55,10 +55,12 @@ import io.github.youndie.haul.ui.LocalHeaderMenu
 import io.github.youndie.haul.ui.LocalLogoAction
 import io.github.youndie.haul.ui.LocalPageScroll
 import io.github.youndie.haul.ui.LocalSearchInput
+import io.github.youndie.haul.ui.LocalTabsInView
 import io.github.youndie.haul.ui.PlusTrialDialog
 import io.github.youndie.haul.ui.SearchFieldState
 import io.github.youndie.haul.ui.SearchInput
 import io.github.youndie.haul.ui.SearchSuggestPanel
+import io.github.youndie.haul.ui.TabsInView
 import io.github.youndie.haul.ui.releasingOnBlankPress
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotActionHandler
@@ -448,6 +450,11 @@ public fun Storefront(
                                     }
 
                                     else -> {
+                                        // A search too short over the results kept leaves them, and their address:
+                                        // a reload of the refused one would draw «Keep typing» (B-121).
+                                        if (recovery == Recovery.QueryTooShort) {
+                                            LaunchedEffect(cause) { navigator.withdraw() }
+                                        }
                                         Box(
                                             Modifier.fillMaxSize().padding(16.dp),
                                             contentAlignment = Alignment.BottomCenter,
@@ -517,7 +524,8 @@ private fun Scrolled(
     content: @Composable () -> Unit,
 ) {
     Box(Modifier.testTag(PAGE_SCROLL_TAG).fillMaxSize().verticalScroll(scroll)) {
-        CompositionLocalProvider(LocalPageScroll provides scroll) { content() }
+        val tabs = remember(scroll) { TabsInView() }
+        CompositionLocalProvider(LocalPageScroll provides scroll, LocalTabsInView provides tabs) { content() }
     }
 }
 

@@ -40,7 +40,7 @@ public const val TRY_POPUP_AGAIN_LABEL: String = "Try the sign-in window again"
  * [signIn] is the popup's sign-in; [session], when there is one, says who is signed in, signs out and
  * signs in in this tab. A popup the browser blocked is [onBlocked]'s, told the sign-in page it leads to,
  * which is then opened: the page says why and offers the sign-in in this tab, returning to the press's
- * `next` — or, when the press named none, the page it was on.
+ * `next` — or, when the press named none, the page it was on, and on the sign-in page that page's own `next`.
  */
 internal class Signing(
     val signIn: suspend () -> Unit,
@@ -76,7 +76,12 @@ internal class Signing(
     ) {
         val page =
             when {
-                SignInActions.next(deeplink) != null || address.kind == PageKind.SignIn -> deeplink
+                SignInActions.next(deeplink) != null -> deeplink
+
+                // The sign-in page is where it returns already: a press that names no `next` — the header's
+                // «Sign in» — keeps the page's own (B-121).
+                address.kind == PageKind.SignIn -> address.value
+
                 else -> SignInActions.returningTo(address.value)
             }
         onBlocked(page)

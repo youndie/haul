@@ -16,6 +16,8 @@ internal object WindowHistory : BrowserHistory {
 
     override fun replace(location: String) = replaceLocation(location)
 
+    override fun back() = goBack()
+
     override fun listen(listener: (location: String) -> Unit): () -> Unit {
         if (!listening) {
             listening = true
@@ -34,6 +36,9 @@ private external fun pushLocation(location: String)
 
 @JsFun("(location) => window.history.replaceState(null, '', location)")
 private external fun replaceLocation(location: String)
+
+@JsFun("() => window.history.back()")
+private external fun goBack()
 
 @JsFun(
     "(listener) => window.addEventListener('popstate', () => listener(window.location.pathname + window.location.search))",

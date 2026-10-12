@@ -7,6 +7,7 @@ import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -158,6 +159,31 @@ class SignInEverywhereTest {
             pressButton(SIGN_IN_HERE_LABEL)
             waitUntil(timeoutMillis = 5_000) { session.leftWith.isNotEmpty() }
             assertEquals(listOf<String?>("/cart"), session.leftWith)
+        }
+
+    /**
+     * B-121: on `/sign-in?next=…` the header's «Sign in» names no `next`, and a blocked popup led to a bare
+     * `/sign-in` — the way back to the orders was gone. The page keeps its own `next`.
+     */
+    @Test
+    fun `the header's sign-in blocked on the sign-in page keeps its next`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            val history = FakeHistory("/sign-in?next=%2Faccount%2Forders")
+            storefront(history, signIn = {
+                signIns += 1
+                throw SignInPopupBlocked()
+            }) { path -> error("nothing answers $path") }
+            onNodeWithText(ASKING).assertExists()
+
+            // The header's account slot comes first; the page's own button reads the same.
+            onAllNodes(hasText(SIGN_IN_PAGE_LABEL) and hasClickAction()).onFirst().performClick()
+            waitUntil(timeoutMillis = 5_000) { exists(hasText(BLOCKED)) }
+
+            assertEquals(1, signIns)
+            assertEquals(listOf("/sign-in?next=%2Faccount%2Forders"), history.entries)
+            pressButton(SIGN_IN_HERE_LABEL)
+            waitUntil(timeoutMillis = 5_000) { session.leftWith.isNotEmpty() }
+            assertEquals(listOf<String?>("/account/orders"), session.leftWith)
         }
 
     /** The sign-in in this tab comes back to `/sign-in`: finished there, then on to the next it kept. */

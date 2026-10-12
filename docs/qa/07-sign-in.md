@@ -97,16 +97,20 @@ and only Maya and Sam can sign in; on a local stack, the e2e's shildik.
   3. Press back.
   4. As Maya, open `/sign-in?next=%2Faccount`.
   5. Open `/sign-in?next=https%3A%2F%2Fexample.com`, sign in.
+  6. As a guest with pop-up windows blocked, open `/sign-in?next=%2Faccount%2Fsaved` and press the header's «Sign in».
 - **Expected:**
   - Step 1: «Sign in to HAUL» with its button; not «This page isn't here».
   - Step 2: `/account/saved`.
   - Step 3: the page before the sign-in page, not the sign-in page (its entry was given to `next`).
   - Step 4: sent straight on to `/account`.
   - Step 5: signed in, staying on the store — a `next` that is not a storefront address is refused.
-- **Decided in:** B-66
+  - Step 6: «The browser blocked the window», the address still `/sign-in?next=%2Faccount%2Fsaved`: the sign-in on
+    this page returns to the Saved list.
+- **Decided in:** B-66, B-121
 - **Coverage:** `SignInEverywhereTest` «a reload of the sign-in page asks, and the sign-in lands on its next»;
   `SignInEverywhereTest` «back and forward onto the sign-in page draw it»;
   `SignInEverywhereTest` «a customer arriving at the sign-in page goes on to its next»;
+  `SignInEverywhereTest` «the header's sign-in blocked on the sign-in page keeps its next»;
   `SignInTapTest` «a next that is not a storefront address is refused»;
   `StorefrontTest` «a sign-in whose next is another site stays on the page»
 
@@ -121,18 +125,20 @@ and only Maya and Sam can sign in; on a local stack, the e2e's shildik.
   3. Open `/checkout` again, press «Sign in to continue» and sign in.
   4. Sign out, open `/account/orders/HL-48302` and close the sign-in window instead.
 - **Expected:**
-  - Step 1: «Sign in to continue» — no error page, and no popup until the press. No `POST /api/v1/guests`.
+  - Step 1: «Checkout needs a sign-in», «sign-in» on one line at every width, and «Sign in to continue» — no error
+    page, and no popup until the press. No `POST /api/v1/guests`.
   - Step 2: the same prompt; the cart still holds the line, the header counts it, and `haul.guest` is the one
     noted — «Whatever is in your cart comes with you» holds.
   - Step 3: the checkout, loaded again for the customer (or the cart, if nothing is selected — TC-CHK-11).
   - Step 4: the home page. A page still refused after a sign-in is an error page; the prompt does not loop.
-- **Decided in:** B-44, B-66, B-115
+- **Decided in:** B-44, B-66, B-115, B-121
 - **Coverage:** `IdentityTest` «a guest on a customer's page stays the same guest»;
   `server:CartRoutesTest` «no guest is 401 unauthenticated and an unknown one 401 guest_not_found»;
   `SignInPromptTest` «a guest opening the checkout signs in and lands on the checkout»;
   `SignInPromptTest` «a guest opening an order signs in and lands on the order»;
   `SignInPromptTest` «a sign-in that does not go through lands on the home page»;
-  `SignInPromptTest` «a page still refused after a sign-in draws the error page and asks no more»
+  `SignInPromptTest` «a page still refused after a sign-in draws the error page and asks no more»;
+  `SignInTitleTest` «a sign-in prompt's title never breaks inside sign-in»
 
 ### TC-SIGN-07 — Signing out forgets the customer and keeps the guest
 

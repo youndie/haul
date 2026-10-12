@@ -171,8 +171,12 @@ public class SearchInput(
         return true
     }
 
-    /** Enter: the highlighted query, or the text as typed when none is. */
+    /**
+     * Enter: the highlighted query, or the text as typed when none is. Either ends the typing: the text is now the
+     * query the results arrive with, and a suggest the pause was still waiting for is not asked (B-121).
+     */
     public fun submit() {
+        typed = false
         val picked = offered.getOrNull(highlighted)
         if (picked != null) onPick(picked) else onSubmit(text.text, scope)
     }

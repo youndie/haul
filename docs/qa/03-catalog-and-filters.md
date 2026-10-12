@@ -142,7 +142,7 @@ header says a load is on its way. Pages of a search are in [search](04-search.md
   `ClearAllTest` «clear all is drawn beside the chips only while a filter is applied»;
   `composeApp:DrawnActionsTest` «clear all opens the page without its filters»
 
-### TC-CAT-07 — The sort opens its orders, and the order shown presses nothing
+### TC-CAT-07 — The sort opens its orders, and the order shown only closes the menu
 
 - **Who:** guest
 - **Width:** 1440
@@ -152,10 +152,11 @@ header says a load is on its way. Pages of a search are in [search](04-search.md
   2. Open the menu again and pick the order shown.
 - **Expected:**
   - Step 1: the results reload in place from the first page, the brand kept.
-  - Step 2: nothing is sent.
-- **Decided in:** B-37, B-102
+  - Step 2: the menu closes and nothing is sent.
+- **Decided in:** B-37, B-102, B-121
 - **Coverage:** `server:DrawnActionsTest` «the sort offers every order and keeps the filters»;
   `composeApp:DrawnActionsTest` «the sort opens its orders and the one picked is opened»;
+  `composeApp:DrawnActionsTest` «picking the order shown closes the sort's menu and asks for nothing»;
   `AppliedFiltersTest` «no press on a category page loads the page it is on»
 
 ### TC-CAT-08 — «Show N more» appends, up to eight pages; a page number opens one page at the top

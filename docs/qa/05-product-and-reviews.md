@@ -49,15 +49,19 @@ search for `sony`).
   2. Back; press the stars or «2,341 reviews».
   3. Press «All specifications».
   4. Look at the seller's card.
+  5. Open the Reviews tab by its address (`?tab=reviews`), scrolled to the top, and press «2,341 reviews».
 - **Expected:**
   - Step 1: headphones with «Sony» ticked (`/c/electronics/audio/headphones?brand=Sony`).
   - Step 2: the Reviews tab, on the same page, the tab row brought into view with the reviews under it.
   - Step 3: the Specifications tab, brought into view the same way.
   - Step 4: no chevron — there is no seller page. The review photos and the histogram's bars press nothing.
-- **Decided in:** B-71
+  - Step 5: the tab row brought into view with the reviews under it; the address is the one shown, loaded again in
+    place (B-95).
+- **Decided in:** B-71, B-121
 - **Coverage:** `ProductPageLinksTest` «the brand opens its products in the category»;
   `ProductPageLinksTest` «the reviews count opens the reviews tab and brings the tabs into view»;
   `ProductPageLinksTest` «all specifications opens the specifications tab and brings the tabs into view»;
+  `ProductPageLinksTest` «the reviews count on the reviews tab brings the tabs into view»;
   `ProductRoutesTest` «the brand, the rating and all specifications lead somewhere and share names the product»
 
 ### TC-PDP-04 — Share copies the product's link, or shows it to copy by hand

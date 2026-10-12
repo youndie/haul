@@ -59,7 +59,7 @@ internal fun SignInPrompt(
             header = header,
             eyebrow = "Sign in",
             title = address.kind.signInTitle,
-            accent = "sign-in",
+            accent = SIGN_IN_WORD,
             text = "Sign in and you’re back here. Whatever is in your cart comes with you.",
             actionLabel = SIGN_IN_PROMPT_LABEL,
             onAction = {
@@ -70,12 +70,19 @@ internal fun SignInPrompt(
 }
 
 /** What the prompt says needs the sign-in: the page, by what it is. */
-private val PageKind.signInTitle: String
+internal val PageKind.signInTitle: String
     get() =
         when (this) {
-            PageKind.Checkout -> "Checkout needs a sign-in"
-            PageKind.Order -> "This order needs a sign-in"
-            else -> "This page needs a sign-in"
+            PageKind.Checkout -> "Checkout needs a $SIGN_IN_WORD"
+            PageKind.Order -> "This order needs a $SIGN_IN_WORD"
+            else -> "This page needs a $SIGN_IN_WORD"
         }
+
+/**
+ * «sign-in» with a non-breaking hyphen (U+2011): the title is set large, and at 1440 it broke at the hyphen into
+ * «sign-» / «in» (B-121). Both cuts of the display face draw the character, so no fallback font is fetched for it
+ * (B-128); the accent is the same word, or it would no longer be found in the title.
+ */
+internal const val SIGN_IN_WORD: String = "sign\u2011in"
 
 private const val UNAUTHENTICATED = 401

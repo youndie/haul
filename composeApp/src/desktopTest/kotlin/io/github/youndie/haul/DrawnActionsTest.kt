@@ -218,6 +218,21 @@ class DrawnActionsTest {
             assertEquals(listOf("/", BY_PRICE), history.entries)
         }
 
+    /** B-121: the order already shown, picked, closed nothing — the menu stayed open over the page. */
+    @Test
+    fun `picking the order shown closes the sort's menu and asks for nothing`() =
+        runDesktopComposeUiTest(WIDTH, 1_600) {
+            answer("/ui/home", results)
+            storefront()
+            onNodeWithText("Sort:").performClick()
+            onNodeWithTag(LINK_MENU_TAG).assertExists()
+            onNode(hasText("Popular") and hasAnyAncestor(hasTestTag(LINK_MENU_TAG))).performClick()
+            waitForIdle()
+            onNodeWithTag(LINK_MENU_TAG).assertDoesNotExist()
+            assertEquals(listOf("/"), history.entries)
+            assertEquals(listOf("/ui/home"), requests)
+        }
+
     /** B-75: Escape closes the sort's menu, and opens nothing. */
     @Test
     fun `escape closes the sort's menu`() =
@@ -848,7 +863,8 @@ class DrawnActionsTest {
                             clearAction = NavigateAction(CLEARED),
                             sorts =
                                 listOf(
-                                    Link("Popular", NavigateAction("/c/mugs?brand=Haul")),
+                                    // The order shown has nothing to open, as the server writes it (B-37).
+                                    Link("Popular", null),
                                     Link("Price: low to high", NavigateAction(BY_PRICE)),
                                 ),
                         ),
