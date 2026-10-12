@@ -115,6 +115,14 @@ internal class Ledger(
                 .map { it[CartLinesTable.skuId] }
         }
 
+    /** The promo code applied to [customerId]'s cart, if any. */
+    fun cartPromo(customerId: String): String? =
+        transaction(database) {
+            CartsTable.selectAll().where { CartsTable.customerId eq customerId }.singleOrNull()?.get(
+                CartsTable.promoCode,
+            )
+        }
+
     /** How many sagas were stored: a placement refused before the saga stores none. */
     fun sagas(): Int =
         transaction(database) {
