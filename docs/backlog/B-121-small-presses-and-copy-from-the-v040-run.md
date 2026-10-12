@@ -1,7 +1,7 @@
 ---
 id: B-121
 title: "fix: the small presses and lines the v0.4.0 run noticed"
-status: wip
+status: done
 priority: P3
 size: S
 stage: stage-12-qa-run
