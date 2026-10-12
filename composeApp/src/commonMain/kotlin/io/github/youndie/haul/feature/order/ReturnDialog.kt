@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.order
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -19,6 +21,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -102,8 +111,19 @@ public fun ReturnFormView(
                 choosing = !choosing
             }
             if (choosing) {
+                // Escape closes the list, as it closes the header's menus (B-75, B-129): the list takes the focus
+                // when it opens, so the key reaches it, and reads it before its entries.
+                val focus = remember { FocusRequester() }
+                LaunchedEffect(focus) { focus.requestFocus() }
                 Column(
                     Modifier
+                        .testTag(REASON_LIST_TAG)
+                        .focusRequester(focus)
+                        .onPreviewKeyEvent {
+                            val escape = it.key == Key.Escape
+                            if (escape && it.type == KeyEventType.KeyDown) choosing = false
+                            escape
+                        }.focusable()
                         .fillMaxWidth()
                         .border(1.dp, HaulColors.outlineVariant, RoundedCornerShape(14.dp))
                         .padding(vertical = 6.dp),
@@ -313,5 +333,8 @@ internal fun lineTag(position: Int): String = "return-line:$position"
 internal fun reasonTag(id: String): String = "return-reason:$id"
 
 internal const val REASON_TAG: String = "return-reason"
+
+/** The reasons' list while it is open. */
+internal const val REASON_LIST_TAG: String = "return-reasons"
 internal const val REFUND_TAG: String = "return-refund"
 internal const val POINTS_BACK_TAG: String = "return-points-back"
