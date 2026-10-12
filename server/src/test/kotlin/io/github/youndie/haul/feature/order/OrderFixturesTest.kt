@@ -3,6 +3,7 @@ package io.github.youndie.haul.feature.order
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Listed
 import io.github.youndie.haul.feature.catalog.domain.PriceList
+import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.checkout.DeliveryMethod
 import io.github.youndie.haul.feature.fulfilment.domain.FulfilmentPace
@@ -26,6 +27,7 @@ import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog
 import io.github.youndie.haul.seed.SampleCheckout
 import io.github.youndie.haul.seed.SampleCustomers
+import io.github.youndie.haul.seed.SeedArt
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.testing.FulfilmentWorld
 import io.github.youndie.haul.testing.SampleOrders
@@ -123,6 +125,8 @@ class OrderFixturesTest {
                         title: String,
                         options: Map<String, String>,
                         tone: String,
+                        // The category its picture is drawn for (B-78): the canvas's product is in no seeded one.
+                        category: String,
                     ): Map<String, Bought> {
                         val productId = sku.removeSuffix("-0")
                         val item =
@@ -134,6 +138,7 @@ class OrderFixturesTest {
                                     listingName = title,
                                     tone = tone,
                                     dispatchDays = 0,
+                                    categorySlug = category,
                                 ),
                                 listOf(sony.skus.first().copy(id = sku, productId = productId, options = options)),
                             )
@@ -146,6 +151,7 @@ class OrderFixturesTest {
                                     tone,
                                     0,
                                     tabs.orderLine(item, item.skus.single(), canvasViewer, reviewed = false),
+                                    image = ProductPhotos(null, SeedArt).url(item.product, item.skus.single()),
                                 ),
                         )
                     }
@@ -163,6 +169,7 @@ class OrderFixturesTest {
                             "Natural Rubber Yoga Mat, 6 mm",
                             mapOf("colour" to "Black"),
                             "#E3F5D8",
+                            "yoga-mats",
                         )
                     check(
                         READY_FOR_PICKUP,
@@ -179,6 +186,7 @@ class OrderFixturesTest {
                             "Merino Wool Crewneck Sweater, Unisex",
                             mapOf("colour" to "Moss", "size" to "M"),
                             "#FFE5DD",
+                            "fashion",
                         )
                     val serum =
                         bought(
@@ -187,6 +195,7 @@ class OrderFixturesTest {
                             "Vitamin C Brightening Serum, 30 ml",
                             mapOf("size" to "30 ml"),
                             "#F1E4F5",
+                            "beauty",
                         )
                     check(
                         DELIVERED,
@@ -219,6 +228,7 @@ class OrderFixturesTest {
                             "Building Blocks Space Station, 1,200 pcs",
                             mapOf("age" to "Ages 8+"),
                             "#FFF1C9",
+                            "kids-toys",
                         ) +
                             bought(
                                 SampleOrders.BAGS_SKU,
@@ -226,6 +236,7 @@ class OrderFixturesTest {
                                 "Silicone Food Storage Bags, Set of 6",
                                 mapOf("colour" to "Clear"),
                                 "#E3F5D8",
+                                "grocery",
                             ) +
                             bought(
                                 SampleOrders.CABLE_SKU,
@@ -233,6 +244,7 @@ class OrderFixturesTest {
                                 "USB-C Charging Cable, 2 m, 2-pack",
                                 mapOf("colour" to "White"),
                                 "#E6E4FF",
+                                "computers",
                             )
                     check(RETURNED, page(SampleOrders.returned(mayas), returnedItems))
                     // Its kept lines stay in their shipment, under the seller's name, which no artboard gives.

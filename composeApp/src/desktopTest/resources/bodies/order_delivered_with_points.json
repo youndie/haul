@@ -476,7 +476,8 @@
                                     },
                                     "kind": "dialog"
                                 }
-                            }
+                            },
+                            "image": "/images/art/p_fashion_0_plain_ffe5dd.742448d5d2.svg"
                         }
                     ]
                 },
@@ -520,7 +521,8 @@
                                     },
                                     "kind": "dialog"
                                 }
-                            }
+                            },
+                            "image": "/images/art/p_beauty_2_plain_f1e4f5.b177bd64fd.svg"
                         }
                     ]
                 }
@@ -573,7 +575,8 @@
                                 "details": "Moss · M · 1 × $80",
                                 "tone": "#FFE5DD",
                                 "refundCents": 8000,
-                                "pointsBack": 1926
+                                "pointsBack": 1926,
+                                "image": "/images/art/p_fashion_0_plain_ffe5dd.742448d5d2.svg"
                             },
                             {
                                 "position": 1,
@@ -581,7 +584,8 @@
                                 "details": "30 ml · 1 × $23",
                                 "tone": "#F1E4F5",
                                 "refundCents": 2300,
-                                "pointsBack": 554
+                                "pointsBack": 554,
+                                "image": "/images/art/p_beauty_2_plain_f1e4f5.b177bd64fd.svg"
                             }
                         ],
                         "reasonLabel": "Reason",
