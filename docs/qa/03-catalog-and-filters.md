@@ -102,15 +102,20 @@ header says a load is on its way. Pages of a search are in [search](04-search.md
     press into «to», the digits and Tab follow each other.
   - Step 3: the range the thumb was released at; the end thumb is grabbed.
   - Step 4: the caret leaves the field and the bounds are swapped (`price_min=200&price_max=500`) — one request, the
-    address carrying the range. A press on the box around a field's digits keeps the field.
+    address carrying the range. A press on the box around a field's digits keeps the field. However quickly
+    `200` follows the press into «to», and however slow the answer to the load leaving «from» sent (a throttled
+    link), «to» keeps `200` when that answer lands, and the click sends both bounds (B-134).
   - Step 5: the page without the range. A field left as it was loads nothing.
-- **Decided in:** B-69, B-76, B-90, B-118
+- **Decided in:** B-69, B-76, B-90, B-118, B-134
 - **Coverage:** `PriceRangeTest` «a lower bound typed and entered loads the range in place»;
   `PriceRangeTest` «a bound typed just before enter is the one applied»;
   `PriceRangeTest` «leaving a price field applies what it holds»;
   `PriceRangeTest` «a click on blank page space leaves a price field and applies it»;
   `PriceRangeTest` «a press on the box around a price field keeps it»;
   `PriceRangeTest` «tab out of a price field sends one load»;
+  `PriceRangeTest` «a bound typed while the other bound loads is kept and sent with it»;
+  `PriceRangeTest` «bounds typed backwards while one loads end in one load swapped»;
+  `PriceRangeTest` «a bound typed before the other's load reads it goes with that load once»;
   `PriceRangeTest` «a field left as it was loads nothing»;
   `PriceRangeTest` «a thumb released loads the range it was dragged to»;
   `PriceRangeTest` «a thumb at the end of the track is grabbed by its outer half»;
@@ -220,10 +225,11 @@ header says a load is on its way. Pages of a search are in [search](04-search.md
   - Step 2: each tick loads in place and the sheet stays open, drawn from the new results; while a tick is on its
     way the sheet's facets wait for it.
   - Step 3: the range applies and the sheet stays open; «Clear all» appears in the sheet. A tap on the sheet's
-    blank space instead of «Done» applies it too.
+    blank space instead of «Done» applies it too. A bound typed into «to» while the load «from» sent is on its way
+    stays in the field when that answer lands (B-134).
   - Step 4: the sheet closes over its results.
   - Step 5: × closes it without asking the server; back closes it too.
-- **Decided in:** B-54, B-63, B-69, B-102, B-118
+- **Decided in:** B-54, B-63, B-69, B-102, B-118, B-134
 - **Coverage:** `composeApp:DrawnActionsTest` «ticking two facets keeps the filter sheet open over the new results»;
   `composeApp:DrawnActionsTest` «the filter sheet follows nothing while the page its tick opened is on its way»;
   `composeApp:DrawnActionsTest` «show N items closes the filter sheet over its results»;
@@ -231,6 +237,7 @@ header says a load is on its way. Pages of a search are in [search](04-search.md
   `composeApp:DrawnActionsTest` «a page not opened from the filter sheet leaves it closed»;
   `PriceRangeTest` «the filter sheet applies a typed range and stays open over its results»;
   `PriceRangeTest` «a tap on the filter sheet's blank space applies a typed bound»;
+  `PriceRangeTest` «the filter sheet keeps a bound typed while the other bound loads»;
   `ClearAllTest` «the filter sheet says clear all only while a filter is applied»;
   golden `Catalog_FiltersSheet_Phone`
 
