@@ -593,7 +593,7 @@ page would gain or lose a section an `update` cannot add or take away — is `na
 | `GET /ui/parts/deals?page=…` | public | a page or «Show N more» between grids that start past the first page; to or from a grid with the first page, whose «Deals of the day» the others lack, the press is still `navigate` — «Show N more» from the first page included, which the shell draws behind the kept page (B-62) | `grid`, `pagination` |
 | `GET /ui/parts/account/orders?status=…` | customer (`401`) | a chip of the history | `account` |
 | `GET /ui/parts/account/saved?…` | customer (`401`) | a filter or a page of the Saved list | `account` |
-| `GET /ui/parts/p/{productId}?sku=…&tab=…&shown=…` | public | «Show more reviews», «Show more questions» (B-71): the tab listing ten more, `shown` from 10 to 500 | `reviews` or `questions`, the tab's node |
+| `GET /ui/parts/p/{productId}?sku=…&tab=…&stars=…&shown=…` | public | «Show more reviews», «Show more questions» (B-71): the tab listing ten more, `shown` from 10 to 500; a bar of the rating histogram, the bar pressed again or «All» (B-86): the reviews of `stars` (1 to 5), or every review | `reviews` or `questions`, the tab's node |
 
 **No press loads the page it is on** (B-102). What is already chosen carries no action — the selected kind or
 history chip, the sort shown, the rating ticked («Any rating» with none) — and «Clear all» is sent, and drawn, only
@@ -726,7 +726,8 @@ the tests' included, and the suite seeds about ninety databases: `:server:test` 
 821 s (`gradle` from 7–9 to 17 minutes). `Seeder.seedIfEmpty` takes `generatedReviews`, `true` unless a caller
 says otherwise; `seededFreshDatabase()` — a test's own database — passes `false` unless the test lists past the
 seed's own reviews (the review routes' «yours first» and «counted» cases, the review fixtures), and such a database
-keeps the catalogue's counts over the canvas's rows, with no histogram. The shared `SeededDatabase`, `SeedTest`
+keeps the catalogue's counts and histograms over the canvas's rows (the histograms since B-86, so a review written
+there moves the rating as on the stand). The shared `SeededDatabase`, `SeedTest`
 and `SeedReviewsTest` seed in full, and so does every start of the image: `main` never passes the switch, the
 stand and the e2e run `main`, and a database seeded without the fill gets every row on the next start that fills
 (`SeedReviewsTest`; the e2e reads the headphones' 2,341 and 86 off the image). CI's other failure of those days, `Could not create new connection` (haul#121),
@@ -740,6 +741,28 @@ delivered order line the link is «Your review», the product's reviews tab. «H
 while the viewer's vote is on it (`Review.helpfulVoted`), so the second press — which takes the vote back — is not
 a surprise. The question dialog says what happens: the question is shown, «Not answered yet»; nothing answers it,
 since there is no seller side.
+
+**Decided in B-86, a product's rating is its histogram's average.** The rating was the seed's number, moved by
+each new review from there, while the bars were counted from the rows: the headphones read «4.8» over the canvas's
+78 / 14 / 4 / 2 / 2 %, which average 4.64. Now the rows are the one source: `rating_counts` counts them and the
+rating is that histogram's average to a tenth, half up (`Ratings.average`), wherever either is written — a review
+stored, the seed's catalogue, and the seed's recount of a database. One of the canvas's two numbers had to move, and
+the bars moved: the seed's headphones are 1,966 / 281 / 47 / 24 / 23 reviews, 84 / 12 / 2 / 1 / 1 %, a 4.77, so the
+«4.8» every card, page and tab draws stays, and only Product_Reviews and its phone twin draw other bars than the
+canvas. The generated catalogue's ratings are their histograms' — a few reviews cannot make every drawn average,
+and one review of a «4.5» is a five or a four — and every generated product has at least one review: a rating with
+no stars under it agrees with nothing. A stand seeded before is turned into what a fresh seed writes on its next
+start: the generated rows past a product's target go with their votes, the missing ones are written, each dated as
+a fresh seed dates it, and every rating is recounted.
+
+**Decided in B-86, the reviews tab's two pictures are controls.** A bar of the histogram lists the reviews of its
+stars in place — kompot's `load` of the tab's address with `stars`, as «Show more» is — and «Showing 4-star reviews»
+with «All» says so; the bar drawn pressed, or «All», lists every review again. A bar nobody gave has nothing to list
+and is no press. The rating, the caption and the bars stay the product's whatever is listed; the viewer's own review
+leads the list only among its stars. A review's photo opens the review's photos over the page, one at a time, «‹» and
+«›» or the arrow keys between them, closed by «×», Escape or a press outside the photo — drawn in the storefront's
+own layer (`SheetOverPage`), for the reason B-126 found below, and each press named. The photos are still their
+placeholders' tones (D8; B-78 decides where pictures come from), so the viewer shows the tone large.
 
 ### D3. PostgreSQL; the access layer is chosen at scaffold
 
@@ -2235,7 +2258,8 @@ The canvas's *canvas/canvas.json* and the artboards hold the rest of the copy (p
 campaigns, reviews); the fixtures take it from there, not from this table.
 
 The headphones' histogram on Product_Reviews (78 / 14 / 4 / 2 / 2 % of 2,341) averages 4.6, not the 4.8
-every artboard writes. The seed keeps both as drawn — the histogram as counts (`rating_counts`), the
-average on the product — and a new review moves the average from the stored one rather than recounting
-it from the histogram (B-22). Since B-99 the seed stores every one of the 2,341 reviews and 86 questions, the
-histogram is counted from them, and the canvas's two reviews and three questions are the newest of each.
+every artboard writes. The seed kept both as drawn until B-86, which made the rating the histogram's average: the
+seed's bars are 84 / 12 / 2 / 1 / 1 % (1,966 / 281 / 47 / 24 / 23), a 4.8, and Product_Reviews is the one artboard
+pair whose bars the store does not draw. Since B-99 the seed stores every one of the 2,341 reviews and 86
+questions, the histogram is counted from them, and the canvas's two reviews and three questions are the newest of
+each.
