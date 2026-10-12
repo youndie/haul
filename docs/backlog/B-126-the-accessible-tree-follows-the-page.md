@@ -1,7 +1,7 @@
 ---
 id: B-126
 title: "fix: the accessible tree follows the page after a popup, and every button has a name"
-status: open
+status: wip
 priority: P2
 size: M
 stage: stage-12-qa-run

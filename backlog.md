@@ -48,7 +48,7 @@ A stage is a field on the item, not a directory.
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-112](docs/backlog/B-112-first-press-focuses-the-field.md) `[?]` | client: the first press on a text field focuses it | P1 | M | - |
-| [B-126](docs/backlog/B-126-the-accessible-tree-follows-the-page.md) `[ ]` | fix: the accessible tree follows the page after a popup, and every button has a name | P2 | M | - |
+| [B-126](docs/backlog/B-126-the-accessible-tree-follows-the-page.md) `[~]` | fix: the accessible tree follows the page after a popup, and every button has a name | P2 | M | - |
 | [B-122](docs/backlog/B-122-the-stand-reports-to-katcher.md) `[ ]` | ops: the stand's server reports to katcher | P3 | XS | - |
 | [B-78](docs/backlog/B-78-placeholders-on-the-stand.md) `[ ]` | server + client: the stand shows pictures, not placeholder labels | P3 | M | - |
 | [B-85](docs/backlog/B-85-canvas-behind-the-code.md) `[ ]` | design: the canvas draws what the store now has | P3 | M | - |
