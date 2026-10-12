@@ -80,7 +80,8 @@ internal class MenuEntry(
 /**
  * [control] opens [entries] as a menu under it, and an entry pressed closes it and runs its press — a
  * [LinkMenu]'s links, or a choice the client keeps itself (the search field's picker, B-72). [current] is the
- * entry drawn as chosen. With no entry to press, [control] is drawn as it is and opens nothing.
+ * entry drawn as chosen; pressed, it closes the menu even with nothing to run. With no entry to press, [control]
+ * is drawn as it is and opens nothing.
  */
 @Composable
 internal fun Menu(
@@ -124,7 +125,9 @@ internal fun Menu(
                         .padding(vertical = 6.dp),
                 ) {
                     entries.forEach { entry ->
-                        val press = entry.onPress
+                        // The entry already chosen has nothing to open — the sort's order shown — and closes the
+                        // menu, as any pick does (B-121).
+                        val press = entry.onPress ?: {}.takeIf { entry.label == current }
                         Text(
                             entry.label,
                             HaulType.text(15f, if (entry.label == current) 700 else 500),
