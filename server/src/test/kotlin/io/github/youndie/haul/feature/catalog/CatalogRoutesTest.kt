@@ -10,11 +10,13 @@ import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.tree
 import io.github.youndie.haul.ui.EmptyState
 import io.github.youndie.haul.ui.FacetPanel
+import io.github.youndie.haul.ui.FilteredResults
 import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.ProductGrid
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import java.net.URLEncoder
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -67,6 +69,29 @@ class CatalogRoutesTest {
         }
 
     /**
+     * B-133: a result of one product is «1 item», on the title and on the phone sheet's button, as the cart writes it;
+     * it read «1 items». The brand is one the facet counts a single product of, so the result is exactly one.
+     */
+    @Test
+    fun `a result of one product is one item`() =
+        haulTest {
+            val (path, brand) =
+                ONE_BRAND_PATHS.firstNotNullOf { path ->
+                    tree("/ui$path")
+                        .only<FacetPanel>()
+                        .facets
+                        .single { it.key == "brand" }
+                        .options
+                        .firstOrNull { it.count == 1 }
+                        ?.let { path to it.label }
+                }
+            val page = tree("/ui$path?brand=${URLEncoder.encode(brand, Charsets.UTF_8)}")
+            assertEquals(1, page.only<ProductGrid>().cards.size, "$brand in $path is not one product")
+            assertEquals("1 item", page.only<PageTitle>().count)
+            assertEquals("Show 1 item", page.only<FilteredResults>().showLabel)
+        }
+
+    /**
      * B-75: an option another filter has left with nothing to show — a count of 0 — carries no action, so the
      * client draws it faded and pressing it opens nothing; ticked, it keeps its action, which unticks it. The
      * rating's ticked option is the exception (B-102): a radio has nothing to untick, so it carries nothing.
@@ -115,4 +140,10 @@ class CatalogRoutesTest {
             assertEquals(ErrorCode.ValidationFailed, body.code)
             assertEquals("sort", body.field)
         }
+
+    private companion object {
+        /** Where a brand with a single product is looked for, in this order. */
+        val ONE_BRAND_PATHS =
+            listOf("/c/electronics/audio/headphones", "/c/electronics", "/c/home-kitchen", "/c/fashion", "/c/beauty")
+    }
 }

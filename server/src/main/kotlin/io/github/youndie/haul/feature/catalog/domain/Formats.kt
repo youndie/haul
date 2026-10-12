@@ -17,6 +17,9 @@ internal fun money(cents: Int): String {
 /** «2,341». */
 internal fun count(value: Int): String = GROUPED.format(value)
 
+/** «1 item», «0 items», «2,341 items»: a count of products said in words (B-133). */
+internal fun items(value: Int): String = if (value == 1) "1 item" else "${count(value)} items"
+
 /** «−22%», with the canvas's minus sign; `null` when there is no old price. */
 internal fun discount(
     priceCents: Int,

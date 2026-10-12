@@ -444,7 +444,7 @@
                     "items": [
                         {
                             "title": "Merino Wool Crewneck Sweater, Unisex",
-                            "details": "Moss · M · 1 × $80",
+                            "details": "Moss · M · 1 × $80",
                             "tone": "#FFE5DD",
                             "action": {
                                 "type": "navigate",
@@ -488,7 +488,7 @@
                     "items": [
                         {
                             "title": "Vitamin C Brightening Serum, 30 ml",
-                            "details": "30 ml · 1 × $23",
+                            "details": "30 ml · 1 × $23",
                             "tone": "#F1E4F5",
                             "action": {
                                 "type": "navigate",
@@ -565,14 +565,14 @@
                             {
                                 "position": 0,
                                 "title": "Merino Wool Crewneck Sweater, Unisex",
-                                "details": "Moss · M · 1 × $80",
+                                "details": "Moss · M · 1 × $80",
                                 "tone": "#FFE5DD",
                                 "refundCents": 8000
                             },
                             {
                                 "position": 1,
                                 "title": "Vitamin C Brightening Serum, 30 ml",
-                                "details": "30 ml · 1 × $23",
+                                "details": "30 ml · 1 × $23",
                                 "tone": "#F1E4F5",
                                 "refundCents": 2300
                             }

@@ -10,8 +10,8 @@ import io.github.youndie.haul.feature.catalog.domain.Filters
 import io.github.youndie.haul.feature.catalog.domain.Listed
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.Sort
-import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.descendants
+import io.github.youndie.haul.feature.catalog.domain.items
 import io.github.youndie.haul.feature.catalog.domain.lineage
 import io.github.youndie.haul.feature.catalog.domain.pathOf
 import io.github.youndie.haul.shell.Frame
@@ -103,7 +103,7 @@ internal class CatalogScreen(
                         it
                 },
             )
-        sections += PageTitle("title", category.name, "${count(page.total)} items")
+        sections += PageTitle("title", category.name, items(page.total))
         kinds(leafKinds, subcategories, categories, filters, url)?.let { sections += it }
         // What is applied is what has a chip, counted from the chips: «Filters 2» over one chip was a count
         // of filters two of which had none (B-102). «Clear all» goes only where there is something to clear.
@@ -147,7 +147,7 @@ internal class CatalogScreen(
                     id = "results",
                     facets = facets,
                     applied = applied,
-                    showLabel = "Show ${count(page.total)} items",
+                    showLabel = "Show ${items(page.total)}",
                     grid =
                         ProductGrid(
                             "grid",

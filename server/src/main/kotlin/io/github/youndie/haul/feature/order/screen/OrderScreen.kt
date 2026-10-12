@@ -578,11 +578,15 @@ private class OrderPage(
         )
     }
 
-    /** «Moss · M · 2 × $80»: the options, the quantity and the price of one as paid — not the line's total (B-91). */
+    /**
+     * «Moss · M · 2 × $80»: the options, the quantity and the price of one as paid — not the line's total (B-91). The
+     * quantity and its price are held together by no-break spaces (B-133): at 390 a line broke between «1» and
+     * «× $349»; the line now breaks only between the parts « · » separates.
+     */
     private fun details(line: OrderLine): String =
         listOfNotNull(
             view.products[line.skuId]?.options?.ifEmpty { null },
-            "${line.quantity} × ${money(line.unitCents)}",
+            "${line.quantity}$NO_BREAK×$NO_BREAK${money(line.unitCents)}",
         ).joinToString(" · ")
 
     /** When or where a shipment arrives, or that it did: the mono line at the right of its seller. */
@@ -605,12 +609,12 @@ private class OrderPage(
                     listOfNotNull(METHODS[placed.method], view.point?.name).joinToString(" · ")
                 } else {
                     val day = arrival(shipment) ?: today
-                    // On its way, the day is said as it is seen from today; before, with its date.
-                    val moving = shipment.status == ShipmentStatus.IN_TRANSIT
+                    // Tomorrow keeps its date whether the shipment is packed or on its way (B-133): the canvas's
+                    // Order_InTransit dropped it, and a page watched from packed to in transit lost it mid-order.
                     val label =
                         when (day) {
                             today -> "Today"
-                            today.plusDays(1) -> if (moving) "Tomorrow" else "Tomorrow, " + MONTH_DAY.format(day)
+                            today.plusDays(1) -> "Tomorrow, " + MONTH_DAY.format(day)
                             else -> DAY.format(day)
                         }
                     label + (slot?.takeIf { it.day == day }?.let { " · ${it.label}" }.orEmpty())
@@ -1003,6 +1007,9 @@ private class OrderPage(
 
     private companion object {
         val STORE = DeliveryCalendar.STORE
+
+        /** A space no line breaks at: «1 × $349» stays on one line ([details]). */
+        const val NO_BREAK = "\u00A0"
 
         val MONTH_DAY: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM d", Locale.US)
         val DAY: DateTimeFormatter = DateTimeFormatter.ofPattern("EEE, MMM d", Locale.US)
