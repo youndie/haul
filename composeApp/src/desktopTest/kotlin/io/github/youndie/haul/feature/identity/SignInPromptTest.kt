@@ -21,6 +21,7 @@ import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
 import io.github.youndie.haul.shell.SIGN_IN_PROMPT_LABEL
 import io.github.youndie.haul.shell.SIGN_IN_PROMPT_TAG
+import io.github.youndie.haul.shell.SIGN_IN_WORD
 import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.shell.ktorTransport
 import io.github.youndie.haul.theme.HaulTheme
@@ -107,7 +108,7 @@ class SignInPromptTest {
                     else -> error("nothing answers $path")
                 }
             }
-            onNodeWithText("This order needs a sign-in").assertExists()
+            onNodeWithText("This order needs a $SIGN_IN_WORD").assertExists()
 
             pressSignIn()
             waitUntil(timeoutMillis = 5_000) { exists(hasTestTag(REORDER_TAG)) }

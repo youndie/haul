@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
@@ -644,14 +645,7 @@ public fun NotFoundShell(
             Text(
                 accented(title, accent),
                 Modifier.widthIn(max = 900.dp),
-                style =
-                    HaulType
-                        .display(
-                            if (compact) 44f else 84f,
-                            800,
-                            letterSpacing = if (compact) -0.01f else -0.03f,
-                            lineHeight = 0.95f,
-                        ).copy(lineBreak = LineBreak.Simple),
+                style = notFoundTitle(compact),
             )
             Text(
                 text,
@@ -679,6 +673,17 @@ public fun NotFoundShell(
         }
     }
 }
+
+/** The title of a [NotFoundShell]: the display face, set large. */
+@Composable
+internal fun notFoundTitle(compact: Boolean): TextStyle =
+    HaulType
+        .display(
+            if (compact) 44f else 84f,
+            800,
+            letterSpacing = if (compact) -0.01f else -0.03f,
+            lineHeight = 0.95f,
+        ).copy(lineBreak = LineBreak.Simple)
 
 /** A product page before its tree: crumbs, the photo, the identity and the buy box as placeholders. */
 @Composable
