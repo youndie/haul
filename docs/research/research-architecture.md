@@ -801,6 +801,21 @@ and on the stand.
   answers `202` with kompot's `navigate` to `/account/orders/{id}` (the order's page, B-18) — placed, or
   cancelled because the card was declined. A saga whose process died is carried on by the application's sweeper once its row has been
   untouched for 60 s (`STUCK_AFTER`: twice petich's largest phase timeout, AUTHORIZATION's 30 s).
+- **The saga rides out a short database outage; the rest of the request does not (B-139).** Since B-127 a
+  request waits for a connection once, 2 s, and is then refused at once for 2 s (`FailFastDataSource`). Saga
+  work — placement's pass of the saga, its compensations, the sweeper — runs under `ConnectionPatience`
+  (`db/ConnectionPatience.kt`): it is not refused, and asks the pool again while its coroutine lives — petich
+  cancels a member at its phase timeout, EXECUTION's 10 s for every member here, the card's authorisation
+  included — and for at most `SAGA_CONNECTION_PATIENCE` (that same 10 s) per ask, the bound of the engine's
+  writes between members. Placement's pass waits `PLACEMENT_PATIENCE` (20 s) in all, so a shopper whose
+  database stays away hears in about that, not after every write's own wait. **The placement request is a
+  command until its saga starts**: a database already away when «Place order» is pressed is answered `503` in
+  seconds and spends nothing; one that goes away under the saga is waited for, because failing then
+  compensates an order the shopper meant to place. The pool opens connections through `ReconnectingDriver`,
+  which asks a refusing database again every 200 ms for up to 1 s, because Hikari's own retry sleeps up to 5 s
+  between tries and found a database back after a 5 s outage only at 10 s — past the member's phase.
+  Measured (`PlacementOutageTest`): 5 s down mid-member, placed, answered 6.4 s after the stop; 12 s down,
+  undone and answered 13.4 s after the stop; a page in either outage `503` in 2.0 s.
 - **The key is the customer's own**: the saga's id is a hash of the customer and the `Idempotency-Key`,
   and a key is claimed (petich-idempotency) only by a placement that passed the quote checks — a stale
   quote does not spend it. The same key with the same quote answers the saga's outcome again; with a

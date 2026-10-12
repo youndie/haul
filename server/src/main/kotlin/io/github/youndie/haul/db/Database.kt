@@ -2,8 +2,10 @@ package io.github.youndie.haul.db
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import com.zaxxer.hikari.util.DriverDataSource
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.jdbc.Database
+import java.util.Properties
 import javax.sql.DataSource
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -38,13 +40,24 @@ internal data class DatabaseConfig(
 }
 
 internal object Databases {
+    /**
+     * The pool. Its connections are opened by a [ReconnectingDriver] over the driver Hikari would have used for the
+     * URL itself, so a database back after an outage is found within a fraction of a second, not after Hikari's
+     * backoff (B-139).
+     */
     fun dataSource(config: DatabaseConfig): HikariDataSource =
         HikariDataSource(
             HikariConfig().apply {
-                jdbcUrl = config.url
-                username = config.user
-                password = config.password
-                driverClassName = "org.postgresql.Driver"
+                dataSource =
+                    ReconnectingDriver(
+                        DriverDataSource(
+                            config.url,
+                            "org.postgresql.Driver",
+                            Properties(),
+                            config.user,
+                            config.password,
+                        ),
+                    )
                 maximumPoolSize = config.maximumPoolSize
                 isAutoCommit = false
                 transactionIsolation = "TRANSACTION_READ_COMMITTED"
