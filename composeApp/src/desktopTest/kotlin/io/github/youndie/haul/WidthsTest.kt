@@ -85,7 +85,6 @@ class WidthsTest {
                         reviews = "1,204",
                         delivery = "Tomorrow",
                         tone = "#E3F5D8",
-                        label = "deal",
                     )
                 }
             atWidth { ProductGridView(ProductGrid("today", cards, columns = 6), gutter = 40.dp) }
@@ -120,7 +119,6 @@ class WidthsTest {
                     reviews = "1,204",
                     delivery = "Tomorrow",
                     tone = "#E3F5D8",
-                    label = "deal",
                 )
             atWidth { ProductGridView(ProductGrid("deals", listOf(card), columns = 6, scroll = true), gutter = 16.dp) }
             val struck = onAllNodesWithText("$277").fetchSemanticsNodes().single().boundsInRoot

@@ -438,7 +438,7 @@
                     "reviews": "940",
                     "delivery": "Tomorrow",
                     "tone": "#ECE9E2",
-                    "label": "keyboard",
+                    "image": "/images/art/p_computers_0_plain_ece9e2.9d0a8fa658.svg",
                     "action": {
                         "type": "navigate",
                         "deeplink": "/p/p-pick-7"
@@ -463,7 +463,7 @@
                     "reviews": "611",
                     "delivery": "Thu, Oct 9",
                     "tone": "#F1EBDD",
-                    "label": "coffee set",
+                    "image": "/images/art/p_mugs_1_plain_f1ebdd.b301d07a3b.svg",
                     "action": {
                         "type": "navigate",
                         "deeplink": "/p/p-pick-8"
@@ -490,7 +490,7 @@
                     "reviews": "1,388",
                     "delivery": "Thu, Oct 9",
                     "tone": "#FFE5DD",
-                    "label": "bedding",
+                    "image": "/images/art/p_duvet-covers_2_plain_ffe5dd.c87348d63a.svg",
                     "action": {
                         "type": "navigate",
                         "deeplink": "/p/p-pick-9"
@@ -515,7 +515,7 @@
                     "reviews": "2,702",
                     "delivery": "Tomorrow",
                     "tone": "#FFF1C9",
-                    "label": "toy",
+                    "image": "/images/art/p_kids-toys_0_plain_fff1c9.1a499ea52c.svg",
                     "action": {
                         "type": "navigate",
                         "deeplink": "/p/p-pick-10"
@@ -540,7 +540,7 @@
                     "reviews": "5,410",
                     "delivery": "Tomorrow",
                     "tone": "#E6E4FF",
-                    "label": "watch",
+                    "image": "/images/art/p_watches_1_plain_e6e4ff.b3e364bdd7.svg",
                     "action": {
                         "type": "navigate",
                         "deeplink": "/p/p-pick-11"
@@ -565,7 +565,7 @@
                     "reviews": "3,019",
                     "delivery": "Fri, Oct 10",
                     "tone": "#E3F5D8",
-                    "label": "yoga mat",
+                    "image": "/images/art/p_yoga-mats_2_plain_e3f5d8.ae575f359e.svg",
                     "action": {
                         "type": "navigate",
                         "deeplink": "/p/p-pick-12"

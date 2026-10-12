@@ -63,7 +63,7 @@ internal object ProductsTable : Table("products") {
     val headline = text("headline")
     val headlineAccent = text("headline_accent").nullable()
 
-    // V7: the key of the product's photo in the object storage; null is the placeholder tile.
+    // V7: the key of the product's photo in the object storage; null draws the product's picture (B-78).
     val imageKey = text("image_key").nullable()
 
     // V23: the month of sales the store holds no orders for, added to the live count (B-52); 0 but for the

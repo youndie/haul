@@ -163,20 +163,15 @@ private fun Photo(
             .aspectRatio(1f)
             .clip(RoundedCornerShape(radius)),
     ) {
-        // The stored photo (B-30) over the canvas's placeholder tile, which stays while there is none.
+        // The stored photo (B-30) or the product's picture (B-78) over the canvas's placeholder tile, which stays
+        // while there is none.
         PhotoOrPlaceholder(details.photo, Modifier.matchParentSize()) {
             Box(
                 Modifier
                     .fillMaxSize()
                     .background(toneColor(details.photoTone))
                     .hatching(period = 14f),
-            ) {
-                Text(
-                    details.photoLabel.uppercase(),
-                    HaulType.label(11f, 500, 0.06f).copy(color = HaulColors.tileLabel),
-                    Modifier.align(Alignment.BottomStart).padding(start = 20.dp, bottom = 20.dp),
-                )
-            }
+            )
         }
         details.badge?.let {
             Text(

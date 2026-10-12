@@ -49,7 +49,6 @@ class OutOfStockCardTest {
             reviews = "120",
             delivery = "Tomorrow",
             tone = "#E3F5D8",
-            label = "mug",
         )
 
     @Test

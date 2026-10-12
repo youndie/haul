@@ -10,6 +10,7 @@ import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog
 import io.github.youndie.haul.seed.SampleCustomers
+import io.github.youndie.haul.seed.SeedArt
 import io.github.youndie.haul.seed.SeedPhotos
 import io.github.youndie.haul.seed.Seeder
 import io.github.youndie.haul.testing.FulfilmentWorld
@@ -23,12 +24,15 @@ import io.github.youndie.haul.testing.liveTree
 import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.testing.tree
+import io.github.youndie.haul.ui.CampaignHero
 import io.github.youndie.haul.ui.CartLine
+import io.github.youndie.haul.ui.CategoryTile
 import io.github.youndie.haul.ui.CheckoutSummary
 import io.github.youndie.haul.ui.OrderBody
 import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.haul.ui.ProductGrid
+import io.github.youndie.haul.ui.PromoBanner
 import io.github.youndie.haul.ui.ReturnForm
 import io.github.youndie.haul.ui.SearchSuggestPanel
 import io.github.youndie.kompot.KompotComponent
@@ -49,15 +53,14 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 
 /**
  * B-30's acceptance on the server: a product with a stored photo carries its address on its card and
- * on its page, a product without one carries none — the client's cue to draw the placeholder tile — and
- * the address serves the stored bytes.
+ * on its page, and the address serves the stored bytes. A product without one carries its picture (B-78), the
+ * seed's illustration of its category, which the server draws and serves itself.
  */
 class PhotoRoutesTest {
     private val sony = SampleCatalog.SONY_HEADPHONES
@@ -83,7 +86,7 @@ class PhotoRoutesTest {
     }
 
     @Test
-    fun `a product with a stored photo carries its address and one without carries none`() =
+    fun `a product with a stored photo carries its address and one without carries its picture`() =
         haulTest(Photographed.dataSource, Photographed.store) {
             val details = tree("/ui/p/$sony").only<ProductDetails>()
             val url = assertNotNull(details.photo, "the product page has no photo")
@@ -97,9 +100,11 @@ class PhotoRoutesTest {
                     .cards
             assertEquals(url, deals.single { it.productId == sony }.image, "the card and the page disagree")
             val generated = deals.filter { it.productId !in sampleIds }
-            // Positive control: the row does hold products without photos, so «none» was looked for.
+            // Positive control: the row does hold products without photos, so their pictures were looked for.
             assertTrue(generated.isNotEmpty(), "no generated product among the deals")
-            assertTrue(generated.all { it.image == null }, "a product without a photo carries an address")
+            generated.forEach {
+                assertTrue(it.image.orEmpty().startsWith("/images/art/p_"), "${it.productId}: ${it.image}")
+            }
         }
 
     /**
@@ -128,7 +133,10 @@ class PhotoRoutesTest {
                 panel.products.forEach {
                     assertEquals(tree("/ui/p/${it.productId}").only<ProductDetails>().photo, it.image, it.productId)
                 }
-                assertTrue(panel.products.any { it.image != null }, "no suggested product has a photo")
+                assertTrue(
+                    panel.products.any { it.image.orEmpty().startsWith("/images/products/") },
+                    "no suggested product has a photo",
+                )
             }
             // Delivered, so the order also offers «Return items», whose lines drew the bare tone tile (B-136).
             val clock = TestClock()
@@ -189,15 +197,67 @@ class PhotoRoutesTest {
         }
 
     /**
-     * Object storage is optional: a server without it shows no photo, even for a product whose row
-     * still has a key — an address that cannot load would only delay the placeholder.
+     * Object storage is optional: a server without it — the stand — shows no stored photo, even for a product whose
+     * row still has a key — an address that cannot load would only delay the placeholder — and every product carries
+     * its picture instead (B-78), which needs no storage: its address answers the SVG.
      */
     @Test
-    fun `without object storage no product carries a photo`() =
+    fun `without object storage every product carries its picture`() =
         haulTest(Photographed.dataSource, photoStore = null) {
-            assertNull(tree("/ui/p/$sony").only<ProductDetails>().photo)
+            val photo = assertNotNull(tree("/ui/p/$sony").only<ProductDetails>().photo)
+            assertTrue(photo.startsWith("/images/art/p_headphones_"), photo)
             val cards: List<ProductCard> = tree("/ui/home").all().filterIsInstance<ProductGrid>().flatMap { it.cards }
             assertTrue(cards.any { it.productId == sony }, "the sample product is not on the home page")
-            assertTrue(cards.all { it.image == null })
+            cards.forEach {
+                assertTrue(
+                    it.image.orEmpty().startsWith("/images/art/p_"),
+                    "${it.productId}: ${it.image}",
+                )
+            }
+            val response = get(photo)
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertTrue(response.bodyAsText().startsWith("<svg "), "not a picture")
+        }
+
+    /**
+     * B-78: a picture is drawn by the server and served from its own origin as SVG, for good — its name carries its
+     * content's hash — and as a document that may run and load nothing, should it be opened on its own.
+     */
+    @Test
+    fun `a picture address serves the drawn SVG for good`() =
+        haulTest(Photographed.dataSource, photoStore = null) {
+            val home = tree("/ui/home").all()
+            val tile = home.filterIsInstance<CategoryTile>().first()
+            val hero = assertNotNull(home.filterIsInstance<CampaignHero>().single().image, "the hero has no picture")
+            val banners = home.filterIsInstance<PromoBanner>()
+            assertEquals(
+                listOf(true, false),
+                banners.map { it.image != null },
+                "Tech week's banner has a picture, Free delivery weekend's has no place for one: ${banners.map {
+                    it.id
+                }}",
+            )
+            for (url in listOfNotNull(tile.image, hero, banners.first().image)) {
+                val response = get(url)
+                assertEquals(HttpStatusCode.OK, response.status, url)
+                assertEquals(ContentType.Image.SVG, response.contentType()?.withoutParameters(), url)
+                assertEquals("public, max-age=31536000, immutable", response.headers[HttpHeaders.CacheControl])
+                assertEquals("nosniff", response.headers["X-Content-Type-Options"])
+                assertEquals("default-src 'none'", response.headers["Content-Security-Policy"])
+                val name = url.substringAfterLast('/')
+                assertEquals(SeedArt.svg(name), response.bodyAsText(), url)
+            }
+        }
+
+    /** A name the seed draws no picture for — a changed hash, an unknown object, a path out — is 404, as a photo is. */
+    @Test
+    fun `a picture that is not the seed's is 404`() =
+        haulTest(Photographed.dataSource, photoStore = null) {
+            val url = assertNotNull(tree("/ui/p/$sony").only<ProductDetails>().photo)
+            assertEquals(HttpStatusCode.OK, get(url).status, "the control picture is not served")
+            val stale = url.substringBeforeLast('.').substringBeforeLast('.') + ".0000000000.svg"
+            assertEquals(HttpStatusCode.NotFound, get(stale).status)
+            assertEquals(HttpStatusCode.NotFound, get("/images/art/p_nothing_0_plain_e6e4ff.0000000000.svg").status)
+            assertEquals(HttpStatusCode.NotFound, get("/images/art/../products/nobody/0000000000000000.png").status)
         }
 }

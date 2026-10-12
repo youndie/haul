@@ -159,7 +159,7 @@ internal object CatalogSeed {
         }
 
     /** 32 top-level categories, two subcategories each, two leaves under each subcategory. */
-    private fun categories(): List<SeedCategory> {
+    fun categories(): List<SeedCategory> {
         val all = mutableListOf<SeedCategory>()
         TOP_LEVEL.forEachIndexed { i, name ->
             val top = slugOf(name)

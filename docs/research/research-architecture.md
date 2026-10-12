@@ -284,7 +284,7 @@ page drew one way and another page another; each line was fixed, or the differen
 - **An active order's card opens its order wherever it is pressed**, as a history row does (B-74); «Details ›»
   says what the press does.
 - **Every tile of a product carries its stored photo** (D8): a cart line, checkout's lines, an order's lines, the
-  suggest panel's products.
+  suggest panel's products — or, since B-78, its picture where no photo is stored.
 - **A cancelled order says «Back to cart» once**, in its notice beside the reason; the summary's second one is
   gone (`OrderTotals.back` with it). The notice is the first thing a phone draws, and every other way on of an
   order page is the summary's only because no notice is there.
@@ -425,7 +425,7 @@ Three bands now, chosen by the page's width (`HaulThemeAtWidth`, `App.kt`):
   header is 261 px, not 185; the page's static frame draws it so). The cart's lines are the phone's beside the
   summary; the product's buy box goes under its title, beside the photo, and its facts under the copy;
   checkout's summary under its sections; the account's tiles one under another and its history rows the
-  phone's; a search's kinds scroll sideways; a banner's title is 32 px and its placeholder tile is left out.
+  phone's; a search's kinds scroll sideways; a banner's title is 32 px and its picture is left out.
 - **At every desktop width, what does not fit is fitted**: the header's category row draws the words that fit
   whole and keeps «HAUL PLUS» at its end («Catalog» lists every category); a grid takes as many cards of
   168 px as fit (four at 1024) up to the columns the tree asks for; the campaign's figure, the footer's
@@ -762,7 +762,8 @@ and is no press. The rating, the caption and the bars stay the product's whateve
 leads the list only among its stars. A review's photo opens the review's photos over the page, one at a time, «‹» and
 «›» or the arrow keys between them, closed by «×», Escape or a press outside the photo — drawn in the storefront's
 own layer (`SheetOverPage`), for the reason B-126 found below, and each press named. The photos are still their
-placeholders' tones (D8; B-78 decides where pictures come from), so the viewer shows the tone large.
+placeholders' tones (D8: B-78 drew pictures for the products, the categories and the sale, not for shoppers'
+photos), so the viewer shows the tone large.
 
 ### D3. PostgreSQL; the access layer is chosen at scaffold
 
@@ -1723,6 +1724,37 @@ address: a cart line, checkout's «Your order», an order's line and the suggest
 stored one is wired; since B-136 so does a line of the return dialog (`ReturnLine.image`), which B-108 had left
 out of its list.
 
+**Decided in B-78: the seed's own pictures, drawn and served by the server.** The owner chose (2026-10-12) flat SVG
+illustrations in the canvas's style over licensed stock or generated images: no licence, nothing off the store's
+origin (B-128). The stand runs without object storage, so nothing is stored either: `SeedArt`
+(`server/…/seed/SeedArt.kt`, the objects in `SeedMotifs.kt`, the writer in `Svg.kt`) draws each picture on request
+from what names it, and the photo route serves it under `/images/art/<name>.svg` — `image/svg+xml`, a year's
+`immutable`, `nosniff` and `Content-Security-Policy: default-src 'none'`.
+
+- **What is drawn.** A product is its category's object — one each for the sample catalog's twelve leaves
+  (headphones, speakers, TVs, …, dumbbells) and one for every other top-level category (Shoes shares the running
+  shoe; Electronics, Home & Kitchen and Sports draw a leaf of theirs), found by walking up the seed's tree; a category the seed does not know is a parcel — in its SKU's colour (the seed's ten colours have
+  swatches; any other draws the object's own), over its tile tone with the canvas's hatching, in one of three
+  compositions chosen by its id. So the products of one category share a picture set and differ by colour and
+  composition, and the product page's picture changes with the chosen SKU. A category's tile is its object, plain.
+  The hero of the Autumn mega sale is falling leaves in Cobalt's shades, white and Hot (the hero's Acid figure runs
+  across it); Tech week's banner a laptop. Free delivery weekend's banner has no picture place on the canvas and
+  draws none.
+- **A stored photo still wins** (`ProductPhotos.url`): the pictures are what a product without one carries, so a
+  store with object storage shows its sample products' photos and the rest's pictures on the same page.
+- **A name carries the content's hash** (`p_headphones_1_silver_e6e4ff.3f1c9a0e5b.svg`): the route draws the name
+  again and serves it only while the hash matches, so a name always means the same bytes, and a name from before a
+  change of the drawings is a 404 — the client keeps its tile — instead of another picture.
+- **The client draws them with Coil's SVG decoder** (`coil-svg`, over the Skia SVG renderer skiko's wasm already
+  carries) in the same loader as the photos, over the same tiles; the tiles lost their captions («CAMPAIGN IMAGE»,
+  «TECH», «HEADPHONES», «PRODUCT PHOTO»), which only described the missing picture, and with them the wire's `label`
+  fields (`ProductCard`, `CategoryTile`, `CampaignHero`, `PromoBanner` — `image` there now — `CartLine`, `SummaryItem`,
+  `ProductSuggestion`, `ProductDetails.photoLabel`). SVG rather than a PNG the server rasterises: measured in D9
+  («Measured in B-78»).
+- **The goldens draw the pictures.** The screenshot fixtures draw every `/images/art/…` a body names from
+  `composeApp/src/desktopTest/resources/art` at once (`ArtLoader`), and `ArtFixturesTest` holds that directory to what
+  the server draws under each name, so a golden shows what a shopper gets.
+
 ### D9. No server rendering, no SEO
 
 A Compose canvas page is not indexable and its first load is dominated by the runtime. Accepted for
@@ -1976,6 +2008,81 @@ first GL call in 254).
 The app's first frame does not move (+0.1 % on Fast 4G, −0.1 % on Slow 4G, inside the 5 % the item allowed);
 the kilobyte the page grew by is not visible in it. What D9 says about the bytes stands: the shopper still waits
 the bundle's whole transfer for the store itself, now looking at its header.
+
+#### Measured in B-78
+
+**What changed.** The storefront draws pictures where it drew captioned tiles (D8, «Decided in B-78»): on the home page
+a guest sees sixteen — the hero, Tech week's banner, eight category tiles, six deals — each an `/images/art/…svg` the
+server draws, fetched after the page's tree, decoded by Coil's SVG decoder. Two questions, both on the first load:
+what the pictures cost, and whether the client should decode SVG or the server send a PNG.
+
+**How.** On 2026-10-13, B-34's `image` arm of B-28's harness with `--stop-after 20` (the storefront never goes quiet)
+and two additions (`scripts/measure-first-load.py`): every run reports the pictures the page asked for, the bytes they
+took on the link, the last one's last byte and the first GL frame after it («pictures frame»), from Resource Timing and
+the probe; and `--art pass|png` puts a relay of the script's own between the browser and the image — `pass` relays as
+it is, `png` answers every `/images/art/*.svg` with a PNG of it at its own size (240 × 240, the hero 360 × 560),
+rasterised once by a Chromium of its own — the bytes a server that rasterised its pictures would send. Three arms, each
+through the relay: **before** — the image of `origin/main` at `2ea55753` (`haul/server:b78-before`, `sha256:edae3bde…`),
+captioned tiles; **svg** — this branch (`haul/server:b78`, `sha256:2488b91e…`); **png** — the same image, its pictures
+rasterised. Each beside a seeded PostgreSQL, so the page draws Home from the server; a guest, 1440 × 900 at 1×. Same
+Chromium (Chrome for Testing 149.0.7827.55), profiles and rounds as B-28 (seven, round 1 discarded, median (min–max) of
+six); the shared Linux build machine at a 1-minute load average of 0.4–9.0 (most runs under 5). Skiko's `.wasm` is the
+same file in all three (`bfa5198f…`).
+
+**Bytes.** The app's `.wasm` (raw / gzip -9 / brotli q11, bytes): `origin/main` 5,768,950 / 1,759,208 / 1,292,497;
+this branch 5,776,230 / 1,761,865 / 1,294,656 — +2.1 KiB brotli. A third build, this branch without `coil-svg` (a
+throwaway copy), is 5,767,758 / 1,759,050 / 1,292,312: the decoder alone is +8.3 KiB raw, +2.3 KiB brotli, and the rest
+of the change −0.2 KiB. The home page's sixteen pictures are 24 KiB as SVG (sent uncompressed: the server compresses
+only the bundle's files) and 143 KiB as PNG at their own size — a lower bound for PNG, whose 2× for a sharp picture on a
+2× screen would be larger still, while one SVG is sharp at every size.
+
+| Arm | Profile | Transferred KiB | First frame | Pictures | Pictures frame |
+|---|---|---:|---:|---:|---:|
+| before | none | 4,344 | 501 (472–602) | — | — |
+| before | Fast 4G | 4,344 | 4,784 (4,763–4,842) | — | — |
+| before | Slow 4G | 4,344 | 24,266 (24,235–24,333) | — | — |
+| svg | none | 4,372 | 529 (464–566) | 16, 24 KiB | 861 (825–1,097) |
+| svg | Fast 4G | 4,372 | 4,920 (4,818–5,140) | 16, 24 KiB | 6,035 (5,872–6,319) |
+| svg | Slow 4G | 4,372 | 24,387 (24,283–24,435) | 16, 24 KiB | 28,514 (28,419–28,611) |
+| png | none | 4,490 | 570 (535–834) | 16, 143 KiB | 832 (817–1,201) |
+| png | Fast 4G | 4,490 | 4,903 (4,764–4,944) | 16, 143 KiB | 6,096 (5,951–6,176) |
+| png | Slow 4G | 4,490 | 24,380 (24,306–24,474) | 16, 143 KiB | 28,864 (28,788–28,987) |
+
+The raw values, rounds 1–7 (round 1 discarded), first frame | pictures frame:
+
+| Arm | Profile | First frame | Pictures frame |
+|---|---|---|---|
+| before | none | 480 483 543 490 512 472 602 | — |
+| before | Fast 4G | 4821 4786 4773 4763 4842 4788 4783 | — |
+| before | Slow 4G | 24283 24333 24245 24285 24288 24247 24235 | — |
+| svg | none | 450 528 566 464 514 530 560 | 919 825 893 837 842 1097 881 |
+| svg | Fast 4G | 4930 4933 4818 4918 5140 4830 4922 | 6055 6059 5872 6011 6319 5894 6072 |
+| svg | Slow 4G | 24554 24423 24324 24435 24283 24350 24427 | 28685 28539 28462 28611 28419 28488 28575 |
+| png | none | 636 535 652 588 549 834 551 | 925 817 1023 825 839 1201 819 |
+| png | Fast 4G | 4916 4896 4822 4910 4913 4764 4944 | 6145 6130 5976 6124 6067 5951 6176 |
+| png | Slow 4G | 24395 24349 24474 24429 24362 24306 24399 | 28883 28818 28987 28886 28788 28842 28922 |
+
+Controls, in every arm's log: with every `.wasm` blocked the probe saw no GL call and the static frame stayed; the
+profiles came out in order; Slow 4G's first frame lies above its non-font bytes ÷ bandwidth (22.2 s); the all-bytes
+floor fails as B-28 found (the first frame does not wait for the fonts); no void run.
+
+**What it says.**
+
+- *The pictures cost the first frame nothing it can be told from.* They are asked for once the tree arrives, after the
+  first frame, so what precedes it is the bundle, which grew 2.1 KiB brotli (≈ 12 ms at Slow 4G's bandwidth). The
+  medians moved by +0.5 % on Slow 4G and +2.8 % on Fast 4G, with the arms' ranges overlapping, and the png arm — the
+  same bundle — sits within 20 ms of the svg arm in both; not a property of the change to better than the shared
+  machine's spread.
+- *The pictures are on screen 4.1 s after the first frame on Slow 4G, 1.1 s on Fast 4G, 0.3 s on loopback* (svg):
+  they queue behind the fonts, which are fetched at the same moment and take the link until 27.6 s on Slow 4G; the last
+  picture lands 0.9 s after them.
+- *SVG is the cheaper way to send them.* The PNGs are 119 KiB more for the same sixteen pictures (×5.9) and put them on
+  screen 0.35 s later on Slow 4G (28.9 s against 28.5 s) and 0.06 s later on Fast 4G; on loopback, where bytes are free,
+  the two are within the spread (0.83 s against 0.86 s). Against that the decoder's 2.3 KiB brotli is paid before the
+  first frame — 13 ms at Slow 4G's bandwidth, 2 ms at Fast 4G's — once, and then cached with the bundle (the `.wasm` is
+  `immutable`). Decided: the client decodes SVG.
+- *Levers, not taken:* the server sends the SVGs uncompressed (`gzip -9` would make the 24 KiB about a third); and a
+  repeat visit asks for none of them (`immutable`), which only the first load here does not show.
 
 ### D10. Documentation in English
 

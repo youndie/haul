@@ -23,25 +23,88 @@ internal interface PhotoStore {
 }
 
 /**
+ * The pictures a product, a category or a campaign is drawn with when no photo is stored for it (B-78): the
+ * seed's own illustrations ([io.github.youndie.haul.seed.SeedArt]), drawn by the server and served from its own
+ * origin. Each answer is a picture's name under [ProductPhotos.ART]; the name carries the picture's content hash,
+ * so a picture never changes under its name and the route may cache it for good.
+ */
+internal interface Illustrations {
+    /** [product]'s picture in [colour] — its SKU's `colour` option, or `null` for the motif's own. */
+    fun product(
+        product: Product,
+        colour: String?,
+    ): String
+
+    /** [category]'s tile. */
+    fun category(category: Category): String
+
+    /** The hero's picture for [campaign], or `null` when there is none for it. */
+    fun hero(campaign: Campaign): String?
+
+    /** A banner's picture for [campaign], or `null` when its banner draws none. */
+    fun banner(campaign: Campaign): String?
+
+    /** The SVG named [name], or `null` when [name] names no current picture. */
+    fun svg(name: String): String?
+}
+
+/**
  * The product photos as the screens and the photo route see them. [store] is `null` when the server
- * has no object storage configured: then no product has a photo, whatever its row says, and every tile
- * is the placeholder — a key left behind in the database must not become an address that cannot load.
+ * has no object storage configured: then no product has a stored photo, whatever its row says — a key left
+ * behind in the database must not become an address that cannot load — and every product is drawn with its
+ * picture from [art] (B-78), as is every product without a stored photo when there is a store. A stored
+ * photo always wins.
  */
 internal class ProductPhotos(
     private val store: PhotoStore?,
+    private val art: Illustrations,
 ) {
-    /** Where [product]'s photo is served, relative to the server; `null` draws the placeholder tile. */
-    fun url(product: Product): String? = product.imageKey?.takeIf { store != null && servable(it) }?.let { "$PATH/$it" }
+    /**
+     * Where [product]'s photo is served, relative to the server: the stored photo when there is one, else its
+     * picture in [sku]'s colour (B-78).
+     */
+    fun url(
+        product: Product,
+        sku: Sku?,
+    ): String = stored(product) ?: "$PATH/$ART${art.product(product, sku?.options?.get(COLOUR))}"
 
-    /** The photo under [key], or `null` when there is no store, the key is not a photo's, or nothing is there. */
-    suspend fun read(key: String): StoredPhoto? = store?.takeIf { servable(key) }?.get(key)
+    /** [category]'s tile picture. */
+    fun category(category: Category): String = "$PATH/$ART${art.category(category)}"
+
+    /** The hero's picture for [campaign], or `null`: the hero keeps its hatching. */
+    fun hero(campaign: Campaign): String? = art.hero(campaign)?.let { "$PATH/$ART$it" }
+
+    /** A banner's picture for [campaign], or `null`: the banner draws no picture. */
+    fun banner(campaign: Campaign): String? = art.banner(campaign)?.let { "$PATH/$ART$it" }
+
+    private fun stored(product: Product): String? =
+        product.imageKey?.takeIf { store != null && servable(it) }?.let { "$PATH/$it" }
+
+    /**
+     * What is under [key]: a stored photo, or a picture when [key] is under [ART]; `null` when there is no store,
+     * the key is neither, or nothing is there.
+     */
+    suspend fun read(key: String): StoredPhoto? =
+        if (key.startsWith(ART)) {
+            art.svg(key.removePrefix(ART))?.let { StoredPhoto(it.encodeToByteArray(), SVG) }
+        } else {
+            store?.takeIf { servable(key) }?.get(key)
+        }
 
     companion object {
         /** The route the photos are served under. */
         const val PATH = "/images"
 
-        /** The prefix every product photo is stored under; the route serves nothing outside it. */
+        /** The prefix every product photo is stored under; the route serves nothing outside it but [ART]. */
         const val PREFIX = "products/"
+
+        /** The prefix the pictures are served under (B-78); nothing is stored there. */
+        const val ART = "art/"
+
+        /** What the pictures are sent as. */
+        const val SVG = "image/svg+xml"
+
+        private const val COLOUR = "colour"
 
         private val KEY = Regex("""[a-z0-9][a-z0-9._-]*(/[a-z0-9][a-z0-9._-]*)*""")
 

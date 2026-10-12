@@ -17,6 +17,7 @@ import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
 import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
 import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
 import io.github.youndie.haul.seed.SampleCustomers
+import io.github.youndie.haul.seed.SeedArt
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.testing.CANVAS_NOW
 import io.github.youndie.haul.testing.seededFreshDatabase
@@ -61,7 +62,14 @@ class CartFixturesTest {
     private val carts = ExposedCartRepository(database)
     private val commands = CartCommands(carts, catalog, CANVAS_NOW)
     private val screen =
-        CartScreen(carts, commands, catalog, DeliveryCalendar(CANVAS_NOW::now), CANVAS_NOW, ProductPhotos(null))
+        CartScreen(
+            carts,
+            commands,
+            catalog,
+            DeliveryCalendar(CANVAS_NOW::now),
+            CANVAS_NOW,
+            ProductPhotos(null, SeedArt),
+        )
     private val maya = CartOwner.Customer(SampleCustomers.MAYA, plus = true)
     private val mayaLooking =
         Viewer(

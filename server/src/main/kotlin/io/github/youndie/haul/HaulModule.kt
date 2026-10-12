@@ -53,6 +53,7 @@ import io.github.youndie.haul.ops.ObservabilitySettings
 import io.github.youndie.haul.ops.installObservability
 import io.github.youndie.haul.ops.probes
 import io.github.youndie.haul.seed.SaleRedater
+import io.github.youndie.haul.seed.SeedArt
 import io.github.youndie.petich.PetichClock
 import io.github.youndie.petich.SuspendedPetichSweeper
 import io.github.youndie.shildik.oidc.JWT_AUTH_OIDC
@@ -98,7 +99,7 @@ internal fun interface StoreClock {
  * address whose query does not decode is the page too, answered before routing ([PageAtAnyQuery], B-117).
  *
  * [photoStore] is the object storage product photos are kept in (B-30); `null` — no storage
- * configured — serves no photos, and every tile is the placeholder.
+ * configured — serves no stored photos, and every product is drawn with the seed's picture of it (B-78).
  *
  * [sagaClock] is the order saga's clock (B-16): a wall clock, apart from [clock], because what it
  * stamps is compared across processes — the sweeper takes a saga untouched for a minute as abandoned
@@ -141,7 +142,7 @@ internal fun Application.haulModule(
                 single { sagaClock }
                 single { fulfilment.pace }
                 single { DeliveryCalendar(clock::now) }
-                single { ProductPhotos(photoStore) }
+                single { ProductPhotos(photoStore, SeedArt) }
                 single { observers.trail }
                 single { testCard }
             },

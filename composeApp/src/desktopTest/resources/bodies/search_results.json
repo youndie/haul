@@ -93,7 +93,7 @@
     {
      "id": "card-1",
      "productId": "p-1", "add": {"url": "/api/v1/cart/lines/p-1-0?answer=card", "change": {"quantity": 1}},
-     "label": "shoes",
+     "image": "/images/art/p_running-shoes_2_plain_fff1c9.d7ab61c742.svg",
      "badge": "−26%",
      "price": "$89",
      "oldPrice": "$120",
@@ -106,7 +106,7 @@
     {
      "id": "card-2",
      "productId": "p-2", "add": {"url": "/api/v1/cart/lines/p-2-0?answer=card", "change": {"quantity": 1}},
-     "label": "shoes",
+     "image": "/images/art/p_running-shoes_0_plain_e0eef7.d915eefd31.svg",
      "price": "$112",
      "title": "Cloudline Daily Trainer, Women's",
      "rating": "4.8",
@@ -117,7 +117,7 @@
     {
      "id": "card-3",
      "productId": "p-3", "add": {"url": "/api/v1/cart/lines/p-3-0?answer=card", "change": {"quantity": 1}},
-     "label": "shoes",
+     "image": "/images/art/p_running-shoes_1_plain_e3f5d8.6ae932e1c4.svg",
      "badge": "−40%",
      "price": "$72",
      "oldPrice": "$120",
@@ -130,7 +130,7 @@
     {
      "id": "card-4",
      "productId": "p-4", "add": {"url": "/api/v1/cart/lines/p-4-0?answer=card", "change": {"quantity": 1}},
-     "label": "shoes",
+     "image": "/images/art/p_running-shoes_2_plain_ffe5dd.5ecaa9fb69.svg",
      "price": "$189",
      "title": "Tempo Carbon Racing Shoes, Unisex",
      "rating": "4.6",
@@ -141,7 +141,7 @@
     {
      "id": "card-5",
      "productId": "p-5", "add": {"url": "/api/v1/cart/lines/p-5-0?answer=card", "change": {"quantity": 1}},
-     "label": "shoes",
+     "image": "/images/art/p_running-shoes_0_plain_f1e4f5.0cfd783429.svg",
      "badge": "−25%",
      "price": "$64",
      "oldPrice": "$85",
@@ -154,7 +154,7 @@
     {
      "id": "card-6",
      "productId": "p-6", "add": {"url": "/api/v1/cart/lines/p-6-0?answer=card", "change": {"quantity": 1}},
-     "label": "shoes",
+     "image": "/images/art/p_running-shoes_1_plain_ece9e2.d2fbfc63e4.svg",
      "price": "$129",
      "title": "Stride Max Cushion Running Shoes, Men's Wide",
      "rating": "4.7",
@@ -165,7 +165,7 @@
     {
      "id": "card-7",
      "productId": "p-7", "add": {"url": "/api/v1/cart/lines/p-7-0?answer=card", "change": {"quantity": 1}},
-     "label": "shoes",
+     "image": "/images/art/p_running-shoes_2_plain_fff1c9.d7ab61c742.svg",
      "badge": "−21%",
      "price": "$38",
      "oldPrice": "$48",
@@ -178,7 +178,7 @@
     {
      "id": "card-8",
      "productId": "p-8", "add": {"url": "/api/v1/cart/lines/p-8-0?answer=card", "change": {"quantity": 1}},
-     "label": "shoes",
+     "image": "/images/art/p_running-shoes_0_plain_e3f5d8.b54b2b1309.svg",
      "price": "$98",
      "title": "Summit Trail Runner, Women's",
      "rating": "4.6",
@@ -189,7 +189,7 @@
     {
      "id": "card-9",
      "productId": "p-9", "add": {"url": "/api/v1/cart/lines/p-9-0?answer=card", "change": {"quantity": 1}},
-     "label": "shoes",
+     "image": "/images/art/p_running-shoes_1_plain_e6e4ff.6c36a9a31e.svg",
      "badge": "−32%",
      "price": "$54",
      "oldPrice": "$79",
@@ -202,7 +202,7 @@
     {
      "id": "card-10",
      "productId": "p-10", "add": {"url": "/api/v1/cart/lines/p-10-0?answer=card", "change": {"quantity": 1}},
-     "label": "shoes",
+     "image": "/images/art/p_running-shoes_2_plain_e0eef7.930f2de63a.svg",
      "badge": "−26%",
      "price": "$89",
      "oldPrice": "$120",

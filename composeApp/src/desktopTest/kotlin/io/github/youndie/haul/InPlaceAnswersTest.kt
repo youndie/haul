@@ -449,7 +449,6 @@ class InPlaceAnswersTest {
                         reviews = "420",
                         delivery = "Tomorrow",
                         tone = "#E3F5D8",
-                        label = "mug",
                         action = NavigateAction("/p/p-$index"),
                         add = if (index == 0) LineCommand(LINE, LineChange(quantity = 1)) else null,
                     )

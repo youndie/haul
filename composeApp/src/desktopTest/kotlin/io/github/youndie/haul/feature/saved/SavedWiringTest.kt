@@ -232,7 +232,6 @@ class SavedWiringTest {
             reviews = "10",
             delivery = "Tomorrow",
             tone = "#ECE9E2",
-            label = "product",
         )
 
     /** A line whose tag is the one the cart's view gives its SKU's «Save for later». */
@@ -244,7 +243,6 @@ class SavedWiringTest {
             title = "",
             options = "",
             tone = "",
-            label = "",
             price = "",
             quantity = 1,
             maxQuantity = 1,

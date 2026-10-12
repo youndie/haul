@@ -267,9 +267,8 @@ internal class CheckoutScreen(
                         quantity = it.stored.quantity,
                         price = money(it.totalCents),
                         tone = it.item.product.tone,
-                        label = it.item.product.label,
                         action = productLink(it.item.product.id),
-                        image = photos.url(it.item.product),
+                        image = photos.url(it.item.product, it.sku),
                     )
                 },
             rows =

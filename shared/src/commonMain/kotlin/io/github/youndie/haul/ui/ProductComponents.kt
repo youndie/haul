@@ -70,9 +70,9 @@ public data class SellerSummary(
  * [bought] is «12K bought this month» under the rating, already abbreviated by the server (B-52); absent
  * for a product bought fewer than 50 times in the last 30 days.
  *
- * [photo] is where the product's stored photo is served (research D8, B-30): drawn as the shown photo
- * and the first thumbnail, over the placeholder tile of [photoTone], which stays whenever the photo is
- * absent, loading or failed.
+ * [photo] is where the product's stored photo is served (research D8, B-30), or its picture in the shown SKU's
+ * colour (B-78): drawn over the placeholder tile of [photoTone], which stays whenever the photo is absent,
+ * loading or failed. The tile says nothing: a caption that only described the missing picture went with B-78.
  *
  * The heart over the photo — and «Save» beside an out-of-stock product's buttons — is the Saved list's
  * (B-20), as on a card: drawn filled when [saved]; for a customer [heartCommand], for a guest
@@ -95,7 +95,6 @@ public data class ProductDetails(
     val productId: String,
     val skuId: String,
     val photoTone: String,
-    val photoLabel: String,
     val badge: String? = null,
     val brand: String,
     val title: String,

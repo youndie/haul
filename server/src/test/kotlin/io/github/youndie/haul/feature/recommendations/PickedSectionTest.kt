@@ -12,6 +12,7 @@ import io.github.youndie.haul.feature.recommendations.domain.ProductViews
 import io.github.youndie.haul.feature.recommendations.domain.RecordView
 import io.github.youndie.haul.feature.recommendations.screen.PickedSection
 import io.github.youndie.haul.haulWireJson
+import io.github.youndie.haul.seed.SeedArt
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.testing.CANVAS_NOW
 import io.github.youndie.haul.testing.SeededDatabase
@@ -47,7 +48,7 @@ class PickedSectionTest {
         PickedSection(
             PickedForYou(views, ExposedPickSources(database), catalog),
             DeliveryCalendar(CANVAS_NOW::now),
-            ProductPhotos(null),
+            ProductPhotos(null, SeedArt),
         )
 
     /** The scenario «Guest»: no block, and nothing is asked about a guest's views. */

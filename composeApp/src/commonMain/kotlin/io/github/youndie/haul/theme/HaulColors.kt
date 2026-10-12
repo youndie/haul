@@ -52,7 +52,4 @@ public object HaulColors {
 
     /** The placeholder photo tile's hatching: Ink at 5 %. */
     public val tileHatch: Color = Color(0x0D0F0F0F)
-
-    /** The placeholder tile's label: Ink at 50 %. */
-    public val tileLabel: Color = Color(0x800F0F0F)
 }

@@ -56,11 +56,10 @@ public data class CartLine(
     val title: String,
     val options: String,
     val tone: String,
-    val label: String,
     val price: String,
     val oldPrice: String? = null,
     val each: String? = null,
-    /** Where the product's stored photo is served, drawn over the tile as a card draws it (B-30, B-108). */
+    /** Where the product's stored photo or its picture is served, drawn over the tile as a card draws it (B-30, B-108, B-78). */
     val image: String? = null,
     val quantity: Int,
     val maxQuantity: Int,

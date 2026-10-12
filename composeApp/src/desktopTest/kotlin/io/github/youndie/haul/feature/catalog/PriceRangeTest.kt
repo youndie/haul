@@ -639,7 +639,6 @@ class PriceRangeTest {
                 reviews = "420",
                 delivery = "Tomorrow",
                 tone = "#E3F5D8",
-                label = "mug",
             )
     }
 }

@@ -27,6 +27,7 @@ import io.github.youndie.haul.feature.payment.paymentModule
 import io.github.youndie.haul.feature.search.searchModule
 import io.github.youndie.haul.ops.OrderTrail
 import io.github.youndie.haul.seed.SampleCustomers
+import io.github.youndie.haul.seed.SeedArt
 import io.github.youndie.haul.testing.CANVAS_NOW
 import io.github.youndie.haul.testing.Ledger
 import io.github.youndie.haul.testing.MAYAS_SKUS
@@ -110,7 +111,7 @@ class PlacementRestartTest {
                 single<StoreClock> { CANVAS_NOW }
                 single<PetichClock> { SAGA_CLOCK }
                 single { DeliveryCalendar { CANVAS_NOW.now() } }
-                single { ProductPhotos(null) }
+                single { ProductPhotos(null, SeedArt) }
                 single { OrderTrail.NONE }
             },
             catalogModule,

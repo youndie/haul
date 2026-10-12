@@ -128,7 +128,7 @@ internal class OrderScreen(
                                     Viewer(customerId = customerId),
                                     reviewed = item.product.id in reviewed,
                                 ),
-                            image = photos.url(item.product),
+                            image = photos.url(item.product, sku),
                         )
                 }.toMap()
         return OrderView(

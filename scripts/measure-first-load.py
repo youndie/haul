@@ -39,6 +39,12 @@ so «settled» is not measured then, and only the first paint and the first fram
 carries) instead of serving DIST_DIR; DIST_DIR is then only read for the size table, and a `.br` or
 `.gz` found beside a file there is reported as that file's compressed size, since it is what is sent.
 
+--art pass|png (B-78) puts a proxy of this script's own between the browser and --url: `pass` relays every
+request as it is; `png` relays every request but the seed's pictures (`/images/art/*.svg`), which it answers as a
+PNG of the picture at its own size, rasterised once by a Chromium of its own — what a server that sent its
+pictures rasterised would send. Both arms of that comparison then take the same extra hop. The pictures' count,
+bytes, last byte and the first frame after it ("pictures") are reported for every arm whose page asks for any.
+
 CHROME_BIN names the Chromium (default: Playwright's under ~/.cache/ms-playwright).
 """
 
@@ -51,6 +57,7 @@ import gzip
 import http.server
 import json
 import os
+import re
 import shutil
 import socket
 import socketserver
@@ -60,6 +67,8 @@ import subprocess
 import tempfile
 import threading
 import time
+import urllib.error
+import urllib.parse
 import urllib.request
 
 # DevTools' own presets (front_end/core/sdk/NetworkManager.ts): bytes per second and ms.
@@ -396,9 +405,95 @@ def launch(chrome):
         proc.kill()
         raise RuntimeError("Chromium did not start")
     threading.Thread(target=lambda: [None for _ in proc.stderr], daemon=True).start()
-    pages = json.load(urllib.request.urlopen(f"http://127.0.0.1:{port}/json/list"))
-    page = next(p for p in pages if p["type"] == "page")
+    # The browser lists its first page a moment after it says it listens (B-78 saw one launch without it).
+    page = None
+    while page is None and time.time() < deadline:
+        pages = json.load(urllib.request.urlopen(f"http://127.0.0.1:{port}/json/list"))
+        page = next((p for p in pages if p["type"] == "page"), None) or time.sleep(0.2)
+    if page is None:
+        proc.kill()
+        raise RuntimeError("Chromium opened no page")
     return proc, profile, Cdp(page["webSocketDebuggerUrl"])
+
+
+# ---------------------------------------------------------------- the pictures as PNG (B-78)
+
+
+class Rasteriser:
+    """A Chromium of its own that draws an SVG at its width × height and hands back the PNG of it."""
+
+    def __init__(self, chrome):
+        self.proc, self.profile, self.cdp = launch(chrome)
+        self.lock = threading.Lock()
+
+    def png(self, svg):
+        width = int(float(re.search(rb'width="([0-9.]+)"', svg).group(1)))
+        height = int(float(re.search(rb'height="([0-9.]+)"', svg).group(1)))
+        with self.lock:
+            self.cdp.call("Emulation.setDeviceMetricsOverride", width=width, height=height, deviceScaleFactor=1,
+                          mobile=False)
+            self.cdp.call("Page.navigate", url="data:image/svg+xml;base64," + base64.b64encode(svg).decode())
+            time.sleep(0.3)
+            shot = self.cdp.call("Page.captureScreenshot", format="png",
+                                 clip={"x": 0, "y": 0, "width": width, "height": height, "scale": 1})
+        return base64.b64decode(shot["data"])
+
+    def close(self):
+        try:
+            self.cdp.call("Browser.close", timeout=5)
+        except Exception:
+            pass
+        self.proc.kill()
+        shutil.rmtree(self.profile, ignore_errors=True)
+
+
+def proxy(upstream, rasteriser):
+    """A relay to [upstream]; with a [rasteriser], the seed's SVG pictures go out as PNG (cached per address)."""
+    pngs, lock = {}, threading.Lock()
+    hop = {"connection", "keep-alive", "transfer-encoding", "content-length"}
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        protocol_version = "HTTP/1.1"
+
+        def log_message(self, *a):
+            pass
+
+        def do_GET(self):
+            length = int(self.headers.get("Content-Length") or 0)
+            req = urllib.request.Request(upstream.rstrip("/") + self.path, method=self.command,
+                                         data=self.rfile.read(length) if length else None,
+                                         headers={k: v for k, v in self.headers.items() if k.lower() not in hop | {"host"}})
+            try:
+                with urllib.request.urlopen(req, timeout=60) as r:
+                    status, headers, body = r.status, r.getheaders(), r.read()
+            except urllib.error.HTTPError as e:
+                status, headers, body = e.code, e.headers.items(), e.read()
+            path = urllib.parse.urlsplit(self.path).path
+            if rasteriser and status == 200 and path.startswith("/images/art/") and path.endswith(".svg"):
+                with lock:
+                    if path not in pngs:
+                        pngs[path] = rasteriser.png(body)
+                body = pngs[path]
+                headers = [(k, v) for k, v in headers if k.lower() not in ("content-type", "content-security-policy")]
+                headers.append(("Content-Type", "image/png"))
+            self.send_response(status)
+            for k, v in headers:
+                if k.lower() not in hop:
+                    self.send_header(k, v)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            if self.command != "HEAD":
+                self.wfile.write(body)
+
+        # The storefront writes too — a guest is created with a POST before the first tree — so every verb is relayed.
+        do_POST = do_PUT = do_PATCH = do_DELETE = do_HEAD = do_OPTIONS = do_GET
+
+    class Server(socketserver.ThreadingMixIn, http.server.HTTPServer):
+        daemon_threads = True
+
+    srv = Server(("127.0.0.1", 0), Handler)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    return srv, pngs
 
 
 # ---------------------------------------------------------------- one run
@@ -496,7 +591,10 @@ def run_once(chrome, url, profile_name, blocked, timeout, shot=None, stop_after=
     probe = data["probe"] or {}
     frames = probe.get("frames") or []
     net = [dict(v, bytes=finished.get(k)) for k, v in responses.items()]
-    bundle_end = max((r["responseEnd"] for r in data["resources"]), default=None)
+    bundle_end = max((r["responseEnd"] for r in data["resources"] if "/images/" not in r["name"]), default=None)
+    # B-78: the pictures the page asked for, when the last of them arrived, and the first frame after it.
+    pictures = [r for r in data["resources"] if "/images/" in r["name"]]
+    pictures_end = max((r["responseEnd"] for r in pictures), default=None)
     return {
         "profile": profile_name, "blocked": blocked, "timed_out": timed_out, "stand": before,
         "first_frame_ms": frames[0] if frames else None,
@@ -508,6 +606,9 @@ def run_once(chrome, url, profile_name, blocked, timeout, shot=None, stop_after=
         "contexts": probe.get("contexts"), "canvas": data["canvas"],
         "html_end_ms": (data["nav"] or {}).get("responseEnd"), "nav_transfer": (data["nav"] or {}).get("transferSize"), "load_event_ms": (data["nav"] or {}).get("load"),
         "last_byte_ms": bundle_end,
+        "pictures": len(pictures), "pictures_bytes": sum(r["transferSize"] for r in pictures),
+        "pictures_end_ms": pictures_end,
+        "pictures_frame_ms": next((f for f in frames if pictures_end is not None and f >= pictures_end), None),
         "transferred_bytes": sum(n for n in finished.values() if n),
         "requests": net, "failed": failed, "resources": data["resources"], "accept_encoding": sorted(accepts),
     }
@@ -565,19 +666,25 @@ def main():
     ap.add_argument("--profiles", default="none,fast4g,slow4g")
     ap.add_argument("--url", help="measure this running server instead of serving DIST (B-34)")
     ap.add_argument("--stop-after", type=float, help="end a run this many seconds after the first frame (B-80)")
+    ap.add_argument("--art", choices=["pass", "png"], help="relay --url through a proxy; png rasterises the pictures (B-78)")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     chrome = chromium()
     lib, libpath = brotli_lib(chrome)
     files = load_dist(a.dist, lib)
-    if a.url:
+    relay = rasteriser = None
+    if a.url and a.art:
+        rasteriser = Rasteriser(chrome) if a.art == "png" else None
+        relay, pngs = proxy(a.url, rasteriser)
+        srv, seen, url = None, set(), f"http://127.0.0.1:{relay.server_address[1]}/"
+    elif a.url:
         srv, seen, url = None, set(), a.url.rstrip("/") + "/"
     else:
         srv, seen = serve(files, a.identity)
         url = f"http://127.0.0.1:{srv.server_address[1]}/"
     version = subprocess.run([chrome, "--version"], capture_output=True, text=True).stdout.strip()
     header = {"label": a.label, "chrome": version, "brotli": libpath, "dist": os.path.abspath(a.dist),
-              "identity": a.identity, "served_by": a.url or "this script", "stand": stand(), "kernel": os.uname().release,
+              "identity": a.identity, "served_by": a.url or "this script", "art": a.art, "stand": stand(), "kernel": os.uname().release,
               "date": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
     print(json.dumps(header))
     raw = open(os.path.join(a.out, f"{a.label}-runs.jsonl"), "w")
@@ -610,11 +717,17 @@ def main():
                   f"settled={res['settled_ms']} frame_removed={sf.get('removed')} "
                   f"ticks(removed/gl)={sf.get('removedTick')}/{res['first_gl_tick']} "
                   f"last_byte={res['last_byte_ms']} bytes={res['transferred_bytes']} gl={res['gl_calls']} "
+                  f"pictures={res['pictures']}/{res['pictures_bytes']}B end={res['pictures_end_ms']} "
+                  f"pictures_frame={res['pictures_frame_ms']} "
                   f"timeout={res['timed_out']} load={res['stand']['loadavg']} mem={res['stand']['mem_available_mb']}",
                   flush=True)
     raw.close()
     if srv:
         srv.shutdown()
+    if relay:
+        relay.shutdown()
+    if rasteriser:
+        rasteriser.close()
     seen |= {e for x in runs for e in x["accept_encoding"]}
 
     counted = [x for x in runs if x["round"] > 1]
@@ -696,6 +809,18 @@ def main():
         for p in profiles:
             xs = [x for x in framed if x["profile"] == p]
             lines.append(f"| {p} | {spread([x['static_frame']['removed'] - x['first_contentful_paint_ms'] for x in xs if x['static_frame']['removed'] is not None and x['first_contentful_paint_ms'] is not None])} |")
+    # B-78: the pictures, where the page asks for any — what they weigh and when they are on screen.
+    if any(x["pictures"] for x in counted):
+        lines += ["", "The pictures (B-78): how many the page asked for, what crossed the link, the last one's last "
+                  "byte and the first frame after it (ms, median (min–max) of the counted rounds):", "",
+                  "| Profile | Pictures | Transferred KiB | Last picture byte | Pictures frame |", "|---|---:|---:|---:|---:|"]
+        for p in profiles:
+            xs = [x for x in counted if x["profile"] == p]
+            lines.append(f"| {p} | {spread([x['pictures'] for x in xs])} | {spread([x['pictures_bytes'] / 1024 for x in xs])} "
+                         f"| {spread([x['pictures_end_ms'] for x in xs])} | {spread([x['pictures_frame_ms'] for x in xs])} |")
+        if rasteriser:
+            lines += ["", f"Rasterised as PNG by this script: {len(pngs)} pictures, "
+                      f"{sum(len(v) for v in pngs.values()) / 1024:,.1f} KiB at their own size."]
     lines += ["", "## Controls", "",
               f"- blocked `.wasm`: GL calls {ctl['gl_calls']}, first frame {ctl['first_frame_ms']} — "
               f"{'PASS' if probe_ok else 'FAIL'}",

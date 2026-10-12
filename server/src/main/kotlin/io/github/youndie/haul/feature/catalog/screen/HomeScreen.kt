@@ -73,7 +73,13 @@ internal class HomeScreen(
                 id = "categories",
                 tiles =
                     topLevel.take(CATEGORY_TILES).map {
-                        CategoryTile("tile-${it.slug}", it.name, it.tone, it.label, categoryLink(it, categories))
+                        CategoryTile(
+                            "tile-${it.slug}",
+                            it.name,
+                            it.tone,
+                            photos.category(it),
+                            categoryLink(it, categories),
+                        )
                     },
             )
         val deals = dealsOfTheDay(catalog, calendar, photos, viewer)
@@ -115,7 +121,7 @@ internal class HomeScreen(
             subtitle = campaign.subtitle,
             actionLabel = "Shop the sale",
             tone = campaign.tone,
-            label = "campaign image",
+            image = photos.hero(campaign),
             action = NavigateAction(Frame.DEALS),
             accent = campaign.title.substringBeforeLast(' ', "").ifEmpty { null },
         )
@@ -133,6 +139,7 @@ internal class HomeScreen(
             title = campaign.title,
             tone = campaign.tone,
             accent = campaign.title.substringAfterLast(' '),
+            image = photos.banner(campaign),
             action = NavigateAction(Frame.DEALS),
         )
 

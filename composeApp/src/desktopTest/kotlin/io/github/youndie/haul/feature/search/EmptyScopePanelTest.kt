@@ -68,7 +68,6 @@ class EmptyScopePanelTest {
                             title = "Pace Running Shoe",
                             price = "$89",
                             tone = "#E6E4FF",
-                            label = "shoe",
                             action = NavigateAction("/p/p-1"),
                         ),
                     ),

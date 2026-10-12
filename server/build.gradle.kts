@@ -95,11 +95,15 @@ distributions {
 }
 
 // The client's wire bodies (`composeApp/src/desktopTest/resources/bodies`), which carry the canvas's
-// copy: a route test compares what the server sends against them (B-33), so they are the test's input.
+// copy: a route test compares what the server sends against them (B-33), so they are the test's input. So are
+// the pictures the bodies name (`…/resources/art`, B-78), which ArtFixturesTest holds to what the server draws.
 tasks.test {
     val bodies = layout.projectDirectory.dir("../composeApp/src/desktopTest/resources/bodies")
     inputs.dir(bodies).withPropertyName("clientBodies").withPathSensitivity(PathSensitivity.RELATIVE)
     systemProperty("haul.clientBodies", bodies.asFile.absolutePath)
+    val art = layout.projectDirectory.dir("../composeApp/src/desktopTest/resources/art")
+    inputs.dir(art).withPropertyName("clientArt").withPathSensitivity(PathSensitivity.RELATIVE)
+    systemProperty("haul.clientArt", art.asFile.absolutePath)
     // The outage tests' timeline in the build's own log (B-140): how long the runner takes to stop and start
     // PostgreSQL decides whether a five second outage still fits inside the saga member's phase, and a hosted
     // runner's numbers are otherwise lost with the test reports the workflow does not keep.

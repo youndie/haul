@@ -48,9 +48,8 @@ public data class ProductSuggestion(
     val title: String,
     val price: String,
     val tone: String,
-    val label: String,
     val action: @Polymorphic KompotAction? = null,
-    /** Where the product's stored photo is served, drawn over the tile as a card draws it (B-30, B-108). */
+    /** Where the product's stored photo or its picture is served, drawn over the tile as a card draws it (B-30, B-108, B-78). */
     val image: String? = null,
 )
 

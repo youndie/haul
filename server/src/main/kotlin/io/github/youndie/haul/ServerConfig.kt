@@ -33,7 +33,7 @@ internal class ServerConfig(
 
     /**
      * The bucket product photos live in (B-30, research D8), or `null` when `HAUL_S3_ENDPOINT` is not
-     * set: object storage is optional, and without it every tile is the placeholder. Once the endpoint
+     * set: object storage is optional, and without it every product is its picture (B-78). Once the endpoint
      * is named, the bucket and both keys are required — a half-configured store is refused at start-up,
      * not discovered as a broken photo.
      */

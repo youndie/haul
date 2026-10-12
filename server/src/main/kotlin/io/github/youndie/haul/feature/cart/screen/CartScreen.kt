@@ -131,8 +131,7 @@ internal class CartScreen(
                     .sortedBy { it.key != "colour" }
                     .joinToString(" · ") { it.value },
             tone = line.item.product.tone,
-            label = line.item.product.label,
-            image = photos.url(line.item.product),
+            image = photos.url(line.item.product, line.sku),
             price = money(line.totalCents),
             oldPrice = line.listTotalCents.takeIf { it > line.totalCents }?.let(::money),
             each = if (line.stored.quantity > 1) "${money(line.sku.priceCents)} each" else null,
