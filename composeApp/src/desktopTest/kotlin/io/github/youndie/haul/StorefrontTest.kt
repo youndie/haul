@@ -338,6 +338,32 @@ class StorefrontTest {
         }
 
     /**
+     * B-121: Enter pressed before the pause was over left the pause running, and the suggest panel was asked for
+     * after the results had been: a request nobody would see, and a panel over the results it led to.
+     */
+    @Test
+    fun `Enter before the pause asks for no suggestions`() =
+        runDesktopComposeUiTest(CANVAS_WIDTH, 1_000) {
+            val results = CompletableDeferred<HaulResponse>()
+            answer("/ui/home", ok(home))
+            answer("/ui/search/suggest?q=run", ok(suggest))
+            answer("/ui/search?q=run", { results.await() })
+            storefront()
+            val field = onNodeWithTag(SEARCH_FIELD_TAG)
+            field.performClick()
+            mainClock.autoAdvance = false
+            field.performTextInput("run")
+            mainClock.advanceTimeBy(SUGGEST_DELAY_MS / 2)
+            field.performKeyInput { pressKey(Key.Enter) }
+            mainClock.advanceTimeBy(SUGGEST_DELAY_MS * 4)
+            mainClock.autoAdvance = true
+            results.complete(ok(product)())
+            onNodeWithText(PRODUCT_TEXT).assertExists()
+            onNodeWithText("running shoes").assertDoesNotExist()
+            assertEquals(listOf("/ui/home", "/ui/search?q=run"), requests)
+        }
+
+    /**
      * B-83: in the browser a keystroke reaches the field at the next animation frame while a press is handled at
      * once (B-76), so the search button pressed straight after typing searched for what the field held before.
      * Here the query lands after the press and before the next frame, as it does there.
