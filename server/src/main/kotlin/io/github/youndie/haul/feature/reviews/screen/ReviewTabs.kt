@@ -1,5 +1,6 @@
 package io.github.youndie.haul.feature.reviews.screen
 
+import io.github.youndie.haul.StoreClock
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.Listed
 import io.github.youndie.haul.feature.catalog.domain.Seller
@@ -57,6 +58,7 @@ import kotlin.math.roundToInt
  */
 internal class ReviewTabs(
     private val reviews: ReviewRepository,
+    private val clock: StoreClock,
 ) {
     suspend fun reviews(
         item: Listed,
@@ -262,7 +264,15 @@ internal class ReviewTabs(
         dialog: () -> KompotComponent,
     ): KompotAction = if (viewer.customerId == null) NavigateAction(Frame.SIGN_IN) else PresentAction(dialog(), DIALOG)
 
-    private fun day(at: OffsetDateTime): String = DAY.format(at.atZoneSameInstant(DeliveryCalendar.STORE))
+    /**
+     * «Sep 28» within the store's current year, as the canvas writes it, and «Oct 21, 2023» outside it (B-129): a
+     * seeded review two years old read «Oct 21» on Oct 11, a date that reads as the future.
+     */
+    private fun day(at: OffsetDateTime): String {
+        val local = at.atZoneSameInstant(DeliveryCalendar.STORE)
+        val thisYear = clock.now().withZoneSameInstant(DeliveryCalendar.STORE).year
+        return (if (local.year == thisYear) DAY else DAY_YEAR).format(local)
+    }
 
     private fun plural(
         n: Int,
@@ -299,5 +309,6 @@ internal class ReviewTabs(
         private const val STARS = 5
         private const val PERCENT = 100.0
         private val DAY = DateTimeFormatter.ofPattern("MMM d", Locale.US)
+        private val DAY_YEAR = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.US)
     }
 }

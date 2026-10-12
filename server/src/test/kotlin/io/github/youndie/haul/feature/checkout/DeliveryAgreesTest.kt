@@ -86,7 +86,7 @@ class DeliveryAgreesTest {
                 catalog,
                 calendar,
                 ProductPhotos(null),
-                ReviewTabs(ExposedReviews(database)),
+                ReviewTabs(ExposedReviews(database), clock),
                 BoughtThisMonth(ExposedProductSales(database), clock),
             )
 
