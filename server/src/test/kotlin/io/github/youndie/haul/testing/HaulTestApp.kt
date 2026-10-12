@@ -29,7 +29,11 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
-import io.ktor.server.testing.testApplication
+import io.ktor.server.testing.TestApplication
+import io.ktor.test.dispatcher.runTestWithRealTime
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.withContext
 import javax.sql.DataSource
 
 /**
@@ -68,6 +72,14 @@ internal val CANVAS_NOW: StoreClock = StoreClock { CatalogSeed.NOW.toZonedDateTi
  * no object storage unless a test hands it [photoStore] (B-30). Sign-in is off unless [signIn] names a
  * realm (`ShildikHarness.signIn` for a running shildik). The test card ···· 0002 is nobody's unless [testCardKey]
  * opens it, as `HAUL_TEST_CARD_KEY` does on a stand (B-89).
+ *
+ * **The application is stopped when [block] fails, too** (B-140). Ktor's `testApplication` stops it only after a
+ * block that returned: a failed assertion left the application running — its sweeper, its Koin graph — after the
+ * test had closed the database under it. The graph is the worse half: the feature modules are shared values whose
+ * singles keep what they made until a graph is closed, so the next graph built from them is handed the dead test's
+ * repositories, wired to its closed pool, and a test that has nothing wrong fails on «HikariPool-N has been
+ * closed» (`PlacementOutageTest` → `PlacementRestartTest` in CI, B-140). Same runner as `testApplication`: real
+ * time, its minute, and an uncaught exception in any coroutine still fails the test that is running.
  */
 internal fun haulTest(
     dataSource: DataSource = SeededDatabase.dataSource,
@@ -77,20 +89,32 @@ internal fun haulTest(
     clock: StoreClock = CANVAS_NOW,
     testCardKey: String? = null,
     block: suspend HttpClient.() -> Unit,
-) = testApplication {
-    application {
-        haulModule(
-            dataSource,
-            clock,
-            commit = "test",
-            photoStore = photoStore,
-            signIn = signIn,
-            sagaClock = sagaClock,
-            testCard = TestCardAccess(testCardKey),
-        )
+): TestResult =
+    runTestWithRealTime {
+        val application =
+            TestApplication {
+                application {
+                    haulModule(
+                        dataSource,
+                        clock,
+                        commit = "test",
+                        photoStore = photoStore,
+                        signIn = signIn,
+                        sagaClock = sagaClock,
+                        testCard = TestCardAccess(testCardKey),
+                    )
+                }
+            }
+        try {
+            application.start()
+            application.client.block()
+        } catch (failure: Throwable) {
+            val stopping = runCatching { withContext(NonCancellable) { application.stop() } }
+            stopping.exceptionOrNull()?.let(failure::addSuppressed)
+            throw failure
+        }
+        application.stop()
     }
-    client.block()
-}
 
 /**
  * A database of its own, migrated and seeded: for a test that writes to the catalog. Without the generated

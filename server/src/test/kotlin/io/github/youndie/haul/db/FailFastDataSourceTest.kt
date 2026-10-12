@@ -11,7 +11,9 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertSame
+import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -90,6 +92,35 @@ class FailFastDataSourceTest {
 
         pool.next = { CONNECTION }
         assertSame(CONNECTION, failFast.connection, "a connection had by saga work ends the refusals")
+    }
+
+    /**
+     * B-140: right after a busy moment Hikari hands out connections it did not check, and an outage has closed them.
+     * Saga work asks each whether it is alive and puts a dead one out of the pool, instead of failing its statement.
+     */
+    @Test
+    fun `saga work sets aside a connection the database closed and asks again`() {
+        val dead = ScriptedConnection(alive = false)
+        val alive = ScriptedConnection(alive = true)
+        val handed = ArrayDeque(listOf(dead.connection, dead.connection, alive.connection))
+        pool.next = { handed.removeFirst() }
+
+        assertSame(alive.connection, patiently(perAsk = 10.seconds) { failFast.connection })
+        assertEquals(3, pool.asked)
+        assertEquals(2, dead.checked)
+        assertTrue(dead.closed, "the dead connection was put out of the pool")
+        assertEquals(1, alive.checked)
+        assertFalse(alive.closed)
+    }
+
+    /** Everybody else keeps Hikari's own check: no round trip more, and the dead connection is theirs to fail on. */
+    @Test
+    fun `an ordinary ask is handed what the pool gives, unchecked`() {
+        val dead = ScriptedConnection(alive = false)
+        pool.next = { dead.connection }
+
+        assertSame(dead.connection, failFast.connection)
+        assertEquals(0, dead.checked)
     }
 
     @Test

@@ -13,6 +13,7 @@ import io.github.youndie.haul.feature.checkout.IDEMPOTENCY_KEY_HEADER
 import io.github.youndie.haul.feature.checkout.PlaceOrderRequest
 import io.github.youndie.haul.feature.order.data.ExposedOrders
 import io.github.youndie.haul.feature.order.domain.OrderStatus
+import io.github.youndie.haul.feature.order.saga.SAGA_CONNECTION_PATIENCE
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCustomers
@@ -40,6 +41,7 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.testcontainers.containers.PostgreSQLContainer
@@ -56,6 +58,7 @@ import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 import kotlin.time.measureTimedValue
 
@@ -69,13 +72,25 @@ import kotlin.time.measureTimedValue
  *
  * Its own PostgreSQL, bound to a host port chosen before it starts, so the server is found at the same address
  * when it comes back; the suite's shared one cannot be stopped.
+ *
+ * **The outage is the one the saga meets, on the runner's clock** (B-140). It counts from the moment the stop is
+ * asked for — the waiting statement dies then, and the pool's first failed connection starts Hikari's tries — to the
+ * moment PostgreSQL accepts a connection again, measured, not assumed: how long Docker takes to stop and start the
+ * container is the runner's, and on a hosted runner busy with the rest of the build it was enough to push a «five
+ * second» outage past the member's ten second phase. Each case checks the outage it actually got against that
+ * phase before it checks the saga, so a runner that could not stage the outage says so, and «rode it out» and
+ * «undone» stay told apart by the line itself ([SAGA_CONNECTION_PATIENCE]), not by a sleep.
  */
 class PlacementOutageTest {
     /** Five seconds down mid-member: the member waits within its phase, and the order is placed. */
     @Test
     fun `a placement rides out a five second outage and the order is placed`() =
         placingThroughAnOutage(5.seconds) {
-            assertEquals(HttpStatusCode.Accepted, placed.status, placed.bodyAsText())
+            assertTrue(
+                outage.back < SAGA_CONNECTION_PATIENCE,
+                "the runner kept PostgreSQL away as long as the member's phase, the outage is not a short one: $outage",
+            )
+            assertEquals(HttpStatusCode.Accepted, placed.status, "$outage: ${placed.bodyAsText()}")
             val deeplink = (haulWireJson.decodeKompotAction(placed.bodyAsText()) as NavigateAction).deeplink
             val orderId = deeplink.removePrefix("/account/orders/")
             val order = assertNotNull(runBlocking { ExposedOrders(Databases.connect(database)).order(orderId) })
@@ -91,16 +106,21 @@ class PlacementOutageTest {
     @Test
     fun `a placement whose database stays away past the phase is undone`() =
         placingThroughAnOutage(12.seconds) {
-            assertEquals(HttpStatusCode.InternalServerError, placed.status, placed.bodyAsText())
+            assertTrue(
+                outage.back > SAGA_CONNECTION_PATIENCE,
+                "the database was back within the member's phase: $outage",
+            )
+            assertEquals(HttpStatusCode.InternalServerError, placed.status, "$outage: ${placed.bodyAsText()}")
             assertEquals("FAILED", ledger.sagaStatus())
             assertEquals(0, ledger.reservedStock(), "the stock is still held")
             assertEquals(stockBefore, ledger.stock(), "the stock did not come back")
             assertEquals(0, ledger.orders())
         }
 
-    /** What a placement through an outage left: its answer, and the rows. */
+    /** What a placement through an outage left: its answer, the outage it met, and the rows. */
     private class Placed(
         val placed: HttpResponse,
+        val outage: Outage,
         val ledger: Ledger,
         val stockBefore: Map<String, Int>,
         val database: DataSource,
@@ -118,11 +138,12 @@ class PlacementOutageTest {
                 coroutineScope {
                     val locks = withContext(Dispatchers.IO) { postgres.lockSkus() }
                     val placing = async { measureTimedValue { place(token, summary) } }
-                    withContext(Dispatchers.IO) {
-                        postgres.awaitWaitingOnALock(locks)
-                        postgres.stop()
-                    }
-                    val stopped = TimeSource.Monotonic.markNow()
+                    withContext(Dispatchers.IO) { postgres.awaitWaitingOnALock(locks) }
+                    // The store was busy a moment before the outage (B-140): every connection the pool keeps was used
+                    // just now, so Hikari hands one out again without checking it is alive — and the outage kills
+                    // them all. On a fast runner that was the CI failure; this makes it every runner's case.
+                    coroutineScope { repeat(BUSY_PAGES) { launch { get("/ui/home") } } }
+                    val stopping = withContext(Dispatchers.IO) { postgres.stop() }
                     try {
                         locks.close()
                     } catch (_: SQLException) {
@@ -139,21 +160,16 @@ class PlacementOutageTest {
                     )
                     assertTrue(took < PAGE_BOUND, "a page took $took during the outage, over $PAGE_BOUND")
 
-                    withContext(Dispatchers.IO) {
-                        (outage - stopped.elapsedNow()).takeIf { it.isPositive() }?.let {
-                            Thread.sleep(it.inWholeMilliseconds)
-                        }
-                        postgres.start()
-                    }
+                    val met = withContext(Dispatchers.IO) { postgres.startAfter(stopping, outage) }
                     val (placed, placingTook) = placing.await()
                     println(
-                        "B-139 outage: ${outage.inWholeSeconds} s down, placement answered ${placed.status.value} " +
-                            "${stopped.elapsedNow()} after the stop, in $placingTook",
+                        "B-139 outage: ${outage.inWholeSeconds} s asked, $met; placement answered " +
+                            "${placed.status.value} ${stopping.began.elapsedNow()} after the stop began, in $placingTook",
                     )
-                    assertTrue(placingTook < SHOPPER_BOUND, "the placement took $placingTook")
-                    placed
+                    assertTrue(placingTook < SHOPPER_BOUND, "the placement took $placingTook ($met)")
+                    placed to met
                 }
-            Placed(placed, Ledger(postgres.dataSource), stockBefore, postgres.dataSource).check()
+            Placed(placed.first, placed.second, Ledger(postgres.dataSource), stockBefore, postgres.dataSource).check()
         }
     }
 
@@ -229,18 +245,60 @@ class PlacementOutageTest {
             }
         }
 
-        fun stop() {
+        /** Stops the container; the outage begins when the stop is asked for, not when Docker is done with it. */
+        fun stop(): Stopping {
+            val began = TimeSource.Monotonic.markNow()
             container.dockerClient.stopContainerCmd(container.containerId).exec()
+            return Stopping(began, began.elapsedNow())
         }
 
-        fun start() {
+        /**
+         * Starts the container again [outage] after [stopping] began, and waits for PostgreSQL to accept a
+         * connection: the outage the saga met is measured to that moment.
+         */
+        fun startAfter(
+            stopping: Stopping,
+            outage: Duration,
+        ): Outage {
+            val rest = outage - stopping.began.elapsedNow()
+            if (rest.isPositive()) Thread.sleep(rest.inWholeMilliseconds)
+            val startAsked = stopping.began.elapsedNow()
             container.dockerClient.startContainerCmd(container.containerId).exec()
+            while (true) {
+                val accepted =
+                    try {
+                        DriverManager.getConnection(container.jdbcUrl, container.username, container.password).close()
+                        true
+                    } catch (_: SQLException) {
+                        false
+                    }
+                val since = stopping.began.elapsedNow()
+                if (accepted) return Outage(stopping.took, startAsked, since)
+                check(since < startAsked + BACK_BOUND) { "PostgreSQL was not back $BACK_BOUND after its start" }
+                Thread.sleep(POLL.inWholeMilliseconds)
+            }
         }
 
         override fun close() {
             dataSource.close()
             container.stop()
         }
+    }
+
+    /** When the stop was asked for, and how long Docker took to carry it out. */
+    private class Stopping(
+        val began: TimeMark,
+        val took: Duration,
+    )
+
+    /** The outage as the runner staged it, each time counted from the moment the stop was asked for. */
+    private class Outage(
+        val stopTook: Duration,
+        val startAsked: Duration,
+        val back: Duration,
+    ) {
+        override fun toString() =
+            "the stop took $stopTook, the start was asked for at $startAsked, PostgreSQL accepted connections again at $back"
     }
 
     private companion object {
@@ -251,5 +309,11 @@ class PlacementOutageTest {
         val SHOPPER_BOUND = 30.seconds
 
         val POLL = 50.milliseconds
+
+        /** Pages asked for at once just before the outage: enough to use every connection the pool keeps idle. */
+        const val BUSY_PAGES = 12
+
+        /** The most a started PostgreSQL may take to accept connections before the test gives up on the runner. */
+        val BACK_BOUND = 30.seconds
     }
 }

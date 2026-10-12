@@ -38,15 +38,30 @@ internal class ScriptedPool : DataSource {
 }
 
 /** A connection that does nothing: what a scripted ask hands out. */
-internal val CONNECTION: Connection =
-    Proxy.newProxyInstance(
-        Connection::class.java.classLoader,
-        arrayOf(Connection::class.java),
-    ) { proxy, method, args ->
-        when (method.name) {
-            "toString" -> "a connection"
-            "hashCode" -> System.identityHashCode(proxy)
-            "equals" -> proxy === args?.single()
-            else -> null
-        }
-    } as Connection
+internal val CONNECTION: Connection = ScriptedConnection(alive = true).connection
+
+/**
+ * A connection that answers whether it is [alive] and counts what it was asked: one the database closed under the
+ * pool answers `false`, as PostgreSQL's driver does for a connection whose server went away (B-140).
+ */
+internal class ScriptedConnection(
+    private val alive: Boolean,
+) {
+    var checked = 0
+    var closed = false
+
+    val connection: Connection =
+        Proxy.newProxyInstance(
+            Connection::class.java.classLoader,
+            arrayOf(Connection::class.java),
+        ) { proxy, method, args ->
+            when (method.name) {
+                "toString" -> if (alive) "a connection" else "a connection the database closed"
+                "hashCode" -> System.identityHashCode(proxy)
+                "equals" -> proxy === args?.single()
+                "isValid" -> alive.also { checked++ }
+                "close" -> null.also { closed = true }
+                else -> null
+            }
+        } as Connection
+}

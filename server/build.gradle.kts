@@ -100,6 +100,14 @@ tasks.test {
     val bodies = layout.projectDirectory.dir("../composeApp/src/desktopTest/resources/bodies")
     inputs.dir(bodies).withPropertyName("clientBodies").withPathSensitivity(PathSensitivity.RELATIVE)
     systemProperty("haul.clientBodies", bodies.asFile.absolutePath)
+    // The outage tests' timeline in the build's own log (B-140): how long the runner takes to stop and start
+    // PostgreSQL decides whether a five second outage still fits inside the saga member's phase, and a hosted
+    // runner's numbers are otherwise lost with the test reports the workflow does not keep.
+    addTestOutputListener(
+        TestOutputListener { _, event ->
+            if (event.message.startsWith("B-139 outage")) println(event.message.trimEnd())
+        },
+    )
 }
 
 // **The cache is trained in the image, not here.** The JVM accepts a cache only from the build that
