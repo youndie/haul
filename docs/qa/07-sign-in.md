@@ -98,6 +98,8 @@ and only Maya and Sam can sign in; on a local stack, the e2e's shildik.
   4. As Maya, open `/sign-in?next=%2Faccount`.
   5. Open `/sign-in?next=https%3A%2F%2Fexample.com`, sign in.
   6. As a guest with pop-up windows blocked, open `/sign-in?next=%2Faccount%2Fsaved` and press the header's «Sign in».
+  7. As a guest, open `/sign-in?next=%2Faccount%2Fsaved` with the browser's network panel open; at 390 press the
+     menu button (close it, press it again), at 1440 press the search picker.
 - **Expected:**
   - Step 1: «Sign in to HAUL» with its button; not «This page isn't here».
   - Step 2: `/account/saved`.
@@ -106,13 +108,20 @@ and only Maya and Sam can sign in; on a local stack, the e2e's shildik.
   - Step 5: signed in, staying on the store — a `next` that is not a storefront address is refused.
   - Step 6: «The browser blocked the window», the address still `/sign-in?next=%2Faccount%2Fsaved`: the sign-in on
     this page returns to the Saved list.
-- **Decided in:** B-66, B-121
+  - Step 7: no request while the page loads; the first press makes one `GET /ui/header` and no press after it
+    another. The menu lists all 32 top-level categories, each to its own category (not ten words to `/c`); the
+    picker opens with «All categories» and the scopes.
+- **Decided in:** B-66, B-121, B-138
 - **Coverage:** `SignInEverywhereTest` «a reload of the sign-in page asks, and the sign-in lands on its next»;
   `SignInEverywhereTest` «back and forward onto the sign-in page draw it»;
   `SignInEverywhereTest` «a customer arriving at the sign-in page goes on to its next»;
   `SignInEverywhereTest` «the header's sign-in blocked on the sign-in page keeps its next»;
   `SignInTapTest` «a next that is not a storefront address is refused»;
-  `StorefrontTest` «a sign-in whose next is another site stays on the page»
+  `StorefrontTest` «a sign-in whose next is another site stays on the page»;
+  `ColdSignInHeaderTest` «a cold sign-in page asks nothing until a press»;
+  `ColdSignInHeaderTest` «the phone menu pressed lists the server's categories»;
+  `ColdSignInHeaderTest` «the picker pressed offers the server's scopes»;
+  `ColdSignInHeaderTest` «one header request per page however often they are pressed»
 
 ### TC-SIGN-06 — A customer's page opened by a guest asks for a sign-in, once
 
