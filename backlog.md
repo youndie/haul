@@ -43,12 +43,11 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (10)
+## Open (9)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-112](docs/backlog/B-112-first-press-focuses-the-field.md) `[?]` | client: the first press on a text field focuses it | P1 | M | - |
-| [B-130](docs/backlog/B-130-a-lapsed-sign-in-asks-the-guest-header.md) `[ ]` | fix: a lapsed sign-in draws the guest's header, not the customer's | P2 | S | - |
 | [B-131](docs/backlog/B-131-the-presses-b-126-did-not-name.md) `[ ]` | fix: the presses and fields B-126 did not name | P2 | S | - |
 | [B-122](docs/backlog/B-122-the-stand-reports-to-katcher.md) `[ ]` | ops: the stand's server reports to katcher | P3 | XS | - |
 | [B-132](docs/backlog/B-132-search-leftovers-from-the-v050-run.md) `[ ]` | fix: an empty scoped panel, an out-of-date search link and the reviews link's address | P3 | S | - |
@@ -58,7 +57,7 @@ A stage is a field on the item, not a directory.
 | [B-86](docs/backlog/B-86-reviews-photos-and-histogram.md) `[ ]` | client + server: review photos open and the histogram filters | P3 | M | - |
 | [B-87](docs/backlog/B-87-fallback-rows.md) `[ ]` | server: what home and the empty cart show when no deal is live | P3 | S | - |
 
-## Closed (123)
+## Closed (124)
 
 **Skeleton**
 
@@ -218,6 +217,7 @@ A stage is a field on the item, not a directory.
 - [B-127](docs/backlog/B-127-a-database-outage-shows-in-seconds.md) `[x]` - fix: a database outage reaches the shopper in seconds, not in a minute and a half
 - [B-128](docs/backlog/B-128-no-request-leaves-the-store-s-origin.md) `[x]` - fix: the storefront loads nothing from another origin
 - [B-129](docs/backlog/B-129-small-lines-from-the-customer-walk.md) `[x]` - fix: the small lines the v0.4.0 customer walk noticed
+- [B-130](docs/backlog/B-130-a-lapsed-sign-in-asks-the-guest-header.md) `[x]` - fix: a lapsed sign-in draws the guest's header, not the customer's
 
 <!-- END INDEX -->
 

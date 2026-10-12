@@ -13,6 +13,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
@@ -90,6 +91,7 @@ import io.github.youndie.kompot.withLoad
 import io.github.youndie.kompot.withRefresh
 import io.github.youndie.kompot.withUpdates
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
@@ -150,8 +152,9 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * The header over a page the shell draws itself — a placeholder, an error, a page that is not there, the
  * sign-in's — is the last the server drew for who is looking ([LocalShellHeader], B-67): a tree's, or, on a
  * page that came with no tree, the header alone asked of [transport] ([AskForHeader], B-105); before either,
- * the client's own for a guest or for a customer, as [session] says ([ShellHeaders]). The sign-in page asks
- * for no header: it is a way through. Its presses
+ * the client's own for a guest or for a customer, as [session] says ([ShellHeaders]) — followed as it changes,
+ * so a sign-in that ends by itself, its renewal refused, asks for the guest's header as a sign-out does (B-130).
+ * The sign-in page asks for no header: it is a way through. Its presses
  * are followed here: a link opens, sign-in's go through [Signing], a `present` (a non-member's «HAUL PLUS»)
  * draws its dialog over the page until a `close` or a visit, and a `refresh` loads the page again.
  *
@@ -214,7 +217,11 @@ public fun Storefront(
     var panel by remember { mutableStateOf<SearchSuggestPanel?>(null) }
     LaunchedEffect(panel) { search.offer(panel?.suggestions?.map { it.action }.orEmpty()) }
     val typed = search.text.text.trim()
-    val customer = session?.signedIn == true
+    // Who is looking, followed rather than read when something else draws the storefront again (B-130): a sign-in
+    // that ends by itself — a renewal the provider refused under a press — changes it with no visit, and the
+    // header must follow it as it follows a sign-out.
+    val signedInChanges = remember(session) { session?.signedInChanges ?: flowOf(false) }
+    val customer by signedInChanges.collectAsState(initial = session?.signedIn == true)
     // Whether the panel is the empty field's recall: on from the press into it, kept when the focus leaves for a
     // press on the panel, off once anything is typed, for a guest, and on the scrim or a new page.
     var recalling by remember { mutableStateOf(false) }

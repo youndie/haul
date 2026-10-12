@@ -29,6 +29,8 @@ import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.TextComponent
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.serialization.PolymorphicSerializer
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
@@ -160,6 +162,8 @@ class EmptyFieldRecallTest {
     private abstract class FakeSession(
         override val signedIn: Boolean,
     ) : SessionControls {
+        override val signedInChanges: Flow<Boolean> get() = flowOf(signedIn)
+
         override fun signOut() = Unit
 
         override val canSignInHere: Boolean = false

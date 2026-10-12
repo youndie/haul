@@ -1,7 +1,7 @@
 ---
 id: B-130
 title: "fix: a lapsed sign-in draws the guest's header, not the customer's"
-status: open
+status: done
 priority: P2
 size: S
 stage: stage-12-qa-run
@@ -28,3 +28,31 @@ status=delivered 401` → `GET /api/v1/sign-in` → token `400` → the parts ag
   today's code.
 - Anchors: `composeApp/src/commonMain/kotlin/io/github/youndie/haul/feature/identity/Identity.kt`,
   `composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/Storefront.kt`.
+
+## Findings
+
+- **Why the header stayed hers.** `Storefront` read who is looking (`SessionControls.signedIn`) only when its own
+  body was composed again, and only a visit — or a header drawn — does that. Sign-out is followed by a visit
+  (`Signing.actions`: home from a customer's page, or a reload), so the body re-read the session, `ShellHeaders`
+  no longer knew the shopper and `AskForHeader` asked (TC-ERR-07 step 4, `KnownHeaderTest`). A renewal the
+  provider refused drops the tokens inside `Identity.send`, under a press, with no visit: the parts' `401` takes
+  the page down (`signedOut`, B-62), which recomposes only the screen, so `AskForHeader` was handed the stale
+  «signed in», found Maya's header known for her and asked nothing; `LocalShellHeader` stayed hers.
+- **The fix follows the session instead of reading it.** `SessionControls.signedInChanges` (a `Flow<Boolean>`;
+  `Identity`'s is its state mapped to `signedIn`) is collected in `Storefront`, so a session that ends however
+  it ends draws the client's guest header at once and asks `/ui/header` once over the prompt; the sign-in from
+  the prompt flips it back and the reloaded tree draws Maya's. The three test fakes of `SessionControls` follow
+  their `signedIn` the same way.
+- **Not B-115's doing.** At v0.4.0 (`git show v0.4.0:…/Identity.kt`) `send` already renewed once and, refused,
+  dropped the tokens and sent once more as the guest (`recover()`), with nothing telling the shell; and
+  `Storefront` read `session?.signedIn` into `AskForHeader` exactly as now (B-105 is in v0.4.0). So, by the
+  code, v0.4.0 kept Maya's header here too — its run did not look at the header (it records the prompt and
+  the landing back only). B-115 changed what happens to the guest (kept, not replaced on the next `401`), not
+  who the shell thinks is looking. Not re-run against v0.4.0.
+- **Verified** by `LapsedHeaderTest` over the real `Identity`, `ktorTransport` and a mock server whose provider
+  refuses every refresh: Maya's orders, «Delivered» (a `load` of `/ui/parts/account/orders?status=delivered`),
+  then the prompt under the guest's header (count 1, «Sign in», no «Maya»), `GET /ui/header` once, the refresh
+  tried once, the same guest id and no `POST /api/v1/guests`; signing in brings «Maya» and «3» back. It fails on
+  the code before the fix, waiting for the guest's count (mutation: the `collectAsState` reverted to the plain
+  read). Not walked in a browser against a local stack: `App` hands `Storefront` the same `Identity` the test
+  does.

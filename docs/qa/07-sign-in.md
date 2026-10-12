@@ -171,11 +171,14 @@ and only Maya and Sam can sign in; on a local stack, the e2e's shildik.
   - Step 1: the chip works; the token was renewed once and the request sent again — nothing seen.
   - Step 2: the page is taken down and asks for a sign-in (not an error page, and the customer's page is not left
     on screen for a guest); after it, the page again. Until then she is the guest she was before signing in: the
-    same `haul.guest`, no `POST /api/v1/guests`.
-- **Decided in:** B-12, B-44, B-62, B-115
+    same `haul.guest`, no `POST /api/v1/guests` — and the header is the guest's, asked once (`GET /ui/header`):
+    no name, «Sign in», the guest's cart count, not «Maya» and her «Cart 3». After the sign-in, hers again.
+- **Decided in:** B-12, B-44, B-62, B-115, B-130
 - **Coverage:** `IdentityTest` «a lapsed token is renewed once and the request sent again»;
   `IdentityTest` «a token that cannot be renewed signs the customer out, back to the guest»;
   `IdentityTest` «a lapsed sign-in leaves the shopper the guest they were»;
   `KeptPageTest` «a sign-in lapsed within a screen takes the page down and asks for one»;
   `SignInPromptTest` «a lapsed sign-in that cannot be renewed asks again and lands on the page»;
+  `LapsedHeaderTest` «a sign-in the provider would not renew draws the guest's header and signing in brings hers
+  back»;
   manual: the stand's five-minute token is real time, which the tests stand in for with a fake transport

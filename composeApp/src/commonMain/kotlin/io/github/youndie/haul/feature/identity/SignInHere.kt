@@ -1,5 +1,7 @@
 package io.github.youndie.haul.feature.identity
 
+import kotlinx.coroutines.flow.Flow
+
 /**
  * A sign-in in the storefront's own tab (B-66): what is left when the browser blocks the popup. The tab
  * leaves for the provider's page and comes back to the storefront's `/sign-in`, which finishes it — the
@@ -50,6 +52,13 @@ public class SignedInHere(
  */
 public interface SessionControls {
     public val signedIn: Boolean
+
+    /**
+     * [signedIn], now and at each change — a sign-in, a sign-out, and a sign-in that ended by itself when the
+     * provider refused to renew it (B-130). The storefront draws the header of who is looking from it, so a
+     * session that ends however it ends asks for the guest's header as a sign-out does.
+     */
+    public val signedInChanges: Flow<Boolean>
 
     /** Forgets the customer; the shopper is the guest they were. */
     public fun signOut()

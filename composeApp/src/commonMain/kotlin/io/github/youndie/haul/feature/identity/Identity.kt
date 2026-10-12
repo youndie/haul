@@ -6,9 +6,12 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -91,6 +94,9 @@ public class Identity(
     }
 
     override val signedIn: Boolean get() = state.value.signedIn
+
+    /** Changes with the tokens: kept by a sign-in, forgotten by a sign-out or by a renewal refused in [send]. */
+    override val signedInChanges: Flow<Boolean> = state.map { it.signedIn }.distinctUntilChanged()
 
     /** Forgets the customer's tokens; the shopper is the guest they were, with an empty cart. */
     override fun signOut() {

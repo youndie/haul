@@ -13,7 +13,8 @@ import io.github.youndie.haul.ui.HaulHeader
  * guest or a customer. A sign-in or a sign-out on a page with no tree leaves the one drawn for the other; until
  * the server draws one for them, it is the client's own: [SHELL_HEADER] for a guest, [CUSTOMER_SHELL_HEADER] for
  * a customer. Who is looking is the session's (`SessionControls.signedIn`), read when a header is drawn and when
- * one is asked for.
+ * one is asked for, and followed as it changes (`SessionControls.signedInChanges`, B-130): a sign-in the provider
+ * would not renew leaves the customer's header as a sign-out does.
  */
 internal class ShellHeaders {
     private var last by mutableStateOf<Drawn?>(null)
