@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """B-126's check: the browser's accessible mirror of the storefront follows the page after a popup, and every
-button in it has a name.
+button and every field in it has a name (B-131 added the fields, the cart button and the review dialog).
 
 Compose draws the page into a canvas and mirrors its semantics into the DOM for assistive technology: `div`s under
 `#cmp_a11y_root` in the viewport's shadow root, a `role="button"` for each press, named by its `aria-label` (a
-content description) or its text. Standard library only; the DevTools client and the Chromium launch are B-28's and
-B-112's (scripts/measure-first-load.py, scripts/first-press-check.py). In one headless Chromium it
+content description) or its text, and a `role="textbox"` for each field, named by its `aria-label` alone. The
+header's cart button must be named as the cart: on a phone it draws the count alone, which names it «1». Standard
+library only; the DevTools client and the Chromium launch are B-28's and B-112's (scripts/measure-first-load.py,
+scripts/first-press-check.py). In one headless Chromium it
 
 1. signs in, when --login names a shopper: the sign-in page (B-66), the provider's form, back to the store;
 2. for every popup — «Catalog», the sort, the search field's picker, the account menu at 1440; the menu and the
@@ -14,11 +16,14 @@ B-112's (scripts/measure-first-load.py, scripts/first-press-check.py). In one he
    link of the page (pressed in the mirror too) and waits: the mirror must hold the new page — the header's
    controls, words that were not there before — and none of the popup's nodes;
 3. on every page it loaded, reads the mirror and Chromium's accessibility tree (`Accessibility.getFullAXTree`) for
-   buttons with no name.
+   buttons and fields with no name;
+4. signed in, opens the review dialog at both widths — the product's reviews tab scrolled to «Write a review», which
+   is pressed — and reads the page with the dialog over it the same way. A guest's «Write a review» signs in instead.
 
     scripts/a11y-check.py URL OUT_DIR [--login EMAIL]     (the password from HAUL_A11Y_PASSWORD)
 
-The account menu needs --login; without it that popup is skipped and says so. One JSON line per step in
+The account menu and the review dialog need --login; without it they are skipped and say so. A shopper with
+nothing saved (`sam` on a fresh stack) gets the empty Saved list, its picture a press. One JSON line per step in
 OUT_DIR/steps.jsonl, a screenshot of every step that failed, the verdicts on stdout. The exit status is 0 only when
 every popup's mirror followed the page and no button was unnamed. CHROME_BIN names the Chromium (default:
 Playwright's).
@@ -81,6 +86,12 @@ PAGES = [
     ("/cart", False), ("/account", True), ("/account/orders", True), ("/account/saved", True), ("/checkout", True),
 ]
 
+# The product whose reviews tab the review dialog is opened from (a signed-in shopper who has not reviewed it).
+REVIEWED = "/p/p-sony-wh-1000xm6?tab=reviews"
+
+# The header's cart button (its test tag) and the word its name must have.
+CART = ("cart-button", "Cart")
+
 # The SKU put in the signed-in shopper's cart, so that checkout draws (an empty one leads to the cart, B-94).
 CART_SKU = _m.CART_SKU
 
@@ -113,13 +124,54 @@ def find(cdp, want, timeout=30):
 
 
 def unnamed(cdp):
-    """Buttons with no name, in the mirror and in Chromium's own accessibility tree."""
+    """Buttons and fields with no name, in the mirror and in Chromium's own accessibility tree, and a cart button
+    whose name does not say it is the cart."""
     nodes = mirror(cdp)
     in_mirror = [n for n in nodes if n["role"] == "button" and not n["label"] and not n["all"]]
+    fields = [n for n in nodes if n["role"] == "textbox" and not n["label"]]
+    cart = [n for n in nodes if n["id"] == CART[0] and CART[1] not in n["label"] + " " + n["all"]]
     tree = cdp.call("Accessibility.getFullAXTree")["nodes"]
-    in_tree = [n for n in tree if n.get("role", {}).get("value") == "button" and not n.get("ignored")
+    in_tree = [n for n in tree if n.get("role", {}).get("value") in ("button", "textbox") and not n.get("ignored")
                and not (n.get("name", {}).get("value") or "").strip()]
-    return [{k: n[k] for k in ("id", "x", "y", "w", "h")} for n in in_mirror], len(in_tree)
+    found = [{**{k: n[k] for k in ("id", "x", "y", "w", "h")}, "role": n["role"]} for n in in_mirror + fields]
+    found += [{"id": n["id"], "named": n["label"] or n["all"], "role": "cart"} for n in cart]
+    return found, len(in_tree)
+
+
+def reach(cdp, want, height, timeout=20):
+    """The node [want] once it is in the window: the page is scrolled down to it, a wheel turn at a time."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        node = find(cdp, want, 1)
+        if node and node["w"] > 0 and 0 < node["y"] < height - 20:
+            return node
+        cdp.call("Input.dispatchMouseEvent", type="mouseWheel", x=200, y=height // 2, deltaX=0, deltaY=300)
+        time.sleep(0.3)
+    return None
+
+
+def walk_dialog(cdp, base, wh, out):
+    """The review dialog over the reviews tab: opened as a shopper opens it, then read for names."""
+    step = {"dialog": "review", "width": wh[0]}
+    size(cdp, wh)
+    if not load(cdp, base, REVIEWED):
+        return {**step, "error": "the page never drew"}
+    opener = reach(cdp, {"id": "write-review"}, wh[1])
+    if not opener:
+        return {**step, "error": "no «Write a review» in the window"}
+    press(cdp, opener)
+    if not find(cdp, {"id": "dialog-close"}, 10):
+        shot(cdp, out, f"dialog-review-{wh[0]}")
+        return {**step, "error": "the dialog never showed in the mirror"}
+    time.sleep(1.0)
+    names, tree = unnamed(cdp)
+    nodes = mirror(cdp)
+    step.update({"unnamed": names, "unnamed_in_ax_tree": tree,
+                 "buttons": len([n for n in nodes if n["role"] == "button"]),
+                 "fields": len([n for n in nodes if n["role"] == "textbox"])})
+    if names or tree:
+        shot(cdp, out, f"dialog-review-{wh[0]}")
+    return step
 
 
 def size(cdp, wh):
@@ -217,6 +269,8 @@ def walk_popup(cdp, base, popup, account, out, log):
     if not find(cdp, popup["shown"], 10):
         return {**step, "error": "the popup's nodes never showed in the mirror"}
     step["open"] = sorted(texts(mirror(cdp)))[:12]
+    # What the popup holds is read too: the filter sheet's price fields are there only while it is open (B-131).
+    step["unnamed_open"], step["unnamed_open_in_ax_tree"] = unnamed(cdp)
     close = popup["close"]
     if close == "escape":
         key(cdp, "Escape", "Escape", 27)
@@ -252,6 +306,8 @@ def walk_popup(cdp, base, popup, account, out, log):
     step["ok"] = step["header"] and not shown_after and len(new) > 0 and step["followed_to"] != at["result"]["value"]
     names, tree = unnamed(cdp)
     step.update({"unnamed": names, "unnamed_in_ax_tree": tree})
+    if step["unnamed_open"] or step["unnamed_open_in_ax_tree"]:
+        step["ok"] = False
     if not step["ok"] or names or tree:
         shot(cdp, out, f"popup-{popup['name'].replace(' ', '-')}-{popup['size'][0]}")
     return step
@@ -301,6 +357,11 @@ def main():
                 steps.append({"popup": popup["name"], "skipped": "needs --login"})
                 continue
             steps.append(walk_popup(cdp, base, popup, account, args.out, steps))
+        for wh in (WIDE, PHONE):
+            if not account:
+                steps.append({"dialog": "review", "width": wh[0], "skipped": "needs --login"})
+                continue
+            steps.append(walk_dialog(cdp, base, wh, args.out))
         for path, signed_in in PAGES:
             if signed_in and not account:
                 continue
@@ -310,8 +371,10 @@ def main():
                 names, tree = unnamed(cdp) if drawn else ([], 0)
                 at = cdp.call("Runtime.evaluate", expression="location.pathname + location.search",
                               returnByValue=True)["result"]["value"]
+                nodes = mirror(cdp)
                 step = {"page": path, "at": at, "width": wh[0], "drawn": drawn, "unnamed": names,
-                        "unnamed_in_ax_tree": tree, "buttons": len([n for n in mirror(cdp) if n["role"] == "button"])}
+                        "unnamed_in_ax_tree": tree, "buttons": len([n for n in nodes if n["role"] == "button"]),
+                        "fields": len([n for n in nodes if n["role"] == "textbox"])}
                 if not drawn or names or tree:
                     shot(cdp, args.out, f"page-{path.strip('/').replace('/', '-').replace('?', '-') or 'home'}-{wh[0]}")
                 steps.append(step)
@@ -331,15 +394,30 @@ def main():
             else:
                 fine = s["ok"] and not s["unnamed"] and not s["unnamed_in_ax_tree"]
                 bad += 0 if fine else 1
-                verdict = ("ok" if s["ok"] else "FAIL: the mirror did not follow the page") + \
+                verdict = ("ok" if s["ok"] else "FAIL: the mirror did not follow the page, or the popup held a "
+                           "press or field with no name") + \
                     f" — {s['mirror_nodes']} nodes on {s['followed_to']}, popup nodes left {s['popup_left']}, " \
-                    f"unnamed {len(s['unnamed'])}/{s['unnamed_in_ax_tree']}"
+                    f"unnamed while open {s['unnamed_open']}/{s['unnamed_open_in_ax_tree']}, " \
+                    f"after {len(s['unnamed'])}/{s['unnamed_in_ax_tree']}"
             print(f"popup {s['popup']} @{s.get('width', '')}: {verdict}")
+        elif "dialog" in s:
+            if "skipped" in s:
+                verdict = "skipped: " + s["skipped"]
+            elif "error" in s:
+                verdict, bad = "FAIL: " + s["error"], bad + 1
+            else:
+                fine = not s["unnamed"] and not s["unnamed_in_ax_tree"]
+                bad += 0 if fine else 1
+                verdict = f"{s['buttons']} buttons, {s['fields']} fields: " + ("ok" if fine else
+                          f"FAIL: unnamed {s['unnamed']} (ax tree {s['unnamed_in_ax_tree']})")
+            print(f"dialog {s['dialog']} @{s['width']}: {verdict}")
         elif "page" in s:
             fine = s["drawn"] and not s["unnamed"] and not s["unnamed_in_ax_tree"]
             bad += 0 if fine else 1
-            print(f"page {s['page']} @{s['width']} (drawn at {s['at']}, {s['buttons']} buttons): " + ("ok" if fine else
-                  f"FAIL: drawn={s['drawn']} unnamed {s['unnamed']} (ax tree {s['unnamed_in_ax_tree']})"))
+            verdict = "ok" if fine else \
+                f"FAIL: drawn={s['drawn']} unnamed {s['unnamed']} (ax tree {s['unnamed_in_ax_tree']})"
+            print(f"page {s['page']} @{s['width']} (drawn at {s['at']}, {s['buttons']} buttons, "
+                  f"{s['fields']} fields): {verdict}")
     print("VERDICT:", "ok" if bad == 0 else f"{bad} failing")
     return 0 if bad == 0 else 1
 

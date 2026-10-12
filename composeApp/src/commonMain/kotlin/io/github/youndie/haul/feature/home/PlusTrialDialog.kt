@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import io.github.youndie.haul.feature.product.CLOSE
 import io.github.youndie.haul.shell.CommandRefused
 import io.github.youndie.haul.shell.LocalTreeCommands
 import io.github.youndie.haul.shell.TreeCommand
@@ -46,6 +47,7 @@ import io.github.youndie.haul.ui.PlusBenefit
 import io.github.youndie.haul.ui.PlusTrialDialog
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.accented
+import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.kompot.KompotAction
@@ -131,6 +133,7 @@ private fun Head(
                 .size(44.dp)
                 .background(HaulColors.inverseControl, CircleShape)
                 .testTag(PLUS_CLOSE_TAG)
+                .named(CLOSE)
                 .pressable(onClose),
             contentAlignment = Alignment.Center,
         ) {

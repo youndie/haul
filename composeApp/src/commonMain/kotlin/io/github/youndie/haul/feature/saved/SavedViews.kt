@@ -28,6 +28,7 @@ import io.github.youndie.haul.feature.catalog.PaginationView
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
+import io.github.youndie.haul.ui.EmptyState
 import io.github.youndie.haul.ui.EmptyStateView
 import io.github.youndie.haul.ui.Heart
 import io.github.youndie.haul.ui.ProductGrid
@@ -37,9 +38,9 @@ import io.github.youndie.haul.ui.SavedStep
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.hatching
+import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.toneColor
-import io.github.youndie.kompot.KompotAction
 
 // The Saved list (screen-saved, B-20) under the account's title «Saved 48»: the filter, four cards to a row
 // at 1440 and two on a phone, the page numbers; or nothing saved, the empty state and how the heart works.
@@ -59,31 +60,45 @@ internal fun SavedListView(list: SavedList) {
     list.none?.let { Note(it) }
     list.pagination?.let { PaginationView(it) }
     list.empty?.let { EmptyStateView(it) }
-    if (list.steps.isNotEmpty()) Steps(list.steps, list.empty?.action)
+    if (list.steps.isNotEmpty()) Steps(list.steps, list.empty)
 }
 
 /**
  * How the heart works: a tile with a saved heart beside three cards at 1440, as tall as the tile; on a
  * phone the tile and the cards one under another. The tile's heart is drawn as a card's, so it is pressed
- * like one would be: it goes where the empty state's own way on does ([browse], «Browse deals»), to the
- * products whose hearts fill this list (B-74).
+ * like one would be: it goes where the empty state's own way on does ([empty]'s action, «Browse deals»), to the
+ * products whose hearts fill this list (B-74), and is named by that way's words (B-131).
  */
 @Composable
 private fun Steps(
     steps: List<SavedStep>,
-    browse: KompotAction?,
+    empty: EmptyState?,
 ) {
     val compact = LocalHaulCompact.current
+    val browse = empty?.action
+    val name = empty?.let { it.actionLabel ?: it.title }.orEmpty()
     if (compact) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Illustration(Modifier.width(160.dp).testTag(SAVED_ILLUSTRATION_TAG).follows(browse))
+            Illustration(
+                Modifier
+                    .width(160.dp)
+                    .testTag(SAVED_ILLUSTRATION_TAG)
+                    .named(name)
+                    .follows(browse),
+            )
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 steps.forEach { Step(it, Modifier.fillMaxWidth()) }
             }
         }
     } else {
         Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Illustration(Modifier.width(200.dp).testTag(SAVED_ILLUSTRATION_TAG).follows(browse))
+            Illustration(
+                Modifier
+                    .width(200.dp)
+                    .testTag(SAVED_ILLUSTRATION_TAG)
+                    .named(name)
+                    .follows(browse),
+            )
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 steps.forEach { Step(it, Modifier.weight(1f).fillMaxHeight()) }
             }

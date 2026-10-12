@@ -1996,7 +1996,11 @@ upstream in 1.13.0-alpha01). So what opens over the page is drawn in the storefr
 (`OverlayHost`/`OverPage`, `ui/Layers.kt`), not in a `Popup` or a `Dialog`, while the stack holds Compose at 1.12.
 And text links: a `LinkAnnotation` is drawn as a press with no name (named upstream in 1.13 too), so the category
 row's words and the crumbs are `linkedText` runs, each a named press over its words. `scripts/a11y-check.py` walks
-every popup and the main pages in headless Chromium and reads the mirror and Chromium's own tree.
+every popup, the main pages and the review dialog in headless Chromium and reads the mirror and Chromium's own tree
+for buttons and fields with no name (fields since B-131). Found in B-131: the 1.12 mirror writes a node's `role`, its
+`aria-label` and `aria-live` and nothing of its state — a field is a `role="textbox"` named by its content description
+alone, and a chosen star, a ticked box or a selected swatch reads as any other button; so a state set in semantics
+(`selected`) is there for the desktop tree and the tests, not yet for a screen reader in the browser.
 
 **Risk 1. The canvas and the code drift apart without anyone seeing it.** A renderer changed for one
 screen changes every screen that uses the component. Mitigation: one reference PNG per artboard

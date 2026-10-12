@@ -2,20 +2,30 @@ package io.github.youndie.haul
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import androidx.compose.ui.unit.dp
+import io.github.youndie.haul.feature.home.PLUS_CLOSE_TAG
+import io.github.youndie.haul.feature.product.CLOSE_TAG
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
 import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulTheme
+import io.github.youndie.haul.ui.CART_BUTTON_TAG
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Icon
 import io.github.youndie.kompot.standard.RefreshAction
@@ -27,13 +37,17 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 /**
- * Every press on the main screens has a name (B-126). The browser's accessible mirror of the page is Compose's
- * merged semantics tree: a node that can be pressed is a `role="button"` there, named by its content description,
- * its text, or the text under it — the name a screen reader reads. A press with none of them reads as «button».
+ * Every press and every field on the main screens and in the dialogs has a name (B-126, B-131). The browser's
+ * accessible mirror of the page is Compose's merged semantics tree: a node that can be pressed is a `role="button"`
+ * there, named by its content description, its text, or the text under it — the name a screen reader reads. A press
+ * with none of them reads as «button». A field is named by its content description alone: what is typed in it is
+ * its value, and a placeholder drawn in it is gone once something is.
  *
  * Each screen is drawn from its wire body at both widths by the storefront itself, at the address it is served at —
  * the shell's own presses (the search field's, the header's menu) are there only then — and every node with a
- * click action in the merged tree is read the way the mirror's is.
+ * click action or a text to set in the merged tree is read the way the mirror's is. A dialog is opened as a shopper
+ * opens it, by pressing what presents it, and read with the page under it. The header's cart button is read on its
+ * own as well: on a phone it draws the count alone, which names it «3» and not as the cart.
  */
 @OptIn(ExperimentalTestApi::class)
 class NamedPressesTest {
@@ -43,7 +57,16 @@ class NamedPressesTest {
             SCREENS.flatMap { (address, body) ->
                 listOf(false, true).flatMap { compact -> unnamedPresses(address, body, compact) }
             }
-        assertEquals(emptyList(), unnamed, "presses with no name, by screen and width")
+        assertEquals(emptyList(), unnamed, "presses and fields with no name, by screen and width")
+    }
+
+    @Test
+    fun `every press and field in the dialogs has a name`() {
+        val unnamed =
+            DIALOGS.flatMap { dialog ->
+                listOf(false, true).flatMap { compact -> unnamedPresses(dialog.address, dialog.body, compact, dialog) }
+            }
+        assertEquals(emptyList(), unnamed, "presses and fields with no name in a dialog, by dialog and width")
     }
 
     /** The control: a press with nothing to read is reported, so the check is seen to be able to fail. */
@@ -58,10 +81,19 @@ class NamedPressesTest {
             assertEquals(1, unnamed().size)
         }
 
+    /** The control for fields: one with nothing to name it is reported, though something is typed in it. */
+    @Test
+    fun `a field with no name is reported`() =
+        runDesktopComposeUiTest(PHONE, 400) {
+            setContent { Fixture(compact = true) { BasicTextField("typed", {}) } }
+            assertEquals(1, unnamed().size)
+        }
+
     private fun unnamedPresses(
         address: String,
         body: String,
         compact: Boolean,
+        dialog: Dialog? = null,
     ): List<String> {
         val tree = withFacetActions(read(body))
         val transport = HaulTransport { HaulResponse(200, tree) }
@@ -83,7 +115,14 @@ class NamedPressesTest {
             }
             waitUntil(timeoutMillis = 5_000) { onAllNodes(hasClickAction()).fetchSemanticsNodes().size > 5 }
             waitForIdle()
-            found = unnamed().map { "$address ${if (compact) "phone" else "wide"}: $it" }
+            if (dialog != null) {
+                // The press itself, wherever the control is: below the window's fold a click would miss it.
+                onAllNodesWithText(dialog.opener).onFirst().performSemanticsAction(SemanticsActions.OnClick)
+                waitUntil(timeoutMillis = 5_000) { onAllNodesWithTag(dialog.close).fetchSemanticsNodes().isNotEmpty() }
+                waitForIdle()
+            }
+            val where = "${dialog?.name ?: address} ${if (compact) "phone" else "wide"}"
+            found = (unnamed() + unnamedCart()).map { "$where: $it" }
         }
         return found
     }
@@ -115,16 +154,35 @@ class NamedPressesTest {
         return walk(Json.parseToJsonElement(body)).toString()
     }
 
-    private fun ComposeUiTest.unnamed(): List<String> =
-        onAllNodes(hasClickAction())
+    private fun ComposeUiTest.unnamed(): List<String> {
+        val presses = onAllNodes(hasClickAction() and !hasSetTextAction()).fetchSemanticsNodes()
+        val fields = onAllNodes(hasSetTextAction()).fetchSemanticsNodes()
+        return presses.filter { name(it).isBlank() }.map { "press ${describe(it)}" } +
+            fields.filter { described(it).isBlank() }.map { "field ${describe(it)}" }
+    }
+
+    /** The header's cart button, when its name does not say it is the cart. */
+    private fun ComposeUiTest.unnamedCart(): List<String> =
+        onAllNodesWithTag(CART_BUTTON_TAG)
             .fetchSemanticsNodes()
-            .filter { name(it).isBlank() }
-            .map { node ->
-                val tag = node.config.getOrNull(SemanticsProperties.TestTag)
-                val bounds = node.boundsInRoot
-                "#${node.id} tag=$tag at (${bounds.left.toInt()}, ${bounds.top.toInt()}) " +
-                    "${bounds.width.toInt()}x${bounds.height.toInt()}"
-            }
+            .filterNot { CART in name(it) }
+            .map { "the cart button, named «${name(it)}», ${describe(it)}" }
+
+    private fun describe(node: SemanticsNode): String {
+        val tag = node.config.getOrNull(SemanticsProperties.TestTag)
+        val bounds = node.boundsInRoot
+        return "#${node.id} tag=$tag at (${bounds.left.toInt()}, ${bounds.top.toInt()}) " +
+            "${bounds.width.toInt()}x${bounds.height.toInt()}"
+    }
+
+    /** A field's name: its content description, the label a reader hears before its value. */
+    private fun described(node: SemanticsNode): String =
+        node.config
+            .getOrNull(SemanticsProperties.ContentDescription)
+            ?.joinToString(" ")
+            .orEmpty()
+            .filterNot { it in INVISIBLE }
+            .trim()
 
     /** The name the browser computes for the mirrored node: its label, else the text in it and under it. */
     private fun name(node: SemanticsNode): String {
@@ -137,9 +195,21 @@ class NamedPressesTest {
         return (own + " " + node.children.joinToString(" ") { name(it) }).filterNot { it in INVISIBLE }.trim()
     }
 
+    /** A dialog the storefront presents over [body] at [address] when [opener] is pressed; [close] is its «×». */
+    private class Dialog(
+        val name: String,
+        val address: String,
+        val body: String,
+        val opener: String,
+        val close: String,
+    )
+
     private companion object {
         const val WIDE = 1_440
         const val PHONE = 390
+
+        /** The word the header's cart button is named by, with its count when there is one. */
+        const val CART = "Cart"
 
         const val NAVIGATE = """{"type":"navigate","deeplink":"/c/electronics"}"""
 
@@ -163,8 +233,30 @@ class NamedPressesTest {
                 "/account/orders" to "account_orders.json",
                 "/account/saved" to "saved_content.json",
                 "/account/saved?view=drops" to "saved_price_drops.json",
+                "/account/saved" to "saved_empty.json",
                 "/account/orders/HL-48302" to "order_in_transit.json",
                 "/account/orders/HL-48302" to "order_delivered.json",
+            )
+
+        /** Every dialog the storefront presents: the review's, the question's, the return's, the Plus trial's. */
+        val DIALOGS =
+            listOf(
+                Dialog(
+                    "review",
+                    "/p/p-sony-wh-1000xm6?tab=reviews",
+                    "product_reviews.json",
+                    "Write a review",
+                    CLOSE_TAG,
+                ),
+                Dialog(
+                    "question",
+                    "/p/p-sony-wh-1000xm6?tab=questions",
+                    "product_questions.json",
+                    "Ask a question",
+                    CLOSE_TAG,
+                ),
+                Dialog("return", "/account/orders/HL-46102", "order_delivered.json", "Return items", CLOSE_TAG),
+                Dialog("plus trial", "/", "home_plus_trial.json", "Try 30 days free", PLUS_CLOSE_TAG),
             )
     }
 }
