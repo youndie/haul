@@ -65,8 +65,8 @@ internal enum class ProductTab(
  * «Add to cart» and «Buy now» carry their line changes for that SKU (B-48), drawn for the [Viewer]'s
  * cart as a card's «+» is. «12K bought this month» under the rating is [BoughtThisMonth]'s (B-52).
  *
- * The reviews and questions tabs list the first [shown] (`shown`, ten more per «Show more», B-71); the
- * tab's address is [address].
+ * The reviews and questions tabs list the first [shown] (`shown`, ten more per «Show more», B-71); the reviews
+ * only those of [stars] stars when a bar of the histogram asked (`stars`, B-86); the tab's address is [address].
  *
  * The addresses the page writes for itself — the tabs, the rating, «All specifications», «Show more» — name the
  * SKU only when the page's own address did (B-132): on `?tab=reviews` «2,341 reviews» leads to `?tab=reviews`, the
@@ -85,6 +85,7 @@ internal class ProductScreen(
         tab: ProductTab,
         viewer: Viewer,
         shown: Int = ReviewTabs.SHOWN,
+        stars: Int? = null,
     ): KompotComponent {
         val item = catalog.product(productId, viewer.prices) ?: throw CatalogError.ProductNotFound(productId)
         val sku =
@@ -141,7 +142,7 @@ internal class ProductScreen(
                     }
 
                     ProductTab.Reviews -> {
-                        reviewTabs.reviews(item, sku, viewer, shown, named)
+                        reviewTabs.reviews(item, sku, viewer, shown, named, stars)
                     }
 
                     ProductTab.Questions -> {
@@ -371,15 +372,18 @@ internal class ProductScreen(
     companion object {
         /**
          * The page of [item] at [sku] on [tab] — at the SKU the product page opens on when [sku] is `null` (B-132) —;
-         * the reviews and questions tabs listing [shown] when it is more than the first ten (B-71).
+         * the reviews and questions tabs listing [shown] when it is more than the first ten (B-71), the reviews only
+         * those of [stars] stars when it is given (B-86).
          */
         fun address(
             item: Listed,
             sku: Sku?,
             tab: ProductTab,
             shown: Int = ReviewTabs.SHOWN,
+            stars: Int? = null,
         ): String =
             "/p/${item.product.id}?" + (sku?.let { "sku=${it.id}&" }.orEmpty()) + "tab=${tab.key}" +
+                (stars?.takeIf { tab == ProductTab.Reviews }?.let { "&$STARS=$it" }.orEmpty()) +
                 if (shown > ReviewTabs.SHOWN) "&$SHOWN=$shown" else ""
 
         /** The page of [item] at [sku] on [tab], as a variant picked there opens it: the description's without `tab`. */
@@ -398,6 +402,9 @@ internal class ProductScreen(
 
         /** The query parameter naming how many reviews or questions the tab lists (B-71). */
         const val SHOWN = "shown"
+
+        /** The query parameter naming the stars the reviews tab lists, 1 to 5 (B-86). */
+        const val STARS = "stars"
 
         private const val HIGHLIGHTS = 4
         private const val BESTSELLER_REVIEWS = 2_000

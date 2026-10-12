@@ -23,8 +23,8 @@ internal data class SeedCatalog(
     val addresses: List<SeedAddress> = emptyList(),
     val reviews: List<StoredReview> = emptyList(),
     /**
-     * Per product, stars to how many of its reviews give them, where the seed fixes the histogram; the rows
-     * [SeedReviews] writes follow it, and a product without one gets the histogram its average makes.
+     * Per product, stars to how many of its reviews give them; the rows [SeedReviews] writes follow it, and the
+     * product's rating is its average (B-86). A product without one gets the histogram its rating makes.
      */
     val ratingCounts: Map<String, Map<Int, Int>> = emptyMap(),
     val questions: List<StoredQuestion> = emptyList(),

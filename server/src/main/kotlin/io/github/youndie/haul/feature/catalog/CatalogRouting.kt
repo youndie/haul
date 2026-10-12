@@ -125,12 +125,13 @@ internal fun Route.catalogRouting() {
         val tree =
             coroutineScope {
                 launch { recordView(viewer, productId) }
-                product.build(productId, query["sku"], tab, viewer, productShown(query))
+                product.build(productId, query["sku"], tab, viewer, productShown(query), productStars(query))
             }
         call.respondKompotComponent(haulWireJson, tree)
     }
 
-    // «Show more reviews» or «Show more questions» loaded in place (B-71, kind `load`): the tab's node. A
+    // «Show more reviews» or «Show more questions» loaded in place (B-71, kind `load`), or a bar of the rating
+    // histogram listing the reviews of its stars (B-86, `stars`): the tab's node. A
     // product that is no longer there cannot be partial: the answer opens the address, whose page says so.
     // Loading the parts is not opening the page, so no view is recorded.
     get("${Parts.PREFIX}/p/{productId}") {
@@ -138,7 +139,14 @@ internal fun Route.catalogRouting() {
         val tab = productTab(query)
         val page =
             try {
-                product.build(call.parameters["productId"]!!, query["sku"], tab, viewers.of(call), productShown(query))
+                product.build(
+                    call.parameters["productId"]!!,
+                    query["sku"],
+                    tab,
+                    viewers.of(call),
+                    productShown(query),
+                    productStars(query),
+                )
             } catch (_: CatalogError.ProductNotFound) {
                 null
             }
@@ -259,3 +267,13 @@ private fun productShown(query: Parameters): Int =
                 "List from ${ReviewTabs.SHOWN} to ${ReviewTabs.MAX_SHOWN}",
             )
     } ?: ReviewTabs.SHOWN
+
+/**
+ * The stars the reviews tab lists, `stars` (B-86, a bar of the histogram): every review when absent; anything but
+ * 1 to 5 is `400 validation_failed`. The other tabs list no reviews, and read nothing from it.
+ */
+private fun productStars(query: Parameters): Int? =
+    query[ProductScreen.STARS]?.let {
+        it.toIntOrNull()?.takeIf { n -> n in 1..ReviewTabs.STARS }
+            ?: throw CatalogError.Invalid(ProductScreen.STARS, "Stars are 1 to ${ReviewTabs.STARS}, not «$it»")
+    }

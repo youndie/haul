@@ -54,7 +54,8 @@ search for `sony`).
   - Step 1: headphones with «Sony» ticked (`/c/electronics/audio/headphones?brand=Sony`).
   - Step 2: the Reviews tab, on the same page, the tab row brought into view with the reviews under it.
   - Step 3: the Specifications tab, brought into view the same way.
-  - Step 4: no chevron — there is no seller page. The review photos and the histogram's bars press nothing.
+  - Step 4: no chevron — there is no seller page. (The review photos and the histogram's bars are controls since
+    B-86: TC-PDP-18 and TC-PDP-19.)
   - Step 5: the tab row brought into view with the reviews under it; the address is the one shown, loaded again in
     place (B-95).
 - **Decided in:** B-71, B-121, B-132
@@ -173,13 +174,16 @@ search for `sony`).
   1. Open «Reviews»; read the histogram and the count; press «Show more reviews» twice.
   2. Open «Questions»; press «Show more questions».
 - **Expected:**
-  - Step 1: the count, the histogram and the rows agree; ten reviews, then twenty, then thirty — loaded in place
+  - Step 1: the count, the histogram and the rows agree, and the rating is the bars' average (B-86: the
+    headphones' 84 / 12 / 2 / 1 / 1 % under «4.8»); ten reviews, then twenty, then thirty — loaded in place
     (`shown=` in the address), the page kept.
   - Step 2: the answered questions first, ten more in place; the open one reads «Not answered yet».
   - Both: a date in the store's current year has no year («Sep 28»); one of an earlier year carries it
     («Sep 28, 2025»).
-- **Decided in:** B-71, B-99, B-129
+- **Decided in:** B-71, B-99, B-129, B-86
 - **Coverage:** `ReviewPagesTest` «the headphones' tabs offer more on the seed itself»;
+  `SeedReviewsTest` «every product of the seed has reviews and the rating they give»;
+  `ReviewPagesTest` «a review written moves the rating to the histogram's average»;
   `ReviewPagesTest` «the reviews tab lists ten and shows ten more in place until there are no more»;
   `ReviewPagesTest` «the questions tab lists ten and shows ten more in place until there are no more»;
   `ProductPageLinksTest` «show more reviews loads ten more in place»;
@@ -351,3 +355,53 @@ search for `sony`).
   `PhotoFallbackTest` «a photo that failed to load leaves the placeholder tile»;
   `PhotoFallbackTest` «a photo still loading shows the placeholder tile»;
   `LinePhotosTest` «cart lines draw their photos»; golden `ProductCard_Photo`
+
+### TC-PDP-18 — A bar of the histogram lists the reviews of its stars
+
+- **Who:** guest
+- **Width:** 1440, 390
+- **Preconditions:** the headphones on the Reviews tab (`?tab=reviews`).
+- **Steps:**
+  1. Press the «4» bar of the histogram.
+  2. Press «Show more reviews».
+  3. Press «All»; then press the «4» bar again, and the «4» bar once more.
+  4. Back.
+- **Expected:**
+  - Step 1: only four-star reviews, Aisha's first; «Showing 4-star reviews» and «All» under the bars; the «4» bar
+    drawn in bold, the others' fill grey; the rating, «out of 5 · 2,341 reviews» and the percentages unchanged; the
+    address `?tab=reviews&stars=4`, loaded in place (the page kept, the header not redrawn).
+  - Step 2: ten more four-star reviews in place, `&stars=4&shown=20`.
+  - Step 3: «All» lists every review again (`?tab=reviews`); the bar pressed again does the same.
+  - Step 4: the address before, and the reviews it lists.
+  - A bar nobody gave (on a product with few reviews) is not a press.
+- **Decided in:** B-86
+- **Coverage:** `ReviewPagesTest` «a bar lists the reviews of its stars in place and pressed again or all lists every review»;
+  `ReviewPagesTest` «a bar nobody gave presses nothing»;
+  `ReviewPagesTest` «the stars listed are one to five»;
+  `ReviewControlsTest` «a bar lists the reviews of its stars in place»;
+  `ReviewControlsTest` «all and the pressed bar list every review again»;
+  `ReviewControlsTest` «the pressed bar lists every review again»;
+  `ReviewControlsTest` «a bar without an action presses nothing»
+
+### TC-PDP-19 — A review's photo opens the review's photos over the page
+
+- **Who:** guest
+- **Width:** 1440, 390
+- **Preconditions:** the headphones on the Reviews tab; Daniel R.'s review has two photos.
+- **Steps:**
+  1. Press Daniel's first photo; press «›», then «‹»; press the arrow keys.
+  2. Press «×». Open it again and press Escape. Open it again and press outside the photo's card, over another
+     review's «Helpful».
+  3. With a screen reader (or the accessible mirror, `scripts/a11y-check.py`), read the tiles and the viewer.
+- **Expected:**
+  - Step 1: the photo large over the dimmed page, «Daniel R.» and «Photo 1 of 2»; «›» shows the second, «‹» the
+    first; «‹» on the first and «›» on the last are faded and press nothing; the arrows do the same.
+  - Step 2: each closes the viewer; the press outside votes nothing; the address does not change and nothing loads.
+  - Step 3: «Open photo 1 of 2 by Daniel R.» on a tile; «Close photos», «Previous photo», «Next photo» in the viewer;
+    after it closes the mirror holds the page again (B-126).
+- **Decided in:** B-86
+- **Coverage:** `ReviewControlsTest` «a review's photo opens its viewer which steps through its photos and closes by the cross»;
+  `ReviewControlsTest` «escape closes the photo viewer and the arrow keys step through it»;
+  `ReviewControlsTest` «a press outside the photo closes the viewer and one on it does not»;
+  `ReviewControlsTest` «on a phone a press outside the photo closes the viewer»;
+  `NamedPressesTest` «every press and field in the dialogs has a name»

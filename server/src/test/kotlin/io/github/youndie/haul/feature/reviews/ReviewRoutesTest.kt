@@ -17,7 +17,6 @@ import io.github.youndie.haul.testing.haulTest
 import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.testing.tree
-import io.github.youndie.haul.ui.HistogramBar
 import io.github.youndie.haul.ui.ProductQuestions
 import io.github.youndie.haul.ui.ProductReviews
 import io.github.youndie.haul.ui.ProductTabs
@@ -82,15 +81,13 @@ class ReviewRoutesTest {
             val reviews = tree.only<ProductReviews>()
             assertEquals("4.8", reviews.rating)
             assertEquals("out of 5 · 2,341 reviews", reviews.caption)
+            // The seed's bars, which average the 4.8 over them (B-86; the canvas draws 78 / 14 / 4 / 2 / 2).
             assertEquals(
-                listOf(
-                    HistogramBar(5, 78),
-                    HistogramBar(4, 14),
-                    HistogramBar(3, 4),
-                    HistogramBar(2, 2),
-                    HistogramBar(1, 2),
-                ),
-                reviews.histogram,
+                listOf(5 to 84, 4 to 12, 3 to 2, 2 to 1, 1 to 1),
+                reviews.histogram.map {
+                    it.stars to
+                        it.percent
+                },
             )
             // The canvas's two are the newest of the 2,341 the seed stores (B-99): ten listed, and more.
             assertEquals(10, reviews.reviews.size)

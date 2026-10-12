@@ -18,15 +18,17 @@ import java.time.OffsetDateTime
  *
  * Every row is deterministic: its id is `rf-<product>-<stars>-<n>` (a review) or `qf-<product>-<n>` (a
  * question), its copy and its date follow from that number and the product's id, and no clock is read. The
- * stars follow the product's histogram where the seed has one ([SeedCatalog.ratingCounts], the canvas's
- * 78 / 14 / 4 / 2 / 2 % of the headphones), and otherwise its average: a 4.7 is seven tenths fives and the
- * rest fours, so the histogram a page draws from the rows agrees with the rating beside it.
+ * stars follow the product's histogram ([SeedCatalog.ratingCounts]: the headphones' 84 / 12 / 2 / 1 / 1 %, or
+ * the one a drawn average makes — a 4.7 is seven tenths fives and the rest fours), and the product's rating is
+ * that histogram's average (B-86), so the rating a page draws agrees with the bars beside it.
  *
  * [fill] runs wherever the seed runs, also on a database seeded before it existed — a stand keeps its
- * database across deploys, and its products said 2,341 over two rows: it inserts the generated rows a
- * database does not have yet (`ON CONFLICT DO NOTHING`, by id), then counts every product's reviews,
- * questions and histogram from the rows, so a review a customer wrote is counted once, as a row. On a database
- * that already holds every generated row it reads one count and writes nothing.
+ * database across deploys, and its products said 2,341 over two rows — or before a histogram changed (B-86
+ * moved the headphones' bars): it removes the generated rows past a product's target, with their votes, inserts
+ * those a database does not have yet (by id; one there is dated as a fresh seed dates it), then counts every
+ * product's reviews, questions, histogram and rating from the rows, so a review a customer wrote is counted
+ * once, as a row. On a database that already holds every generated row it reads one count per product and
+ * number of stars, and writes nothing.
  */
 internal object SeedReviews {
     /**
@@ -42,11 +44,23 @@ internal object SeedReviews {
     ): Boolean {
         val reviews = reviewTargets(catalog)
         val questions = questionTargets(catalog)
-        if (!fresh && present(connection) == reviews.sumOf { it.n.toLong() } to questions.sumOf { it.n.toLong() }) {
+        val wanted = reviews.associate { (it.productId to it.stars) to it.n.toLong() }
+        if (!fresh && present(connection) == wanted to questions.sumOf { it.n.toLong() }) {
             return false
         }
         connection.createStatement().use { it.execute(LOCK) }
-        connection.prepareStatement(REVIEWS + guard(fresh)).use { statement ->
+        if (!fresh) {
+            // The generated reviews a product's histogram no longer has (B-86): their votes, then the rows.
+            for (statement in listOf(PAST_TARGET_VOTES, PAST_TARGET)) {
+                connection.prepareStatement(statement).use {
+                    it.setArray(1, connection.createArrayOf("text", reviews.map { t -> t.productId }.toTypedArray()))
+                    it.setArray(2, connection.createArrayOf("int4", reviews.map { t -> t.stars }.toTypedArray()))
+                    it.setArray(3, connection.createArrayOf("int4", reviews.map { t -> t.n }.toTypedArray()))
+                    it.executeUpdate()
+                }
+            }
+        }
+        connection.prepareStatement(REVIEWS + reviewGuard(fresh)).use { statement ->
             statement.setArray(1, connection.createArrayOf("text", AUTHORS.toTypedArray()))
             statement.setArray(2, connection.createArrayOf("text", REVIEW_TITLES.toTypedArray()))
             statement.setArray(3, connection.createArrayOf("text", REVIEW_BODIES.toTypedArray()))
@@ -72,13 +86,59 @@ internal object SeedReviews {
         return true
     }
 
-    /** How many generated reviews and questions the database holds. */
-    private fun present(connection: Connection): Pair<Long, Long> =
-        connection.createStatement().use { statement ->
-            statement.executeQuery(PRESENT).use { rows ->
-                rows.next()
-                rows.getLong(1) to rows.getLong(2)
+    /**
+     * The catalogue's histograms alone, for a seed that leaves out the generated rows (B-111: the server's tests):
+     * each product's count and rating then stand over the histogram they were made from, as on a seed that
+     * fills, and a review written there moves the rating from that histogram as it would on the stand (B-86).
+     */
+    fun histograms(
+        connection: Connection,
+        catalog: SeedCatalog,
+    ) {
+        val bars =
+            catalog.products.flatMap { product ->
+                histogramOf(catalog, product).filterValues { it > 0 }.map { (stars, n) -> Target(product.id, stars, n) }
             }
+        connection.prepareStatement(HISTOGRAMS).use { statement ->
+            statement.setArray(1, connection.createArrayOf("text", bars.map { it.productId }.toTypedArray()))
+            statement.setArray(2, connection.createArrayOf("int4", bars.map { it.stars }.toTypedArray()))
+            statement.setArray(3, connection.createArrayOf("int4", bars.map { it.n }.toTypedArray()))
+            statement.executeUpdate()
+        }
+    }
+
+    private const val HISTOGRAMS =
+        "INSERT INTO rating_counts (product_id, stars, count) SELECT * FROM unnest(?::text[], ?::int4[], ?::int4[])"
+
+    /**
+     * How many generated reviews the database holds per product and number of stars, and how many generated
+     * questions.
+     */
+    private fun present(connection: Connection): Pair<Map<Pair<String, Int>, Long>, Long> =
+        connection.createStatement().use { statement ->
+            val reviews =
+                statement.executeQuery(PRESENT_REVIEWS).use { rows ->
+                    buildMap { while (rows.next()) put(rows.getString(1) to rows.getInt(2), rows.getLong(3)) }
+                }
+            val questions =
+                statement.executeQuery(PRESENT_QUESTIONS).use { rows ->
+                    rows.next()
+                    rows.getLong(1)
+                }
+            reviews to questions
+        }
+
+    /**
+     * [guard] for the reviews: a generated review already there is dated again as a fresh seed dates it — its
+     * date follows from its number among the product's reviews of its stars, which a changed histogram moves.
+     */
+    private fun reviewGuard(fresh: Boolean): String =
+        if (fresh) {
+            ""
+        } else {
+            "\nAND EXISTS (SELECT 1 FROM products p WHERE p.id = t.product_id)\n" +
+                "ON CONFLICT (id) DO UPDATE SET created_at = EXCLUDED.created_at " +
+                "WHERE reviews.created_at IS DISTINCT FROM EXCLUDED.created_at"
         }
 
     /**
@@ -104,13 +164,19 @@ internal object SeedReviews {
     internal fun reviewTargets(catalog: SeedCatalog): List<Target> {
         val own = catalog.reviews.groupingBy { it.productId to it.rating }.eachCount()
         return catalog.products.flatMap { product ->
-            val histogram = catalog.ratingCounts[product.id] ?: histogram(product.rating, product.reviewsCount)
+            val histogram = histogramOf(catalog, product)
             (STARS downTo 1).mapNotNull { stars ->
                 val n = (histogram[stars] ?: 0) - (own[product.id to stars] ?: 0)
                 if (n > 0) Target(product.id, stars, n) else null
             }
         }
     }
+
+    /** The histogram the seed gives [product]: the catalogue's, or for a catalogue without one the one its average makes. */
+    private fun histogramOf(
+        catalog: SeedCatalog,
+        product: SeedProduct,
+    ): Map<Int, Int> = catalog.ratingCounts[product.id] ?: histogram(product.rating, product.reviewsCount)
 
     /** Per product, the generated questions: its count less the questions the seed holds one by one. */
     internal fun questionTargets(catalog: SeedCatalog): List<Target> {
@@ -152,11 +218,28 @@ internal object SeedReviews {
     /** Generated questions are older than the canvas's answered two (Sep 29, Sep 14), over 500 days. */
     private val QUESTIONS_BEFORE: OffsetDateTime = OffsetDateTime.parse("2025-09-10T12:00:00-04:00")
 
-    private const val PRESENT =
-        "SELECT (SELECT count(*) FROM reviews WHERE id LIKE 'rf-%'), (SELECT count(*) FROM questions WHERE id LIKE 'qf-%')"
+    private const val PRESENT_REVIEWS =
+        "SELECT product_id, rating, count(*) FROM reviews WHERE id LIKE 'rf-%' GROUP BY product_id, rating"
 
-    /** Nothing writes a review, a question or a histogram while the rows are added and counted. */
-    private const val LOCK = "LOCK TABLE reviews, questions, rating_counts IN SHARE ROW EXCLUSIVE MODE"
+    private const val PRESENT_QUESTIONS = "SELECT count(*) FROM questions WHERE id LIKE 'qf-%'"
+
+    /** Nothing writes a review, a vote, a question or a histogram while the rows are added and counted. */
+    private const val LOCK = "LOCK TABLE reviews, helpful_votes, questions, rating_counts IN SHARE ROW EXCLUSIVE MODE"
+
+    /**
+     * A generated review past its product's target for its stars: its number (the id's last part) is above the
+     * target, or the product has no target for those stars.
+     */
+    private const val PAST =
+        """r.id LIKE 'rf-%' AND NOT EXISTS (
+            SELECT 1 FROM unnest(?::text[], ?::int4[], ?::int4[]) AS t(product_id, stars, n)
+            WHERE t.product_id = r.product_id AND t.stars = r.rating AND substring(r.id FROM '[0-9]+$')::int <= t.n
+        )"""
+
+    private const val PAST_TARGET_VOTES =
+        "DELETE FROM helpful_votes v USING reviews r WHERE v.review_id = r.id AND $PAST"
+
+    private const val PAST_TARGET = "DELETE FROM reviews r WHERE $PAST"
 
     /**
      * Row `i` of `n` of a product's reviews of `stars`: an author, a title and a body for its stars (eight
@@ -226,6 +309,13 @@ internal object SeedReviews {
             """.trimIndent(),
             "DELETE FROM rating_counts",
             "INSERT INTO rating_counts (product_id, stars, count) SELECT product_id, rating, count(*) FROM reviews GROUP BY product_id, rating",
+            // The rating is the histogram's average to a tenth, half up, as `Ratings.average` has it (B-86).
+            """
+            UPDATE products p SET rating = c.rating
+            FROM (SELECT product_id, round(sum(stars * count)::numeric / sum(count), 1) AS rating
+                  FROM rating_counts GROUP BY product_id HAVING sum(count) > 0) c
+            WHERE c.product_id = p.id AND p.rating <> c.rating
+            """.trimIndent(),
         )
 
     private const val PER_STAR = 8

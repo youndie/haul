@@ -2,6 +2,8 @@ package io.github.youndie.haul.feature.reviews.domain
 
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.FieldError
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.OffsetDateTime
 
 // Reviews and questions as feature-reviews keeps them (research §5: `Review`, `Question`).
@@ -33,12 +35,34 @@ internal data class StoredQuestion(
     val answeredAt: OffsetDateTime? = null,
 )
 
+/**
+ * A product's rating is the average of the stars its reviews gave, to a tenth — the stars its histogram counts
+ * (B-86). Before, the rating was the seed's number and moved by each new review from there, while the histogram
+ * was counted from the rows: the headphones read 4.8 over bars that average 4.6. Now there is one source, the
+ * rows: the histogram counts them, and the rating is computed from the histogram wherever either is written —
+ * a review stored ([ReviewRepository.write]), the seed's catalogue (`CatalogSeed`) and its recount of a database
+ * (`SeedReviews`, the same rounding in SQL).
+ */
+internal object Ratings {
+    /**
+     * The average of [histogram] (stars to how many gave them), to a tenth, half up — `null` for a product
+     * nobody has reviewed, which has no rating to show.
+     */
+    fun average(histogram: Map<Int, Int>): BigDecimal? {
+        val count = histogram.values.sum()
+        if (count == 0) return null
+        val stars = histogram.entries.sumOf { (stars, n) -> stars.toLong() * n }
+        return stars.toBigDecimal().divide(count.toBigDecimal(), 1, RoundingMode.HALF_UP)
+    }
+}
+
 /** Where reviews and questions are kept; the product's count and average move with the review that changes them. */
 internal interface ReviewRepository {
-    /** The product's reviews, the newest first, at most [limit]. */
+    /** The product's reviews, the newest first, at most [limit]; only those of [stars] stars when it is given (B-86). */
     suspend fun reviews(
         productId: String,
         limit: Int,
+        stars: Int? = null,
     ): List<StoredReview>
 
     /** How many reviews gave each number of stars, 1…5; a number nobody gave is absent. */
@@ -78,7 +102,7 @@ internal interface ReviewRepository {
 
     /**
      * Stores [review] and, in the same transaction, counts it into its product: one more review, its stars
-     * in the histogram, the average moved by it. Returns `false`, storing nothing, when its author already
+     * in the histogram, and the rating the histogram gives now ([Ratings]). Returns `false`, storing nothing, when its author already
      * has a review of the product.
      */
     suspend fun write(review: StoredReview): Boolean

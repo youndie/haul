@@ -174,16 +174,23 @@ public data class SpecificationList(
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
-/** One bar of a rating histogram: how many of the reviews gave [stars], in whole percent. */
+/**
+ * One bar of a rating histogram: how many of the reviews gave [stars], in whole percent. [action] lists only the
+ * reviews of [stars] in place (B-86, kompot's `load` of the tab's address with `stars`); on the bar [selected] —
+ * the filter shown — it takes the filter off. A bar nobody gave has none: there is nothing to list.
+ */
 @Serializable
 public data class HistogramBar(
     val stars: Int,
     val percent: Int,
+    val action: @Polymorphic KompotAction? = null,
+    val selected: Boolean = false,
 )
 
 /**
  * A review. [tone] is the avatar's tile tone, [photos] the tones of its photo placeholders (research
- * D8); [helpful] is «48 people found this helpful», the stored count, absent while nobody has.
+ * D8) — a press on one opens the review's photos over the page, the client's own viewer (B-86); [helpful] is «48
+ * people found this helpful», the stored count, absent while nobody has.
  *
  * «Helpful» ([helpfulLabel]) carries, for a customer, [helpfulCommand] — their vote, or taking it back
  * (B-43) — and for a guest [helpfulAction], the way to sign in. [helpfulVoted] is whether the customer's vote
@@ -215,6 +222,10 @@ public data class Review(
  * no [action]: [actionLabel] says so («You reviewed this on Oct 7»), drawn as words, and their review leads
  * the list (B-99). [more] is «[moreLabel]» under the reviews while the product has more than are listed:
  * kompot's `load` of the tab listing ten more (B-71).
+ *
+ * A bar of [histogram] filters the list by its stars (B-86); while one does, [filter] says so («Showing 4-star
+ * reviews») and «[allLabel]» ([all]) lists every review again. [rating] is the average of the stars the
+ * histogram counts, to a tenth.
  */
 @Serializable
 @SerialName("haul_product_reviews")
@@ -229,6 +240,9 @@ public data class ProductReviews(
     val action: @Polymorphic KompotAction? = null,
     val moreLabel: String? = null,
     val more: @Polymorphic KompotAction? = null,
+    val filter: String? = null,
+    val allLabel: String? = null,
+    val all: @Polymorphic KompotAction? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 

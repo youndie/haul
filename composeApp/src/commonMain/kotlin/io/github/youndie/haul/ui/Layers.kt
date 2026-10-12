@@ -32,7 +32,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 
-// What opens over the page — a menu, the phone's menu, the phone's filter sheet — is drawn in the storefront's own
+// What opens over the page — a menu, the phone's menu, the phone's filter sheet, a review's photos — is drawn in the storefront's own
 // layer, over the page, rather than in a `Popup` or a `Dialog` (B-126). Each of those is a layer of its own in
 // Compose's scene, and Compose Multiplatform 1.12's browser mirror of the page for assistive technology follows
 // only the newest layer: once one has opened and closed, the mirror holds the closed layer's nodes until the page
@@ -100,12 +100,14 @@ internal fun OverPage(content: @Composable () -> Unit) {
 internal fun isOverPage(): Boolean = LocalOverlays.current != null
 
 /**
- * A sheet over the whole storefront — the phone's menu, the phone's filter sheet — as a `Dialog` drew it: no press
- * over it reaches the page under it, and Escape is [onDismiss].
+ * A sheet over the whole storefront — the phone's menu, the phone's filter sheet, a review's photos (B-86) — as a
+ * `Dialog` drew it: no press over it reaches the page under it, and Escape is [onDismiss]. The sheet holds the
+ * focus, so any other key it reads is [onKey]'s (the photos' arrows); `true` when it took the key.
  */
 @Composable
 internal fun SheetOverPage(
     onDismiss: () -> Unit,
+    onKey: (Key) -> Boolean = { false },
     content: @Composable () -> Unit,
 ) {
     OverPage {
@@ -119,7 +121,7 @@ internal fun SheetOverPage(
                 .onPreviewKeyEvent {
                     val escape = it.key == Key.Escape
                     if (escape && it.type == KeyEventType.KeyDown) onDismiss()
-                    escape
+                    escape || (it.type == KeyEventType.KeyDown && onKey(it.key))
                 }.focusable(),
         ) { content() }
     }

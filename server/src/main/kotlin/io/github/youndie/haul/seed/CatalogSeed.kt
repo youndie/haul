@@ -1,6 +1,7 @@
 package io.github.youndie.haul.seed
 
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
+import io.github.youndie.haul.feature.reviews.domain.Ratings
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -89,10 +90,11 @@ internal object CatalogSeed {
             SamplePromoCodes.all.map {
                 if (it.campaignSlug == null) it else it.copy(startsAt = it.startsAt.on(day), endsAt = it.endsAt.on(day))
             }
+        val histograms = histograms(products)
         return SeedCatalog(
             categories,
             sellers,
-            products,
+            rated(products, histograms),
             inCampaigns(skus),
             campaigns,
             deals,
@@ -102,7 +104,7 @@ internal object CatalogSeed {
             SampleCheckout.pickupPoints,
             SampleCheckout.addresses,
             SampleReviews.reviews,
-            SampleReviews.ratingCounts,
+            histograms,
             SampleReviews.questions,
             SampleSaved.mayas(products, skus, deals),
             memberships = SampleCustomers.memberships(day.year),
@@ -121,6 +123,28 @@ internal object CatalogSeed {
         if (days == 0L) return this
         return atZoneSameInstant(DeliveryCalendar.STORE).plusDays(days).toOffsetDateTime()
     }
+
+    /**
+     * Per product, the histogram its reviews are seeded to ([SeedReviews] writes a row per review): the one the
+     * seed fixes ([SampleReviews.ratingCounts], the headphones'), or the one the drawn average and count make.
+     */
+    private fun histograms(products: List<SeedProduct>): Map<String, Map<Int, Int>> =
+        products.associate {
+            it.id to (SampleReviews.ratingCounts[it.id] ?: SeedReviews.histogram(it.rating, it.reviewsCount))
+        }
+
+    /**
+     * Each product's rating as its histogram gives it (B-86, [Ratings]): the rating drawn, or the canvas's, is only
+     * what the histogram was made from, and a few reviews cannot make every average — one review of a «4.5» is a
+     * five or a four. Applied after generation, so the random stream and every other row stay as they were.
+     */
+    private fun rated(
+        products: List<SeedProduct>,
+        histograms: Map<String, Map<Int, Int>>,
+    ): List<SeedProduct> =
+        products.map { product ->
+            Ratings.average(histograms.getValue(product.id))?.let { product.copy(rating = it) } ?: product
+        }
 
     /**
      * Every markdown of the seed is the Autumn mega sale's — its hero says so, «1.2 million items marked
@@ -197,8 +221,10 @@ internal object CatalogSeed {
                 specifications = specifications("Brand" to brand, "Model" to id.uppercase()),
                 rating = BigDecimal.valueOf(random.nextLong(38, 50), 1),
                 // Drawn as before B-99, so every other row stays as it was, then scaled to what the seed stores
-                // one by one ([SeedReviews]): 0–23 reviews and 0–7 questions, not up to 12,000 over no rows.
-                reviewsCount = random.nextInt(0, 12_000) / GENERATED_REVIEWS_SCALE,
+                // one by one ([SeedReviews]): 1–23 reviews and 0–7 questions, not up to 12,000 over no rows. At
+                // least one review (B-86): a product nobody reviewed would show a rating its histogram has no
+                // stars for.
+                reviewsCount = maxOf(1, random.nextInt(0, 12_000) / GENERATED_REVIEWS_SCALE),
                 questionsCount = random.nextInt(0, 200) / GENERATED_QUESTIONS_SCALE,
                 tone = TONES[random.nextInt(TONES.size)],
                 label = leaf.label,

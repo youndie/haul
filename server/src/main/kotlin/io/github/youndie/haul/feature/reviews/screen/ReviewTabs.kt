@@ -55,6 +55,11 @@ import kotlin.math.roundToInt
  * are the product's, and since B-99 they are its rows — the seed stores the canvas's 2,341 reviews one by one
  * ([io.github.youndie.haul.seed.SeedReviews]) — so every review counted can be reached; «more» follows the
  * rows: one more is asked for than is drawn.
+ *
+ * A bar of the histogram lists only the reviews of its stars (B-86): kompot's `load` of the tab's address with
+ * `stars`, answered like «Show more» with the tab's node; the bar shown pressed takes the filter off, and so does
+ * «All» beside the words saying what is listed. A bar nobody gave presses nothing. The rating over the bars is
+ * the product's, which is the histogram's average ([io.github.youndie.haul.feature.reviews.domain.Ratings]).
  */
 internal class ReviewTabs(
     private val reviews: ReviewRepository,
@@ -66,30 +71,55 @@ internal class ReviewTabs(
         viewer: Viewer,
         shown: Int = SHOWN,
         named: Boolean = true,
+        stars: Int? = null,
     ): ProductReviews {
         val product = item.product
         val counts = reviews.ratingCounts(product.id)
         val total = counts.values.sum()
-        val found = reviews.reviews(product.id, shown + 1)
+        val found = reviews.reviews(product.id, shown + 1, stars)
         val own = viewer.customerId?.let { reviews.reviewBy(it, product.id) }
-        // The viewer's own review leads the list, wherever its date would put it (B-99).
-        val listed = (listOfNotNull(own) + found.filter { it.id != own?.id }).take(shown)
+        // The viewer's own review leads the list, wherever its date would put it (B-99) — when it is of the stars
+        // listed (B-86).
+        val leading = own?.takeIf { stars == null || it.rating == stars }
+        val listed = (listOfNotNull(leading) + found.filter { it.id != own?.id }).take(shown)
         val voted = viewer.customerId?.let { reviews.votedHelpful(it, listed.map(StoredReview::id)) }.orEmpty()
+        val at = sku.takeIf { named }
         return ProductReviews(
             id = "reviews",
             rating = product.rating.toPlainString(),
             caption = "out of 5 · ${count(product.reviewsCount)} ${plural(product.reviewsCount, "review")}",
             histogram =
-                (STARS downTo 1).map { stars ->
-                    HistogramBar(stars, if (total == 0) 0 else ((counts[stars] ?: 0) * PERCENT / total).roundToInt())
+                (STARS downTo 1).map { bar ->
+                    val given = counts[bar] ?: 0
+                    HistogramBar(
+                        stars = bar,
+                        percent = if (total == 0) 0 else (given * PERCENT / total).roundToInt(),
+                        action =
+                            when {
+                                bar == stars -> filtered(item, at, null)
+                                given > 0 -> filtered(item, at, bar)
+                                else -> null
+                            },
+                        selected = bar == stars,
+                    )
                 },
             actionLabel = own?.let { "You reviewed this on ${day(it.createdAt)}" } ?: WRITE_REVIEW,
             reviews = listed.map { review(it, viewer, it.id in voted) },
             action = if (own == null) writeReview(item, sku, viewer) else null,
             moreLabel = if (found.size > shown) "Show more reviews" else null,
-            more = if (found.size > shown) more(item, sku.takeIf { named }, ProductTab.Reviews, shown) else null,
+            more = if (found.size > shown) more(item, at, ProductTab.Reviews, shown, stars) else null,
+            filter = stars?.let { if (listed.isEmpty()) "No $it-star reviews" else "Showing $it-star reviews" },
+            allLabel = stars?.let { ALL },
+            all = stars?.let { filtered(item, at, null) },
         )
     }
+
+    /** The reviews tab listing the first ten of [stars] stars, or of every review when it is `null` (B-86). */
+    private fun filtered(
+        item: Listed,
+        sku: Sku?,
+        stars: Int?,
+    ): KompotAction = Parts.load(ProductScreen.address(item, sku, ProductTab.Reviews, SHOWN, stars))
 
     suspend fun questions(
         item: Listed,
@@ -114,13 +144,17 @@ internal class ReviewTabs(
         )
     }
 
-    /** The tab listing ten more than [shown], loaded in place (B-71); at [sku] when the page's address names one. */
+    /**
+     * The tab listing ten more than [shown], loaded in place (B-71); at [sku] when the page's address names one, and
+     * of [stars] stars when the reviews are filtered (B-86).
+     */
     private fun more(
         item: Listed,
         sku: Sku?,
         tab: ProductTab,
         shown: Int,
-    ): KompotAction = Parts.load(ProductScreen.address(item, sku, tab, shown + SHOWN))
+        stars: Int? = null,
+    ): KompotAction = Parts.load(ProductScreen.address(item, sku, tab, shown + SHOWN, stars))
 
     /**
      * [review] as the page draws it for [viewer], who [voted] it helpful or not: «Helpful» is their vote —
@@ -292,6 +326,7 @@ internal class ReviewTabs(
         const val MAX_SHOWN = 500
 
         private const val HELPFUL = "Helpful"
+        private const val ALL = "All"
         private const val OWN_REVIEW = "Your review"
         private const val WRITE_REVIEW = "Write a review"
         private const val YOUR_REVIEW = "Your review"
@@ -308,7 +343,7 @@ internal class ReviewTabs(
         /** What kompot's `present` is asked to show the form as: a dialog over the page. */
         const val DIALOG = "dialog"
         private const val COLOUR = "colour"
-        private const val STARS = 5
+        const val STARS = 5
         private const val PERCENT = 100.0
         private val DAY = DateTimeFormatter.ofPattern("MMM d", Locale.US)
         private val DAY_YEAR = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.US)

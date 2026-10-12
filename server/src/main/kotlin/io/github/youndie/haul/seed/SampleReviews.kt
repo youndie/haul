@@ -53,11 +53,15 @@ internal object SampleReviews {
         )
 
     /**
-     * Stars to how many reviews give them: 1,826 + 328 + 94 + 47 + 46 = 2,341, the product's count. The
-     * generated rows ([SeedReviews]) make up each number with the two reviews above.
+     * Stars to how many reviews give them: 1,966 + 281 + 47 + 24 + 23 = 2,341, the product's count, drawn as 84 /
+     * 12 / 2 / 1 / 1 % and averaging 4.77 — the «4.8» every artboard writes. The canvas's Product_Reviews draws
+     * 78 / 14 / 4 / 2 / 2 % (1,826 + 328 + 94 + 47 + 46), which averages 4.64: the rating is the histogram's since
+     * B-86, so one of the canvas's two numbers had to move, and the bars of one artboard pair moved rather than the
+     * «4.8» of every card, page and tab that shows the headphones. The generated rows ([SeedReviews]) make up each
+     * number with the two reviews above.
      */
     val ratingCounts: Map<String, Map<Int, Int>> =
-        mapOf(SONY_HEADPHONES to mapOf(5 to 1_826, 4 to 328, 3 to 94, 2 to 47, 1 to 46))
+        mapOf(SONY_HEADPHONES to mapOf(5 to 1_966, 4 to 281, 3 to 47, 2 to 24, 1 to 23))
 
     val questions: List<StoredQuestion> =
         listOf(
