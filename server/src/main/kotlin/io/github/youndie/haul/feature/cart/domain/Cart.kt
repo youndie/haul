@@ -45,9 +45,18 @@ internal sealed class CartError(
         message: String,
     ) : CartError(ErrorCode.OutOfStock, message, "quantity")
 
+    /**
+     * The cart has no line of [skuId]: removed in another tab, or moved by a finished «Save for later». It reaches
+     * the shopper as the message over the cart (B-92), so it is said in a shopper's words, not the SKU's (B-125).
+     */
     class LineNotFound(
-        skuId: String,
-    ) : CartError(ErrorCode.LineNotFound, "No line for «$skuId» in this cart")
+        val skuId: String,
+    ) : CartError(ErrorCode.LineNotFound, NO_LONGER_IN_CART)
+
+    companion object {
+        /** What a change of a line the cart no longer has is told (B-125). */
+        const val NO_LONGER_IN_CART = "This item is no longer in your cart"
+    }
 
     /** A promo refusal; [code] is one of the four promo codes, [message] what the field shows. */
     class Promo(

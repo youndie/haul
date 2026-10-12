@@ -42,8 +42,15 @@ internal suspend fun HttpClient.putLine(
     guest: String?,
     skuId: String,
     change: LineChange,
+): HttpResponse = putLineAt(guest, CartPaths.line(skuId), change)
+
+/** A line change sent to the address a tree gave ([url]: `CartLine.url`, a card's `add.url`). */
+internal suspend fun HttpClient.putLineAt(
+    guest: String?,
+    url: String,
+    change: LineChange,
 ): HttpResponse =
-    put(CartPaths.line(skuId)) {
+    put(url) {
         guest?.let { header(GUEST_HEADER, it) }
         contentType(ContentType.Application.Json)
         setBody(haulWireJson.encodeToString(LineChange.serializer(), change))

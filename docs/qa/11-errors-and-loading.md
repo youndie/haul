@@ -177,13 +177,15 @@ the server's own: `503`).
   3. Offline, press a heart; press «Save for later»; press «Helpful».
   4. Apply `SUMMER5`.
 - **Expected:**
-  - Step 1: the cart drawn again, and the server's words in a message at the error level (the alert mark).
+  - Step 1: the line stays gone — the stepper changes a line and never adds one back (B-125) — the cart drawn again,
+    and «This item is no longer in your cart» in a message at the error level (the alert mark).
   - Step 2: the page as it was, under «Couldn't reach the store» with «Retry»; Retry sends the press again.
   - Step 3: a heart and «Helpful» get «Retry» (sent twice is sent once); «Save for later» gets the message without
     «Retry» — its own button is the press again.
   - Step 4: the field says why; no message on top (a refusal the next tree draws is not said twice).
-- **Decided in:** B-75, B-92
-- **Coverage:** `CommandAnswersTest` «a refusal draws the page again and then says why in the server's words»;
+- **Decided in:** B-75, B-92, B-125
+- **Coverage:** `CartRoutesTest` «a stale stepper does not bring a removed line back and a card's plus still adds»;
+  `CommandAnswersTest` «a refusal draws the page again and then says why in the server's words»;
   `CommandAnswersTest` «a refusal the tree draws is the page drawn again and nothing more»;
   `CommandAnswersTest` «no answer says so with Retry which is the press given»;
   `CommandAnswersTest` «no answer without a press to send again has no button»;

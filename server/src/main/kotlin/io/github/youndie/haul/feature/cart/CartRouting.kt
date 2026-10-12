@@ -28,6 +28,8 @@ import org.koin.ktor.ext.inject
  * or else a guest named by `X-Haul-Guest`; a request with neither is `401 unauthenticated`, and one naming a
  * guest the server never issued `401 guest_not_found` — the client replaces its guest on that one alone
  * (B-115). A token and a guest id together are the customer (feature-identity).
+ * The line `PUT` adds a SKU or changes its line; from the cart's own line (`CartPaths.existingLine`) it only
+ * changes, and a line not there is refused (B-125).
  * Every command answers `refresh`, which redraws the cart and the header's count — but a card's «+» and the
  * product page's «Add to cart», whose address names the node they redraw, answer `update` of the header and
  * that node ([LineAnswers], B-63), followed by «Added to your cart» (B-75, B-81). Every refusal is a [CartError]
@@ -60,7 +62,8 @@ internal fun Route.cartRouting() {
         val caller = call.caller()
         val owner = caller.owner() ?: throw call.refusal()
         val skuId = call.parameters["skuId"]!!
-        commands.changeLine(owner, skuId, call.body(LineChange.serializer()))
+        val lineOnly = call.request.queryParameters[CartPaths.EXISTING] == "true"
+        commands.changeLine(owner, skuId, call.body(LineChange.serializer()), lineOnly = lineOnly)
         call.respondKompotAction(haulWireJson, answers.after(call.request.queryParameters, skuId, viewers.of(caller)))
     }
 
@@ -102,6 +105,17 @@ internal object CartPaths {
     const val MERGE = "/api/v1/me/cart/merge"
 
     fun line(skuId: String): String = "$LINES/$skuId"
+
+    /**
+     * The query parameter a cart line's own controls — its stepper and its box — add to [line] (B-125): the
+     * change is of the line the page drew, so a line gone meanwhile (removed in another tab) is
+     * `404 line_not_found` rather than added back. A card's «+», «Add to cart» and «Buy now» send [line]
+     * without it and add.
+     */
+    const val EXISTING = "existing"
+
+    /** `CartLine.url`: [line], changing only a line that is there. */
+    fun existingLine(skuId: String): String = "${line(skuId)}?$EXISTING=true"
 
     fun acknowledge(skuId: String): String = "$LINES/$skuId/acknowledge"
 

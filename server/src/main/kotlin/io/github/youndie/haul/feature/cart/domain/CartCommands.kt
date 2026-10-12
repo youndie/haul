@@ -24,11 +24,16 @@ internal class CartCommands(
      * line, added at one when the cart has none and otherwise at the quantity it has, is the only one left
      * selected, and its price and stock become the ones the shopper saw — the product page showed them — so a
      * line changed since it was added does not leave checkout empty.
+     *
+     * [lineOnly] is a change sent from the cart's own line — its stepper or its box (B-125): it changes the line
+     * the page drew and never adds one, so a line removed meanwhile (in another tab) is [CartError.LineNotFound]
+     * and stays gone.
      */
     suspend fun changeLine(
         owner: CartOwner,
         skuId: String,
         change: LineChange,
+        lineOnly: Boolean = false,
     ) {
         if (change.quantity == null && change.selected == null && change.alone != true) {
             throw CartError.Invalid("quantity", "Send a quantity, a selection or both")
@@ -39,8 +44,9 @@ internal class CartCommands(
         change.quantity?.let {
             if (it !in 1..MAX_QUANTITY) throw CartError.Invalid("quantity", "A quantity is 1 to $MAX_QUANTITY, not $it")
         }
-        val (_, sku) = sku(skuId, owner)
         val existing = carts.cart(owner).line(skuId)
+        if (lineOnly && existing == null) throw CartError.LineNotFound(skuId)
+        val (_, sku) = sku(skuId, owner)
         val quantity = change.quantity ?: existing?.quantity ?: 1
         if (sku.stock <= 0 && (existing == null || change.quantity != null)) {
             throw CartError.OutOfStock("This item is out of stock")

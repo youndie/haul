@@ -9,9 +9,11 @@ import kotlinx.serialization.Serializable
 // every command answers a kompot action — `refresh` — or an `ErrorBody`.
 
 /**
- * A change to one line, `PUT` to `CartLine.url`. A SKU not yet in the cart is added with [quantity]
+ * A change to one line, `PUT` to the line's address. A SKU not yet in the cart is added with [quantity]
  * (1 when absent), selected unless [selected] says otherwise; a line already there changes only the
- * fields given. At least one field is required.
+ * fields given. At least one field is required. `CartLine.url` — the address the cart's own stepper and
+ * box send to — changes a line and never adds one: a line removed meanwhile (in another tab) is
+ * `404 line_not_found` (B-125). A card's «+» and the product page's buttons send to an address that adds.
  *
  * [alone] is «Buy now» (B-100): the line is selected and every other line of the cart unticked, so
  * checkout takes this product alone; the line's price and stock become the ones the shopper saw, as the

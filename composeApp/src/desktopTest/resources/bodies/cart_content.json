@@ -435,7 +435,7 @@
                             "maxQuantity": 10,
                             "selected": true,
                             "selectable": true,
-                            "url": "/api/v1/cart/lines/p-sony-wh-1000xm6-0",
+                            "url": "/api/v1/cart/lines/p-sony-wh-1000xm6-0?existing=true",
                             "action": {
                                 "type": "navigate",
                                 "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0"
@@ -463,7 +463,7 @@
                             "maxQuantity": 10,
                             "selected": true,
                             "selectable": true,
-                            "url": "/api/v1/cart/lines/p-linen-duvet-cover-set-0",
+                            "url": "/api/v1/cart/lines/p-linen-duvet-cover-set-0?existing=true",
                             "action": {
                                 "type": "navigate",
                                 "deeplink": "/p/p-linen-duvet-cover-set?sku=p-linen-duvet-cover-set-0"
@@ -483,7 +483,7 @@
                             "maxQuantity": 10,
                             "selected": true,
                             "selectable": true,
-                            "url": "/api/v1/cart/lines/p-stoneware-mug-0",
+                            "url": "/api/v1/cart/lines/p-stoneware-mug-0?existing=true",
                             "action": {
                                 "type": "navigate",
                                 "deeplink": "/p/p-stoneware-mug?sku=p-stoneware-mug-0"
