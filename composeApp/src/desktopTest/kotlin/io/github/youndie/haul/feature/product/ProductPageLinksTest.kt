@@ -365,11 +365,11 @@ class ProductPageLinksTest {
         const val HEIGHT = 820
         const val PARTS = "/ui/parts"
         const val PRODUCT = "/p/p-sony-wh-1000xm6"
-        const val REVIEWS = "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=reviews"
-        const val SPECIFICATIONS = "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=specifications"
+        const val REVIEWS = "/p/p-sony-wh-1000xm6?tab=reviews"
+        const val SPECIFICATIONS = "/p/p-sony-wh-1000xm6?tab=specifications"
         const val BRAND = "/c/electronics/audio/headphones?brand=Sony"
-        const val MORE_REVIEWS = "$PARTS/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=reviews&shown=20"
-        const val MORE_QUESTIONS = "$PARTS/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=questions&shown=20"
+        const val MORE_REVIEWS = "$PARTS/p/p-sony-wh-1000xm6?tab=reviews&shown=20"
+        const val MORE_QUESTIONS = "$PARTS/p/p-sony-wh-1000xm6?tab=questions&shown=20"
         const val NEXT = "The next page"
         const val ORIGIN = "https://haul.test"
 

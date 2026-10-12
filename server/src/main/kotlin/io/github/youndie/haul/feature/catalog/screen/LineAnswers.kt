@@ -50,7 +50,10 @@ internal class LineAnswers(
         val node: KompotComponent =
             when (answer) {
                 CARD -> card(item, calendar, photos, viewer, sku, query[QUERY], scope = query[SCOPE])
-                DETAILS -> product.details(item, sku, viewer, query[TAB]?.let(ProductTab::of) ?: ProductTab.Description)
+                DETAILS -> {
+                    val tab = query[TAB]?.let(ProductTab::of) ?: ProductTab.Description
+                    product.details(item, sku, viewer, tab, named = query[NO_SKU] == null)
+                }
                 else -> return RefreshAction
             }
         val categories = catalog.categories()
@@ -85,11 +88,22 @@ internal class LineAnswers(
         const val TAB = "tab"
 
         /**
-         * What the buy box's «Add to cart» adds to its line's address on [tab]: the tab too, but for the
-         * description, so the buy box redrawn keeps its variants on the tab (B-104).
+         * Present when the product page's address names no SKU, so the buy box redrawn writes its links without one
+         * as the page did (B-132).
          */
-        fun detailsAnswer(tab: ProductTab): String =
-            "?$ANSWER=$DETAILS" + if (tab == ProductTab.Description) "" else "&$TAB=${tab.key}"
+        const val NO_SKU = "no_sku"
+
+        /**
+         * What the buy box's «Add to cart» adds to its line's address on [tab]: the tab too, but for the
+         * description, so the buy box redrawn keeps its variants on the tab (B-104); and [NO_SKU] when the page's
+         * address is not [named] by its SKU.
+         */
+        fun detailsAnswer(
+            tab: ProductTab,
+            named: Boolean = true,
+        ): String =
+            "?$ANSWER=$DETAILS" + (if (tab == ProductTab.Description) "" else "&$TAB=${tab.key}") +
+                if (named) "" else "&$NO_SKU=1"
 
         /** The category the page's search is in, which the header's picker redrawn keeps (B-72). */
         const val SCOPE = "category"

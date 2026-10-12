@@ -201,6 +201,25 @@ class LineAnswersTest {
         }
 
     /**
+     * B-132: the buy box «Add to cart» answers with on `?tab=reviews` — an address naming no SKU — writes its rating
+     * and «All specifications» without one, as the page did; at an address naming the SKU, with it.
+     */
+    @Test
+    fun `the buy box redrawn names the sku as the page's address does`() =
+        haulTest {
+            val sony = SampleCatalog.SONY_HEADPHONES
+            for ((path, sku) in listOf("/ui/p/$sony?tab=reviews" to "", "/ui/p/$sony?sku=$sony-1&tab=reviews" to "sku=$sony-1&")) {
+                val guest = guest()
+                val details = page(path, guest).only<ProductDetails>()
+                val answer = assertIs<SequenceAction>(answerOn(path, guest, assertNotNull(details.add), "details"))
+                val after = assertNotNull(answer.update()).updates.last().component as ProductDetails
+                assertEquals(details.ratingAction, after.ratingAction, path)
+                assertEquals(NavigateAction("/p/$sony?${sku}tab=reviews"), after.ratingAction, path)
+                assertEquals(NavigateAction("/p/$sony?${sku}tab=specifications"), after.specificationsAction, path)
+            }
+        }
+
+    /**
      * B-81: on every page that draws cards — home, the deals, a category, a search — the first card of each grid
      * that can be added says so when its «+» is pressed, each by a guest of its own, so every press is a cart's
      * first line. «Picked for you» is a customer's, pressed in `RecommendationsRoutesTest`.

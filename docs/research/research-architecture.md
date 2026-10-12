@@ -507,7 +507,12 @@ drop it, so the press did nothing and the suggest panel stayed open; now it take
 the page again behind itself like any new address of the screen, and closes what a visit closes — the panel,
 the filter sheet, the phone menu, a dialog presented over the page. The product page's «2,341 reviews» on the reviews
 tab is such a press: it loads the page again, and since B-121 asks for the tab row itself (`TabsInView`): the
-same tab arriving moves nothing.
+same tab arriving moves nothing. Since B-132 it is the address shown, too: the links the product page writes for
+itself — the tabs, the rating, «All specifications», «Show more», the buy box an «Add to cart» redraws — name the
+SKU only when the page's address did (`ProductScreen.address`), so on `?tab=reviews` the press no longer rewrote
+the address to `?sku=…-0&tab=reviews`. A variant picked names its SKU as before. Rejected: comparing addresses in
+the client with the drawn SKU filled in — the client would learn the product page's parameters, which are the
+server's.
 
 **Decided in B-94, a page the server refused leads where it helps.** The shell drew every answer that was
 not a tree as «didn’t load» with Retry, and Retry sends the same request: a checkout with nothing selected

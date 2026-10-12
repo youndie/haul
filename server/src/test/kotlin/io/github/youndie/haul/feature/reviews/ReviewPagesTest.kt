@@ -16,7 +16,6 @@ import io.github.youndie.haul.testing.json
 import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.testing.tree
-import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.haul.ui.ProductQuestions
 import io.github.youndie.haul.ui.ProductReviews
 import io.github.youndie.kompot.KompotComponent
@@ -72,11 +71,11 @@ class ReviewPagesTest {
     fun `the reviews tab lists ten and shows ten more in place until there are no more`() =
         withMore(reviews = 11, questions = 0) {
             val page = tree("/ui/p/$product?tab=reviews")
-            val sku = page.only<ProductDetails>().skuId
             val first = page.only<ProductReviews>()
             assertEquals(10, first.reviews.size)
             assertEquals("Show more reviews", first.moreLabel)
-            assertEquals(LoadAction("${Parts.PREFIX}/p/$product?sku=$sku&tab=reviews&shown=20"), first.more)
+            // The page's address names no SKU, and nor does the one it records (B-132).
+            assertEquals(LoadAction("${Parts.PREFIX}/p/$product?tab=reviews&shown=20"), first.more)
 
             val after = loaded(page, first.more, "reviews")
             val all = after.only<ProductReviews>()
