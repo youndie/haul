@@ -57,6 +57,7 @@ import io.github.youndie.haul.ui.LocalLogoAction
 import io.github.youndie.haul.ui.LocalPageScroll
 import io.github.youndie.haul.ui.LocalSearchInput
 import io.github.youndie.haul.ui.LocalTabsInView
+import io.github.youndie.haul.ui.MIN_SEARCH_QUERY
 import io.github.youndie.haul.ui.OverlayHost
 import io.github.youndie.haul.ui.PlusTrialDialog
 import io.github.youndie.haul.ui.SearchFieldState
@@ -201,12 +202,14 @@ public fun Storefront(
 
     // The header's search field: typing asks for the suggest panel once the shopper pauses — in the picker's
     // scope, and again when the picker changes it (B-103) — Enter opens
-    // the results — or, once the arrow keys are on one of the panel's queries, that query's (B-77). A query
-    // the server refuses, or a request that fails, shows no panel. A customer pressing the empty field — or
+    // the results — or, once the arrow keys are on one of the panel's queries, that query's (B-77). Under the
+    // server's minimum nothing is asked: it would refuse the query (B-135). A query the server refuses, or a request
+    // that fails, shows no panel. A customer pressing the empty field — or
     // emptying it while in it — is recall (B-124): the panel is asked for with no query, at once, and is their
     // recent searches alone; a guest's empty field asks nothing. The panel stays open when the field loses
     // focus — pressing a suggestion takes the focus, and closing the panel under the press would lose the
-    // press — and closes on the scrim, a guest's emptied field or a new page.
+    // press — and closes on a press outside it and the field (which still reaches what it pressed), on Escape
+    // (the field keeps the focus), on a guest's emptied field or on a new page (B-135).
     val field = remember { SearchFieldState() }
     val search =
         remember(navigator) {
@@ -242,7 +245,7 @@ public fun Storefront(
                     transport.suggest("", search.scope)
                 }
 
-                typed.isNotEmpty() && search.typed -> {
+                typed.length >= MIN_SEARCH_QUERY && search.typed -> {
                     delay(SUGGEST_DELAY_MS)
                     transport.suggest(typed, search.scope)
                 }
@@ -252,9 +255,13 @@ public fun Storefront(
                 }
             }
     }
-    val dismiss = {
+    // Escape closes the panel and leaves the field focused, to type on; a press outside takes the focus as well.
+    val close = {
         panel = null
         recalling = false
+    }
+    val dismiss = {
+        close()
         focus.clearFocus()
     }
     val filters = remember { FiltersSheetState() }
@@ -366,6 +373,7 @@ public fun Storefront(
                 highlighted = search.highlighted,
                 field = field,
                 onDismiss = dismiss,
+                onEscape = close,
                 onClear = clearRecent,
             ) {
                 val address = navigator.address

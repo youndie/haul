@@ -21,6 +21,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,11 +29,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
@@ -160,8 +171,10 @@ private fun Tip(
  * panel hangs 10 px under the field, as wide as it — on a phone 4 px under it, 8 px from either edge.
  *
  * [field] is the header's field the page is drawn with — a screenshot's is focused from the start, the
- * app's follows the real focus; with no [panel] the page is drawn alone. Pressing the scrim is
- * [onDismiss], and «Clear» on recent searches [onClear].
+ * app's follows the real focus; with no [panel] the page is drawn alone. A press outside the panel and the field is
+ * [onDismiss], and still reaches what it pressed: the panel is a suggestion over the page, not a menu, so the scrim is
+ * drawn and reads no press (B-135). Escape is [onEscape], as it closes a menu (B-75); «Clear» on recent searches is
+ * [onClear].
  */
 @Composable
 public fun SearchSuggestOverlay(
@@ -170,12 +183,39 @@ public fun SearchSuggestOverlay(
     highlighted: Int = 0,
     field: SearchFieldState = remember { SearchFieldState(focused = true) },
     onDismiss: (() -> Unit)? = null,
+    onEscape: (() -> Unit)? = null,
     onClear: (() -> Unit)? = null,
     page: @Composable () -> Unit,
 ) {
     val compact = LocalHaulCompact.current
     var origin by remember { mutableStateOf(Offset.Zero) }
-    Box(modifier.fillMaxSize().onGloballyPositioned { origin = it.positionInRoot() }) {
+    // Where the panel is drawn, in root coordinates: a press there is the panel's own.
+    var drawn by remember { mutableStateOf<Rect?>(null) }
+    val open = panel != null
+    val outside by rememberUpdatedState(
+        { at: Offset -> open && field.bounds?.contains(at) != true && drawn?.contains(at) != true },
+    )
+    val dismiss by rememberUpdatedState(onDismiss)
+    val escape by rememberUpdatedState(onEscape)
+    Box(
+        modifier
+            .fillMaxSize()
+            .onGloballyPositioned { origin = it.positionInRoot() }
+            // Seen before anything under it reads the press, and consumed by nothing here.
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        val at = event.changes.firstOrNull()?.position ?: continue
+                        if (event.type == PointerEventType.Press && outside(at + origin)) dismiss?.invoke()
+                    }
+                }
+            }.onPreviewKeyEvent {
+                val closes = open && escape != null && it.key == Key.Escape
+                if (closes && it.type == KeyEventType.KeyDown) escape?.invoke()
+                closes
+            },
+    ) {
         CompositionLocalProvider(LocalSearchField provides field) { page() }
         val bounds = field.bounds
         val scrimTop = field.scrimTop
@@ -187,11 +227,6 @@ public fun SearchSuggestOverlay(
             },
         )
         val density = LocalDensity.current
-        // Only the scrim dismisses: the header above it, the field included, stays the header's.
-        if (onDismiss != null) {
-            val top = with(density) { (scrimTop - origin.y).coerceAtLeast(0f).toDp() }
-            Box(Modifier.fillMaxSize().padding(top = top).pressable(onDismiss))
-        }
         val placed =
             if (compact) {
                 Modifier
@@ -207,7 +242,12 @@ public fun SearchSuggestOverlay(
                         )
                     }.width(with(density) { bounds.width.toDp() })
             }
-        SearchSuggestPanelView(panel, placed, highlighted, onClear)
+        SearchSuggestPanelView(
+            panel,
+            placed.onGloballyPositioned { drawn = it.boundsInRoot() },
+            highlighted,
+            onClear,
+        )
     }
 }
 

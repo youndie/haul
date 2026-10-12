@@ -13,6 +13,13 @@ import kotlinx.serialization.Serializable
 // and these are what search adds: the suggest panel and the page for a query that found nothing.
 
 /**
+ * The fewest characters a search or a suggestion is asked for, trimmed (feature-search): the server refuses fewer with
+ * `400 query_too_short`, so the field asks for no suggestions under it (B-135). The empty field is not a query: a
+ * customer's is recall (B-124).
+ */
+public const val MIN_SEARCH_QUERY: Int = 2
+
+/**
  * A query the panel suggests. [typed] is the part the shopper typed, drawn regular, and [prefix] and
  * [completion] what the suggestion adds before and after it, drawn bold («running sh» + «oes»,
  * «trail » + «running shoes»); a suggestion that does not contain what was typed (a corrected
