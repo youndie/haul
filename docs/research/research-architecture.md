@@ -499,7 +499,9 @@ address already shown is a visit too** (B-95): the header's Cart or a message's 
 query shown submitted again by Enter, the button, a suggestion or «All N results». `Navigator.open` used to
 drop it, so the press did nothing and the suggest panel stayed open; now it takes no history entry and loads
 the page again behind itself like any new address of the screen, and closes what a visit closes — the panel,
-the filter sheet, the phone menu, a dialog presented over the page.
+the filter sheet, the phone menu, a dialog presented over the page. The product page's «2,341 reviews» on the reviews
+tab is such a press: it loads the page again, and since B-121 asks for the tab row itself (`TabsInView`): the
+same tab arriving moves nothing.
 
 **Decided in B-94, a page the server refused leads where it helps.** The shell drew every answer that was
 not a tree as «didn’t load» with Retry, and Retry sends the same request: a checkout with nothing selected
@@ -510,7 +512,11 @@ client reads them (`shell/Recovery.kt`): an empty checkout gives its entry to th
 said as such under the header, the query in its field and no Retry (`SearchTooShort`, no artboard); a `400`
 naming a query parameter the address has loads the page without it — one parameter per refusal, every value
 of it, the rest of the query as written — and one naming none is «This link is out of date», which opens the
-page's path or home. Over a page kept on the same screen (B-62) the notice says the same and drops its Retry.
+page's path or home. Over a page kept on the same screen (B-62) the notice says the same and drops its Retry. Its
+address is given back too (B-121): a kept page's address changes before its tree arrives and stays when a load
+fails, which Retry needs, but a search too short has no Retry and the address named a page a reload would draw as
+«Keep typing» — the entry the search took is withdrawn (`Navigator.withdraw`, the browser's back, which arrives as
+no visit).
 Every error page tells no answer («We couldn’t reach Haul … check your connection») from an error of the
 server's own; the Cart, Checkout and Search pages keep their artboards' copy for the latter. No server change:
 the codes were already there. Rejected: answering a short query or an empty checkout with a tree of the

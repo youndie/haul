@@ -12,16 +12,20 @@ long search is walked in [catalog and filters](03-catalog-and-filters.md) (TC-CA
   1. Type `head` and pause.
   2. Press ↓ three times, ↑ once, then Enter.
   3. Type `head` again, press ↓ then ↑ twice, then Enter.
+  4. On the home page again, type `head` and press Enter at once, before the pause.
 - **Expected:**
   - Step 1: one request once typing pauses; the panel lists query suggestions, categories with their counts,
     «Top products» with their photos (where the product has one stored) and «All N results».
   - Step 2: the highlight moves over the query suggestions only (↓ from none to the first …, ↑ back); Enter opens
     the highlighted query's search.
   - Step 3: ↑ above the first leaves none highlighted, and Enter opens the text as typed.
-- **Decided in:** B-09, B-77, B-108
+  - Step 4: the results, and no request to `/ui/search/suggest` after Enter — the pause it was waiting for ends
+    with the submit.
+- **Decided in:** B-09, B-77, B-108, B-121
 - **Coverage:** `StorefrontTest` «typing asks for suggestions once the shopper pauses and Enter opens the results»;
   `StorefrontTest` «the arrow keys and Enter pick a suggestion»;
   `StorefrontTest` «up past the first suggestion leaves Enter to the typed text»;
+  `StorefrontTest` «Enter before the pause asks for no suggestions»;
   `SearchRoutesTest` «the panel keeps to its limits and counts every result»;
   `LinePhotosTest` «the suggest panel's top products draw their photos»; golden `Search_Autocomplete`
 
@@ -110,10 +114,12 @@ long search is walked in [catalog and filters](03-catalog-and-filters.md) (TC-CA
   2. On the results of `mug`, type `a` into the field and press Enter.
 - **Expected:**
   - Step 1: «Keep typing», «Search needs at least two characters…», the query in the header's field, no Retry.
-  - Step 2: the results stay under a notice saying the search needs at least two characters, with no Retry.
-- **Decided in:** B-94
+  - Step 2: the results stay under a notice saying the search needs at least two characters, with no Retry; the
+    address stays the results' (`/search?q=mug`), so a reload draws them and back leaves them.
+- **Decided in:** B-94, B-121
 - **Coverage:** `RefusedPagesTest` «a search too short says so with the query in the field and no Retry»;
   `RefusedPagesTest` «a search too short over the results kept says so without Retry»;
+  `RefusedPagesTest` «a search too short over the results kept leaves the address at the results»;
   `SearchRoutesTest` «a one character query is 400 query_too_short»; golden `Search_TooShort`
 
 ### TC-SRCH-07 — No results gives advice and queries to try
