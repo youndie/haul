@@ -1,7 +1,7 @@
 ---
 id: B-129
 title: "fix: the small lines the v0.4.0 customer walk noticed"
-status: wip
+status: done
 priority: P3
 size: S
 stage: stage-12-qa-run
