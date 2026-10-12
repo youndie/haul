@@ -1,8 +1,11 @@
 package io.github.youndie.haul.shell
 
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.semantics.SemanticsProperties.EditableText
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
@@ -12,6 +15,7 @@ import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
+import androidx.compose.ui.text.AnnotatedString
 import io.github.youndie.haul.CANVAS_NOW
 import io.github.youndie.haul.FakeHistory
 import io.github.youndie.haul.FixtureFonts
@@ -197,6 +201,44 @@ class RefusedPagesTest {
                 assertEquals(listOf("/ui$path"), sent.filter { it != HEADER_TREE }, location)
             }
         }
+
+    /**
+     * B-132: «Open the page» on an out-of-date search link leads to `/search` with no query, which the server refuses
+     * as too short. The page said «Keep typing… Your query is still in the field» over an empty field; with nothing
+     * typed it asks for a search, the field empty and no Retry.
+     */
+    @Test
+    fun `an out-of-date search link leads to a search page that asks for a query`() {
+        val http =
+            HttpClient(
+                MockEngine { request ->
+                    if (request.url.fullPath == "/ui/search") {
+                        respond(
+                            """{"code":"query_too_short","message":"refused"}""",
+                            HttpStatusCode.BadRequest,
+                            headersOf(HttpHeaders.ContentType, "application/json"),
+                        )
+                    } else {
+                        respond(
+                            haulWireJson.encodeToString(PolymorphicSerializer(KompotComponent::class), page("Other")),
+                            HttpStatusCode.OK,
+                            headersOf(HttpHeaders.ContentType, "application/json"),
+                        )
+                    }
+                },
+            )
+        at("/search?q=%zz") {
+            storefront(ktorTransport(http, "http://haul.test"))
+            waitUntil(timeoutMillis = 5_000) { exists("This link is out of date") }
+            onNodeWithText("Open the page").performClick()
+            waitUntil(timeoutMillis = 5_000) { exists(SEARCH_NOTHING_TYPED) }
+            onNodeWithText("still in the field", substring = true).assertDoesNotExist()
+            onNodeWithText("Keep typing", substring = true).assertDoesNotExist()
+            onNodeWithText("Retry").assertDoesNotExist()
+            onNodeWithTag(SEARCH_FIELD_TAG).assert(SemanticsMatcher.expectValue(EditableText, AnnotatedString("")))
+            assertEquals(listOf("/search?q=%zz", "/search"), history.entries)
+        }
+    }
 
     @Test
     fun `an account that could not be reached says so, not our side`() =

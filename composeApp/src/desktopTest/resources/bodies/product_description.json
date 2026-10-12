@@ -158,11 +158,11 @@
    },
    "ratingAction": {
     "type": "navigate",
-    "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=reviews"
+    "deeplink": "/p/p-sony-wh-1000xm6?tab=reviews"
    },
    "specificationsAction": {
     "type": "navigate",
-    "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=specifications"
+    "deeplink": "/p/p-sony-wh-1000xm6?tab=specifications"
    },
    "share": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0"
   },

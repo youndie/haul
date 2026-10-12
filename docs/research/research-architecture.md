@@ -354,7 +354,9 @@ whatever their style, so the ones with no page are left out rather than drawn as
   opens — a query, a recent search, «All N results» — stays in it. A category suggestion opens the query in that
   category (`/search?q=…&category=<leaf>`), the count it shows, where it used to open the whole category
   without the query. A scope the catalog does not have is `404`, as on the results, and the client shows no
-  panel.
+  panel. A query that matches nothing under the scope — `running` under «Appliances · Classics» — still suggests
+  its queries, but sends no products and no «All N results» (B-132): the client draws it without the products'
+  column, as it draws recall, where it drew an empty «Top products» over «All 0 results».
 - Rejected: plain text for the dead words (B-49's answer, which the stand walk showed did not read as text);
   a picker that runs the search as soon as a category is chosen (it would leave the page while the shopper
   may not have typed yet).
@@ -505,7 +507,12 @@ drop it, so the press did nothing and the suggest panel stayed open; now it take
 the page again behind itself like any new address of the screen, and closes what a visit closes — the panel,
 the filter sheet, the phone menu, a dialog presented over the page. The product page's «2,341 reviews» on the reviews
 tab is such a press: it loads the page again, and since B-121 asks for the tab row itself (`TabsInView`): the
-same tab arriving moves nothing.
+same tab arriving moves nothing. Since B-132 it is the address shown, too: the links the product page writes for
+itself — the tabs, the rating, «All specifications», «Show more», the buy box an «Add to cart» redraws — name the
+SKU only when the page's address did (`ProductScreen.address`), so on `?tab=reviews` the press no longer rewrote
+the address to `?sku=…-0&tab=reviews`. A variant picked names its SKU as before. Rejected: comparing addresses in
+the client with the drawn SKU filled in — the client would learn the product page's parameters, which are the
+server's.
 
 **Decided in B-94, a page the server refused leads where it helps.** The shell drew every answer that was
 not a tree as «didn’t load» with Retry, and Retry sends the same request: a checkout with nothing selected
@@ -535,7 +542,10 @@ routing (`PageAtAnyQuery`, `WebBundle.kt`); `/ui/…` and `/api/…` still refus
 no parameter. In the browser the tree request is never sent: Ktor's client decodes a URL's query as it builds the
 request and throws, so the shell takes that as the same refusal (`Transport.kt`) and draws «This link is out of
 date» with «Open the page»; a search's query that does not decode is no query rather than a throw from the
-page's placeholders (`Address.query`). Rejected: decoding leniently on the server — it would open a broken link at
+page's placeholders (`Address.query`). «Open the page» on a search link opens `/search` with nothing typed, which
+the server refuses as too short; that page says «Start typing» rather than «Keep typing… Your query is still in
+the field» over an empty field (B-132, `SearchTooShort`), and so does a bare `/search` opened any other way.
+Rejected: sending the stale search home — the search page is where the field is, one press nearer. Rejected: decoding leniently on the server — it would open a broken link at
 a guessed one.
 
 **Decided in B-68, a category has one address** (owner's call): the slugs from its top-level category down

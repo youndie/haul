@@ -216,21 +216,34 @@ public fun SearchError(
 /**
  * A search for fewer characters than the server matches (`400 query_too_short`, B-94): said as it is, under
  * [header] with the query still in its field, and no Retry — the same query gets the same answer.
+ *
+ * With no query at all — `/search` bare, where «Open the page» on an out-of-date search link leads (B-132) — there
+ * is nothing in the field to keep: the page asks for a search instead of saying the query is still there.
  */
 @Composable
 public fun SearchTooShort(
     query: String,
     header: HaulHeader = LocalShellHeader.current,
 ) {
+    val typed = query.isNotBlank()
     NotFoundShell(
         header = header.copy(query = query),
         eyebrow = "Search",
-        title = "Keep typing",
+        title = if (typed) "Keep typing" else "Start typing",
         accent = "typing",
-        text = "Search needs at least two characters. Your query is still in the field: add to it and press Enter.",
+        text =
+            if (typed) {
+                "Search needs at least two characters. Your query is still in the field: add to it and press Enter."
+            } else {
+                SEARCH_NOTHING_TYPED
+            },
         actionLabel = null,
     )
 }
+
+/** What the search page says with no query in its address (B-132). */
+internal const val SEARCH_NOTHING_TYPED: String =
+    "Search needs at least two characters. Type what you are looking for in the field and press Enter."
 
 /**
  * An old or edited link the server refuses (`400`) for a reason no parameter of it names (B-94): under

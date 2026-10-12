@@ -74,14 +74,17 @@ the server's own: `503`).
   - Step 1: the category with `brand=Sony` and without `sort` — no message, no Retry.
   - Step 2: the product at its default SKU.
   - Step 3: `page` dropped, then `from` — one parameter per refusal, the rest of the query as written.
-  - Step 4: «This link is out of date», with «Open the page» (its path) or «Go to the home page».
-- **Decided in:** B-94, B-117
+  - Step 4: «This link is out of date», with «Open the page» (its path) or «Go to the home page». From
+    `/search?q=%zz` the page is `/search` with nothing typed: «Start typing», the field empty, no claim that a
+    query is still in it, no Retry.
+- **Decided in:** B-94, B-117, B-132
 - **Coverage:** `RefusedPagesTest` «a parameter an old link got wrong is dropped and the page loads without it»;
   `RefusedPagesTest` «a product link whose sku is gone opens the product»;
   `RecoveryTest` «a parameter the server names is dropped and the rest of the query kept as written»;
   `RecoveryTest` «every value of a repeated parameter goes»;
   `RefusedPagesTest` «a link refused for no parameter it has is out of date and leads to its page»;
   `RefusedPagesTest` «a link whose query does not decode is out of date and leads to its page»;
+  `RefusedPagesTest` «an out-of-date search link leads to a search page that asks for a query»;
   `WebBundleTest` «a storefront address whose query does not decode still answers the page, its tree refuses it»
 
 ### TC-ERR-05 — An error page tells no answer from an error of the store's

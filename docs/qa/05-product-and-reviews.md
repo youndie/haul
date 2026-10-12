@@ -57,12 +57,14 @@ search for `sony`).
   - Step 4: no chevron — there is no seller page. The review photos and the histogram's bars press nothing.
   - Step 5: the tab row brought into view with the reviews under it; the address is the one shown, loaded again in
     place (B-95).
-- **Decided in:** B-71, B-121
+- **Decided in:** B-71, B-121, B-132
 - **Coverage:** `ProductPageLinksTest` «the brand opens its products in the category»;
   `ProductPageLinksTest` «the reviews count opens the reviews tab and brings the tabs into view»;
   `ProductPageLinksTest` «all specifications opens the specifications tab and brings the tabs into view»;
   `ProductPageLinksTest` «the reviews count on the reviews tab brings the tabs into view»;
-  `ProductRoutesTest` «the brand, the rating and all specifications lead somewhere and share names the product»
+  `ProductRoutesTest` «the brand, the rating and all specifications lead somewhere and share names the product»;
+  `ProductRoutesTest` «the page's own links name no sku when its address names none»;
+  `LineAnswersTest` «the buy box redrawn names the sku as the page's address does»
 
 ### TC-PDP-04 — Share copies the product's link, or shows it to copy by hand
 

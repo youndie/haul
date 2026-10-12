@@ -158,11 +158,11 @@
    },
    "ratingAction": {
     "type": "navigate",
-    "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=reviews"
+    "deeplink": "/p/p-sony-wh-1000xm6?tab=reviews"
    },
    "specificationsAction": {
     "type": "navigate",
-    "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=specifications"
+    "deeplink": "/p/p-sony-wh-1000xm6?tab=specifications"
    },
    "share": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0"
   },
@@ -176,7 +176,7 @@
      "selected": false,
      "action": {
       "type": "navigate",
-      "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=description"
+      "deeplink": "/p/p-sony-wh-1000xm6?tab=description"
      }
     },
     {
@@ -185,7 +185,7 @@
      "selected": false,
      "action": {
       "type": "navigate",
-      "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=specifications"
+      "deeplink": "/p/p-sony-wh-1000xm6?tab=specifications"
      },
      "compactTitle": "Specs"
     },
@@ -196,7 +196,7 @@
      "selected": true,
      "action": {
       "type": "navigate",
-      "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=reviews"
+      "deeplink": "/p/p-sony-wh-1000xm6?tab=reviews"
      }
     },
     {
@@ -206,7 +206,7 @@
      "selected": false,
      "action": {
       "type": "navigate",
-      "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=questions"
+      "deeplink": "/p/p-sony-wh-1000xm6?tab=questions"
      }
     }
    ]
@@ -424,7 +424,7 @@
    "moreLabel": "Show more reviews",
    "more": {
     "type": "load",
-    "url": "/ui/parts/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab=reviews&shown=20"
+    "url": "/ui/parts/p/p-sony-wh-1000xm6?tab=reviews&shown=20"
    }
   }
  ]

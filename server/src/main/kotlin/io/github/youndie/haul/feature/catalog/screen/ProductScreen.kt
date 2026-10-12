@@ -67,6 +67,10 @@ internal enum class ProductTab(
  *
  * The reviews and questions tabs list the first [shown] (`shown`, ten more per «Show more», B-71); the
  * tab's address is [address].
+ *
+ * The addresses the page writes for itself — the tabs, the rating, «All specifications», «Show more» — name the
+ * SKU only when the page's own address did (B-132): on `?tab=reviews` «2,341 reviews» leads to `?tab=reviews`, the
+ * address shown, loaded again in place (B-95), not to `?sku=…&tab=reviews`. A variant picked always names its SKU.
  */
 internal class ProductScreen(
     private val catalog: CatalogRepository,
@@ -89,13 +93,14 @@ internal class ProductScreen(
                     ?: throw CatalogError.Invalid("sku", "No SKU «$id» on this product")
             }
                 ?: item.shown
+        val named = skuId != null
         val seller = catalog.seller(item.product.sellerId) ?: error("product ${item.product.id} names no seller")
         val categories = catalog.categories()
 
         val sections =
             listOf(
                 Breadcrumbs("breadcrumbs", crumbs(item, categories)),
-                details(item, sku, seller, categories, viewer, boughtThisMonth.label(item.product), tab),
+                details(item, sku, seller, categories, viewer, boughtThisMonth.label(item.product), tab, named),
                 ProductTabs(
                     id = "tabs",
                     tabs =
@@ -110,7 +115,7 @@ internal class ProductScreen(
                                         else -> null
                                     },
                                 selected = it == tab,
-                                action = NavigateAction(address(item, sku, it)),
+                                action = NavigateAction(address(item, sku.takeIf { named }, it)),
                                 compactTitle = it.compactTitle,
                             )
                         },
@@ -136,11 +141,11 @@ internal class ProductScreen(
                     }
 
                     ProductTab.Reviews -> {
-                        reviewTabs.reviews(item, sku, viewer, shown)
+                        reviewTabs.reviews(item, sku, viewer, shown, named)
                     }
 
                     ProductTab.Questions -> {
-                        reviewTabs.questions(item, sku, seller, viewer, shown)
+                        reviewTabs.questions(item, sku, seller, viewer, shown, named)
                     }
                 },
             )
@@ -148,17 +153,18 @@ internal class ProductScreen(
     }
 
     /**
-     * The buy box of [item] at [sku] for [viewer], as the page at that SKU on [tab] draws it: what «Add to cart»
-     * answers with besides the header (B-63, [LineAnswers]).
+     * The buy box of [item] at [sku] for [viewer], as the page at that SKU on [tab] draws it — its address naming
+     * the SKU when [named] — : what «Add to cart» answers with besides the header (B-63, [LineAnswers]).
      */
     suspend fun details(
         item: Listed,
         sku: Sku,
         viewer: Viewer,
         tab: ProductTab,
+        named: Boolean = true,
     ): ProductDetails {
         val seller = catalog.seller(item.product.sellerId) ?: error("product ${item.product.id} names no seller")
-        return details(item, sku, seller, catalog.categories(), viewer, boughtThisMonth.label(item.product), tab)
+        return details(item, sku, seller, catalog.categories(), viewer, boughtThisMonth.label(item.product), tab, named)
     }
 
     private fun details(
@@ -169,6 +175,7 @@ internal class ProductScreen(
         viewer: Viewer,
         bought: String?,
         tab: ProductTab,
+        named: Boolean,
     ): ProductDetails {
         val inStock = sku.stock > 0
         val saved = item.product.id in viewer.saved
@@ -233,12 +240,12 @@ internal class ProductScreen(
             saved = saved,
             heartCommand = heart(item.product.id, saved, viewer),
             heartAction = heartAction(viewer),
-            add = addToCart(sku, viewer.inCart, LineAnswers.detailsAnswer(tab)),
+            add = addToCart(sku, viewer.inCart, LineAnswers.detailsAnswer(tab, named)),
             buy = buyNow(sku, viewer),
             inCart = inCart(sku, viewer),
             brandAction = NavigateAction(brandLink(item, categories)),
-            ratingAction = NavigateAction(address(item, sku, ProductTab.Reviews)),
-            specificationsAction = NavigateAction(address(item, sku, ProductTab.Specifications)),
+            ratingAction = NavigateAction(address(item, sku.takeIf { named }, ProductTab.Reviews)),
+            specificationsAction = NavigateAction(address(item, sku.takeIf { named }, ProductTab.Specifications)),
             share = "/p/${item.product.id}?sku=${sku.id}",
         )
     }
@@ -363,16 +370,16 @@ internal class ProductScreen(
 
     companion object {
         /**
-         * The page of [item] at [sku] on [tab]; the reviews and questions tabs listing [shown] when it is more
-         * than the first ten (B-71).
+         * The page of [item] at [sku] on [tab] — at the SKU the product page opens on when [sku] is `null` (B-132) —;
+         * the reviews and questions tabs listing [shown] when it is more than the first ten (B-71).
          */
         fun address(
             item: Listed,
-            sku: Sku,
+            sku: Sku?,
             tab: ProductTab,
             shown: Int = ReviewTabs.SHOWN,
         ): String =
-            "/p/${item.product.id}?sku=${sku.id}&tab=${tab.key}" +
+            "/p/${item.product.id}?" + (sku?.let { "sku=${it.id}&" }.orEmpty()) + "tab=${tab.key}" +
                 if (shown > ReviewTabs.SHOWN) "&$SHOWN=$shown" else ""
 
         /** The page of [item] at [sku] on [tab], as a variant picked there opens it: the description's without `tab`. */

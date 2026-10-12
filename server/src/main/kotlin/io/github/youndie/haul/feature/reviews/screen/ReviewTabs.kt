@@ -65,6 +65,7 @@ internal class ReviewTabs(
         sku: Sku,
         viewer: Viewer,
         shown: Int = SHOWN,
+        named: Boolean = true,
     ): ProductReviews {
         val product = item.product
         val counts = reviews.ratingCounts(product.id)
@@ -86,7 +87,7 @@ internal class ReviewTabs(
             reviews = listed.map { review(it, viewer, it.id in voted) },
             action = if (own == null) writeReview(item, sku, viewer) else null,
             moreLabel = if (found.size > shown) "Show more reviews" else null,
-            more = if (found.size > shown) more(item, sku, ProductTab.Reviews, shown) else null,
+            more = if (found.size > shown) more(item, sku.takeIf { named }, ProductTab.Reviews, shown) else null,
         )
     }
 
@@ -96,6 +97,7 @@ internal class ReviewTabs(
         seller: Seller,
         viewer: Viewer,
         shown: Int = SHOWN,
+        named: Boolean = true,
     ): ProductQuestions {
         val product = item.product
         val found = reviews.questions(product.id, shown + 1)
@@ -108,14 +110,14 @@ internal class ReviewTabs(
             questions = found.take(shown).map { question(it, seller) },
             action = forCustomer(viewer) { questionForm(item, sku) },
             moreLabel = if (found.size > shown) "Show more questions" else null,
-            more = if (found.size > shown) more(item, sku, ProductTab.Questions, shown) else null,
+            more = if (found.size > shown) more(item, sku.takeIf { named }, ProductTab.Questions, shown) else null,
         )
     }
 
-    /** The tab listing ten more than [shown], loaded in place (B-71). */
+    /** The tab listing ten more than [shown], loaded in place (B-71); at [sku] when the page's address names one. */
     private fun more(
         item: Listed,
-        sku: Sku,
+        sku: Sku?,
         tab: ProductTab,
         shown: Int,
     ): KompotAction = Parts.load(ProductScreen.address(item, sku, tab, shown + SHOWN))

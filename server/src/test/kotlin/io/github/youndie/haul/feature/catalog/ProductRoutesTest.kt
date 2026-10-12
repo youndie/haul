@@ -130,6 +130,32 @@ class ProductRoutesTest {
         }
 
     /**
+     * B-132: on `?tab=reviews`, an address naming no SKU, «2,341 reviews» led to `?sku=…-0&tab=reviews` — the page
+     * shown, loaded again (B-95), at an address rewritten (TC-PDP-03 step 5). The links the page writes for itself
+     * name the SKU as its address does: none here, the one named above. A variant picked still names its SKU.
+     */
+    @Test
+    fun `the page's own links name no sku when its address names none`() =
+        haulTest {
+            val page = tree("/ui/p/$sony?tab=reviews")
+            val details = page.only<ProductDetails>()
+            assertEquals(NavigateAction("/p/$sony?tab=reviews"), details.ratingAction)
+            assertEquals(NavigateAction("/p/$sony?tab=specifications"), details.specificationsAction)
+            assertEquals(
+                listOf(
+                    "description",
+                    "specifications",
+                    "reviews",
+                    "questions",
+                ).map { NavigateAction("/p/$sony?tab=$it") },
+                page.only<ProductTabs>().tabs.map { it.action },
+            )
+            for (option in details.variants.flatMap { it.options }) {
+                assertEquals(NavigateAction("/p/$sony?sku=${option.skuId}&tab=reviews"), option.action, option.label)
+            }
+        }
+
+    /**
      * B-104: a colour or a bundle picked on the specifications, reviews or questions tab opens that SKU on the
      * same tab, not on the description; picked on the description, the address names no tab, as before.
      */
