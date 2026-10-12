@@ -158,13 +158,16 @@ the empty cart. «Buy now» is walked on the product page (TC-PDP-06); a command
   3. Empty the cart again and press «See today's deals».
 - **Expected:**
   - Step 1: «Your cart is empty», the sale's line («Today's deals end at midnight — up to −70% in the …», the
-    campaign's own name), «See today's deals», and today's deals as picks. With no live deal (or the sale over)
-    the line and the picks are left out; the title and the button stay.
+    campaign's own name), «See today's deals», and today's deals as picks under «Picked for you». With the sale
+    over the line is left out. With no live deal the line is left out and «Popular on Haul» stands in for the
+    picks — the same six products as home's row (TC-HOME-04), its «+» answered as the picks' is; the title and the
+    button stay.
   - Step 2: the cart is drawn again with that line in it — no «Your cart is empty» under a count of one, and no
     «Added» message (the line is the answer).
   - Step 3: `/deals`.
-- **Decided in:** B-13, B-59, B-95, B-107
+- **Decided in:** B-13, B-59, B-87, B-95, B-107
 - **Coverage:** `CartRoutesTest` «a pick's plus on the empty cart is answered with the cart and its line»;
+  `DealsOfTheDayTest` «the empty cart draws home's row with deals and without»;
   `SaleAnnouncementsTest` «the empty cart's sale line needs a live deal»;
   `SaleAnnouncementsTest` «the empty cart's sale line needs a live sale»;
   `SaleAnnouncementsTest` «the hero and the empty cart name the sale the campaign row is»; golden `Cart_Empty`

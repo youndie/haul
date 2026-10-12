@@ -11,13 +11,17 @@ import io.github.youndie.haul.feature.cart.domain.StoredCart
 import io.github.youndie.haul.feature.cart.domain.Totals
 import io.github.youndie.haul.feature.catalog.domain.Campaign
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
+import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.liveSale
 import io.github.youndie.haul.feature.catalog.domain.money
+import io.github.youndie.haul.feature.catalog.screen.HomeScreen
 import io.github.youndie.haul.feature.catalog.screen.card
 import io.github.youndie.haul.feature.catalog.screen.navigation
+import io.github.youndie.haul.feature.catalog.screen.popular
+import io.github.youndie.haul.feature.catalog.screen.popularTitle
 import io.github.youndie.haul.feature.catalog.screen.productLink
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.shell.Viewer
@@ -39,7 +43,8 @@ import java.util.Locale
 
 /**
  * `GET /ui/cart` (screen-cart, feature-cart). One tree covers every server state: Content, Empty,
- * PromoApplied, PromoError, ItemChanged and Guest are what the stored cart is, not separate builders.
+ * PromoApplied, PromoError, ItemChanged and Guest are what the stored cart is, not separate builders. The empty
+ * cart's row is the day's deals as «Picked for you», or with no deal live home's «Popular on Haul» (B-87).
  * Lines group by seller in the order they were added, each group with its latest delivery day.
  */
 internal class CartScreen(
@@ -59,7 +64,9 @@ internal class CartScreen(
         val categories = catalog.categories()
         val units = lines.sumOf { it.stored.quantity }
         val frame = viewer.copy(cartCount = units)
-        if (lines.isEmpty()) return Frame.page("cart-page", frame, navigation(categories), empty(frame, owner))
+        if (lines.isEmpty()) {
+            return Frame.page("cart-page", frame, navigation(categories), empty(frame, owner, categories))
+        }
 
         val plus = (owner as? CartOwner.Customer)?.plus ?: false
         val promo = cart.promoCode?.let { carts.promo(it) }
@@ -201,6 +208,7 @@ internal class CartScreen(
     private suspend fun empty(
         viewer: Viewer,
         owner: CartOwner,
+        categories: List<Category>,
     ): List<KompotComponent> {
         val deals = catalog.deals()
         // The owner's prices rather than the viewer's: a cart drawn for a command's answer has a viewer
@@ -223,8 +231,14 @@ internal class CartScreen(
                     primary = true,
                 ),
             )
-        // With no live deal there is nothing to pick from, and the section is not drawn (B-58).
-        if (picks.isEmpty()) return empty
+        // With no live deal there is nothing to pick from (B-58), and the row is home's in the same case (B-87):
+        // «Popular on Haul», the same six at the cart's prices, under its own title — it holds no deal, so it does
+        // not say «Picked for you · From today’s deals».
+        if (picks.isEmpty()) {
+            val popular = popular(catalog, calendar, photos, viewer, categories, owner.prices, inPlace = false)
+            if (popular.isEmpty()) return empty
+            return empty + listOf(popularTitle(), ProductGrid(HomeScreen.POPULAR, popular, columns = PICKS))
+        }
         return empty +
             listOf(
                 // The picks are the day's deals, not recommendations (feature-recommendations), so the

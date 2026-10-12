@@ -26,7 +26,8 @@ import kotlin.test.assertTrue
 
 /**
  * «Deals of the day» while there are deals and once there are none (B-58), on the home page, the deals page
- * and the empty cart, drawn for a guest.
+ * and the empty cart, drawn for a guest; and «Popular on Haul» in their place on home (B-70) and in the empty
+ * cart (B-87).
  *
  * Before B-58 a section with no live deal was still drawn — its header, its countdown and «View all deals»
  * over an empty grid, and the empty cart's «Picked for you» over nothing — which is what the stand showed
@@ -116,6 +117,59 @@ class DealsOfTheDayTest {
                 assertEquals(mostReviewed(), popular.cards.map { it.productId })
             }
         }
+
+    /**
+     * The empty cart's row is home's (B-87): while deals are live both draw them — home «Deals of the day», the empty
+     * cart «Picked for you · From today’s deals» — and neither draws «Popular on Haul»; with none live both draw
+     * «Popular on Haul», the same six products in the same order, and the empty cart's cards answer «+» with the
+     * page (B-95), so their command names no part to redraw. Before B-87 the empty cart drew nothing under its
+     * message from the deals' end, the seconds after a midnight included.
+     */
+    @Test
+    fun `the empty cart draws home's row with deals and without`() =
+        seededFreshDatabase().use { database ->
+            store(database) { clock ->
+                val guest = guest()
+                val withDeals = cart(guest)
+                assertTrue(withDeals.ids().none { it in POPULAR }, "the empty cart draws the popular row beside deals")
+                assertEquals("Picked for you", withDeals.header("picked-title").title)
+                assertEquals(
+                    dealProducts(),
+                    withDeals
+                        .grid("picked")
+                        .cards
+                        .map { it.productId }
+                        .toSet(),
+                )
+                assertTrue(tree("/ui/home").ids().containsAll(DEALS), "the control: home draws its deals")
+
+                clock.at = CatalogSeed.DEALS_END
+                val home = tree("/ui/home")
+                val empty = cart(guest)
+                assertTrue(empty.ids().none { it in PICKS }, "the empty cart picks from no deal: ${empty.ids()}")
+                assertTrue(empty.ids().containsAll(POPULAR), "the empty cart has no row of products: ${empty.ids()}")
+                assertEquals("Popular on Haul", empty.header("popular-title").title)
+                assertEquals(null, empty.header("popular-title").subtitle, "the row is not today's deals")
+                val cards = empty.grid("popular").cards
+                assertEquals(home.grid("popular").cards.map { it.productId }, cards.map { it.productId })
+                assertEquals(mostReviewed(), cards.map { it.productId })
+                cards.forEach { card ->
+                    val add = assertNotNull(card.add, "a popular card in stock with no «+»: ${card.productId}")
+                    assertTrue("answer" !in add.url, "the empty cart's «+» redraws a part, not the page: ${add.url}")
+                }
+                assertEquals("Your cart is empty", empty.only<EmptyState>().title)
+            }
+        }
+
+    private fun KompotComponent.header(id: String) = all().filterIsInstance<SectionHeader>().single { it.id == id }
+
+    private fun KompotComponent.grid(id: String) = all().filterIsInstance<ProductGrid>().single { it.id == id }
+
+    /** The products of the seed's deals of the day. */
+    private fun dealProducts(): Set<String> {
+        val seed = CatalogSeed.generate(CatalogSeed.CANVAS_DAY)
+        return seed.deals.map { deal -> seed.skus.single { it.id == deal.skuId }.productId }.toSet()
+    }
 
     /** The six most reviewed products of the seed with a SKU in stock, ties by id. */
     private fun mostReviewed(): List<String> {
