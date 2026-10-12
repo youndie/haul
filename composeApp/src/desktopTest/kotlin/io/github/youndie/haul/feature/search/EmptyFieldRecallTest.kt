@@ -2,6 +2,7 @@ package io.github.youndie.haul.feature.search
 
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -117,7 +118,7 @@ class EmptyFieldRecallTest {
                 mainClock.autoAdvance = true
                 waitForIdle()
                 assertEquals(listOf("/ui/home"), requests, "a guest's empty field asked for a panel")
-                onNodeWithText("RECENT").assertDoesNotExist()
+                onNodeWithTag(SUGGEST_PANEL_TAG).assertDoesNotExist()
             }
         }
 
@@ -130,7 +131,10 @@ class EmptyFieldRecallTest {
             onNodeWithTag(SEARCH_FIELD_TAG).performClick()
             waitForText("mug")
             onNodeWithText("CLEAR").performClick()
-            waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("RECENT")).fetchSemanticsNodes().isEmpty() }
+            // Nothing recent left: no panel at all, rather than an empty card under the field.
+            waitUntil(
+                timeoutMillis = 5_000,
+            ) { onAllNodes(hasTestTag(SUGGEST_PANEL_TAG)).fetchSemanticsNodes().isEmpty() }
             assertEquals(listOf("DELETE $RECENT_URL"), sent)
             assertEquals(listOf("/ui/home", RECALL, RECALL), requests)
         }

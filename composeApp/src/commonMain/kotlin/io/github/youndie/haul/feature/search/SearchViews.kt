@@ -33,6 +33,7 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -224,6 +225,7 @@ public fun SearchSuggestPanelView(
     val shape = RoundedCornerShape(if (compact) 20.dp else 24.dp)
     val card =
         modifier
+            .testTag(SUGGEST_PANEL_TAG)
             .dropShadow(
                 shape,
                 Shadow(radius = 80.dp, spread = (-20).dp, offset = DpOffset(0.dp, 30.dp), color = HaulColors.shadow),
@@ -259,6 +261,9 @@ public fun SearchSuggestPanelView(
 }
 
 private val PRODUCTS_COLUMN = 270.dp
+
+/** The tag of the suggest panel, for the tests that look for it open or closed. */
+public const val SUGGEST_PANEL_TAG: String = "suggest-panel"
 
 @Composable
 private fun Suggestions(
