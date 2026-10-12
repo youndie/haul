@@ -1,7 +1,7 @@
 ---
 id: B-78
 title: "server + client: the stand shows pictures, not placeholder labels"
-status: open
+status: wip
 priority: P3
 size: M
 stage: stage-10-review
