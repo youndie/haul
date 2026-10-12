@@ -16,6 +16,7 @@ import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
 import io.github.youndie.haul.seed.SampleCustomers
+import io.github.youndie.haul.seed.SeedArt
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.testing.CANVAS_NOW
 import io.github.youndie.haul.testing.SeededDatabase
@@ -97,7 +98,7 @@ class ReviewFixturesTest {
         ProductScreen(
             ExposedCatalogRepository(database, CANVAS_NOW),
             DeliveryCalendar(CANVAS_NOW::now),
-            ProductPhotos(null),
+            ProductPhotos(null, SeedArt),
             ReviewTabs(ExposedReviews(database), CANVAS_NOW),
             BoughtThisMonth(ExposedProductSales(database), CANVAS_NOW),
         )

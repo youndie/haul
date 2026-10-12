@@ -35,7 +35,7 @@ public fun main() {
     val applied = Databases.migrate(dataSource)
     log.info("migrations applied: {}", applied)
     val photoStore = config.photos?.let { S3PhotoStore(it, now = { clock.now().toInstant() }) }
-    log.info(if (photoStore == null) "no object storage: placeholder tiles only" else "photos in {}", config.photos)
+    log.info(if (photoStore == null) "no object storage: seed pictures only" else "photos in {}", config.photos)
     if (config.seed) {
         val database = Databases.connect(dataSource)
         // The sale is dated from the store's day (B-58): a stand seeded today has the canvas's sale today.
@@ -68,7 +68,7 @@ public fun main() {
 
 /**
  * The sample products' photos, stored once. A store that refuses or cannot be reached does not stop
- * the start: photos are decoration over the placeholder tiles, and the server serves without them.
+ * the start: photos are decoration, and the server serves the seed's pictures without them (B-78).
  */
 private fun seedPhotos(
     database: org.jetbrains.exposed.v1.jdbc.Database,
@@ -78,7 +78,7 @@ private fun seedPhotos(
         val stored = runBlocking { SeedPhotos.attach(database, store) }
         log.info("sample photos stored: {}", stored)
     } catch (e: PhotoStoreException) {
-        log.warn("sample photos not stored, the tiles stay placeholders: {}", e.message)
+        log.warn("sample photos not stored, the products keep their pictures: {}", e.message)
     }
 }
 

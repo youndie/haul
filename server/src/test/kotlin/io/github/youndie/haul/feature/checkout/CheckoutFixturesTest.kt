@@ -17,6 +17,7 @@ import io.github.youndie.haul.feature.membership.data.ExposedPointsLedger
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.SampleCheckout
 import io.github.youndie.haul.seed.SampleCustomers
+import io.github.youndie.haul.seed.SeedArt
 import io.github.youndie.haul.testing.CANVAS_NOW
 import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.kompot.KompotComponent
@@ -63,7 +64,7 @@ class CheckoutFixturesTest {
                         CANVAS_NOW,
                         DeliveryCalendar(CANVAS_NOW::now),
                     )
-                val screen = CheckoutScreen(commands, ProductPhotos(null))
+                val screen = CheckoutScreen(commands, ProductPhotos(null, SeedArt))
                 val mismatches = mutableListOf<String>()
 
                 fun check(

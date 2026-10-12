@@ -86,10 +86,10 @@ public data class Link(
  * A product in a grid or a row: the photo tile, the price, the title, the rating and the earliest
  * delivery day.
  *
- * [image] is where the product's stored photo is served (research D8, B-30), a path on the server the
- * tree came from; absent when there is no photo or no object storage. The placeholder tile — [tone],
- * one of the canvas's tile tones as `#RRGGBB`, and [label], what the tile says — is drawn whenever the
- * photo is absent, still loading or failed to load.
+ * [image] is where the product's stored photo is served (research D8, B-30), or, without one, its picture —
+ * the seed's illustration of its category in the shown SKU's colour (B-78) — a path on the server the tree
+ * came from. The placeholder tile, [tone] — one of the canvas's tile tones as `#RRGGBB` — with the canvas's
+ * hatching and no caption, is drawn whenever the image is absent, still loading or failed to load.
  *
  * [add] is what «+» sends: the line change that puts one more of the SKU whose price the card shows
  * into the cart (`PUT`, endpoint-cart). It is absent when the cart already holds as many as can be
@@ -115,7 +115,6 @@ public data class ProductCard(
     /** The courier's day, «Tomorrow» or «Fri, Oct 10»; absent when the SKU shown has nothing in stock (B-120). */
     val delivery: String? = null,
     val tone: String,
-    val label: String,
     val saved: Boolean = false,
     val image: String? = null,
     /** Where a tap on the card goes: the product page. */

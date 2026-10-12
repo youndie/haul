@@ -78,7 +78,7 @@ internal data class Product(
     /** Over the description tab («Silence, tuned to you»); [headlineAccent] is a piece of it, or none. */
     val headline: String,
     val headlineAccent: String?,
-    /** The key of the product's photo in the object storage (B-30); `null` is the placeholder tile. */
+    /** The key of the product's photo in the object storage (B-30); `null` draws its picture (B-78). */
     val imageKey: String? = null,
     /**
      * The month of sales the store holds no orders for, added to the live count of «bought this month»

@@ -31,6 +31,7 @@ import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
 import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
 import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
+import io.github.youndie.haul.seed.SeedArt
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.shell.Viewers
 import io.github.youndie.haul.testing.CANVAS_NOW
@@ -69,7 +70,7 @@ class DeliveryAgreesTest {
         val catalog = ExposedCatalogRepository(database, clock)
         val calendar = DeliveryCalendar(clock::now)
         val cart = CartCommands(carts, catalog, clock)
-        val cartScreen = CartScreen(carts, cart, catalog, calendar, clock, ProductPhotos(null))
+        val cartScreen = CartScreen(carts, cart, catalog, calendar, clock, ProductPhotos(null, SeedArt))
         val commands =
             CheckoutCommands(
                 checkouts,
@@ -80,12 +81,12 @@ class DeliveryAgreesTest {
                 clock,
                 calendar,
             )
-        val checkout = CheckoutScreen(commands, ProductPhotos(null))
+        val checkout = CheckoutScreen(commands, ProductPhotos(null, SeedArt))
         val product =
             ProductScreen(
                 catalog,
                 calendar,
-                ProductPhotos(null),
+                ProductPhotos(null, SeedArt),
                 ReviewTabs(ExposedReviews(database), clock),
                 BoughtThisMonth(ExposedProductSales(database), clock),
             )

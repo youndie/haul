@@ -180,7 +180,7 @@ internal class CatalogScreen(
                                 "tile-${it.slug}",
                                 it.name,
                                 it.tone,
-                                it.label,
+                                photos.category(it),
                                 categoryLink(it, categories),
                             )
                         },

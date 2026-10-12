@@ -542,7 +542,6 @@ class StorefrontTest {
                 reviews = "2,341",
                 delivery = "Tomorrow",
                 tone = "#E6E4FF",
-                label = "headphones",
                 action = NavigateAction("/p/p-1"),
             )
 

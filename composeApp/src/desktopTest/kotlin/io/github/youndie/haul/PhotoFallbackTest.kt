@@ -7,7 +7,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import coil3.EventListener
@@ -16,6 +15,7 @@ import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import io.github.youndie.haul.ui.LocalPhotoLoader
 import io.github.youndie.haul.ui.PHOTO_TAG
+import io.github.youndie.haul.ui.PLACEHOLDER_TAG
 import io.github.youndie.haul.ui.PhotoLoader
 import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductCardView
@@ -59,10 +59,8 @@ class PhotoFallbackTest {
             reviews = "2,341",
             delivery = "Tomorrow",
             tone = "#E6E4FF",
-            label = "headphones",
             image = "/images/products/p-sony-wh-1000xm6/1.png",
         )
-    private val placeholderLabel = "HEADPHONES"
     private val requests = CopyOnWriteArrayList<String>()
     private val finished = CountDownLatch(1)
     private val events =
@@ -121,9 +119,24 @@ class PhotoFallbackTest {
             )
             awaitLoad()
             waitUntil(timeoutMillis = 5_000) { onAllNodesWithTagCount(PHOTO_TAG) == 1 }
-            onNodeWithText(placeholderLabel).assertDoesNotExist()
+            onNodeWithTag(PLACEHOLDER_TAG).assertDoesNotExist()
             // The server's path, resolved against the page's origin: Coil takes a bare path for a file.
             assertEquals(listOf("http://haul.test/images/products/p-sony-wh-1000xm6/1.png"), requests)
+        }
+
+    @Test
+    fun `a picture sent as SVG replaces the placeholder tile`() =
+        runComposeUiTest {
+            // The seed's pictures (B-78) are SVG: Coil must decode them, or the tile would stay for good.
+            val picture = "/images/art/p_headphones_1_silver_e6e4ff.0123456789.svg"
+            drawCard(
+                card.copy(image = picture),
+                loader { respond(SVG, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "image/svg+xml")) },
+            )
+            awaitLoad()
+            waitUntil(timeoutMillis = 5_000) { onAllNodesWithTagCount(PHOTO_TAG) == 1 }
+            onNodeWithTag(PLACEHOLDER_TAG).assertDoesNotExist()
+            assertEquals(listOf("http://haul.test$picture"), requests)
         }
 
     @Test
@@ -132,7 +145,7 @@ class PhotoFallbackTest {
             drawCard(card, loader { respond("no such photo", HttpStatusCode.NotFound) })
             awaitLoad()
             waitForIdle()
-            onNodeWithText(placeholderLabel).assertExists()
+            onNodeWithTag(PLACEHOLDER_TAG).assertExists()
             onNodeWithTag(PHOTO_TAG).assertDoesNotExist()
             assertEquals(1, requests.size, "the photo was never asked for, so its failure was not what was drawn")
         }
@@ -149,7 +162,7 @@ class PhotoFallbackTest {
                 },
             )
             waitUntil(timeoutMillis = 5_000) { asked.isCompleted }
-            onNodeWithText(placeholderLabel).assertExists()
+            onNodeWithTag(PLACEHOLDER_TAG).assertExists()
             onNodeWithTag(PHOTO_TAG).assertDoesNotExist()
         }
 
@@ -158,7 +171,7 @@ class PhotoFallbackTest {
         runComposeUiTest {
             drawCard(card.copy(image = null), loader { error("nothing should be fetched") })
             waitForIdle()
-            onNodeWithText(placeholderLabel).assertExists()
+            onNodeWithTag(PLACEHOLDER_TAG).assertExists()
             assertEquals(emptyList(), requests)
         }
 
@@ -179,5 +192,12 @@ class PhotoFallbackTest {
             ImageIO.write(image, "png", it)
             it.toByteArray()
         }
+    }
+
+    private companion object {
+        /** A picture as the seed draws one, in miniature: the tone and an object on it. */
+        const val SVG =
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\">" +
+                "<rect width=\"24\" height=\"24\" fill=\"#E6E4FF\"/><circle cx=\"12\" cy=\"12\" r=\"6\" fill=\"#232329\"/></svg>"
     }
 }

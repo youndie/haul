@@ -51,49 +51,49 @@
      "id": "tile-0",
      "name": "Electronics",
      "tone": "#E6E4FF",
-     "label": "tech"
+     "image": "/images/art/c_headphones_e6e4ff.686ea916f7.svg"
     },
     {
      "id": "tile-1",
      "name": "Home & Kitchen",
      "tone": "#F1EBDD",
-     "label": "home"
+     "image": "/images/art/c_mugs_f1ebdd.57a1239eeb.svg"
     },
     {
      "id": "tile-2",
      "name": "Fashion",
      "tone": "#FFE5DD",
-     "label": "apparel"
+     "image": "/images/art/c_fashion_ffe5dd.742448d5d2.svg"
     },
     {
      "id": "tile-3",
      "name": "Beauty",
      "tone": "#F1E4F5",
-     "label": "beauty"
+     "image": "/images/art/c_beauty_f1e4f5.27e4b7b705.svg"
     },
     {
      "id": "tile-4",
      "name": "Kids & Toys",
      "tone": "#FFF1C9",
-     "label": "toys"
+     "image": "/images/art/c_kids-toys_fff1c9.1a499ea52c.svg"
     },
     {
      "id": "tile-5",
      "name": "Sports",
      "tone": "#E3F5D8",
-     "label": "sport"
+     "image": "/images/art/c_running-shoes_e3f5d8.b54b2b1309.svg"
     },
     {
      "id": "tile-6",
      "name": "Grocery",
      "tone": "#E9F0D2",
-     "label": "grocery"
+     "image": "/images/art/c_grocery_e9f0d2.169921b884.svg"
     },
     {
      "id": "tile-7",
      "name": "Pets",
      "tone": "#E0EEF7",
-     "label": "pets"
+     "image": "/images/art/c_pets_e0eef7.87fcbc8e27.svg"
     }
    ]
   }

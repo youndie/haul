@@ -30,7 +30,8 @@ public data class CampaignHero(
     val subtitle: String,
     val actionLabel: String,
     val tone: String,
-    val label: String,
+    /** The campaign's picture (B-78), drawn in the hero's right part; absent, the part keeps its hatching. */
+    val image: String? = null,
     val action: @Polymorphic KompotAction? = null,
     val accent: String? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
@@ -47,7 +48,8 @@ public data class PromoBanner(
     val subtitle: String? = null,
     val actionLabel: String? = null,
     val tone: String,
-    val label: String? = null,
+    /** The campaign's picture in the banner's corner (B-78); absent, the banner draws none and its title runs wide. */
+    val image: String? = null,
     val action: @Polymorphic KompotAction? = null,
     val accent: String? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
@@ -95,7 +97,8 @@ public data class CategoryTile(
     override val id: String,
     val name: String,
     val tone: String,
-    val label: String,
+    /** The category's picture (B-78), over the tone tile while it loads. */
+    val image: String? = null,
     val action: @Polymorphic KompotAction? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent

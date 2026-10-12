@@ -154,9 +154,10 @@ internal fun Route.catalogRouting() {
     }
 
     // A product's photo out of the object storage (B-30), served from the server's own origin so the
-    // bucket stays private and the browser needs no CORS. Keys carry the content's hash, so an answer
-    // never changes and may be cached for good. No store, a key outside the photos, or nothing there:
-    // 404, and the client keeps the placeholder tile.
+    // bucket stays private and the browser needs no CORS; or, under `art/`, one of the seed's pictures (B-78),
+    // drawn here, which needs no storage at all. Keys and names carry the content's hash, so an answer
+    // never changes and may be cached for good. No store, a key outside the photos, a name that is no
+    // current picture's, or nothing there: 404, and the client keeps the placeholder tile.
     get("${ProductPhotos.PATH}/{key...}") {
         val key =
             call.parameters
@@ -170,6 +171,12 @@ internal fun Route.catalogRouting() {
         }
         call.response.header(HttpHeaders.CacheControl, "public, max-age=31536000, immutable")
         call.response.header("X-Content-Type-Options", "nosniff")
+        // A picture opened on its own is a document of the store's origin: it may run and load nothing.
+        if (photo.contentType ==
+            ProductPhotos.SVG
+        ) {
+            call.response.header("Content-Security-Policy", "default-src 'none'")
+        }
         call.respondBytes(photo.bytes, photoType(photo.contentType))
     }
 }

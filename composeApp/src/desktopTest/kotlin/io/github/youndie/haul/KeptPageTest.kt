@@ -446,7 +446,6 @@ class KeptPageTest {
                         reviews = "420",
                         delivery = "Tomorrow",
                         tone = "#E3F5D8",
-                        label = "mug",
                         action = NavigateAction("/p/p-$index"),
                     )
                 },

@@ -34,6 +34,7 @@ import io.github.youndie.haul.feature.search.searchModule
 import io.github.youndie.haul.ops.OrderTrail
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCustomers
+import io.github.youndie.haul.seed.SeedArt
 import io.github.youndie.petich.PetichClock
 import kotlinx.coroutines.runBlocking
 import org.koin.core.Koin
@@ -88,7 +89,7 @@ internal class FulfilmentWorld(
                     single<PetichClock> { clock }
                     single { pace }
                     single { DeliveryCalendar { CANVAS_NOW.now() } }
-                    single { ProductPhotos(null) }
+                    single { ProductPhotos(null, SeedArt) }
                     single { trail }
                 },
                 catalogModule,

@@ -34,7 +34,7 @@
     "subtitle": "1.2 million items marked down across 32 categories",
     "actionLabel": "Shop the sale",
     "tone": "#2F2BFF",
-    "label": "campaign image"
+    "image": "/images/art/h_autumn-mega-sale_2f2bff.e50edfe179.svg"
    },
    "banners": [
     {
@@ -44,7 +44,7 @@
      "accent": "$399",
      "actionLabel": "Shop now",
      "tone": "#DFFF3A",
-     "label": "laptop"
+     "image": "/images/art/c_computers_dfff3a.893e4b94d2.svg"
     },
     {
      "id": "banner-free-delivery-weekend",
@@ -72,49 +72,49 @@
      "id": "tile-0",
      "name": "Electronics",
      "tone": "#E6E4FF",
-     "label": "tech"
+     "image": "/images/art/c_headphones_e6e4ff.686ea916f7.svg"
     },
     {
      "id": "tile-1",
      "name": "Home & Kitchen",
      "tone": "#F1EBDD",
-     "label": "home"
+     "image": "/images/art/c_mugs_f1ebdd.57a1239eeb.svg"
     },
     {
      "id": "tile-2",
      "name": "Fashion",
      "tone": "#FFE5DD",
-     "label": "apparel"
+     "image": "/images/art/c_fashion_ffe5dd.742448d5d2.svg"
     },
     {
      "id": "tile-3",
      "name": "Beauty",
      "tone": "#F1E4F5",
-     "label": "beauty"
+     "image": "/images/art/c_beauty_f1e4f5.27e4b7b705.svg"
     },
     {
      "id": "tile-4",
      "name": "Kids & Toys",
      "tone": "#FFF1C9",
-     "label": "toys"
+     "image": "/images/art/c_kids-toys_fff1c9.1a499ea52c.svg"
     },
     {
      "id": "tile-5",
      "name": "Sports",
      "tone": "#E3F5D8",
-     "label": "sport"
+     "image": "/images/art/c_running-shoes_e3f5d8.b54b2b1309.svg"
     },
     {
      "id": "tile-6",
      "name": "Grocery",
      "tone": "#E9F0D2",
-     "label": "grocery"
+     "image": "/images/art/c_grocery_e9f0d2.169921b884.svg"
     },
     {
      "id": "tile-7",
      "name": "Pets",
      "tone": "#E0EEF7",
-     "label": "pets"
+     "image": "/images/art/c_pets_e0eef7.87fcbc8e27.svg"
     }
    ]
   },
@@ -135,7 +135,7 @@
     {
      "id": "card-1",
      "productId": "p-1", "add": {"url": "/api/v1/cart/lines/p-1-0?answer=card", "change": {"quantity": 1}},
-     "label": "headphones",
+     "image": "/images/art/p_headphones_2_plain_e6e4ff.094c24dda9.svg",
      "badge": "−22%",
      "price": "$349",
      "oldPrice": "$449",
@@ -148,7 +148,7 @@
     {
      "id": "card-2",
      "productId": "p-2", "add": {"url": "/api/v1/cart/lines/p-2-0?answer=card", "change": {"quantity": 1}},
-     "label": "air fryer",
+     "image": "/images/art/p_appliances_0_plain_ffe5dd.d740819d4f.svg",
      "badge": "−36%",
      "price": "$89",
      "oldPrice": "$139",
@@ -161,7 +161,7 @@
     {
      "id": "card-3",
      "productId": "p-3", "add": {"url": "/api/v1/cart/lines/p-3-0?answer=card", "change": {"quantity": 1}},
-     "label": "sweater",
+     "image": "/images/art/p_fashion_1_plain_e3f5d8.c8bb31c181.svg",
      "badge": "−40%",
      "price": "$48",
      "oldPrice": "$80",
@@ -174,7 +174,7 @@
     {
      "id": "card-4",
      "productId": "p-4", "add": {"url": "/api/v1/cart/lines/p-4-0?answer=card", "change": {"quantity": 1}},
-     "label": "vacuum",
+     "image": "/images/art/p_appliances_2_plain_e0eef7.d6b3506d62.svg",
      "badge": "−40%",
      "price": "$299",
      "oldPrice": "$499",
@@ -187,7 +187,7 @@
     {
      "id": "card-5",
      "productId": "p-5", "add": {"url": "/api/v1/cart/lines/p-5-0?answer=card", "change": {"quantity": 1}},
-     "label": "serum",
+     "image": "/images/art/p_beauty_0_plain_f1e4f5.27e4b7b705.svg",
      "badge": "−36%",
      "price": "$14",
      "oldPrice": "$22",
@@ -200,7 +200,7 @@
     {
      "id": "card-6",
      "productId": "p-6", "add": {"url": "/api/v1/cart/lines/p-6-0?answer=card", "change": {"quantity": 1}},
-     "label": "shoes",
+     "image": "/images/art/p_running-shoes_1_plain_fff1c9.7b5c9edcca.svg",
      "badge": "−40%",
      "price": "$72",
      "oldPrice": "$120",

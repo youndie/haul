@@ -53,21 +53,21 @@
    "title": "Pace Runner 3, Men's",
    "price": "$89",
    "tone": "#FFF1C9",
-   "label": "shoes"
+   "image": "/images/art/p_running-shoes_2_plain_fff1c9.d7ab61c742.svg"
   },
   {
    "productId": "p-2",
    "title": "Cloudline Daily Trainer, Women's",
    "price": "$112",
    "tone": "#E0EEF7",
-   "label": "shoes"
+   "image": "/images/art/p_running-shoes_0_plain_e0eef7.d915eefd31.svg"
   },
   {
    "productId": "p-3",
    "title": "Ridge Trail GTX, Waterproof",
    "price": "$72",
    "tone": "#E3F5D8",
-   "label": "shoes"
+   "image": "/images/art/p_running-shoes_1_plain_e3f5d8.6ae932e1c4.svg"
   }
  ],
  "allResultsLabel": "All 14,870 results"

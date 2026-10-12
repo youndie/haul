@@ -469,7 +469,7 @@
                         "reviews": "3,377",
                         "delivery": "Tomorrow",
                         "tone": "#E0EEF7",
-                        "label": "vacuum",
+                        "image": "/images/art/p_appliances_0_plain_e0eef7.6ba37dc90b.svg",
                         "saved": true,
                         "action": {
                             "type": "navigate",
@@ -498,7 +498,7 @@
                         "reviews": "2,341",
                         "delivery": "Tomorrow",
                         "tone": "#E6E4FF",
-                        "label": "headphones",
+                        "image": "/images/art/p_headphones_0_midnight-black_e6e4ff.686ea916f7.svg",
                         "saved": true,
                         "action": {
                             "type": "navigate",
@@ -527,7 +527,7 @@
                         "reviews": "8,102",
                         "delivery": "Tomorrow",
                         "tone": "#FFE5DD",
-                        "label": "air fryer",
+                        "image": "/images/art/p_appliances_0_plain_ffe5dd.d740819d4f.svg",
                         "saved": true,
                         "action": {
                             "type": "navigate",
@@ -556,7 +556,7 @@
                         "reviews": "1,204",
                         "delivery": "Thu, Oct 9",
                         "tone": "#E3F5D8",
-                        "label": "sweater",
+                        "image": "/images/art/p_fashion_1_plain_e3f5d8.c8bb31c181.svg",
                         "saved": true,
                         "action": {
                             "type": "navigate",
@@ -585,7 +585,7 @@
                         "reviews": "2,018",
                         "delivery": "Fri, Oct 10",
                         "tone": "#FFF1C9",
-                        "label": "shoes",
+                        "image": "/images/art/p_running-shoes_2_plain_fff1c9.d7ab61c742.svg",
                         "saved": true,
                         "action": {
                             "type": "navigate",
@@ -614,7 +614,7 @@
                         "reviews": "1,388",
                         "delivery": "Thu, Oct 9",
                         "tone": "#FFE5DD",
-                        "label": "bedding",
+                        "image": "/images/art/p_duvet-covers_1_oat_ffe5dd.493f7dd625.svg",
                         "saved": true,
                         "action": {
                             "type": "navigate",

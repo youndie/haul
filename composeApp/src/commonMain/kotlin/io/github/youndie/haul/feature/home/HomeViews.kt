@@ -39,6 +39,7 @@ import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Icon
 import io.github.youndie.haul.ui.InlineLine
 import io.github.youndie.haul.ui.LocalHaulNow
+import io.github.youndie.haul.ui.PhotoOrPlaceholder
 import io.github.youndie.haul.ui.PlusBlock
 import io.github.youndie.haul.ui.PromoBanner
 import io.github.youndie.haul.ui.SectionHeader
@@ -93,21 +94,15 @@ private fun Hero(
     val lead = hero.accent?.takeIf { hero.title.startsWith(it) }
     val figure = if (lead != null) hero.title.removePrefix(lead).trim() else hero.title
     Box(modifier.clip(shape).follows(hero.action).background(toneColor(hero.tone))) {
-        Box(
+        // The campaign's picture (B-78) where the canvas keeps its place, under the words; the hatching while it
+        // loads, and for good without one.
+        PhotoOrPlaceholder(
+            hero.image,
             Modifier
                 .align(Alignment.TopEnd)
                 .fillMaxHeight()
-                .fillMaxWidth(if (compact) 0.42f else 0.4f)
-                .hatching(HERO_HATCH, period = 14f),
-        ) {
-            if (!compact) {
-                Text(
-                    hero.label.uppercase(),
-                    HaulType.label(11f, 500, 0.06f).copy(color = HERO_LABEL),
-                    Modifier.align(Alignment.BottomEnd).padding(end = 22.dp, bottom = 20.dp),
-                )
-            }
-        }
+                .fillMaxWidth(if (compact) 0.42f else 0.4f),
+        ) { Box(Modifier.fillMaxSize().hatching(HERO_HATCH, period = 14f)) }
         Column(
             Modifier
                 .fillMaxSize()
@@ -205,22 +200,17 @@ private fun Banner(
     // title would run into, is left out, as on a phone (B-82).
     val medium = LocalHaulMedium.current
     Box(modifier.clip(shape).follows(banner.action).background(toneColor(banner.tone))) {
-        val label = banner.label?.takeUnless { medium }
-        if (!compact && label != null) {
-            Box(
+        // The campaign's picture (B-78) in the tile the canvas keeps for it, the hatching while it loads.
+        val image = banner.image?.takeUnless { medium }
+        if (!compact && image != null) {
+            PhotoOrPlaceholder(
+                image,
                 Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 20.dp, end = 20.dp)
                     .size(150.dp)
-                    .clip(RoundedCornerShape(18.dp))
-                    .hatching(BANNER_HATCH),
-            ) {
-                Text(
-                    label.uppercase(),
-                    HaulType.label(10f, 500, 0f).copy(color = BANNER_LABEL),
-                    Modifier.align(Alignment.BottomStart).padding(start = 12.dp, bottom = 12.dp),
-                )
-            }
+                    .clip(RoundedCornerShape(18.dp)),
+            ) { Box(Modifier.fillMaxSize().hatching(BANNER_HATCH)) }
         }
         Column(
             Modifier.fillMaxSize().padding(if (compact) 20.dp else 32.dp),
@@ -238,7 +228,7 @@ private fun Banner(
                 }
             Text(
                 accented(banner.title, banner.accent),
-                if (!compact && label != null) Modifier.widthIn(max = 240.dp) else Modifier,
+                if (!compact && image != null) Modifier.widthIn(max = 240.dp) else Modifier,
                 style =
                     HaulType.display(
                         size,
@@ -280,12 +270,8 @@ private const val LONG_BANNER_TITLE = 20
 /** White at 9 %: the campaign's hatching over Cobalt. */
 private val HERO_HATCH = Color(0x17FFFFFF)
 
-/** White at 65 %: the campaign's placeholder label. */
-private val HERO_LABEL = Color(0xA6FFFFFF)
-
-/** Ink at 8 % and 55 %: the banner's placeholder tile. */
+/** Ink at 8 %: the banner's placeholder tile. */
 private val BANNER_HATCH = Color(0x140F0F0F)
-private val BANNER_LABEL = Color(0x8C0F0F0F)
 
 /**
  * A section's heading: the title with its accent, the deals countdown read against [LocalHaulNow],
@@ -390,22 +376,14 @@ private fun Tile(
     modifier: Modifier,
 ) {
     Column(modifier.follows(tile.action), verticalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 12.dp)) {
-        Box(
+        // The category's picture (B-78) over the canvas's tile, which stays while it loads.
+        PhotoOrPlaceholder(
+            tile.image,
             Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f)
-                .clip(RoundedCornerShape(if (compact) 16.dp else 22.dp))
-                .background(toneColor(tile.tone))
-                .hatching(),
-        ) {
-            if (!compact) {
-                Text(
-                    tile.label.uppercase(),
-                    HaulType.label(10f, 500, 0.06f).copy(color = HaulColors.tileLabel),
-                    Modifier.align(Alignment.BottomStart).padding(start = 12.dp, bottom = 12.dp),
-                )
-            }
-        }
+                .clip(RoundedCornerShape(if (compact) 16.dp else 22.dp)),
+        ) { Box(Modifier.fillMaxSize().background(toneColor(tile.tone)).hatching()) }
         Text(tile.name, HaulType.text(if (compact) 12f else 16f, 600, lineHeight = 1.25f).browserLeading())
     }
 }

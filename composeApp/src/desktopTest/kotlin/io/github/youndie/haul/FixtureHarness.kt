@@ -1,5 +1,6 @@
 package io.github.youndie.haul
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,21 +11,30 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import io.github.youndie.haul.registry.haulJson
 import io.github.youndie.haul.registry.haulRegistry
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.ui.LocalHaulNow
+import io.github.youndie.haul.ui.LocalPhotoLoader
+import io.github.youndie.haul.ui.PHOTO_TAG
+import io.github.youndie.haul.ui.PhotoLoader
 import io.github.youndie.kompot.KompotActionHandler
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.KompotScreen
 import io.github.youndie.kompot.form.FormController
 import io.github.youndie.kompot.form.FormSchema
 import kotlinx.serialization.PolymorphicSerializer
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.decodeToSvgPainter
 import kotlin.time.Instant
 
-// What every screenshot fixture is drawn in: the theme with the fixture fonts, the canvas's Paper, and
-// the canvas's «now» (2025-10-07 19:47:23 in New York), so a countdown reads what the artboard reads.
+// What every screenshot fixture is drawn in: the theme with the fixture fonts, the canvas's Paper, the
+// canvas's «now» (2025-10-07 19:47:23 in New York), so a countdown reads what the artboard reads, and the
+// seed's pictures the bodies name (B-78), already arrived, so a golden shows what a shopper gets.
 
 /** The canvas's «now» (`canvas.json`, `now`). */
 internal val CANVAS_NOW: Instant = Instant.parse("2025-10-07T19:47:23-04:00")
@@ -36,7 +46,7 @@ internal fun Fixture(
     content: @Composable () -> Unit,
 ) {
     HaulTheme(FixtureFonts.fonts, compact, medium) {
-        CompositionLocalProvider(LocalHaulNow provides CANVAS_NOW) {
+        CompositionLocalProvider(LocalHaulNow provides CANVAS_NOW, LocalPhotoLoader provides ArtLoader) {
             Box(
                 Modifier.fillMaxSize().background(HaulColors.background),
                 contentAlignment = Alignment.TopStart,
@@ -70,3 +80,36 @@ internal fun read(name: String): String =
     checkNotNull(object {}.javaClass.classLoader.getResourceAsStream("bodies/$name")) {
         "no body $name"
     }.use { it.readBytes().decodeToString() }
+
+/**
+ * The seed's pictures (B-78), drawn at once from `resources/art` — the server's own SVGs, which ArtFixturesTest
+ * holds there — through Skia's SVG renderer, as the app's Coil decoder draws them. Any other image (a stored
+ * photo) is not loaded, and its placeholder tile is drawn.
+ */
+@OptIn(ExperimentalResourceApi::class)
+internal val ArtLoader =
+    PhotoLoader { url, modifier, placeholder ->
+        val name = url.removePrefix(ART_PREFIX).takeIf { url.startsWith(ART_PREFIX) }
+        val density = LocalDensity.current
+        val painter =
+            remember(name, density) {
+                name?.let { art(it) }?.decodeToSvgPainter(density)
+            }
+        if (painter == null) {
+            Box(modifier) { placeholder() }
+        } else {
+            Image(
+                painter,
+                contentDescription = null,
+                modifier = modifier.testTag(PHOTO_TAG),
+                contentScale = ContentScale.Crop,
+            )
+        }
+    }
+
+private const val ART_PREFIX = "/images/art/"
+
+private fun art(name: String): ByteArray =
+    checkNotNull(object {}.javaClass.classLoader.getResourceAsStream("art/$name")) {
+        "no picture $name: ArtFixturesTest writes the missing ones to server/build/art-fixtures"
+    }.use { it.readBytes() }

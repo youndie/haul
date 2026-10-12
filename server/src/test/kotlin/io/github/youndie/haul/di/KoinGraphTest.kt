@@ -73,6 +73,7 @@ import io.github.youndie.haul.feature.search.screen.SearchScreen
 import io.github.youndie.haul.feature.search.searchModule
 import io.github.youndie.haul.ops.OrderTrail
 import io.github.youndie.haul.seed.CatalogSeed
+import io.github.youndie.haul.seed.SeedArt
 import io.github.youndie.haul.shell.Viewers
 import io.github.youndie.haul.testing.SAGA_CLOCK
 import io.github.youndie.haul.testing.SeededDatabase
@@ -107,7 +108,7 @@ class KoinGraphTest {
                         single<DataSource> { SeededDatabase.dataSource }
                         single { StoreClock { CatalogSeed.NOW.toZonedDateTime() } }
                         single { DeliveryCalendar { CatalogSeed.NOW.toZonedDateTime() } }
-                        single { ProductPhotos(null) }
+                        single { ProductPhotos(null, SeedArt) }
                         single { SAGA_CLOCK }
                         single { FulfilmentPace.STORE }
                         single { OrderTrail.NONE }

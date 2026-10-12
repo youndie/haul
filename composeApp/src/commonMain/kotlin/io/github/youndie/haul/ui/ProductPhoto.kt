@@ -22,11 +22,13 @@ import coil3.compose.rememberAsyncImagePainter
 import coil3.network.ktor3.KtorNetworkFetcherFactory
 import coil3.request.CachePolicy
 import coil3.serviceLoaderEnabled
+import coil3.svg.SvgDecoder
 import io.ktor.client.HttpClient
 
-// Product photos (B-30, research D8). The server sends a photo's address on a card and on the product
-// page when it has one; the client draws it over the placeholder tile, and the tile stays whenever the
-// photo is absent, still loading or failed to load — a photo is decoration, never a hole in the page.
+// Product photos (B-30, research D8) and the seed's pictures (B-78). The server sends a photo's address — or,
+// without a stored photo, the address of the product's picture — on a card, the product page and every line;
+// the client draws it over the placeholder tile, and the tile stays whenever the image is absent, still
+// loading or failed to load — an image is decoration, never a hole in the page.
 
 /** Draws a product photo, or [placeholder] until — and unless — the photo is on screen. */
 public fun interface PhotoLoader {
@@ -49,6 +51,12 @@ public val LocalPhotoLoader: androidx.compose.runtime.ProvidableCompositionLocal
 /** The tag of a photo that is on screen, for the tests that tell a photo from its placeholder. */
 public const val PHOTO_TAG: String = "product-photo"
 
+/**
+ * The tag of a placeholder tile that is on screen: since the tile says nothing (B-78), what tells the tests it is
+ * there.
+ */
+public const val PLACEHOLDER_TAG: String = "photo-placeholder"
+
 /** [url]'s photo in [modifier]'s box over [placeholder], or the placeholder alone when there is no photo. */
 @Composable
 internal fun PhotoOrPlaceholder(
@@ -56,10 +64,11 @@ internal fun PhotoOrPlaceholder(
     modifier: Modifier,
     placeholder: @Composable () -> Unit,
 ) {
+    val tagged = @Composable { Box(Modifier.fillMaxSize().testTag(PLACEHOLDER_TAG)) { placeholder() } }
     if (url == null) {
-        Box(modifier) { placeholder() }
+        Box(modifier) { tagged() }
     } else {
-        LocalPhotoLoader.current.Photo(url, modifier, placeholder)
+        LocalPhotoLoader.current.Photo(url, modifier, tagged)
     }
 }
 
@@ -99,7 +108,12 @@ public fun coilPhotoLoader(
             // Off, or Coil also registers the network fetcher it finds on the classpath — over a default
             // `HttpClient()` of its own, ahead of this one — and [http] is never asked.
             .serviceLoaderEnabled(false)
-            .components { add(KtorNetworkFetcherFactory(httpClient = { http })) }
+            // The seed's pictures are SVG (B-78): Skia's SVG renderer, which skiko's wasm already carries, draws
+            // them at the size the tile asks for.
+            .components {
+                add(KtorNetworkFetcherFactory(httpClient = { http }))
+                add(SvgDecoder.Factory())
+            }
             // The browser's HTTP cache keeps the photos — the server marks them immutable — so a disk cache
             // of Coil's would only repeat it; on the desktop target, where the tests run, one kept an
             // answer between runs (a 404 served from /tmp to a test that expected a photo).

@@ -31,7 +31,7 @@ import javax.imageio.ImageIO
  * placeholder tile at a glance, and nothing about it depends on a font being installed in the image.
  *
  * Only the sample products of research §6 get one, the ones every artboard shows; the generated two
- * thousand keep their placeholder tiles, which is the fallback showing itself on the same page.
+ * thousand keep their pictures ([SeedArt], B-78), which is the fallback showing itself on the same page.
  */
 internal object SeedPhotos {
     private const val SIZE = 640

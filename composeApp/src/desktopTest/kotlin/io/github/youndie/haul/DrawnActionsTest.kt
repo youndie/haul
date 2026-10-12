@@ -867,7 +867,6 @@ class DrawnActionsTest {
                 reviews = "420",
                 delivery = "Tomorrow",
                 tone = "#E3F5D8",
-                label = "mug",
                 action = NavigateAction("/p/p-stoneware-mug"),
                 add = LineCommand(MUG_LINE, LineChange(quantity = 2)),
             )
@@ -931,7 +930,6 @@ class DrawnActionsTest {
                     subtitle = "1.2 million items marked down across 32 categories",
                     actionLabel = "Shop the sale",
                     tone = "#2F2BFF",
-                    label = "campaign image",
                     action = NavigateAction("/deals"),
                 ),
                 listOf(

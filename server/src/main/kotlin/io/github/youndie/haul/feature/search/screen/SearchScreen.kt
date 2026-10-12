@@ -137,9 +137,8 @@ internal class SearchScreen(
                         title = it.product.listingName,
                         price = money(it.shown.priceCents),
                         tone = it.product.tone,
-                        label = it.product.label,
                         action = productLink(it.product.id),
-                        image = photos.url(it.product),
+                        image = photos.url(it.product, it.shown),
                     )
                 },
             // Nothing matched in the scope (B-132): no «All 0 results» to a page that would say so.

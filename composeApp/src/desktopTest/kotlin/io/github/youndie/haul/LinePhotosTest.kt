@@ -93,8 +93,18 @@ class LinePhotosTest {
                                     tree,
                                 )
                         ) {
-                            is SearchSuggestPanel -> SearchSuggestOverlay(component) { Body("search_results.json") }
-                            else -> Render(component)
+                            // The results under it name their cards' pictures (B-78), which are not this test's lines.
+                            is SearchSuggestPanel -> {
+                                SearchSuggestOverlay(component) {
+                                    CompositionLocalProvider(
+                                        LocalPhotoLoader provides unloaded,
+                                    ) { Body("search_results.json") }
+                                }
+                            }
+
+                            else -> {
+                                Render(component)
+                            }
                         }
                     }
                 }
@@ -144,6 +154,9 @@ class LinePhotosTest {
 
     private companion object {
         const val PHOTO = "line-photo"
+
+        /** A loader that loads nothing: every tile stays its placeholder. */
+        val unloaded = PhotoLoader { _, modifier, placeholder -> Box(modifier) { placeholder() } }
 
         /** A loader that draws a marked box for every photo it is asked for, so the test counts them. */
         val marking =
