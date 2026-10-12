@@ -72,7 +72,7 @@ internal fun LinkMenu(
         } else {
             links.map { link -> MenuEntry(link.label, link.action?.let { { actions.handle(it) } }) }
         }
-    Menu(entries, modifier, current, alignEnd, control)
+    Menu(entries, modifier, current, alignEnd, control = control)
 }
 
 /** An entry of a [Menu]: what it reads, and what pressing it does — `null` draws it and does nothing. */
@@ -85,7 +85,8 @@ internal class MenuEntry(
  * [control] opens [entries] as a menu under it, and an entry pressed closes it and runs its press — a
  * [LinkMenu]'s links, or a choice the client keeps itself (the search field's picker, B-72). [current] is the
  * entry drawn as chosen; pressed, it closes the menu even with nothing to run. With no entry to press, [control]
- * is drawn as it is and opens nothing.
+ * is drawn as it is and opens nothing — unless there is somebody to [ask] for the entries (B-138): then a press asks,
+ * and the menu opens by itself once they have arrived.
  */
 @Composable
 internal fun Menu(
@@ -93,11 +94,38 @@ internal fun Menu(
     modifier: Modifier = Modifier,
     current: String? = null,
     alignEnd: Boolean = false,
+    ask: (() -> Unit)? = null,
     control: @Composable (Modifier) -> Unit,
 ) {
     var open by remember { mutableStateOf(false) }
     // Over the page, in the storefront's own layer (B-126): with none — a screenshot — the menu opens nothing.
-    val usable = entries.any { it.onPress != null } && isOverPage()
+    val over = isOverPage()
+    val usable = entries.any { it.onPress != null } && over
+    // A press that asked for the entries: the menu opens when they arrive.
+    var asked by remember { mutableStateOf(false) }
+    LaunchedEffect(usable) {
+        if (usable && asked) {
+            asked = false
+            open = true
+        }
+    }
+    val press: (() -> Unit)? =
+        when {
+            usable -> {
+                { open = !open }
+            }
+
+            ask != null && over -> {
+                {
+                    asked = true
+                    ask()
+                }
+            }
+
+            else -> {
+                null
+            }
+        }
     // Where the control is in the window, unclipped: the menu opens under it.
     var anchor by remember { mutableStateOf(IntRect.Zero) }
     Box(
@@ -107,7 +135,7 @@ internal fun Menu(
         },
         propagateMinConstraints = true,
     ) {
-        control(Modifier.pressable(if (usable) ({ open = !open }) else null))
+        control(Modifier.pressable(press))
         if (open && usable) {
             val gap = with(LocalDensity.current) { MENU_GAP.roundToPx() }
             val origin = LocalOverlays.current?.origin ?: Offset.Zero

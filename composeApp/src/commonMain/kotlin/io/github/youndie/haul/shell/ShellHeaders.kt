@@ -4,8 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import io.github.youndie.haul.ui.HaulHeader
+import kotlinx.coroutines.launch
 
 /**
  * The header the shell draws over a page of its own ([LocalShellHeader], B-67, B-105): the last one the server
@@ -45,8 +48,9 @@ internal class ShellHeaders {
  * not there, a refusal, an error, the sign-in prompt — and no header has been drawn for who is looking: a
  * customer who reloads a missing order sees her name, her cart's count and category words that lead to their
  * categories, rather than a guest's «Sign in». Once per [visit] and [load]; an answer that does not arrive
- * leaves the client's own header, and the next visit asks again. The sign-in page asks for nothing (B-66): it
- * is a way through, and a customer who lands on it is sent on at once.
+ * leaves the client's own header, and the next visit asks again. The sign-in page asks for nothing while it loads
+ * (B-66): it is a way through, and a customer who lands on it is sent on at once; a press there that needs the
+ * server's categories asks instead ([askForHeaderOnPress], B-138).
  */
 @Composable
 internal fun AskForHeader(
@@ -58,6 +62,32 @@ internal fun AskForHeader(
 ) {
     if (headers.knows(signedIn)) return
     LaunchedEffect(visit, load, signedIn) { transport.header()?.let { headers.drawn(it, signedIn) } }
+}
+
+/**
+ * The header alone asked for by a press rather than by the page (B-138): the sign-in page landed on cold, whose
+ * phone menu would list the client's ten category words, each to the catalog's root, and whose search picker has
+ * no scopes. The first press asks (`GET /ui/header`, as [AskForHeader] does) and the answer is drawn for who is
+ * looking; any press after it asks nothing, answered or not — once per [visit], and an answer that does not arrive
+ * leaves the client's own header until the next. `null` once a header has been drawn for who is looking: there
+ * is nothing to ask.
+ */
+@Composable
+internal fun askForHeaderOnPress(
+    headers: ShellHeaders,
+    transport: HaulTransport,
+    signedIn: Boolean,
+    visit: Int,
+): (() -> Unit)? {
+    val scope = rememberCoroutineScope()
+    var asked by remember(visit, signedIn) { mutableStateOf(false) }
+    if (headers.knows(signedIn)) return null
+    return {
+        if (!asked) {
+            asked = true
+            scope.launch { transport.header()?.let { headers.drawn(it, signedIn) } }
+        }
+    }
 }
 
 /** The address of the header alone (the server's `Frame.HEADER`). */

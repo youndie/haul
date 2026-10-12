@@ -333,8 +333,9 @@ whatever their style, so the ones with no page are left out rather than drawn as
   any tree (B-67) — or without a field to type in, the picker opens nothing. Since B-105 a page that stays
   without a tree draws the header alone the shell asks for, scopes included, so the picker works there (B-90
   holds it in `KnownHeaderTest`); it is still drawn and opens nothing while the first page loads (the tree brings
-  the scopes, and the pending header's account slot is a placeholder too), on the sign-in page landed on cold
-  (B-66 keeps it free of server requests) and when the header alone does not arrive.
+  the scopes, and the pending header's account slot is a placeholder too) and when the header alone does not
+  arrive. On the sign-in page landed on cold, which asks for nothing while it loads (B-66), the picker's press asks
+  for the header alone and opens with its scopes once it answers (B-138).
 - **A scope the query finds nothing in says so** (B-90). With the query's results all in other categories, the
   scope's chip read 0 over an empty grid. The page is now the title and the chips as before — the scope's
   chosen at 0, and since B-119 the title «0 results» with it — then an `EmptyState`, «Nothing for “mug” in Fashion», «N results in other categories.» and
@@ -480,10 +481,14 @@ for it:
   tree — not there, refused, an error, the sign-in prompt — and no header has been drawn for who is looking
   (`AskForHeader`, `shell/ShellHeaders.kt`): once per visit and load, and an answer that does not arrive leaves
   the header the client has. Placeholders and error pages still draw it as a placeholder (B-67), so their pixels
-  are unchanged. The sign-in page asks for none: it is a way through, and a customer is sent on at once. So
-  the sign-in page landed on cold draws the client's own header, whose phone menu lists the row's ten category
-  words, each leading to the catalog's root, not the 32 top-level categories a server's header lists (B-133): the
-  32 and their addresses are the server's, and no request is made for them there.
+  are unchanged. The sign-in page asks for none while it loads: it is a way through, and a customer is sent on
+  at once. So the sign-in page landed on cold draws the client's own header, whose ten category words each lead
+  to the catalog's root (B-133). **Since B-138 a press asks instead** (owner, 2026-10-12): the phone header's
+  menu button or the search picker asks for the header alone (`askForHeaderOnPress`, `LocalAskForHeader`), once
+  per visit however often they are pressed; the menu opens at once with what the client has and lists the 32
+  top-level categories with their addresses when the answer arrives, and the picker opens with the scopes once
+  they have. An answer that does not arrive leaves the client's own header until the next visit. Rejected:
+  copying the 32 into the client (D2: the categories are the server's), and asking on the page's load (B-66).
 - **A header is kept for whom it was drawn** (`ShellHeaders`): a tree's or the header alone, tagged with
   whether the shopper was signed in (`SessionControls.signedIn`) when it was drawn. A sign-in or a sign-out over
   a page with no tree no longer leaves the other shopper's header (a guest's «Maya» after signing out over a
