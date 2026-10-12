@@ -1,7 +1,7 @@
 ---
 id: B-134
 title: "fix: a price bound typed while the other bound's load is on its way is kept"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-12-qa-run
