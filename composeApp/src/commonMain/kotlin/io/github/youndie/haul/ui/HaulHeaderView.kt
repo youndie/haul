@@ -554,8 +554,9 @@ private fun DeliverTo(
 }
 
 /**
- * The search field's category picker (B-72): «All categories» or the top-level category the next search is in
- * (`HaulHeader.scopes`), chosen from a menu under it. The choice is the field's ([SearchInput.scope]) and opens
+ * The search field's category picker (B-72): «All categories» or the category the next search is in
+ * (`HaulHeader.scopes`: the top-level ones, and the page's own scope below them, B-119), chosen from a menu
+ * under it. The choice is the field's ([SearchInput.scope]) and opens
  * nothing by itself. Without a field to search from, or with no scopes on the wire (the placeholder header),
  * it is drawn as the page's scope and opens nothing.
  */

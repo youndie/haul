@@ -35,8 +35,9 @@ import kotlinx.serialization.Serializable
  * the membership is drawn, for a member, and asks a guest to sign in.
  *
  * [scopes] are what the search field's picker offers besides «All categories» (B-72): every top-level
- * category, each with the `category` the search takes; [scope] is the one the page's search is in, `null`
- * for all of them or off the search page. The strip says where the store delivers and for how much, and
+ * category, each with the `category` the search takes, and on a search in a category below the top level that
+ * category too, named with its top-level one («Party · Limited», B-119); [scope] is the one the page's search
+ * is in, `null` for all of them or off the search page. The strip says where the store delivers and for how much, and
  * nothing else: «Sell on HAUL», «Help» and the language had no page behind them and are gone (B-72).
  */
 @Serializable

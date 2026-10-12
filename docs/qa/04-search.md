@@ -73,10 +73,10 @@ long search is walked in [catalog and filters](03-catalog-and-filters.md) (TC-CA
   1. Choose the scope «Fashion» and search `mug`.
   2. Press «Search all categories».
 - **Expected:**
-  - Step 1: the title and the chips (Fashion chosen, at 0), then «Nothing for “mug” in Fashion», «N results in other
-    categories.» and «Search all categories» — no grid, no pages, no sort.
+  - Step 1: the title «0 results» and the chips (Fashion chosen, at 0), then «Nothing for “mug” in Fashion», «N
+    results in other categories.» and «Search all categories» — no grid, no pages, no sort.
   - Step 2: the search in every category.
-- **Decided in:** B-90
+- **Decided in:** B-90, B-119
 - **Coverage:** `SearchRoutesTest` «a scope the query finds nothing in says so and offers every category»
 
 ### TC-SRCH-05 — A search is ordered by relevance until a sort is chosen
@@ -183,3 +183,25 @@ long search is walked in [catalog and filters](03-catalog-and-filters.md) (TC-CA
   `RecentSearchesRoutesTest` «clear empties a customer's recent searches and the panel no longer offers it»;
   `RecentSearchesRoutesTest` «clearing needs a sign-in and a guest is offered nothing to clear»;
   `composeApp:DrawnActionsTest` «a recent search's row runs that search»
+
+### TC-SRCH-11 — The title, the chips and the picker name what the grid shows
+
+- **Who:** guest
+- **Width:** 1440, 390
+- **Preconditions:** none.
+- **Steps:**
+  1. Search `classic` and read the chips; then search `everyday`.
+  2. On `classic`, press the chip «Party · Classics».
+  3. Press «All».
+- **Expected:**
+  - Step 1: no two chips read the same: a leaf whose name repeats on the page carries its top-level category —
+    «Appliances · Classics 15», «Party · Limited 5» — and one that does not stays its name, «Running shoes 5». The
+    title counts every match, the «All» chip's number.
+  - Step 2: the results load in place; the title counts the chip's 15, not the 600 of every category; at 1440 the
+    picker reads «Party · Classics», and its menu offers it right after «Party».
+  - Step 3: the title is every match again and the picker reads «All categories».
+- **Decided in:** B-119
+- **Coverage:** `SearchSaysWhatIsShownTest` «the title counts the chosen chip's results»;
+  `SearchSaysWhatIsShownTest` «no two chips on one search read the same»;
+  `SearchSaysWhatIsShownTest` «the picker names the scope a chip chose»;
+  `LineAnswersTest` «a card's plus on a scoped search keeps the header's scope»

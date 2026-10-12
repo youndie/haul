@@ -53,7 +53,8 @@ internal class LineAnswers(
                 DETAILS -> product.details(item, sku, viewer, query[TAB]?.let(ProductTab::of) ?: ProductTab.Description)
                 else -> return RefreshAction
             }
-        val header = Frame.header(viewer, navigation(catalog.categories()), query[QUERY], query[SCOPE])
+        val categories = catalog.categories()
+        val header = Frame.header(viewer, navigation(categories), query[QUERY], query[SCOPE], categories)
         val update =
             kompotUpdate {
                 addComponent(header)

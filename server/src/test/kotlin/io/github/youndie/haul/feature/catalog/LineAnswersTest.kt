@@ -19,6 +19,7 @@ import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.haul.ui.ProductGrid
+import io.github.youndie.haul.ui.SearchScope
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.commands.UpdateAction
@@ -143,6 +144,25 @@ class LineAnswersTest {
             val header = update.updates.first().component as HaulHeader
             assertEquals("running shoes", header.query)
             assertEquals("sports", header.scope)
+
+            // B-119: a leaf's scope is a choice of the picker, named with its top level, and the answer keeps it.
+            val leaf = "/ui/search?q=running%20shoes&category=running-shoes"
+            val inLeaf = page(leaf, guest).only<ProductGrid>().cards.first { it.add != null }
+            val after =
+                pressedOn(
+                    leaf,
+                    guest,
+                    assertNotNull(inLeaf.add),
+                    inLeaf.id,
+                ).updates.first().component as HaulHeader
+            assertEquals("running-shoes", after.scope)
+            assertEquals(
+                SearchScope("Sports · Running shoes", "running-shoes"),
+                after.scopes.single {
+                    it.category ==
+                        after.scope
+                },
+            )
         }
 
     @Test
