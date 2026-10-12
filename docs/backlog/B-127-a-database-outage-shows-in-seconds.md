@@ -1,7 +1,7 @@
 ---
 id: B-127
 title: "fix: a database outage reaches the shopper in seconds, not in a minute and a half"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-12-qa-run
