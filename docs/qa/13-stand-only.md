@@ -95,14 +95,16 @@ host, its tracy and its logs.
 - **Width:** n/a
 - **Preconditions:** an hour of shoppers' walks (each leaves an order page).
 - **Steps:**
-  1. Read the server's log and katcher for the hour.
+  1. Read the server's log (the pod's, and tracy's from `warn` up) and katcher for the hour.
 - **Expected:**
   - Step 1: no `ERROR … unhandled: GET /ui/updates` and no broken pipe reported; a stream that fails while its
     client listens is still reported.
 - **Decided in:** B-110
 - **Coverage:** `ErrorAnswersTest` «a client that leaves a stream is not reported whichever write meets the closed connection»;
   `ErrorAnswersTest` «a stream that fails while its client listens is still reported»;
-  manual: the stand's pod log and its katcher
+  `ObservabilityTest` «a 500 is filed in katcher»;
+  `ObservabilityTest` «a warning logged at start-up is shipped to tracy»;
+  manual: the stand's pod log, its tracy and its katcher
 
 ### TC-STAND-06 — The stand keeps the sale and its code moving day after day
 
