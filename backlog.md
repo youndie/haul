@@ -47,7 +47,7 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-139](docs/backlog/B-139-the-saga-rides-out-a-short-outage.md) `[ ]` | server: the order saga rides out a short database outage | P2 | S | - |
+| [B-139](docs/backlog/B-139-the-saga-rides-out-a-short-outage.md) `[~]` | server: the order saga rides out a short database outage | P2 | S | - |
 | [B-122](docs/backlog/B-122-the-stand-reports-to-katcher.md) `[ ]` | ops: the stand's server reports to katcher | P3 | XS | - |
 | [B-78](docs/backlog/B-78-placeholders-on-the-stand.md) `[ ]` | server + client: the stand shows pictures, not placeholder labels | P3 | M | - |
 | [B-85](docs/backlog/B-85-canvas-behind-the-code.md) `[ ]` | design: the canvas draws what the store now has | P3 | M | - |
