@@ -9,6 +9,7 @@ import io.github.youndie.haul.feature.checkout.domain.Quote
 import io.github.youndie.haul.feature.order.saga.ORDER_SAGA
 import io.github.youndie.haul.feature.order.saga.OrderPayload
 import io.github.youndie.haul.feature.order.saga.Refused
+import io.github.youndie.haul.feature.order.saga.placementPatience
 import io.github.youndie.petich.Petich
 import io.github.youndie.petich.PetichEngine
 import io.github.youndie.petich.PetichRepository
@@ -18,6 +19,7 @@ import io.github.youndie.petich.idempotency.IdempotencyGuard
 import io.github.youndie.petich.idempotency.IdempotencyRepository
 import io.github.youndie.petich.idempotency.RequestFingerprint
 import io.github.youndie.petich.isTerminal
+import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 
 /**
@@ -35,7 +37,8 @@ import java.security.MessageDigest
  * The saga runs inside the request: every member is in-process, so the answer can say what happened —
  * a window that filled or stock that ran out is the shopper's to fix on the checkout (`409`), anything
  * else sends them to the order. Every step is written to the saga's row as it completes, so a process
- * that dies mid-way leaves a saga the sweeper carries on (research D4).
+ * that dies mid-way leaves a saga the sweeper carries on (research D4). The saga's pass waits out a short
+ * database outage, the rest of the request does not ([pass], B-139).
  */
 internal class Placement(
     private val checkout: CheckoutCommands,
@@ -61,7 +64,7 @@ internal class Placement(
         sagas.findById(sagaId)?.let { existing ->
             guard(sagaId, fingerprint)
             // Carried on if it is still running — this process's pass, or one a dead process left behind.
-            if (!existing.status.isTerminal()) engine.process(existing)
+            if (!existing.status.isTerminal()) pass(existing)
             return answer(sagaId)
         }
 
@@ -85,8 +88,19 @@ internal class Placement(
         // Claimed only by a placement that got this far: a key refused above was never used for an order.
         guard(sagaId, fingerprint)
         val payload = payload(owner, quote, orders.nextId())
-        engine.process(Petich(id = sagaId, type = ORDER_SAGA, status = PetichStatus.DRAFT, payload = payload))
+        pass(Petich(id = sagaId, type = ORDER_SAGA, status = PetichStatus.DRAFT, payload = payload))
         return answer(sagaId)
+    }
+
+    /**
+     * A pass of the saga, as saga work (B-139): it waits out a short outage — a member within its phase, the whole
+     * pass within `PLACEMENT_PATIENCE` — where the reads before it and the [answer] after it fail fast, as every
+     * request does (B-127). The request is a command until the saga starts: a database that is away when «Place
+     * order» is pressed is answered in seconds and spends nothing; one that goes away under the saga is waited for,
+     * because failing then compensates an order the shopper meant to place.
+     */
+    private suspend fun pass(saga: Petich) {
+        withContext(placementPatience()) { engine.process(saga) }
     }
 
     private suspend fun guard(

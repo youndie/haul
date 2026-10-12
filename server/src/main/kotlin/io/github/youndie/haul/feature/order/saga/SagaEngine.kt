@@ -1,5 +1,6 @@
 package io.github.youndie.haul.feature.order.saga
 
+import io.github.youndie.haul.db.ConnectionPatience
 import io.github.youndie.haul.feature.order.data.SagaTables
 import io.github.youndie.petich.AnnouncementFailureHandler
 import io.github.youndie.petich.CompensationFailureHandler
@@ -10,12 +11,14 @@ import io.github.youndie.petich.PetichClock
 import io.github.youndie.petich.PetichDefinition
 import io.github.youndie.petich.PetichEngine
 import io.github.youndie.petich.PetichEngineConfig
+import io.github.youndie.petich.PetichPhase
 import io.github.youndie.petich.SuspendedPetichSweeper
 import io.github.youndie.petich.postgres.ExposedIdempotencyRepository
 import io.github.youndie.petich.postgres.ExposedPetichRepository
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.slf4j.LoggerFactory
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 private val log = LoggerFactory.getLogger("io.github.youndie.haul.saga")
@@ -48,13 +51,45 @@ internal fun orderEngine(
     PetichEngine(
         repository = storage.sagas,
         compensationFailureHandler = CompensationFailures,
-        config = PetichEngineConfig(requireCompensationHandler = true, requireAnnouncementFailureHandler = true),
+        config = ENGINE_CONFIG,
         clock = clock,
         definitions = definitions,
         announcementFailureHandler = AnnouncementFailures,
         // One `petich.trace` line per saga event: which member a saga died in is otherwise in nobody's log.
         tracer = LinePetichTracer("haul", clock) { log.debug(it) },
     )
+
+/** petich's phase timeouts, its defaults, and the two handlers required. */
+private val ENGINE_CONFIG =
+    PetichEngineConfig(requireCompensationHandler = true, requireAnnouncementFailureHandler = true)
+
+/**
+ * How long saga work waits for one connection it cannot have (B-139, [ConnectionPatience]): the timeout of the
+ * phase every member of the order saga runs in, EXECUTION's 10 s — each is a `step`, the card's authorisation
+ * included, so none runs under AUTHORIZATION's 30 s. A member is cut at that timeout anyway; this bounds what no
+ * phase times, the engine's writes between the members and the sweeper's queries.
+ */
+internal val SAGA_CONNECTION_PATIENCE: Duration = ENGINE_CONFIG.timeoutMs(PetichPhase.EXECUTION).milliseconds
+
+/**
+ * The most placement's pass waits for the database in all (B-139), however many of its writes an outage meets.
+ *
+ * The shopper is waiting for the answer. A member that waits out its phase and the rollback's mark that waits for
+ * a database coming back fit inside it — an outage a little longer than the phase is still undone and answered —
+ * and a database that stays away is answered `503` after about this long, not after every write's own wait (over
+ * 30 s). It is also under [STUCK_AFTER], so a pass that waits is never taken for one a dead process left.
+ */
+internal val PLACEMENT_PATIENCE: Duration = 20.seconds
+
+/** What placement's saga runs under, made for each pass: its [PLACEMENT_PATIENCE] counts from here. */
+internal fun placementPatience(): ConnectionPatience =
+    ConnectionPatience(SAGA_CONNECTION_PATIENCE, within = PLACEMENT_PATIENCE)
+
+/**
+ * What the sweeper runs under, for as long as it runs: each of its asks waits [SAGA_CONNECTION_PATIENCE] — nobody
+ * waits for its answer, and a saga it carries on rides out a short outage as placement's does.
+ */
+internal fun sweeperPatience(): ConnectionPatience = ConnectionPatience(SAGA_CONNECTION_PATIENCE)
 
 /**
  * How long a saga must sit untouched in `PROCESSING` or `COMPENSATING` before the sweeper takes it as

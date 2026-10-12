@@ -34,6 +34,7 @@ import io.github.youndie.haul.feature.order.LiveOrders
 import io.github.youndie.haul.feature.order.domain.OrderError
 import io.github.youndie.haul.feature.order.orderModule
 import io.github.youndie.haul.feature.order.orderRouting
+import io.github.youndie.haul.feature.order.saga.sweeperPatience
 import io.github.youndie.haul.feature.payment.paymentModule
 import io.github.youndie.haul.feature.recommendations.recommendationsModule
 import io.github.youndie.haul.feature.returns.domain.ReturnError
@@ -66,6 +67,7 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.routing
 import io.ktor.server.sse.SSE
+import kotlinx.coroutines.plus
 import org.koin.dsl.module
 import org.koin.ktor.ext.get
 import org.koin.ktor.plugin.Koin
@@ -86,6 +88,7 @@ internal fun interface StoreClock {
  *
  * Everything here reaches [dataSource] through a [FailFastDataSource] (B-127): with the database gone, a request
  * waits for a connection once — the pool's timeout — and not again for each query and each of Exposed's retries.
+ * The order saga's work — placement's pass and the sweeper — waits longer, under its `ConnectionPatience` (B-139).
  *
  * [web] is the browser bundle's directory, served at `/` beside the API when given ([webBundle]: its
  * precompressed files, its cache headers). Every API route is more specific than the static one, so a
@@ -159,8 +162,8 @@ internal fun Application.haulModule(
         )
     }
     // Carries on what a process that died left mid-saga, from the first moment this one serves; it
-    // stops with the application, whose scope it runs in.
-    get<SuspendedPetichSweeper>().start(this)
+    // stops with the application, whose scope it runs in. Saga work: it waits out a short outage (B-139).
+    get<SuspendedPetichSweeper>().start(this + sweeperPatience())
     // The order's live page (B-29): listening to the moves before anything can make one.
     get<LiveOrders>().start(this)
     // The simulated world after placement, in the same scope: shipments move and are charged as they ship,
