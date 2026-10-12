@@ -1,5 +1,6 @@
 package io.github.youndie.haul
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
@@ -15,6 +16,9 @@ import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.ui.CART_BUTTON_TAG
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HaulHeaderView
+import io.github.youndie.haul.ui.LocalHaulActions
+import io.github.youndie.kompot.KompotActionHandler
+import io.github.youndie.kompot.standard.NavigateAction
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -71,7 +75,14 @@ class HeaderCountTest {
     @Test
     fun `on a phone the cart button reads its name and nothing else`() =
         runDesktopComposeUiTest(390, 220) {
-            header(compact = true)
+            // Pressable, as the store draws it: a press merges what is inside the button into the button.
+            setContent {
+                HaulTheme(FixtureFonts.fonts, compact = true) {
+                    CompositionLocalProvider(LocalHaulActions provides KompotActionHandler { }) {
+                        HaulHeaderView(HEADER.copy(cartCount = count, cart = NavigateAction("/cart")))
+                    }
+                }
+            }
             listOf(3 to "Cart 3", 0 to "Cart").forEach { (inCart, name) ->
                 count = inCart
                 waitForIdle()
