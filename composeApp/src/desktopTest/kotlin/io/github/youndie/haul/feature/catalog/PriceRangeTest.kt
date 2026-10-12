@@ -4,14 +4,21 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertIsNotFocused
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isRoot
+import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.pressKey
@@ -145,6 +152,88 @@ class PriceRangeTest {
             loaded(TO_60)
         }
 
+    /**
+     * B-118: at 1440 a bound typed into «to» and left with a click on blank page space stayed in the field, applied by
+     * nothing; a browser's input lets go of the focus there, and so does the field now — and applies the bound once.
+     */
+    @Test
+    fun `a click on blank page space leaves a price field and applies it`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            ranged(TO_60, null, 60)
+            storefront()
+            waitForText(OSTRA_MUG)
+            val to = onNodeWithTag(PRICE_TO_TAG)
+            to.performClick()
+            to.performTextInput("60")
+            onRoot().performMouseInput { click(Offset(BLANK_X, BLANK_Y)) }
+            waitForText("Up to $60")
+            to.assertIsNotFocused()
+            loaded(TO_60)
+        }
+
+    /** The box around a bound's digits is the field's too: a press on it is no press outside the field. */
+    @Test
+    fun `a press on the box around a price field keeps it`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            storefront()
+            waitForText(OSTRA_MUG)
+            val to = onNodeWithTag(PRICE_TO_TAG)
+            to.performClick()
+            to.performTextInput("60")
+            to.performMouseInput { click(Offset(-GAP, centerY)) }
+            waitForIdle()
+            to.assertIsFocused()
+            assertEquals(listOf("/ui$BY_OSTRA"), requests.toList())
+        }
+
+    /**
+     * B-118: a click from «from» into «to», a bound typed and Tab, all before «from»'s confirm had waited out its
+     * frames (B-76), sent the same load twice, the first aborted by the second: both confirms read both fields. Here
+     * the frames are held until Tab is down, as a quick hand or an agent's keys run inside them in the browser.
+     */
+    @Test
+    fun `tab out of a price field sends one load`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            ranged(TO_60, null, 60)
+            storefront()
+            waitForText(OSTRA_MUG)
+            onNodeWithTag(PRICE_FROM_TAG).performClick()
+            waitForIdle()
+            val to = onNodeWithTag(PRICE_TO_TAG)
+            mainClock.autoAdvance = false
+            to.performClick()
+            mainClock.advanceTimeByFrame()
+            to.performTextInput("60")
+            to.performKeyInput { keyDown(Key.Tab) }
+            mainClock.advanceTimeByFrame()
+            mainClock.autoAdvance = true
+            onRoot().performKeyInput { keyUp(Key.Tab) }
+            waitForText("Up to $60")
+            mainClock.advanceTimeBy(1_000)
+            waitForIdle()
+            loaded(TO_60)
+        }
+
+    /** The phone's sheet is the page its fields are on: a tap on its blank space leaves them as a click does at 1440. */
+    @Test
+    fun `a tap on the filter sheet's blank space applies a typed bound`() =
+        runDesktopComposeUiTest(PHONE, HEIGHT) {
+            ranged(FROM_20, 20, null)
+            storefront(compact = true)
+            waitForText(OSTRA_MUG)
+            onNodeWithText("Filters").performClick()
+            waitUntil(timeoutMillis = 5_000) {
+                onAllNodes(hasContentDescription(CLOSE_FILTERS)).fetchSemanticsNodes().isNotEmpty()
+            }
+            val from = onNodeWithTag(PRICE_FROM_TAG)
+            from.performClick()
+            from.performTextInput("20")
+            onAllNodes(isRoot()).onLast().performTouchInput { click(Offset(PHONE / 2f, SHEET_BLANK_Y)) }
+            waitForText("2 applied")
+            onNodeWithContentDescription(CLOSE_FILTERS).assertExists()
+            loaded(FROM_20)
+        }
+
     @Test
     fun `a field left as it was loads nothing`() =
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
@@ -268,6 +357,16 @@ class PriceRangeTest {
         const val TO_60 = "$BY_OSTRA&price_max=60"
         const val TO_50 = "$BY_OSTRA&price_max=50"
         const val FROM_25_TO_50 = "$BY_OSTRA&price_min=25&price_max=50"
+
+        /** Blank page space at 1440: the window's bottom-right corner, below the page's one row of cards. */
+        const val BLANK_X = WIDTH - 24f
+        const val BLANK_Y = HEIGHT - 24f
+
+        /** The filter sheet's blank space: under its one facet, above the button pinned at its bottom. */
+        const val SHEET_BLANK_Y = 1_000f
+
+        /** Into the gap between a price field's «to» and its digits: the box's, not the text's. */
+        const val GAP = 3f
 
         /** Where the outer half of an end thumb is pressed: 7 of its 10 dp past the end of the track. */
         const val OUTER_HALF = 7

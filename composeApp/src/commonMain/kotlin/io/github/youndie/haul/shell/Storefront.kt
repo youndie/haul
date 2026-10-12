@@ -44,8 +44,10 @@ import io.github.youndie.haul.feature.product.DialogOverlay
 import io.github.youndie.haul.feature.product.ProductNotFound
 import io.github.youndie.haul.feature.search.SearchSuggestOverlay
 import io.github.youndie.haul.registry.haulRegistry
+import io.github.youndie.haul.ui.BlankPress
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HeaderMenuState
+import io.github.youndie.haul.ui.LocalBlankPress
 import io.github.youndie.haul.ui.LocalHaulActions
 import io.github.youndie.haul.ui.LocalHaulNow
 import io.github.youndie.haul.ui.LocalHeaderMeasured
@@ -57,6 +59,7 @@ import io.github.youndie.haul.ui.PlusTrialDialog
 import io.github.youndie.haul.ui.SearchFieldState
 import io.github.youndie.haul.ui.SearchInput
 import io.github.youndie.haul.ui.SearchSuggestPanel
+import io.github.youndie.haul.ui.releasingOnBlankPress
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotActionHandler
 import io.github.youndie.kompot.KompotComponent
@@ -245,6 +248,7 @@ public fun Storefront(
         focus.clearFocus()
     }
     val filters = remember { FiltersSheetState() }
+    val blankPress = remember { BlankPress() }
     val menu = remember { HeaderMenuState() }
     // A tree's `show_message` (B-75), drawn over whichever page is shown until its time is up.
     val messages = remember { MessageState() }
@@ -340,9 +344,12 @@ public fun Storefront(
         LocalHeaderMenu provides menu,
         // The header of a page the shell draws itself: the server's last for who is looking (B-67, B-105).
         LocalShellHeader provides shellHeader,
+        LocalBlankPress provides blankPress,
     ) {
         SearchSuggestOverlay(
             panel,
+            // A press on blank page space takes the focus off the price field typed in (B-118).
+            modifier = Modifier.releasingOnBlankPress(),
             highlighted = search.highlighted,
             field = field,
             onDismiss = dismiss,

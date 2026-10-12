@@ -47,7 +47,9 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -71,12 +73,14 @@ import io.github.youndie.haul.ui.FacetRange
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Icon
+import io.github.youndie.haul.ui.LocalBlankPress
 import io.github.youndie.haul.ui.LocalHaulActions
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.awaitTypedInput
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.toneColor
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -164,7 +168,8 @@ public const val PRICE_SLIDER_TAG: String = "price-slider"
 
 /**
  * The price facet: «from» and «to», and the slider under them (B-69). A bound typed and confirmed — Enter,
- * the keyboard's «Done», or leaving the field — or a thumb released applies the range: the `load` the
+ * the keyboard's «Done», or leaving the field (B-118: a press on blank page space leaves it too) — or a thumb
+ * released applies the range: the `load` the
  * facet's [FacetRange] makes of the two bounds, unless they are the ones applied. An empty field, or a
  * thumb taken to its end of the track, is no bound. A facet without a [FacetRange] (a screenshot of an
  * older body) is drawn as it is, with nothing to edit.
@@ -190,12 +195,18 @@ private fun PriceRange(facet: Facet) {
         return true
     }
 
-    // What was typed just before Enter or a press elsewhere may not be in the field yet (B-76).
+    // What was typed just before Enter or a press elsewhere may not be in the field yet (B-76). One confirm waits
+    // at a time (B-118): a press from «from» into «to», a bound and Tab, all within that wait, left both fields,
+    // and both confirms read the same two bounds and sent the same load twice — the first aborted by the second.
+    // The later takes the earlier's place: it reads both fields after the earlier would have, so nothing is lost.
+    var waiting by remember { mutableStateOf<Job?>(null) }
     val confirm: () -> Unit = {
-        scope.launch {
-            awaitTypedInput()
-            apply(low.toIntOrNull(), high.toIntOrNull())
-        }
+        waiting?.cancel()
+        waiting =
+            scope.launch {
+                awaitTypedInput()
+                apply(low.toIntOrNull(), high.toIntOrNull())
+            }
     }
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         if (range == null) {
@@ -325,7 +336,8 @@ private fun PriceField(
 
 /**
  * A bound the shopper types: whole dollars, drawn after a «$» ([DOLLARS]); [placeholder] in the muted ink
- * while it is empty. [onConfirm] on Enter, «Done», and on leaving the field.
+ * while it is empty. [onConfirm] on Enter, «Done», and on leaving the field — Tab, a press on another control, or a
+ * press on blank page space ([LocalBlankPress], B-118).
  */
 @Composable
 private fun PriceInput(
@@ -338,7 +350,10 @@ private fun PriceInput(
     modifier: Modifier,
 ) {
     var focused by remember { mutableStateOf(false) }
-    PriceBox(prefix, modifier) {
+    // While focused, a press on blank page space outside the box takes the focus off the field (B-118).
+    val blank = LocalBlankPress.current
+    val box = remember { arrayOfNulls<LayoutCoordinates>(1) }
+    PriceBox(prefix, modifier.onGloballyPositioned { box[0] = it }) {
         BasicTextField(
             value,
             { typed -> onValue(typed.filter(Char::isDigit).take(MAX_DIGITS)) },
@@ -348,6 +363,7 @@ private fun PriceInput(
                 .onFocusChanged {
                     if (focused && !it.isFocused) onConfirm()
                     focused = it.isFocused
+                    box[0]?.let { at -> if (it.isFocused) blank?.holds(at) else blank?.lets(at) }
                 }.onPreviewKeyEvent {
                     val enter = it.key == Key.Enter || it.key == Key.NumPadEnter
                     if (enter && it.type == KeyEventType.KeyDown) onConfirm()
