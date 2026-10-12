@@ -7,6 +7,7 @@ import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.Listed
+import io.github.youndie.haul.feature.catalog.domain.PriceList
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.liveSale
 import io.github.youndie.haul.feature.membership.screen.PlusOffer
@@ -88,9 +89,9 @@ internal class HomeScreen(
                 )
             sections += ProductGrid(id = "deals", columns = DEAL_COLUMNS, scroll = true, cards = deals.cards)
         } else {
-            val popular = popular(categories, viewer)
+            val popular = popular(catalog, calendar, photos, viewer, categories, viewer.prices)
             if (popular.isNotEmpty()) {
-                sections += SectionHeader(POPULAR_TITLE, "Popular on Haul", accent = "Haul")
+                sections += popularTitle()
                 sections += ProductGrid(id = POPULAR, columns = DEAL_COLUMNS, scroll = true, cards = popular)
             }
         }
@@ -98,23 +99,6 @@ internal class HomeScreen(
         sections += picked.build(viewer, onPage = productsIn(sections))
         return Frame.page("home", viewer, navigation(categories), sections, footer = true)
     }
-
-    /**
-     * The row drawn in the deals' place while no deal is live (B-70): a guest's home has no other row of products,
-     * and with none it is a hero, banners and tiles over nothing. The most reviewed products in stock — a measure
-     * that needs no window, so it is there whatever the sale's calendar — drawn as every card is, at the viewer's
-     * prices.
-     */
-    private suspend fun popular(
-        categories: List<Category>,
-        viewer: Viewer,
-    ): List<ProductCard> =
-        catalog
-            .listedIn(categories.map { it.slug }.toSet(), viewer.prices)
-            .filter { it.inStock }
-            .sortedWith(compareByDescending<Listed> { it.product.reviewsCount }.thenBy { it.product.id })
-            .take(DEAL_COLUMNS)
-            .map { card(it, calendar, photos, viewer) }
 
     /** The products the rows in [sections] draw, whichever rows those are. */
     private fun productsIn(sections: List<KompotComponent>): Set<String> =
@@ -165,12 +149,45 @@ internal class HomeScreen(
         private const val BANNERS = 2
         private const val DEAL_COLUMNS = 6
 
-        /** The ids of the row drawn while no deal is live (B-70). */
+        /** The ids of the row drawn while no deal is live (B-70), on home and in the empty cart (B-87). */
         const val POPULAR_TITLE = "popular-title"
         const val POPULAR = "popular"
+
+        /** How many products the popular row holds: a row of six, as the deals it stands in for. */
+        const val POPULAR_SIZE = DEAL_COLUMNS
         private val MONTH_DAY = DateTimeFormatter.ofPattern("MMM d", Locale.US)
     }
 }
+
+/**
+ * The row drawn in the deals' place while no deal is live (B-70): a guest's home has no other row of products,
+ * and with none it is a hero, banners and tiles over nothing; the empty cart draws the same six in its picks'
+ * place (B-87). The most reviewed products in stock among [categories] — a measure that needs no window, so it is
+ * there whatever the sale's calendar — drawn as every card is for [viewer], at [prices]: the empty cart passes the
+ * cart owner's, which a command's answer has and its viewer may not (B-53). [inPlace] is [card]'s: the empty cart's
+ * «+» redraws the page (B-95).
+ */
+internal suspend fun popular(
+    catalog: CatalogRepository,
+    calendar: DeliveryCalendar,
+    photos: ProductPhotos,
+    viewer: Viewer,
+    categories: List<Category>,
+    prices: PriceList,
+    inPlace: Boolean = true,
+): List<ProductCard> =
+    catalog
+        .listedIn(categories.map { it.slug }.toSet(), prices)
+        .filter { it.inStock }
+        .sortedWith(compareByDescending<Listed> { it.product.reviewsCount }.thenBy { it.product.id })
+        .take(HomeScreen.POPULAR_SIZE)
+        .map { card(it, calendar, photos, viewer, inPlace = inPlace) }
+
+/**
+ * The popular row's header, «Popular on Haul», on home and in the empty cart alike (B-87): the title names what the
+ * row holds, and in the cart that is not a pick from today's deals.
+ */
+internal fun popularTitle(): SectionHeader = SectionHeader(HomeScreen.POPULAR_TITLE, "Popular on Haul", accent = "Haul")
 
 /** The header's categories ([Frame.page]): every top-level category, in order, with its page. */
 internal fun navigation(categories: List<Category>): List<Link> =

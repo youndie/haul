@@ -1434,7 +1434,8 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   regular price. What announces the sale on home and in the empty cart ends with it too (B-59, below).
 - **No deals, no section.** «Deals of the day» on home and on the deals page, and the empty cart's «Picked for you»
   (made from the same deals), are drawn only while a deal is live; with none the header, its countdown and the grid
-  are all left out, rather than a header over nothing.
+  are all left out, rather than a header over nothing. Home and the empty cart draw «Popular on Haul» in their place
+  since B-70 and B-87 (below).
 - **The countdown runs to the soonest live deal's `ends_at`**, in the store's zone (`dealsOfTheDay`,
   `feature/catalog/screen/Cards.kt`). A seeded deal of the day ends at the store's midnight (D7), so the countdown is
   the one it was, `DeliveryCalendar.midnight()` is gone, and a deal written with another end is counted down to that
@@ -1504,13 +1505,21 @@ left out:
   `main` starts it only when it seeds (`HAUL_SEED`, `haulModule(saleLook = …)`); tests start nothing and call
   `redate()` themselves. No database job was taken: the windows a day's sale has are the seed's (`generate(day)`),
   which only the server computes.
-- **No deals, a popular row** (`HomeScreen.popular`): while no deal is live — the seconds between a midnight and the
+- **No deals, a popular row** (`popular`, `feature/catalog/screen/HomeScreen.kt`): while no deal is live — the seconds between a midnight and the
   look, a store that was never seeded, a store whose own deals ended — home draws «Popular on Haul» in the deals'
   place: the six most reviewed products in stock, drawn as every card is, at the viewer's prices. Without it a
   guest's home had no product at all (hero, banners, tiles, Plus, footer). The measure needs no window, so the row is
   there whatever the sale's calendar; it is never drawn beside live deals, so the canvas's home is unchanged. A
   customer's «Picked for you» under it leaves its products out (B-96).
-  `/deals` keeps «On sale» and gains nothing; the empty cart's picks stay deals-only (B-58).
+  `/deals` keeps «On sale» and gains nothing. The empty cart's picks stayed deals-only until B-87 (below).
+
+**Decided in B-87, the empty cart falls back to the same row** (the owner, 2026-10-12). «Popular on Haul» stays on
+home, and while no deal is live the empty cart draws it too in the place of «Picked for you»: the same function
+(`popular`), so the same six in the same order, at the cart owner's prices (B-53) and with «+» answered by the page
+(B-95); with deals live both draw the deals as before. The row is titled «Popular on Haul» in the cart as on home
+(`popularTitle`) rather than «Picked for you»: the title names what the row holds, and «Picked for you · From
+today's deals» over the most reviewed products would be the same untruth B-107 took out of the copy. Its ids are
+home's, `popular-title` and `popular`, for the same reason.
 
 **How the stand is built (B-27).** One image serves the page and the API: the server's distribution
 carries the browser bundle and serves it at `/`, so the two cannot be deployed at different versions

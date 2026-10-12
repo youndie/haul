@@ -72,12 +72,13 @@ their place, «Picked for you», the Plus block. A card's «+» is walked here o
   2. As Sam (no views), open the home page.
 - **Expected:**
   - Step 1: no «Deals of the day» header or countdown; «Popular on Haul» in its place — the six most reviewed
-    products in stock.
+    products in stock. The empty cart draws the same six (TC-CART-07).
   - Step 2: «Popular on Haul», and «Picked for you · Popular right now» under it with six products, none of them in
     the row above.
-- **Decided in:** B-58, B-65, B-70, B-96
+- **Decided in:** B-58, B-65, B-70, B-87, B-96
 - **Coverage:** `DealsOfTheDayTest` «with no live deal no deals section is drawn»;
   `DealsOfTheDayTest` «with no live deal home draws the popular row»;
+  `DealsOfTheDayTest` «the empty cart draws home's row with deals and without»;
   `PickedForYouTest` «a product the page already draws is never picked»;
   `UniqueIdsTest` «with no live deal every page a customer opens draws each id once»
 
