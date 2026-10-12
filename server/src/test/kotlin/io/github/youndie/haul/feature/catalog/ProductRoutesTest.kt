@@ -142,7 +142,12 @@ class ProductRoutesTest {
             assertEquals(NavigateAction("/p/$sony?tab=reviews"), details.ratingAction)
             assertEquals(NavigateAction("/p/$sony?tab=specifications"), details.specificationsAction)
             assertEquals(
-                listOf("description", "specifications", "reviews", "questions").map { NavigateAction("/p/$sony?tab=$it") },
+                listOf(
+                    "description",
+                    "specifications",
+                    "reviews",
+                    "questions",
+                ).map { NavigateAction("/p/$sony?tab=$it") },
                 page.only<ProductTabs>().tabs.map { it.action },
             )
             for (option in details.variants.flatMap { it.options }) {

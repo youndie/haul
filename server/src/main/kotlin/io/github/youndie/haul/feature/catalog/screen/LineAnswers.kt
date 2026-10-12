@@ -49,12 +49,18 @@ internal class LineAnswers(
         val sku = item.skus.first { it.id == skuId }
         val node: KompotComponent =
             when (answer) {
-                CARD -> card(item, calendar, photos, viewer, sku, query[QUERY], scope = query[SCOPE])
+                CARD -> {
+                    card(item, calendar, photos, viewer, sku, query[QUERY], scope = query[SCOPE])
+                }
+
                 DETAILS -> {
                     val tab = query[TAB]?.let(ProductTab::of) ?: ProductTab.Description
                     product.details(item, sku, viewer, tab, named = query[NO_SKU] == null)
                 }
-                else -> return RefreshAction
+
+                else -> {
+                    return RefreshAction
+                }
             }
         val categories = catalog.categories()
         val header = Frame.header(viewer, navigation(categories), query[QUERY], query[SCOPE], categories)

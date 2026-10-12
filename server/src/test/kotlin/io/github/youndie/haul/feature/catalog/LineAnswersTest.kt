@@ -208,7 +208,9 @@ class LineAnswersTest {
     fun `the buy box redrawn names the sku as the page's address does`() =
         haulTest {
             val sony = SampleCatalog.SONY_HEADPHONES
-            for ((path, sku) in listOf("/ui/p/$sony?tab=reviews" to "", "/ui/p/$sony?sku=$sony-1&tab=reviews" to "sku=$sony-1&")) {
+            // Each page's address, and the SKU its links name: none, or the one named.
+            val pages = listOf("/ui/p/$sony?tab=reviews" to "", "/ui/p/$sony?sku=$sony-1&tab=reviews" to "sku=$sony-1&")
+            for ((path, sku) in pages) {
                 val guest = guest()
                 val details = page(path, guest).only<ProductDetails>()
                 val answer = assertIs<SequenceAction>(answerOn(path, guest, assertNotNull(details.add), "details"))
