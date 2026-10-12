@@ -84,7 +84,9 @@ public fun ProductCardView(
                             )
                         }
                     },
-                modifier = Modifier.weight(1f),
+                // As far from «+» as from each other (B-136): on the 390 deals row «$193.90 $277» fitted its room to
+                // the pixel and the old price touched «+».
+                modifier = Modifier.weight(1f).padding(end = PRICE_GAP),
             )
             val button = if (compact) 36.dp else 38.dp
             // «+» sends the card's line change as a cart command (B-37) and follows the answer, `update`;
@@ -175,7 +177,8 @@ private fun Prices(
     }
 }
 
-private val PRICE_GAP = 8.dp
+/** Between the price and the old price, and between the prices and «+». */
+internal val PRICE_GAP = 8.dp
 
 @Composable
 private fun PhotoTile(
