@@ -146,7 +146,8 @@ class PhotoRoutesTest {
                 val item = assertNotNull(items.firstOrNull { it.action == productLink(sony) }, "the order: $items")
                 assertEquals(url, item.image, "the order's line")
                 val form = assertNotNull((body.summary.returnAction as? PresentAction)?.content as? ReturnForm)
-                val returned = assertNotNull(form.lines.firstOrNull { it.title == item.title }, "returns: ${form.lines}")
+                val returned = form.lines.firstOrNull { it.title == item.title }
+                assertNotNull(returned, "returns: ${form.lines}")
                 assertEquals(url, returned.image, "the return dialog's line")
             }
         }

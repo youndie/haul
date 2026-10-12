@@ -816,19 +816,19 @@ private fun CartButton(
     // the middle of that width; the count, when it comes, takes its half of the room. Up to 99 fits the place:
     // the badge's padding is 3, not the canvas's 6, so that two digits do, and one is centred as before.
     val room = BADGE + gap
+    // The phone's button draws the bag and the count alone: its name is the wide one's words (B-131), and it is that
+    // name alone (B-136) — the badge's «3» read as its text too, and the browser's mirror kept that «3» once the cart
+    // was emptied.
+    val named =
+        if (label) {
+            Modifier
+        } else {
+            Modifier.clearAndSetSemantics { contentDescription = if (count > 0) "Cart $count" else "Cart" }
+        }
     Row(
         modifier
             .testTag(CART_BUTTON_TAG)
-            // The phone's button draws the bag and the count alone: its name is the wide one's words (B-131), and it
-            // is that name alone (B-136) — the badge's «3» read as its text too, and the browser's mirror kept that
-            // «3» once the cart was emptied.
-            .then(
-                if (label) {
-                    Modifier
-                } else {
-                    Modifier.clearAndSetSemantics { contentDescription = if (count > 0) "Cart $count" else "Cart" }
-                },
-            )
+            .then(named)
             .height(height)
             .background(HaulColors.inverseSurface, RoundedCornerShape(radius))
             .padding(horizontal = horizontal),

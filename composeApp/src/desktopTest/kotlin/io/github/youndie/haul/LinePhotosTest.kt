@@ -54,7 +54,8 @@ class LinePhotosTest {
     @Test
     fun `the return dialog's lines draw their photos`() =
         runDesktopComposeUiTest(1_440, 3_000) {
-            val body = (decode("order_delivered.json") as ColumnComponent).children.filterIsInstance<OrderBody>().single()
+            val page = decode("order_delivered.json") as ColumnComponent
+            val body = page.children.filterIsInstance<OrderBody>().single()
             val form = (body.summary.returnAction as PresentAction).content as ReturnForm
             val photographed = form.copy(lines = form.lines.map { it.copy(image = "/images/products/p/1.png") })
             assertTrue(form.lines.isNotEmpty(), "order_delivered.json offers no line to return")
