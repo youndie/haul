@@ -43,20 +43,19 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (8)
+## Open (7)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-112](docs/backlog/B-112-first-press-focuses-the-field.md) `[?]` | client: the first press on a text field focuses it | P1 | M | - |
 | [B-122](docs/backlog/B-122-the-stand-reports-to-katcher.md) `[ ]` | ops: the stand's server reports to katcher | P3 | XS | - |
-| [B-135](docs/backlog/B-135-the-search-field-s-loose-ends.md) `[~]` | fix: the search field's loose ends — one letter, Escape, the empty page's notice | P3 | S | - |
 | [B-136](docs/backlog/B-136-small-lines-from-the-v051-run.md) `[ ]` | fix: the small lines the v0.5.1 run noticed | P3 | S | - |
 | [B-78](docs/backlog/B-78-placeholders-on-the-stand.md) `[ ]` | server + client: the stand shows pictures, not placeholder labels | P3 | M | - |
 | [B-85](docs/backlog/B-85-canvas-behind-the-code.md) `[ ]` | design: the canvas draws what the store now has | P3 | M | - |
 | [B-86](docs/backlog/B-86-reviews-photos-and-histogram.md) `[ ]` | client + server: review photos open and the histogram filters | P3 | M | - |
 | [B-87](docs/backlog/B-87-fallback-rows.md) `[ ]` | server: what home and the empty cart show when no deal is live | P3 | S | - |
 
-## Closed (128)
+## Closed (129)
 
 **Skeleton**
 
@@ -221,6 +220,7 @@ A stage is a field on the item, not a directory.
 - [B-132](docs/backlog/B-132-search-leftovers-from-the-v050-run.md) `[x]` - fix: an empty scoped panel, an out-of-date search link and the reviews link's address
 - [B-133](docs/backlog/B-133-small-lines-from-the-v050-run.md) `[x]` - fix: the small lines the v0.5.0 run noticed
 - [B-134](docs/backlog/B-134-a-bound-typed-while-the-other-loads-is-kept.md) `[x]` - fix: a price bound typed while the other bound's load is on its way is kept
+- [B-135](docs/backlog/B-135-the-search-field-s-loose-ends.md) `[x]` - fix: the search field's loose ends — one letter, Escape, the empty page's notice
 
 <!-- END INDEX -->
 
