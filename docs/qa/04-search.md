@@ -224,3 +224,22 @@ long search is walked in [catalog and filters](03-catalog-and-filters.md) (TC-CA
   `SearchSaysWhatIsShownTest` «no two chips on one search read the same»;
   `SearchSaysWhatIsShownTest` «the picker names the scope a chip chose»;
   `LineAnswersTest` «a card's plus on a scoped search keeps the header's scope»
+
+### TC-SRCH-12 — The panel waits for two characters and closes on Escape or a press outside it
+
+- **Who:** guest
+- **Width:** 1440, 390
+- **Preconditions:** the home page, the browser's network log and console open.
+- **Steps:**
+  1. Type `r` and pause; then type `u`.
+  2. Press Escape; type `n`.
+  3. With the panel open, press a link of the page under the scrim (at 1440 a category tile or a card).
+- **Expected:**
+  - Step 1: after `r` no request to `/ui/search/suggest` and nothing in the console; after `u` one request,
+    `q=ru`, and the panel.
+  - Step 2: Escape closes the panel and the caret stays in the field; `n` asks again and the panel opens.
+  - Step 3: the panel closes and the link opens its page with that one press.
+- **Decided in:** B-135
+- **Coverage:** `SuggestPanelClosingTest` «one character asks for no suggestions and the second one does»;
+  `SuggestPanelClosingTest` «Escape closes the panel and leaves the field to type in»;
+  `SuggestPanelClosingTest` «a press outside the panel closes it and reaches what it pressed»

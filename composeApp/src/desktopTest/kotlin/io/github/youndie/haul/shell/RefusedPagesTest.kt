@@ -81,6 +81,21 @@ class RefusedPagesTest {
             onNodeWithTag(SEARCH_FIELD_TAG).assertTextContains("a")
         }
 
+    /**
+     * B-135: `/search` with nothing typed said the minimum over B-132's «Start typing» — two notices for one state.
+     * Nothing was typed to be too short: the page says what to do, once.
+     */
+    @Test
+    fun `a search with nothing typed asks for a query without saying the minimum`() =
+        at("/search") {
+            answers["/ui/search"] = { refusal(400, "query_too_short") }
+            storefront()
+            onNodeWithText("Start typing").assertExists()
+            onNodeWithText(SEARCH_NOTHING_TYPED).assertExists()
+            onNodeWithText("at least two characters", substring = true).assertDoesNotExist()
+            onNodeWithText("Retry").assertDoesNotExist()
+        }
+
     /** The results kept while the next search loads behind them (B-62): the notice says why, and offers no Retry. */
     @Test
     fun `a search too short over the results kept says so without Retry`() =

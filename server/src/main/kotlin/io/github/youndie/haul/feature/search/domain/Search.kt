@@ -1,6 +1,7 @@
 package io.github.youndie.haul.feature.search.domain
 
 import io.github.youndie.haul.ErrorCode
+import io.github.youndie.haul.ui.MIN_SEARCH_QUERY
 import java.time.OffsetDateTime
 
 /** What a search route can refuse with; the application answers each with its status and body. */
@@ -13,10 +14,11 @@ internal sealed class SearchError(
 }
 
 /**
- * Suggestions and searches start at two characters (feature-search). The suggest panel asked with no query at all
- * is a customer's recent searches (B-124), which is not a query and is not measured against this.
+ * Suggestions and searches start at two characters (feature-search), a number the contract holds so that the client
+ * asks for no suggestions under it (B-135). The suggest panel asked with no query at all is a customer's recent
+ * searches (B-124), which is not a query and is not measured against this.
  */
-internal const val MIN_QUERY = 2
+internal const val MIN_QUERY = MIN_SEARCH_QUERY
 
 /**
  * A query as search reads it: trimmed, lower-cased, inner spaces collapsed; refused when shorter than

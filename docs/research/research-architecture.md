@@ -377,6 +377,16 @@ route is public and the client does not ask for one anyway; dropping suggest's m
 match the whole catalog for an empty query. No artboard draws it: `Search_Recent` and `Search_Recent_Phone` are
 the goldens, over the home page.
 
+**Decided in B-135, the suggest panel is a suggestion, not a menu.** The field asks for no panel under the server's
+minimum — `MIN_SEARCH_QUERY` in the contract, which the server's `MIN_QUERY` is — so one typed character sends nothing
+rather than a `400 query_too_short` the browser logs; Enter on it still opens the «Keep typing» page. Escape closes the
+panel and leaves the caret in the field, as the combobox pattern has it. A press outside the panel and the field closes
+it and still reaches what it pressed: the scrim is drawn and reads no press (`SearchSuggestOverlay` watches presses
+before the page does and consumes none). The menus of B-126 keep absorbing the press off them by decision — they are
+choices the shopper opened; the panel opens by itself under typing, and a press past it is the shopper moving on.
+Rejected: drawing the panel through `OverPage` — it would take the press-catching layer that is the opposite of what
+the panel needs, and the field it hangs from is in the page.
+
 **Decided in B-73, the phone header reaches what the 1440 one does.** The canvas's phone header has the
 logo, the heart, the account, the cart, the search field and a category row cut at the edge — no
 «Catalog», no «Orders», no «HAUL PLUS», and ten of the 32 top-level categories, the rest past the edge.

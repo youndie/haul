@@ -241,9 +241,11 @@ public fun SearchTooShort(
     )
 }
 
-/** What the search page says with no query in its address (B-132). */
-internal const val SEARCH_NOTHING_TYPED: String =
-    "Search needs at least two characters. Type what you are looking for in the field and press Enter."
+/**
+ * What the search page says with no query in its address (B-132): what to do, under «Start typing». Nothing was typed
+ * to be too short, so it does not say the minimum as well (B-135).
+ */
+internal const val SEARCH_NOTHING_TYPED: String = "Type what you are looking for in the field and press Enter."
 
 /**
  * An old or edited link the server refuses (`400`) for a reason no parameter of it names (B-94): under
