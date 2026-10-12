@@ -26,6 +26,8 @@
 # GRADLE overrides the Gradle invocation, e.g. to cap memory on a shared box:
 #   GRADLE='systemd-run --user --scope -p MemoryMax=5G -p MemorySwapMax=0 ./gradlew --max-workers=2
 #           -Pkotlin.compiler.execution.strategy=in-process -Dorg.gradle.daemon=false'
+# ART (B-78) relays the image arm through the measurement's own proxy: `pass` as it is, `png` with the seed's
+# pictures rasterised to PNG — the two ways of sending them, compared on the same image.
 # ARMS picks the arms (default "main wired"); PROFILES narrows the network profiles (default all three,
 # e.g. PROFILES=none,slow4g); CHROME_BIN the Chromium (default: Playwright's); STOP_AFTER ends each run
 # that many seconds after the first frame — for the image arms, whose live storefront never goes quiet (B-80).
@@ -137,6 +139,7 @@ EOF
       stand_up
       sha256sum "$OUT/image-web"/*.wasm > "$OUT/$arm-wasm.sha256"
       if [ "$arm" = image ]; then how=(--url "http://127.0.0.1:$PORT/"); else how=(--identity); fi
+      [ "$arm" = image ] && [ -n "${ART:-}" ] && how+=(--art "$ART")
       python3 scripts/measure-first-load.py "$OUT/image-web" "$OUT" --rounds "$ROUNDS" --label "$arm" \
         ${PROFILES:+--profiles "$PROFILES"} ${STOP_AFTER:+--stop-after "$STOP_AFTER"} "${how[@]}" > "$OUT/$arm.log" 2>&1 || status=1
       tail -n +1 "$OUT/$arm-summary.md" 2>/dev/null || cat "$OUT/$arm.log"
