@@ -101,8 +101,9 @@ header says a load is on its way. Pages of a search are in [search](04-search.md
   - Step 2: chip «$100 – $400»; one parts request, not one aborted and then another — however quickly the
     press into «to», the digits and Tab follow each other.
   - Step 3: the range the thumb was released at; the end thumb is grabbed.
-  - Step 4: the caret leaves the field and the bounds are swapped (`price_min=200&price_max=500`) — one request, the
-    address carrying the range. A press on the box around a field's digits keeps the field. However quickly
+  - Step 4: the caret leaves the field and the last load carries both bounds swapped (`price_min=200&price_max=500`),
+    the address carrying the range. Leaving «from» for «to» has already sent «from»'s own load (B-118); the click
+    sends one more, not two. A press on the box around a field's digits keeps the field. However quickly
     `200` follows the press into «to», and however slow the answer to the load leaving «from» sent (a throttled
     link), «to» keeps `200` when that answer lands, and the click sends both bounds (B-134).
   - Step 5: the page without the range. A field left as it was loads nothing.
