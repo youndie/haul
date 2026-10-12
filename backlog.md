@@ -43,7 +43,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (10)
+## Open (9)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -51,14 +51,13 @@ A stage is a field on the item, not a directory.
 | [B-126](docs/backlog/B-126-the-accessible-tree-follows-the-page.md) `[ ]` | fix: the accessible tree follows the page after a popup, and every button has a name | P2 | M | - |
 | [B-121](docs/backlog/B-121-small-presses-and-copy-from-the-v040-run.md) `[ ]` | fix: the small presses and lines the v0.4.0 run noticed | P3 | S | - |
 | [B-122](docs/backlog/B-122-the-stand-reports-to-katcher.md) `[ ]` | ops: the stand's server reports to katcher | P3 | XS | - |
-| [B-128](docs/backlog/B-128-no-request-leaves-the-store-s-origin.md) `[~]` | fix: the storefront loads nothing from another origin | P3 | XS | - |
 | [B-129](docs/backlog/B-129-small-lines-from-the-customer-walk.md) `[ ]` | fix: the small lines the v0.4.0 customer walk noticed | P3 | S | - |
 | [B-78](docs/backlog/B-78-placeholders-on-the-stand.md) `[ ]` | server + client: the stand shows pictures, not placeholder labels | P3 | M | - |
 | [B-85](docs/backlog/B-85-canvas-behind-the-code.md) `[ ]` | design: the canvas draws what the store now has | P3 | M | - |
 | [B-86](docs/backlog/B-86-reviews-photos-and-histogram.md) `[ ]` | client + server: review photos open and the histogram filters | P3 | M | - |
 | [B-87](docs/backlog/B-87-fallback-rows.md) `[ ]` | server: what home and the empty cart show when no deal is live | P3 | S | - |
 
-## Closed (119)
+## Closed (120)
 
 **Skeleton**
 
@@ -214,6 +213,7 @@ A stage is a field on the item, not a directory.
 - [B-124](docs/backlog/B-124-the-empty-search-field-offers-recent-searches.md) `[x]` - fix: pressing the empty search field offers a customer's recent searches
 - [B-125](docs/backlog/B-125-a-stale-stepper-does-not-bring-a-line-back.md) `[x]` - fix: a stepper on a line removed elsewhere does not bring it back
 - [B-127](docs/backlog/B-127-a-database-outage-shows-in-seconds.md) `[x]` - fix: a database outage reaches the shopper in seconds, not in a minute and a half
+- [B-128](docs/backlog/B-128-no-request-leaves-the-store-s-origin.md) `[x]` - fix: the storefront loads nothing from another origin
 
 <!-- END INDEX -->
 

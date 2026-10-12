@@ -1863,6 +1863,19 @@ variable files of `google/fonts@5e8a3ba`, OFL, bundled as Compose resources with
 draws it with optical sizing on. *Hypothesis still open:* that wasmJs honours the `opsz` setting as the
 desktop target does — checked when a screen is first compared in the browser.
 
+**Found in B-128: a character none of the four faces has is fetched from Google.** In the browser Compose
+(1.12) sends every code point a paragraph leaves unresolved to a downloader that picks a Noto face for it and
+loads it from `https://fonts.gstatic.com/s/` — `installFallbackFontDownloader`, installed by every
+`ComposeViewport`, the base URL a constant. There is no switch: the downloader is `internal`
+(`defaultFallbackFontDownloader`, its setter `@TestOnly`), and a CSP that blocks the request leaves the glyph a
+box (the item rejected it). So what the code writes stays inside the faces: `BundledGlyphsTest` lays out every
+string literal of the client, the contract and the server in a Skia paragraph over the four files alone — the
+browser's own test — and a glyph the canvas draws that no face has is traced as a path in `HaulIcons` (the
+suggest panel's «↵», U+21B5, which fetched Noto Sans Math). Invisible marks the code uses (a zero-width space, a
+word joiner) resolve without a glyph. What a shopper types or a seller names is not held: Archivo and Bodoni
+Moda carry Latin only (Latin-1 and Extended-A, four Greek letters), JetBrains Mono adds Greek and Cyrillic, none
+has CJK or emoji — such text still fetches a face (`scripts/origin-check.py --control` shows it).
+
 **Found in B-106: at the canvas's optical size Bodoni Moda's hairlines are 0.2 px.** The hairline is about
 0.2 em ÷ `opsz` (the hyphen: 72/2000 em at 6, 20 at 22, 4 at 96), so drawn at `opsz` = its pixel size it is about
 0.2 px at any size: a hyphen and a dash vanish, a 4 reads as a 1. Figures and punctuation are drawn at a smaller

@@ -214,3 +214,20 @@ the server's own: `503`).
   `RefreshInPlaceTest` «a refresh after a scoped search opened in place draws the tree it brings»;
   `RefreshInPlaceTest` «a refresh after back within the screen draws the tree it brings»;
   `RefreshInPlaceTest` «a refresh that lands after the shopper moved on leaves the page they moved to»
+
+### TC-ERR-10 — Nothing the storefront loads comes from another origin
+
+- **Who:** guest; Maya
+- **Width:** 1440, 390
+- **Preconditions:** a fresh profile; DevTools «Network» open, the cache disabled.
+- **Steps:**
+  1. Walk the home page, a category, the header's search with the suggest panel open (type `head`), the results,
+     a product, the cart and checkout.
+  2. Filter the requests by another domain than the store's.
+- **Expected:**
+  - Step 2: none — no font from `fonts.gstatic.com`, nothing else of anyone's. Sign-in opens shildik's page, which
+    is the provider's by design and not a request of the storefront's.
+- **Decided in:** B-128
+- **Coverage:** `BundledGlyphsTest` «every character a string in the code holds is in a bundled face»;
+  script `scripts/origin-check.py`; manual: text a shopper types that the bundled faces lack (Cyrillic outside
+  the labels' JetBrains Mono, CJK, emoji) still fetches a face, and that is not in the code to hold
