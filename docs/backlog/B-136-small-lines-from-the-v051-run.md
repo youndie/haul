@@ -1,7 +1,7 @@
 ---
 id: B-136
 title: "fix: the small lines the v0.5.1 run noticed"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-12-qa-run
