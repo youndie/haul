@@ -80,6 +80,11 @@ in B-78», D9 «Measured in B-78».
   colour test); the CSP header dropped (`PhotoRoutesTest` serving test); a kept SVG edited (`ArtFixturesTest`); the
   client's `SvgDecoder` removed (`PhotoFallbackTest` SVG test); the hash check dropped from `SeedArt.svg` (`SeedArtTest`
   «did not hand out»); the route answering no picture (three `PhotoRoutesTest` tests).
+- **Goldens**: 90 re-recorded with `viddikRecord --force` on the Linux box in a copy outside the mutagen replica — every
+  page whose tiles now draw a picture (home, the catalog, search and its panel, the product page and its tabs and dialogs,
+  the cart, checkout, every order state and the return dialog, Saved, the cards); the loading, error, header and shell
+  goldens did not move, nor `ProductCard_Photo` (a stored photo over the tile, as before). Each kind looked at; the
+  pictures sit where the canvas draws its striped tiles, nothing else moved.
 
 - **The first load, re-measured** (B-28's harness, B-34's image arm; research D9, «Measured in B-78»): the pictures are
   asked for after the first frame, so it does not move beyond the shared machine's spread (Slow 4G 24.27 s → 24.39 s,
@@ -91,12 +96,12 @@ in B-78», D9 «Measured in B-78».
   in this campaign listed none and voided an arm, which was run again).
 - **Parity**, every artboard that moved (`viddikDesignParity` on the Linux box, `origin/main` against this branch): the
   canvas draws a striped, captioned placeholder wherever a picture now stands, so every page with tiles moves away from
-  it by the pictures — the owner's decision, not a defect, and no tolerance was touched. Fifteen artboards cross 5 %
+  it by the pictures — the owner's decision, not a defect, and no tolerance was touched. Fourteen artboards cross 5 %
   for it: `Home_Content` 1.90 → 7.01 %, `_Phone` 3.28 → 9.47 %, `Home_Guest` 1.98 → 6.47 %, `_Phone` 3.55 → 7.57 %,
   `Catalog_Content` 3.17 → 9.90 %, `_Phone` 3.46 → 12.79 %, `Saved_Content` 1.80 → 7.46 %, `_Phone` 3.60 → 11.44 %,
   `Saved_PriceDrops` 1.68 → 6.43 %, `_Phone` 3.68 → 11.50 %, `Search_Autocomplete` 3.91 → 6.24 %, `Cart_Empty_Phone`
   3.95 → 12.21 %, `Order_InTransit_Phone` 4.46 → 5.22 %, `Product_QuestionDialog` 4.44 → 5.36 %; the rest of the
-  pages with tiles move by 0.2–2.3 points and stay inside (cart 1.6 → 2.5 %, checkout 1.9 → 2.1 %, order 2.3 → 2.7 %);
+  pages with tiles move by 0.2–2.3 points and stay inside (cart 1.6 → 2.5 %, checkout 1.9 → 2.1 %, order 1.9 → 2.1 %);
   those already over move by the same (`Product_Description` 6.25 → 7.76 %, `Search_Results` 5.42 → 13.92 %). The
   full table is in the pull request.
 
