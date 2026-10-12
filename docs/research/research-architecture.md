@@ -587,7 +587,12 @@ one address, every other filter and the sort written by the server, with `{min}`
 (`CatalogUrl.priced`). The client puts two numbers into it and nothing else (`FacetRange.applying`): a bound
 left empty, or a thumb taken to its end of the track, drops its parameter; bounds typed the wrong way round
 are swapped. A bound is applied on Enter, the keyboard's «Done» or leaving the field — after
-`awaitTypedInput` (B-76) — and on releasing a thumb, unless it is the range already applied; the applied range
+`awaitTypedInput` (B-76) — and on releasing a thumb, unless it is the range already applied. A field is left by Tab,
+a press on another control, and a press on blank page space (B-118): a Compose field keeps the focus through a press
+nothing takes, so a focused price field holds the page's `BlankPress` (`ui/BlankPress.kt`), and a press no control
+takes outside the field's box takes the focus off it, after the keys typed before it have landed. One confirm waits
+at a time: two leaves inside one wait (a press from «from» into «to», then Tab) both read the same bounds and sent
+the same load twice, so the later replaces the waiting one. The applied range
 is a chip («$80 – $400», «From $80», «Up to $400») whose action removes it. A thumb is grabbed anywhere on it:
 the slider takes presses half a thumb past each end of its track (B-90), where a thumb at an end is drawn. The template is not a `load` on
 the wire (no `type`), so nothing that walks a tree's `load`s (`PartsCalls.loads`) mistakes it for one.

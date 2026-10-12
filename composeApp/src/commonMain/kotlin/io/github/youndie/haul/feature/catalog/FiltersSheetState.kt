@@ -8,10 +8,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import io.github.youndie.haul.ui.FilteredResults
 import io.github.youndie.haul.ui.LocalHaulActions
+import io.github.youndie.haul.ui.releasingOnBlankPress
 import io.github.youndie.kompot.KompotActionHandler
 
 /**
@@ -74,6 +76,8 @@ public fun FiltersSheetOverlay(
                 results.facets,
                 results.applied,
                 results.showLabel,
+                // The sheet is the phone's page for its fields: a tap on its blank space leaves them (B-118).
+                Modifier.releasingOnBlankPress(),
                 onClose = state::close,
                 onShow = state::close,
             )
