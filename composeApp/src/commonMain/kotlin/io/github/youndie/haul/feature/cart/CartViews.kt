@@ -52,6 +52,7 @@ import io.github.youndie.haul.ui.following
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.inert
+import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.kompot.standard.NavigateAction
 import kotlinx.coroutines.launch
@@ -334,7 +335,7 @@ private fun LineBox(
 ) {
     Checkbox(
         if (line.selected) Tick.Checked else Tick.Empty,
-        Modifier.testTag(lineTag("box", line)).pressable(
+        Modifier.testTag(lineTag("box", line)).named(line.title).pressable(
             if (line.selectable) {
                 { onCommand(listOf(CartCommand.ChangeLine(line.url, LineChange(selected = !line.selected)))) }
             } else {
@@ -351,7 +352,7 @@ private fun Tile(
     size: Dp,
     radius: Dp,
 ) {
-    LineTile(line.image, line.tone, radius, Modifier.size(size).follows(line.action))
+    LineTile(line.image, line.tone, radius, Modifier.size(size).named(line.title).follows(line.action))
 }
 
 /**
@@ -646,7 +647,7 @@ private fun PromoFieldView(
                 BasicTextField(
                     typed,
                     { typed = it },
-                    Modifier.fillMaxWidth().testTag(PROMO_INPUT_TAG),
+                    Modifier.fillMaxWidth().testTag(PROMO_INPUT_TAG).named(field.placeholder),
                     // The field's own line, centred in the box: CSS's `line-height: 1` sits the code a pixel
                     // higher than a 15 px line box does here.
                     textStyle = HaulType.label(15f, 600, 0f).copy(lineHeight = TextUnit.Unspecified),

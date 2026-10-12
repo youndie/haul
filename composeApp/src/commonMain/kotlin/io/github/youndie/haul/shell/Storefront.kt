@@ -56,6 +56,7 @@ import io.github.youndie.haul.ui.LocalLogoAction
 import io.github.youndie.haul.ui.LocalPageScroll
 import io.github.youndie.haul.ui.LocalSearchInput
 import io.github.youndie.haul.ui.LocalTabsInView
+import io.github.youndie.haul.ui.OverlayHost
 import io.github.youndie.haul.ui.PlusTrialDialog
 import io.github.youndie.haul.ui.SearchFieldState
 import io.github.youndie.haul.ui.SearchInput
@@ -334,171 +335,183 @@ public fun Storefront(
                 ) { shellPresented = it }
             panel
         }
-    CompositionLocalProvider(
-        LocalHaulNow provides now,
-        LocalSearchInput provides search,
-        LocalLogoAction provides home,
-        LocalHaulActions provides panelActions,
-        LocalCartCommands provides cartCommands,
-        LocalCheckoutCommands provides checkoutCommands,
-        LocalTreeCommands provides treeCommands,
-        LocalFiltersSheet provides filters,
-        LocalHeaderMenu provides menu,
-        // The header of a page the shell draws itself: the server's last for who is looking (B-67, B-105).
-        LocalShellHeader provides shellHeader,
-        LocalBlankPress provides blankPress,
-    ) {
-        SearchSuggestOverlay(
-            panel,
-            // A press on blank page space takes the focus off the price field typed in (B-118).
-            modifier = Modifier.releasingOnBlankPress(),
-            highlighted = search.highlighted,
-            field = field,
-            onDismiss = dismiss,
-            onClear = clearRecent,
+    // What opens over the page — a menu, the phone's menu, the filter sheet — is drawn over it here, in the
+    // storefront's own layer rather than in a window of its own (B-126).
+    OverlayHost {
+        CompositionLocalProvider(
+            LocalHaulNow provides now,
+            LocalSearchInput provides search,
+            LocalLogoAction provides home,
+            LocalHaulActions provides panelActions,
+            LocalCartCommands provides cartCommands,
+            LocalCheckoutCommands provides checkoutCommands,
+            LocalTreeCommands provides treeCommands,
+            LocalFiltersSheet provides filters,
+            LocalHeaderMenu provides menu,
+            // The header of a page the shell draws itself: the server's last for who is looking (B-67, B-105).
+            LocalShellHeader provides shellHeader,
+            LocalBlankPress provides blankPress,
         ) {
-            val address = navigator.address
-            val visit = navigator.visits
-            // A screen is a path (B-62): `/c/mugs?brand=Ostra` loads behind the drawn `/c/mugs`, which keeps
-            // its scroll and whatever its nodes hold open; another path is another screen, drawn from its
-            // placeholder at the top. [signedOut] counts the pages a lapsed sign-in took down: a customer's
-            // page is not kept for a shopper who is a guest now.
-            val screen = address.path to signedOut
-            if (address.kind == PageKind.SignIn) {
-                // The client's own page (B-66): no tree to load, and no filter sheet over it; one per visit.
-                key(visit) {
-                    Scrolled(rememberScrollState()) {
-                        val blocked = blockedAt == address.value
-                        SignInPage(address, shellHeader, signing, navigator, blocked)
+            SearchSuggestOverlay(
+                panel,
+                // A press on blank page space takes the focus off the price field typed in (B-118).
+                modifier = Modifier.releasingOnBlankPress(),
+                highlighted = search.highlighted,
+                field = field,
+                onDismiss = dismiss,
+                onClear = clearRecent,
+            ) {
+                val address = navigator.address
+                val visit = navigator.visits
+                // A screen is a path (B-62): `/c/mugs?brand=Ostra` loads behind the drawn `/c/mugs`, which keeps
+                // its scroll and whatever its nodes hold open; another path is another screen, drawn from its
+                // placeholder at the top. [signedOut] counts the pages a lapsed sign-in took down: a customer's
+                // page is not kept for a shopper who is a guest now.
+                val screen = address.path to signedOut
+                if (address.kind == PageKind.SignIn) {
+                    // The client's own page (B-66): no tree to load, and no filter sheet over it; one per visit.
+                    key(visit) {
+                        Scrolled(rememberScrollState()) {
+                            val blocked = blockedAt == address.value
+                            SignInPage(address, shellHeader, signing, navigator, blocked)
+                        }
                     }
+                    shellPresented?.let { PresentedOverlay(it, registry) { shellPresented = null } }
+                    return@SearchSuggestOverlay
                 }
-                shellPresented?.let { PresentedOverlay(it, registry) { shellPresented = null } }
-                return@SearchSuggestOverlay
-            }
-            // The screen's `load`s (B-63): whether one is on its way, and which press is the last — the only
-            // one whose answer is run. Held above the screen, so the filter sheet over it reads it too.
-            val loading = remember(screen) { KompotLoadState() }
-            key(screen) {
-                // Where the screen's loads are: the tree drawn, a load on its way, why the last one failed.
-                val loader = rememberKompotScreenLoaderState()
-                val scroll = rememberScrollState()
-                // What a `present` put over the page; a new address starts without one, and so does a visit to the
-                // address shown (B-95).
-                var presented by remember(address, visit) { mutableStateOf<Presented?>(null) }
-                // A page refused for want of a sign-in asks for one (B-44); [loads] counts the visit's loads
-                // after a sign-in, and [signedInFor] is the load a sign-in from here asked for — refused again,
-                // that one is an error page, not another prompt. Per visit, not per address: an address an
-                // update recorded (B-63) is no new page to load.
-                var loads by remember(visit) { mutableIntStateOf(0) }
-                var signedInFor by remember(visit) { mutableIntStateOf(-1) }
-                // The store the screen's updates and the order's channel write into (B-63), one per screen. A
-                // page that arrives is the truth for its address and drops what they wrote, even when it is
-                // equal to the page drawn — back to the address before a filter brings exactly that page: each
-                // load the loader completes is an arrival (kompot §4.4, B-64).
-                val overrides = remember { KompotNodeOverrides() }
-                // A `load` whose answer did not arrive, and how to press it again; a new press or visit forgets it.
-                var unanswered by remember(visit) { mutableStateOf<Unanswered?>(null) }
-                // The channel the page's tree named, when it named one (B-29).
-                var topic by remember { mutableStateOf<String?>(null) }
-                val live = remember(topic, realtime) { realtime?.let { source -> topic?.let { Live(it, source) } } }
-                // How tall the page's header is drawn: the line of a load on its way sits under it.
-                var headerHeight by remember { mutableIntStateOf(0) }
-                val measured = remember { { height: Int -> headerHeight = height } }
-                Box(Modifier.fillMaxSize()) {
-                    CompositionLocalProvider(LocalHeaderMeasured provides measured) {
-                        KompotScreenLoader(
-                            key = visit to loads,
-                            screenKey = screen,
-                            state = loader,
-                            load = {
-                                transport
-                                    .screen(address.screen)
-                                    .also { topic = it.realtimeTopic }
-                                    .tree
-                            },
-                            loading = { Scrolled(scroll) { Box(Modifier.testTag(LOADING_TAG)) { Loading(address) } } },
-                            failed = { cause, retry ->
-                                // A refusal Retry cannot change leads somewhere instead (B-94): the cart for an
-                                // empty checkout, the page without a parameter an old link got wrong.
-                                val recovery = address.recovery(cause)
-                                when {
-                                    recovery is Recovery.Redirect -> {
-                                        LaunchedEffect(cause) { navigator.redirect(recovery.location) }
-                                        if (loader.screen == null) {
-                                            Scrolled(scroll) { Box(Modifier.testTag(LOADING_TAG)) { Loading(address) } }
+                // The screen's `load`s (B-63): whether one is on its way, and which press is the last — the only
+                // one whose answer is run. Held above the screen, so the filter sheet over it reads it too.
+                val loading = remember(screen) { KompotLoadState() }
+                key(screen) {
+                    // Where the screen's loads are: the tree drawn, a load on its way, why the last one failed.
+                    val loader = rememberKompotScreenLoaderState()
+                    val scroll = rememberScrollState()
+                    // What a `present` put over the page; a new address starts without one, and so does a visit to the
+                    // address shown (B-95).
+                    var presented by remember(address, visit) { mutableStateOf<Presented?>(null) }
+                    // A page refused for want of a sign-in asks for one (B-44); [loads] counts the visit's loads
+                    // after a sign-in, and [signedInFor] is the load a sign-in from here asked for — refused again,
+                    // that one is an error page, not another prompt. Per visit, not per address: an address an
+                    // update recorded (B-63) is no new page to load.
+                    var loads by remember(visit) { mutableIntStateOf(0) }
+                    var signedInFor by remember(visit) { mutableIntStateOf(-1) }
+                    // The store the screen's updates and the order's channel write into (B-63), one per screen. A
+                    // page that arrives is the truth for its address and drops what they wrote, even when it is
+                    // equal to the page drawn — back to the address before a filter brings exactly that page: each
+                    // load the loader completes is an arrival (kompot §4.4, B-64).
+                    val overrides = remember { KompotNodeOverrides() }
+                    // A `load` whose answer did not arrive, and how to press it again; a new press or visit forgets it.
+                    var unanswered by remember(visit) { mutableStateOf<Unanswered?>(null) }
+                    // The channel the page's tree named, when it named one (B-29).
+                    var topic by remember { mutableStateOf<String?>(null) }
+                    val live = remember(topic, realtime) { realtime?.let { source -> topic?.let { Live(it, source) } } }
+                    // How tall the page's header is drawn: the line of a load on its way sits under it.
+                    var headerHeight by remember { mutableIntStateOf(0) }
+                    val measured = remember { { height: Int -> headerHeight = height } }
+                    Box(Modifier.fillMaxSize()) {
+                        CompositionLocalProvider(LocalHeaderMeasured provides measured) {
+                            KompotScreenLoader(
+                                key = visit to loads,
+                                screenKey = screen,
+                                state = loader,
+                                load = {
+                                    transport
+                                        .screen(address.screen)
+                                        .also { topic = it.realtimeTopic }
+                                        .tree
+                                },
+                                loading = {
+                                    Scrolled(
+                                        scroll,
+                                    ) { Box(Modifier.testTag(LOADING_TAG)) { Loading(address) } }
+                                },
+                                failed = { cause, retry ->
+                                    // A refusal Retry cannot change leads somewhere instead (B-94): the cart for an
+                                    // empty checkout, the page without a parameter an old link got wrong.
+                                    val recovery = address.recovery(cause)
+                                    when {
+                                        recovery is Recovery.Redirect -> {
+                                            LaunchedEffect(cause) { navigator.redirect(recovery.location) }
+                                            if (loader.screen == null) {
+                                                Scrolled(
+                                                    scroll,
+                                                ) { Box(Modifier.testTag(LOADING_TAG)) { Loading(address) } }
+                                            }
                                         }
-                                    }
 
-                                    loader.screen == null -> {
-                                        AskForHeader(headers, transport, signedIn, visit, loads)
-                                        Scrolled(scroll) {
-                                            if (cause.asksForSignIn && signedInFor != loads) {
-                                                SignInPrompt(address, shellHeader, signing, navigator) {
-                                                    loads += 1
-                                                    signedInFor = loads
-                                                }
-                                            } else {
-                                                Failed(address, cause, recovery, shellHeader, retry, home) {
-                                                    navigator.open(address.path)
+                                        loader.screen == null -> {
+                                            AskForHeader(headers, transport, signedIn, visit, loads)
+                                            Scrolled(scroll) {
+                                                if (cause.asksForSignIn && signedInFor != loads) {
+                                                    SignInPrompt(address, shellHeader, signing, navigator) {
+                                                        loads += 1
+                                                        signedInFor = loads
+                                                    }
+                                                } else {
+                                                    Failed(address, cause, recovery, shellHeader, retry, home) {
+                                                        navigator.open(address.path)
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
 
-                                    cause.asksForSignIn -> {
-                                        LaunchedEffect(cause) { signedOut += 1 }
-                                    }
+                                        cause.asksForSignIn -> {
+                                            LaunchedEffect(cause) { signedOut += 1 }
+                                        }
 
-                                    else -> {
-                                        // A search too short over the results kept leaves them, and their address:
-                                        // a reload of the refused one would draw «Keep typing» (B-121).
-                                        if (recovery == Recovery.QueryTooShort) {
-                                            LaunchedEffect(cause) { navigator.withdraw() }
-                                        }
-                                        Box(
-                                            Modifier.fillMaxSize().padding(16.dp),
-                                            contentAlignment = Alignment.BottomCenter,
-                                        ) {
-                                            NotUpdatedNotice(cause, retry)
+                                        else -> {
+                                            // A search too short over the results kept leaves them, and their address:
+                                            // a reload of the refused one would draw «Keep typing» (B-121).
+                                            if (recovery == Recovery.QueryTooShort) {
+                                                LaunchedEffect(cause) { navigator.withdraw() }
+                                            }
+                                            Box(
+                                                Modifier.fillMaxSize().padding(16.dp),
+                                                contentAlignment = Alignment.BottomCenter,
+                                            ) {
+                                                NotUpdatedNotice(cause, retry)
+                                            }
                                         }
                                     }
-                                }
-                            },
-                        ) { tree ->
-                            Scrolled(scroll) {
-                                Shown(
-                                    tree,
-                                    address,
-                                    transport,
-                                    navigator,
-                                    registry,
-                                    signing,
-                                    live,
-                                    InPlace(overrides, loading) { unanswered = it },
-                                    messages,
-                                    { headers.drawn(it, session?.signedIn == true) },
-                                    { signedOut += 1 },
-                                ) {
-                                    presented =
-                                        it
+                                },
+                            ) { tree ->
+                                Scrolled(scroll) {
+                                    Shown(
+                                        tree,
+                                        address,
+                                        transport,
+                                        navigator,
+                                        registry,
+                                        signing,
+                                        live,
+                                        InPlace(overrides, loading) { unanswered = it },
+                                        messages,
+                                        { headers.drawn(it, session?.signedIn == true) },
+                                        { signedOut += 1 },
+                                    ) {
+                                        presented =
+                                            it
+                                    }
                                 }
                             }
                         }
-                    }
-                    if ((loader.isLoading || loading.isLoading) && loader.screen != null) {
-                        LoadingLine(Modifier.offset { IntOffset(0, (headerHeight - scroll.value).coerceAtLeast(0)) })
-                    }
-                    unanswered?.let { press ->
-                        Box(Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.BottomCenter) {
-                            NotUpdatedNotice(press.cause, press.retry)
+                        if ((loader.isLoading || loading.isLoading) && loader.screen != null) {
+                            LoadingLine(
+                                Modifier.offset { IntOffset(0, (headerHeight - scroll.value).coerceAtLeast(0)) },
+                            )
                         }
+                        unanswered?.let { press ->
+                            Box(Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.BottomCenter) {
+                                NotUpdatedNotice(press.cause, press.retry)
+                            }
+                        }
+                        presented?.let { PresentedOverlay(it, registry) { presented = null } }
+                        shellPresented?.let { PresentedOverlay(it, registry) { shellPresented = null } }
                     }
-                    presented?.let { PresentedOverlay(it, registry) { presented = null } }
-                    shellPresented?.let { PresentedOverlay(it, registry) { shellPresented = null } }
                 }
+                FiltersSheetOverlay(filters, loading.isLoading)
+                MessageHost(messages)
             }
-            FiltersSheetOverlay(filters, loading.isLoading)
-            MessageHost(messages)
         }
     }
 }

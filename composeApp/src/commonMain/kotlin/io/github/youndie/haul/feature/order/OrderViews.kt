@@ -62,13 +62,14 @@ import io.github.youndie.haul.ui.PlanPaymentState
 import io.github.youndie.haul.ui.SummaryRow
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.accented
-import io.github.youndie.haul.ui.appendLink
 import io.github.youndie.haul.ui.css
 import io.github.youndie.haul.ui.cssLines
 import io.github.youndie.haul.ui.following
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.lines
+import io.github.youndie.haul.ui.linkedText
+import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.normal
 import kotlin.math.roundToInt
 
@@ -153,12 +154,12 @@ private fun Crumbs(
 ) {
     val actions = LocalHaulActions.current
     Text(
-        buildAnnotatedString {
+        linkedText {
             body.crumbs.dropLast(1).forEach {
-                appendLink(it.label, it.action, actions)
-                append(" / ")
+                link(it.label, it.action, actions)
+                text.append(" / ")
             }
-            withStyle(SpanStyle(color = HaulColors.onSurface)) {
+            text.withStyle(SpanStyle(color = HaulColors.onSurface)) {
                 append(
                     body.crumbs
                         .lastOrNull()
@@ -453,7 +454,7 @@ private fun Item(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val tile = if (compact) 72.dp else 88.dp
-        LineTile(item.image, item.tone, 14.dp, Modifier.size(tile).follows(item.action))
+        LineTile(item.image, item.tone, 14.dp, Modifier.size(tile).named(item.title).follows(item.action))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Text(
                 item.title,

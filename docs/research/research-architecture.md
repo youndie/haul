@@ -1968,6 +1968,16 @@ the hidden pane was a press on a page it had not drawn yet: a hidden pane runs f
 composes an arrived screen only in one, and the press lands on the skeleton. Whether anything changes for that
 is the owner's question (B-112).
 
+**Found in B-126: Compose 1.12's browser mirror for assistive technology follows only the newest layer.** Each
+`Popup` or `Dialog` is a layer of its own in Compose's scene, with a semantics owner of its own; in 1.12 the mirror
+(`#cmp_a11y_root` in the viewport's shadow root) takes the newest owner, and when that layer closes it has none —
+it keeps the closed layer's nodes until a reload ([CMP-9368](https://youtrack.jetbrains.com/issue/CMP-9368), fixed
+upstream in 1.13.0-alpha01). So what opens over the page is drawn in the storefront's own layer
+(`OverlayHost`/`OverPage`, `ui/Layers.kt`), not in a `Popup` or a `Dialog`, while the stack holds Compose at 1.12.
+And text links: a `LinkAnnotation` is drawn as a press with no name (named upstream in 1.13 too), so the category
+row's words and the crumbs are `linkedText` runs, each a named press over its words. `scripts/a11y-check.py` walks
+every popup and the main pages in headless Chromium and reads the mirror and Chromium's own tree.
+
 **Risk 1. The canvas and the code drift apart without anyone seeing it.** A renderer changed for one
 screen changes every screen that uses the component. Mitigation: one reference PNG per artboard
 (125), exported from the canvas into the client's snapshot directory, and `viddikDesignParity` in

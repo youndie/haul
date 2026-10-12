@@ -1,0 +1,138 @@
+package io.github.youndie.haul.ui
+
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalContext
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.currentCompositionLocalContext
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+
+// What opens over the page — a menu, the phone's menu, the phone's filter sheet — is drawn in the storefront's own
+// layer, over the page, rather than in a `Popup` or a `Dialog` (B-126). Each of those is a layer of its own in
+// Compose's scene, and Compose Multiplatform 1.12's browser mirror of the page for assistive technology follows
+// only the newest layer: once one has opened and closed, the mirror holds the closed layer's nodes until the page
+// is reloaded (CMP-9368, fixed upstream in 1.13). In the storefront's layer there is one tree, and the mirror
+// follows it.
+
+/** What is drawn over the storefront now, in the order it opened; the host draws it ([OverlayHost]). */
+@Stable
+internal class Overlays {
+    internal val shown = mutableStateListOf<Overlay>()
+
+    /** Where the host is in the window, so that what opens under a control is placed under it. */
+    internal var origin: Offset by mutableStateOf(Offset.Zero)
+}
+
+/** One thing drawn over the page: its content, and the composition locals where it was opened from. */
+internal class Overlay(
+    content: @Composable () -> Unit,
+    locals: CompositionLocalContext,
+) {
+    var content: @Composable () -> Unit by mutableStateOf(content)
+    var locals: CompositionLocalContext by mutableStateOf(locals)
+}
+
+/** The host of what is drawn over the page; none outside the storefront (a screenshot), where nothing opens. */
+internal val LocalOverlays: ProvidableCompositionLocal<Overlays?> = staticCompositionLocalOf { null }
+
+/**
+ * [content], and over it whatever [OverPage] opened inside it — the last opened on top. The box is as big as the
+ * window: the storefront's own.
+ */
+@Composable
+internal fun OverlayHost(content: @Composable () -> Unit) {
+    val overlays = remember { Overlays() }
+    Box(Modifier.fillMaxSize().onGloballyPositioned { overlays.origin = it.positionInRoot() }) {
+        CompositionLocalProvider(LocalOverlays provides overlays) { content() }
+        overlays.shown.forEach { overlay ->
+            key(overlay) { CompositionLocalProvider(overlay.locals) { overlay.content() } }
+        }
+    }
+}
+
+/**
+ * [content] drawn over the whole storefront while this is composed, with the composition locals of the place it is
+ * called from. Outside an [OverlayHost] it draws nothing, so [isOverPage] tells whether opening it would show
+ * anything.
+ */
+@Composable
+internal fun OverPage(content: @Composable () -> Unit) {
+    val overlays = LocalOverlays.current ?: return
+    val locals = currentCompositionLocalContext
+    val overlay = remember { Overlay(content, locals) }
+    SideEffect {
+        overlay.content = content
+        overlay.locals = locals
+    }
+    DisposableEffect(overlays, overlay) {
+        overlays.shown += overlay
+        onDispose { overlays.shown -= overlay }
+    }
+}
+
+/** Whether [OverPage] draws anything here: inside the storefront, yes. */
+@Composable
+internal fun isOverPage(): Boolean = LocalOverlays.current != null
+
+/**
+ * A sheet over the whole storefront — the phone's menu, the phone's filter sheet — as a `Dialog` drew it: no press
+ * over it reaches the page under it, and Escape is [onDismiss].
+ */
+@Composable
+internal fun SheetOverPage(
+    onDismiss: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    OverPage {
+        val focus = remember { FocusRequester() }
+        LaunchedEffect(focus) { focus.requestFocus() }
+        Box(
+            Modifier
+                .fillMaxSize()
+                .coversPage()
+                .focusRequester(focus)
+                .onPreviewKeyEvent {
+                    val escape = it.key == Key.Escape
+                    if (escape && it.type == KeyEventType.KeyDown) onDismiss()
+                    escape
+                }.focusable(),
+        ) { content() }
+    }
+}
+
+/**
+ * No press here reaches what is drawn under it: Compose hands a press to the topmost node that reads presses at
+ * that place, and this reads them all. It consumes none, so the sheet's own readers — a blank press that takes the
+ * focus off a field (B-118) — see the press as if nothing were under it.
+ */
+private fun Modifier.coversPage(): Modifier =
+    pointerInput(Unit) {
+        awaitPointerEventScope {
+            while (true) awaitPointerEvent()
+        }
+    }

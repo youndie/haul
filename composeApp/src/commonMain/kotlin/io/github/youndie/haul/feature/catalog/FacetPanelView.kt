@@ -78,6 +78,7 @@ import io.github.youndie.haul.ui.LocalHaulActions
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.awaitTypedInput
 import io.github.youndie.haul.ui.follows
+import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.toneColor
 import kotlinx.coroutines.Job
@@ -510,7 +511,15 @@ private fun Swatches(
             val colour = option.swatch?.let(::toneColor) ?: HaulColors.outlineVariant
             // The selected ring is a box shadow on the canvas: 2 px of Paper, then 2 px of Cobalt,
             // drawn outside the swatch without moving its neighbours.
-            Box(Modifier.size(size).muted(option).follows(option.action), contentAlignment = Alignment.Center) {
+            // A swatch shows no words: its colour's name is what it reads as (B-126).
+            Box(
+                Modifier
+                    .size(size)
+                    .muted(option)
+                    .named(option.label)
+                    .follows(option.action),
+                contentAlignment = Alignment.Center,
+            ) {
                 if (option.selected) {
                     Box(Modifier.requiredSize(size + 8.dp).background(HaulColors.primary, CircleShape))
                     Box(Modifier.requiredSize(size + 4.dp).background(HaulColors.background, CircleShape))

@@ -60,8 +60,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import io.github.youndie.haul.feature.identity.SignInActions
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
@@ -346,7 +344,7 @@ private fun WideHeader(
             // «Orders» goes where the tree says (`HaulHeader.orders`): a customer's orders, a guest's sign-in.
             Shortcut(HaulIcons.box, "Orders", modifier = Modifier.follows(header.orders))
             // «Saved» likewise (`HaulHeader.saved`, B-20): a customer's Saved list, a guest's sign-in.
-            Shortcut(HaulIcons.heart, "Saved", modifier = Modifier.follows(header.saved))
+            Shortcut(HaulIcons.heart, SAVED, modifier = Modifier.follows(header.saved))
             when {
                 pending -> {
                     Shortcut(HaulIcons.person) { Skeleton(Modifier.width(40.dp).height(10.dp), 5.dp) }
@@ -400,6 +398,12 @@ private fun WideHeader(
     }
 }
 
+/** The name of the search field's button, an icon (B-126). */
+private const val SEARCH = "Search"
+
+/** «Saved»: the wide header's shortcut, and the name of the phone's heart. */
+private const val SAVED = "Saved"
+
 /** The tag of the wide header's «HAUL PLUS», for the tests that read it at every desktop width. */
 public const val PLUS_PILL_TAG: String = "plus-pill"
 
@@ -436,8 +440,9 @@ private fun CompactHeader(
         ) { Icon(HaulIcons.menu, 24.dp, HaulColors.onSurface) }
         Logo(size = 34f, dot = 9.dp, dotMargin = 2.dp, modifier = Modifier.pressable(LocalLogoAction.current))
         Spacer(Modifier.weight(1f))
+        // The phone's shortcuts are icons alone; the wide header's words are their names (B-126).
         Box(
-            Modifier.follows(header.saved).size(44.dp),
+            Modifier.semantics { contentDescription = SAVED }.follows(header.saved).size(44.dp),
             contentAlignment = Alignment.Center,
         ) { Icon(HaulIcons.heart, 24.dp, HaulColors.onSurface) }
         when {
@@ -454,7 +459,7 @@ private fun CompactHeader(
             else -> {
                 LinkMenu(header.accountMenu, alignEnd = true) { press ->
                     Box(
-                        press.size(44.dp),
+                        press.semantics { contentDescription = header.customerName.orEmpty() }.size(44.dp),
                         contentAlignment = Alignment.Center,
                     ) { Icon(HaulIcons.person, 24.dp, HaulColors.onSurface) }
                 }
@@ -515,7 +520,8 @@ private fun CompactHeader(
         SpacedWords(header.categories, 22.dp, HaulType.text(14f, 500), links = header.catalog)
     }
     if (menu != null && menu.isOpen) {
-        Dialog(onDismissRequest = menu::close, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        // Over the storefront in its own layer, not a `Dialog` (B-126).
+        SheetOverPage(onDismiss = menu::close) {
             HeaderMenuSheet(header, onAccount = onAccount, onClose = menu::close)
         }
     }
@@ -646,6 +652,7 @@ private fun SearchField(
         Box(
             Modifier
                 .testTag(SEARCH_BUTTON_TAG)
+                .named(SEARCH)
                 .size(button)
                 .background(HaulColors.secondaryContainer, RoundedCornerShape(buttonRadius))
                 .pressable(
@@ -717,6 +724,7 @@ private fun EditableQuery(
         modifier =
             modifier
                 .testTag(SEARCH_FIELD_TAG)
+                .named(header.searchPlaceholder)
                 .onFocusChanged { field?.focused = it.isFocused }
                 .onPreviewKeyEvent {
                     val down = it.type == KeyEventType.KeyDown

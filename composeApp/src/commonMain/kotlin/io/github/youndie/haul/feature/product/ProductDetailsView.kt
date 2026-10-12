@@ -71,6 +71,7 @@ import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.followsToTabs
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.hatching
+import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.rememberHeartPress
 import io.github.youndie.haul.ui.toneColor
@@ -403,7 +404,11 @@ private fun Variants(group: VariantGroup) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 group.options.forEach { option ->
                     // The selected ring is CSS's box-shadow: 2 px of Paper, then 2 px of Cobalt, outside.
-                    Box(Modifier.size(64.dp).follows(option.action), contentAlignment = Alignment.Center) {
+                    // A swatch shows no words: its option's name is what it reads as (B-126).
+                    Box(
+                        Modifier.size(64.dp).named(option.label).follows(option.action),
+                        contentAlignment = Alignment.Center,
+                    ) {
                         if (option.selected) {
                             Box(Modifier.requiredSize(72.dp).background(HaulColors.primary, RoundedCornerShape(18.dp)))
                             Box(

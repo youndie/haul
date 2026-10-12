@@ -65,6 +65,7 @@ import io.github.youndie.haul.ui.css
 import io.github.youndie.haul.ui.cssLines
 import io.github.youndie.haul.ui.following
 import io.github.youndie.haul.ui.follows
+import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.toneColor
@@ -320,8 +321,9 @@ private fun Tiles(tiles: List<AccountTile>) {
             content = {
                 tiles.forEachIndexed { index, tile ->
                     // The fill is the tile's whole height, so it is what is pressed; its content, drawn over
-                    // it, takes no press and lets one through to it (but the trial's button).
-                    Box(Modifier.background(tile.fill(), TILE_SHAPE).follows(tile.action))
+                    // it, takes no press and lets one through to it (but the trial's button). The words are not in
+                    // the press, so it is named by the tile's label (B-126).
+                    Box(Modifier.background(tile.fill(), TILE_SHAPE).named(tile.label).follows(tile.action))
                     TileContent(tile, Modifier, boxes[index])
                 }
             },

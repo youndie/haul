@@ -3,9 +3,11 @@ package io.github.youndie.haul.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -23,23 +25,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupPositionProvider
-import androidx.compose.ui.window.PopupProperties
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
+import kotlin.math.roundToInt
 
 /** The tag of an open [LinkMenu], for the tests that tell open from closed. */
 public const val LINK_MENU_TAG: String = "link-menu"
@@ -92,75 +96,102 @@ internal fun Menu(
     control: @Composable (Modifier) -> Unit,
 ) {
     var open by remember { mutableStateOf(false) }
-    val usable = entries.any { it.onPress != null }
-    Box(modifier, propagateMinConstraints = true) {
+    // Over the page, in the storefront's own layer (B-126): with none — a screenshot — the menu opens nothing.
+    val usable = entries.any { it.onPress != null } && isOverPage()
+    // Where the control is in the window, unclipped: the menu opens under it.
+    var anchor by remember { mutableStateOf(IntRect.Zero) }
+    Box(
+        modifier.onGloballyPositioned {
+            val at = it.positionInRoot()
+            anchor = IntRect(IntOffset(at.x.roundToInt(), at.y.roundToInt()), it.size)
+        },
+        propagateMinConstraints = true,
+    ) {
         control(Modifier.pressable(if (usable) ({ open = !open }) else null))
         if (open && usable) {
             val gap = with(LocalDensity.current) { MENU_GAP.roundToPx() }
-            Popup(
-                popupPositionProvider = Below(gap, alignEnd),
-                onDismissRequest = { open = false },
-                properties = PopupProperties(focusable = true),
-            ) {
-                val shape = RoundedCornerShape(12.dp)
-                // Escape closes it (B-75). The popup takes the focus but gives it to none of its nodes, so the
-                // key reached nothing: the menu holds the focus itself, and reads the key before its entries.
-                val focus = remember { FocusRequester() }
-                LaunchedEffect(focus) { focus.requestFocus() }
-                Column(
-                    Modifier
-                        .testTag(LINK_MENU_TAG)
-                        .focusRequester(focus)
-                        .onPreviewKeyEvent {
-                            val escape = it.key == Key.Escape
-                            if (escape && it.type == KeyEventType.KeyDown) open = false
-                            escape
-                        }.focusable()
-                        .width(IntrinsicSize.Max)
-                        .widthIn(min = 200.dp)
-                        .heightIn(max = 440.dp)
-                        .background(HaulColors.surfaceContainerLowest, shape)
-                        .border(1.dp, HaulColors.outlineVariant, shape)
-                        .verticalScroll(rememberScrollState())
-                        .padding(vertical = 6.dp),
-                ) {
-                    entries.forEach { entry ->
-                        // The entry already chosen has nothing to open — the sort's order shown — and closes the
-                        // menu, as any pick does (B-121).
-                        val press = entry.onPress ?: {}.takeIf { entry.label == current }
-                        Text(
-                            entry.label,
-                            HaulType.text(15f, if (entry.label == current) 700 else 500),
-                            Modifier
-                                .fillMaxWidth()
-                                .pressable(
-                                    press?.let {
-                                        {
-                                            open = false
-                                            it()
-                                        }
-                                    },
-                                ).padding(horizontal = 16.dp, vertical = 10.dp),
-                            softWrap = false,
-                        )
-                    }
+            val origin = LocalOverlays.current?.origin ?: Offset.Zero
+            val below = Below(gap, alignEnd)
+            OverPage {
+                // A press anywhere off the menu closes it, and goes no further: the page under it is not pressed.
+                Layout(
+                    content = { MenuColumn(entries, current) { open = false } },
+                    modifier = Modifier.fillMaxSize().pointerInput(Unit) { detectTapGestures { open = false } },
+                ) { measurables, constraints ->
+                    val menu = measurables.single().measure(constraints.copy(minWidth = 0, minHeight = 0))
+                    val window = IntSize(constraints.maxWidth, constraints.maxHeight)
+                    val bounds = anchor.translate(-origin.x.roundToInt(), -origin.y.roundToInt())
+                    val at = below.position(bounds, window, IntSize(menu.width, menu.height))
+                    layout(window.width, window.height) { menu.place(at) }
                 }
             }
         }
     }
 }
 
+/** The open menu: [entries] in a card, the [current] one in bold; an entry pressed, or Escape, is [onClose] first. */
+@Composable
+private fun MenuColumn(
+    entries: List<MenuEntry>,
+    current: String?,
+    onClose: () -> Unit,
+) {
+    val shape = RoundedCornerShape(12.dp)
+    // Escape closes it (B-75). The menu holds the focus itself, and reads the key before its entries.
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(focus) { focus.requestFocus() }
+    Column(
+        Modifier
+            .testTag(LINK_MENU_TAG)
+            .focusRequester(focus)
+            .onPreviewKeyEvent {
+                val escape = it.key == Key.Escape
+                if (escape && it.type == KeyEventType.KeyDown) onClose()
+                escape
+            }.focusable()
+            // A press on the card between its entries is the card's: it does not close the menu.
+            .swallowsPresses()
+            .width(IntrinsicSize.Max)
+            .widthIn(min = 200.dp)
+            .heightIn(max = 440.dp)
+            .background(HaulColors.surfaceContainerLowest, shape)
+            .border(1.dp, HaulColors.outlineVariant, shape)
+            .verticalScroll(rememberScrollState())
+            .padding(vertical = 6.dp),
+    ) {
+        entries.forEach { entry ->
+            // The entry already chosen has nothing to open — the sort's order shown — and closes the menu, as any
+            // pick does (B-121).
+            val press = entry.onPress ?: {}.takeIf { entry.label == current }
+            Text(
+                entry.label,
+                HaulType.text(15f, if (entry.label == current) 700 else 500),
+                Modifier
+                    .fillMaxWidth()
+                    .pressable(
+                        press?.let {
+                            {
+                                onClose()
+                                it()
+                            }
+                        },
+                    ).padding(horizontal = 16.dp, vertical = 10.dp),
+                softWrap = false,
+            )
+        }
+    }
+}
+
 private val MENU_GAP = 8.dp
 
-/** Under the control, its start edge (or its end edge) lined up with the menu's, kept inside the window. */
+/** Under the control, its start edge (or its end edge) lined up with the menu's, kept inside the storefront. */
 private class Below(
     private val gap: Int,
     private val alignEnd: Boolean,
-) : PopupPositionProvider {
-    override fun calculatePosition(
+) {
+    fun position(
         anchorBounds: IntRect,
         windowSize: IntSize,
-        layoutDirection: LayoutDirection,
         popupContentSize: IntSize,
     ): IntOffset {
         val x = if (alignEnd) anchorBounds.right - popupContentSize.width else anchorBounds.left
