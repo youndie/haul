@@ -1636,7 +1636,8 @@ question (B-30 findings), and until it is answered the generated catalog keeps i
 name no photo, so every artboard's parity is what it was. Since B-108 every tile of a product carries the same
 address: a cart line, checkout's «Your order», an order's line and the suggest panel's «Top products»
 (`image` on `CartLine`, `SummaryItem`, `OrderItem`, `ProductSuggestion`) — no picture is made up for them, the
-stored one is wired. The return dialog's lines keep their tiles.
+stored one is wired; since B-136 so does a line of the return dialog (`ReturnLine.image`), which B-108 had left
+out of its list.
 
 ### D9. No server rendering, no SEO
 

@@ -16,6 +16,7 @@ import io.github.youndie.haul.testing.FulfilmentWorld
 import io.github.youndie.haul.testing.PostgresHarness
 import io.github.youndie.haul.testing.SeaweedHarness
 import io.github.youndie.haul.testing.ShildikHarness
+import io.github.youndie.haul.testing.TestClock
 import io.github.youndie.haul.testing.all
 import io.github.youndie.haul.testing.haulTest
 import io.github.youndie.haul.testing.liveTree
@@ -28,9 +29,11 @@ import io.github.youndie.haul.ui.OrderBody
 import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.haul.ui.ProductGrid
+import io.github.youndie.haul.ui.ReturnForm
 import io.github.youndie.haul.ui.SearchSuggestPanel
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.decodeKompotComponent
+import io.github.youndie.kompot.standard.PresentAction
 import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
@@ -48,6 +51,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 
 /**
  * B-30's acceptance on the server: a product with a stored photo carries its address on its card and
@@ -100,7 +105,8 @@ class PhotoRoutesTest {
     /**
      * B-108: a cart line, checkout's «Your order», an order's line and the suggest panel's «Top products» drew a
      * blank tile where the card and the product page draw the stored photo — their wire had no address. Each carries
-     * the card's now. Maya's seeded cart holds the headphones; the order is that cart, placed.
+     * the card's now, and so does a line of the order's return dialog (B-136). Maya's seeded cart holds the
+     * headphones; the order is that cart, placed and delivered.
      */
     @Test
     fun `the cart, checkout, an order and the suggest panel carry the photo the card carries`() =
@@ -124,13 +130,24 @@ class PhotoRoutesTest {
                 }
                 assertTrue(panel.products.any { it.image != null }, "no suggested product has a photo")
             }
-            val orderId = FulfilmentWorld(database).use { it.place(CheckoutChoice(slotId = "2025-10-08T15")) }
-            haulTest(database, Photographed.store, signIn = ShildikHarness.signIn) {
+            // Delivered, so the order also offers «Return items», whose lines drew the bare tone tile (B-136).
+            val clock = TestClock()
+            val orderId =
+                FulfilmentWorld(database, clock).use { world ->
+                    world.place(CheckoutChoice(slotId = "2025-10-08T15")).also {
+                        world.advance(Duration.ZERO)
+                        world.advance(72.hours)
+                    }
+                }
+            haulTest(database, Photographed.store, signIn = ShildikHarness.signIn, sagaClock = clock) {
                 val response = get(OrderPaths.SCREEN.replace("{id}", orderId)) { bearerAuth(maya) }
                 val body = liveTree(response.bodyAsText(), "order:$orderId").only<OrderBody>()
                 val items = body.shipments.flatMap { it.items }
                 val item = assertNotNull(items.firstOrNull { it.action == productLink(sony) }, "the order: $items")
                 assertEquals(url, item.image, "the order's line")
+                val form = assertNotNull((body.summary.returnAction as? PresentAction)?.content as? ReturnForm)
+                val returned = assertNotNull(form.lines.firstOrNull { it.title == item.title }, "returns: ${form.lines}")
+                assertEquals(url, returned.image, "the return dialog's line")
             }
         }
 

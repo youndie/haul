@@ -70,7 +70,7 @@ later (B-27). A local stack runs at `HAUL_FULFILMENT_SPEED`.
   3. Open the reasons and press Escape; open them again, choose one and send.
   4. Watch the page.
 - **Expected:**
-  - Step 1: the return dialog over the order, each line with its tile.
+  - Step 1: the return dialog over the order, each line with its tile — the photo where the order line has one.
   - Step 2: the card amount and the points back follow the lines ticked — each line's share of what was paid (the
     code shared over the lines, the delivery kept).
   - Step 3: Escape closes the list and leaves the dialog; once sent, the dialog closes and the page is drawn again:
