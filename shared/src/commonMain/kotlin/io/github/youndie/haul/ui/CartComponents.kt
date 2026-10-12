@@ -147,7 +147,7 @@ public data class SummaryRow(
 /**
  * The totals and the way on, under [title]: the rows, the total, the [promo] field, the checkout
  * button — «Sign in to check out» for a guest — and the points the order earns: [points] is the
- * sentence («You'll earn 1,024 points on this order»), [pointsAccent] its part in bold; both `null`
+ * sentence («You’ll earn 1,024 points on this order»), [pointsAccent] its part in bold; both `null`
  * for a guest (`Cart_Guest`). [checkoutEnabled] is `false` while no line is selected.
  */
 @Serializable

@@ -54,7 +54,7 @@ A stage is a field on the item, not a directory.
 | [B-86](docs/backlog/B-86-reviews-photos-and-histogram.md) `[ ]` | client + server: review photos open and the histogram filters | P3 | M | - |
 | [B-87](docs/backlog/B-87-fallback-rows.md) `[ ]` | server: what home and the empty cart show when no deal is live | P3 | S | - |
 
-## Closed (130)
+## Closed (131)
 
 **Skeleton**
 
@@ -221,6 +221,7 @@ A stage is a field on the item, not a directory.
 - [B-134](docs/backlog/B-134-a-bound-typed-while-the-other-loads-is-kept.md) `[x]` - fix: a price bound typed while the other bound's load is on its way is kept
 - [B-135](docs/backlog/B-135-the-search-field-s-loose-ends.md) `[x]` - fix: the search field's loose ends — one letter, Escape, the empty page's notice
 - [B-136](docs/backlog/B-136-small-lines-from-the-v051-run.md) `[x]` - fix: the small lines the v0.5.1 run noticed
+- [B-137](docs/backlog/B-137-the-store-writes-curly-apostrophes.md) `[x]` - fix: every sentence the store writes uses ’, not a straight apostrophe
 
 <!-- END INDEX -->
 

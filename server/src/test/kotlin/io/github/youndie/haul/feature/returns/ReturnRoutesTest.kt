@@ -48,7 +48,7 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 
 /** The rule drawn where «Return items» was, once a return of some of the lines is in (B-101). */
-private const val ONE_RETURN = "One return per order: what you kept can't be sent back."
+private const val ONE_RETURN = "One return per order: what you kept can’t be sent back."
 
 /**
  * Returns over HTTP (feature-orders, endpoint-orders `POST /api/v1/me/orders/{id}/returns`, B-21), against

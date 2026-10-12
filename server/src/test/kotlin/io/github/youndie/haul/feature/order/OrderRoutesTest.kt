@@ -280,7 +280,7 @@ class OrderRoutesTest {
             assertEquals(HttpStatusCode.OK, none.status, none.bodyAsText())
             assertEquals(
                 ShowMessageAction(
-                    "Nothing was added: $sony, $duvet and $mug aren't available now.",
+                    "Nothing was added: $sony, $duvet and $mug aren’t available now.",
                     MessageLevel.ERROR,
                 ),
                 haulWireJson.decodeKompotAction(none.bodyAsText()),
@@ -296,7 +296,7 @@ class OrderRoutesTest {
                     listOf(
                         NavigateAction(Frame.CART),
                         ShowMessageAction(
-                            "Added what was in stock — $mug isn't available now; $sony: only 1 of 2 went in.",
+                            "Added what was in stock — $mug isn’t available now; $sony: only 1 of 2 went in.",
                             MessageLevel.ERROR,
                         ),
                     ),

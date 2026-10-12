@@ -293,7 +293,7 @@
      },
      "label": "Your question",
      "hint": "10 – 1,000 characters",
-     "note": "Your question appears on this page for other shoppers, marked «Not answered yet». Sellers can't answer new questions on Haul yet.",
+     "note": "Your question appears on this page for other shoppers, marked «Not answered yet». Sellers can’t answer new questions on Haul yet.",
      "submitLabel": "Send",
      "cancelLabel": "Cancel",
      "url": "/api/v1/products/p-sony-wh-1000xm6/questions",
