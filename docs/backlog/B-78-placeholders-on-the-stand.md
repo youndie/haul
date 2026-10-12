@@ -23,3 +23,11 @@ Every product, category tile and campaign is a tinted box with a caption: «STUD
 
 The owner put the pictures off. The item stays open, last in the queue; nothing here is taken until the owner
 says where the pictures come from.
+
+## Decision (2026-10-12)
+
+The owner chose **the seed's own illustrations**: flat SVG pictures drawn per category (and for the campaigns and the
+hero) in the canvas's style, generated as part of the seed, served the way `ProductPhotos` serves stored photos — no
+licence, no third-party host (B-128's rule: nothing off the store's origin). Products of one category share its
+picture set, varied by colour where the product has one. The captions that only describe a missing picture go.
+The item is open for the loop.

@@ -1,7 +1,7 @@
 ---
 id: B-112
 title: "client: the first press on a text field focuses it"
-status: question
+status: dropped
 priority: P1
 size: M
 stage: stage-11-qa
@@ -76,3 +76,9 @@ The item's premise — a Compose web text-input defect on a fresh load — did n
    save.
 3. **Take the search field's five-second case** as its own item, if a field that loses keys typed in its first
    frame matters outside the pane.
+
+## Decision (2026-10-12)
+
+The owner closed the item (option 1): the first press did not fail in a browser that draws, only in a hidden pane on a
+page it had not drawn yet — a walker's condition, not a client defect. Walkers in the pane press a field only once a
+screenshot or the mirrored tree shows it; `scripts/first-press-check.py` stays as the check for the next report.
