@@ -238,7 +238,7 @@ class NamedPressesTest {
                 "/account/orders/HL-48302" to "order_delivered.json",
             )
 
-        /** Every dialog the storefront presents: the review's, the return's, the Plus trial's. */
+        /** Every dialog the storefront presents: the review's, the question's, the return's, the Plus trial's. */
         val DIALOGS =
             listOf(
                 Dialog(
@@ -246,6 +246,13 @@ class NamedPressesTest {
                     "/p/p-sony-wh-1000xm6?tab=reviews",
                     "product_reviews.json",
                     "Write a review",
+                    CLOSE_TAG,
+                ),
+                Dialog(
+                    "question",
+                    "/p/p-sony-wh-1000xm6?tab=questions",
+                    "product_questions.json",
+                    "Ask a question",
                     CLOSE_TAG,
                 ),
                 Dialog("return", "/account/orders/HL-46102", "order_delivered.json", "Return items", CLOSE_TAG),
