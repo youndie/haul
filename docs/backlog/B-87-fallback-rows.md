@@ -13,5 +13,8 @@ B-70 chose «Popular on Haul» (the six most-reviewed products in stock) for hom
 the item only asked for «at least one row of products». The empty cart's «Picked for you» still shows only
 deals, so it is empty in the seconds after midnight and on a store without deals.
 
-- AC: the owner confirms or replaces the home row; the empty cart's picks fall back the same way; tests.
+- **Decided (owner, 2026-10-12): «Popular on Haul» stays on home**, and the empty cart's «Picked for you» falls back to
+  the same row while no deal is live.
+- AC: with no live deal, home shows «Popular on Haul» and the empty cart shows the same six; with deals, both show the
+  deals as today; tests for both states.
 - Anchors: `server/src/main/kotlin/io/github/youndie/haul/feature/catalog/screen/HomeScreen.kt`, `server/src/main/kotlin/io/github/youndie/haul/feature/cart/screen/CartScreen.kt`.
