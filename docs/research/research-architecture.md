@@ -470,7 +470,10 @@ for it:
   tree — not there, refused, an error, the sign-in prompt — and no header has been drawn for who is looking
   (`AskForHeader`, `shell/ShellHeaders.kt`): once per visit and load, and an answer that does not arrive leaves
   the header the client has. Placeholders and error pages still draw it as a placeholder (B-67), so their pixels
-  are unchanged. The sign-in page asks for none: it is a way through, and a customer is sent on at once.
+  are unchanged. The sign-in page asks for none: it is a way through, and a customer is sent on at once. So
+  the sign-in page landed on cold draws the client's own header, whose phone menu lists the row's ten category
+  words, each leading to the catalog's root, not the 32 top-level categories a server's header lists (B-133): the
+  32 and their addresses are the server's, and no request is made for them there.
 - **A header is kept for whom it was drawn** (`ShellHeaders`): a tree's or the header alone, tagged with
   whether the shopper was signed in (`SessionControls.signedIn`) when it was drawn. A sign-in or a sign-out over
   a page with no tree no longer leaves the other shopper's header (a guest's «Maya» after signing out over a
@@ -835,8 +838,11 @@ and on the stand.
   ReadyForPickup, Delivered and Cancelled are what `OrderTracking.track` says the order is. A shipment's
   day is the courier's for an order placed when it was (the day after, the seller's dispatch days, the
   23:30 cut-off; a point a day later) or the chosen window's when that is later; the window is named on
-  the day it was chosen for. Another customer's order and a missing one are `404 order_not_found`, which
-  the client draws as Order_NotFound under the header it last drew.
+  the day it was chosen for. Tomorrow is said with its date whether the shipment is packed or on its way
+  («Tomorrow, Oct 8 · 15:00 – 18:00»): the canvas's Order_InTransit drops the date, and a page watched from
+  packed to in transit lost it mid-order (B-133). A line's quantity and price are held together by no-break
+  spaces («1 × $349» never breaks inside, B-133). Another customer's order and a missing one are
+  `404 order_not_found`, which the client draws as Order_NotFound under the header it last drew.
 - **Reorder** (`POST /api/v1/me/orders/{id}/reorder`, `feature/order/domain/Reorder.kt`) puts each SKU
   of the order into the cart through the cart's own `changeLine`, selected, at the order's quantity — at
   most ten and the stock; a line already holding as many is only selected, so a second press adds
