@@ -31,8 +31,10 @@ Found outside the catalogue by its v0.5.0 run on the stand ([run](../qa/runs/202
   0 results» with its search; the client drew the products' column whenever the panel had a query. Now a query with
   no match under the scope sends no «All N results» (an empty label, no action; `SearchScreen.suggest`), and the
   client draws the products' column only for a panel with products or a way to every result — the heading only over
-  products, the button only with its action (`SearchSuggestPanelView`). Such a panel is drawn as recall is
-  (B-124): its queries, categories and recent searches. No wire change: the fields were already optional.
+  products, the button only with its label (`SearchSuggestPanelView`). Such a panel is drawn as recall is
+  (B-124): its queries, categories and recent searches. No wire change: the fields were already optional. The
+  button follows the label, not the action: the canvas's own panel (`search_suggest.json`, golden
+  `Search_Autocomplete`) is drawn without actions, and the server never sends one without the other.
 - **«Open the page» on `/search?q=%zz`** — decided: the target stays `/search`, and the page with nothing typed
   says «Start typing» and «Type what you are looking for in the field and press Enter.» (`SearchTooShort`, empty
   query). Home was the other choice; the search page is where the field is, one press nearer, and the same words

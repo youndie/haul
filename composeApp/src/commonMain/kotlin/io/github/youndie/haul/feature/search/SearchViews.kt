@@ -272,7 +272,7 @@ private val PRODUCTS_COLUMN = 270.dp
  * products and no «All N results» for it, and the column would be a heading over nothing.
  */
 private val SearchSuggestPanel.hasProductsColumn: Boolean
-    get() = products.isNotEmpty() || allResultsAction != null
+    get() = products.isNotEmpty() || allResultsLabel.isNotEmpty()
 
 /** The tag of the suggest panel, for the tests that look for it open or closed. */
 public const val SUGGEST_PANEL_TAG: String = "suggest-panel"
@@ -429,11 +429,11 @@ private fun TopProducts(
         }
         panel.products.forEach { TopProduct(it, if (compact) 56.dp else 64.dp) }
         if (!compact) Spacer(Modifier.weight(1f))
-        val all = panel.allResultsAction ?: return@Column
+        if (panel.allResultsLabel.isEmpty()) return@Column
         Row(
             Modifier
                 .fillMaxWidth()
-                .follows(all)
+                .follows(panel.allResultsAction)
                 .height(52.dp)
                 .background(HaulColors.inverseSurface, RoundedCornerShape(14.dp)),
             horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
