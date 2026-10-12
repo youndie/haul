@@ -334,27 +334,34 @@ search for `sony`).
   `ProductPageLayoutTest` «the canvas's facts keep their display size»;
   golden `Product_Loading`; golden `Product_Description_SpecFacts`
 
-### TC-PDP-17 — A stored photo stands in for its tile everywhere the product is drawn
+### TC-PDP-17 — A product is drawn with its stored photo, or its picture, everywhere it is drawn
 
 - **Who:** Maya
 - **Width:** 1440, 390
 - **Preconditions:** a server with object storage (`HAUL_S3_*`), so the sample products' photos are stored; a product
-  without one.
+  without one; and a server without object storage (the stand: «no object storage: seed pictures only» in its log).
 - **Steps:**
   1. Find a sample product on a card, its page, the cart, checkout's «Your order», an order's line and the suggest
      panel's «Top products».
-  2. Find a product with no photo; block `/images/` in DevTools and reload.
+  2. Find a product with no photo, in the same places.
+  3. On the server without storage, open the headphones' page and pick the other colour.
+  4. Block `/images/` in DevTools and reload.
 - **Expected:**
-  - Step 1: the same photo in each place, served from the store's own origin (`/images/<key>`).
-  - Step 2: the striped placeholder tile, with its label, and nothing broken — the tile stays while a photo is
-    absent, loading or failed. Without object storage every tile is the placeholder.
-- **Decided in:** B-30, B-108
-- **Coverage:** `PhotoRoutesTest` «a product with a stored photo carries its address and one without carries none»;
+  - Step 1: the same photo in each place, served from the store's own origin (`/images/products/<key>`).
+  - Step 2: the same picture in each place — the seed's flat drawing of the product's category, in the shown SKU's
+    colour, over its tile tone — served from the store's own origin (`/images/art/<name>.svg`).
+  - Step 3: every product carries its picture; the page's picture changes colour with the SKU.
+  - Step 4: the striped placeholder tile, with no caption, and nothing broken — the tile stays while a photo or a
+    picture is absent, loading or failed.
+- **Decided in:** B-30, B-108, B-78
+- **Coverage:** `PhotoRoutesTest` «a product with a stored photo carries its address and one without carries its picture»;
   `PhotoRoutesTest` «the cart, checkout, an order and the suggest panel carry the photo the card carries»;
-  `PhotoRoutesTest` «without object storage no product carries a photo»;
+  `PhotoRoutesTest` «without object storage every product carries its picture»;
+  `SeedArtTest` «one category's products share a set and differ by colour»;
+  `PhotoFallbackTest` «a picture sent as SVG replaces the placeholder tile»;
   `PhotoFallbackTest` «a photo that failed to load leaves the placeholder tile»;
   `PhotoFallbackTest` «a photo still loading shows the placeholder tile»;
-  `LinePhotosTest` «cart lines draw their photos»; golden `ProductCard_Photo`
+  `LinePhotosTest` «cart lines draw their photos»; golden `ProductCard_Photo`; golden `Product_Description`
 
 ### TC-PDP-18 — A bar of the histogram lists the reviews of its stars
 

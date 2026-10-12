@@ -139,3 +139,23 @@ their place, «Picked for you», the Plus block. A card's «+» is walked here o
 - **Coverage:** `MembershipRoutesTest` «the trial is offered to a non-member and the savings shown to a member»;
   `HomeRoutesTest` «a guest sees the campaign the deals and the Plus offer»; `SaleCalendarTest` «a stand seeded on
   another day shows Maya's carried Plus savings»; golden `Home_Content`
+
+### TC-HOME-08 — The home page draws pictures, not captions
+
+- **Who:** guest
+- **Width:** 1440, 390
+- **Preconditions:** the stand, or any server — no object storage is needed.
+- **Steps:**
+  1. Look at the hero, the banners, the category tiles and the deals' cards.
+  2. Note every request the page made (DevTools, Network).
+- **Expected:**
+  - Step 1: the hero's right part draws falling leaves under its figure; Tech week's banner a laptop in its corner;
+    each category tile its category's object; each card its product's object in its colour. No tile says what it
+    stands for («CAMPAIGN IMAGE», «TECH», «HEADPHONES»). Free delivery weekend's banner draws no picture: the canvas
+    keeps no place for one.
+  - Step 2: every picture is an `/images/art/…svg` of the store's own origin, cached for good; nothing off the origin.
+- **Decided in:** B-78, B-128
+- **Coverage:** `PhotoRoutesTest` «a picture address serves the drawn SVG for good»;
+  `PhotoRoutesTest` «a picture that is not the seed's is 404»; `ArtFixturesTest` «every picture the bodies name is the server's, and only those are kept»;
+  script `scripts/origin-check.py`; golden `Home_Content`; golden `Home_Guest_Phone`
+

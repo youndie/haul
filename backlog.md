@@ -43,11 +43,10 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (2)
+## Open (1)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-78](docs/backlog/B-78-placeholders-on-the-stand.md) `[~]` | server + client: the stand shows pictures, not placeholder labels | P3 | M | - |
 | [B-85](docs/backlog/B-85-canvas-behind-the-code.md) `[ ]` | design: the canvas draws what the store now has | P3 | M | - |
 
 ## Closed (138)
@@ -158,6 +157,7 @@ A stage is a field on the item, not a directory.
 - [B-75](docs/backlog/B-75-feedback-after-a-press.md) `[x]` - client: a press shows that it worked
 - [B-76](docs/backlog/B-76-promo-apply-sends-nothing.md) `[x]` - client: «Apply» on the cart's promo code is applied
 - [B-77](docs/backlog/B-77-pages-beyond-four-unreachable.md) `[x]` - client + server: every page of results can be reached
+- [B-78](docs/backlog/B-78-placeholders-on-the-stand.md) `[x]` - server + client: the stand shows pictures, not placeholder labels
 - [B-79](docs/backlog/B-79-checkout-step-indicator-and-links.md) `[x]` - client + server: checkout's step indicator and summary tell the truth
 - [B-80](docs/backlog/B-80-blank-first-load.md) `[x]` - client: the first load shows something before the app starts
 - [B-81](docs/backlog/B-81-card-plus-says-added.md) `[x]` - server + client: a card's «+» says the item was added
