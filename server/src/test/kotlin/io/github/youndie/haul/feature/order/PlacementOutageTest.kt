@@ -41,6 +41,7 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.testcontainers.containers.PostgreSQLContainer
@@ -137,11 +138,12 @@ class PlacementOutageTest {
                 coroutineScope {
                     val locks = withContext(Dispatchers.IO) { postgres.lockSkus() }
                     val placing = async { measureTimedValue { place(token, summary) } }
-                    val stopping =
-                        withContext(Dispatchers.IO) {
-                            postgres.awaitWaitingOnALock(locks)
-                            postgres.stop()
-                        }
+                    withContext(Dispatchers.IO) { postgres.awaitWaitingOnALock(locks) }
+                    // The store was busy a moment before the outage (B-140): every connection the pool keeps was used
+                    // just now, so Hikari hands one out again without checking it is alive — and the outage kills
+                    // them all. On a fast runner that was the CI failure; this makes it every runner's case.
+                    coroutineScope { repeat(BUSY_PAGES) { launch { get("/ui/home") } } }
+                    val stopping = withContext(Dispatchers.IO) { postgres.stop() }
                     try {
                         locks.close()
                     } catch (_: SQLException) {
@@ -307,6 +309,9 @@ class PlacementOutageTest {
         val SHOPPER_BOUND = 30.seconds
 
         val POLL = 50.milliseconds
+
+        /** Pages asked for at once just before the outage: enough to use every connection the pool keeps idle. */
+        const val BUSY_PAGES = 12
 
         /** The most a started PostgreSQL may take to accept connections before the test gives up on the runner. */
         val BACK_BOUND = 30.seconds

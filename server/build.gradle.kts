@@ -103,10 +103,10 @@ tasks.test {
     // The outage tests' timeline in the build's own log (B-140): how long the runner takes to stop and start
     // PostgreSQL decides whether a five second outage still fits inside the saga member's phase, and a hosted
     // runner's numbers are otherwise lost with the test reports the workflow does not keep.
-    onOutput(
-        KotlinClosure2<TestDescriptor, TestOutputEvent, Unit>({ _, event ->
+    addTestOutputListener(
+        TestOutputListener { _, event ->
             if (event.message.startsWith("B-139 outage")) println(event.message.trimEnd())
-        }),
+        },
     )
 }
 
