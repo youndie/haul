@@ -235,8 +235,27 @@ private fun PriceRange(facet: Facet) {
                 if (it != high) sent = null
                 high = it
             }
-            PriceInput("from", low, "0", PRICE_FROM_TAG, typedLow, confirm, Modifier.weight(1f))
-            PriceInput("to", high, range.top.toString(), PRICE_TO_TAG, typedHigh, confirm, Modifier.weight(1f))
+            // Each field is named by the facet and its word, «Price from» (B-131): the words in the box are no name.
+            PriceInput(
+                "from",
+                low,
+                "0",
+                PRICE_FROM_TAG,
+                typedLow,
+                confirm,
+                Modifier.weight(1f),
+                "${facet.title} from",
+            )
+            PriceInput(
+                "to",
+                high,
+                range.top.toString(),
+                PRICE_TO_TAG,
+                typedHigh,
+                confirm,
+                Modifier.weight(1f),
+                "${facet.title} to",
+            )
         }
     }
     val (start, end) = held ?: ((facet.rangeStart ?: 0f) to (facet.rangeEnd ?: 1f))
@@ -358,8 +377,8 @@ private fun PriceField(
 }
 
 /**
- * A bound the shopper types: whole dollars, drawn after a «$» ([DOLLARS]); [placeholder] in the muted ink
- * while it is empty. [onConfirm] on Enter, «Done», and on leaving the field — Tab, a press on another control, or a
+ * A bound the shopper types, named [name]: whole dollars, drawn after a «$» ([DOLLARS]); [placeholder] in the
+ * muted ink while it is empty. [onConfirm] on Enter, «Done», and on leaving the field — Tab, a press on another control, or a
  * press on blank page space ([LocalBlankPress], B-118).
  */
 @Composable
@@ -371,6 +390,7 @@ private fun PriceInput(
     onValue: (String) -> Unit,
     onConfirm: () -> Unit,
     modifier: Modifier,
+    name: String,
 ) {
     var focused by remember { mutableStateOf(false) }
     // While focused, a press on blank page space outside the box takes the focus off the field (B-118).
@@ -392,6 +412,7 @@ private fun PriceInput(
                 .weight(1f)
                 .focusRequester(field)
                 .testTag(tag)
+                .named(name)
                 .onFocusChanged {
                     if (focused && !it.isFocused) onConfirm()
                     focused = it.isFocused

@@ -818,6 +818,8 @@ private fun CartButton(
     Row(
         modifier
             .testTag(CART_BUTTON_TAG)
+            // The phone's button draws the bag and the count alone: its name is the wide one's words (B-131).
+            .then(if (label) Modifier else Modifier.named(if (count > 0) "Cart $count" else "Cart"))
             .height(height)
             .background(HaulColors.inverseSurface, RoundedCornerShape(radius))
             .padding(horizontal = horizontal),

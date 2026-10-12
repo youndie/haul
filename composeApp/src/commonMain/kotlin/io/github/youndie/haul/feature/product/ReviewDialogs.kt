@@ -34,6 +34,9 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -60,6 +63,7 @@ import io.github.youndie.haul.ui.QuestionForm
 import io.github.youndie.haul.ui.ReviewForm
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.awaitTypedInput
+import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.toneColor
@@ -138,7 +142,11 @@ public fun ReviewFormView(
                         Modifier
                             .size(48.dp)
                             .testTag(starTag(stars))
-                            .pressable { onDraft(draft.copy(rating = stars)) },
+                            // Named by its value, and the one chosen says so (B-131).
+                            .semantics {
+                                contentDescription = starName(stars)
+                                selected = stars == draft.rating
+                            }.pressable { onDraft(draft.copy(rating = stars)) },
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
@@ -153,7 +161,13 @@ public fun ReviewFormView(
         }
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             FieldLabel(form.titleLabel)
-            LineField(draft.title, { onDraft(draft.copy(title = it)) }, problems.fields["title"], TITLE_TAG)
+            LineField(
+                draft.title,
+                { onDraft(draft.copy(title = it)) },
+                problems.fields["title"],
+                TITLE_TAG,
+                form.titleLabel,
+            )
             problems.fields["title"]?.let { FieldProblem(it) }
         }
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -166,6 +180,7 @@ public fun ReviewFormView(
                 max = ReviewRules.BODY_MAX,
                 error = problems.fields["body"],
                 tag = BODY_TAG,
+                name = form.bodyLabel,
             )
         }
         Buttons(form.submitLabel, form.cancelLabel, problems.message, onPost, onClose)
@@ -194,6 +209,7 @@ public fun QuestionFormView(
                 max = ReviewRules.QUESTION_MAX,
                 error = problems.fields["text"],
                 tag = QUESTION_TAG,
+                name = form.label,
             )
         }
         Text(form.note, HaulType.text(14f, lineHeight = 1.5f).copy(color = HaulColors.outline))
@@ -386,6 +402,7 @@ internal fun DialogFrame(
                     .size(44.dp)
                     .background(HaulColors.background, CircleShape)
                     .testTag(CLOSE_TAG)
+                    .named(CLOSE)
                     .pressable(onClose),
                 contentAlignment = Alignment.Center,
             ) {
@@ -401,13 +418,14 @@ internal fun FieldLabel(label: String) {
     Text(label.uppercase(), HaulType.label(11f, 600, 0.08f).copy(color = HaulColors.outline), softWrap = false)
 }
 
-/** A one-line field: a hairline box, ink while typed in, sale red at fault. */
+/** A one-line field named [name] — the label over it (B-131): a hairline box, ink while typed in, sale red at fault. */
 @Composable
 private fun LineField(
     value: String,
     onValue: (String) -> Unit,
     error: String?,
     tag: String,
+    name: String,
 ) {
     var focused by remember { mutableStateOf(false) }
     val border = borderOf(error, focused)
@@ -424,7 +442,11 @@ private fun LineField(
         BasicTextField(
             value,
             onValue,
-            Modifier.fillMaxWidth().testTag(tag).onFocusChanged { focused = it.isFocused },
+            Modifier
+                .fillMaxWidth()
+                .testTag(tag)
+                .named(name)
+                .onFocusChanged { focused = it.isFocused },
             textStyle = normal(16f),
             singleLine = true,
             cursorBrush = SolidColor(HaulColors.primary),
@@ -433,7 +455,8 @@ private fun LineField(
 }
 
 /**
- * A text area with its hint (or its error) and how much of [max] is used under it. The whole box is the field:
+ * A text area named [name] — the label over it (B-131) — with its hint (or its error) and how much of [max] is used
+ * under it. The whole box is the field:
  * a press anywhere in it — under the first line too — focuses it (B-99; the field was one line tall inside
  * the box before, and only that line took a press).
  */
@@ -446,6 +469,7 @@ private fun AreaField(
     max: Int,
     error: String?,
     tag: String,
+    name: String,
 ) {
     var focused by remember { mutableStateOf(false) }
     val border = borderOf(error, focused)
@@ -459,6 +483,7 @@ private fun AreaField(
                 .heightIn(min = minHeight)
                 .border(border.first, border.second, shape)
                 .testTag(tag)
+                .named(name)
                 .onFocusChanged { focused = it.isFocused },
             textStyle = HaulType.text(16f, lineHeight = 1.5f),
             cursorBrush = SolidColor(HaulColors.primary),
@@ -563,6 +588,12 @@ private fun borderOf(
 private val CARD_SHADOW = Color(0x80000000)
 
 internal fun starTag(stars: Int): String = "review-star:$stars"
+
+/** What a reader of the page hears for a star of the rating: its value, «1 star» to «5 stars». */
+internal fun starName(stars: Int): String = if (stars == 1) "1 star" else "$stars stars"
+
+/** The name of a dialog's «×» (B-131). */
+internal const val CLOSE: String = "Close"
 
 internal const val TITLE_TAG: String = "review-title"
 internal const val BODY_TAG: String = "review-body"
