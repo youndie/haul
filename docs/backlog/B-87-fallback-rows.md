@@ -1,7 +1,7 @@
 ---
 id: B-87
 title: "server: what home and the empty cart show when no deal is live"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-10-review
