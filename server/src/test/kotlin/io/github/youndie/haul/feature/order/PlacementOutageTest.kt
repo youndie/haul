@@ -108,12 +108,7 @@ class PlacementOutageTest {
 
     private fun placingThroughAnOutage(
         outage: Duration,
-        check: suspend (
-            placed: HttpResponse,
-            ledger: Ledger,
-            stockBefore: Map<String, Int>,
-            database: DataSource,
-        ) -> Unit,
+        check: suspend Placed.() -> Unit,
     ) = StoppablePostgres().use { postgres ->
         val token = ShildikHarness.accessToken(ShildikHarness.person("Maya Kowalski", SampleCustomers.MAYA))
         val stockBefore = Ledger(postgres.dataSource).stock()
