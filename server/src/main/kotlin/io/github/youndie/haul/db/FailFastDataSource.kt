@@ -1,5 +1,6 @@
 package io.github.youndie.haul.db
 
+import com.zaxxer.hikari.HikariDataSource
 import org.slf4j.LoggerFactory
 import java.sql.Connection
 import java.sql.SQLException
@@ -27,6 +28,15 @@ import kotlin.time.TimeSource
  * **Saga work is the exception (B-139):** an ask made under [ConnectionPatience] is never refused by the window,
  * and one the pool times out on is made again while that patience lasts — so a short outage is waited out by the
  * order saga instead of compensating the order. Its failed asks still open the window for everybody else.
+ *
+ * **And saga work is handed a connection that is alive (B-140).** Hikari skips its own check on a connection used in
+ * the last half second, so when the database goes away right after a busy moment the pool hands out the
+ * connections the outage closed, one after another, and each fails at its first statement — not at the ask, where
+ * the patience is. Exposed's three tries of the member's transaction were spent on them in milliseconds and the
+ * order compensated: what failed `PlacementOutageTest` on a fast runner. Under the patience a connection is asked
+ * whether it is alive ([Connection.isValid], one round trip) and a dead one is evicted from the pool and the ask
+ * made again; everybody else keeps Hikari's check, and the statement that fails on a dead connection is theirs to
+ * retry as before.
  */
 internal class FailFastDataSource(
     private val pool: DataSource,
@@ -61,6 +71,11 @@ internal class FailFastDataSource(
                     pauseAfter(attempt, e)
                     continue
                 }
+            if (ask != null && ask.lasts() && !connection.alive()) {
+                discard(connection)
+                waited = true
+                continue
+            }
             if (waited) log.info("saga work had its connection after waiting {} for the database", began.elapsedNow())
             unreachable = null
             return connection
@@ -74,6 +89,26 @@ internal class FailFastDataSource(
             log.warn("the database cannot be reached, connections refused for {} at a time: {}", window, e.message)
         }
         unreachable = Unreachable(time.markNow() + window, e)
+    }
+
+    private fun Connection.alive(): Boolean =
+        try {
+            isValid(VALIDATION_SECONDS)
+        } catch (_: SQLException) {
+            false
+        }
+
+    /** Out of the pool, not back into it: returned, it would be handed out again unchecked. */
+    private fun discard(connection: Connection) {
+        try {
+            if (pool.isWrapperFor(HikariDataSource::class.java)) {
+                pool.unwrap(HikariDataSource::class.java).evictConnection(connection)
+            } else {
+                connection.close()
+            }
+        } catch (_: SQLException) {
+            // It is dead already; there is nothing left to give back.
+        }
     }
 
     private fun pauseAfter(
@@ -103,5 +138,11 @@ internal class FailFastDataSource(
 
         /** The least one ask of saga work takes before the next: the pool's own timeout is what paces it. */
         val MIN_ATTEMPT = 100.milliseconds
+
+        /** How long saga work's check of a connection may take ([DatabaseConfig.VALIDATION_TIMEOUT], in whole seconds). */
+        val VALIDATION_SECONDS =
+            DatabaseConfig.VALIDATION_TIMEOUT.inWholeSeconds
+                .toInt()
+                .coerceAtLeast(1)
     }
 }
