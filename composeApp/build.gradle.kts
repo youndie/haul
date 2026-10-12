@@ -110,4 +110,10 @@ tasks.named<Test>("desktopTest") {
         .files("src/wasmJsMain/kotlin/io/github/youndie/haul/Main.kt", "../scripts/measure-first-load.sh")
         .withPropertyName("wiredArm")
         .withPathSensitivity(PathSensitivity.RELATIVE)
+    // BundledGlyphsTest reads the server's strings, which reach the page in its trees but are no part of this
+    // module's classpath (B-128).
+    inputs
+        .dir("../server/src/main/kotlin")
+        .withPropertyName("serverStrings")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
 }

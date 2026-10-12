@@ -67,6 +67,27 @@ public object HaulIcons {
             circle(17f, 17f, 4f),
         )
 
+    /**
+     * The canvas's `↵` after «All N results» (`Search_Autocomplete`), drawn as the glyph it is: a 12 px label's
+     * line, as wide as its advance (0.6 em), the stroke where the canvas's pixels are. It is a path and not the
+     * character because none of the bundled faces has U+21B5, and a character no bundled face has makes the
+     * page fetch a fallback face from fonts.gstatic.com (B-128).
+     */
+    public val returnKey: ImageVector =
+        ImageVector
+            .Builder("return-key", 7.2.dp, 12.dp, 7.2f, 12f)
+            .apply {
+                listOf("M6.4 5v3.5H1", "M2.6 6.6L0.8 8.5l1.8 1.9").forEach {
+                    addPath(
+                        pathData = addPathNodes(it),
+                        stroke = SolidColor(Color.Black),
+                        strokeLineWidth = 1f,
+                        strokeLineCap = StrokeCap.Round,
+                        strokeLineJoin = StrokeJoin.Round,
+                    )
+                }
+            }.build()
+
     private fun stroked(
         name: String,
         width: Float,

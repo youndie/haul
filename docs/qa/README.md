@@ -21,7 +21,7 @@ research §2 («Decided in B-…») and the findings of the items that decided t
 | [08-checkout.md](08-checkout.md) | `TC-CHK` | methods, days and windows, the address form, points, Haul Pay, placing, refusals, the way back |
 | [09-order-and-returns.md](09-order-and-returns.md) | `TC-ORD` | the live order page, the simulated delivery line, pickup, returns and refunds, the one-return rule, reorder |
 | [10-account-and-saved.md](10-account-and-saved.md) | `TC-ACC` | the overview and its tiles, the history, the Saved list and hearts, Haul Plus and points |
-| [11-errors-and-loading.md](11-errors-and-loading.md) | `TC-ERR` | placeholders, the first load, the kept page's notice, refused pages, unreachable against our side, pages not there, a command that fails |
+| [11-errors-and-loading.md](11-errors-and-loading.md) | `TC-ERR` | placeholders, the first load, the kept page's notice, refused pages, unreachable against our side, pages not there, a command that fails, requests off the origin |
 | [12-widths.md](12-widths.md) | `TC-WID` | 375, 800, 1024 and 1280, the widths no artboard draws |
 | [13-stand-only.md](13-stand-only.md) | `TC-STAND` | the deploy, the synthetic shoppers, the saga in tracy — what only a running stand has |
 
