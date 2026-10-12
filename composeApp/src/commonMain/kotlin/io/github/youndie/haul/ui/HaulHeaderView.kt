@@ -398,6 +398,9 @@ private fun WideHeader(
     }
 }
 
+/** The name of the search field's button, an icon (B-126). */
+private const val SEARCH = "Search"
+
 /** «Saved»: the wide header's shortcut, and the name of the phone's heart. */
 private const val SAVED = "Saved"
 
@@ -649,6 +652,7 @@ private fun SearchField(
         Box(
             Modifier
                 .testTag(SEARCH_BUTTON_TAG)
+                .named(SEARCH)
                 .size(button)
                 .background(HaulColors.secondaryContainer, RoundedCornerShape(buttonRadius))
                 .pressable(
@@ -720,6 +724,7 @@ private fun EditableQuery(
         modifier =
             modifier
                 .testTag(SEARCH_FIELD_TAG)
+                .named(header.searchPlaceholder)
                 .onFocusChanged { field?.focused = it.isFocused }
                 .onPreviewKeyEvent {
                     val down = it.type == KeyEventType.KeyDown
