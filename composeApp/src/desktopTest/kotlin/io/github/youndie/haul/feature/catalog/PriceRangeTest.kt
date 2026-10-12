@@ -187,9 +187,10 @@ class PriceRangeTest {
         }
 
     /**
-     * B-118: a click from «from» into «to», a bound typed and Tab, all before «from»'s confirm had waited out its
+     * B-118: a press from «from» into «to», a bound typed and Tab, all before «from»'s confirm had waited out its
      * frames (B-76), sent the same load twice, the first aborted by the second: both confirms read both fields. Here
-     * the frames are held until Tab is down, as a quick hand or an agent's keys run inside them in the browser.
+     * the frames step one at a time, as quick keys run inside them in the browser: «from» is left, a frame later
+     * «to» is, so the two loads would start a frame apart, as they did there.
      */
     @Test
     fun `tab out of a price field sends one load`() =
