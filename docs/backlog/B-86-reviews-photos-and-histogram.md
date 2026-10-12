@@ -1,7 +1,7 @@
 ---
 id: B-86
 title: "client + server: review photos open and the histogram filters"
-status: open
+status: wip
 priority: P3
 size: M
 stage: stage-10-review
