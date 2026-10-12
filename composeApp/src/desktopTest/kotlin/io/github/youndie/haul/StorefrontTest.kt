@@ -640,7 +640,7 @@ internal class FakeHistory(
     }
 
     /** The back button: the browser moves first, then tells the page where it arrived. */
-    fun back() {
+    override fun back() {
         index -= 1
         listeners.toList().forEach { it(location) }
     }

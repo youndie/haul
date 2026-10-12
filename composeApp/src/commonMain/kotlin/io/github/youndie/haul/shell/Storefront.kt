@@ -448,6 +448,11 @@ public fun Storefront(
                                     }
 
                                     else -> {
+                                        // A search too short over the results kept leaves them, and their address:
+                                        // a reload of the refused one would draw «Keep typing» (B-121).
+                                        if (recovery == Recovery.QueryTooShort) {
+                                            LaunchedEffect(cause) { navigator.withdraw() }
+                                        }
                                         Box(
                                             Modifier.fillMaxSize().padding(16.dp),
                                             contentAlignment = Alignment.BottomCenter,

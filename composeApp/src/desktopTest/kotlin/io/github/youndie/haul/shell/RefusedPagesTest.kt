@@ -95,6 +95,36 @@ class RefusedPagesTest {
             onNodeWithText("Results for mugs").assertExists()
         }
 
+    /**
+     * B-121: the results stayed, but the address was the refused search's — a reload drew «Keep typing» instead of
+     * them. The entry is given back: the address is the results', back leaves them, and they are not loaded again.
+     */
+    @Test
+    fun `a search too short over the results kept leaves the address at the results`() =
+        at("/") {
+            history.push("/search?q=mugs")
+            answers["/ui/search?q=mugs"] = { ok(page("Results for mugs")) }
+            answers["/ui/search?q=a"] = { refusal(400, "query_too_short") }
+            answers["/ui/search/suggest?q=a"] = { refusal(400, "query_too_short") }
+            storefront()
+            val field = onNodeWithTag(SEARCH_FIELD_TAG)
+            field.performClick()
+            field.performTextInput("a")
+            field.performKeyInput { pressKey(Key.Enter) }
+            waitUntil(timeoutMillis = 5_000) { exists(NOT_UPDATED_TITLE) }
+            waitForIdle()
+
+            assertEquals("/search?q=mugs", history.location)
+            onNodeWithText("Results for mugs").assertExists()
+            onNodeWithText("Search needs at least two characters.").assertExists()
+            assertEquals(listOf("/ui/search?q=mugs", "/ui/search?q=a"), requests.filterNot { "suggest" in it })
+
+            answers["/ui/home"] = { ok(page("Home")) }
+            history.back()
+            waitUntil(timeoutMillis = 5_000) { exists("Home") }
+            assertEquals("/", history.location)
+        }
+
     @Test
     fun `a parameter an old link got wrong is dropped and the page loads without it`() =
         at("/c/mugs?sort=bogus&brand=Ostra") {

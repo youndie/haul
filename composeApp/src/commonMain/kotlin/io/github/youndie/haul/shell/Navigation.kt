@@ -134,6 +134,9 @@ public interface BrowserHistory {
     /** The entry the page is at says [location] now; back goes where it went before. */
     public fun replace(location: String)
 
+    /** The browser's back: the page hears where it arrived through [listen], as for the shopper's own. */
+    public fun back()
+
     /** Calls [listener] with the address the browser arrived at on back or forward; returns how to stop. */
     public fun listen(listener: (location: String) -> Unit): () -> Unit
 }
@@ -165,13 +168,32 @@ internal class Navigator(
      */
     fun open(location: String) {
         if (!location.startsWith("/")) return
-        if (location != address.value) history.push(location)
+        val from = address.value
+        if (location != from) history.push(location)
         visit(location)
+        if (location != from) pushed = from to location
     }
 
-    /** Back or forward: the browser has already moved, the page follows. */
+    /** Back or forward: the browser has already moved, the page follows — unless it is a [withdraw]'s back. */
     fun arrived(location: String) {
-        visit(location)
+        val withdrawn = location == withdrawing
+        withdrawing = null
+        if (withdrawn) address = Address(location) else visit(location)
+    }
+
+    /**
+     * The address [open] last took an entry for was refused in a way the page still drawn answers: a search too
+     * short over the results kept (B-121). The entry is given back — the browser goes back to the address of the
+     * page drawn, which is not loaded again — so the address bar, a reload and back all name the page the shopper
+     * sees. Anything since — another visit, an address recorded — leaves the history as it is.
+     */
+    fun withdraw() {
+        val (from, to) = pushed ?: return
+        if (to != address.value) return
+        pushed = null
+        withdrawing = from
+        address = Address(from)
+        history.back()
     }
 
     /** The page shown, loaded again: what was drawn before a sign-in or a sign-out is not who is looking now. */
@@ -185,6 +207,7 @@ internal class Navigator(
      */
     fun redirect(location: String) {
         if (!location.startsWith("/")) return
+        pushed = null
         history.replace(location)
         visit(location)
     }
@@ -199,10 +222,18 @@ internal class Navigator(
     ) {
         if (!location.startsWith("/") || location == address.value) return
         if (replace) history.replace(location) else history.push(location)
+        pushed = null
         address = Address(location)
     }
 
+    /** The entry [open] last took: from which address, to which; `null` once anything else has moved the page. */
+    private var pushed: Pair<String, String>? = null
+
+    /** Where a [withdraw]'s back is going: its arrival is the page already drawn, not a visit. */
+    private var withdrawing: String? = null
+
     private fun visit(location: String) {
+        pushed = null
         address = Address(location)
         visits += 1
     }
