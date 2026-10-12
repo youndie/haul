@@ -5,15 +5,35 @@ import com.zaxxer.hikari.HikariDataSource
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.jdbc.Database
 import javax.sql.DataSource
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
+/**
+ * [connectionTimeout] is how long a caller waits for a connection before it is told there is none (B-127).
+ * Hikari's default is 30 s, and with the database stopped a page paid it on each of Exposed's three attempts:
+ * 97 s before its `503`. Two seconds is far above what a healthy pool in the same cluster takes, and it also
+ * bounds how long opening a new connection may take (Hikari's login timeout follows it). The start is not what
+ * waits for a database that comes up later: the chart's init container does (B-27), and a server started without
+ * one still exits at its first connection, as before.
+ */
 internal data class DatabaseConfig(
     val url: String,
     val user: String,
     val password: String,
     val maximumPoolSize: Int = DEFAULT_POOL_SIZE,
+    val connectionTimeout: Duration = CONNECTION_TIMEOUT,
 ) {
     companion object {
         const val DEFAULT_POOL_SIZE = 10
+
+        /** The wait for a connection; [FailFastDataSource] refuses for as long after the database was not there. */
+        val CONNECTION_TIMEOUT: Duration = 2.seconds
+
+        /**
+         * How long a pooled connection's liveness check may take before the connection is taken as dead. No longer than
+         * [CONNECTION_TIMEOUT]: Hikari's default, 5 s, would outlast it.
+         */
+        val VALIDATION_TIMEOUT: Duration = 1.seconds
     }
 }
 
@@ -28,6 +48,9 @@ internal object Databases {
                 maximumPoolSize = config.maximumPoolSize
                 isAutoCommit = false
                 transactionIsolation = "TRANSACTION_READ_COMMITTED"
+                connectionTimeout = config.connectionTimeout.inWholeMilliseconds
+                validationTimeout =
+                    minOf(DatabaseConfig.VALIDATION_TIMEOUT, config.connectionTimeout).inWholeMilliseconds
             },
         )
 
