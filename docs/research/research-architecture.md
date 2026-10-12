@@ -472,7 +472,11 @@ for it:
 - **A header is kept for whom it was drawn** (`ShellHeaders`): a tree's or the header alone, tagged with
   whether the shopper was signed in (`SessionControls.signedIn`) when it was drawn. A sign-in or a sign-out over
   a page with no tree no longer leaves the other shopper's header (a guest's «Maya» after signing out over a
-  404); the page asks again.
+  404); the page asks again. **Since B-130 the shell follows who is looking as it changes**
+  (`SessionControls.signedInChanges`, collected in `Storefront`) instead of reading it whenever something else
+  draws the storefront again: a sign-in that ended by itself — the provider refused to renew it under a press,
+  and `Identity.send` left the guest — changed it with no visit, and Maya's header stayed over a guest's tab.
+  A session ends the same way however it ends; blanking the header was rejected (the guest has one of their own).
 - **Until the server answers, the client's own header follows the session**: `SHELL_HEADER` for a guest,
   `CUSTOMER_SHELL_HEADER` for a customer — the account slot reads «Account» and opens the account's menu with
   «Sign out», no count (the client does not know it), «Orders» and «Saved» lead straight to them and «HAUL PLUS»

@@ -35,6 +35,8 @@ import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.TextComponent
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.PolymorphicSerializer
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
@@ -456,7 +458,13 @@ class SignInEverywhereTest {
 
     /** Who the shopper is, as the storefront asks: what it was told, and what it was asked to do. */
     private class FakeSession : SessionControls {
-        override var signedIn = false
+        private val looking = MutableStateFlow(false)
+        override var signedIn: Boolean
+            get() = looking.value
+            set(value) {
+                looking.value = value
+            }
+        override val signedInChanges: Flow<Boolean> = looking
         var signOuts = 0
         var onSignOut: () -> Unit = {}
         val leftWith = CopyOnWriteArrayList<String?>()
