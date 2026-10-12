@@ -188,13 +188,23 @@ private fun PriceRange(facet: Facet) {
     // The thumbs while one is held, as fractions of the track; `null` draws them where the tree puts them.
     var held by remember(facet) { mutableStateOf<Pair<Float, Float>?>(null) }
 
-    // Whether a `load` went: not for the bounds already applied, nor while the sheet follows nothing (B-54).
+    // The bounds of the `load` this range sent and has not been answered for: the tree still shows the range before it
+    // (B-133). A confirm that comes after it with nothing edited sends nothing — a press on blank page space waits
+    // frames of its own before it leaves a field, so «from» left for «to» and a blank press at once had «to»'s confirm
+    // read the same two bounds after «from»'s had sent them, and send them again. An edit lets the same bounds go
+    // again: a load that failed is sent by typing the bound once more.
+    var sent by remember(range) { mutableStateOf<Pair<Int?, Int?>?>(null) }
+
+    // Whether a `load` went: not for the bounds already applied or already sent, nor while the sheet follows nothing
+    // (B-54).
     fun apply(
         from: Int?,
         to: Int?,
     ): Boolean {
         val actions = handler
         if (range == null || actions == null || (from == range.low && to == range.high)) return false
+        if (sent == (from to to)) return false
+        sent = from to to
         actions.handle(range.applying(from, to))
         return true
     }
@@ -217,8 +227,16 @@ private fun PriceRange(facet: Facet) {
             PriceField("from", facet.min.orEmpty(), Modifier.weight(1f))
             PriceField("to", facet.max.orEmpty(), Modifier.weight(1f))
         } else {
-            PriceInput("from", low, "0", PRICE_FROM_TAG, { low = it }, confirm, Modifier.weight(1f))
-            PriceInput("to", high, range.top.toString(), PRICE_TO_TAG, { high = it }, confirm, Modifier.weight(1f))
+            val typedLow: (String) -> Unit = {
+                if (it != low) sent = null
+                low = it
+            }
+            val typedHigh: (String) -> Unit = {
+                if (it != high) sent = null
+                high = it
+            }
+            PriceInput("from", low, "0", PRICE_FROM_TAG, typedLow, confirm, Modifier.weight(1f))
+            PriceInput("to", high, range.top.toString(), PRICE_TO_TAG, typedHigh, confirm, Modifier.weight(1f))
         }
     }
     val (start, end) = held ?: ((facet.rangeStart ?: 0f) to (facet.rangeEnd ?: 1f))
@@ -242,6 +260,7 @@ private fun PriceRange(facet: Facet) {
                             var lower = true
                             detectHorizontalDragGestures(
                                 onDragStart = { at ->
+                                    sent = null
                                     val (s, e) = held ?: ((facet.rangeStart ?: 0f) to (facet.rangeEnd ?: 1f))
                                     val x = (at.x - reach) / track
                                     lower = abs(x - s) < abs(x - e) || (x < s && s == e)

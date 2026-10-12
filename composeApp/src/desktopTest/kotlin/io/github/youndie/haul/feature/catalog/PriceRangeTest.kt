@@ -46,6 +46,7 @@ import io.github.youndie.kompot.commands.LoadAction
 import io.github.youndie.kompot.commands.UpdateHistory
 import io.github.youndie.kompot.commands.kompotUpdate
 import io.github.youndie.kompot.standard.ColumnComponent
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.serialization.PolymorphicSerializer
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
@@ -63,9 +64,13 @@ class PriceRangeTest {
     private val history = FakeHistory(BY_OSTRA)
     private val parts = mutableMapOf<String, KompotAction>()
 
+    /** While set, a part's answer waits for it, as one over the network takes frames to arrive. */
+    private var answers: CompletableDeferred<Unit>? = null
+
     private val transport =
         HaulTransport { path ->
             requests += path
+            if (path.startsWith(PARTS)) answers?.await()
             val action =
                 parts[path]?.let { haulWireJson.encodeToString(PolymorphicSerializer(KompotAction::class), it) }
             val body =
@@ -238,6 +243,35 @@ class PriceRangeTest {
             loaded(FROM_20)
         }
 
+    /**
+     * B-133, after B-118's one confirm: «from» left for «to» and a press on blank page space within the frames
+     * «from»'s confirm waits still sent the same load twice, the first aborted. The blank press waits frames of its
+     * own before it takes the focus off «to», so «to»'s confirm came after «from»'s had sent, read the same two
+     * bounds and sent them again.
+     */
+    @Test
+    fun `leaving both price fields at once sends one load`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            ranged(FROM_20, 20, null)
+            storefront()
+            waitForText(OSTRA_MUG)
+            val from = onNodeWithTag(PRICE_FROM_TAG)
+            from.performClick()
+            from.performTextInput("20")
+            waitForIdle()
+            answers = CompletableDeferred()
+            mainClock.autoAdvance = false
+            onNodeWithTag(PRICE_TO_TAG).performClick()
+            onRoot().performMouseInput { click(Offset(BLANK_X, BLANK_Y)) }
+            mainClock.advanceTimeBy(ANSWER_MILLIS)
+            answers?.complete(Unit)
+            mainClock.autoAdvance = true
+            waitForText("From $20")
+            mainClock.advanceTimeBy(1_000)
+            waitForIdle()
+            loaded(FROM_20)
+        }
+
     /** The phone's sheet is the page its fields are on: a tap on its blank space leaves them as a click does at 1440. */
     @Test
     fun `a tap on the filter sheet's blank space applies a typed bound`() =
@@ -381,6 +415,9 @@ class PriceRangeTest {
         const val TO_60 = "$BY_OSTRA&price_max=60"
         const val TO_50 = "$BY_OSTRA&price_max=50"
         const val FROM_25_TO_50 = "$BY_OSTRA&price_min=25&price_max=50"
+
+        /** How long a part's answer is held back: a few frames, as long as a load over the network takes. */
+        const val ANSWER_MILLIS = 200L
 
         /** Blank page space at 1440: the window's bottom-right corner, below the page's one row of cards. */
         const val BLANK_X = WIDTH - 24f
