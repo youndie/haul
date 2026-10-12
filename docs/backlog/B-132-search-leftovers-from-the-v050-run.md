@@ -1,7 +1,7 @@
 ---
 id: B-132
 title: "fix: an empty scoped panel, an out-of-date search link and the reviews link's address"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-12-qa-run
