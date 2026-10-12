@@ -63,7 +63,7 @@ half of TC-STAND-05 that reads katcher has nothing to read.
   address from a crawler will appear in katcher as a group. Recorded, not changed: it is B-32's decision.
 - **The local stack, 2026-10-12 on the WSL box** — katcher's own image (`ghcr.io/youndie/katcher:latest`, built
   2026-10-02) and tracy's (`ghcr.io/youndie/tracy:0.3.8`) beside the image `scripts/image-build.sh` built from this
-  branch (82490d2), with PostgreSQL, on one Docker network; the application `haul-server` created in katcher
+  branch (its fix commit, 82490d2 before the rebase onto main — 3ccb94f), with PostgreSQL, on one Docker network; the application `haul-server` created in katcher
   through its own form (`POST /apps`, the proxy's user headers set by hand) and its key read from the key reveal.
   The server seeded, ready, `/ui/deals` `200`; then `ALTER TABLE deals RENAME TO deals_gone` in its database and
   `/ui/deals` answered `500 {"code":"internal",…}`. Within 8 s katcher's error list for the application held one
