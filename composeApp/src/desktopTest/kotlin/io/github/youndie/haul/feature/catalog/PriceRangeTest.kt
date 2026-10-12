@@ -366,6 +366,39 @@ class PriceRangeTest {
             loaded(FROM_50, FROM_20_TO_50)
         }
 
+    /**
+     * B-134, the other way the walk at once goes: `20` lands in «to» before «from»'s confirm has read the fields, so
+     * «from»'s load carries both bounds, swapped. That `20` was confirmed with it: the answer redraws both fields, and
+     * leaving «to» afterwards sends nothing more.
+     */
+    @Test
+    fun `a bound typed before the other's load reads it goes with that load once`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            ranged(FROM_20_TO_50, 20, 50)
+            storefront()
+            waitForText(OSTRA_MUG)
+            val from = onNodeWithTag(PRICE_FROM_TAG)
+            from.performClick()
+            from.performTextInput("50")
+            waitForIdle()
+            val held = CompletableDeferred<Unit>().also { answers = it }
+            mainClock.autoAdvance = false
+            val to = onNodeWithTag(PRICE_TO_TAG)
+            to.performClick()
+            to.performTextInput("20")
+            repeat(3) { mainClock.advanceTimeByFrame() }
+            mainClock.advanceTimeBy(ANSWER_MILLIS)
+            held.complete(Unit)
+            mainClock.autoAdvance = true
+            waitForText("$20 – $50")
+            from.assertTextEquals("$20")
+            to.assertTextEquals("$50")
+            onRoot().performMouseInput { click(Offset(BLANK_X, BLANK_Y)) }
+            mainClock.advanceTimeBy(1_000)
+            waitForIdle()
+            loaded(FROM_20_TO_50)
+        }
+
     /** The phone's sheet is the page its fields are on: a tap on its blank space leaves them as a click does at 1440. */
     @Test
     fun `a tap on the filter sheet's blank space applies a typed bound`() =
