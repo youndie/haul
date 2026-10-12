@@ -61,6 +61,7 @@ import io.github.youndie.haul.theme.LocalHaulMedium
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Highlight
+import io.github.youndie.haul.ui.HistogramBar
 import io.github.youndie.haul.ui.Icon
 import io.github.youndie.haul.ui.LocalHaulActions
 import io.github.youndie.haul.ui.LocalTabsInView
@@ -76,6 +77,7 @@ import io.github.youndie.haul.ui.accented
 import io.github.youndie.haul.ui.following
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
+import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.toneColor
 import io.github.youndie.haul.ui.widestWord
@@ -193,6 +195,15 @@ internal const val HELPFUL_TAG: String = "review-helpful"
 
 /** «Show more reviews» and «Show more questions» (B-71). */
 internal const val MORE_TAG: String = "show-more"
+
+/** A bar of the rating histogram, by its stars (B-86). */
+internal fun histogramTag(stars: Int): String = "histogram:$stars"
+
+/** What a bar's filter lists, «Showing 4-star reviews» (B-86). */
+internal const val REVIEW_FILTER_TAG: String = "review-filter"
+
+/** «All», which takes a bar's filter off (B-86). */
+internal const val ALL_REVIEWS_TAG: String = "all-reviews"
 
 /** The bottom of the page under the tab's content. */
 @Composable
@@ -436,29 +447,10 @@ private fun RatingSummary(
     Column(Modifier.fillMaxWidth()) {
         BigNumber(reviews.rating, reviews.caption, compact)
         Column(Modifier.padding(top = 28.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            val style = HaulType.label(13f, 500, 0f)
-            reviews.histogram.forEach { bar ->
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(bar.stars.toString(), style, Modifier.width(20.dp))
-                    Box(
-                        Modifier
-                            .weight(1f)
-                            .height(8.dp)
-                            .background(HaulColors.outlineVariant, RoundedCornerShape(4.dp))
-                            .drawBehind {
-                                drawRect(
-                                    HaulColors.inverseSurface,
-                                    size = Size(size.width * bar.percent / 100f, size.height),
-                                )
-                            },
-                    )
-                    Text("${bar.percent}%", style.copy(textAlign = TextAlign.End), Modifier.width(40.dp))
-                }
-            }
+            val filtered = reviews.histogram.any { it.selected }
+            reviews.histogram.forEach { HistogramRow(it, filtered) }
         }
+        ReviewFilter(reviews)
         if (reviews.action == null) {
             // A customer who has reviewed the product: when they did, in words where the button was; their
             // review leads the list (B-99).
@@ -476,6 +468,71 @@ private fun RatingSummary(
                 border = HaulColors.onSurface,
                 textSize = 16f,
                 onClick = following(reviews.action),
+            )
+        }
+    }
+}
+
+/**
+ * A bar of the histogram: its stars, the bar and its share. A bar with an action lists the reviews of its stars, or —
+ * the bar [HistogramBar.selected] — every review again (B-86); while one is selected the others' fill is drawn in the
+ * outline colour and its own row in bold, so the filter shows where it was pressed. A press is named by what the row
+ * says, «4 stars, 12% of reviews», and a selected bar is `selected` for a reader of the page.
+ */
+@Composable
+private fun HistogramRow(
+    bar: HistogramBar,
+    filtered: Boolean,
+) {
+    val style = HaulType.label(13f, if (bar.selected) 700 else 500, 0f)
+    val fill = if (filtered && !bar.selected) HaulColors.outlineControl else HaulColors.inverseSurface
+    val press = following(bar.action)
+    Row(
+        Modifier
+            .testTag(histogramTag(bar.stars))
+            .then(
+                if (press == null) {
+                    Modifier
+                } else {
+                    Modifier
+                        .named("${bar.stars} ${if (bar.stars == 1) "star" else "stars"}, ${bar.percent}% of reviews")
+                        .semantics { selected = bar.selected }
+                        .pressable(press)
+                },
+            ),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(bar.stars.toString(), style, Modifier.width(20.dp))
+        Box(
+            Modifier
+                .weight(1f)
+                .height(8.dp)
+                .background(HaulColors.outlineVariant, RoundedCornerShape(4.dp))
+                .drawBehind { drawRect(fill, size = Size(size.width * bar.percent / 100f, size.height)) },
+        )
+        Text("${bar.percent}%", style.copy(textAlign = TextAlign.End), Modifier.width(40.dp))
+    }
+}
+
+/** While a bar filters the reviews (B-86): what is listed, «Showing 4-star reviews», and «All» to list every one. */
+@Composable
+private fun ReviewFilter(reviews: ProductReviews) {
+    val filter = reviews.filter ?: return
+    Row(
+        Modifier.padding(top = 20.dp).fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(filter, HaulType.text(15f, 600), Modifier.weight(1f).testTag(REVIEW_FILTER_TAG))
+        val all = following(reviews.all)
+        val label = reviews.allLabel
+        if (label != null && all != null) {
+            Text(
+                label,
+                HaulType.text(15f, 600).copy(color = HaulColors.primary),
+                Modifier.testTag(ALL_REVIEWS_TAG).pressable(all),
+                softWrap = false,
             )
         }
     }
@@ -508,11 +565,7 @@ private fun ReviewCard(
         }
         Text(review.title, HaulType.display(24f, 700, letterSpacing = -0.01f, lineHeight = 1.15f))
         Text(review.text, HaulType.text(15f, lineHeight = 1.55f).copy(color = HaulColors.onSurfaceVariant))
-        if (review.photos.isNotEmpty()) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                review.photos.forEach { Box(Modifier.size(72.dp).background(toneColor(it), RoundedCornerShape(12.dp))) }
-            }
-        }
+        if (review.photos.isNotEmpty()) ReviewPhotoTiles(review)
         Row(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),

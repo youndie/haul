@@ -219,23 +219,43 @@
    "histogram": [
     {
      "stars": 5,
-     "percent": 78
+     "percent": 84,
+     "action": {
+      "type": "load",
+      "url": "/ui/parts/p/p-sony-wh-1000xm6?tab=reviews&stars=5"
+     }
     },
     {
      "stars": 4,
-     "percent": 14
+     "percent": 12,
+     "action": {
+      "type": "load",
+      "url": "/ui/parts/p/p-sony-wh-1000xm6?tab=reviews&stars=4"
+     }
     },
     {
      "stars": 3,
-     "percent": 4
+     "percent": 2,
+     "action": {
+      "type": "load",
+      "url": "/ui/parts/p/p-sony-wh-1000xm6?tab=reviews&stars=3"
+     }
     },
     {
      "stars": 2,
-     "percent": 2
+     "percent": 1,
+     "action": {
+      "type": "load",
+      "url": "/ui/parts/p/p-sony-wh-1000xm6?tab=reviews&stars=2"
+     }
     },
     {
      "stars": 1,
-     "percent": 2
+     "percent": 1,
+     "action": {
+      "type": "load",
+      "url": "/ui/parts/p/p-sony-wh-1000xm6?tab=reviews&stars=1"
+     }
     }
    ],
    "actionLabel": "Write a review",
@@ -324,7 +344,7 @@
      "author": "Chris P.",
      "initial": "C",
      "tone": "#F1E4F5",
-     "meta": "Sep 18 · Verified purchase",
+     "meta": "Sep 19 · Verified purchase",
      "score": "5.0",
      "title": "Exactly what I hoped for",
      "text": "Arrived well packed and works exactly as described. Feels solid and looks better in person.",
@@ -346,21 +366,6 @@
      "text": "Bought one as a gift, then a second for myself. No complaints at all.",
      "helpfulCommand": {
       "url": "/api/v1/reviews/rf-p-sony-wh-1000xm6-5-5/helpful",
-      "vote": {
-       "helpful": true
-      }
-     }
-    },
-    {
-     "author": "Priya N.",
-     "initial": "P",
-     "tone": "#E6E4FF",
-     "meta": "Sep 18 · Verified purchase",
-     "score": "4.0",
-     "title": "Does the job well",
-     "text": "Solid and dependable. I'd buy it again, maybe in another colour.",
-     "helpfulCommand": {
-      "url": "/api/v1/reviews/rf-p-sony-wh-1000xm6-4-1/helpful",
       "vote": {
        "helpful": true
       }
@@ -391,6 +396,21 @@
      "text": "Used it every day for a few weeks now and it has not let me down once. Easy recommendation.",
      "helpfulCommand": {
       "url": "/api/v1/reviews/rf-p-sony-wh-1000xm6-5-7/helpful",
+      "vote": {
+       "helpful": true
+      }
+     }
+    },
+    {
+     "author": "Priya N.",
+     "initial": "P",
+     "tone": "#E6E4FF",
+     "meta": "Sep 17 · Verified purchase",
+     "score": "4.0",
+     "title": "Does the job well",
+     "text": "Solid and dependable. I'd buy it again, maybe in another colour.",
+     "helpfulCommand": {
+      "url": "/api/v1/reviews/rf-p-sony-wh-1000xm6-4-1/helpful",
       "vote": {
        "helpful": true
       }

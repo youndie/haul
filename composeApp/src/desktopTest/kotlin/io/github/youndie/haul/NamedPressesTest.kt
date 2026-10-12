@@ -11,15 +11,17 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithTag
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.feature.home.PLUS_CLOSE_TAG
 import io.github.youndie.haul.feature.product.CLOSE_TAG
+import io.github.youndie.haul.feature.product.PHOTO_CLOSE_TAG
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
 import io.github.youndie.haul.shell.Storefront
@@ -117,7 +119,9 @@ class NamedPressesTest {
             waitForIdle()
             if (dialog != null) {
                 // The press itself, wherever the control is: below the window's fold a click would miss it.
-                onAllNodesWithText(dialog.opener).onFirst().performSemanticsAction(SemanticsActions.OnClick)
+                onAllNodes(hasText(dialog.opener) or hasContentDescription(dialog.opener))
+                    .onFirst()
+                    .performSemanticsAction(SemanticsActions.OnClick)
                 waitUntil(timeoutMillis = 5_000) { onAllNodesWithTag(dialog.close).fetchSemanticsNodes().isNotEmpty() }
                 waitForIdle()
             }
@@ -238,7 +242,10 @@ class NamedPressesTest {
                 "/account/orders/HL-48302" to "order_delivered.json",
             )
 
-        /** Every dialog the storefront presents: the review's, the question's, the return's, the Plus trial's. */
+        /**
+         * Every dialog the storefront presents — the review's, the question's, the return's, the Plus trial's — and
+         * the viewer of a review's photos (B-86).
+         */
         val DIALOGS =
             listOf(
                 Dialog(
@@ -257,6 +264,14 @@ class NamedPressesTest {
                 ),
                 Dialog("return", "/account/orders/HL-46102", "order_delivered.json", "Return items", CLOSE_TAG),
                 Dialog("plus trial", "/", "home_plus_trial.json", "Try 30 days free", PLUS_CLOSE_TAG),
+                // B-86: a review's photos, opened by a photo — named by its content description, it has no words.
+                Dialog(
+                    "review photos",
+                    "/p/p-sony-wh-1000xm6?tab=reviews",
+                    "product_reviews.json",
+                    "Open photo 1 of 2 by Daniel R.",
+                    PHOTO_CLOSE_TAG,
+                ),
             )
     }
 }

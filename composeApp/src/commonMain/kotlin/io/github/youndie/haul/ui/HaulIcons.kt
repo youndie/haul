@@ -55,6 +55,7 @@ public object HaulIcons {
     public val menu: ImageVector = stroked("menu", 2.2f, "M4 6h16M4 12h16M4 18h16")
     public val share: ImageVector = stroked("share", 2f, "M12 15V3M7 8l5-5 5 5M5 14v6h14v-6")
     public val chevronRight: ImageVector = stroked("chevron-right", 2.4f, "M9 6l6 6-6 6")
+    public val chevronLeft: ImageVector = stroked("chevron-left", 2.4f, "M15 6l-6 6 6 6")
     public val bolt: ImageVector = filled("bolt", "M13 2L4 14h7l-1 8 9-12h-7l1-8z")
     public val star: ImageVector =
         filled("star", "M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z")
