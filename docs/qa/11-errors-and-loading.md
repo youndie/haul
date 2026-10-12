@@ -96,9 +96,10 @@ the server's own: `503`).
 - **Expected:**
   - Step 1: each says it could not reach Haul and to check the connection («We couldn't reach Haul …»); the cart
     and checkout also say nothing was lost.
-  - Step 2: each says it was the store's side; the cart, checkout and search keep their «Try again in a moment».
+  - Step 2: each says it was the store's side, within five seconds of the press (B-127); the cart, checkout and
+    search keep their «Try again in a moment».
   - Step 3: the page.
-- **Decided in:** B-94
+- **Decided in:** B-94, B-127
 - **Coverage:** `RefusedPagesTest` «an account that could not be reached says so, not our side»;
   `RefusedPagesTest` «a saved list that could not be reached says so, not our side»;
   `RefusedPagesTest` «a saved list the server failed says it was our side»;
@@ -108,6 +109,7 @@ the server's own: `503`).
   `StorefrontTest` «no answer at all says the server could not be reached»;
   `StorefrontTest` «a server error draws the error page and Retry loads the page again»;
   `ErrorAnswersTest` «a database that cannot be reached makes a screen 503 unavailable»;
+  `DatabaseOutageTest` «a stopped database answers a page in seconds and readiness within its probe's timeout»;
   golden `Home_Error`; golden `Cart_Error`;
   manual: an error of the store's own cannot be caused on the stand; it needs a local stack with its database stopped
 
