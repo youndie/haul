@@ -1,7 +1,7 @@
 ---
 id: B-135
 title: "fix: the search field's loose ends — one letter, Escape, the empty page's notice"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-12-qa-run
