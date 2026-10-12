@@ -57,6 +57,15 @@ well under a page's tolerance — so the golden goes on showing the old text (B-
 a copy outside the mutagen replica (mutagen reverts files written on it), bring back only the PNGs that
 changed, and look at each.
 
+## Design references
+
+The Claude Design canvas is a historical reference, not the acceptance criterion: the code is the source of truth
+and the canvas is not caught up (research §1.6, «Decided in B-85»). `viddikDesignParity` (report-only, not part of
+`check`) compares the artboards that still describe the store, `composeApp/src/desktopTest/snapshots/design/*.png`.
+A decided change that takes one of them past the tolerance moves its PNG to `design/retired/` and gives its
+`manifest.json` entry the `retired` line naming the decision, in the same pull request; the tolerance and the
+references themselves are never changed, and no reference is re-rendered from the canvas.
+
 ## Rules
 
 - Code, comments, KDoc, test names, exception messages, commits and pull requests in English;

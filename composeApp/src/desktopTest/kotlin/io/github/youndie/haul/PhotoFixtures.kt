@@ -20,9 +20,8 @@ import io.github.youndie.haul.ui.PHOTO_TAG
 import io.github.youndie.haul.ui.PhotoLoader
 import io.github.youndie.viddik.annotations.ViddikScreenshot
 
-// A product card whose photo has loaded (B-30). Every other fixture draws the canvas's placeholder
-// tiles — their bodies name no photo, and the fixtures' default loader loads nothing — so their goldens
-// and their design parity are exactly what they were; this one shows what a stored photo looks like.
+// A product card whose photo has loaded (B-30). The other fixtures draw the seed's pictures their bodies
+// name (B-78, `ArtLoader`) over the placeholder tiles; this one shows what a stored photo looks like.
 // The photo is painted here, not fetched or decoded: the golden is about the card, not about a codec.
 
 @ViddikScreenshot(name = "Photo", group = "ProductCard", width = 236, height = 400)

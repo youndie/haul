@@ -47,7 +47,7 @@ long search is walked in [catalog and filters](03-catalog-and-filters.md) (TC-CA
 
 - **Who:** guest
 - **Width:** 1440
-- **Preconditions:** the home page. (The phone's header has no picker: the canvas draws its field alone.)
+- **Preconditions:** the home page. (The phone's header has no picker: its field stands alone.)
 - **Steps:**
   1. Press «All categories ▾» and choose «Home & Kitchen».
   2. Type `mug`; read the panel; press Enter.

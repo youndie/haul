@@ -43,13 +43,11 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (1)
+## Open (0)
 
-| Task | | Priority | Size | Blocked by |
-|---|---|---|---|---|
-| [B-85](docs/backlog/B-85-canvas-behind-the-code.md) `[ ]` | design: the canvas draws what the store now has | P3 | M | - |
+No open tasks.
 
-## Closed (139)
+## Closed (140)
 
 **Skeleton**
 
@@ -164,6 +162,7 @@ A stage is a field on the item, not a directory.
 - [B-82](docs/backlog/B-82-tablet-widths.md) `[x]` - client: the store reads well between a phone and 1440
 - [B-83](docs/backlog/B-83-typed-input-before-every-press.md) `[x]` - client: every press that reads a field sees what was typed
 - [B-84](docs/backlog/B-84-screenshot-fixtures-leak-state.md) `[x]` - test: screenshot fixtures do not depend on their order
+- [B-85](docs/backlog/B-85-canvas-behind-the-code.md) `[x]` - design: the code is the reference; parity compares only the artboards that still describe the store
 - [B-86](docs/backlog/B-86-reviews-photos-and-histogram.md) `[x]` - client + server: review photos open and the histogram filters
 - [B-87](docs/backlog/B-87-fallback-rows.md) `[x]` - server: what home and the empty cart show when no deal is live
 - [B-88](docs/backlog/B-88-a-return-restocks.md) `[x]` - server: a returned unit goes back to stock
@@ -230,9 +229,13 @@ A stage is a field on the item, not a directory.
 
 ## Decisions worth not re-litigating
 
-**A client item is accepted against the canvas, not against a description of it.** Every client
-item's acceptance is `viddikDesignParity` within tolerance for the artboards it names; a number
-above the tolerance comes with a reason, never with a loosened threshold.
+**The code is the reference; the canvas is a historical one** (owner, 2026-10-13, B-85; it replaces «a client
+item is accepted against the canvas»). A client item is accepted by its goldens (`viddikVerify`) and its
+scenarios. `viddikDesignParity` compares only the artboards that still describe the store
+(`composeApp/src/desktopTest/snapshots/design/*.png`): a decided change that takes one past the tolerance moves
+its PNG to `design/retired/` with the decision in `manifest.json`'s `retired` line, in the same pull request —
+never a loosened threshold, never an edited or re-rendered reference. A number over the line with no decision
+behind it is a defect.
 
 **The feature, screen, endpoint and service documents are drafted in an open pull request.** They
 describe intent until the code behind them exists, and intent does not live on `main`. An item that

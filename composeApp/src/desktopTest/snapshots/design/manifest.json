@@ -32,11 +32,12 @@
     {
       "artboard": "Account_Error_Phone.dc.html",
       "frame": null,
-      "reference": "Account_Error_Phone.png",
+      "reference": "retired/Account_Error_Phone.png",
       "width": 390,
       "height": 641,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-73, B-72, B-107, B-75: the header's departures (the phone's menu button, the strip's words, «Search products», an empty cart's wider button) take this short page over the tolerance"
     },
     {
       "artboard": "Account_Loading.dc.html",
@@ -68,11 +69,12 @@
     {
       "artboard": "Account_NoOrders_Phone.dc.html",
       "frame": null,
-      "reference": "Account_NoOrders_Phone.png",
+      "reference": "retired/Account_NoOrders_Phone.png",
       "width": 390,
       "height": 693,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-73, B-72, B-107, B-75: the header's departures (the phone's menu button, the strip's words, «Search products», an empty cart's wider button) take this short page over the tolerance"
     },
     {
       "artboard": "Account_NotMember.dc.html",
@@ -113,38 +115,42 @@
     {
       "artboard": "Cart_Content.dc.html",
       "frame": null,
-      "reference": "Cart_Content.png",
+      "reference": "retired/Cart_Content.png",
       "width": 1440,
       "height": 1179,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Cart_Content_Phone.dc.html",
       "frame": null,
-      "reference": "Cart_Content_Phone.png",
+      "reference": "retired/Cart_Content_Phone.png",
       "width": 390,
       "height": 1668,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Cart_Empty.dc.html",
       "frame": null,
-      "reference": "Cart_Empty.png",
+      "reference": "retired/Cart_Empty.png",
       "width": 1440,
       "height": 1216,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Cart_Empty_Phone.dc.html",
       "frame": null,
-      "reference": "Cart_Empty_Phone.png",
+      "reference": "retired/Cart_Empty_Phone.png",
       "width": 390,
       "height": 1722,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Cart_Error.dc.html",
@@ -167,38 +173,42 @@
     {
       "artboard": "Cart_Guest.dc.html",
       "frame": null,
-      "reference": "Cart_Guest.png",
+      "reference": "retired/Cart_Guest.png",
       "width": 1440,
       "height": 1179,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Cart_Guest_Phone.dc.html",
       "frame": null,
-      "reference": "Cart_Guest_Phone.png",
+      "reference": "retired/Cart_Guest_Phone.png",
       "width": 390,
       "height": 1607,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Cart_ItemChanged.dc.html",
       "frame": null,
-      "reference": "Cart_ItemChanged.png",
+      "reference": "retired/Cart_ItemChanged.png",
       "width": 1440,
       "height": 1263,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Cart_ItemChanged_Phone.dc.html",
       "frame": null,
-      "reference": "Cart_ItemChanged_Phone.png",
+      "reference": "retired/Cart_ItemChanged_Phone.png",
       "width": 390,
       "height": 1776,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Cart_Loading.dc.html",
@@ -221,56 +231,62 @@
     {
       "artboard": "Cart_PromoApplied.dc.html",
       "frame": null,
-      "reference": "Cart_PromoApplied.png",
+      "reference": "retired/Cart_PromoApplied.png",
       "width": 1440,
       "height": 1179,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Cart_PromoApplied_Phone.dc.html",
       "frame": null,
-      "reference": "Cart_PromoApplied_Phone.png",
+      "reference": "retired/Cart_PromoApplied_Phone.png",
       "width": 390,
       "height": 1705,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Cart_PromoError.dc.html",
       "frame": null,
-      "reference": "Cart_PromoError.png",
+      "reference": "retired/Cart_PromoError.png",
       "width": 1440,
       "height": 1179,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Cart_PromoError_Phone.dc.html",
       "frame": null,
-      "reference": "Cart_PromoError_Phone.png",
+      "reference": "retired/Cart_PromoError_Phone.png",
       "width": 390,
       "height": 1688,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Catalog_Content.dc.html",
       "frame": null,
-      "reference": "Catalog_Content.png",
+      "reference": "retired/Catalog_Content.png",
       "width": 1440,
       "height": 1940,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Catalog_Content_Phone.dc.html",
       "frame": null,
-      "reference": "Catalog_Content_Phone.png",
+      "reference": "retired/Catalog_Content_Phone.png",
       "width": 390,
       "height": 2789,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Catalog_Empty.dc.html",
@@ -284,11 +300,12 @@
     {
       "artboard": "Catalog_Empty_Phone.dc.html",
       "frame": null,
-      "reference": "Catalog_Empty_Phone.png",
+      "reference": "retired/Catalog_Empty_Phone.png",
       "width": 390,
       "height": 852,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-73, B-72, B-107, B-75: the header's departures (the phone's menu button, the strip's words, «Search products», an empty cart's wider button) take this short page over the tolerance"
     },
     {
       "artboard": "Catalog_Error.dc.html",
@@ -338,20 +355,22 @@
     {
       "artboard": "Checkout_Content.dc.html",
       "frame": null,
-      "reference": "Checkout_Content.png",
+      "reference": "retired/Checkout_Content.png",
       "width": 1440,
       "height": 1564,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Checkout_Content_Phone.dc.html",
       "frame": null,
-      "reference": "Checkout_Content_Phone.png",
+      "reference": "retired/Checkout_Content_Phone.png",
       "width": 390,
       "height": 2362,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Checkout_Error.dc.html",
@@ -392,128 +411,142 @@
     {
       "artboard": "Checkout_ParcelLocker.dc.html",
       "frame": null,
-      "reference": "Checkout_ParcelLocker.png",
+      "reference": "retired/Checkout_ParcelLocker.png",
       "width": 1440,
       "height": 1193,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Checkout_ParcelLocker_Phone.dc.html",
       "frame": null,
-      "reference": "Checkout_ParcelLocker_Phone.png",
+      "reference": "retired/Checkout_ParcelLocker_Phone.png",
       "width": 390,
       "height": 1802,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Checkout_PickupPoint.dc.html",
       "frame": null,
-      "reference": "Checkout_PickupPoint.png",
+      "reference": "retired/Checkout_PickupPoint.png",
       "width": 1440,
       "height": 1267,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Checkout_PickupPoint_Phone.dc.html",
       "frame": null,
-      "reference": "Checkout_PickupPoint_Phone.png",
+      "reference": "retired/Checkout_PickupPoint_Phone.png",
       "width": 390,
       "height": 2005,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Checkout_PlaceError.dc.html",
       "frame": null,
-      "reference": "Checkout_PlaceError.png",
+      "reference": "retired/Checkout_PlaceError.png",
       "width": 1440,
       "height": 1678,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Checkout_PlaceError_Phone.dc.html",
       "frame": null,
-      "reference": "Checkout_PlaceError_Phone.png",
+      "reference": "retired/Checkout_PlaceError_Phone.png",
       "width": 390,
       "height": 2509,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Checkout_Placing.dc.html",
       "frame": null,
-      "reference": "Checkout_Placing.png",
+      "reference": "retired/Checkout_Placing.png",
       "width": 1440,
       "height": 1564,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Checkout_Placing_Phone.dc.html",
       "frame": null,
-      "reference": "Checkout_Placing_Phone.png",
+      "reference": "retired/Checkout_Placing_Phone.png",
       "width": 390,
       "height": 2362,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Checkout_PointsApplied.dc.html",
       "frame": null,
-      "reference": "Checkout_PointsApplied.png",
+      "reference": "retired/Checkout_PointsApplied.png",
       "width": 1440,
       "height": 1564,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Checkout_PointsApplied_Phone.dc.html",
       "frame": null,
-      "reference": "Checkout_PointsApplied_Phone.png",
+      "reference": "retired/Checkout_PointsApplied_Phone.png",
       "width": 390,
       "height": 2390,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Checkout_Validation.dc.html",
       "frame": null,
-      "reference": "Checkout_Validation.png",
+      "reference": "retired/Checkout_Validation.png",
       "width": 1440,
       "height": 1608,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Checkout_Validation_Phone.dc.html",
       "frame": null,
-      "reference": "Checkout_Validation_Phone.png",
+      "reference": "retired/Checkout_Validation_Phone.png",
       "width": 390,
       "height": 2438,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Home_Content.dc.html",
       "frame": null,
-      "reference": "Home_Content.png",
+      "reference": "retired/Home_Content.png",
       "width": 1440,
       "height": 3263,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Home_Content_Phone.dc.html",
       "frame": null,
-      "reference": "Home_Content_Phone.png",
+      "reference": "retired/Home_Content_Phone.png",
       "width": 390,
       "height": 3875,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Home_Error.dc.html",
@@ -536,20 +569,22 @@
     {
       "artboard": "Home_Guest.dc.html",
       "frame": null,
-      "reference": "Home_Guest.png",
+      "reference": "retired/Home_Guest.png",
       "width": 1440,
       "height": 2627,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Home_Guest_Phone.dc.html",
       "frame": null,
-      "reference": "Home_Guest_Phone.png",
+      "reference": "retired/Home_Guest_Phone.png",
       "width": 390,
       "height": 2721,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Home_Loading.dc.html",
@@ -572,56 +607,62 @@
     {
       "artboard": "Home_PlusTrialDialog.dc.html",
       "frame": null,
-      "reference": "Home_PlusTrialDialog.png",
+      "reference": "retired/Home_PlusTrialDialog.png",
       "width": 1440,
       "height": 3134,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Home_PlusTrialDialog_Phone.dc.html",
       "frame": null,
-      "reference": "Home_PlusTrialDialog_Phone.png",
+      "reference": "retired/Home_PlusTrialDialog_Phone.png",
       "width": 390,
       "height": 3850,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Order_Cancelled.dc.html",
       "frame": null,
-      "reference": "Order_Cancelled.png",
+      "reference": "retired/Order_Cancelled.png",
       "width": 1440,
       "height": 1193,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Order_Cancelled_Phone.dc.html",
       "frame": null,
-      "reference": "Order_Cancelled_Phone.png",
+      "reference": "retired/Order_Cancelled_Phone.png",
       "width": 390,
       "height": 1550,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Order_Delivered.dc.html",
       "frame": null,
-      "reference": "Order_Delivered.png",
+      "reference": "retired/Order_Delivered.png",
       "width": 1440,
       "height": 1125,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Order_Delivered_Phone.dc.html",
       "frame": null,
-      "reference": "Order_Delivered_Phone.png",
+      "reference": "retired/Order_Delivered_Phone.png",
       "width": 390,
       "height": 1581,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Order_Error.dc.html",
@@ -644,20 +685,22 @@
     {
       "artboard": "Order_InTransit.dc.html",
       "frame": null,
-      "reference": "Order_InTransit.png",
+      "reference": "retired/Order_InTransit.png",
       "width": 1440,
       "height": 1345,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Order_InTransit_Phone.dc.html",
       "frame": null,
-      "reference": "Order_InTransit_Phone.png",
+      "reference": "retired/Order_InTransit_Phone.png",
       "width": 390,
       "height": 1662,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Order_Loading.dc.html",
@@ -698,92 +741,102 @@
     {
       "artboard": "Order_Placed.dc.html",
       "frame": null,
-      "reference": "Order_Placed.png",
+      "reference": "retired/Order_Placed.png",
       "width": 1440,
       "height": 1446,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Order_Placed_Phone.dc.html",
       "frame": null,
-      "reference": "Order_Placed_Phone.png",
+      "reference": "retired/Order_Placed_Phone.png",
       "width": 390,
       "height": 1814,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Order_ReadyForPickup.dc.html",
       "frame": null,
-      "reference": "Order_ReadyForPickup.png",
+      "reference": "retired/Order_ReadyForPickup.png",
       "width": 1440,
       "height": 1074,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Order_ReadyForPickup_Phone.dc.html",
       "frame": null,
-      "reference": "Order_ReadyForPickup_Phone.png",
+      "reference": "retired/Order_ReadyForPickup_Phone.png",
       "width": 390,
       "height": 1481,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Order_ReturnDialog.dc.html",
       "frame": null,
-      "reference": "Order_ReturnDialog.png",
+      "reference": "retired/Order_ReturnDialog.png",
       "width": 1440,
       "height": 1125,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Order_ReturnDialog_Phone.dc.html",
       "frame": null,
-      "reference": "Order_ReturnDialog_Phone.png",
+      "reference": "retired/Order_ReturnDialog_Phone.png",
       "width": 390,
       "height": 1581,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Order_Returned.dc.html",
       "frame": null,
-      "reference": "Order_Returned.png",
+      "reference": "retired/Order_Returned.png",
       "width": 1440,
       "height": 1146,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Order_Returned_Phone.dc.html",
       "frame": null,
-      "reference": "Order_Returned_Phone.png",
+      "reference": "retired/Order_Returned_Phone.png",
       "width": 390,
       "height": 1446,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Product_Description.dc.html",
       "frame": null,
-      "reference": "Product_Description.png",
+      "reference": "retired/Product_Description.png",
       "width": 1440,
       "height": 1494,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles; B-71: the gallery draws the product's own photos, no counter or dots, and the seller card is no link"
     },
     {
       "artboard": "Product_Description_Phone.dc.html",
       "frame": null,
-      "reference": "Product_Description_Phone.png",
+      "reference": "retired/Product_Description_Phone.png",
       "width": 390,
       "height": 2720,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles; B-71: the gallery draws the product's own photos, no counter or dots, and the seller card is no link"
     },
     {
       "artboard": "Product_Error.dc.html",
@@ -833,137 +886,152 @@
     {
       "artboard": "Product_NotFound_Phone.dc.html",
       "frame": null,
-      "reference": "Product_NotFound_Phone.png",
+      "reference": "retired/Product_NotFound_Phone.png",
       "width": 390,
       "height": 653,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-73, B-72, B-107, B-75: the header's departures (the phone's menu button, the strip's words, «Search products», an empty cart's wider button) take this short page over the tolerance"
     },
     {
       "artboard": "Product_OutOfStock.dc.html",
       "frame": null,
-      "reference": "Product_OutOfStock.png",
+      "reference": "retired/Product_OutOfStock.png",
       "width": 1440,
       "height": 1494,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles; B-71: the gallery draws the product's own photos, no counter or dots, and the seller card is no link"
     },
     {
       "artboard": "Product_OutOfStock_Phone.dc.html",
       "frame": null,
-      "reference": "Product_OutOfStock_Phone.png",
+      "reference": "retired/Product_OutOfStock_Phone.png",
       "width": 390,
       "height": 2680,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles; B-71: the gallery draws the product's own photos, no counter or dots, and the seller card is no link"
     },
     {
       "artboard": "Product_QuestionDialog.dc.html",
       "frame": null,
-      "reference": "Product_QuestionDialog.png",
+      "reference": "retired/Product_QuestionDialog.png",
       "width": 1440,
       "height": 1723,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Product_QuestionDialog_Phone.dc.html",
       "frame": null,
-      "reference": "Product_QuestionDialog_Phone.png",
+      "reference": "retired/Product_QuestionDialog_Phone.png",
       "width": 390,
       "height": 2930,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-71: the gallery draws the product's own photos, no counter or dots, and the seller card is no link (the page under the dialog)"
     },
     {
       "artboard": "Product_Questions.dc.html",
       "frame": null,
-      "reference": "Product_Questions.png",
+      "reference": "retired/Product_Questions.png",
       "width": 1440,
       "height": 1723,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles; B-71: the gallery draws the product's own photos, no counter or dots, and the seller card is no link"
     },
     {
       "artboard": "Product_Questions_Phone.dc.html",
       "frame": null,
-      "reference": "Product_Questions_Phone.png",
+      "reference": "retired/Product_Questions_Phone.png",
       "width": 390,
       "height": 2930,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles; B-71: the gallery draws the product's own photos, no counter or dots, and the seller card is no link"
     },
     {
       "artboard": "Product_ReviewDialog.dc.html",
       "frame": null,
-      "reference": "Product_ReviewDialog.png",
+      "reference": "retired/Product_ReviewDialog.png",
       "width": 1440,
       "height": 1572,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Product_ReviewDialog_Phone.dc.html",
       "frame": null,
-      "reference": "Product_ReviewDialog_Phone.png",
+      "reference": "retired/Product_ReviewDialog_Phone.png",
       "width": 390,
       "height": 3067,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-71: the gallery draws the product's own photos, no counter or dots, and the seller card is no link (the page under the dialog); B-86: the seed's histogram bars"
     },
     {
       "artboard": "Product_Reviews.dc.html",
       "frame": null,
-      "reference": "Product_Reviews.png",
+      "reference": "retired/Product_Reviews.png",
       "width": 1440,
       "height": 1572,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles; B-71: the gallery draws the product's own photos, no counter or dots, and the seller card is no link"
     },
     {
       "artboard": "Product_Reviews_Phone.dc.html",
       "frame": null,
-      "reference": "Product_Reviews_Phone.png",
+      "reference": "retired/Product_Reviews_Phone.png",
       "width": 390,
       "height": 3067,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles; B-71: the gallery draws the product's own photos, no counter or dots, and the seller card is no link"
     },
     {
       "artboard": "Product_Specifications.dc.html",
       "frame": null,
-      "reference": "Product_Specifications.png",
+      "reference": "retired/Product_Specifications.png",
       "width": 1440,
       "height": 1624,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles; B-71: the gallery draws the product's own photos, no counter or dots, and the seller card is no link"
     },
     {
       "artboard": "Product_Specifications_Phone.dc.html",
       "frame": null,
-      "reference": "Product_Specifications_Phone.png",
+      "reference": "retired/Product_Specifications_Phone.png",
       "width": 390,
       "height": 2869,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles; B-71: the gallery draws the product's own photos, no counter or dots, and the seller card is no link"
     },
     {
       "artboard": "Saved_Content.dc.html",
       "frame": null,
-      "reference": "Saved_Content.png",
+      "reference": "retired/Saved_Content.png",
       "width": 1440,
       "height": 1890,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Saved_Content_Phone.dc.html",
       "frame": null,
-      "reference": "Saved_Content_Phone.png",
+      "reference": "retired/Saved_Content_Phone.png",
       "width": 390,
       "height": 2727,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Saved_Empty.dc.html",
@@ -1022,38 +1090,42 @@
     {
       "artboard": "Saved_PriceDrops.dc.html",
       "frame": null,
-      "reference": "Saved_PriceDrops.png",
+      "reference": "retired/Saved_PriceDrops.png",
       "width": 1440,
       "height": 1415,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Saved_PriceDrops_Phone.dc.html",
       "frame": null,
-      "reference": "Saved_PriceDrops_Phone.png",
+      "reference": "retired/Saved_PriceDrops_Phone.png",
       "width": 390,
       "height": 1685,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles"
     },
     {
       "artboard": "Search_Autocomplete.dc.html",
       "frame": null,
-      "reference": "Search_Autocomplete.png",
+      "reference": "retired/Search_Autocomplete.png",
       "width": 1440,
       "height": 1359,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles; B-77: the search's sort, and the no-results tips as text"
     },
     {
       "artboard": "Search_Autocomplete_Phone.dc.html",
       "frame": null,
-      "reference": "Search_Autocomplete_Phone.png",
+      "reference": "retired/Search_Autocomplete_Phone.png",
       "width": 390,
       "height": 2196,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles; B-77: the search's sort, and the no-results tips as text"
     },
     {
       "artboard": "Search_Error.dc.html",
@@ -1094,38 +1166,42 @@
     {
       "artboard": "Search_NoResults.dc.html",
       "frame": null,
-      "reference": "Search_NoResults.png",
+      "reference": "retired/Search_NoResults.png",
       "width": 1440,
       "height": 869,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles; B-77: the search's sort, and the no-results tips as text"
     },
     {
       "artboard": "Search_NoResults_Phone.dc.html",
       "frame": null,
-      "reference": "Search_NoResults_Phone.png",
+      "reference": "retired/Search_NoResults_Phone.png",
       "width": 390,
       "height": 1010,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles; B-77: the search's sort, and the no-results tips as text"
     },
     {
       "artboard": "Search_Results.dc.html",
       "frame": null,
-      "reference": "Search_Results.png",
+      "reference": "retired/Search_Results.png",
       "width": 1440,
       "height": 1359,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles; B-77: the search's sort, and the no-results tips as text"
     },
     {
       "artboard": "Search_Results_Phone.dc.html",
       "frame": null,
-      "reference": "Search_Results_Phone.png",
+      "reference": "retired/Search_Results_Phone.png",
       "width": 390,
       "height": 2196,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-78: the store draws the seed's pictures where the artboard draws placeholder tiles; B-77: the search's sort, and the no-results tips as text"
     }
   ]
 }

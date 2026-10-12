@@ -108,7 +108,7 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
   1. Swipe the category row under the search field to its end.
   2. Press the last word.
 - **Expected:**
-  - Step 1: the row scrolls sideways; at rest it was cut at the edge, as the canvas draws it.
+  - Step 1: the row scrolls sideways; at rest it is cut at the edge, the sign that there is more.
   - Step 2: the last top-level category's page («Pets» on the seed) opens — the word under the finger, not another.
 - **Decided in:** B-73
 - **Coverage:** `composeApp:DrawnActionsTest` «on a phone the category row scrolls to its last category»;
@@ -157,7 +157,7 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
   3. Open a product, the cart, the account — look for the footer.
 - **Expected:**
   - Step 1: «Shop» and «Help» with «Deals», «Haul Plus», «Track an order»; no «Get the app» block, no «Sell» or
-    «Company» columns, no «Returns», «Gift cards», «Contact us». At 1440 the footer keeps the canvas's height (the
+    «Company» columns, no «Returns», «Gift cards», «Contact us». At 1440 the footer keeps four column places (the
     app block's place is empty); on a phone two rows of two.
   - Step 2: `/deals`; the sign-in (a guest's «Haul Plus»); the sign-in returning to `/account/orders`. Maya's
     «Haul Plus» is text.

@@ -20,7 +20,8 @@ import io.github.youndie.kompot.standard.PresentAction
 import io.github.youndie.viddik.annotations.ViddikScreenshot
 
 // One fixture per artboard of the Home and Catalog screens (B-07), at the artboard's size
-// (`snapshots/design/.canvas/canvas.json`), so `viddikDesignParity` compares each with its reference.
+// (`snapshots/design/.canvas/canvas.json`), so `viddikDesignParity` compares each with its reference while the
+// artboard still describes the store; one the code has moved past is retired and reads `no ref` (research §1.6).
 // Content states are wire bodies written with the canvas's copy (`resources/bodies`, research risk 3)
 // drawn through the app's registry; Loading, Error and the filter sheet are the client's own and are
 // drawn directly.

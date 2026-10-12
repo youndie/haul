@@ -5,7 +5,9 @@ day, B-62…B-113); each found dozens of problems. This catalogue is what the ne
 checked does not depend on who walks and what they remember (B-114).
 
 Each case says what the product decided, not what the code happens to do: the expected results come from
-research §2 («Decided in B-…») and the findings of the items that decided them, named on each case.
+research §2 («Decided in B-…») and the findings of the items that decided them, named on each case. An artboard
+of the design canvas is never an expected result — the canvas is a historical reference the code has moved past
+(research §1.6, «Decided in B-85»); where a case points at a picture, it is a golden.
 
 ## The areas
 

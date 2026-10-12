@@ -133,6 +133,35 @@ Verified against the Claude Design project «E-commerce витрина»
 that has no role is drift to raise with the designer, not a token to invent. The fixtures and the
 seed's fixed clock use the canvas's «now», or every date on a reference differs from its render.
 
+**Decided in B-85 (owner, 2026-10-13): the code is the reference; the canvas is a historical one.** Nothing here
+can edit the Claude Design canvas, and it is not caught up with what §2 decided since it was drawn. What it was read
+for stands — the roles, the fonts, the copy, the sizes, the «now» — but where the store has moved past an artboard
+on purpose, the store is right and the artboard is history: no item re-renders a reference, and none is accepted
+against an artboard the code has left.
+
+- **An artboard leaves the parity comparison by its PNG moving to `snapshots/design/retired/`.** viddik reads a
+  reference at `design/<stem>.png` and nowhere else (`ViddikEngine.designParity`, viddik 0.7.0), so a fixture whose
+  reference moved reads `no ref`, as a page the canvas never drew does. `design/manifest.json` keeps all 125
+  entries: a retired one points at `retired/<stem>.png` and carries a `retired` line naming the decisions that
+  moved the store past it. The PNG stays in the tree, beside its reason, as what a reviewer compares a decision
+  against. Rejected: re-rendering a canvas nothing here can edit; deleting the PNGs (the manifest would then name
+  files nobody can open without the history); a list of exclusions viddik does not read; raising the tolerance.
+- **Retired, 76.** Every artboard that draws a placeholder tile where the store draws the seed's pictures (D8,
+  B-78; the 70 its pull request measured), on the search's pages with B-77's sort and tips as text and on the
+  product page with B-71's gallery and seller card; the two product dialogs on a phone, whose page underneath is
+  B-71's (`Product_ReviewDialog_Phone` also B-86's bars); and four short phone pages the header's departures take
+  past 5 % — B-73's menu button, B-72's strip, B-107's «Search products», B-75's empty cart button
+  (`Catalog_Empty_Phone`, `Product_NotFound_Phone`, `Account_NoOrders_Phone`, `Account_Error_Phone`). B-75's
+  messages and «N in your cart» and B-133's shipment date had no artboard of their own past the line
+  (`Shell_Message*` and `Product_InCart*` never had one; Order_InTransit went with the pictures).
+- **Kept, 49**, all within 5 %: the loading, error, empty and not-found states, the account's pages and the filter
+  sheet. Their residual includes the header's departures, still under the line; a decided change that takes one
+  of them over retires it in the same pull request, with its reason in the manifest, and a number over the line
+  with no decision behind it is a defect.
+- **The goldens are the regression gate** (`viddikVerify` in `check`, every fixture, retired or not): they hold what
+  the code draws. Parity holds only that the artboards still describing the store are still drawn so. The fixtures
+  keep their artboards' names and sizes.
+
 ---
 
 ## 2. Decisions
@@ -227,7 +256,8 @@ client alone.
   no-results tips («01 Check the spelling», …) are advice, drawn as text with their numbers, not on the
   white pills the queries to try use, which run a search when pressed. No artboard draws the sort and the
   canvas draws the tips as pills, so `Search_Results`, `Search_Autocomplete` and `Search_NoResults` (and
-  their phone twins) depart from their artboards on purpose from B-77 on.
+  their phone twins) depart from their artboards on purpose from B-77 on, and left the parity comparison in B-85
+  (§1.6).
 - **The suggest panel follows the keyboard** (B-77): with the panel's queries offered, ↓ and ↑ move the
   highlight over them — from none to the last and back to none above the first — and Enter opens the
   highlighted query; with none highlighted Enter opens the text as typed, as before. Typing starts over
@@ -406,7 +436,9 @@ Where the canvas has no answer the conventional phone pattern is taken:
 - **The cost against the canvas**: the button and the logo moved 44 px right are drawn on every phone page
   but checkout's, +0.12 to +0.77 % on each phone artboard. Three short ones that already sat near the line now
   read over 5 % (Catalog_Empty_Phone 4.54 → 5.06, Order_Placed_Phone 4.83 → 5.06, Product_NotFound_Phone
-  4.53 → 5.21); the tolerance is unchanged. The canvas gaining a phone header with the menu is the way back.
+  4.53 → 5.21); the tolerance is unchanged. The canvas will not gain the menu (B-85, §1.6): Catalog_Empty_Phone,
+  Product_NotFound_Phone and two account pages the header later took over left the parity comparison,
+  Order_Placed_Phone with the pictures; every other phone artboard kept stays within the line with the button.
 - Rejected: a menu inside the category row (a trailing «All» or a leading grid button) — it scrolls away
   with the row or hides its words, and «Orders» and the account do not belong under categories; the button
   right of the cart — it moves the heart, the account and the cart instead of the logo.
@@ -1753,7 +1785,8 @@ from what names it, and the photo route serves it under `/images/art/<name>.svg`
   («Measured in B-78»).
 - **The goldens draw the pictures.** The screenshot fixtures draw every `/images/art/…` a body names from
   `composeApp/src/desktopTest/resources/art` at once (`ArtLoader`), and `ArtFixturesTest` holds that directory to what
-  the server draws under each name, so a golden shows what a shopper gets.
+  the server draws under each name, so a golden shows what a shopper gets. The artboards draw a striped tile where
+  the pictures stand, so every one of them with a tile left the parity comparison in B-85 (§1.6).
 
 ### D9. No server rendering, no SEO
 
@@ -2215,6 +2248,10 @@ alone, and a chosen star, a ticked box or a selected swatch reads as any other b
 screen changes every screen that uses the component. Mitigation: one reference PNG per artboard
 (125), exported from the canvas into the client's snapshot directory, and `viddikDesignParity` in
 every client item's acceptance. Open: the tolerance, set from the first measured screen.
+**Settled in B-85: the code drifts from the canvas on purpose, and parity follows only what still matches.**
+The canvas is not caught up (§1.6): the artboards the store has moved past are retired from the comparison, and the
+goldens (`viddikVerify`) are what holds every screen between changes. What a renderer changed for one screen does to
+another is caught by that screen's golden; parity is left with the 49 artboards that still describe the store.
 
 **Found in B-84: a parity number does not depend on what ran before the fixture.** The whole module rendered in
 the registry's order in one JVM, by size in two forks, with every fixture in a scene of its own, and a group
@@ -2222,8 +2259,8 @@ alone gave the same pixels for all 161 fixtures. A number that moves between two
 Search_* artboards' 2–3 % → 5–35 % that B-75 and B-72 read as leaking state was B-77's sort control and tips as
 text, measured on a branch before and after its merge. Two traps sit beside this: a recording without `--force`
 keeps a golden the verification accepts, so a change below the tolerance — a placeholder's words, a glyph's cut —
-leaves the old golden in the tree (24 of them on `main` at B-84); and a parity percentage compares the canvas,
-which B-85 has yet to bring up to the decided departures.
+leaves the old golden in the tree (24 of them on `main` at B-84); and a parity percentage compares the canvas —
+since B-85 only its artboards that still describe the store (§1.6), never what the code decided past it.
 
 **Risk 2. The browser cannot sign in with shildik's own client** (§1.4, consequence 5).
 Mitigation: B-12 starts by proving the authorisation-code flow with PKCE from wasmJs against a local

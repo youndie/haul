@@ -187,7 +187,7 @@ is the server's, stored per customer, and the summary is the server's quote (B-1
   2. With the quote changed since (a line's price), press «Place order».
   3. With the server unreachable, press «Place order», then «Retry».
 - **Expected:**
-  - Step 1: the checkout drawn again with the window cleared and its notice (Checkout_PlaceError) — no message over
+  - Step 1: the checkout drawn again with the window cleared and its notice (golden `Checkout_PlaceError`) — no message over
     the page on top of it.
   - Step 2: the checkout drawn again, the server's words in a message at the error level; the button pressable.
   - Step 3: «Couldn't reach the store» with «Retry»; Retry places under the same key — one order at most.
