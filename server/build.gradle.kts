@@ -34,7 +34,9 @@ dependencies {
     implementation(platform(wip.koin.bom))
     implementation(wip.koin.core)
     implementation(libs.koin.ktor)
-    runtimeOnly(libs.logback.classic)
+    // Compiled against, not only run with: tracy's appender is attached to logback's root logger in code
+    // (`ops/Observability.kt`, B-122).
+    implementation(libs.logback.classic)
 
     // Who watches it (B-27). Agents, not servers: where the data lands is a deployment, and each is
     // off until the environment names an endpoint and a key (`ServerConfig.observability`).
