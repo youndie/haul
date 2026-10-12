@@ -644,7 +644,9 @@ header and the buy box as above, then kompot's message «Added to your cart» wi
 and the buy box says what is in the cart (`ProductDetails.inCart`, «2 in your cart» leading to `/cart`). The client
 draws `show_message` itself (`shell/Messages.kt`): kompot leaves its look to the client and no artboard draws one,
 so it is the frame the shell already had over a page — B-62's notice, inverse surface, the Acid accent, the button
-on the right — at the bottom, four seconds (six with a button), a new message replacing the last; kompot's Material
+on the right — at the bottom, four seconds (six with a button), a new message replacing the last; a failure with a
+button, «Couldn't reach the store» and «Retry», has no time since B-136: it stays until it is answered or the page
+changes, where its press would land on a page that is gone (B-92's findings); kompot's Material
 snackbar was not taken, the app has no Material theme. A card's «+» says the same since B-81 (the owner's
 decision): its answer is the same `sequence` around the header and the card, on every page that answers it in
 place — home, catalog, search, deals, a customer's «Picked for you». The Saved list's «+» and the empty cart's

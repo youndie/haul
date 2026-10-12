@@ -124,10 +124,12 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
   2. Press a card's «+» on the home page; then add more until the count has two digits.
 - **Expected:**
   - Step 1: the empty cart's button already holds the count's place: the bag and «Cart» sit in its middle.
-  - Step 2: the count appears in that place; nothing else in the header moves, at one digit or two.
-- **Decided in:** B-75
+  - Step 2: the count appears in that place; nothing else in the header moves, at one digit or two. On a phone the
+    button reads «Cart 3» and nothing else, and «Cart» once the cart is emptied — no count left in its mirror.
+- **Decided in:** B-75, B-131, B-136
 - **Coverage:** `HeaderCountTest` «at 1366 the search field keeps its width when the count appears»;
-  `HeaderCountTest` «on a phone the account keeps its place when the count appears»
+  `HeaderCountTest` «on a phone the account keeps its place when the count appears»;
+  `HeaderCountTest` «on a phone the cart button reads its name and nothing else»
 
 ### TC-HDR-07 — A menu closes on Escape
 
