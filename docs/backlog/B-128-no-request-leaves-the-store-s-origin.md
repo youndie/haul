@@ -1,7 +1,7 @@
 ---
 id: B-128
 title: "fix: the storefront loads nothing from another origin"
-status: open
+status: wip
 priority: P3
 size: XS
 stage: stage-12-qa-run
