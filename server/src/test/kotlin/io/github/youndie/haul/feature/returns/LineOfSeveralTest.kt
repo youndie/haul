@@ -89,10 +89,10 @@ class LineOfSeveralTest {
                 world.advance(Duration.ZERO)
                 world.advance(72.hours)
                 val body = world.body(orderId)
-                assertTrue(body.details().first().endsWith(" · 2 × \$349"), "the price of one pair: ${body.details()}")
+                assertTrue(body.details().first().endsWith(ONE_PAIR), "the price of one pair: ${body.details()}")
                 val form = assertNotNull((body.summary.returnAction as? PresentAction)?.content as? ReturnForm)
                 val offered = form.lines.single { it.position == 0 }
-                assertTrue(offered.details.endsWith("2 × \$349"), offered.details)
+                assertTrue(offered.details.endsWith(ONE_PAIR), offered.details)
                 assertEquals(69_800, offered.refundCents, "the dialog offers what the two pairs cost")
                 assertEquals(2_010, offered.pointsBack)
                 assertEquals(listOf(67_789, 15_831), world.captures(orderId).values.sortedDescending())
@@ -158,7 +158,7 @@ class LineOfSeveralTest {
                 assertEquals(mapOf(0 to 2_010, 1 to 400, 2 to 70), ReturnRefunds.pointsBack(order))
                 assertEquals(listOf(15_831, 67_789), ShipmentShares.of(order).values.sorted())
                 val details = world.body("HL-48303").details()
-                assertTrue(details.first().endsWith(" · 2 × \$349"), "the price of one pair: $details")
+                assertTrue(details.first().endsWith(ONE_PAIR), "the price of one pair: $details")
             }
         }
 
@@ -175,5 +175,10 @@ class LineOfSeveralTest {
 
         assertEquals(OrderPayload.Line("sku", "seller", "Sony", 2, totalCents = 69_800, listTotalCents = 89_800), line)
         assertEquals(stored, Json.encodeToString(OrderPayload.Line.serializer(), line))
+    }
+
+    private companion object {
+        /** The end of the pair's mono line: the quantity and its price held together by no-break spaces (B-133). */
+        const val ONE_PAIR = " · 2\u00A0×\u00A0\$349"
     }
 }

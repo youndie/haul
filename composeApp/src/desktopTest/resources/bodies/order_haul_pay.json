@@ -443,7 +443,7 @@
                     "items": [
                         {
                             "title": "Sony WH-1000XM6 Wireless Noise Cancelling Headphones",
-                            "details": "Midnight Black · Headphones only · 1 × $349",
+                            "details": "Midnight Black · Headphones only · 1 × $349",
                             "tone": "#E6E4FF",
                             "action": {
                                 "type": "navigate",
@@ -460,7 +460,7 @@
                     "items": [
                         {
                             "title": "Linen Duvet Cover Set, Queen",
-                            "details": "Oat · 3 pieces · 1 × $139",
+                            "details": "Oat · 3 pieces · 1 × $139",
                             "tone": "#F1EBDD",
                             "action": {
                                 "type": "navigate",
@@ -469,7 +469,7 @@
                         },
                         {
                             "title": "Stoneware Mug, 12 oz",
-                            "details": "Sage · Set of 2 · 1 × $24",
+                            "details": "Sage · Set of 2 · 1 × $24",
                             "tone": "#E3F5D8",
                             "action": {
                                 "type": "navigate",
