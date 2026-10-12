@@ -43,10 +43,11 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (2)
+## Open (3)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
+| [B-140](docs/backlog/B-140-the-outage-tests-hold-on-a-busy-runner.md) `[~]` | test: the database outage tests hold on a busy runner | P1 | S | - |
 | [B-78](docs/backlog/B-78-placeholders-on-the-stand.md) `[ ]` | server + client: the stand shows pictures, not placeholder labels | P3 | M | - |
 | [B-85](docs/backlog/B-85-canvas-behind-the-code.md) `[ ]` | design: the canvas draws what the store now has | P3 | M | - |
 
