@@ -1,7 +1,7 @@
 ---
 id: B-124
 title: "fix: pressing the empty search field offers a customer's recent searches"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-12-qa-run

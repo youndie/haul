@@ -48,7 +48,7 @@ A stage is a field on the item, not a directory.
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-112](docs/backlog/B-112-first-press-focuses-the-field.md) `[?]` | client: the first press on a text field focuses it | P1 | M | - |
-| [B-124](docs/backlog/B-124-the-empty-search-field-offers-recent-searches.md) `[ ]` | fix: pressing the empty search field offers a customer's recent searches | P2 | S | - |
+| [B-124](docs/backlog/B-124-the-empty-search-field-offers-recent-searches.md) `[~]` | fix: pressing the empty search field offers a customer's recent searches | P2 | S | - |
 | [B-126](docs/backlog/B-126-the-accessible-tree-follows-the-page.md) `[ ]` | fix: the accessible tree follows the page after a popup, and every button has a name | P2 | M | - |
 | [B-118](docs/backlog/B-118-a-click-outside-applies-the-price-bound.md) `[ ]` | fix: a click outside a price field applies the bound typed into it | P3 | S | - |
 | [B-121](docs/backlog/B-121-small-presses-and-copy-from-the-v040-run.md) `[ ]` | fix: the small presses and lines the v0.4.0 run noticed | P3 | S | - |
