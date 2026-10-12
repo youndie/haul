@@ -537,7 +537,10 @@ routing (`PageAtAnyQuery`, `WebBundle.kt`); `/ui/…` and `/api/…` still refus
 no parameter. In the browser the tree request is never sent: Ktor's client decodes a URL's query as it builds the
 request and throws, so the shell takes that as the same refusal (`Transport.kt`) and draws «This link is out of
 date» with «Open the page»; a search's query that does not decode is no query rather than a throw from the
-page's placeholders (`Address.query`). Rejected: decoding leniently on the server — it would open a broken link at
+page's placeholders (`Address.query`). «Open the page» on a search link opens `/search` with nothing typed, which
+the server refuses as too short; that page says «Start typing» rather than «Keep typing… Your query is still in
+the field» over an empty field (B-132, `SearchTooShort`), and so does a bare `/search` opened any other way.
+Rejected: sending the stale search home — the search page is where the field is, one press nearer. Rejected: decoding leniently on the server — it would open a broken link at
 a guessed one.
 
 **Decided in B-68, a category has one address** (owner's call): the slugs from its top-level category down
