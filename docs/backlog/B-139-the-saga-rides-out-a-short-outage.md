@@ -1,7 +1,7 @@
 ---
 id: B-139
 title: "server: the order saga rides out a short database outage"
-status: wip
+status: done
 priority: P2
 size: S
 stage: stage-12-qa-run
