@@ -1,6 +1,7 @@
 package io.github.youndie.haul
 
 import io.github.youndie.haul.db.Databases
+import io.github.youndie.haul.db.FailFastDataSource
 import io.github.youndie.haul.feature.account.accountModule
 import io.github.youndie.haul.feature.account.accountRouting
 import io.github.youndie.haul.feature.cart.cartModule
@@ -83,6 +84,9 @@ internal fun interface StoreClock {
  * answers, and every route under its tier. Nothing here reads the environment or the clock; [clock],
  * [dataSource], [observability], [web] and [signIn] come in.
  *
+ * Everything here reaches [dataSource] through a [FailFastDataSource] (B-127): with the database gone, a request
+ * waits for a connection once — the pool's timeout — and not again for each query and each of Exposed's retries.
+ *
  * [web] is the browser bundle's directory, served at `/` beside the API when given ([webBundle]: its
  * precompressed files, its cache headers). Every API route is more specific than the static one, so a
  * screen route always wins. The page answers the storefront's own addresses ([StorefrontPage], B-36),
@@ -123,12 +127,13 @@ internal fun Application.haulModule(
 ) {
     val observers = installObservability(observability)
     installSignIn(signIn)
-    val database = Databases.connect(dataSource)
+    val pool: DataSource = FailFastDataSource(dataSource)
+    val database = Databases.connect(pool)
     install(Koin) {
         modules(
             module {
                 single { database }
-                single { dataSource }
+                single { pool }
                 single { clock }
                 single { sagaClock }
                 single { fulfilment.pace }
@@ -203,7 +208,7 @@ internal fun Application.haulModule(
     // A page's address is the page whatever its query, one that does not decode included (B-117).
     web?.let { install(PageAtAnyQuery) { bundle = it } }
     routing {
-        probes(commit = commit, ready = { databaseAnswers(dataSource) })
+        probes(commit = commit, ready = { databaseAnswers(pool) })
         // Public: a guest, a customer or nobody. A token is optional, and one that does not verify is
         // refused rather than ignored — a shopper whose sign-in lapsed is told, not shown as a guest.
         authenticate(JWT_AUTH_OIDC, optional = true) {

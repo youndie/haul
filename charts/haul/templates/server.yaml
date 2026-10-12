@@ -131,7 +131,9 @@ spec:
           has been seeded, so the start-up probe gets a minute and a half before liveness takes over.
           Liveness asks only the process (`/healthz`); readiness asks the database (`/readyz`), so a
           database that is gone takes the pod out of the Service without restarting a process a
-          restart cannot fix (endpoint-ops, `ops/Probes.kt`).
+          restart cannot fix (endpoint-ops, `ops/Probes.kt`). Readiness gives up on the database inside its
+          probe's one second (`READINESS_BUDGET` in `Application.kt`, B-127): the timeout is written out so the
+          two are changed together.
           */}}
           startupProbe:
             httpGet:
@@ -149,6 +151,7 @@ spec:
               path: /readyz
               port: http
             periodSeconds: 5
+            timeoutSeconds: 1
           resources: {{- toYaml .Values.server.resources | nindent 12 }}
           securityContext:
             allowPrivilegeEscalation: false

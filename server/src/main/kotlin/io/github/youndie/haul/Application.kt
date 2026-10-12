@@ -14,10 +14,13 @@ import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.withTimeoutOrNull
 import org.slf4j.LoggerFactory
 import java.sql.SQLException
 import javax.sql.DataSource
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 private val log = LoggerFactory.getLogger("io.github.youndie.haul.Application")
 
@@ -79,21 +82,35 @@ private fun seedPhotos(
     }
 }
 
-private const val VALIDATION_TIMEOUT_SECONDS = 2
+/**
+ * How long readiness waits for the database: under the readiness probe's timeout, Kubernetes' default second
+ * (`charts/haul/templates/server.yaml`). A probe the kubelet stopped waiting for is a failure all the same, but
+ * the check went on holding a thread and a place in the pool's queue — for 32 s, Hikari's timeout and more,
+ * before B-127.
+ */
+internal val READINESS_BUDGET: Duration = 750.milliseconds
+
+/** The liveness check on a connection once it is had, in JDBC's whole seconds. */
+private const val VALIDATION_TIMEOUT_SECONDS = 1
 
 /**
- * Whether the database answers within two seconds. Any failure to get a connection is «no»; a
- * blocking JDBC call runs on the IO dispatcher, and only SQL failures are caught, so a cancelled
- * probe is still cancelled.
+ * Whether the database answers within [within]. Any failure to get a connection is «no», and so is no
+ * answer in time: the wait is interrupted, which Hikari answers with an `SQLException`. The blocking JDBC
+ * call runs on the IO dispatcher, and only SQL failures are caught, so a cancelled probe is still cancelled.
  */
-internal suspend fun databaseAnswers(dataSource: DataSource): Boolean =
-    withContext(Dispatchers.IO) {
-        try {
-            dataSource.connection.use { it.isValid(VALIDATION_TIMEOUT_SECONDS) }
-        } catch (_: SQLException) {
-            false
+internal suspend fun databaseAnswers(
+    dataSource: DataSource,
+    within: Duration = READINESS_BUDGET,
+): Boolean =
+    withTimeoutOrNull(within) {
+        runInterruptible(Dispatchers.IO) {
+            try {
+                dataSource.connection.use { it.isValid(VALIDATION_TIMEOUT_SECONDS) }
+            } catch (_: SQLException) {
+                false
+            }
         }
-    }
+    } ?: false
 
 /**
  * The one place the server reads the wall clock; everything else is handed a [StoreClock]. Research
