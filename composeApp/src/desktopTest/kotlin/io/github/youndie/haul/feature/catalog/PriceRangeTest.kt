@@ -215,6 +215,29 @@ class PriceRangeTest {
             loaded(TO_60)
         }
 
+    /**
+     * B-133: a press on the word «from» or «to», left of a box's digits, focused nothing, and the keys typed after it
+     * were lost. The word is the field's now: «from» pressed takes the bound typed next, and «to» pressed takes the
+     * focus from it and applies it.
+     */
+    @Test
+    fun `a press on a price box's word focuses its field`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            ranged(FROM_20, 20, null)
+            storefront()
+            waitForText(OSTRA_MUG)
+            onNodeWithText("from").performClick()
+            waitForIdle()
+            val from = onNodeWithTag(PRICE_FROM_TAG)
+            from.assertIsFocused()
+            from.performTextInput("20")
+            onNodeWithText("to").performClick()
+            waitForIdle()
+            onNodeWithTag(PRICE_TO_TAG).assertIsFocused()
+            waitForText("From $20")
+            loaded(FROM_20)
+        }
+
     /** The phone's sheet is the page its fields are on: a tap on its blank space leaves them as a click does at 1440. */
     @Test
     fun `a tap on the filter sheet's blank space applies a typed bound`() =

@@ -3,6 +3,7 @@ package io.github.youndie.haul.feature.catalog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -38,6 +39,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -354,12 +357,21 @@ private fun PriceInput(
     // While focused, a press on blank page space outside the box takes the focus off the field (B-118).
     val blank = LocalBlankPress.current
     val box = remember { arrayOfNulls<LayoutCoordinates>(1) }
-    PriceBox(prefix, modifier.onGloballyPositioned { box[0] = it }) {
+    // The whole box is the field's (B-133): a press on «from» or «to», left of the digits, focuses the field as a
+    // press on the digits does; before, it focused nothing and the keys typed after it were lost.
+    val field = remember { FocusRequester() }
+    PriceBox(
+        prefix,
+        modifier
+            .onGloballyPositioned { box[0] = it }
+            .pointerInput(field) { detectTapGestures { field.requestFocus() } },
+    ) {
         BasicTextField(
             value,
             { typed -> onValue(typed.filter(Char::isDigit).take(MAX_DIGITS)) },
             Modifier
                 .weight(1f)
+                .focusRequester(field)
                 .testTag(tag)
                 .onFocusChanged {
                     if (focused && !it.isFocused) onConfirm()
