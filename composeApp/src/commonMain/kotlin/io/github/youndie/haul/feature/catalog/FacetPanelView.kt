@@ -175,7 +175,8 @@ public const val PRICE_SLIDER_TAG: String = "price-slider"
  * the keyboard's «Done», or leaving the field (B-118: a press on blank page space leaves it too) — or a thumb
  * released applies the range: the `load` the
  * facet's [FacetRange] makes of the two bounds, unless they are the ones applied. An empty field, or a
- * thumb taken to its end of the track, is no bound. A facet without a [FacetRange] (a screenshot of an
+ * thumb taken to its end of the track, is no bound. The answer's range redraws the fields except one holding a bound
+ * typed and not yet confirmed (B-134). A facet without a [FacetRange] (a screenshot of an
  * older body) is drawn as it is, with nothing to edit.
  */
 @Composable
@@ -183,8 +184,18 @@ private fun PriceRange(facet: Facet) {
     val range = facet.range
     val handler by rememberUpdatedState(LocalHaulActions.current)
     val scope = rememberCoroutineScope()
-    var low by remember(range) { mutableStateOf(range?.low?.toString().orEmpty()) }
-    var high by remember(range) { mutableStateOf(range?.high?.toString().orEmpty()) }
+    var low by remember { mutableStateOf(range?.low?.toString().orEmpty()) }
+    var high by remember { mutableStateOf(range?.high?.toString().orEmpty()) }
+    // A new range — the answer to a load — redraws the fields, but never over a bound typed and not yet confirmed
+    // (B-134): «from» left for «to» sends its load at once, and «to» typed into while it is on its way kept nothing
+    // when the answer landed, so the bound typed was never sent. The field being typed into keeps its text, the other
+    // takes the range's bound, and the edit's confirm sends both.
+    val edits = remember { Edits(range) }
+    if (edits.shown != range) {
+        edits.shown = range
+        if (!edits.low) low = range?.low?.toString().orEmpty()
+        if (!edits.high) high = range?.high?.toString().orEmpty()
+    }
     // The thumbs while one is held, as fractions of the track; `null` draws them where the tree puts them.
     var held by remember(facet) { mutableStateOf<Pair<Float, Float>?>(null) }
 
@@ -219,6 +230,9 @@ private fun PriceRange(facet: Facet) {
         waiting =
             scope.launch {
                 awaitTypedInput()
+                // Both fields are read: what either holds now is confirmed, and a key typed after it is an edit again.
+                edits.low = false
+                edits.high = false
                 apply(low.toIntOrNull(), high.toIntOrNull())
             }
     }
@@ -228,11 +242,17 @@ private fun PriceRange(facet: Facet) {
             PriceField("to", facet.max.orEmpty(), Modifier.weight(1f))
         } else {
             val typedLow: (String) -> Unit = {
-                if (it != low) sent = null
+                if (it != low) {
+                    sent = null
+                    edits.low = true
+                }
                 low = it
             }
             val typedHigh: (String) -> Unit = {
-                if (it != high) sent = null
+                if (it != high) {
+                    sent = null
+                    edits.high = true
+                }
                 high = it
             }
             // Each field is named by the facet and its word, «Price from» (B-131): the words in the box are no name.
@@ -280,6 +300,9 @@ private fun PriceRange(facet: Facet) {
                             detectHorizontalDragGestures(
                                 onDragStart = { at ->
                                     sent = null
+                                    // The thumbs write both fields: what was typed into either is no edit any more.
+                                    edits.low = false
+                                    edits.high = false
                                     val (s, e) = held ?: ((facet.rangeStart ?: 0f) to (facet.rangeEnd ?: 1f))
                                     val x = (at.x - reach) / track
                                     lower = abs(x - s) < abs(x - e) || (x < s && s == e)
@@ -337,6 +360,18 @@ private fun PriceRange(facet: Facet) {
         Thumb(Modifier.offset(x = track * start - THUMB_RADIUS))
         Thumb(Modifier.offset(x = track * end - THUMB_RADIUS))
     }
+}
+
+/**
+ * Which of the price facet's fields holds a bound typed and not yet confirmed — [low] for «from», [high] for «to» —
+ * and the range the fields last took, [shown] (B-134). Plain fields, not state: they are read when a new range
+ * arrives and written by the keys, neither of which needs a redraw of its own.
+ */
+private class Edits(
+    var shown: FacetRange?,
+) {
+    var low = false
+    var high = false
 }
 
 /**

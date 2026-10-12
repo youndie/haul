@@ -6,6 +6,7 @@ import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotFocused
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
@@ -272,6 +273,99 @@ class PriceRangeTest {
             loaded(FROM_20)
         }
 
+    /**
+     * B-134: «from» left for «to» sends its load at once, and a bound typed into «to» while that load was on its way was
+     * wiped when the answer redrew the range — on the stand, with the answers held 8 s, «to»'s `330` went and was never
+     * sent. Here the answer is held until the bound is typed: «to» keeps it, «from» shows its applied bound, and leaving
+     * «to» sends both.
+     */
+    @Test
+    fun `a bound typed while the other bound loads is kept and sent with it`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            typedWhileTheOtherLoads { onRoot().performMouseInput { click(Offset(BLANK_X, BLANK_Y)) } }
+        }
+
+    /** B-134 in the phone's filter sheet: the same fields, left with a tap on the sheet's blank space. */
+    @Test
+    fun `the filter sheet keeps a bound typed while the other bound loads`() =
+        runDesktopComposeUiTest(PHONE, HEIGHT) {
+            typedWhileTheOtherLoads(compact = true) {
+                onAllNodes(isRoot()).onLast().performTouchInput { click(Offset(PHONE / 2f, SHEET_BLANK_Y)) }
+            }
+        }
+
+    /** «from» `22` left for «to», `33` typed into «to» while «from»'s load is held back, then [leave] leaves «to». */
+    private fun ComposeUiTest.typedWhileTheOtherLoads(
+        compact: Boolean = false,
+        leave: ComposeUiTest.() -> Unit,
+    ) {
+        ranged(FROM_22, 22, null)
+        ranged(FROM_22_TO_33, 22, 33)
+        storefront(compact)
+        waitForText(OSTRA_MUG)
+        if (compact) {
+            onNodeWithText("Filters").performClick()
+            waitUntil(timeoutMillis = 5_000) {
+                onAllNodes(hasContentDescription(CLOSE_FILTERS)).fetchSemanticsNodes().isNotEmpty()
+            }
+        }
+        val held = CompletableDeferred<Unit>().also { answers = it }
+        val from = onNodeWithTag(PRICE_FROM_TAG)
+        from.performClick()
+        from.performTextInput("22")
+        val to = onNodeWithTag(PRICE_TO_TAG)
+        to.performClick()
+        waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
+        to.performTextInput("33")
+        waitForIdle()
+        held.complete(Unit)
+        waitForText(if (compact) "2 applied" else "From $22")
+        to.assertIsFocused()
+        to.assertTextEquals("$33")
+        from.assertTextEquals("$22")
+        leave()
+        waitUntil(timeoutMillis = 5_000) { requests.size == 3 }
+        if (!compact) waitForText("$22 – $33")
+        mainClock.advanceTimeBy(1_000)
+        waitForIdle()
+        loaded(FROM_22, FROM_22_TO_33)
+    }
+
+    /**
+     * B-134, the walk at once: «from» `50`, a press into «to», `20` typed and «to» left, quicker than an answer comes
+     * (held [ANSWER_MILLIS]). The answer to «from»'s load lands after the `20`, and still the bounds go together,
+     * swapped, in the load that ends the walk.
+     */
+    @Test
+    fun `bounds typed backwards while one loads end in one load swapped`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            ranged(FROM_50, 50, null)
+            ranged(FROM_20_TO_50, 20, 50)
+            storefront()
+            waitForText(OSTRA_MUG)
+            val from = onNodeWithTag(PRICE_FROM_TAG)
+            from.performClick()
+            from.performTextInput("50")
+            waitForIdle()
+            val held = CompletableDeferred<Unit>().also { answers = it }
+            mainClock.autoAdvance = false
+            val to = onNodeWithTag(PRICE_TO_TAG)
+            to.performClick()
+            repeat(3) { mainClock.advanceTimeByFrame() }
+            to.performKeyInput { repeat(8) { pressKey(Key.Backspace) } }
+            to.performTextInput("20")
+            mainClock.advanceTimeBy(ANSWER_MILLIS)
+            held.complete(Unit)
+            mainClock.autoAdvance = true
+            waitForText("From $50")
+            to.assertTextEquals("$20")
+            onRoot().performMouseInput { click(Offset(BLANK_X, BLANK_Y)) }
+            waitForText("$20 – $50")
+            mainClock.advanceTimeBy(1_000)
+            waitForIdle()
+            loaded(FROM_50, FROM_20_TO_50)
+        }
+
     /** The phone's sheet is the page its fields are on: a tap on its blank space leaves them as a click does at 1440. */
     @Test
     fun `a tap on the filter sheet's blank space applies a typed bound`() =
@@ -415,6 +509,10 @@ class PriceRangeTest {
         const val TO_60 = "$BY_OSTRA&price_max=60"
         const val TO_50 = "$BY_OSTRA&price_max=50"
         const val FROM_25_TO_50 = "$BY_OSTRA&price_min=25&price_max=50"
+        const val FROM_22 = "$BY_OSTRA&price_min=22"
+        const val FROM_22_TO_33 = "$BY_OSTRA&price_min=22&price_max=33"
+        const val FROM_50 = "$BY_OSTRA&price_min=50"
+        const val FROM_20_TO_50 = "$BY_OSTRA&price_min=20&price_max=50"
 
         /** How long a part's answer is held back: a few frames, as long as a load over the network takes. */
         const val ANSWER_MILLIS = 200L
