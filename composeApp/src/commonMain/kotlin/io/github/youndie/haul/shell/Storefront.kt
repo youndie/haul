@@ -271,14 +271,15 @@ public fun Storefront(
     val messages = remember { MessageState() }
     // What a `present` of the shell's own header put over the page — a non-member's «HAUL PLUS» (B-67).
     var shellPresented by remember { mutableStateOf<Presented?>(null) }
-    // A page visited closes the panel, the filter sheet, the phone header's menu (B-73) and what the shell's
-    // header presented; an address an update recorded (B-63) is the page already drawn, and closes none — the
-    // sheet's own presses are such updates.
+    // A page visited closes the panel, the filter sheet, the phone header's menu (B-73), what the shell's header
+    // presented and a message waiting for its answer (B-136); an address an update recorded (B-63) is the page
+    // already drawn, and closes none — the sheet's own presses are such updates.
     LaunchedEffect(navigator.visits) {
         dismiss()
         filters.close()
         menu.close()
         shellPresented = null
+        messages.visited()
     }
     // «Clear» on recent searches: the panel is asked for again once the server has emptied them.
     val clearUrl = panel?.clearUrl
