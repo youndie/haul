@@ -1,7 +1,10 @@
 package io.github.youndie.haul.db
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.yield
 import java.sql.SQLException
 import java.sql.SQLTransientConnectionException
 import kotlin.coroutines.cancellation.CancellationException
@@ -143,17 +146,24 @@ class FailFastDataSourceTest {
         assertEquals(1, pool.asked, "a cancelled member's next ask went to the pool")
     }
 
-    /** The patience is the coroutine's: work outside it, on the same thread afterwards, is refused as before. */
+    /** The patience is the coroutine's: a request that runs on the thread a saga ran on is refused as before. */
     @Test
-    fun `the patience ends with the work it was given to`() {
-        pool.next = { CONNECTION }
-        patiently(perAsk = 10.seconds) { failFast.connection }
+    fun `the patience is only the coroutine's it was given to`() =
+        runBlocking {
+            pool.next = {
+                time += 2.seconds
+                throw UNREACHABLE
+            }
+            assertFailsWith<SQLTransientConnectionException> { failFast.connection }
 
-        pool.next = { throw UNREACHABLE }
-        assertFailsWith<SQLTransientConnectionException> { failFast.connection }
-        assertFailsWith<SQLTransientConnectionException> { failFast.connection }
-        assertEquals(2, pool.asked, "the second ask outside the saga went to the pool")
-    }
+            val gate = CompletableDeferred<Unit>()
+            val saga = launch(ConnectionPatience(perAsk = 10.seconds, time = time)) { gate.await() }
+            yield()
+            assertFailsWith<SQLTransientConnectionException> { failFast.connection }
+            assertEquals(1, pool.asked, "a request on the thread a saga had run on waited as the saga does")
+            gate.complete(Unit)
+            saga.join()
+        }
 
     private fun <T> patiently(
         perAsk: Duration,
