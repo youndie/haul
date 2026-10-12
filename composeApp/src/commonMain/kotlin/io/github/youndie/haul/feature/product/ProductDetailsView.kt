@@ -227,7 +227,7 @@ internal const val COPY_LINK: String = "Copy link"
 internal const val LINK_COPIED: String = "Link copied"
 
 /** What the share button says when the browser kept the link off the clipboard, over the link to copy by hand. */
-internal const val COPY_REFUSED: String = "Couldn't copy the link. Copy it from here:"
+internal const val COPY_REFUSED: String = "Couldn’t copy the link. Copy it from here:"
 
 /** The panel holding the link to copy by hand, for the tests that look for it. */
 internal const val SHARE_FALLBACK_TAG: String = "share-fallback"
