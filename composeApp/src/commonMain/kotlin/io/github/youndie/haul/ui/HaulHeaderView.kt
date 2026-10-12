@@ -184,6 +184,15 @@ public class SearchInput(
 /** The header's search field as the shopper edits it; none draws the field as the tree has it. */
 public val LocalSearchInput: ProvidableCompositionLocal<SearchInput?> = staticCompositionLocalOf { null }
 
+/**
+ * Asks the server for the header alone when a press needs what only it carries (B-138): the sign-in page landed on
+ * cold draws the client's own header, whose category words all lead to the catalog's root and whose picker has no
+ * scopes, and asks for nothing while it loads (B-66). The phone header's menu button and the search picker ask
+ * through it; the header that answers is drawn in place of the client's. None — every other page, a screenshot —
+ * asks nothing.
+ */
+public val LocalAskForHeader: ProvidableCompositionLocal<(() -> Unit)?> = staticCompositionLocalOf { null }
+
 /** Where pressing the logo goes — the home page, which is the app's own; none leaves the logo inert. */
 public val LocalLogoAction: ProvidableCompositionLocal<(() -> Unit)?> = staticCompositionLocalOf { null }
 
@@ -427,6 +436,9 @@ private fun CompactHeader(
         DeliverTo(header.deliverTo, style)
     }
     val menu = LocalHeaderMenu.current?.takeUnless { LocalHaulActions.current == null }
+    // On the sign-in page landed on cold the press also asks for the header alone (B-138): the menu opens at once
+    // with what the client has, and lists the server's categories once it answers.
+    val ask = LocalAskForHeader.current
     Row(
         Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -436,7 +448,14 @@ private fun CompactHeader(
             Modifier
                 .size(width = 40.dp, height = 44.dp)
                 .semantics { contentDescription = OPEN_MENU }
-                .pressable(menu?.let { it::open }),
+                .pressable(
+                    menu?.let {
+                        {
+                            ask?.invoke()
+                            it.open()
+                        }
+                    },
+                ),
             contentAlignment = Alignment.CenterStart,
         ) { Icon(HaulIcons.menu, 24.dp, HaulColors.onSurface) }
         Logo(size = 34f, dot = 9.dp, dotMargin = 2.dp, modifier = Modifier.pressable(LocalLogoAction.current))
@@ -569,11 +588,14 @@ private fun DeliverTo(
  * (`HaulHeader.scopes`: the top-level ones, and the page's own scope below them, B-119), chosen from a menu
  * under it. The choice is the field's ([SearchInput.scope]) and opens
  * nothing by itself. Without a field to search from, or with no scopes on the wire (the placeholder header),
- * it is drawn as the page's scope and opens nothing.
+ * it is drawn as the page's scope and opens nothing — except where the header alone can be asked for
+ * ([LocalAskForHeader], the sign-in page landed on cold, B-138): there a press asks, and the menu opens with the
+ * scopes once they arrive.
  */
 @Composable
 private fun ScopePicker(header: HaulHeader) {
     val input = LocalSearchInput.current
+    val ask = LocalAskForHeader.current?.takeIf { input != null && header.scopes.isEmpty() }
     val chosen = if (input != null) input.scope else header.scope
     val label = header.scopes.firstOrNull { it.category == chosen }?.label ?: ALL_CATEGORIES
     val entries =
@@ -583,7 +605,7 @@ private fun ScopePicker(header: HaulHeader) {
             listOf(MenuEntry(ALL_CATEGORIES) { input.choose(null) }) +
                 header.scopes.map { scope -> MenuEntry(scope.label) { input.choose(scope.category) } }
         }
-    Menu(entries, current = label) { press ->
+    Menu(entries, current = label, ask = ask) { press ->
         Row(
             press.testTag(SCOPE_PICKER_TAG),
             horizontalArrangement = Arrangement.spacedBy(6.dp),

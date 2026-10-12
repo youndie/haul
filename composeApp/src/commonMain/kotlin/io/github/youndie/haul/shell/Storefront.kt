@@ -48,6 +48,7 @@ import io.github.youndie.haul.registry.haulRegistry
 import io.github.youndie.haul.ui.BlankPress
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HeaderMenuState
+import io.github.youndie.haul.ui.LocalAskForHeader
 import io.github.youndie.haul.ui.LocalBlankPress
 import io.github.youndie.haul.ui.LocalHaulActions
 import io.github.youndie.haul.ui.LocalHaulNow
@@ -155,7 +156,8 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * page that came with no tree, the header alone asked of [transport] ([AskForHeader], B-105); before either,
  * the client's own for a guest or for a customer, as [session] says ([ShellHeaders]) — followed as it changes,
  * so a sign-in that ends by itself, its renewal refused, asks for the guest's header as a sign-out does (B-130).
- * The sign-in page asks for no header: it is a way through. Its presses
+ * The sign-in page asks for no header while it loads: it is a way through; a press on its phone menu or its search
+ * picker asks for the header alone, once per visit ([askForHeaderOnPress], B-138). Its presses
  * are followed here: a link opens, sign-in's go through [Signing], a `present` (a non-member's «HAUL PLUS»)
  * draws its dialog over the page until a `close` or a visit, and a `refresh` loads the page again.
  *
@@ -387,9 +389,14 @@ public fun Storefront(
                 if (address.kind == PageKind.SignIn) {
                     // The client's own page (B-66): no tree to load, and no filter sheet over it; one per visit.
                     key(visit) {
-                        Scrolled(rememberScrollState()) {
-                            val blocked = blockedAt == address.value
-                            SignInPage(address, shellHeader, signing, navigator, blocked)
+                        // It asks for nothing while it loads; its phone menu and its picker ask for the header alone
+                        // when pressed (B-138).
+                        val ask = askForHeaderOnPress(headers, transport, signedIn, visit)
+                        CompositionLocalProvider(LocalAskForHeader provides ask) {
+                            Scrolled(rememberScrollState()) {
+                                val blocked = blockedAt == address.value
+                                SignInPage(address, shellHeader, signing, navigator, blocked)
+                            }
                         }
                     }
                     shellPresented?.let { PresentedOverlay(it, registry) { shellPresented = null } }
