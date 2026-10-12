@@ -605,12 +605,12 @@ private class OrderPage(
                     listOfNotNull(METHODS[placed.method], view.point?.name).joinToString(" · ")
                 } else {
                     val day = arrival(shipment) ?: today
-                    // On its way, the day is said as it is seen from today; before, with its date.
-                    val moving = shipment.status == ShipmentStatus.IN_TRANSIT
+                    // Tomorrow keeps its date whether the shipment is packed or on its way (B-133): the canvas's
+                    // Order_InTransit dropped it, and a page watched from packed to in transit lost it mid-order.
                     val label =
                         when (day) {
                             today -> "Today"
-                            today.plusDays(1) -> if (moving) "Tomorrow" else "Tomorrow, " + MONTH_DAY.format(day)
+                            today.plusDays(1) -> "Tomorrow, " + MONTH_DAY.format(day)
                             else -> DAY.format(day)
                         }
                     label + (slot?.takeIf { it.day == day }?.let { " · ${it.label}" }.orEmpty())
