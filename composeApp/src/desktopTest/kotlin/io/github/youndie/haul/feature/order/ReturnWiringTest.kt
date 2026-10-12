@@ -1,5 +1,6 @@
 package io.github.youndie.haul.feature.order
 
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertTextEquals
@@ -7,6 +8,8 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import io.github.youndie.haul.CANVAS_NOW
 import io.github.youndie.haul.ErrorCode
@@ -110,6 +113,21 @@ class ReturnWiringTest {
             onNodeWithTag(lineTag(1)).performClick()
             onNodeWithTag(REFUND_TAG).assertDoesNotExist()
             onNodeWithTag(POINTS_BACK_TAG).assertDoesNotExist()
+        }
+
+    /** B-129: Escape closes the reasons' list, as it closes a menu, and leaves the dialog and the choice as they were. */
+    @Test
+    fun `escape closes the reasons' list and keeps the dialog`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            delivered()
+            onNodeWithTag(REASON_TAG).performClick()
+            onNodeWithTag(REASON_LIST_TAG, useUnmergedTree = true).assertExists()
+            waitForIdle()
+            onNodeWithTag(REASON_LIST_TAG, useUnmergedTree = true).performKeyInput { pressKey(Key.Escape) }
+            waitForIdle()
+            onNodeWithTag(REASON_LIST_TAG, useUnmergedTree = true).assertDoesNotExist()
+            onNodeWithTag(SUBMIT_TAG).assertExists()
+            assertEquals(emptyList(), sent.toList())
         }
 
     /** The lines ticked and the reason chosen are the command, sent where the form says; the answer closes and redraws. */

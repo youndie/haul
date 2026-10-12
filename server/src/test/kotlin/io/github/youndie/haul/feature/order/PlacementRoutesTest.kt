@@ -4,6 +4,7 @@ import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.db.Databases
 import io.github.youndie.haul.feature.cart.CartPaths
 import io.github.youndie.haul.feature.cart.LineChange
+import io.github.youndie.haul.feature.cart.PromoEntry
 import io.github.youndie.haul.feature.checkout.AddressEntry
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.checkout.CheckoutPaths
@@ -148,6 +149,27 @@ class PlacementRoutesTest {
             assertEquals(listOf(Triple(orderId, 51_200, "authorised")), ledger.authorisations())
             assertEquals(emptyList(), ledger.cartLines(SampleCustomers.MAYA), "the bought lines stayed in the cart")
             get(CheckoutPaths.SCREEN) { bearerAuth(token) }.assertError(HttpStatusCode.Conflict, ErrorCode.CartEmpty)
+        }
+
+    /**
+     * A code is for the order it was typed for (B-129): `AUTUMN10`, applied before placing, leaves the cart
+     * with the order, so the next order is not discounted unasked. The walk saw it stay and apply to two more.
+     */
+    @Test
+    fun `placing takes the order's promo code off the cart`() =
+        asMaya { token, database ->
+            val ledger = Ledger(database)
+            put(CartPaths.PROMO) {
+                bearerAuth(token)
+                contentType(ContentType.Application.Json)
+                setBody(haulWireJson.encodeToString(PromoEntry.serializer(), PromoEntry("AUTUMN10")))
+            }.assertRefresh()
+            assertEquals("AUTUMN10", ledger.cartPromo(SampleCustomers.MAYA))
+            choose(token, CheckoutChoice(slotId = wednesday3pm))
+
+            place(token, "maya-promo", checkout(token).only<CheckoutSummary>()).assertPlaced()
+
+            assertEquals(null, ledger.cartPromo(SampleCustomers.MAYA), "the code outlived its order")
         }
 
     /**

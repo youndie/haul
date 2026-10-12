@@ -170,13 +170,16 @@ search for `sony`).
   - Step 1: the count, the histogram and the rows agree; ten reviews, then twenty, then thirty — loaded in place
     (`shown=` in the address), the page kept.
   - Step 2: the answered questions first, ten more in place; the open one reads «Not answered yet».
-- **Decided in:** B-71, B-99
+  - Both: a date in the store's current year has no year («Sep 28»); one of an earlier year carries it
+    («Sep 28, 2025»).
+- **Decided in:** B-71, B-99, B-129
 - **Coverage:** `ReviewPagesTest` «the headphones' tabs offer more on the seed itself»;
   `ReviewPagesTest` «the reviews tab lists ten and shows ten more in place until there are no more»;
   `ReviewPagesTest` «the questions tab lists ten and shows ten more in place until there are no more»;
   `ProductPageLinksTest` «show more reviews loads ten more in place»;
   `SeedReviewsTest` «every product's counts and histogram are its stored rows»;
-  `ReviewRoutesTest` «the questions tab lists the answered ones first and the open one as not answered yet»
+  `ReviewRoutesTest` «the questions tab lists the answered ones first and the open one as not answered yet»;
+  `ReviewRoutesTest` «a review or a question from an earlier year carries its year»
 
 ### TC-PDP-10 — A customer writes one review, and then sees it instead of the button
 

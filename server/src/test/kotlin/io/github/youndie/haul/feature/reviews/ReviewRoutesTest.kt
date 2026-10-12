@@ -108,6 +108,27 @@ class ReviewRoutesTest {
             assertEquals(listOf(false, false, true, false), tabs.map { it.selected })
         }
 
+    /**
+     * B-129: a date outside the store's current year carries its year. A year on, the canvas's reviews and questions
+     * of 2025 say so — on a stand the walk read seeded reviews of 2023 as «Oct 21» on Oct 11, a date to come; the
+     * test above holds them without a year within it.
+     */
+    @Test
+    fun `a review or a question from an earlier year carries its year`() =
+        haulTest(clock = { OffsetDateTime.parse("2026-10-11T12:00:00-04:00").toZonedDateTime() }) {
+            val reviews = tree(reviewsTab).only<ProductReviews>().reviews.take(2)
+            assertEquals(
+                listOf("Sep 28, 2025 · Verified purchase", "Sep 21, 2025 · Verified purchase"),
+                reviews.map { it.meta },
+            )
+            val questions = tree(questionsTab).only<ProductQuestions>().questions.take(2)
+            assertEquals(listOf("Asked Sep 29, 2025", "Asked Sep 14, 2025"), questions.map { it.asked })
+            assertEquals(
+                listOf("Sony Official Store · Sep 30, 2025", "Sony Official Store · Sep 15, 2025"),
+                questions.map { it.answeredBy },
+            )
+        }
+
     @Test
     fun `the questions tab lists the answered ones first and the open one as not answered yet`() =
         haulTest {
@@ -263,7 +284,8 @@ class ReviewRoutesTest {
             signedIn(dataSource, "Maya Kowalski", SampleCustomers.MAYA) { token ->
                 val reviews = customerTree(token, reviewsTab).only<ProductReviews>()
                 assertNull(reviews.action, "a reviewer is offered a second review")
-                assertEquals("You reviewed this on Jan 15", reviews.actionLabel)
+                // A date of another year than the store's carries it (B-129).
+                assertEquals("You reviewed this on Jan 15, 2024", reviews.actionLabel)
                 assertEquals("Maya K.", reviews.reviews.first().author)
                 assertEquals("Your review", reviews.reviews.first().helpfulLabel)
                 assertEquals(

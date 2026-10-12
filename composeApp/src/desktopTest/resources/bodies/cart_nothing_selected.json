@@ -511,8 +511,6 @@
                     "id": "promo",
                     "url": "/api/v1/cart/promo"
                 },
-                "points": "You'll earn 0 points on this order",
-                "pointsAccent": "0 points",
                 "checkoutLabel": "Checkout",
                 "checkoutEnabled": false,
                 "checkoutAction": {

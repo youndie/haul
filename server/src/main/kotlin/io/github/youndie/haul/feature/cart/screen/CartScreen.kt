@@ -179,7 +179,10 @@ internal class CartScreen(
     ): OrderSummary {
         val rows = summaryRows(totals, promoCode, countedUnits)
         val guest = owner is CartOwner.Guest
-        val points = "${count(totals.points(plus))} points"
+        val earned = totals.points(plus)
+        val points = "${count(earned)} points"
+        // A guest earns nothing, and an order that earns nothing — nothing ticked — has no line to promise it (B-129).
+        val promised = !guest && earned > 0
         return OrderSummary(
             id = "summary",
             rows = rows,
@@ -187,8 +190,8 @@ internal class CartScreen(
             // A price tag, as the canvas writes the total («$512»); the rows above keep their cents.
             total = money(totals.totalCents),
             promo = promoField,
-            points = if (guest) null else "You'll earn $points on this order",
-            pointsAccent = if (guest) null else points,
+            points = if (promised) "You'll earn $points on this order" else null,
+            pointsAccent = if (promised) points else null,
             checkoutLabel = if (guest) "Sign in to check out" else "Checkout",
             checkoutEnabled = totals.counted > 0,
             checkoutAction = NavigateAction(if (guest) SIGN_IN else CHECKOUT),

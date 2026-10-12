@@ -25,6 +25,7 @@ import kotlinx.coroutines.runBlocking
 import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 /**
  * A customer's cart, below the routes (sign-in over HTTP is `IdentityRoutesTest`): the points line and
@@ -39,12 +40,16 @@ class CustomerCartTest {
         CartScreen(carts, commands, catalog, DeliveryCalendar(CANVAS_NOW::now), CANVAS_NOW, ProductPhotos(null))
     private val customers = ExposedCustomers(database)
 
-    private fun summaryOf(plus: Boolean): OrderSummary =
+    private fun summaryOf(
+        plus: Boolean,
+        selected: Boolean = true,
+    ): OrderSummary =
         runBlocking {
             val id = customers.signedIn("c-${UUID.randomUUID()}", "Test Customer", CatalogSeed.NOW).id
             val owner = CartOwner.Customer(id, plus)
             listOf(SampleCatalog.SONY_HEADPHONES, SampleCatalog.DUVET_COVER, SampleCatalog.STONEWARE_MUG).forEach {
                 commands.changeLine(owner, "$it-0", LineChange(quantity = 1))
+                if (!selected) commands.changeLine(owner, "$it-0", LineChange(selected = false))
             }
             screen.build(owner).only()
         }
@@ -71,6 +76,15 @@ class CustomerCartTest {
                 tree.all().filterIsInstance<CartLine>().map { it.skuId },
             )
         }
+
+    /** B-129: with nothing ticked the order earns nothing, and the summary promises nothing rather than «0 points». */
+    @Test
+    fun `a cart with nothing ticked promises no points`() {
+        val summary = summaryOf(plus = true, selected = false)
+        assertEquals("$0", summary.total)
+        assertNull(summary.points)
+        assertNull(summary.pointsAccent)
+    }
 
     @Test
     fun `a customer without Plus earns a point per whole dollar`() {

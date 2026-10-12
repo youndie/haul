@@ -40,12 +40,13 @@ the empty cart. «Buy now» is walked on the product page (TC-PDP-06); a command
   4. Press «Remove» on the last line.
 - **Expected:**
   - Step 1: the totals count the ticked lines only; with none ticked, «Checkout» is grey under a muted label and
-    «Delete selected» is muted, not Cobalt; no «Discount −$0.00» row.
+    «Delete selected» is muted, not Cobalt; no «Discount −$0.00» row, and no points line — the order earns none.
   - Step 2: nothing happens.
   - Step 3: the two lines go.
   - Step 4: that line goes.
-- **Decided in:** B-11, B-100
+- **Decided in:** B-11, B-100, B-129
 - **Coverage:** `CartWiringTest` «with nothing ticked checkout and delete selected are idle»;
+  `CustomerCartTest` «a cart with nothing ticked promises no points»;
   `CartWiringTest` «with lines ticked checkout and delete selected are live»;
   `CartWiringTest` «select all unticks every line in one change»;
   `CartWiringTest` «delete selected deletes the ticked lines»;

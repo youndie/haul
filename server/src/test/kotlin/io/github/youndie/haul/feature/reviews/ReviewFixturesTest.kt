@@ -98,7 +98,7 @@ class ReviewFixturesTest {
             ExposedCatalogRepository(database, CANVAS_NOW),
             DeliveryCalendar(CANVAS_NOW::now),
             ProductPhotos(null),
-            ReviewTabs(ExposedReviews(database)),
+            ReviewTabs(ExposedReviews(database), CANVAS_NOW),
             BoughtThisMonth(ExposedProductSales(database), CANVAS_NOW),
         )
 

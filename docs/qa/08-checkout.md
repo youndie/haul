@@ -166,12 +166,14 @@ is the server's, stored per customer, and the summary is the server's quote (B-1
   - Step 1: «Placing order…» with the page's links inert, then `/account/orders/HL-…`, «Placed». A double press or a
     retry is the same order (the key).
   - Step 2: the cart — nothing is left selected to check out (TC-CHK-11).
-  - Step 3: the bought lines are gone; lines that were not ticked are still there.
-- **Decided in:** B-16, B-18, B-94
+  - Step 3: the bought lines are gone, and so is a promo code the order was placed with; lines that were not ticked
+    are still there.
+- **Decided in:** B-16, B-18, B-94, B-129
 - **Coverage:** `CheckoutWiringTest` «place order sends the quote and draws placing until the answer»;
   `CheckoutWiringTest` «the summary's links do nothing while the order is placed»;
   `PlacementRoutesTest` «Maya places her cart by courier and the saga takes stock window and payment»;
   `PlacementRoutesTest` «the same key places once and a different request under it is refused»;
+  `PlacementRoutesTest` «placing takes the order's promo code off the cart»;
   `OrderRoutesTest` «the page placement lands on is the order just placed»; golden `Checkout_Placing`
 
 ### TC-CHK-09 — A placement refused, or unanswered, says so and can be pressed again

@@ -1568,6 +1568,21 @@ the colour it turns to. The «Delivery: Tomorrow» facet counts and keeps only p
 A later date was the alternative and was refused: there is no restock date to promise from. The cart and checkout
 are unchanged — a line out of stock there is neither counted nor bought (B-11).
 
+**Decided in B-129, the small lines of the v0.4.0 customer walk.**
+
+- **A promo code is the order's it was typed for.** Placing takes it off the cart with the bought lines
+  (`ClearBoughtLines`, the saga's announcement), only while the cart still holds that code — one typed since stays,
+  and a declined order, whose saga never reaches the announcement, leaves the cart and its code as they were.
+- **A date outside the store's current year carries its year** on the product's reviews and questions — «Sep 28»
+  within it, as the canvas writes, «Oct 21, 2023» outside it (`ReviewTabs.day`, against the store's clock): a seeded
+  review two years old read as a date to come.
+- **No points line where the order earns none** — nothing ticked (`CartScreen.summary`), as a guest has none.
+- **Escape closes the return dialog's reasons**, as it closes the header's menus (B-75), and leaves the dialog.
+- Two lines the walk noticed are decided otherwise and stay: **«All orders» on the overview counts the active
+  cards as left out of the history** (`AccountScreen.recent`, B-19), as `Account_Content` draws it with its two cards
+  and four rows; and **questions list the answered first** (B-22, B-99, TC-PDP-09), as the canvas's
+  `Product_Questions` does, so a question just asked is listed after them.
+
 ### D8. Product photography is out of v1
 
 The canvas marks photos as striped placeholder tiles (tone + label), and v1 ships those tiles.

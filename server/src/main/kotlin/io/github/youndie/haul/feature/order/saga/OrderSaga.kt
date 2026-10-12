@@ -243,9 +243,11 @@ internal class Confirm(
 }
 
 /**
- * The bought lines leave the customer's cart. An announcement, not a step: by now the order is placed,
- * and a cart that could not be cleared is no reason to take it back (petich counts the failure). Deleting
- * lines twice deletes nothing the second time, so a restart that re-runs it is harmless.
+ * The bought lines leave the customer's cart, and so does the promo code the order was placed with — a
+ * code is for the order it was typed for (B-129), so the next one starts without it. An announcement, not
+ * a step: by now the order is placed, and a cart that could not be cleared is no reason to take it back
+ * (petich counts the failure). Deleting lines twice deletes nothing the second time, and the code goes
+ * only while it is still the order's, so a restart that re-runs it is harmless and a code typed since stays.
  */
 internal class ClearBoughtLines(
     private val carts: CartRepository,
@@ -254,6 +256,9 @@ internal class ClearBoughtLines(
         ctx: PetichAnnouncementContext,
         payload: OrderPayload,
     ) {
-        carts.removeLines(CartOwner.Customer(payload.customerId, payload.plus), payload.lines.map { it.skuId }.toSet())
+        val owner = CartOwner.Customer(payload.customerId, payload.plus)
+        carts.removeLines(owner, payload.lines.map { it.skuId }.toSet())
+        val code = payload.promoCode ?: return
+        if (carts.cart(owner).promoCode == code) carts.setPromo(owner, null)
     }
 }

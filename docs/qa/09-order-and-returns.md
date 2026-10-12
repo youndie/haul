@@ -67,18 +67,20 @@ later (B-27). A local stack runs at `HAUL_FULFILMENT_SPEED`.
 - **Steps:**
   1. Press «Return items».
   2. Tick one line, then two; read the amounts.
-  3. Choose a reason and send.
+  3. Open the reasons and press Escape; open them again, choose one and send.
   4. Watch the page.
 - **Expected:**
   - Step 1: the return dialog over the order, each line with its tile.
   - Step 2: the card amount and the points back follow the lines ticked — each line's share of what was paid (the
     code shared over the lines, the delivery kept).
-  - Step 3: the dialog closes and the page is drawn again: «Requested».
+  - Step 3: Escape closes the list and leaves the dialog; once sent, the dialog closes and the page is drawn again:
+    «Requested».
   - Step 4: «Picked up» about a store day later, «Refunded» a day after that; the returned lines in a card of their
     own; «Paid» net of the refund.
-- **Decided in:** B-21, B-50, B-55, B-91
+- **Decided in:** B-21, B-50, B-55, B-91, B-129
 - **Coverage:** `ReturnRoutesTest` «a delivered order presents the return dialog»;
   `ReturnWiringTest` «ticking lines updates the card amount and the points back»;
+  `ReturnWiringTest` «escape closes the reasons' list and keeps the dialog»;
   `ReturnWiringTest` «a return is sent where the form says and the answer closes the dialog and redraws the order»;
   `ReturnRefundsTest` «a discount is shared over the lines and the delivery is not given back»;
   `ReturnLifecycleTest` «a return is collected a day after it is asked for and refunded a day later»;
