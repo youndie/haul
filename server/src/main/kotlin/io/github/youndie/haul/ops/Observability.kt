@@ -1,12 +1,17 @@
 package io.github.youndie.haul.ops
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.LoggerContext
+import ch.qos.logback.classic.filter.ThresholdFilter
 import io.github.youndie.katcher.Katcher
 import io.github.youndie.metrik.agent.Metrik
 import io.github.youndie.tracy.agent.AgentConfig
 import io.github.youndie.tracy.agent.Tracy
 import io.github.youndie.tracy.agent.TracyAgent
 import io.github.youndie.tracy.agent.TracyDelivery
+import io.github.youndie.tracy.agent.TracyLogbackAppender
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.application.ApplicationStopping
 import io.ktor.server.application.install
 import kotlinx.coroutines.launch
@@ -67,6 +72,8 @@ internal class Observers(
  * nothing and a server nobody uses draw the same empty dashboard.
  *
  * Installed before routing, because tracy's trace context is what a span inside a handler attaches to.
+ * tracy goes first of the three: from then on a `warn` reaches it ([shipWarnings]), so the lines below
+ * saying metrik or katcher is off are read in tracy, not only in the pod's log (B-122).
  * The buffered records leave on `ApplicationStopping` — the ones explaining a shutdown are the least
  * replaceable there are, and tracy 0.2 and katcher flush only when asked.
  *
@@ -152,5 +159,47 @@ private fun Application.installTracy(
         }
     val agent = TracyAgent(config, clock = { System.currentTimeMillis() })
     install(Tracy) { this.agent = agent }
+    shipWarnings(agent)
     return InstalledTracy(agent, TracyDelivery(agent, config).also { it.start(this) })
 }
+
+/**
+ * Every SLF4J line at [SHIPPED_FROM] and above, whoever logs it, handed to tracy as well as to stdout (B-122).
+ *
+ * tracy's agent captures nothing on its own on the JVM: its plugin carries spans and what is written through
+ * its API, and the logback appender it ships is the host's to attach. Unattached, the server's every
+ * `log.warn` and `log.error` — the start-up lines saying what is off, an unhandled failure, a saga that gave
+ * up — stayed in the pod's log, and tracy showed none of them.
+ *
+ * From `warn`, not from the agent's `info`: a captured line carries no trace (SLF4J has none to give), so it
+ * skips tail sampling and is sent whole — at `info` that is every refused request's line (`ErrorAnswers`)
+ * at the shoppers' rate. A `warn` is what tracy keeps from every request anyway.
+ *
+ * Detached when the application has stopped: the logger context outlives an application, and in a test JVM
+ * every application started with tracy would otherwise leave one more appender feeding a stopped agent.
+ */
+private fun Application.shipWarnings(agent: TracyAgent) {
+    val context = LoggerFactory.getILoggerFactory() as? LoggerContext ?: return
+    val threshold =
+        ThresholdFilter().apply {
+            setLevel(SHIPPED_FROM.levelStr)
+            this.context = context
+            start()
+        }
+    val appender =
+        TracyLogbackAppender(agent).apply {
+            name = "tracy"
+            this.context = context
+            addFilter(threshold)
+            start()
+        }
+    val root = context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)
+    root.addAppender(appender)
+    monitor.subscribe(ApplicationStopped) {
+        root.detachAppender(appender)
+        appender.stop()
+    }
+}
+
+/** The level a line logged through SLF4J must have to be shipped to tracy ([shipWarnings]). */
+private val SHIPPED_FROM: Level = Level.WARN

@@ -1558,7 +1558,8 @@ and a key.
   provider's management port only the hook; the provider's public port is open, since Traefik and the
   server's key fetches reach it from outside the namespace.
 - **The stand's metrik, tracy and katcher are the cluster's own, by their in-cluster Services**;
-  katcher waits for the app to be registered in it, since its key is an app's, issued there.
+  katcher waited for the app to be registered in it, since its key is an app's, issued there — it was
+  («Haul», 2026-10-12), and the stand reports to it since (B-122).
 
 **Decided in B-109, an order's saga in tracy (2026-10-11).** Until then tracy held the request spans and nothing
 else: no code wrote a record through the agent and no appender was attached, so the saga, the simulators and every
@@ -1580,7 +1581,28 @@ refund were invisible to it — the empty `top_templates` and the zero stored re
   is always kept.
 - **SLF4J still does not reach tracy.** The agent's Logback appender takes MDC as plain fields — never an entity
   key — and attaching it means Logback at compile scope; the saga's own warnings (a rollback given up, a
-  shipment held) stay in the pod's log. Recorded in B-109's findings, not done there.
+  shipment held) stay in the pod's log. Recorded in B-109's findings, not done there — done in B-122, below.
+
+**Decided in B-122, what reaches katcher and tracy from the stand (2026-10-12).** Walking TC-STAND-05 found katcher
+off on the stand and, reading tracy for it, no line of haul-server at all — not even the `warn` every start logs
+saying katcher is off, though tracy keeps every `warn`.
+
+- **katcher is on on the stand**: the owner registered the application («Haul») and the infrastructure release
+  carries its key and the address (vedutsya-raboty/infra#104). A `500` is filed with the release the image was
+  built from — on a local stack with katcher's own image, and by `ObservabilityTest` against a fake endpoint, through
+  a real route whose table is gone. Every failure the catch-all answers is handed to katcher — a `503` and Ktor's own `4xx` included
+  (`ErrorAnswers.kt`, as B-32 decided); a client leaving a stream is not (B-110).
+- **Every SLF4J line from `warn` up is shipped to tracy** (`ops/Observability.kt`, `shipWarnings`): tracy's agent
+  captures nothing by itself on the JVM — its Ktor plugin carries spans and its API what is written through it —
+  and the Logback appender it ships is the host's to attach; nothing attached it, so no `log.warn` or `log.error`
+  ever left the pod. It is attached to the root logger when tracy is installed, before the lines saying what else
+  is off, and detached when the application stops.
+- **From `warn`, not from the agent's `info`.** A captured line carries no trace — SLF4J has none to give the
+  agent — so it skips the tail decision and is sent whole; at `info` that is every refused request's line
+  (`ErrorAnswers`) at the shoppers' rate. A `warn` is what tracy keeps from every request anyway.
+- **What `main` logs before the application starts is not shipped**: the migrations, the seed, a photo store that
+  refused (`Application.kt`) run before tracy is installed, and stay in the pod's log. Shipping them means making
+  the agent before the database, outside the module that installs it; not done.
 
 ### D7. Numbers the canvas implies, fixed here
 
