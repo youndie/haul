@@ -57,7 +57,7 @@ internal data class Totals(
 
     val totalCents: Int get() = itemsCents - discountCents + deliveryCents
 
-    /** «You'll earn N points»: whole dollars of the total, twice that for Plus (research D6–D7). */
+    /** «You’ll earn N points»: whole dollars of the total, twice that for Plus (research D6–D7). */
     fun points(plus: Boolean): Int = totalCents / CENTS_PER_DOLLAR * if (plus) 2 else 1
 
     companion object {

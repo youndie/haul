@@ -303,7 +303,7 @@ internal class ReviewTabs(
          */
         const val QUESTION_NOTE =
             "Your question appears on this page for other shoppers, marked «Not answered yet». " +
-                "Sellers can't answer new questions on Haul yet."
+                "Sellers can’t answer new questions on Haul yet."
 
         /** What kompot's `present` is asked to show the form as: a dialog over the page. */
         const val DIALOG = "dialog"

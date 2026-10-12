@@ -190,7 +190,7 @@ internal class CartScreen(
             // A price tag, as the canvas writes the total («$512»); the rows above keep their cents.
             total = money(totals.totalCents),
             promo = promoField,
-            points = if (promised) "You'll earn $points on this order" else null,
+            points = if (promised) "You’ll earn $points on this order" else null,
             pointsAccent = if (promised) points else null,
             checkoutLabel = if (guest) "Sign in to check out" else "Checkout",
             checkoutEnabled = totals.counted > 0,

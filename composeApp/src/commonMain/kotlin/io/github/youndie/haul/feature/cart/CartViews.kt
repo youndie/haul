@@ -574,7 +574,7 @@ private fun SummaryLine(row: SummaryRow) {
     }
 }
 
-/** «You'll earn **1,024 points** on this order» on Acid: the bold part between the rest, 10 px apart as flex items. */
+/** «You’ll earn **1,024 points** on this order» on Acid: the bold part between the rest, 10 px apart as flex items. */
 @Composable
 private fun Points(
     sentence: String,

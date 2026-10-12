@@ -567,7 +567,7 @@
                 ],
                 "reorderLabel": "Reorder",
                 "reorderUrl": "/api/v1/me/orders/HL-44019/reorder",
-                "returnNote": "One return per order: what you kept can't be sent back."
+                "returnNote": "One return per order: what you kept can’t be sent back."
             }
         }
     ]

@@ -859,7 +859,7 @@ and on the stand.
   of the order into the cart through the cart's own `changeLine`, selected, at the order's quantity — at
   most ten and the stock; a line already holding as many is only selected, so a second press adds
   nothing. A SKU gone or out of stock is left out. It answers `navigate` to the cart. Since B-101 the answer
-  names what it could not put back (`ReorderAnswer`): a SKU left out («… isn't available now») or put in with
+  names what it could not put back (`ReorderAnswer`): a SKU left out («… isn’t available now») or put in with
   fewer units than the order had («…: only 1 of 2 went in») follows the `navigate` as B-75's message at the
   `error` level; when nothing went in, the message is the whole answer and the shopper stays on the order rather
   than landing on a cart with none of it. A `200` with a message, not a refusal: the press did what it could.
@@ -908,7 +908,7 @@ and on the stand.
   refunded (`OrderProgress.of`, reading `Order.returnStatus`): the order page draws the return's three steps,
   the lines kept in their shipments and the returned ones in a card of their own, «Paid» net of the refund.
 - **The rule is said where «Return items» was** (B-101): once a return of some of the lines is in, the summary
-  reads «One return per order: what you kept can't be sent back.» (`OrderTotals.returnNote`) under «Reorder»; a
+  reads «One return per order: what you kept can’t be sent back.» (`OrderTotals.returnNote`) under «Reorder»; a
   whole return has nothing left to ask about and says nothing. Allowing a second return was the alternative the
   QA pass offered; the owner recorded no call, and the store holds one return per order everywhere (the table,
   the refund, points and restock keys, the order's progress), so the rule is shown rather than changed.
@@ -1929,6 +1929,13 @@ suggest panel's «↵», U+21B5, which fetched Noto Sans Math). Invisible marks 
 word joiner) resolve without a glyph. What a shopper types or a seller names is not held: Archivo and Bodoni
 Moda carry Latin only (Latin-1 and Extended-A, four Greek letters), JetBrains Mono adds Greek and Cyrillic, none
 has CJK or emoji — such text still fetches a face (`scripts/origin-check.py --control` shows it).
+
+**Decided in B-137: the store writes ’, never `'`, inside a word.** The canvas does («Couldn’t copy the link»), and
+four sentences had drifted from it («You’ll earn …», «… isn’t / aren’t available now», «… can’t be sent back»,
+«Sellers can’t answer …»). `CurlyApostropheTest` reads the same literals as `BundledGlyphsTest` and fails on `'`
+between two letters. Out of it: the seed — shoppers' and sellers' words as typed, the products' names — and text for
+the developer, told by what the literal is written into (a suppression's reason, a `require`/`check`/`error` or
+exception message, a log line, a date pattern).
 
 **Found in B-106: at the canvas's optical size Bodoni Moda's hairlines are 0.2 px.** The hairline is about
 0.2 em ÷ `opsz` (the hyphen: 72/2000 em at 6, 20 at 22, 4 at 96), so drawn at `opsz` = its pixel size it is about

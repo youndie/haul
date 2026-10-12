@@ -841,7 +841,7 @@ private class OrderPage(
     private fun returnRule(): String? {
         val ret = returned ?: return null
         if (ret.lines.size >= placed.lines.size) return null
-        return "One return per order: what you kept can't be sent back."
+        return "One return per order: what you kept can’t be sent back."
     }
 
     /**

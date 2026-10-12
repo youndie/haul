@@ -170,7 +170,7 @@ class ReviewRoutesTest {
             // B-99: what happens to the question, not «Sony answers questions», which nothing does.
             assertEquals(
                 "Your question appears on this page for other shoppers, marked «Not answered yet». " +
-                    "Sellers can't answer new questions on Haul yet.",
+                    "Sellers can’t answer new questions on Haul yet.",
                 ask.note,
             )
             // The chosen SKU is the dialog's: Silver with a travel case.

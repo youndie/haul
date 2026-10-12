@@ -25,13 +25,13 @@ internal object ReorderAnswer {
         return SequenceAction(listOf(toCart, ShowMessageAction("Added what was in stock — $said.", MessageLevel.ERROR)))
     }
 
-    /** «A and B aren't available now; C: only 1 of 2 went in». */
+    /** «A and B aren’t available now; C: only 1 of 2 went in». */
     private fun said(short: List<Shortfall>): String {
         val gone = short.filter { it.added == 0 }.map { it.title }
         val fewer = short.filter { it.added > 0 }
         return listOfNotNull(
             gone.takeIf { it.isNotEmpty() }?.let { names ->
-                names.joined() + if (names.size == 1) " isn't available now" else " aren't available now"
+                names.joined() + if (names.size == 1) " isn’t available now" else " aren’t available now"
             },
         ).plus(fewer.map { "${it.title}: only ${it.added} of ${it.wanted} went in" })
             .joinToString("; ")

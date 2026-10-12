@@ -112,7 +112,7 @@ later (B-27). A local stack runs at `HAUL_FULFILMENT_SPEED`.
   2. Read the wholly returned order's.
   3. Open the history.
 - **Expected:**
-  - Step 1: «One return per order: what you kept can't be sent back.» where «Return items» was; «Reorder» still
+  - Step 1: «One return per order: what you kept can’t be sent back.» where «Return items» was; «Reorder» still
     offered (a return unbuys nothing).
   - Step 2: no rule; «Reorder» offered.
   - Step 3: the first row «Partly returned» at what was paid and kept; the second «Returned» at the order's total.
@@ -158,9 +158,9 @@ later (B-27). A local stack runs at `HAUL_FULFILMENT_SPEED`.
 - **Expected:**
   - Step 1: the cart, each SKU ticked at the order's quantity (at most ten and the stock); the second press adds
     nothing.
-  - Step 2: the cart, and a message at the error level: «Added what was in stock — … isn't available now; …: only
+  - Step 2: the cart, and a message at the error level: «Added what was in stock — … isn’t available now; …: only
     1 of 2 went in.»
-  - Step 3: «Nothing was added: … aren't available now.» — and the shopper stays on the order.
+  - Step 3: «Nothing was added: … aren’t available now.» — and the shopper stays on the order.
 - **Decided in:** B-18, B-101
 - **Coverage:** `OrderRoutesTest` «reorder puts a delivered order back into the cart and twice is once»;
   `OrderRoutesTest` «a reorder names what it could not put back»;

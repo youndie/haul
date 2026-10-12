@@ -257,7 +257,7 @@ class OrderWiringTest {
         const val WIDTH = 1440
         const val ORDER = "/account/orders/HL-46102"
         const val SERUM = "Vitamin C Brightening Serum, 30 ml"
-        val SHORT = ShowMessageAction("Added what was in stock — $SERUM isn't available now.", MessageLevel.ERROR)
-        val NONE = ShowMessageAction("Nothing was added: $SERUM isn't available now.", MessageLevel.ERROR)
+        val SHORT = ShowMessageAction("Added what was in stock — $SERUM isn’t available now.", MessageLevel.ERROR)
+        val NONE = ShowMessageAction("Nothing was added: $SERUM isn’t available now.", MessageLevel.ERROR)
     }
 }
