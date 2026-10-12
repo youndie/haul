@@ -1,5 +1,6 @@
 package io.github.youndie.haul.feature.search
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +29,9 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.shadow.Shadow
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
@@ -419,7 +422,11 @@ private fun TopProducts(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(panel.allResultsLabel, HaulType.text(15f, 600).copy(color = HaulColors.onPrimary), softWrap = false)
-            Text("↵", HaulType.label(12f, 500, 0f).copy(color = HaulColors.secondaryContainer))
+            Image(
+                rememberVectorPainter(HaulIcons.returnKey),
+                contentDescription = null,
+                colorFilter = ColorFilter.tint(HaulColors.secondaryContainer),
+            )
         }
     }
 }
