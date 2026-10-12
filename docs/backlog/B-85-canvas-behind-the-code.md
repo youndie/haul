@@ -98,3 +98,13 @@ replaced by «the code is the reference; the canvas is a historical one».
   (8.03 % before the pictures) and `Order_Cancelled_Phone` (8.54 %, B-108's single «Back to cart» per B-108's
   findings). Both are among the 70 and retire with the pictures; their `_DIFF` shows the header and a block at the
   page's foot, not read further.
+
+## Where the checks ran (2026-10-13)
+
+On the Linux build box (WSL2, Ubuntu 24.04): `viddikDesignParity` on `main`'s tree (86/125 within) and on this branch
+(49/49 within); `:composeApp:wasmJsBrowserDistribution` green; `check :server:installDist` green (server 531 tests,
+client 446, 0 failed; `viddikVerify`, ktlint); `scripts/e2e.sh haul/server:b85` green (WholePathTest,
+ShoppersConfigTest 6, SyntheticShopperTest 3). No golden changed, so none was recorded. On the Mac: `make check` and
+`make docs-against BASE=origin/main` clean, every anchor found. No test was added, so there was nothing to mutate; the
+before-run is the parity's control — the same task over the same fixtures read 39 artboards over with the
+references in place.
