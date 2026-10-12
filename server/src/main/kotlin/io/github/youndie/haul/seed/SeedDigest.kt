@@ -21,7 +21,7 @@ import javax.sql.DataSource
  * the «same hash twice» of B-03.
  *
  * Read through JDBC as text, not through the Exposed tables, so a column the tables forgot is still
- * in the hash; ordered by the primary key, and in UTC, so neither the physical order of the rows nor
+ * in the hash; ordered by the whole primary key, and in UTC, so neither the physical order of the rows nor
  * the session's time zone moves it.
  */
 internal object SeedDigest {
@@ -37,7 +37,10 @@ internal object SeedDigest {
                 membershipTables +
                 recommendationTables) {
                 connection.createStatement().use { statement ->
-                    statement.executeQuery("SELECT * FROM ${table.tableName} ORDER BY 1").use { rows ->
+                    // By the whole primary key: by its first column alone, the rows of a key of two — a
+                    // product's bars in `rating_counts` — came in the order the plan happened to read them.
+                    val key = table.primaryKey?.columns?.joinToString { it.name } ?: "1"
+                    statement.executeQuery("SELECT * FROM ${table.tableName} ORDER BY $key").use { rows ->
                         val columns = rows.metaData.columnCount
                         sha.update("${table.tableName}\n".toByteArray())
                         while (rows.next()) {

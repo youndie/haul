@@ -52,8 +52,8 @@ internal object Seeder {
      * they existed gets them on its next start.
      *
      * [generatedReviews] `false` leaves out that fill — the 60,849 reviews and 6,799 questions written in SQL —
-     * and nothing else: the catalogue's own rows (the canvas's reviews and questions) and its counts go in as
-     * they are, and no histogram is written. Only the server's tests pass it (B-111), for a database of their
+     * and nothing else: the catalogue's own rows (the canvas's reviews and questions), its counts and its
+     * histograms go in as they are ([SeedReviews.histograms]), over rows they do not count. Only the server's tests pass it (B-111), for a database of their
      * own that reads no review: the fill is most of a fresh seed's time, paid by every test that writes. `main`
      * does not pass it, and a database seeded without the fill gets the rows on its next start that fills, as
      * any database seeded before B-99 does.
@@ -219,8 +219,14 @@ internal object Seeder {
                 this[QuestionsTable.answer] = it.answer
                 this[QuestionsTable.answeredAt] = it.answeredAt
             }
-            // The rest of every count, and the histograms, from the rows (B-99).
-            if (generatedReviews) SeedReviews.fill(connection.connection as Connection, catalog, fresh = true)
+            // The rest of every count, and the histograms, from the rows (B-99); without the rows, the catalogue's
+            // histograms (B-86).
+            val jdbc = connection.connection as Connection
+            if (generatedReviews) {
+                SeedReviews.fill(jdbc, catalog, fresh = true)
+            } else {
+                SeedReviews.histograms(jdbc, catalog)
+            }
             seedLoyalty(catalog)
             true
         }

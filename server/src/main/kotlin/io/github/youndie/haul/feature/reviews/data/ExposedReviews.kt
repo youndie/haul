@@ -7,6 +7,7 @@ import io.github.youndie.haul.feature.order.data.OrdersTable
 import io.github.youndie.haul.feature.order.data.ShipmentsTable
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus
 import io.github.youndie.haul.feature.reviews.domain.HelpfulOutcome
+import io.github.youndie.haul.feature.reviews.domain.Ratings
 import io.github.youndie.haul.feature.reviews.domain.ReviewRepository
 import io.github.youndie.haul.feature.reviews.domain.StoredQuestion
 import io.github.youndie.haul.feature.reviews.domain.StoredReview
@@ -32,8 +33,6 @@ import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
-import java.math.BigDecimal
-import java.math.RoundingMode
 import java.time.OffsetDateTime
 
 /**
@@ -50,12 +49,15 @@ internal class ExposedReviews(
     override suspend fun reviews(
         productId: String,
         limit: Int,
+        stars: Int?,
     ): List<StoredReview> =
         tx {
             ReviewsTable
                 .selectAll()
-                .where { ReviewsTable.productId eq productId }
-                .orderBy(ReviewsTable.createdAt to SortOrder.DESC, ReviewsTable.id to SortOrder.ASC)
+                .where {
+                    val product = ReviewsTable.productId eq productId
+                    if (stars == null) product else product and (ReviewsTable.rating eq stars)
+                }.orderBy(ReviewsTable.createdAt to SortOrder.DESC, ReviewsTable.id to SortOrder.ASC)
                 .limit(limit)
                 .map(::review)
         }
@@ -150,7 +152,7 @@ internal class ExposedReviews(
         tx {
             val product =
                 ProductsTable
-                    .select(ProductsTable.rating, ProductsTable.reviewsCount)
+                    .select(ProductsTable.reviewsCount)
                     .where { ProductsTable.id eq review.productId }
                     .forUpdate()
                     .single()
@@ -171,11 +173,6 @@ internal class ExposedReviews(
                         it[createdAt] = review.createdAt
                     }.insertedCount
             if (inserted == 0) return@tx false
-            val count = product[ProductsTable.reviewsCount]
-            ProductsTable.update({ ProductsTable.id eq review.productId }) {
-                it[reviewsCount] = count + 1
-                it[rating] = average(product[ProductsTable.rating], count, review.rating)
-            }
             val counted =
                 RatingCountsTable.update({
                     (RatingCountsTable.productId eq review.productId) and (RatingCountsTable.stars eq review.rating)
@@ -186,6 +183,16 @@ internal class ExposedReviews(
                     it[stars] = review.rating
                     it[RatingCountsTable.count] = 1
                 }
+            }
+            // The rating is the histogram's, as it is now (B-86): one source for both.
+            val histogram =
+                RatingCountsTable
+                    .select(RatingCountsTable.stars, RatingCountsTable.count)
+                    .where { RatingCountsTable.productId eq review.productId }
+                    .associate { it[RatingCountsTable.stars] to it[RatingCountsTable.count] }
+            ProductsTable.update({ ProductsTable.id eq review.productId }) {
+                it[reviewsCount] = product[ProductsTable.reviewsCount] + 1
+                Ratings.average(histogram)?.let { average -> it[rating] = average }
             }
             true
         }
@@ -289,20 +296,7 @@ internal class ExposedReviews(
             answeredAt = row[QuestionsTable.answeredAt],
         )
 
-    companion object {
-        private val RECEIVED = listOf(ShipmentStatus.DELIVERED, ShipmentStatus.PICKED_UP)
-
-        /**
-         * The average of [count] reviews at [average] and one more of [stars], to a tenth. Moved from the
-         * stored average rather than recounted from the histogram: the seed's average is the canvas's 4.8,
-         * which its own histogram (78/14/4/2/2 %) does not give (B-22 findings).
-         */
-        fun average(
-            average: BigDecimal,
-            count: Int,
-            stars: Int,
-        ): BigDecimal =
-            (average * count.toBigDecimal() + stars.toBigDecimal())
-                .divide((count + 1).toBigDecimal(), 1, RoundingMode.HALF_UP)
+    private companion object {
+        val RECEIVED = listOf(ShipmentStatus.DELIVERED, ShipmentStatus.PICKED_UP)
     }
 }
