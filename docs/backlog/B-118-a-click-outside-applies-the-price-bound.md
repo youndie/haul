@@ -1,7 +1,7 @@
 ---
 id: B-118
 title: "fix: a click outside a price field applies the bound typed into it"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-12-qa-run
