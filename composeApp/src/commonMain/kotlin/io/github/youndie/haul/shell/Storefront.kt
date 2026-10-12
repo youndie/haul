@@ -193,9 +193,11 @@ public fun Storefront(
     // The header's search field: typing asks for the suggest panel once the shopper pauses — in the picker's
     // scope, and again when the picker changes it (B-103) — Enter opens
     // the results — or, once the arrow keys are on one of the panel's queries, that query's (B-77). A query
-    // the server refuses, or a request that fails, shows no panel. The panel stays open when the field loses
+    // the server refuses, or a request that fails, shows no panel. A customer pressing the empty field — or
+    // emptying it while in it — is recall (B-124): the panel is asked for with no query, at once, and is their
+    // recent searches alone; a guest's empty field asks nothing. The panel stays open when the field loses
     // focus — pressing a suggestion takes the focus, and closing the panel under the press would lose the
-    // press — and closes on the scrim, an emptied field or a new page.
+    // press — and closes on the scrim, a guest's emptied field or a new page.
     val field = remember { SearchFieldState() }
     val search =
         remember(navigator) {
@@ -206,16 +208,40 @@ public fun Storefront(
     var panel by remember { mutableStateOf<SearchSuggestPanel?>(null) }
     LaunchedEffect(panel) { search.offer(panel?.suggestions?.map { it.action }.orEmpty()) }
     val typed = search.text.text.trim()
-    LaunchedEffect(typed, search.typed, search.scope) {
-        if (!search.typed || typed.isEmpty()) {
-            panel = null
-        } else {
-            delay(SUGGEST_DELAY_MS)
-            panel = transport.suggest(typed, search.scope)
+    val customer = session?.signedIn == true
+    // Whether the panel is the empty field's recall: on from the press into it, kept when the focus leaves for a
+    // press on the panel, off once anything is typed, for a guest, and on the scrim or a new page.
+    var recalling by remember { mutableStateOf(false) }
+    LaunchedEffect(field.focused, typed.isEmpty(), customer) {
+        if (typed.isNotEmpty() || !customer) {
+            recalling = false
+        } else if (field.focused) {
+            recalling = true
         }
+    }
+    // The value this composition saw, not the state read when the effect runs: an emptied field restarts the
+    // effect before the recall is on and again once it is, and reading the state would ask twice.
+    val recall = recalling
+    LaunchedEffect(typed, search.typed, search.scope, recall) {
+        panel =
+            when {
+                typed.isEmpty() && recall -> {
+                    transport.suggest("", search.scope)
+                }
+
+                typed.isNotEmpty() && search.typed -> {
+                    delay(SUGGEST_DELAY_MS)
+                    transport.suggest(typed, search.scope)
+                }
+
+                else -> {
+                    null
+                }
+            }
     }
     val dismiss = {
         panel = null
+        recalling = false
         focus.clearFocus()
     }
     val filters = remember { FiltersSheetState() }
@@ -254,7 +280,7 @@ public fun Storefront(
     // not there is drawn under it (Product_NotFound), and so are a page's placeholders and errors, as a
     // placeholder (B-67). Who is looking is read again on each visit and each header drawn.
     val headers = remember { ShellHeaders() }
-    val signedIn = session?.signedIn == true
+    val signedIn = customer
     val shellHeader = headers.of(signedIn)
     var signedOut by remember { mutableIntStateOf(0) }
     val home = remember(navigator) { { navigator.open("/") } }

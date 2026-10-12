@@ -25,7 +25,9 @@ import org.koin.ktor.ext.inject
 /**
  * The search screens (endpoint-search), in the public tier: a guest searches as a customer does,
  * and a signed-in customer's searches are recorded. Refusals are `SearchError` (`query_too_short`)
- * and `CatalogError` (a sort, page or category the page does not have). Clearing recent searches is
+ * and `CatalogError` (a sort, page or category the page does not have). Suggest with an empty or no `q`
+ * is the empty field pressed (B-124): the customer's recent searches alone, and a guest's panel empty — the
+ * route stays public. Clearing recent searches is
  * the customer tier's ([customerSearchRouting]).
  */
 internal fun Route.searchRouting() {

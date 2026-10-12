@@ -6,7 +6,9 @@ import io.github.youndie.haul.feature.search.SearchSuggestOverlay
 import io.github.youndie.haul.shell.SearchError
 import io.github.youndie.haul.shell.SearchLoading
 import io.github.youndie.haul.shell.SearchTooShort
+import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.SearchSuggestPanel
+import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.viddik.annotations.ViddikScreenshot
 
 // One fixture per artboard of the Search screen (B-10), at the artboard's size. Results and NoResults
@@ -63,6 +65,35 @@ internal fun SearchTooShortWide() = Fixture(compact = false) { Page { SearchTooS
 @ViddikScreenshot(name = "TooShort_Phone", group = "Search", width = 390, height = 692)
 @Composable
 internal fun SearchTooShortPhone() = Fixture(compact = true) { Page { SearchTooShort("a") } }
+
+// No artboard: the empty field pressed by a customer (B-124) — the panel is their recent searches alone, newest
+// first, with «Clear», and no products' column; over the home page, whose field is empty.
+@ViddikScreenshot(name = "Recent", group = "Search", width = 1440, height = 900)
+@Composable
+internal fun SearchRecentWide() = Fixture(compact = false) { Recent() }
+
+@ViddikScreenshot(name = "Recent_Phone", group = "Search", width = 390, height = 844)
+@Composable
+internal fun SearchRecentPhone() = Fixture(compact = true) { Recent() }
+
+/** The home page with the empty field pressed by Maya after `mug`, `sony`, `duvet`, `mug`. */
+@Composable
+private fun Recent() {
+    val panel =
+        remember {
+            SearchSuggestPanel(
+                id = "suggest",
+                query = "",
+                suggestions = emptyList(),
+                categories = emptyList(),
+                products = emptyList(),
+                allResultsLabel = "",
+                recent = listOf("mug", "duvet", "sony").map { Link(it, NavigateAction("/search?q=$it")) },
+                clearUrl = "/api/v1/me/recent-searches",
+            )
+        }
+    SearchSuggestOverlay(panel) { Page { Body("home_content.json") } }
+}
 
 /** The results page while the shopper types «running shoes»: the panel open, its first row highlighted. */
 @Composable

@@ -1,7 +1,9 @@
 package io.github.youndie.haul.feature.search
 
 import io.github.youndie.haul.ErrorCode
+import io.github.youndie.haul.StoreClock
 import io.github.youndie.haul.haulWireJson
+import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.testing.ShildikHarness
 import io.github.youndie.haul.testing.assertError
 import io.github.youndie.haul.testing.assertRefresh
@@ -18,6 +20,7 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -77,8 +80,65 @@ class RecentSearchesRoutesTest {
             assertNull((tree("/ui/search/suggest?q=mugs") as SearchSuggestPanel).clearUrl)
         }
 
-    private suspend fun HttpClient.suggest(token: String): SearchSuggestPanel {
-        val response = get("/ui/search/suggest?q=mugs") { bearerAuth(token) }
+    /**
+     * B-124: the empty field pressed asked for nothing, and the recent searches showed only once two letters were
+     * typed. Suggest with an empty `q` is that press: the customer's last searches alone, newest first, a repeat
+     * on top, each row in the picker's scope, with «Clear» — and nothing searched for an empty query.
+     */
+    @Test
+    fun `the empty field offers a customer's recent searches alone, newest first, in the scope`() {
+        val token = ShildikHarness.accessToken(ShildikHarness.person("Maya Recall"))
+        // Each search a second after the one before, so «newest first» is the clock's order, not the table's.
+        val tick = AtomicLong()
+        val clock = StoreClock { CatalogSeed.NOW.toZonedDateTime().plusSeconds(tick.incrementAndGet()) }
+        haulTest(signIn = ShildikHarness.signIn, clock = clock) {
+            listOf("mug", "sony", "duvet", "mug").forEach {
+                assertEquals(HttpStatusCode.OK, get("/ui/search?q=$it") { bearerAuth(token) }.status, it)
+            }
+
+            val panel = suggest(token, "")
+            assertEquals(listOf("mug", "duvet", "sony"), panel.recent.map { it.label })
+            assertEquals(NavigateAction("/search?q=duvet"), panel.recent[1].action)
+            assertEquals("/api/v1/me/recent-searches", panel.clearUrl)
+            assertEquals("", panel.query)
+            assertEquals(emptyList(), panel.suggestions, "an empty query was suggested for")
+            assertEquals(emptyList(), panel.categories)
+            assertEquals(emptyList(), panel.products)
+            assertNull(panel.allResultsAction, "«All N results» offered for nothing typed")
+
+            val scoped = suggest(token, "&category=home-kitchen")
+            assertEquals(
+                listOf(
+                    "/search?q=mug&category=home-kitchen",
+                    "/search?q=duvet&category=home-kitchen",
+                    "/search?q=sony&category=home-kitchen",
+                ),
+                scoped.recent.map { (it.action as NavigateAction).deeplink },
+                "a recent row left the picker's scope",
+            )
+            assertEquals(
+                HttpStatusCode.NotFound,
+                get("/ui/search/suggest?q=&category=nowhere") { bearerAuth(token) }.status,
+            )
+        }
+    }
+
+    /** B-124: a guest's empty field — the client asks nothing, and the route, asked, has nothing to offer. */
+    @Test
+    fun `the empty field offers a guest nothing and one character is still too short`() =
+        haulTest(signIn = ShildikHarness.signIn) {
+            val panel = tree("/ui/search/suggest?q=") as SearchSuggestPanel
+            assertEquals(emptyList(), panel.recent)
+            assertNull(panel.clearUrl)
+            assertEquals(emptyList(), panel.products)
+            get("/ui/search/suggest?q=m").assertError(HttpStatusCode.BadRequest, ErrorCode.QueryTooShort)
+        }
+
+    private suspend fun HttpClient.suggest(
+        token: String,
+        query: String = "mugs",
+    ): SearchSuggestPanel {
+        val response = get("/ui/search/suggest?q=$query") { bearerAuth(token) }
         assertEquals(HttpStatusCode.OK, response.status, response.bodyAsText())
         return haulWireJson.decodeKompotComponent(response.bodyAsText()) as SearchSuggestPanel
     }

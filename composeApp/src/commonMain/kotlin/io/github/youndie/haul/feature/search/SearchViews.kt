@@ -210,7 +210,8 @@ public fun SearchSuggestOverlay(
 /**
  * The suggest panel (`SearchSuggestPanel`): queries, categories with counts, recent searches and, in a
  * column of their own at 1440 (under the rest on a phone), the top products and «All N results ↵».
- * [highlighted] is the query row the keyboard is on; [onClear] is «Clear» on recent searches.
+ * [highlighted] is the query row the keyboard is on; [onClear] is «Clear» on recent searches. A panel with no
+ * query — the empty field pressed (B-124) — is the recent searches alone, with no products' column.
  */
 @Composable
 public fun SearchSuggestPanelView(
@@ -228,7 +229,9 @@ public fun SearchSuggestPanelView(
                 Shadow(radius = 80.dp, spread = (-20).dp, offset = DpOffset(0.dp, 30.dp), color = HaulColors.shadow),
             ).clip(shape)
             .background(HaulColors.surfaceContainerLowest)
-    if (compact) {
+    if (panel.query.isEmpty()) {
+        Column(card) { Suggestions(panel, highlighted, compact, onClear) }
+    } else if (compact) {
         Column(card) {
             Suggestions(panel, highlighted, compact = true, onClear)
             TopProducts(panel, compact = true, modifier = Modifier.fillMaxWidth())

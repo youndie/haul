@@ -12,7 +12,10 @@ internal sealed class SearchError(
     class QueryTooShort : SearchError(ErrorCode.QueryTooShort, "Type at least $MIN_QUERY characters", "q")
 }
 
-/** Suggestions and searches start at two characters (feature-search). */
+/**
+ * Suggestions and searches start at two characters (feature-search). The suggest panel asked with no query at all
+ * is a customer's recent searches (B-124), which is not a query and is not measured against this.
+ */
 internal const val MIN_QUERY = 2
 
 /**

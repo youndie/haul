@@ -241,14 +241,17 @@ private const val SCREEN = "screen"
 /**
  * The suggest panel for what the shopper has typed in the [scope] the field's picker chose (B-103), or `null`
  * when there is none to show: a query the server refuses (too short) or a request that failed closes the panel
- * rather than drawing an error.
+ * rather than drawing an error. An empty [query] is the empty field pressed (B-124), whose panel is the recent
+ * searches alone; with none — cleared, or never searched — there is nothing to draw.
  */
 internal suspend fun HaulTransport.suggest(
     query: String,
     scope: String? = null,
 ): SearchSuggestPanel? =
     try {
-        tree(Address.suggest(query, scope)) as? SearchSuggestPanel
+        (tree(Address.suggest(query, scope)) as? SearchSuggestPanel)?.takeIf {
+            it.query.isNotEmpty() || it.recent.isNotEmpty()
+        }
     } catch (failed: ScreenFailed) {
         null
     }
