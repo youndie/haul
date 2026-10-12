@@ -1,7 +1,7 @@
 ---
 id: B-138
 title: "client: the cold sign-in page's menu and picker ask for the header when pressed"
-status: open
+status: wip
 priority: P3
 size: S
 stage: stage-12-qa-run

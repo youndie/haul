@@ -49,7 +49,7 @@ A stage is a field on the item, not a directory.
 |---|---|---|---|---|
 | [B-139](docs/backlog/B-139-the-saga-rides-out-a-short-outage.md) `[ ]` | server: the order saga rides out a short database outage | P2 | S | - |
 | [B-122](docs/backlog/B-122-the-stand-reports-to-katcher.md) `[ ]` | ops: the stand's server reports to katcher | P3 | XS | - |
-| [B-138](docs/backlog/B-138-the-cold-sign-in-menu-asks-on-press.md) `[ ]` | client: the cold sign-in page's menu and picker ask for the header when pressed | P3 | S | - |
+| [B-138](docs/backlog/B-138-the-cold-sign-in-menu-asks-on-press.md) `[~]` | client: the cold sign-in page's menu and picker ask for the header when pressed | P3 | S | - |
 | [B-78](docs/backlog/B-78-placeholders-on-the-stand.md) `[ ]` | server + client: the stand shows pictures, not placeholder labels | P3 | M | - |
 | [B-85](docs/backlog/B-85-canvas-behind-the-code.md) `[ ]` | design: the canvas draws what the store now has | P3 | M | - |
 | [B-86](docs/backlog/B-86-reviews-photos-and-histogram.md) `[ ]` | client + server: review photos open and the histogram filters | P3 | M | - |
