@@ -13,7 +13,9 @@ import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -231,6 +233,42 @@ class DrawnActionsTest {
             onNodeWithTag(LINK_MENU_TAG).assertDoesNotExist()
             assertEquals(listOf("/"), history.entries)
             assertEquals(listOf("/ui/home"), requests)
+        }
+
+    /**
+     * B-126: a menu opens in the page's own layer — one root, where a `Popup` is a second one, and the browser's
+     * mirror of the page for assistive technology loses the page to a layer that has opened and closed (CMP-9368).
+     * A press off the menu closes it and reaches nothing under it: «Show 24 more» under the press opens nothing.
+     */
+    @Test
+    fun `the sort's menu opens in the page's layer and a press off it closes it`() =
+        runDesktopComposeUiTest(WIDTH, 1_600) {
+            answer("/ui/home", results)
+            storefront()
+            val more = onNodeWithText("Show 24 more").fetchSemanticsNode().boundsInRoot.center
+            onNodeWithText("Sort:").performClick()
+            onNodeWithTag(LINK_MENU_TAG).assertExists()
+            onAllNodes(isRoot()).assertCountEquals(1)
+            onAllNodes(isRoot()).onFirst().performTouchInput { click(more) }
+            onNodeWithTag(LINK_MENU_TAG).assertDoesNotExist()
+            assertEquals(listOf("/"), history.entries)
+            assertEquals(listOf("/ui/home"), requests.toList())
+        }
+
+    /** B-126: the phone's menu and its filter sheet open in the page's layer too, not in a `Dialog`'s. */
+    @Test
+    fun `the phone's menu and filter sheet open in the page's layer`() =
+        runDesktopComposeUiTest(PHONE, 1_600) {
+            filtering()
+            storefront(compact = true)
+            openSheet()
+            onAllNodes(isRoot()).assertCountEquals(1)
+            onNodeWithContentDescription(CLOSE_FILTERS).performClick()
+            openMenu()
+            onAllNodes(isRoot()).assertCountEquals(1)
+            onNodeWithTag(HEADER_MENU_TAG).performKeyInput { pressKey(Key.Escape) }
+            waitForIdle()
+            onNodeWithTag(HEADER_MENU_TAG).assertDoesNotExist()
         }
 
     /** B-75: Escape closes the sort's menu, and opens nothing. */

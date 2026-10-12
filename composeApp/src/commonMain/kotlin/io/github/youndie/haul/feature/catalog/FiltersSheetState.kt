@@ -9,10 +9,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import io.github.youndie.haul.ui.FilteredResults
 import io.github.youndie.haul.ui.LocalHaulActions
+import io.github.youndie.haul.ui.SheetOverPage
 import io.github.youndie.haul.ui.releasingOnBlankPress
 import io.github.youndie.kompot.KompotActionHandler
 
@@ -70,7 +69,8 @@ public fun FiltersSheetOverlay(
     loading: Boolean,
 ) {
     val (results, actions) = state.shown ?: return
-    Dialog(onDismissRequest = state::close, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+    // Over the storefront in its own layer, not a `Dialog` (B-126).
+    SheetOverPage(onDismiss = state::close) {
         CompositionLocalProvider(LocalHaulActions provides actions.takeUnless { loading }) {
             FiltersSheet(
                 results.facets,

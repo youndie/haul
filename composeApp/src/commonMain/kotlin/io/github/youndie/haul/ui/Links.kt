@@ -15,11 +15,10 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.withLink
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotActionHandler
 
@@ -106,19 +105,50 @@ internal fun Modifier.inert(): Modifier = semantics { disabled() }
 internal fun Modifier.swallowsPresses(): Modifier = pointerInput(Unit) { detectTapGestures { } }
 
 /**
- * [text] as a link that follows [action] inside a run of text (a crumb); plain text when there is no
- * action or nobody to follow it. The link carries no style of its own, so it reads as the canvas draws it.
+ * The name a reader of the page hears for a press that shows no words of its own — an icon, a photo, a box to tick
+ * (B-126). The browser's accessible mirror of the page names a press by this, else by the text in it; with
+ * neither it reads as «button».
  */
-internal fun AnnotatedString.Builder.appendLink(
-    text: String,
-    action: KompotAction?,
-    actions: KompotActionHandler?,
-) {
-    if (action == null || actions == null) {
-        append(text)
-    } else {
-        withLink(LinkAnnotation.Clickable(text) { actions.handle(action) }) { append(text) }
+internal fun Modifier.named(name: String): Modifier = semantics { contentDescription = name }
+
+/** Text with runs that are pressed on their own — a crumb, a word of the category row ([linkedText]). */
+internal class LinkedText(
+    val text: AnnotatedString,
+    val links: List<TextLink>,
+)
+
+/** The run of [LinkedText.text] from [start] to [end], named [label], that runs [onPress]. */
+internal class TextLink(
+    val start: Int,
+    val end: Int,
+    val label: String,
+    val onPress: () -> Unit,
+)
+
+/**
+ * Builds text with links in it. Not `LinkAnnotation`: Compose draws each of those as a press of its own with no
+ * name, which the browser's accessible mirror reads as an unnamed button (B-126); a [TextLink] is pressed the
+ * same way and named by its words ([LinkedBasicText]).
+ */
+internal fun linkedText(build: LinkedTextBuilder.() -> Unit): LinkedText = LinkedTextBuilder().apply(build).build()
+
+/** What [linkedText] builds with: [text] for what is drawn, [link] for a run that follows an action. */
+internal class LinkedTextBuilder {
+    val text: AnnotatedString.Builder = AnnotatedString.Builder()
+    private val links = mutableListOf<TextLink>()
+
+    /** [label] as a link that follows [action]; plain text when there is no action or nobody to follow it. */
+    fun link(
+        label: String,
+        action: KompotAction?,
+        actions: KompotActionHandler?,
+    ) {
+        val start = text.length
+        text.append(label)
+        if (action != null && actions != null) links += TextLink(start, text.length, label) { actions.handle(action) }
     }
+
+    fun build(): LinkedText = LinkedText(text.toAnnotatedString(), links.toList())
 }
 
 /** What pressing a button that carries [action] does: follow it, or nothing when there is nobody to. */

@@ -80,6 +80,7 @@ import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.awaitTypedInput
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
+import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.pressable
 import kotlinx.coroutines.launch
@@ -586,6 +587,7 @@ private fun FieldCell(
                 Modifier
                     .fillMaxWidth()
                     .testTag(fieldTag(field.name))
+                    .named(field.label)
                     .onFocusChanged {
                         hasFocus = it.isFocused
                         onFocus(it.isFocused)
@@ -920,6 +922,7 @@ private fun Summary(
                     Modifier
                         .size(72.dp)
                         .testTag(summaryItemTag(index))
+                        .named(item.title)
                         .follows(item.action.takeUnless { placing }),
                 )
             }

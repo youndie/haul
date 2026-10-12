@@ -54,10 +54,10 @@ import io.github.youndie.haul.ui.LocalPageScroll
 import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.ProductGridView
 import io.github.youndie.haul.ui.Text
-import io.github.youndie.haul.ui.appendLink
 import io.github.youndie.haul.ui.following
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
+import io.github.youndie.haul.ui.linkedText
 import io.github.youndie.haul.ui.pressable
 import kotlinx.coroutines.launch
 
@@ -75,13 +75,13 @@ public fun BreadcrumbsView(breadcrumbs: Breadcrumbs) {
     val shown = if (compact && crumbs.size > COMPACT_CRUMBS) crumbs.takeLast(2) else crumbs
     val actions = LocalHaulActions.current
     Text(
-        buildAnnotatedString {
-            if (shown.size < crumbs.size) append("… / ")
+        linkedText {
+            if (shown.size < crumbs.size) text.append("… / ")
             shown.dropLast(1).forEach {
-                appendLink(it.label, it.action, actions)
-                append(" / ")
+                link(it.label, it.action, actions)
+                text.append(" / ")
             }
-            withStyle(SpanStyle(color = HaulColors.onSurface)) { append(shown.lastOrNull()?.label.orEmpty()) }
+            text.withStyle(SpanStyle(color = HaulColors.onSurface)) { append(shown.lastOrNull()?.label.orEmpty()) }
         },
         Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = if (compact) 20.dp else 28.dp),
         style =

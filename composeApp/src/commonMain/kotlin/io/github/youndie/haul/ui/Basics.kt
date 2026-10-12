@@ -29,6 +29,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -260,6 +261,7 @@ internal fun Text(
     style: TextStyle,
     softWrap: Boolean = true,
     maxLines: Int = Int.MAX_VALUE,
+    links: List<TextLink> = emptyList(),
 ) {
     val legible = HaulType.legibleFigures(text, style)
     // The line boxes are measured here rather than read back from the text's own layout: an intrinsic
@@ -267,8 +269,9 @@ internal fun Text(
     val measurer = rememberTextMeasurer()
     val overflow = if (maxLines == Int.MAX_VALUE) TextOverflow.Clip else TextOverflow.Ellipsis
     val crops = style.lineHeight.isSpecified
-    BasicText(
+    LinkedBasicText(
         legible,
+        links,
         modifier.layout { measurable, constraints ->
             val placeable = measurable.measure(constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity))
             var top = 0
@@ -299,6 +302,85 @@ internal fun Text(
         softWrap = softWrap,
         maxLines = maxLines,
     )
+}
+
+/** [linked] drawn as [Text] draws text, its links pressed on their own. */
+@Composable
+internal fun Text(
+    linked: LinkedText,
+    modifier: Modifier = Modifier,
+    style: TextStyle,
+    softWrap: Boolean = true,
+    maxLines: Int = Int.MAX_VALUE,
+) {
+    Text(linked.text, modifier, style, softWrap, maxLines, linked.links)
+}
+
+/**
+ * [BasicText] with [links]: each a press of its own over its run of the text, named by its words (B-126). The
+ * text is drawn as without them, and the size and the baselines are the text's.
+ */
+@Composable
+internal fun LinkedBasicText(
+    text: AnnotatedString,
+    links: List<TextLink>,
+    modifier: Modifier,
+    style: TextStyle,
+    overflow: TextOverflow = TextOverflow.Clip,
+    softWrap: Boolean = true,
+    maxLines: Int = Int.MAX_VALUE,
+    inlineContent: Map<String, InlineTextContent> = emptyMap(),
+) {
+    if (links.isEmpty()) {
+        BasicText(
+            text,
+            modifier,
+            style,
+            overflow = overflow,
+            softWrap = softWrap,
+            maxLines = maxLines,
+            inlineContent = inlineContent,
+        )
+        return
+    }
+    // The text's layout of the measurement under way: the text is measured first, then the runs are laid on it.
+    val drawn = remember { arrayOfNulls<TextLayoutResult>(1) }
+    androidx.compose.ui.layout.Layout(
+        content = {
+            BasicText(
+                text,
+                Modifier,
+                style,
+                onTextLayout = { drawn[0] = it },
+                overflow = overflow,
+                softWrap = softWrap,
+                maxLines = maxLines,
+                inlineContent = inlineContent,
+            )
+            links.forEach { link -> Box(Modifier.named(link.label).pressable(link.onPress)) }
+        },
+        modifier = modifier,
+    ) { measurables, constraints ->
+        val placed = measurables.first().measure(constraints)
+        val layout = drawn[0]
+        val runs =
+            measurables.drop(1).zip(links) { measurable, link ->
+                val bounds =
+                    layout
+                        ?.takeIf { link.end <= it.layoutInput.text.length }
+                        ?.getPathForRange(link.start, link.end)
+                        ?.getBounds()
+                val left = (bounds?.left ?: 0f).roundToInt().coerceIn(0, placed.width)
+                val top = (bounds?.top ?: 0f).roundToInt().coerceIn(0, placed.height)
+                val right = (bounds?.right ?: 0f).roundToInt().coerceIn(left, placed.width)
+                val bottom = (bounds?.bottom ?: 0f).roundToInt().coerceIn(top, placed.height)
+                Triple(measurable.measure(Constraints.fixed(right - left, bottom - top)), left, top)
+            }
+        layout(placed.width, placed.height) {
+            placed.place(0, 0)
+            runs.forEach { (run, x, y) -> run.place(x, y) }
+        }
+    }
 }
 
 /**
@@ -426,15 +508,16 @@ internal fun SpacedWords(
 ) {
     val gapSp = with(LocalDensity.current) { gap.toSp() }
     val actions = LocalHaulActions.current
-    val text =
-        buildAnnotatedString {
+    val linked =
+        linkedText {
             words.forEachIndexed { index, word ->
-                if (index > 0) appendInlineContent(GAP, " ")
-                appendLink(word, links.firstOrNull { it.label == word }?.action, actions)
+                if (index > 0) text.appendInlineContent(GAP, " ")
+                link(word, links.firstOrNull { it.label == word }?.action, actions)
             }
         }
-    BasicText(
-        text,
+    LinkedBasicText(
+        linked.text,
+        linked.links,
         modifier,
         style,
         softWrap = false,
