@@ -11,7 +11,18 @@ public interface SignInHere {
     /** Whether this page load is the return of a sign-in [leave] started, with the provider's answer. */
     public val returned: Boolean
 
-    /** Leaves this page for the provider's; [next] is kept for when it comes back. */
+    /**
+     * Whether a sign-in [leave] started is still waiting for the provider's answer on this page load — the
+     * shopper went back from the provider's page, which never answered (B-116) — and forgets it, so the
+     * page that asked says once that it did not go through. `false` for one that [returned].
+     */
+    public fun forgetUnanswered(): Boolean
+
+    /**
+     * Leaves this page for the provider's; [next] is kept for when it comes back. Returns only by throwing
+     * [SignInNotAnswered], when a browser that kept this page shows it again on the shopper's back from
+     * the provider's page with no answer from it.
+     */
     public suspend fun leave(
         settings: SignInSettings,
         next: String?,
@@ -23,6 +34,9 @@ public interface SignInHere {
      */
     public suspend fun finish(settings: SignInSettings): SignedInHere
 }
+
+/** The provider's page in this tab was left with no answer from it: the shopper went back (B-116). */
+public class SignInNotAnswered : Exception("the provider's page was left without an answer")
 
 /** A sign-in in this tab that went through: its [tokens] and the address it was asked to return to. */
 public class SignedInHere(
@@ -48,6 +62,12 @@ public interface SessionControls {
 
     /** Whether this page load is a sign-in in this tab coming back, for `/sign-in` to finish. */
     public val returnedFromSignIn: Boolean
+
+    /**
+     * Whether a sign-in in this tab left for the provider's page and this page load is the shopper's back
+     * from it, unanswered (B-116); forgets it, so `/sign-in` says once that it did not go through.
+     */
+    public fun forgetUnansweredSignIn(): Boolean
 
     /** Finishes the sign-in that came back — the tokens kept, the guest cart merged — and answers its next. */
     public suspend fun finishSignInHere(): String?

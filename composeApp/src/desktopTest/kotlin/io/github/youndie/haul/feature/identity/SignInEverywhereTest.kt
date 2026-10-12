@@ -38,6 +38,7 @@ import kotlinx.serialization.PolymorphicSerializer
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -70,6 +71,9 @@ class SignInEverywhereTest {
             }
             onNodeWithTag(SIGN_IN_PAGE_TAG).assertExists()
             onNodeWithText(NOT_HERE).assertDoesNotExist()
+            // Nothing pending in this tab (B-116): the page asks, as it always did.
+            onNodeWithText(ASKING).assertExists()
+            onNodeWithText(FAILED).assertDoesNotExist()
             assertEquals(emptyList(), requests.toList(), "the sign-in page asked the server for a tree")
             assertEquals(0, signIns, "the page's arrival started a sign-in: a browser blocks that popup")
 
@@ -185,10 +189,56 @@ class SignInEverywhereTest {
             session.finish = { error("the provider refused the code") }
             val history = FakeHistory("/sign-in")
             storefront(history) { path -> error("nothing answers $path") }
-            waitUntil(timeoutMillis = 5_000) { exists(hasText("The sign-in didn’t go through")) }
+            waitUntil(timeoutMillis = 5_000) { exists(hasText(FAILED)) }
 
             onNode(hasText(SIGN_IN_HERE_LABEL) and hasClickAction()).assertExists()
             assertEquals(listOf("/sign-in"), history.entries)
+        }
+
+    /**
+     * B-116, found by the v0.4.0 run: «Sign in on this page», then the browser's back off the provider's
+     * page, landed on `/sign-in?next=…` drawing the plain «Sign in to HAUL» — as if nothing had been
+     * pressed. A sign-in in this tab the provider never answered did not go through: the page says so,
+     * once, and its press starts a new one.
+     */
+    @Test
+    fun `back from the provider's page says the sign-in did not go through and offers another`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            session.unanswered = true
+            val history = FakeHistory("/sign-in?next=%2Fcart")
+            storefront(history) { path -> error("nothing answers $path") }
+            waitUntil(timeoutMillis = 5_000) { exists(hasText(FAILED)) }
+
+            onNodeWithText(ASKING).assertDoesNotExist()
+            assertFalse(session.unanswered, "the page did not forget the sign-in it reported")
+            onNode(hasText(TRY_POPUP_AGAIN_LABEL) and hasClickAction()).assertExists()
+            pressButton(SIGN_IN_HERE_LABEL)
+            waitUntil(timeoutMillis = 5_000) { session.leftWith.isNotEmpty() }
+            assertEquals(listOf<String?>("/cart"), session.leftWith)
+            assertEquals(listOf("/sign-in?next=%2Fcart"), history.entries)
+        }
+
+    /**
+     * B-116 in a browser that kept the page (its back-forward cache): back from the provider's page shows
+     * the page that left again, loading nothing, and its sign-in answers that it was not answered.
+     */
+    @Test
+    fun `a page the browser kept says the sign-in did not go through on the way back`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            session.leave = { throw SignInNotAnswered() }
+            val history = FakeHistory("/cart")
+            storefront(history, signIn = { throw SignInPopupBlocked() }) { path ->
+                if (path == "/ui/cart") ok(page(GUEST_HEADER, CART_TEXT)) else error("nothing answers $path")
+            }
+            waitUntil(timeoutMillis = 5_000) { exists(hasText(CART_TEXT)) }
+            onNode(hasText("Sign in") and hasClickAction()).performClick()
+            waitUntil(timeoutMillis = 5_000) { exists(hasText(BLOCKED)) }
+
+            pressButton(SIGN_IN_HERE_LABEL)
+            waitUntil(timeoutMillis = 5_000) { exists(hasText(FAILED)) }
+
+            assertEquals(listOf<String?>("/cart"), session.leftWith)
+            onNode(hasText(SIGN_IN_HERE_LABEL) and hasClickAction()).assertExists()
         }
 
     /**
@@ -384,7 +434,9 @@ class SignInEverywhereTest {
         var signOuts = 0
         var onSignOut: () -> Unit = {}
         val leftWith = CopyOnWriteArrayList<String?>()
+        var leave: suspend () -> Unit = {}
         var returned = false
+        var unanswered = false
         var finish: () -> String? = { null }
 
         override fun signOut() {
@@ -397,9 +449,12 @@ class SignInEverywhereTest {
 
         override suspend fun signInHere(next: String?) {
             leftWith += next
+            leave()
         }
 
         override val returnedFromSignIn: Boolean get() = returned
+
+        override fun forgetUnansweredSignIn(): Boolean = unanswered.also { unanswered = false }
 
         override suspend fun finishSignInHere(): String? = finish()
     }
@@ -415,6 +470,8 @@ class SignInEverywhereTest {
         const val CUSTOMER = "Maya"
         const val NOT_HERE = "This page isn’t here"
         const val BLOCKED = "The browser blocked the window"
+        const val ASKING = "Sign in to HAUL"
+        const val FAILED = "The sign-in didn’t go through"
         const val ORDERS_TEXT = "Your orders"
         const val CART_TEXT = "Your cart"
         const val ACCOUNT_TEXT = "Your account"

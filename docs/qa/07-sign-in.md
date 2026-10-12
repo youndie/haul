@@ -75,12 +75,15 @@ and only Maya and Sam can sign in; on a local stack, the e2e's shildik.
   - Step 2: the tab goes to the provider and back, «Signing you in», then `/account/orders` with the cart merged;
     back does not return to the sign-in page.
   - Step 3: the sign-in page says it did not go through and offers another try.
-- **Decided in:** B-66
+- **Decided in:** B-66, B-116
 - **Coverage:** `SignInEverywhereTest` «a blocked popup says so and offers the sign-in on this page»;
   `SignInEverywhereTest` «a sign-in in this tab that comes back lands on its next»;
   `SignInEverywhereTest` «a sign-in in this tab that failed says so and offers another»;
+  `SignInEverywhereTest` «back from the provider's page says the sign-in did not go through and offers another»;
+  `SignInEverywhereTest` «a page the browser kept says the sign-in did not go through on the way back»;
   `PopupSignInFlowTest` «a blocked popup ends the sign-in as blocked without asking the server or the provider»;
   `IdentityTest` «a sign-in in this tab comes back signed in with the cart merged and its next»;
+  `IdentityTest` «a sign-in in this tab the provider never answered is forgotten once it is told»;
   manual: a browser's popup blocker and the provider's page in the tab — the app's browser pane blocks every popup and is a good place to walk it
 
 ### TC-SIGN-05 — `/sign-in` opened directly is a page of its own

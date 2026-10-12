@@ -27,7 +27,8 @@ import kotlinx.coroutines.sync.withLock
  *   replaced. Then the request is sent again. Any other `401` — a guest on a page only a customer may
  *   open — is the answer, and the guest is kept with its cart (B-115).
  * - When the browser blocks the popup, the sign-in can run in this tab instead ([here], B-66): it leaves
- *   for the provider's page and is finished, the same way, when the tab comes back to `/sign-in`.
+ *   for the provider's page and is finished, the same way, when the tab comes back to `/sign-in`; back
+ *   from the provider's page with no answer from it is a sign-in that did not go through (B-116).
  */
 public class Identity(
     private val api: IdentityApi,
@@ -105,6 +106,8 @@ public class Identity(
     }
 
     override val returnedFromSignIn: Boolean get() = here?.returned == true
+
+    override fun forgetUnansweredSignIn(): Boolean = here?.forgetUnanswered() == true
 
     /**
      * Finishes the sign-in in this tab that came back: the tokens kept and the guest cart merged, as a

@@ -90,11 +90,13 @@ private enum class SignInState { Asking, Blocked, Returning, Failed }
 /**
  * The page at `/sign-in` (B-66), drawn by the client under the header it last drew. A customer who
  * arrives at it is sent on to its `next` at once; a sign-in in this tab coming back is finished here
- * («Signing you in»), then sent on the same way. Otherwise it asks: «Sign in» opens the popup, and when
- * the browser blocks it ([blocked], or a press here that is blocked) the page says so and offers the
- * sign-in in this tab — [Signing.session]'s, when there is one — and the popup once more. Sent on means
- * the page's entry becomes the `next` ([Navigator.redirect]): back does not return to a sign-in that is
- * done. A `next` that is not a storefront address is the home page.
+ * («Signing you in»), then sent on the same way; one that left for the provider's page and is back with no
+ * answer from it — the browser's back (B-116) — did not go through, and the page says so and offers
+ * another. Otherwise it asks: «Sign in» opens the popup, and when the browser blocks it ([blocked], or a
+ * press here that is blocked) the page says so and offers the sign-in in this tab — [Signing.session]'s,
+ * when there is one — and the popup once more. Sent on means the page's entry becomes the `next`
+ * ([Navigator.redirect]): back does not return to a sign-in that is done. A `next` that is not a
+ * storefront address is the home page.
  *
  * A press, never the page's arrival, opens the popup: a browser blocks a popup no click asked for.
  */
@@ -109,7 +111,16 @@ internal fun SignInPage(
     val session = signing.session
     val next = remember(address) { SignInActions.next(address.value) ?: "/" }
     var state by remember(address) {
-        mutableStateOf(if (session?.returnedFromSignIn == true) SignInState.Returning else SignInState.Asking)
+        mutableStateOf(
+            when {
+                session?.returnedFromSignIn == true -> SignInState.Returning
+
+                // Back from the provider's page, which never answered: said once, then the page asks again.
+                session?.forgetUnansweredSignIn() == true -> SignInState.Failed
+
+                else -> SignInState.Asking
+            },
+        )
     }
     LaunchedEffect(address) {
         when {
