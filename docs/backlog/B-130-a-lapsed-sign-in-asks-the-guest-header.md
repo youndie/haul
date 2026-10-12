@@ -1,7 +1,7 @@
 ---
 id: B-130
 title: "fix: a lapsed sign-in draws the guest's header, not the customer's"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-12-qa-run

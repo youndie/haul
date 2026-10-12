@@ -48,7 +48,7 @@ A stage is a field on the item, not a directory.
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-112](docs/backlog/B-112-first-press-focuses-the-field.md) `[?]` | client: the first press on a text field focuses it | P1 | M | - |
-| [B-130](docs/backlog/B-130-a-lapsed-sign-in-asks-the-guest-header.md) `[ ]` | fix: a lapsed sign-in draws the guest's header, not the customer's | P2 | S | - |
+| [B-130](docs/backlog/B-130-a-lapsed-sign-in-asks-the-guest-header.md) `[~]` | fix: a lapsed sign-in draws the guest's header, not the customer's | P2 | S | - |
 | [B-131](docs/backlog/B-131-the-presses-b-126-did-not-name.md) `[ ]` | fix: the presses and fields B-126 did not name | P2 | S | - |
 | [B-122](docs/backlog/B-122-the-stand-reports-to-katcher.md) `[ ]` | ops: the stand's server reports to katcher | P3 | XS | - |
 | [B-132](docs/backlog/B-132-search-leftovers-from-the-v050-run.md) `[ ]` | fix: an empty scoped panel, an out-of-date search link and the reviews link's address | P3 | S | - |
