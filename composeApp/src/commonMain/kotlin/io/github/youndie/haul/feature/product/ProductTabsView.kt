@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -62,6 +63,7 @@ import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Highlight
 import io.github.youndie.haul.ui.Icon
 import io.github.youndie.haul.ui.LocalHaulActions
+import io.github.youndie.haul.ui.LocalTabsInView
 import io.github.youndie.haul.ui.ProductDescription
 import io.github.youndie.haul.ui.ProductQuestions
 import io.github.youndie.haul.ui.ProductReviews
@@ -90,7 +92,8 @@ import kotlin.math.floor
  *
  * Another tab arriving on the page drawn (B-62 keeps it) brings the row into view with the top of the tab
  * under it (B-71): «2,341 reviews» and «All specifications» open a tab from above the fold, where the
- * new tab would otherwise change out of sight. A tab pressed in the row is in view already.
+ * new tab would otherwise change out of sight. Those two ask for the row as they are pressed ([TabsInView]), so
+ * the tab already shown is brought into view too (B-121). A tab pressed in the row is in view already.
  */
 @Composable
 public fun ProductTabsView(tabs: ProductTabs) {
@@ -101,9 +104,13 @@ public fun ProductTabsView(tabs: ProductTabs) {
     var drawn by remember { mutableStateOf(selected) }
     var rowSize by remember { mutableStateOf(IntSize.Zero) }
     val below = with(LocalDensity.current) { TAB_TOP_IN_VIEW.toPx() }
-    LaunchedEffect(selected) {
-        if (selected != drawn) {
+    // A press that leads to a tab asks for the row whichever tab arrives — the one shown, too (B-121).
+    val asked = LocalTabsInView.current?.asked ?: 0
+    var answered by remember { mutableIntStateOf(asked) }
+    LaunchedEffect(selected, asked) {
+        if (selected != drawn || asked != answered) {
             drawn = selected
+            answered = asked
             // The row and the first [TAB_TOP_IN_VIEW] of the tab under it, as one rectangle.
             requester.bringIntoView(Rect(0f, 0f, rowSize.width.toFloat(), rowSize.height + below))
         }

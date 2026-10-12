@@ -68,6 +68,7 @@ import io.github.youndie.haul.ui.UNSAVE
 import io.github.youndie.haul.ui.VariantGroup
 import io.github.youndie.haul.ui.accented
 import io.github.youndie.haul.ui.follows
+import io.github.youndie.haul.ui.followsToTabs
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.hatching
 import io.github.youndie.haul.ui.pressable
@@ -344,7 +345,7 @@ private fun Title(
 private fun Rating(details: ProductDetails) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(
-            Modifier.follows(details.ratingAction),
+            Modifier.followsToTabs(details.ratingAction),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -483,7 +484,7 @@ private fun AllSpecifications(details: ProductDetails) {
     Text(
         "All specifications",
         HaulType.text(15f, 600).copy(color = linkColour(details.specificationsAction)),
-        Modifier.follows(details.specificationsAction),
+        Modifier.followsToTabs(details.specificationsAction),
     )
 }
 

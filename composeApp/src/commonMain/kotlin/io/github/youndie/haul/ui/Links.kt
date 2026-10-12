@@ -5,6 +5,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -42,6 +46,41 @@ public val LocalPageScroll: ProvidableCompositionLocal<ScrollState?> = staticCom
 internal fun Modifier.follows(action: KompotAction?): Modifier {
     val handler = LocalHaulActions.current
     return if (action == null || handler == null) this else pressable { handler.handle(action) }
+}
+
+/**
+ * The product page's tab row, asked into view by a press that leads to a tab (B-121). The row is brought into view
+ * when another tab arrives (B-71), but «2,341 reviews» pressed on the reviews tab opens the address shown: the same
+ * tab arrives, and the row stayed out of sight. Each [ask] brings it into view, whichever tab arrives. One per
+ * screen, beside [LocalPageScroll].
+ */
+@Stable
+public class TabsInView {
+    /** How many presses have asked; the row answers each new one. */
+    public var asked: Int by mutableIntStateOf(0)
+        private set
+
+    public fun ask() {
+        asked += 1
+    }
+}
+
+/** The tab row's [TabsInView] on the page being drawn; `null` — a screenshot, a view drawn on its own — moves nothing. */
+public val LocalTabsInView: ProvidableCompositionLocal<TabsInView?> = staticCompositionLocalOf { null }
+
+/** [follows], asking for the tab row [action] leads to as it does (B-121). */
+@Composable
+internal fun Modifier.followsToTabs(action: KompotAction?): Modifier {
+    val handler = LocalHaulActions.current
+    val tabs = LocalTabsInView.current
+    return if (action == null || handler == null) {
+        this
+    } else {
+        pressable {
+            tabs?.ask()
+            handler.handle(action)
+        }
+    }
 }
 
 /** Pressing this runs [onPress], the client's own (Retry, the logo); `null` is not pressable. */
