@@ -215,7 +215,8 @@ public fun SearchSuggestOverlay(
  * The suggest panel (`SearchSuggestPanel`): queries, categories with counts, recent searches and, in a
  * column of their own at 1440 (under the rest on a phone), the top products and «All N results ↵».
  * [highlighted] is the query row the keyboard is on; [onClear] is «Clear» on recent searches. A panel with no
- * query — the empty field pressed (B-124) — is the recent searches alone, with no products' column.
+ * query — the empty field pressed (B-124) — is the recent searches alone, with no products' column; so is one with
+ * no products and no «All N results», a query that matches nothing in the picker's scope (B-132).
  */
 @Composable
 public fun SearchSuggestPanelView(
@@ -234,7 +235,7 @@ public fun SearchSuggestPanelView(
                 Shadow(radius = 80.dp, spread = (-20).dp, offset = DpOffset(0.dp, 30.dp), color = HaulColors.shadow),
             ).clip(shape)
             .background(HaulColors.surfaceContainerLowest)
-    if (panel.query.isEmpty()) {
+    if (!panel.hasProductsColumn) {
         Column(card) { Suggestions(panel, highlighted, compact, onClear) }
     } else if (compact) {
         Column(card) {
@@ -265,8 +266,19 @@ public fun SearchSuggestPanelView(
 
 private val PRODUCTS_COLUMN = 270.dp
 
+/**
+ * Whether the panel has a products' column: products to show, or every result to open. The empty field's recall
+ * (B-124) has neither, and nor has a query that matches nothing in the picker's scope (B-132) — the server sends no
+ * products and no «All N results» for it, and the column would be a heading over nothing.
+ */
+private val SearchSuggestPanel.hasProductsColumn: Boolean
+    get() = products.isNotEmpty() || allResultsAction != null
+
 /** The tag of the suggest panel, for the tests that look for it open or closed. */
 public const val SUGGEST_PANEL_TAG: String = "suggest-panel"
+
+/** The heading over the panel's products. */
+public const val TOP_PRODUCTS: String = "Top products"
 
 @Composable
 private fun Suggestions(
@@ -391,7 +403,10 @@ private fun Category(
 
 private const val SEPARATOR = "›"
 
-/** The top products on Paper — a tone tile, the title and the price — and the way to every result. */
+/**
+ * The top products on Paper — a tone tile, the title and the price — and the way to every result; each part only
+ * when the panel has it (B-132).
+ */
 @Composable
 private fun TopProducts(
     panel: SearchSuggestPanel,
@@ -409,13 +424,16 @@ private fun TopProducts(
             ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text("Top products".uppercase(), HaulType.label(11f, 600, 0.08f).copy(color = HaulColors.outline))
+        if (panel.products.isNotEmpty()) {
+            Text(TOP_PRODUCTS.uppercase(), HaulType.label(11f, 600, 0.08f).copy(color = HaulColors.outline))
+        }
         panel.products.forEach { TopProduct(it, if (compact) 56.dp else 64.dp) }
         if (!compact) Spacer(Modifier.weight(1f))
+        val all = panel.allResultsAction ?: return@Column
         Row(
             Modifier
                 .fillMaxWidth()
-                .follows(panel.allResultsAction)
+                .follows(all)
                 .height(52.dp)
                 .background(HaulColors.inverseSurface, RoundedCornerShape(14.dp)),
             horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),

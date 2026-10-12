@@ -53,6 +53,8 @@ long search is walked in [catalog and filters](03-catalog-and-filters.md) (TC-CA
   2. Type `mug`; read the panel; press Enter.
   3. Press a card's «+» on the results.
   4. Press the «All» chip.
+  5. With the picker on «Appliances · Classics» (its chip chosen on the `classic` results, TC-SRCH-11), type
+     `running`.
 - **Expected:**
   - Step 1: the picker reads «Home & Kitchen»; no page opens.
   - Step 2: the panel's products, categories, counts and «All N results» are the matches under Home & Kitchen;
@@ -60,10 +62,14 @@ long search is walked in [catalog and filters](03-catalog-and-filters.md) (TC-CA
     product under the category and its subcategories.
   - Step 3: the header keeps the query and the scope.
   - Step 4: the picker goes back to «All categories».
-- **Decided in:** B-72, B-103
+  - Step 5: the panel suggests «running shoes» and draws no «Top products» and no «All N results»: nothing under
+    the scope matches, and a part with nothing in it is not drawn.
+- **Decided in:** B-72, B-103, B-132
 - **Coverage:** `composeApp:DrawnActionsTest` «the search picker scopes the next search to its category»;
   `composeApp:DrawnActionsTest` «the picker reads the page's scope and all categories leaves it»;
   `SearchPanelScopeTest` «the panel follows the picker's scope»;
+  `SearchPanelScopeTest` «a scope with no match offers no products and no all results»;
+  `composeApp:EmptyScopePanelTest` «a panel with no products and no all results draws neither part»;
   `SearchRoutesTest` «a search in a top-level category holds the results under it»;
   `LineAnswersTest` «a card's plus on a scoped search keeps the header's scope»;
   golden `HaulHeader_Search_Scoped`

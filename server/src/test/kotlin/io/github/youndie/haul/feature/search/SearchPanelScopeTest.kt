@@ -86,6 +86,31 @@ class SearchPanelScopeTest {
             assertEquals(NavigateAction("/search?q=everyday"), everywhere.allResultsAction)
         }
 
+    /**
+     * B-132: `running` under «Appliances · Classics» matches no product there, while its queries still suggest
+     * «running shoes». The panel had an empty «Top products» and «All 0 results», which opened a page saying there
+     * is nothing; a part with nothing in it is not sent.
+     */
+    @Test
+    fun `a scope with no match offers no products and no all results`() =
+        haulTest {
+            val classics =
+                catalog.categories.single { leaf ->
+                    leaf.name == "Classics" &&
+                        generateSequence(leaf) { c -> catalog.categories.firstOrNull { it.slug == c.parentSlug } }
+                            .any { it.name == "Appliances" }
+                }
+            val matches = PostgresSearchRepository(SeededDatabase.dataSource).matching(Query.of("running"))
+            assertTrue(matches.isNotEmpty(), "«running» matches nothing anywhere")
+            assertTrue(matches.none { it.categorySlug in under(classics.slug) }, "«running» matches in Classics")
+
+            val panel = tree("/ui/search/suggest?q=running&category=${classics.slug}") as SearchSuggestPanel
+            assertTrue(panel.suggestions.isNotEmpty(), "the queries went with the products")
+            assertEquals(emptyList(), panel.products)
+            assertEquals("", panel.allResultsLabel)
+            assertNull(panel.allResultsAction, "«All 0 results» offered")
+        }
+
     @Test
     fun `a scope the catalog does not have is 404 on the panel too`() =
         haulTest {

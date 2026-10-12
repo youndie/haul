@@ -354,7 +354,9 @@ whatever their style, so the ones with no page are left out rather than drawn as
   opens — a query, a recent search, «All N results» — stays in it. A category suggestion opens the query in that
   category (`/search?q=…&category=<leaf>`), the count it shows, where it used to open the whole category
   without the query. A scope the catalog does not have is `404`, as on the results, and the client shows no
-  panel.
+  panel. A query that matches nothing under the scope — `running` under «Appliances · Classics» — still suggests
+  its queries, but sends no products and no «All N results» (B-132): the client draws it without the products'
+  column, as it draws recall, where it drew an empty «Top products» over «All 0 results».
 - Rejected: plain text for the dead words (B-49's answer, which the stand walk showed did not read as text);
   a picker that runs the search as soon as a category is chosen (it would leave the page while the shopper
   may not have typed yet).

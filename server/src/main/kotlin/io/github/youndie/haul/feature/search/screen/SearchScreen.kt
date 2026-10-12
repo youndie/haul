@@ -79,7 +79,9 @@ internal class SearchScreen(
      * header's picker chose (B-72), as the search it leads to is (B-103): the products, the categories, their counts
      * and «All N results» are the matches under the scope, and every search the panel opens — a query, a recent
      * search, «All N results» — stays in it. A category suggestion opens the query in that category, the count it
-     * shows. A scope the catalog does not have is [CatalogError.CategoryNotFound], as on the results.
+     * shows. A scope the catalog does not have is [CatalogError.CategoryNotFound], as on the results. A query that
+     * matches nothing in the scope — `running` under «Appliances · Classics» — has no products and offers no «All N
+     * results» (B-132): its queries and recent searches are the panel, without the products' column.
      *
      * No query — the empty field pressed (B-124) — is recall, not a search: the panel is the customer's recent
      * searches alone, newest first, each in the scope, with «Clear»; a guest's has nothing. Anything typed is a
@@ -140,10 +142,11 @@ internal class SearchScreen(
                         image = photos.url(it.product),
                     )
                 },
-            allResultsLabel = "All ${count(matches.size)} results",
+            // Nothing matched in the scope (B-132): no «All 0 results» to a page that would say so.
+            allResultsLabel = if (matches.isEmpty()) "" else "All ${count(matches.size)} results",
             // Each recent search runs again from its row (B-49): the tree carries the address.
             recent = recentSearches.map { Link(it, searchLink(it, scope)) },
-            allResultsAction = searchLink(query.text, scope),
+            allResultsAction = if (matches.isEmpty()) null else searchLink(query.text, scope),
             clearUrl = if (recentSearches.isEmpty()) null else RECENT_SEARCHES,
         )
     }
