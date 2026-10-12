@@ -1,7 +1,7 @@
 ---
 id: B-122
 title: "ops: the stand's server reports to katcher"
-status: open
+status: wip
 priority: P3
 size: XS
 stage: stage-12-qa-run
