@@ -1,7 +1,7 @@
 ---
 id: B-85
 title: "design: the canvas draws what the store now has"
-status: open
+status: wip
 priority: P3
 size: M
 stage: stage-10-review

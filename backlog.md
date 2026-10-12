@@ -47,7 +47,7 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-85](docs/backlog/B-85-canvas-behind-the-code.md) `[ ]` | design: the canvas draws what the store now has | P3 | M | - |
+| [B-85](docs/backlog/B-85-canvas-behind-the-code.md) `[~]` | design: the canvas draws what the store now has | P3 | M | - |
 
 ## Closed (139)
 
