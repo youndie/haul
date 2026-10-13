@@ -137,12 +137,15 @@ long search is walked in [catalog and filters](03-catalog-and-filters.md) (TC-CA
   1. Search `qwertyuiop`.
   2. Search a misspelt product word, e.g. `hedphones`.
   3. Press one of the pills of queries to try.
+  4. At 1440, choose «Fashion» in the picker and search `qwertyuiop`.
 - **Expected:**
   - Step 1: the no-results page; the tips («01 Check the spelling», …) are numbered text, not pills.
   - Step 2: the spelling the catalogue has is offered.
   - Step 3: a pill runs its search.
-- **Decided in:** B-77
+  - Step 4: the no-results page at `/search?q=qwertyuiop&category=fashion`, the picker still «Fashion».
+- **Decided in:** B-77, B-152
 - **Coverage:** `SearchRoutesTest` «a query that finds nothing answers the no results page»;
+  `SearchRoutesTest` «a scoped query that finds nothing anywhere keeps its scope in the picker»;
   `SearchRoutesTest` «a misspelt query is offered the spelling the catalog has»; golden `Search_NoResults`
 
 ### TC-SRCH-08 — Submitting the search already shown runs it again and closes the panel

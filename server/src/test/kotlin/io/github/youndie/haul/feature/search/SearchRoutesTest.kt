@@ -283,6 +283,18 @@ class SearchRoutesTest {
             assertEquals(8, page.only<CategoryGrid>().tiles.size)
         }
 
+    /**
+     * B-152: a search in a scope that finds nothing anywhere is the no results page, and the header's picker still names
+     * the scope the address does — it read «All categories» over `&category=fashion`.
+     */
+    @Test
+    fun `a scoped query that finds nothing anywhere keeps its scope in the picker`() =
+        haulTest {
+            val page = tree("/ui/search?q=xqzt&category=fashion")
+            assertEquals("Nothing found for “xqzt”", page.only<SearchNoResults>().title)
+            assertEquals("fashion", page.only<HaulHeader>().scope, "the picker does not read the scope")
+        }
+
     /** A misspelt query still finds its category name to suggest: the trigram half of the matching. */
     @Test
     fun `a misspelt query is offered the spelling the catalog has`() =
