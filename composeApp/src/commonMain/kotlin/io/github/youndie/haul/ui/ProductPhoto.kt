@@ -193,7 +193,7 @@ private class CoilPhotoLoader(
  * The size a photo drawn in [box] is decoded at: [decoded] while it covers the box, else the box rounded up to
  * [DECODE_STEP] pixels — so a page widened by a drag asks again every few steps, not at every pixel.
  */
-internal fun outgrown(
+private fun outgrown(
     decoded: IntSize?,
     box: IntSize,
 ): IntSize? {
