@@ -217,7 +217,7 @@ internal object CatalogSeed {
                 categorySlug = leaf.slug,
                 title = "$brand $adjective ${leaf.name}",
                 brand = brand,
-                description = "$adjective ${leaf.name.lowercase()} by $brand.",
+                description = "$adjective ${inSentence(leaf.name)} by $brand.",
                 specifications = specifications("Brand" to brand, "Model" to id.uppercase()),
                 rating = BigDecimal.valueOf(random.nextLong(38, 50), 1),
                 // Drawn as before B-99, so every other row stays as it was, then scaled to what the seed stores
@@ -260,6 +260,14 @@ internal object CatalogSeed {
                 )
             },
         )
+
+    /**
+     * A category's name inside a sentence: each word in lower case, but a word with a capital past its first letter —
+     * an initialism, «TVs» — as it is written (B-152: «Travel tvs by Northwind.»). V30 writes the same into a catalog
+     * seeded before.
+     */
+    internal fun inSentence(name: String): String =
+        name.split(' ').joinToString(" ") { word -> if (word.drop(1).any(Char::isUpperCase)) word else word.lowercase() }
 
     private fun slugOf(name: String): String =
         name
