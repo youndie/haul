@@ -43,9 +43,11 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (0)
+## Open (1)
 
-No open tasks.
+| Task | | Priority | Size | Blocked by |
+|---|---|---|---|---|
+| [B-153](docs/backlog/B-153-the-product-placeholder-at-1024.md) `[~]` | fix: the product page's placeholder at 1024 is the page's two columns | P3 | S | - |
 
 ## Closed (152)
 
