@@ -1,6 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended"
-  ]
+  "description": [
+    "The portfolio's configuration, extended by name rather than copied: the Monday batch, the labels, the kotlin / kotlinx / sborka / ci-actions groups and the stack held until Kotlin 2.5.20 (Kotlin 2.4, KSP 2.3, Compose 1.12, Gradle 9.8) live in `github>youndie/sborka`. It replaces Renovate's onboarding `config:recommended`, which would have offered Compose 1.13 and the Gradle after 9.8 that the rest of the portfolio holds back.",
+    "`automerge-harness` is NOT extended, and its precondition is why: a pull request here runs `check.yaml` (the docs gate, gradle, the image, the chart and the e2e), but `stand.yaml` — the one that publishes the stand's images — runs only on a `v*` tag, and its actions (`docker/login-action` among them) are exercised by no pull request. A harness major would merge itself green and fail at the next release. Every update waits for a person until that changes.",
+    "Nothing repository-specific is added: the images the chart names (PostgreSQL, shildik, the bootstrap's Python) are offered like any other dependency and read by a person."
+  ],
+  "extends": ["github>youndie/sborka"]
 }
