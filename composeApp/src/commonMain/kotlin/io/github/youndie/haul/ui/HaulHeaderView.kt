@@ -524,7 +524,8 @@ private fun CompactHeader(
         }
     }
     Box(Modifier.fillMaxWidth().height(1.dp).background(HaulColors.outlineVariant))
-    // The row scrolls sideways (B-73): the canvas cuts it at the edge, which is the sign that there is more.
+    // The row scrolls sideways (B-73): the canvas cuts the row at the edge, which is the sign that there is more —
+    // the row, not always a word: at 390 the canvas's ends on «Fashion» whole (B-152, research «Decided in B-73»).
     Row(
         Modifier
             .fillMaxWidth()

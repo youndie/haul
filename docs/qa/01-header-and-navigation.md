@@ -108,9 +108,10 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
   1. Swipe the category row under the search field to its end.
   2. Press the last word.
 - **Expected:**
-  - Step 1: the row scrolls sideways; at rest it is cut at the edge, the sign that there is more.
+  - Step 1: the row scrolls sideways. At rest it is the canvas's row, ended by the edge; at 375, 390 and 800 the next
+    word starts just past it, so no word shows cut — as on the canvas (B-152). Every category is also in the menu.
   - Step 2: the last top-level category's page («Pets» on the seed) opens — the word under the finger, not another.
-- **Decided in:** B-73
+- **Decided in:** B-73, B-152
 - **Coverage:** `composeApp:DrawnActionsTest` «on a phone the category row scrolls to its last category»;
   golden `HaulHeader_Guest_Phone375`
 
