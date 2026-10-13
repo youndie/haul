@@ -43,13 +43,11 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (1)
+## Open (0)
 
-| Task | | Priority | Size | Blocked by |
-|---|---|---|---|---|
-| [B-141](docs/backlog/B-141-the-wasm-yarn-lock-task-does-not-flake.md) `[~]` | ci: kotlinWasmStoreYarnLock does not fail on a missing build/wasm/yarn.lock | P2 | S | - |
+No open tasks.
 
-## Closed (140)
+## Closed (141)
 
 **Skeleton**
 
@@ -226,6 +224,7 @@ A stage is a field on the item, not a directory.
 - [B-138](docs/backlog/B-138-the-cold-sign-in-menu-asks-on-press.md) `[x]` - client: the cold sign-in page's menu and picker ask for the header when pressed
 - [B-139](docs/backlog/B-139-the-saga-rides-out-a-short-outage.md) `[x]` - server: the order saga rides out a short database outage
 - [B-140](docs/backlog/B-140-the-outage-tests-hold-on-a-busy-runner.md) `[x]` - test: the database outage tests hold on a busy runner
+- [B-141](docs/backlog/B-141-the-wasm-yarn-lock-task-does-not-flake.md) `[x]` - ci: kotlinWasmStoreYarnLock does not fail on a missing build/wasm/yarn.lock
 
 <!-- END INDEX -->
 
