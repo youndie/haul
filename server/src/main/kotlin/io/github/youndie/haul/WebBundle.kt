@@ -4,7 +4,10 @@ import io.ktor.http.CacheControl
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.decodeURLPart
+import io.ktor.server.application.ApplicationCallPipeline
+import io.ktor.server.application.call
 import io.ktor.server.application.createApplicationPlugin
+import io.ktor.server.application.isHandled
 import io.ktor.server.http.content.CompressedFileType
 import io.ktor.server.http.content.LocalFileContent
 import io.ktor.server.http.content.isCompressionSuppressed
@@ -82,15 +85,22 @@ private const val PAGE = "index.html"
  * `OneCategoryAddress`, so another form of a category's address still goes to its one address first. The page goes
  * as it is — `no-cache`, as at every address, but not precompressed: a mangled link is not worth a second copy of
  * the static route's choice of encoding, and the page is a few kilobytes.
+ *
+ * The call ends with the page (B-148). Ktor's routing does not ask whether a call was answered before it resolves
+ * one, and resolving reads the parameters: the query that does not decode was thrown after the page had gone, as
+ * a `BadRequestException` the catch-all logged and handed to katcher — one group per guest's mangled link on the
+ * stand, for an address the store had answered with `200`.
  */
 internal val PageAtAnyQuery =
     createApplicationPlugin("PageAtAnyQuery", ::PageAtAnyQueryConfig) {
         val page = pluginConfig.bundle.resolve(PAGE)
-        onCall { call ->
-            if (call.request.httpMethod != HttpMethod.Get) return@onCall
-            if (StorefrontPage.of(call.request.path()) == null || call.request.queryDecodes()) return@onCall
+        // Not `onCall`: its handler cannot end the call, and routing runs after it whatever was answered.
+        application.intercept(ApplicationCallPipeline.Plugins) {
+            if (call.isHandled || call.request.httpMethod != HttpMethod.Get) return@intercept
+            if (StorefrontPage.of(call.request.path()) == null || call.request.queryDecodes()) return@intercept
             call.response.cacheControl(NO_CACHE)
             call.respond(LocalFileContent(page))
+            finish()
         }
     }
 

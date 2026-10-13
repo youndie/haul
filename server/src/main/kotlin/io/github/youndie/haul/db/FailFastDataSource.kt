@@ -84,9 +84,15 @@ internal class FailFastDataSource(
 
     private fun noteUnreachable(e: SQLTransientConnectionException) {
         if (e.cause !is SQLException) return
-        // Said once an outage, not once a window: the requests it fails say the rest.
+        // Said once an outage, not once a window, with what the database's address answered: the requests it fails
+        // are lines at `info` with no stack, and nothing of it is reported to katcher (B-148).
         if (unreachable == null) {
-            log.warn("the database cannot be reached, connections refused for {} at a time: {}", window, e.message)
+            log.warn(
+                "the database cannot be reached, connections refused for {} at a time: {} ({})",
+                window,
+                e.message,
+                e.cause?.message,
+            )
         }
         unreachable = Unreachable(time.markNow() + window, e)
     }

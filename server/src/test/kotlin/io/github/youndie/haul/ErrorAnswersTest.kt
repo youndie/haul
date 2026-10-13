@@ -1,10 +1,14 @@
 package io.github.youndie.haul
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.spi.ILoggingEvent
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.github.youndie.haul.testing.CANVAS_NOW
+import io.github.youndie.haul.testing.ERROR_ANSWERS_LOG
 import io.github.youndie.haul.testing.SAGA_CLOCK
 import io.github.youndie.haul.testing.SeededDatabase
+import io.github.youndie.haul.testing.capturingLog
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
@@ -13,6 +17,7 @@ import io.ktor.server.application.install
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.plugins.BadRequestException
+import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -39,18 +44,21 @@ import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /**
  * What the catch-all answers (B-32): a code always with the status `status(code)` gives it, a bug
- * apart from an outage, a malformed request apart from both, and every one of them reported.
+ * apart from an outage, a malformed request apart from both — and only the bug reported, with its stack in the log
+ * (B-148): a client's error and an outage are lines at `info` with no stack.
  */
 class ErrorAnswersTest {
     @Test
     fun `an unexpected failure is 500 internal, reported, with nothing of the exception in the body`() =
-        errorAnswersTest { reported ->
+        errorAnswersTest { reported, lines ->
             val response = client.get("/test/bug")
 
             assertEquals(HttpStatusCode.InternalServerError, response.status)
@@ -58,6 +66,9 @@ class ErrorAnswersTest {
             assertFalse(SECRET in response.bodyAsText(), response.bodyAsText())
             assertEquals(IllegalStateException::class, reported.single()::class)
             assertEquals(SECRET, reported.single().message)
+            val line = lines.single()
+            assertEquals(Level.ERROR, line.level)
+            assertNotNull(line.throwableProxy, "a bug is logged with its stack")
         }
 
     @Test
@@ -74,39 +85,60 @@ class ErrorAnswersTest {
             assertFalse(SECRET in response.bodyAsText(), response.bodyAsText())
         }
 
-    /** Ktor throws this itself for a query or a path it cannot decode, before any handler of ours runs. */
+    /**
+     * Ktor throws this itself for a query or a path it cannot decode, before any handler of ours runs. The sender's
+     * fault, not the store's (B-148): on the stand they were guests' mangled links, a katcher group each.
+     */
     @Test
-    fun `a malformed request keeps Ktor's 400, as validation_failed`() =
-        errorAnswersTest { reported ->
+    fun `a malformed request keeps Ktor's 400, as validation_failed, and is not reported`() =
+        errorAnswersTest { reported, lines ->
             val response = client.get("/test/malformed")
 
             assertEquals(HttpStatusCode.BadRequest, response.status)
             assertEquals(ErrorCode.ValidationFailed, response.errorBody().code)
-            assertEquals(BadRequestException::class, reported.single()::class)
+            assertTrue(reported.isEmpty(), "a client's malformed request was reported: $reported")
+            assertQuietLine(lines.single(), "400")
         }
 
     @Test
-    fun `a pool with no connection to give is 503 unavailable`() =
-        errorAnswersTest { _ ->
+    fun `Ktor's 404 keeps its status and is not reported`() =
+        errorAnswersTest { reported, lines ->
+            val response = client.get("/test/not-found")
+
+            assertEquals(HttpStatusCode.NotFound, response.status)
+            assertTrue(reported.isEmpty(), "a client's 404 was reported: $reported")
+            assertQuietLine(lines.single(), "404")
+        }
+
+    /** An outage is not a defect of the store, and each page it fails would file the same report (B-148). */
+    @Test
+    fun `a pool with no connection to give is 503 unavailable, not reported, logged without a stack`() =
+        errorAnswersTest { reported, lines ->
             val response = client.get("/test/no-connection")
 
             assertEquals(HttpStatusCode.ServiceUnavailable, response.status)
             assertEquals(ErrorCode.Unavailable, response.errorBody().code)
+            assertTrue(reported.isEmpty(), "an outage was reported: $reported")
+            assertQuietLine(lines.single(), "503")
         }
 
     @Test
-    fun `a refused connection is 503 unavailable however deep it was wrapped`() =
-        errorAnswersTest { _ ->
+    fun `a refused connection is 503 unavailable however deep it was wrapped, with its cause in the line`() =
+        errorAnswersTest { reported, lines ->
             val response = client.get("/test/connection-refused")
 
             assertEquals(HttpStatusCode.ServiceUnavailable, response.status)
             assertEquals(ErrorCode.Unavailable, response.errorBody().code)
+            assertTrue(reported.isEmpty(), "an outage was reported: $reported")
+            val line = lines.single()
+            assertQuietLine(line, "503")
+            assertTrue("Connection to 127.0.0.1:1 refused." in line.formattedMessage, line.formattedMessage)
         }
 
     /** A statement the database refused is a bug of ours, not an outage: «unavailable» would say «retry». */
     @Test
     fun `a failed statement is 500 internal, not unavailable`() =
-        errorAnswersTest { _ ->
+        errorAnswersTest { _, _ ->
             val response = client.get("/test/statement-failed")
 
             assertEquals(HttpStatusCode.InternalServerError, response.status)
@@ -116,7 +148,7 @@ class ErrorAnswersTest {
     /** Cancellation is Ktor's to finish — a timeout is its `504` — and not a bug to report. */
     @Test
     fun `a timed-out call is not answered or reported as a bug`() =
-        errorAnswersTest { reported ->
+        errorAnswersTest { reported, _ ->
             val response = client.get("/test/timeout")
 
             assertEquals(HttpStatusCode.GatewayTimeout, response.status)
@@ -223,19 +255,34 @@ class ErrorAnswersTest {
         return reported
     }
 
-    private fun errorAnswersTest(block: suspend ApplicationTestBuilder.(reported: List<Throwable>) -> Unit) =
+    /** The catch-all alone over [throwing]'s routes: what it [reported] and the [lines] it logged. */
+    private fun errorAnswersTest(
+        block: suspend ApplicationTestBuilder.(reported: List<Throwable>, lines: List<ILoggingEvent>) -> Unit,
+    ) = capturingLog(ERROR_ANSWERS_LOG) { lines ->
         testApplication {
             val reported = CopyOnWriteArrayList<Throwable>()
             application {
                 install(StatusPages) { unexpectedFailures(report = { reported += it }) }
                 routing { throwing() }
             }
-            block(reported)
+            block(reported, lines)
         }
+    }
+
+    /** A line at `info` naming the [status] answered, with no stack: what a refusal that is no defect leaves. */
+    private fun assertQuietLine(
+        line: ILoggingEvent,
+        status: String,
+    ) {
+        assertEquals(Level.INFO, line.level, line.formattedMessage)
+        assertTrue("→ $status" in line.formattedMessage, line.formattedMessage)
+        assertNull(line.throwableProxy, "logged with a stack: ${line.formattedMessage}")
+    }
 
     private fun Route.throwing() {
         get("/test/bug") { throw IllegalStateException(SECRET) }
         get("/test/malformed") { throw BadRequestException("Url decode failed for /ui/search?q=%zz") }
+        get("/test/not-found") { throw NotFoundException("no such thing") }
         get("/test/no-connection") {
             throw SQLTransientConnectionException(
                 "HikariPool-1 - Connection is not available, request timed out after 30000ms.",

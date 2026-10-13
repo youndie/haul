@@ -1,10 +1,17 @@
 package io.github.youndie.haul.ops
 
+import ch.qos.logback.classic.Level
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import io.github.youndie.haul.haulModule
 import io.github.youndie.haul.testing.CANVAS_NOW
+import io.github.youndie.haul.testing.ERROR_ANSWERS_LOG
 import io.github.youndie.haul.testing.PostgresHarness
 import io.github.youndie.haul.testing.SAGA_CLOCK
 import io.github.youndie.haul.testing.SeededDatabase
+import io.github.youndie.haul.testing.capturingLog
+import io.github.youndie.haul.testing.rawGet
+import io.github.youndie.katcher.Katcher
 import io.github.youndie.tracy.wire.IngestHeaders
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -14,6 +21,7 @@ import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.request.receiveText
 import io.ktor.server.response.respondText
+import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
@@ -23,12 +31,14 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import java.nio.file.Files
 import java.util.TreeMap
 import java.util.UUID
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
@@ -110,6 +120,137 @@ class ObservabilityTest {
         }
     }
 
+    /**
+     * katcher gets what the store got wrong, not what a client sent (B-148). On the stand it filed a group per guest's
+     * mangled link — the page's address too, answered `200`, since routing still decoded its query after the page
+     * had gone. Over a socket to CIO, the stand's engine: Ktor's client cannot send `%zz`. The unexpected `500` at the
+     * end is the control, and what says katcher has been sent everything filed before it.
+     */
+    @Test
+    fun `a client's malformed link and an unknown address file nothing in katcher`() {
+        val katcher = FakeEndpoint(accepted = HttpStatusCode.OK, answer = "{}")
+        val marker = marker()
+        val bundle = Files.createTempDirectory("haul-web").toFile().apply { resolve("index.html").writeText("<html/>") }
+        katcher.use {
+            val server =
+                embeddedServer(CIO, port = 0) {
+                    haulModule(
+                        SeededDatabase.dataSource,
+                        CANVAS_NOW,
+                        commit = "test",
+                        web = bundle,
+                        observability = settings(katcher = AgentEndpoint(katcher.url, "test-app-key")),
+                        sagaClock = SAGA_CLOCK,
+                    )
+                    routing { get(BUG) { throw IllegalStateException("unexpected $marker") } }
+                }.start(wait = false)
+            try {
+                katcher.drain()
+                val port =
+                    runBlocking {
+                        server.engine
+                            .resolvedConnectors()
+                            .first()
+                            .port
+                    }
+
+                assertEquals(HttpStatusCode.OK.value, rawGet(port, "/p/p-$marker?sku=%zz").status)
+                assertEquals(HttpStatusCode.BadRequest.value, rawGet(port, "/ui/p/p-$marker?sku=%zz").status)
+                assertEquals(HttpStatusCode.NotFound.value, rawGet(port, "/nowhere-$marker").status)
+                assertEquals(HttpStatusCode.InternalServerError.value, rawGet(port, BUG).status)
+
+                assertNotNull(
+                    katcher.awaitBody { "unexpected $marker" in it },
+                    "the 500 was not filed: ${katcher.bodies}",
+                )
+                val filed = katcher.drain().filter { marker in it }
+                assertEquals(1, filed.size, "katcher was sent a client's request: $filed")
+            } finally {
+                server.stop(gracePeriodMillis = 0, timeoutMillis = 2_000)
+            }
+        }
+    }
+
+    /**
+     * An outage is said once, not once a page (B-148): every page it fails answers `503` with a line at `info` and no
+     * stack, katcher is sent none of them, and the one `warn` with its cause is the pool's. Before, each page logged
+     * `ERROR … unhandled` with the whole stack and filed a report — on the stand, a katcher report per page shown.
+     */
+    @Test
+    fun `a database outage answered 503 to every page files nothing and logs no stack per page`() {
+        val katcher = FakeEndpoint(accepted = HttpStatusCode.OK, answer = "{}")
+        val marker = marker()
+        unreachablePool().use { pool ->
+            katcher.use {
+                capturingLog(ERROR_ANSWERS_LOG, FAIL_FAST_LOG) { lines ->
+                    testApplication {
+                        application {
+                            haulModule(
+                                pool,
+                                CANVAS_NOW,
+                                commit = "test",
+                                observability = settings(katcher = AgentEndpoint(katcher.url, "test-app-key")),
+                                sagaClock = SAGA_CLOCK,
+                            )
+                            routing { get(BUG) { throw IllegalStateException("unexpected $marker") } }
+                        }
+                        startApplication()
+                        katcher.drain()
+
+                        repeat(PAGES) {
+                            val page = client.get("/ui/home")
+                            assertEquals(HttpStatusCode.ServiceUnavailable, page.status, page.bodyAsText())
+                        }
+                        assertEquals(HttpStatusCode.InternalServerError, client.get(BUG).status)
+
+                        assertNotNull(katcher.awaitBody { "unexpected $marker" in it }, "the 500 was not filed")
+                        val others = katcher.drain().filterNot { "unexpected $marker" in it }
+                        assertTrue(others.isEmpty(), "the outage was filed in katcher: $others")
+
+                        val answered =
+                            lines.filter {
+                                it.loggerName == ERROR_ANSWERS_LOG &&
+                                    "→ 503" in it.formattedMessage
+                            }
+                        assertEquals(PAGES, answered.size, lines.map { it.formattedMessage }.toString())
+                        answered.forEach {
+                            assertEquals(Level.INFO, it.level, it.formattedMessage)
+                            assertNull(it.throwableProxy, "a 503 was logged with its stack: ${it.formattedMessage}")
+                        }
+                        val warnings = lines.filter { it.level == Level.WARN }
+                        assertEquals(1, warnings.size, warnings.map { it.formattedMessage }.toString())
+                        assertEquals(FAIL_FAST_LOG, warnings.single().loggerName)
+                        assertTrue(
+                            "127.0.0.1:1 refused" in warnings.single().formattedMessage,
+                            warnings.single().formattedMessage,
+                        )
+                        val errors = lines.filter { it.level == Level.ERROR }
+                        assertEquals(listOf("unhandled: GET $BUG"), errors.map { it.formattedMessage })
+                    }
+                }
+            }
+        }
+    }
+
+    /** A pool whose database is not there: nothing listens on port 1, and a connection is refused at once. */
+    private fun unreachablePool() =
+        HikariDataSource(
+            HikariConfig().apply {
+                jdbcUrl = "jdbc:postgresql://127.0.0.1:1/haul"
+                driverClassName = "org.postgresql.Driver"
+                connectionTimeout = 250
+                initializationFailTimeout = -1
+                maximumPoolSize = 1
+            },
+        )
+
+    private fun marker() =
+        UUID
+            .randomUUID()
+            .toString()
+            .replace("-", "")
+            .take(12)
+
     private fun settings(
         tracy: AgentEndpoint? = null,
         katcher: AgentEndpoint? = null,
@@ -153,6 +294,15 @@ class ObservabilityTest {
                         .port
                 }
 
+        /**
+         * Everything katcher's client still holds sent here, and taken: what was posted so far, the bodies emptied.
+         * A report left on disk by an earlier test JVM is delivered on start, so a test drains before it begins.
+         */
+        fun drain(): List<String> {
+            runBlocking { Katcher.flush(WAIT) }
+            return bodies.toList().also { bodies.clear() }
+        }
+
         /** The first body posted [matching], waiting up to [WAIT] for the agent's next delivery. */
         fun awaitBody(matching: (String) -> Boolean): String? =
             runBlocking {
@@ -171,6 +321,9 @@ class ObservabilityTest {
 
     private companion object {
         const val RELEASE = "b122-test-release"
+        const val BUG = "/test/bug"
+        const val PAGES = 5
+        const val FAIL_FAST_LOG = "io.github.youndie.haul.db.FailFastDataSource"
         val WAIT = 15.seconds
     }
 }
