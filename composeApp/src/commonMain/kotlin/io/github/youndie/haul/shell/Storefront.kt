@@ -159,7 +159,9 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * The sign-in page asks for no header while it loads: it is a way through; a press on its phone menu or its search
  * picker asks for the header alone, once per visit ([askForHeaderOnPress], B-138). Its presses
  * are followed here: a link opens, sign-in's go through [Signing], a `present` (a non-member's «HAUL PLUS»)
- * draws its dialog over the page until a `close` or a visit, and a `refresh` loads the page again.
+ * draws its dialog over the page until a `close` or a visit, and a `refresh` loads the page again and, over a page
+ * with no tree, asks for its header anew: the trial's answer has made a member, whose pill is no longer the offer
+ * (B-146).
  *
  * A screen is a path (B-62). A new address on the same path — a facet, a sort, a page of results, back
  * or forward between two of them — loads behind the page that is drawn, which keeps its scroll and what
@@ -341,6 +343,9 @@ public fun Storefront(
                             }
 
                             action is RefreshAction -> {
+                                // The page drawn again, its header too: the trial's answer has made a member
+                                // (B-146), and a page with no tree draws no header of its own.
+                                headers.redrawn()
                                 navigator.reload()
                             }
 
