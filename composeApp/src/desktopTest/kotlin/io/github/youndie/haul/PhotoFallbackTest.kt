@@ -146,9 +146,9 @@ class PhotoFallbackTest {
         }
 
     /**
-     * B-149: a picture is SVG, rasterised once at the size it is asked for. Asked for at the size of its first draw,
-     * it stayed that size when its box grew, and was drawn scaled up — the product page's picture went soft after the
-     * page widened. It is asked for again, at the larger size, once its box outgrows it; never for a smaller one.
+     * B-149: a picture is SVG, rasterised once at the size it is asked for. Asked for with no size, it was decoded at
+     * its own (this one's 24 px, the seed's 240) and drawn scaled up — the product page's picture was soft at 768 px.
+     * It is decoded at its box's size, again once the box outgrows that, and never for a smaller one.
      */
     @Test
     fun `a picture whose box grows is decoded again at its new size`() =

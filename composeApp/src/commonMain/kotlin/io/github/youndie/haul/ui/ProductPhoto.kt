@@ -145,10 +145,9 @@ private class CoilPhotoLoader(
         placeholder: @Composable () -> Unit,
     ) = key(url) {
         // Decoded at the size it is drawn, and again whenever its box outgrows that (B-149): a picture is SVG,
-        // rasterised once at the size asked for, and one asked for at the size of its first draw stayed that size
-        // when the page widened — the product page's picture went soft after a resize. Never asked for smaller: a
-        // larger bitmap drawn smaller stays sharp. Asked for once the box has a size, as Coil's own sizing waits for
-        // the first draw.
+        // rasterised once at the size asked for, and a request that names no size is decoded at the picture's own
+        // (240 px) — scaled up to the product page's 768 px, it was soft. Never asked for smaller: a larger bitmap
+        // drawn smaller stays sharp. Asked for once the box has a size.
         var decodeAt by remember { mutableStateOf<IntSize?>(null) }
         Box(modifier.onSizeChanged { box -> decodeAt = outgrown(decodeAt, box) }) {
             val size = decodeAt
