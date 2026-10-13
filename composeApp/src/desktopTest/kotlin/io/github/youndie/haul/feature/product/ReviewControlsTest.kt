@@ -20,6 +20,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.pressKey
@@ -196,6 +197,35 @@ class ReviewControlsTest {
             waitForIdle()
             onNodeWithTag(PHOTO_VIEWER_TAG).assertDoesNotExist()
         }
+
+    /**
+     * B-144, in the order TC-PDP-19 walks it: a mouse press on «›» takes the key focus to the arrow, and with two
+     * photos the arrow it lands on is disabled at once. The viewer keeps the keys all the same: ArrowLeft steps back
+     * and Escape closes it, both sent to the window — wherever the focus is — rather than to a node of the viewer.
+     */
+    @Test
+    fun `after a press on an arrow the arrow keys and escape still work`() = keysAfterAPress(WIDTH, compact = false)
+
+    @Test
+    fun `on a phone after a press on an arrow the arrow keys and escape still work`() =
+        keysAfterAPress(PHONE, compact = true)
+
+    private fun keysAfterAPress(
+        width: Int,
+        compact: Boolean,
+    ) = runDesktopComposeUiTest(width, HEIGHT) {
+        storefront(compact = compact)
+        onNodeWithContentDescription("Open photo 1 of 2 by Daniel R.").performScrollTo().performMouseInput { click() }
+        onNodeWithTag(PHOTO_COUNTER_TAG).assertTextEquals("Photo 1 of 2")
+        onNodeWithTag(PHOTO_NEXT_TAG).performMouseInput { click() }
+        onNodeWithTag(PHOTO_COUNTER_TAG).assertTextEquals("Photo 2 of 2")
+        onNodeWithTag(PHOTO_NEXT_TAG).assertHasNoClickAction()
+        onAllNodes(isRoot()).onFirst().performKeyInput { pressKey(Key.DirectionLeft) }
+        onNodeWithTag(PHOTO_COUNTER_TAG).assertTextEquals("Photo 1 of 2")
+        onAllNodes(isRoot()).onFirst().performKeyInput { pressKey(Key.Escape) }
+        waitForIdle()
+        onNodeWithTag(PHOTO_VIEWER_TAG).assertDoesNotExist()
+    }
 
     /**
      * A press outside the photo's card closes the viewer and reaches nothing under it — Aisha's «Helpful», under the
