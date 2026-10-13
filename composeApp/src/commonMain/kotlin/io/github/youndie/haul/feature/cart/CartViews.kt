@@ -74,7 +74,7 @@ public fun CartBodyView(
     val compact = LocalHaulCompact.current
     val lines = body.groups.flatMap { it.lines }
     val main: @Composable (Modifier) -> Unit = { modifier ->
-        Column(modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(modifier.testTag(CART_LINES_TAG), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             SelectionRow(body.selection, lines, onCommand)
             body.groups.forEach { GroupCard(it, body.selection, onCommand) }
         }
@@ -95,6 +95,9 @@ public fun CartBodyView(
         }
     }
 }
+
+/** The column of the cart's lines, and of their placeholders while the cart loads (B-143). */
+public const val CART_LINES_TAG: String = "cart-lines"
 
 /** «Select all», ticked, partly ticked (a line that cannot be selected is not) or empty; «Delete selected». */
 @Composable

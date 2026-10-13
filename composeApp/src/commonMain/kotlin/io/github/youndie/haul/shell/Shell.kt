@@ -32,9 +32,21 @@ import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.youndie.haul.feature.cart.CART_LINES_TAG
+import io.github.youndie.haul.feature.catalog.APPLIED_BOTTOM
+import io.github.youndie.haul.feature.catalog.FILTERS_BOTTOM
+import io.github.youndie.haul.feature.catalog.FILTERS_HEIGHT
+import io.github.youndie.haul.feature.catalog.crumbsStyle
+import io.github.youndie.haul.feature.catalog.crumbsTop
+import io.github.youndie.haul.feature.catalog.kindsBottom
+import io.github.youndie.haul.feature.catalog.kindsHeight
+import io.github.youndie.haul.feature.catalog.titleBottom
+import io.github.youndie.haul.feature.catalog.titleStyle
+import io.github.youndie.haul.feature.catalog.titleTop
 import io.github.youndie.haul.feature.checkout.CheckoutHeaderView
 import io.github.youndie.haul.feature.identity.SignInActions
 import io.github.youndie.haul.feature.product.GALLERY_TAG
+import io.github.youndie.haul.feature.product.detailsTop
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.HaulType.browserLeading
@@ -53,6 +65,7 @@ import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.accented
 import io.github.youndie.haul.ui.columnsIn
 import io.github.youndie.haul.ui.gutter
+import io.github.youndie.haul.ui.lineOf
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.kompot.standard.NavigateAction
 
@@ -472,6 +485,23 @@ private fun Grid(
     }
 }
 
+/**
+ * A [width] × [bar] placeholder on a row as tall as a line of [style], the text the page draws there: what stands under
+ * it is where the page puts it, and nothing moves when the page arrives (B-143).
+ */
+@Composable
+private fun LineSkeleton(
+    width: Dp,
+    bar: Dp,
+    radius: Dp,
+    style: TextStyle,
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier.height(lineOf(style)), contentAlignment = Alignment.CenterStart) {
+        Skeleton(Modifier.size(width, bar), radius)
+    }
+}
+
 /** A category page before its tree: crumbs, title, kinds, the facet column, the chips and twelve cards as placeholders. */
 @Composable
 public fun CatalogLoading() {
@@ -483,34 +513,41 @@ public fun CatalogLoading() {
             Modifier.padding(
                 start = gutter,
                 end = gutter,
-                top = if (compact) 20.dp else 28.dp,
+                top = crumbsTop(compact),
                 bottom = if (compact) 64.dp else 80.dp,
             ),
         ) {
-            Skeleton(Modifier.size(if (compact) 240.dp else 320.dp, 12.dp), 5.dp)
-            Skeleton(
-                Modifier
-                    .padding(top = if (compact) 16.dp else 20.dp, bottom = if (compact) 22.dp else 26.dp)
-                    .size(if (compact) 260.dp else 620.dp, if (compact) 50.dp else 96.dp),
+            // Each row above the cards is as tall as the page's (B-143): the crumbs, the title, the kinds, the
+            // filters — the cards stand where the page's arrive.
+            LineSkeleton(if (compact) 240.dp else 320.dp, 12.dp, 5.dp, crumbsStyle())
+            LineSkeleton(
+                if (compact) 260.dp else 620.dp,
+                if (compact) 50.dp else 96.dp,
                 12.dp,
+                titleStyle(compact),
+                Modifier.padding(top = titleTop(compact), bottom = titleBottom(compact)),
             )
             Row(
                 Modifier
-                    .padding(bottom = if (compact) 16.dp else 36.dp)
+                    .padding(bottom = kindsBottom(compact))
                     .fillMaxWidth()
                     .clipToBounds()
                     .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                KIND_WIDTHS.forEach { Skeleton(Modifier.width(it.dp).height(if (compact) 40.dp else 44.dp), 22.dp) }
+                val pill = kindsHeight(compact)
+                KIND_WIDTHS.forEach { Skeleton(Modifier.width(it.dp).height(pill), 22.dp) }
             }
             if (compact) {
                 Row(
-                    Modifier.padding(bottom = 24.dp).wrapContentWidth(Alignment.Start, unbounded = true),
+                    // Under «Filters» and the sort the page has the applied filters' row, there with none applied.
+                    Modifier
+                        .padding(bottom = FILTERS_BOTTOM + APPLIED_BOTTOM)
+                        .wrapContentWidth(Alignment.Start, unbounded = true),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     // Two halves and a gap: the canvas lets the second run 10 px into the gutter.
-                    repeat(2) { Skeleton(Modifier.width(179.dp).height(48.dp), 12.dp) }
+                    repeat(2) { Skeleton(Modifier.width(179.dp).height(FILTERS_HEIGHT), 12.dp) }
                 }
                 Grid(columns = 2, count = 12, columnGap = 12.dp, rowGap = 28.dp) { CardSkeleton(it) }
             } else {
@@ -738,13 +775,17 @@ public fun ProductLoading() {
             Modifier.padding(
                 start = gutter,
                 end = gutter,
-                top = if (compact) 20.dp else 28.dp,
+                top = crumbsTop(compact),
                 bottom = if (compact) 64.dp else 80.dp,
             ),
         ) {
-            Skeleton(
-                Modifier.padding(bottom = if (compact) 16.dp else 28.dp).size(if (compact) 220.dp else 420.dp, 12.dp),
+            // The crumbs' row is the crumbs' line, not the bar's 12 px: the photo came 5 px lower (B-143).
+            LineSkeleton(
+                if (compact) 220.dp else 420.dp,
+                12.dp,
                 5.dp,
+                crumbsStyle(),
+                Modifier.padding(bottom = detailsTop(compact)),
             )
             if (compact) {
                 Column(verticalArrangement = Arrangement.spacedBy(22.dp)) {
@@ -889,21 +930,26 @@ public fun CartLoading() {
                 bottom = if (compact) 64.dp else 96.dp,
             ),
         ) {
-            Skeleton(
-                Modifier
-                    .padding(bottom = if (compact) 24.dp else 36.dp)
-                    .size(if (compact) 140.dp else 260.dp, if (compact) 50.dp else 96.dp),
+            // The title's row is the title's line (B-143): at 96 px the lines came 5 px lower.
+            LineSkeleton(
+                if (compact) 140.dp else 260.dp,
+                if (compact) 50.dp else 96.dp,
                 12.dp,
+                titleStyle(compact),
+                Modifier.padding(bottom = if (compact) 24.dp else 36.dp),
             )
             if (compact) {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(Modifier.testTag(CART_LINES_TAG), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     CartGroupSkeleton(lines = 1)
                     CartGroupSkeleton(lines = 2)
                     CartSummarySkeleton(Modifier.fillMaxWidth())
                 }
             } else {
                 Row(horizontalArrangement = Arrangement.spacedBy(40.dp)) {
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Column(
+                        Modifier.weight(1f).testTag(CART_LINES_TAG),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
                         CartGroupSkeleton(lines = 1)
                         CartGroupSkeleton(lines = 2)
                     }

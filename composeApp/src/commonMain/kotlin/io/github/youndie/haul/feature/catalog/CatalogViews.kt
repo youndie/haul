@@ -41,6 +41,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -74,6 +75,7 @@ import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.following
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
+import io.github.youndie.haul.ui.lineOf
 import io.github.youndie.haul.ui.linkedText
 import io.github.youndie.haul.ui.pressable
 import kotlinx.coroutines.launch
@@ -101,21 +103,77 @@ public fun BreadcrumbsView(breadcrumbs: Breadcrumbs) {
             }
             text.withStyle(SpanStyle(color = HaulColors.onSurface)) { append(shown.lastOrNull()?.label.orEmpty()) }
         },
-        Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = if (compact) 20.dp else 28.dp),
-        style =
-            HaulType
-                .label(
-                    12f,
-                    500,
-                    0.04f,
-                ).copy(color = HaulColors.outline, lineHeight = (12f * 1.4f).sp)
-                .browserLeading(),
+        Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = crumbsTop(compact)),
+        style = crumbsStyle(),
         softWrap = false,
         maxLines = 1,
     )
 }
 
 private const val COMPACT_CRUMBS = 4
+
+// The measures a page's first rows are drawn at, shared with the placeholders that stand for them (`shell/Shell.kt`):
+// a placeholder's row as tall as the page's keeps what stands under it from moving when the page arrives (B-143).
+
+/** The crumbs' type: the mono at 12 px on a line of 1.4, in Outline. */
+@Composable
+internal fun crumbsStyle(): TextStyle =
+    HaulType
+        .label(12f, 500, 0.04f)
+        .copy(color = HaulColors.outline, lineHeight = (12f * 1.4f).sp)
+        .browserLeading()
+
+/** The space between the header and the crumbs. */
+internal fun crumbsTop(compact: Boolean): Dp = if (compact) 20.dp else 28.dp
+
+/** A listing's and the cart's title: the display face at 112 px (56 on a phone) on a line of .9. */
+@Composable
+internal fun titleStyle(compact: Boolean): TextStyle =
+    HaulType.display(
+        if (compact) 56f else 112f,
+        800,
+        letterSpacing = if (compact) -0.01f else -0.03f,
+        lineHeight = 0.9f,
+    )
+
+/** The space over and under a listing's title ([PageTitleView]). */
+internal fun titleTop(compact: Boolean): Dp = if (compact) 14.dp else 18.dp
+
+internal fun titleBottom(compact: Boolean): Dp = if (compact) 20.dp else 24.dp
+
+/** A kind pill's type ([KindChip]). */
+@Composable
+internal fun kindStyle(
+    compact: Boolean,
+    selected: Boolean = false,
+): TextStyle =
+    HaulType
+        .text(if (compact) 14f else 15f, if (selected) 600 else 500)
+        .copy(color = if (selected) HaulColors.onPrimary else HaulColors.onSurface)
+
+/** The space over and under a kind pill's label. */
+private fun kindPadding(compact: Boolean): Dp = if (compact) 10.dp else 11.dp
+
+/**
+ * How tall the kinds' row is: a line of the pill's type, its padding, and the pixel an unchosen pill's border adds
+ * on each side — the row stretches the chosen pill to it ([KindChips]).
+ */
+@Composable
+internal fun kindsHeight(compact: Boolean): Dp = lineOf(kindStyle(compact)) + kindPadding(compact) * 2 + 2.dp
+
+/** The space under the kinds' row; a search's, whose pills carry counts, sits closer to the grid. */
+internal fun kindsBottom(
+    compact: Boolean,
+    counted: Boolean = false,
+): Dp = if (compact) (if (counted) 24.dp else 16.dp) else (if (counted) 32.dp else 36.dp)
+
+/** On a phone: «Filters» and the sort, their height, and the space between them and the applied filters' row. */
+internal val FILTERS_HEIGHT: Dp = 48.dp
+
+internal val FILTERS_BOTTOM: Dp = 14.dp
+
+/** The space under the applied filters' row on a phone, which stands there with no filter applied too. */
+internal val APPLIED_BOTTOM: Dp = 24.dp
 
 /**
  * The page's title with the count beside it, on one baseline; a search's ([PageTitle.quoted]) has it
@@ -138,23 +196,9 @@ public fun PageTitleView(title: PageTitle) {
         modifier =
             Modifier
                 .fillMaxWidth()
-                .padding(
-                    start = gutter,
-                    end = gutter,
-                    top = if (compact) 14.dp else 18.dp,
-                    bottom = if (compact) 20.dp else 24.dp,
-                ),
+                .padding(start = gutter, end = gutter, top = titleTop(compact), bottom = titleBottom(compact)),
     ) {
-        Text(
-            title.title,
-            HaulType.display(
-                if (compact) 56f else 112f,
-                800,
-                letterSpacing = if (compact) -0.01f else -0.03f,
-                lineHeight = 0.9f,
-            ),
-            softWrap = false,
-        )
+        Text(title.title, titleStyle(compact), softWrap = false)
         Text(title.count.orEmpty(), HaulType.label(14f, 600, 0f).copy(color = HaulColors.outline), softWrap = false)
     }
 }
@@ -219,16 +263,7 @@ private fun BadgeTitle(title: PageTitle) {
         ),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Text(
-            title.title,
-            HaulType.display(
-                if (compact) 56f else 112f,
-                800,
-                letterSpacing = if (compact) -0.01f else -0.03f,
-                lineHeight = 0.9f,
-            ),
-            softWrap = false,
-        )
+        Text(title.title, titleStyle(compact), softWrap = false)
         title.count?.let {
             Text(
                 it,
@@ -261,7 +296,7 @@ internal fun ResultCount(count: String) {
 public fun FilterChipsView(chips: FilterChips) {
     val compact = LocalHaulCompact.current
     val gutter = gutter()
-    val bottom = if (compact) (if (chips.counted()) 24.dp else 16.dp) else (if (chips.counted()) 32.dp else 36.dp)
+    val bottom = kindsBottom(compact, chips.counted())
     val sort = chips.sortLabel?.takeIf { chips.sorts.isNotEmpty() }
     when {
         compact -> {
@@ -387,10 +422,7 @@ private fun KindChip(
     compact: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val style =
-        HaulType
-            .text(if (compact) 14f else 15f, if (chip.selected) 600 else 500)
-            .copy(color = if (chip.selected) HaulColors.onPrimary else HaulColors.onSurface)
+    val style = kindStyle(compact, chip.selected)
     val box =
         if (chip.selected) {
             Modifier.background(HaulColors.inverseSurface, CircleShape)
@@ -404,7 +436,7 @@ private fun KindChip(
         Text(
             chip.count?.let { "${chip.label} $it" } ?: chip.label,
             style,
-            Modifier.padding(horizontal = if (compact) 16.dp else 18.dp, vertical = if (compact) 10.dp else 11.dp),
+            Modifier.padding(horizontal = if (compact) 16.dp else 18.dp, vertical = kindPadding(compact)),
             softWrap = false,
         )
     }
@@ -488,13 +520,13 @@ private fun CompactApplied(
     FlexPair(
         10.dp,
         secondFrame = SORT_FRAME,
-        modifier = Modifier.fillMaxWidth().padding(start = gutter, end = gutter, bottom = 14.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = gutter, end = gutter, bottom = FILTERS_BOTTOM),
     ) {
         // «Filters» opens the sheet: B-07 drew it and passed the opener here, but nothing pressed it, so the
         // sheet — and its «×» (B-49) — could not be reached.
         Row(
             Modifier
-                .height(48.dp)
+                .height(FILTERS_HEIGHT)
                 .background(HaulColors.inverseSurface, RoundedCornerShape(12.dp))
                 .pressable(onOpenFilters),
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
@@ -512,13 +544,13 @@ private fun CompactApplied(
                 ) { Text(applied.filterCount.toString(), HaulType.text(12f, 800)) }
             }
         }
-        Sort(applied, Modifier.height(48.dp), textSize = 15f)
+        Sort(applied, Modifier.height(FILTERS_HEIGHT), textSize = 15f)
     }
     Row(
         Modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState())
-            .padding(start = gutter, bottom = 24.dp),
+            .padding(start = gutter, bottom = APPLIED_BOTTOM),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

@@ -27,31 +27,38 @@ import kotlin.test.assertTrue
 /**
  * B-104: the product page does not move or cut what it draws. The loading page's photo stands where the photo
  * arrives — the thumbnail column B-71 removed from the page had stayed in the skeleton, and the page jumped when
- * it came — and a fact tile's title is never cut at the tile's edge: the seed's specification names
+ * it came; and the crumbs' placeholder was a 12 px bar where the crumbs' line is 16.8, so the photo came 5 px
+ * lower (B-143) — and a fact tile's title is never cut at the tile's edge: the seed's specification names
  * («Noise cancelling», «Connectivity») wrap between words and shrink to fit, while the canvas's «40 h» keeps its
  * display size. At 1440 and on a phone.
  */
 @OptIn(ExperimentalTestApi::class)
 class ProductPageLayoutTest {
-    private fun photoMovesOnArrival(compact: Boolean) =
-        runDesktopComposeUiTest(if (compact) PHONE else DESKTOP, HEIGHT) {
+    private fun photoMovesOnArrival(width: Int) =
+        runDesktopComposeUiTest(width, HEIGHT) {
             var loaded by mutableStateOf(false)
             setContent {
-                Fixture(compact) { Page { if (loaded) Body("product_description.json") else ProductLoading() } }
+                Fixture(compact = width < WIDE) {
+                    Page { if (loaded) Body("product_description.json") else ProductLoading() }
+                }
             }
             val loading = onNodeWithTag(GALLERY_TAG).fetchSemanticsNode().boundsInRoot
             loaded = true
             waitForIdle()
             val arrived = onNodeWithTag(GALLERY_TAG).fetchSemanticsNode().boundsInRoot
-            assertEquals(arrived.left, loading.left, "the photo moves sideways when the page arrives")
-            assertEquals(arrived.width, loading.width, "the photo changes width when the page arrives")
+            assertEquals(arrived.top, loading.top, "the photo moves down when the page arrives at $width")
+            assertEquals(arrived.left, loading.left, "the photo moves sideways when the page arrives at $width")
+            assertEquals(arrived.width, loading.width, "the photo changes width when the page arrives at $width")
         }
 
     @Test
-    fun `the loading photo stands where the photo arrives`() = photoMovesOnArrival(compact = false)
+    fun `the loading photo stands where the photo arrives`() = photoMovesOnArrival(DESKTOP)
 
     @Test
-    fun `the loading photo stands where the photo arrives on a phone`() = photoMovesOnArrival(compact = true)
+    fun `the loading photo stands where the photo arrives at 1280`() = photoMovesOnArrival(NARROW_DESKTOP)
+
+    @Test
+    fun `the loading photo stands where the photo arrives on a phone`() = photoMovesOnArrival(PHONE)
 
     private fun ComposeUiTest.layoutOf(text: String): TextLayoutResult {
         val results = mutableListOf<TextLayoutResult>()
@@ -108,7 +115,11 @@ class ProductPageLayoutTest {
 
     private companion object {
         const val DESKTOP = 1440
+        const val NARROW_DESKTOP = 1280
         const val PHONE = 390
+
+        /** Below it the phone's arrangement is drawn (`App.kt`'s `COMPACT_BELOW`). */
+        const val WIDE = 1024
         const val HEIGHT = 1600
 
         /** The headphones' first four specifications, which the server sends as the tiles (`ProductScreen`). */
