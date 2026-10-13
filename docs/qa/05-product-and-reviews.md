@@ -95,7 +95,7 @@ search for `sony`).
 - **Steps:**
   1. Press «Add to cart».
   2. Press it again; then add until the line is at ten (or at the stock).
-  3. Press «2 in your cart» (or the count shown).
+  3. Press «View cart» beside «2 in your cart» (or the count shown) — the words say, «View cart» leads (B-75).
 - **Expected:**
   - Step 1: no page loads; the header's count and the buy box change; «Added to your cart» with «View cart» at the
     bottom; under the button «1 in your cart».
@@ -157,6 +157,7 @@ search for `sony`).
   1. Note a deal card's price; open it; add it; open the cart; as a customer, open checkout.
 - **Expected:**
   - Step 1: one price everywhere, the price it beats struck through on the card and the page. After the deal ends
+    (on a local stack: ended in its database — a seeded stand re-dates the same deals at each midnight, B-70)
     the card is gone and a line added at the deal's price is marked changed in the cart (TC-CART-06); after the sale
     ends every SKU is at its regular price with nothing struck through.
 - **Decided in:** B-53, B-57, B-58

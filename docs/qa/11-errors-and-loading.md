@@ -235,7 +235,8 @@ the server's own: `503`).
   2. Filter the requests by another domain than the store's.
 - **Expected:**
   - Step 2: none — no font from `fonts.gstatic.com`, nothing else of anyone's. Sign-in opens shildik's page, which
-    is the provider's by design and not a request of the storefront's.
+    is the provider's by design and not a request of the storefront's; a signed-in page's token refresh (the
+    provider's discovery and `oauth2/token`) goes to the store's own provider too, and counts as the store's.
 - **Decided in:** B-128
 - **Coverage:** `BundledGlyphsTest` «every character a string in the code holds is in a bundled face»;
   script `scripts/origin-check.py`; manual: text a shopper types that the bundled faces lack (Cyrillic outside

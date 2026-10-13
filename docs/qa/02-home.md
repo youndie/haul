@@ -11,7 +11,7 @@ their place, «Picked for you», the Plus block. A card's «+» is walked here o
 - **Steps:**
   1. Read the hero's eyebrow and the banners.
   2. Press each banner.
-  3. Press «View all deals» and «All N categories».
+  3. Press «View all deals» (1440; the phone's home draws none) and «All N categories».
   4. Look for «Picked for you».
 - **Expected:**
   - Step 1: the hero's eyebrow is the sale campaign's name and dates («Autumn mega sale · Oct 7 — 14» on the
@@ -149,7 +149,8 @@ their place, «Picked for you», the Plus block. A card's «+» is walked here o
   1. Look at the hero, the banners, the category tiles and the deals' cards.
   2. Note every request the page made (DevTools, Network).
 - **Expected:**
-  - Step 1: the hero's right part draws falling leaves under its figure; Tech week's banner a laptop in its corner;
+  - Step 1: the hero's right part draws falling leaves under its figure; Tech week's banner a laptop in its corner (from 1280 — at 1024 and on a phone the banner
+    has no picture, B-82, golden `Home_Guest_Phone`);
     each category tile its category's object; each card its product's object in its colour. No tile says what it
     stands for («CAMPAIGN IMAGE», «TECH», «HEADPHONES»). Free delivery weekend's banner draws no picture: the canvas
     keeps no place for one.
