@@ -3,6 +3,7 @@ package io.github.youndie.haul.ui
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.selection.triStateToggleable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.Stable
@@ -17,7 +18,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.AnnotatedString
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotActionHandler
@@ -93,6 +97,18 @@ internal fun Modifier.pressable(onPress: (() -> Unit)?): Modifier =
     }
 
 /**
+ * A press of the pointer's alone: the hand over it and [onPress] on a tap, and nothing in semantics — no button for
+ * assistive technology, which reaches the same thing another way (a dialog's scrim: its «×» and Escape, B-151). A
+ * press on a control inside it is the control's.
+ */
+internal fun Modifier.pointerPress(onPress: (() -> Unit)?): Modifier =
+    if (onPress == null) {
+        this
+    } else {
+        pointerHoverIcon(PointerIcon.Hand).pointerInput(onPress) { detectTapGestures { onPress() } }
+    }
+
+/**
  * A control that has nothing to do right now and is drawn greyed for it (B-100): not pressable, and disabled for
  * assistive technology, as the look says.
  */
@@ -110,6 +126,59 @@ internal fun Modifier.swallowsPresses(): Modifier = pointerInput(Unit) { detectT
  * neither it reads as «button».
  */
 internal fun Modifier.named(name: String): Modifier = semantics { contentDescription = name }
+
+/**
+ * A box to tick or a switch — its [kind], [Role.Checkbox] or [Role.Switch] — named for what it does and whether it
+ * is on: «Select Sony WH-1000XM6, ticked», «Use 2,480 points (−$24.80), off», with [note] after it (B-151). Its
+ * [state] is in semantics; its role there is a button's ([MIRRORED_ROLE]). [onPress] turns it; without one it is
+ * drawn and does nothing.
+ */
+internal fun Modifier.toggles(
+    what: String,
+    state: ToggleableState,
+    kind: Role,
+    onPress: (() -> Unit)?,
+    note: String? = null,
+): Modifier {
+    val said = listOfNotNull("$what, ${stateWord(state, kind)}", note?.takeIf { it.isNotBlank() }).joinToString(". ")
+    val press =
+        if (onPress == null) {
+            Modifier.semantics {
+                role = MIRRORED_ROLE
+                toggleableState = state
+            }
+        } else {
+            Modifier.pointerHoverIcon(PointerIcon.Hand).triStateToggleable(
+                state,
+                interactionSource = null,
+                indication = null,
+                role = MIRRORED_ROLE,
+                onClick = onPress,
+            )
+        }
+    return then(press).semantics { contentDescription = said }
+}
+
+/**
+ * The role a box or a switch has in semantics: a button's, while the browser's mirror writes a role and no state.
+ * Compose 1.12's mirror makes [Role.Checkbox] a `role="checkbox"` with no `aria-checked`, which Chromium reads as not
+ * checked — a ticked box would say «ticked» in its name and «not checked» in its state. 1.13's mirror writes
+ * `aria-checked` (read in 1.13.0-alpha02's library); once the stack is on it, the role is the box's [Role.Checkbox] or
+ * the switch's [Role.Switch], and this goes.
+ */
+private val MIRRORED_ROLE = Role.Button
+
+/** How a box or a switch says its state in its name: «ticked», «partly ticked», «not ticked»; «on», «off». */
+internal fun stateWord(
+    state: ToggleableState,
+    kind: Role,
+): String =
+    when {
+        kind == Role.Switch -> if (state == ToggleableState.On) "on" else "off"
+        state == ToggleableState.On -> "ticked"
+        state == ToggleableState.Indeterminate -> "partly ticked"
+        else -> "not ticked"
+    }
 
 /** Text with runs that are pressed on their own — a crumb, a word of the category row ([linkedText]). */
 internal class LinkedText(

@@ -1,5 +1,6 @@
 package io.github.youndie.haul.feature.home
 
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasAnyAncestor
@@ -7,7 +8,10 @@ import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.FakeHistory
@@ -96,6 +100,18 @@ class PlusTrialWiringTest {
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
             openDialog()
             onNodeWithTag(PLUS_DISMISS_TAG).performClick()
+            waitClosed()
+            assertEquals(emptyList(), sent.toList())
+            assertEquals(listOf("/ui/home"), requests.toList())
+        }
+
+    /** B-151: Escape closes the dialog, as it closes the menus and the photo viewer, and sends nothing. */
+    @Test
+    fun `escape closes the dialog and sends nothing`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            openDialog()
+            waitForIdle()
+            onRoot().performKeyInput { pressKey(Key.Escape) }
             waitClosed()
             assertEquals(emptyList(), sent.toList())
             assertEquals(listOf("/ui/home"), requests.toList())

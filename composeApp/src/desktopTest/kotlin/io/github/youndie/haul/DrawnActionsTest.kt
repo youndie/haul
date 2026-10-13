@@ -38,9 +38,9 @@ import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
 import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.theme.HaulTheme
-import io.github.youndie.haul.ui.ADD_TO_CART
 import io.github.youndie.haul.ui.ALL_CATEGORIES
 import io.github.youndie.haul.ui.AppliedFilters
+import io.github.youndie.haul.ui.CARD_ADD_TAG
 import io.github.youndie.haul.ui.CATEGORY_ROW_TAG
 import io.github.youndie.haul.ui.CampaignHero
 import io.github.youndie.haul.ui.CampaignRow
@@ -393,7 +393,7 @@ class DrawnActionsTest {
             val after = page(header.copy(cartCount = 1), TextComponent(id = "count", text = "One in the cart"))
             answer("/ui/home", results, after)
             storefront()
-            onNodeWithContentDescription(ADD_TO_CART).performClick()
+            onNodeWithTag(CARD_ADD_TAG).performClick()
             onNodeWithText("One in the cart").assertExists()
             assertEquals(listOf(CartCommand.ChangeLine(MUG_LINE, LineChange(quantity = 2)).toString()), sent)
             assertEquals(listOf("/ui/home", "/ui/home"), requests, "the page was not drawn again")
@@ -489,13 +489,15 @@ class DrawnActionsTest {
             waitForText("1 applied")
             onNodeWithContentDescription(CLOSE_FILTERS).assertExists()
             onNodeWithText("Show 12 items").assertExists()
-            onNodeWithText("Ostra Mug").assertExists()
+            // The results are under the sheet, hidden from assistive technology while it is open (B-151): drawn, and
+            // read in the tree as drawn.
+            onNodeWithText("Ostra Mug", useUnmergedTree = true).assertExists()
 
             onNodeWithText("Lume").performClick()
             waitForText("2 applied")
             onNodeWithContentDescription(CLOSE_FILTERS).assertExists()
             onNodeWithText("Show 5 items").assertExists()
-            onNodeWithText("Lume Mug").assertExists()
+            onNodeWithText("Lume Mug", useUnmergedTree = true).assertExists()
             assertEquals(listOf(CLEARED, BY_OSTRA, BY_BOTH), history.entries)
             assertEquals(
                 listOf("/ui$CLEARED", "$PARTS$BY_OSTRA", "$PARTS$BY_BOTH"),

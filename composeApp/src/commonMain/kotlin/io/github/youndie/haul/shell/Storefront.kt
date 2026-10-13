@@ -65,6 +65,7 @@ import io.github.youndie.haul.ui.PlusTrialDialog
 import io.github.youndie.haul.ui.SearchFieldState
 import io.github.youndie.haul.ui.SearchInput
 import io.github.youndie.haul.ui.SearchSuggestPanel
+import io.github.youndie.haul.ui.SheetOverPage
 import io.github.youndie.haul.ui.TabsInView
 import io.github.youndie.haul.ui.releasingOnBlankPress
 import io.github.youndie.kompot.KompotAction
@@ -551,7 +552,11 @@ public fun Storefront(
     }
 }
 
-/** What a `present` drew over the page, until [onDismiss] — the scrim — or the dialog's own `close`. */
+/**
+ * What a `present` drew over the page, until [onDismiss] — the scrim, or Escape — or the dialog's own `close`. It is
+ * a sheet over the storefront (B-151): while it is open the page under it is hidden from assistive technology, and
+ * it holds the keys, so Escape reaches it wherever the focus was — the Plus trial's dialog closed on no key at all.
+ */
 @Composable
 private fun PresentedOverlay(
     shown: Presented,
@@ -560,8 +565,10 @@ private fun PresentedOverlay(
 ) {
     val forms = remember { FormController(FormSchema(formId = "none", fields = emptyList())) }
     val top = if (shown.content is PlusTrialDialog) PLUS_DIALOG_COMPACT_TOP else 120.dp
-    DialogOverlay(onDismiss = onDismiss, compactTop = top) {
-        KompotScreen(shown.content, registry, forms, shown.actions)
+    SheetOverPage(onDismiss = onDismiss) {
+        DialogOverlay(onDismiss = onDismiss, compactTop = top) {
+            KompotScreen(shown.content, registry, forms, shown.actions)
+        }
     }
 }
 

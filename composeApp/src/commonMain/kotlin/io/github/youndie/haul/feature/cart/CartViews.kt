@@ -25,6 +25,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
@@ -54,6 +56,7 @@ import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.inert
 import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.pressable
+import io.github.youndie.haul.ui.toggles
 import io.github.youndie.kompot.standard.NavigateAction
 import kotlinx.coroutines.launch
 
@@ -116,8 +119,9 @@ private fun SelectionRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        // A box to tick, which says whether it is (B-151): «Select all, partly ticked».
         Row(
-            Modifier.testTag(SELECT_ALL_TAG).pressable {
+            Modifier.testTag(SELECT_ALL_TAG).toggles(selection.selectAllLabel, box.state, Role.Checkbox, {
                 // Every line that can be selected follows the box: ticked when it was not all ticked.
                 val target = !selection.allSelected
                 val changes =
@@ -125,7 +129,7 @@ private fun SelectionRow(
                         .filter { it.selectable && it.selected != target }
                         .map { CartCommand.ChangeLine(it.url, LineChange(selected = target)) }
                 if (changes.isNotEmpty()) onCommand(changes)
-            },
+            }),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -151,7 +155,13 @@ private fun SelectionRow(
     }
 }
 
-private enum class Tick { Checked, Partial, Empty }
+private enum class Tick(
+    val state: ToggleableState,
+) {
+    Checked(ToggleableState.On),
+    Partial(ToggleableState.Indeterminate),
+    Empty(ToggleableState.Off),
+}
 
 /** The canvas's 22 px box: Cobalt with a tick or a bar, or white with a grey border. */
 @Composable
@@ -327,15 +337,22 @@ private fun PhoneLine(
     }
 }
 
-/** The line's box: pressing it ticks or unticks the line, while the line can be selected. */
+/**
+ * The line's box: pressing it ticks or unticks the line, while the line can be selected. Named for what it does
+ * and whether it is ticked — «Select Sony WH-1000XM6, ticked» (B-151): the line's photo is named by the title alone.
+ */
 @Composable
 private fun LineBox(
     line: CartLine,
     onCommand: (List<CartCommand>) -> Unit,
 ) {
+    val tick = if (line.selected) Tick.Checked else Tick.Empty
     Checkbox(
-        if (line.selected) Tick.Checked else Tick.Empty,
-        Modifier.testTag(lineTag("box", line)).named(line.title).pressable(
+        tick,
+        Modifier.testTag(lineTag("box", line)).toggles(
+            selectLine(line.title),
+            tick.state,
+            Role.Checkbox,
             if (line.selectable) {
                 { onCommand(listOf(CartCommand.ChangeLine(line.url, LineChange(selected = !line.selected)))) }
             } else {
@@ -344,6 +361,9 @@ private fun LineBox(
         ),
     )
 }
+
+/** What a line's box does, by the line's title: «Select Sony WH-1000XM6». */
+internal fun selectLine(title: String): String = "Select $title"
 
 /** The product's tile in its tone; pressing it opens the product. */
 @Composable

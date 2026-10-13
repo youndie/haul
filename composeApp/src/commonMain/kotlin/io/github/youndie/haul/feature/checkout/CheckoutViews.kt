@@ -46,8 +46,10 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
@@ -83,6 +85,7 @@ import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.pressable
+import io.github.youndie.haul.ui.toggles
 import kotlinx.coroutines.launch
 
 // The Checkout screen (screen-checkout): the checkout's own header, then the numbered sections in one
@@ -835,7 +838,8 @@ private fun Payment(
 /**
  * «Use 2,480 points (−$24.80)», off on Paper or on in acid (Checkout_PointsApplied). A press turns it the
  * other way ([onToggle], `CheckoutChoice.usePoints` to the toggle's `url`, B-23); without a `url` it is
- * drawn and does nothing.
+ * drawn and does nothing. A switch, named with whether it is on and then its detail (B-151): «Use 2,480 points
+ * (−$24.80), off. 100 points = $1 · all or nothing».
  */
 @Composable
 private fun PointsSwitch(
@@ -848,8 +852,13 @@ private fun PointsSwitch(
             .padding(top = 16.dp)
             .fillMaxWidth()
             .testTag(POINTS_TAG)
-            .pressable(onToggle)
-            .background(
+            .toggles(
+                toggle.label,
+                if (toggle.on) ToggleableState.On else ToggleableState.Off,
+                Role.Switch,
+                onToggle,
+                note = toggle.detail,
+            ).background(
                 if (toggle.on) HaulColors.secondaryContainer else HaulColors.background,
                 RoundedCornerShape(18.dp),
             ).padding(horizontal = if (compact) 16.dp else 20.dp, vertical = if (compact) 16.dp else 18.dp),

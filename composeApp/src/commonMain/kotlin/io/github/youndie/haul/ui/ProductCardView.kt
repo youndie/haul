@@ -23,6 +23,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.FirstBaseline
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
@@ -43,8 +44,11 @@ import io.github.youndie.kompot.KompotAction
 import kotlinx.coroutines.launch
 import kotlin.math.sqrt
 
-/** What «+» on a card says to a screen reader, and what the tests find it by. */
-public const val ADD_TO_CART: String = "Add to cart"
+/** What a card's «+» is named, by the card's product: «Add Sony WH-1000XM6 to cart» (B-151). */
+public fun addToCart(title: String): String = "Add $title to cart"
+
+/** A card's «+»: its test tag, and its id in the browser's mirror. */
+public const val CARD_ADD_TAG: String = "card-add"
 
 /** What a heart says to a screen reader — the press it makes — and what the tests find it by. */
 public const val SAVE: String = "Save"
@@ -99,8 +103,10 @@ public fun ProductCardView(
                 Modifier
                     .then(if (add == null) Modifier.swallowsPresses() else Modifier.pressable(press))
                     // Its own node, pressable or not: merged into the card's, a disabled «+» would read as the card.
+                    // Named by the product, as six «Add to cart» in a row named nothing (B-151).
+                    .testTag(CARD_ADD_TAG)
                     .semantics(mergeDescendants = true) {
-                        contentDescription = ADD_TO_CART
+                        contentDescription = addToCart(card.title)
                         if (add == null) disabled()
                     }.size(button)
                     .background(
