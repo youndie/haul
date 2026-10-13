@@ -48,7 +48,7 @@ A stage is a field on the item, not a directory.
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-145](docs/backlog/B-145-a-failed-tick-in-the-filter-sheet-says-so.md) `[ ]` | fix: a facet ticked in the filter sheet that fails says so over the sheet | P2 | S | - |
-| [B-146](docs/backlog/B-146-a-trial-over-a-page-with-no-tree-asks-the-header.md) `[ ]` | fix: a Plus trial started over a page with no tree redraws the header | P2 | S | - |
+| [B-146](docs/backlog/B-146-a-trial-over-a-page-with-no-tree-asks-the-header.md) `[~]` | fix: a Plus trial started over a page with no tree redraws the header | P2 | S | - |
 | [B-149](docs/backlog/B-149-pictures-everywhere-a-product-is-shown.md) `[ ]` | fix: every product tile draws its picture, and the sample products their own | P2 | M | - |
 | [B-151](docs/backlog/B-151-selection-controls-say-their-state.md) `[ ]` | fix: selection controls say their state, dialogs hide the page beneath, and the trial dialog closes on Escape | P2 | M | - |
 | [B-143](docs/backlog/B-143-the-product-photo-does-not-move-on-arrival.md) `[ ]` | fix: the product photo stands where its placeholder stood | P3 | XS | - |
