@@ -1,7 +1,7 @@
 ---
 id: B-149
 title: "fix: every product tile draws its picture, and the sample products their own"
-status: wip
+status: done
 priority: P2
 size: M
 stage: stage-12-qa-run
@@ -33,7 +33,7 @@ Found by the v0.6.0 run ([run](../qa/runs/2026-10-13-v0.6.0.md), walkers A, C, D
 
 ## Done (2026-10-13)
 
-Research D8 has «Decided in B-149», D9 «Measured in B-149».
+Research D8 has «Decided in B-149», D9 «Measured in B-149» (the first frame does not move).
 
 - **The sample products' stored photos are their own pictures.** `SeedPhotos` stores `SeedArt`'s drawing of each
   sample product — its category's object in its first SKU's colour over its tile tone, the composition its id picks —
@@ -75,7 +75,7 @@ Research D8 has «Decided in B-149», D9 «Measured in B-149».
   back, each looked at: `Account_Content`, `_NotMember`, `_Orders` (and each `_Phone`) — the cards' and rows' tiles
   draw the lines' pictures; `Product_ReviewDialog`, `Product_QuestionDialog` (and `_Phone`) — the product tile;
   `Product_Reviews`, `_Mine`, `_Phone` — Daniel's two photos. Two not brought back: `Search_Results` (901 px) and
-  `Search_Autocomplete` (188 px), the chips' glyph edges only (see Findings).
+  `Search_Autocomplete` (188 px), the chips' glyph edges only, which `viddikVerify` accepts as they are (see Findings).
 - **Parity** (`viddikDesignParity`, the merge base's client against this branch, same box): 49/49 within 5 % on both;
   the artboards that moved stay inside — `Account_Content` 1.44 → 1.74 %, `_Phone` 3.35 → 4.06 %, `Account_NotMember`
   1.86 → 1.90 %, `_Phone` 3.58 → 3.71 %, `Account_Orders` 1.41 → 1.78 %, `_Phone` 3.38 → 4.46 %. The product ones
@@ -101,10 +101,12 @@ Research D8 has «Decided in B-149», D9 «Measured in B-149».
   as before); the seed's pictures do.
 - **Headless Chrome builds no accessible mirror here**, so the walk pressed by coordinates read off screenshots.
 
-## Iteration 1 (2026-10-13)
+## Where the checks ran (2026-10-13)
 
-Implemented, tested, mutation-checked, goldens recorded, walked in Chrome (Done above is the draft). Open before
-`done`: the first-load arm of this branch (`/tmp/b149-fl-b149` on the Linux box; the `before` arm is
-`haul/server:b145`, rounds 1–3 in `/tmp/b149-fl-b145`), D9 «Measured in B-149» from it, and the final gates —
-`:composeApp:wasmJsBrowserDistribution`, `check :server:installDist`, `scripts/e2e.sh haul/server:b149` — after a
-rebase on `origin/main`.
+On the Linux build box (WSL2, Ubuntu 24.04), on this branch rebased on B-145 and B-146 (#182):
+`:composeApp:wasmJsBrowserDistribution` green; `check :server:installDist` green — server 538 tests, client 464, `viddikVerify` 170, 0 failed, ktlint;
+`scripts/e2e.sh haul/server:b149` green (WholePathTest, ShoppersConfigTest 6, SyntheticShopperTest 3). `viddikVerify`
+accepts `Search_Results` and `Search_Autocomplete` as they are, so the two goldens a forced recording rewrites (chip
+glyph edges only) were left unrecorded. Goldens, parity, the Chrome walk and the first-load campaign (D9, «Measured in
+B-149»: first frame and pictures frame unmoved against B-150's image) ran there too. On the Mac: `make check` and
+`make docs-against BASE=origin/main` clean, every anchor found.

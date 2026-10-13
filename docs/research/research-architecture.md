@@ -1844,8 +1844,8 @@ run found three gaps in B-78's pictures:
   rasterises at the SVG's own size — 240 px — which the product page scaled up to ≈768 px at 800. The loader asks for
   the size of the box the picture is drawn in, in pixels, and again — keeping the picture on screen until the
   sharper one is in — whenever the box outgrows it (a window widened); never for a smaller one. The pictures are
-  still asked for after the first frame; their bytes do not change, only the size they are rasterised at (D9,
-  «Measured in B-149»).
+  still asked for after the first frame; their bytes do not change, only the size they are rasterised at, and
+  neither the first frame nor the pictures' frame moved (D9, «Measured in B-149»).
 
 ### D9. No server rendering, no SEO
 
@@ -2254,6 +2254,39 @@ or ten shots in a fallback each, the faces from 1.5–1.8 s after the swap.
   the first GL call follows its last byte by 0.3 s. Lever, not measured: a lower `fetchpriority` on the preloads might
   let the module through first and compile it while the fonts cross — a few hundred milliseconds at most, since it
   moves the bytes and not their sum.
+
+#### Measured in B-149
+
+**What changed.** The client asks for each picture at the size of the box it is drawn in, and again when the box
+outgrows it, instead of with no size — which Coil's SVG decoder rasterised at the SVG's own 240 px (D8, «Decided in
+B-149»). Nothing before the first frame changes; the question was only whether the first frame or the pictures moved.
+
+**How.** On 2026-10-13, B-34's `image` arm with B-78's relay (`ART=pass`, `STOP_AFTER=8`), `PROFILES=none,fast4g`,
+three rounds per run (the blocked-wasm control first), two passes with the arms interleaved — **before**, the image of
+B-150's branch (`haul/server:b150`, B-150's font preload included), **after**, this branch's (`haul/server:b149`,
+rebased on B-145 and B-146) — each beside a seeded PostgreSQL, a guest on Home, 1440 × 900 at 1×, Chrome for Testing
+149.0.7827.55, on the shared Linux build machine at a 1-minute load average of 2.0–6.5. A first campaign against
+B-145's image read +0.35 s on Fast 4G: that image predates B-150, whose preloaded fonts share the link before the
+first frame (B-150's own +0.5 s, «Measured in B-150»), so it was no «before» for this item and is not reported.
+
+**Bytes.** The app's `.wasm` brotli 1,266 → 1,271 KiB (B-145 and B-146 in it as well); 4,373 → 4,377 KiB transferred
+on Home; the sixteen pictures 24,065 bytes in both — the same SVGs.
+
+| Arm | Profile | First frame | Pictures frame |
+|---|---|---:|---:|
+| before | none | 625 (558–792) | 999 (939–1,264) |
+| after | none | 595 (533–1,028) | 964 (880–1,407) |
+| before | Fast 4G | 5,228 (5,182–5,561) | 6,334 (6,267–6,695) |
+| after | Fast 4G | 5,198 (5,147–5,273) | 6,270 (6,246–6,427) |
+
+Median (min–max) of six runs each, milliseconds. The raw values, pass 1 rounds 1–3 then pass 2 rounds 1–3, first
+frame | pictures frame: before none 792 624 641 558 601 626 | 1264 1051 1023 939 974 972; after none 1028 569 620 640
+533 534 | 1407 1010 958 970 880 894; before Fast 4G 5561 5275 5226 5182 5230 5211 | 6695 6353 6315 6267 6313 6368;
+after Fast 4G 5273 5213 5175 5147 5235 5182 | 6427 6286 6246 6253 6291 6252.
+
+**What it says.** Neither the first frame nor the pictures' frame moves beyond the machine's spread: the ranges
+overlap on both profiles. Rasterising at the box's size — up to ≈768 px on the product page instead of 240 — costs
+nothing measurable on Home, whose sixteen pictures are drawn at card and tile sizes.
 
 ### D10. Documentation in English
 
