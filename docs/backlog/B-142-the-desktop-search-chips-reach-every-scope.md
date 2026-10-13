@@ -1,7 +1,7 @@
 ---
 id: B-142
 title: "fix: a search's chips row reaches every scope on a desktop"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-12-qa-run
