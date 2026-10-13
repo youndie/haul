@@ -1824,7 +1824,8 @@ A Compose canvas page is not indexable and its first load is dominated by the ru
 a reference; the first-load size is measured (B-28), not assumed. *Confirmed in B-28* (below): skiko's
 wasm alone is two thirds of the bytes and, on a throttled link, most of the wait; what Haul itself adds
 is about a tenth, and the fonts another tenth. The wait is no longer blank since B-80: the page draws the
-header's shape until Compose's first frame replaces it, in the HTML's first round trip (below).
+header's shape until Compose's first frame replaces it, in the HTML's first round trip (below). Since B-150 that
+first frame is drawn in the store's own faces: the page preloads the fonts and the store mounts once it has them.
 
 #### Measured in B-28
 
@@ -1935,7 +1936,7 @@ match — same host, about 25 minutes after the first, 1-minute load 4.4–14.2)
 - *Compression is worth more than anything Haul's own code could save.* The same bundle served
   without it reaches its first frame in 11.6 s instead of 3.9 s on Fast 4G and in 62.1 s instead of
   19.5 s on Slow 4G — a factor of about three, against the 10 % Haul's screens weigh.
-- *The first frame is the page, in a fallback face.* The fonts are fetched only once the wasm runs
+- *The first frame is the page, in a fallback face* (until B-150, below). The fonts are fetched only once the wasm runs
   (so they never compete with it on the link), and Compose draws before they arrive: with every font
   blocked, the wired arm still drew the whole Home page in a fallback face carried by the bundle (no
   other font was requested), and the canvas faces swap in when they land — settled minus first
@@ -2146,6 +2147,84 @@ floor fails as B-28 found (the first frame does not wait for the fonts); no void
   `immutable`). Decided: the client decodes SVG.
 - *Levers, not taken:* the server sends the SVGs uncompressed (`gzip -9` would make the 24 KiB about a third); and a
   repeat visit asks for none of them (`immutable`), which only the first load here does not show.
+
+#### Measured in B-150
+
+**What changed.** The store's first frame was the page in a fallback face, redrawn in the canvas's faces once the
+four files landed — «Haul», «Up to −70%», «Laptops from $399» reflowed in front of the shopper, 0.4 s to a few seconds
+after the static frame's swap (the v0.6.0 QA run). Now `index.html` preloads the four `.ttf` (`<link rel="preload"
+as="fetch" crossorigin>` — the request Compose's resources make, so their read takes the preloaded answer; a `font`
+preload or one without `crossorigin` would fetch each file twice), and the entry point reads their bytes
+(`loadHaulFonts`, `composeApp/src/wasmJsMain/kotlin/io/github/youndie/haul/theme/PreloadedFonts.kt`) before it mounts
+the store, which is laid out in them from its first composition. A file that cannot be read mounts the store as
+before (`rememberHaulFonts`, the fallback until Compose's loading lands) — the fonts-blocked control draws so.
+
+**How.** On 2026-10-13, as pre-registered in the item: B-34's `image` arm of B-28's harness with `STOP_AFTER=8`,
+and a new pair of numbers per run (`scripts/measure-first-load.py`) — the fonts' last byte and the first frame after
+it, «faces frame». Two images, each beside a seeded PostgreSQL, a guest's Home at 1440 × 900: **before**, `origin/main`
+at `0802a3f4` (`haul/server:b150-before`, `sha256:63f3f357…`); **after**, the item's branch (`haul/server:b150`,
+`sha256:92c29e6b…`); skiko's `.wasm` the same file in both (`089052ba…`). Same Chromium (Chrome for Testing
+149.0.7827.55), rounds and controls as B-28 (seven, round 1 discarded, median (min–max) of six). Two campaigns: the
+first before then after, three profiles, the shared machine at a 1-minute load of 3.4–12.4 during before and 1.2–3.5
+during after; the second after then before, Fast and Slow 4G only, at 1.0–6.7. The app's `.wasm` grew by 1.2 KiB
+brotli (1,295,614 → 1,296,829 bytes) and the page by 178 bytes; 4,372 KiB cross the link in both.
+
+| Campaign | Arm | Profile | Last font byte | First frame | Faces frame |
+|---|---|---|---:|---:|---:|
+| 1 | before | none | 867 (612–6,109) | 803 (576–5,836) | 1,133 (650–6,283) |
+| 1 | before | Fast 4G | 5,825 (5,701–6,827) | 5,179 (5,048–6,126) | 5,841 (5,728–6,835) |
+| 1 | before | Slow 4G | 28,036 (27,655–29,217) | 24,780 (24,465–25,946) | 28,096 (27,671–29,223) |
+| 1 | after | none | 189 (146–680) | 1,032 (538–2,536) | = first frame |
+| 1 | after | Fast 4G | 1,023 (999–1,088) | 5,388 (5,289–5,628) | = first frame |
+| 1 | after | Slow 4G | 4,377 (4,347–4,417) | 26,408 (26,328–26,630) | = first frame |
+| 2 | before | Fast 4G | 5,473 (5,454–5,763) | 4,837 (4,811–5,115) | 5,532 (5,467–5,785) |
+| 2 | before | Slow 4G | 27,539 (27,488–27,712) | 24,341 (24,300–24,526) | 27,563 (27,544–27,807) |
+| 2 | after | Fast 4G | 994 (975–1,011) | 5,341 (5,254–5,378) | = first frame |
+| 2 | after | Slow 4G | 4,385 (4,356–4,490) | 26,422 (26,346–26,465) | = first frame |
+
+The raw first frames, rounds 1–7 (round 1 discarded), and before's faces frames:
+
+| Campaign | Arm | Profile | First frame | Faces frame (before) |
+|---|---|---|---|---|
+| 1 | before | none | 4800 954 2387 653 5836 576 639 | 5500 1531 2627 735 6283 650 712 |
+| 1 | before | Fast 4G | 5276 5979 6126 5048 5180 5058 5179 | 5967 6686 6835 5728 5845 5746 5836 |
+| 1 | before | Slow 4G | 30341 25946 24652 25561 24908 24566 24465 | 35457 29223 27869 28766 28298 27894 27671 |
+| 1 | after | none | 827 1002 1019 2536 1044 1054 538 | — |
+| 1 | after | Fast 4G | 5285 5499 5310 5441 5289 5335 5628 | — |
+| 1 | after | Slow 4G | 27137 26328 26356 26461 26630 26355 26479 | — |
+| 2 | before | Fast 4G | 5039 4847 4825 5095 5115 4811 4827 | 5694 5562 5502 5780 5785 5467 5490 |
+| 2 | before | Slow 4G | 24363 24300 24356 24326 24357 24526 24315 | 27568 27546 27566 27559 27623 27807 27544 |
+| 2 | after | Fast 4G | 5279 5254 5286 5316 5377 5378 5367 | — |
+| 2 | after | Slow 4G | 26370 26459 26425 26346 26419 26465 26417 | — |
+
+Controls, in every arm's log: with every `.wasm` blocked the probe saw no GL call and the static frame stayed; the
+profiles came out in order; the static frame went in the animation frame of the first GL call in every run the probe
+followed; Slow 4G's first frame lies above its non-font bytes ÷ bandwidth (22.2 s), and now above all its bytes ÷
+bandwidth too (24.9 s), the floor B-28 pre-registered that failed until the first frame waited for the fonts; no void
+run (`/favicon.ico`'s 404 is an answer, not a failed request, and voids nothing). In every before run the first frame
+came before the fonts' last byte (6 of 6 per profile and campaign); in no after run.
+
+**The faces at the first frame**, seen: `scripts/first-frame-faces.py` (new), three cold loads per image under Fast 4G,
+a fresh profile with the cache off, a screenshot every 0.15 s (the interval stretches to 0.3–0.6 s while the page
+compiles and first composes, when no new frame is drawn either), the logo's crop of the first shot taken after the
+static frame's removal compared with the last shot's. After: the first store shot in the faces in 3 of 3 loads, no
+shot in a fallback (31–32 store shots each). Before, the control: the first store shot in a fallback in 3 of 3, nine
+or ten shots in a fallback each, the faces from 1.5–1.8 s after the swap.
+
+**What it says.**
+
+- *The store is in its faces sooner than it was.* The first frame in the faces moves from before's faces frame to
+  after's first frame: −0.45 s and −0.19 s on Fast 4G (the two campaigns), −1.7 s and −1.1 s on Slow 4G. The preloaded
+  files cross the link beside the bundle instead of after the module has compiled, so the round trip and the redraw
+  that followed it are gone.
+- *The first frame pays for the fonts' bytes, and no more.* It comes +0.21 s and +0.50 s later on Fast 4G, +1.6 s and
+  +2.1 s on Slow 4G — under the fonts' 432 KiB brotli at each link's bandwidth (0.44 s and 2.46 s) plus B-80's 5 %, the
+  budget the item fixed. What the shopper looked at in that time was the fallback page; now it is the static frame.
+- *The preloads take the link first.* Discovered with the page, the fonts land at 1.0 s on Fast 4G and 4.4 s on Slow
+  4G, before skiko's module (26.0 s on Slow 4G against 24.2 s before), so the module still compiles as it streams and
+  the first GL call follows its last byte by 0.3 s. Lever, not measured: a lower `fetchpriority` on the preloads might
+  let the module through first and compile it while the fonts cross — a few hundred milliseconds at most, since it
+  moves the bytes and not their sum.
 
 ### D10. Documentation in English
 

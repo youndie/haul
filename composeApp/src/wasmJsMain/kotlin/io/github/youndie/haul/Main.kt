@@ -22,11 +22,14 @@ import io.github.youndie.haul.shell.ktorCommands
 import io.github.youndie.haul.shell.ktorRealtime
 import io.github.youndie.haul.shell.ktorTransport
 import io.github.youndie.haul.shell.ktorTreeCommands
+import io.github.youndie.haul.theme.loadHaulFonts
 import io.github.youndie.haul.ui.coilPhotoLoader
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.js.Js
 import kotlinx.browser.document
 import kotlinx.browser.window
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 
 /**
  * The bundle's entry point: the whole page is the storefront. The server serves the page, so every
@@ -40,6 +43,11 @@ import kotlinx.browser.window
  * (B-80). Compose replaces the body's children with its own when it mounts, so the frame is put back over
  * it, and taken away in the first frame Compose draws: removed in the same animation frame as the canvas's
  * first picture, the browser shows one or the other, never both and never neither.
+ *
+ * That first picture is drawn in the canvas's faces (B-150): the page preloads the four font files beside the
+ * bundle, and the storefront is mounted only once their bytes are read ([loadHaulFonts]). Mounted at once, it drew
+ * the page in a fallback face and redrew it in Bodoni Moda when the files landed, reflowing every title. If a file
+ * cannot be read, it mounts anyway and draws as it did then.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 public fun main() {
@@ -65,27 +73,31 @@ public fun main() {
     val treeCommands = ktorTreeCommands(http, origin, identity::send)
     val realtime = ktorRealtime(http, origin, identity::send)
     var frame = document.getElementById(STATIC_FRAME_ID)
-    ComposeViewport(document.body!!) {
-        Box(
-            Modifier.drawWithContent {
-                drawContent()
-                frame?.remove()
-                frame = null
-            },
-        ) {
-            App(
-                photos,
-                transport,
-                WindowHistory,
-                identity,
-                cartCommands = cartCommands,
-                commands = commands,
-                checkoutCommands = checkoutCommands,
-                treeCommands = treeCommands,
-                realtime = realtime,
-                links = clipboardLinks,
-            )
+    MainScope().launch {
+        val fonts = loadHaulFonts()
+        ComposeViewport(document.body!!) {
+            Box(
+                Modifier.drawWithContent {
+                    drawContent()
+                    frame?.remove()
+                    frame = null
+                },
+            ) {
+                App(
+                    photos,
+                    transport,
+                    WindowHistory,
+                    identity,
+                    cartCommands = cartCommands,
+                    commands = commands,
+                    checkoutCommands = checkoutCommands,
+                    treeCommands = treeCommands,
+                    realtime = realtime,
+                    links = clipboardLinks,
+                    fonts = fonts,
+                )
+            }
         }
+        frame?.let { document.body!!.appendChild(it) }
     }
-    frame?.let { document.body!!.appendChild(it) }
 }

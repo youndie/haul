@@ -37,7 +37,8 @@ import kotlin.time.Clock
  * (B-13), [commands] the requests the trees name by method and path (B-37), [checkoutCommands] the
  * checkout's (B-15) and [treeCommands] the dialogs' and «Helpful»'s (B-51), through the same headers;
  * [realtime] streams the updates of a page that names a channel, the order's (B-29); [links] copies a link
- * to a page, the product page's share button (B-71).
+ * to a page, the product page's share button (B-71). [fonts] are the faces the entry point has already read, so the
+ * first frame is drawn in them (B-150); without them the faces are loaded by Compose and swap in when they arrive.
  */
 @Composable
 public fun App(
@@ -52,8 +53,9 @@ public fun App(
     treeCommands: TreeCommands? = null,
     realtime: KompotRealtimeSource? = null,
     links: LinkCopier? = null,
+    fonts: HaulFonts? = null,
 ) {
-    HaulThemeAtWidth(rememberHaulFonts(), Modifier.fillMaxSize().background(HaulColors.background)) {
+    HaulThemeAtWidth(fonts ?: rememberHaulFonts(), Modifier.fillMaxSize().background(HaulColors.background)) {
         CompositionLocalProvider(LocalPhotoLoader provides photos, LocalLinkCopier provides links) {
             Storefront(
                 transport,

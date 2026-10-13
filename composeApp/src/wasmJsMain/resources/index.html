@@ -6,13 +6,19 @@
     <base href="/">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Haul</title>
+    <!-- The four faces, fetched beside the bundle (B-150): the storefront reads them before its first frame
+         (loadHaulFonts), so that frame is drawn in them. `fetch` with CORS is how Compose's resources read them. -->
+    <link rel="preload" href="composeResources/io.github.youndie.haul.resources/font/archivo.ttf" as="fetch" crossorigin>
+    <link rel="preload" href="composeResources/io.github.youndie.haul.resources/font/jetbrains_mono.ttf" as="fetch" crossorigin>
+    <link rel="preload" href="composeResources/io.github.youndie.haul.resources/font/bodoni_moda.ttf" as="fetch" crossorigin>
+    <link rel="preload" href="composeResources/io.github.youndie.haul.resources/font/bodoni_moda_italic.ttf" as="fetch" crossorigin>
     <!-- Checkout draws a header of its own (B-90): the frame takes its shape on that address. -->
     <script>if (location.pathname === "/checkout") document.documentElement.className = "checkout";</script>
     <style>
         html, body { margin: 0; height: 100%; background: #F5F3EE; overscroll-behavior: none; }
         /* The page before the bundle runs (B-80): the header's shape and a line sweeping under it, the
            measures of HaulHeaderView at each of its widths, the colours of HaulColors. Shapes only — the words need the fonts, which
-           arrive after the bundle. Main.kt removes it in the frame Compose first draws. */
+           arrive with the bundle. Main.kt removes it in the frame Compose first draws. */
         #haul-frame { position: fixed; inset: 0 0 auto 0; z-index: 1; background: #FFF; }
         #haul-frame i { display: block; flex: none; background: #E9E6E0; border-radius: 5px; }
         #haul-frame .strip { height: 36px; background: #0F0F0F; }
