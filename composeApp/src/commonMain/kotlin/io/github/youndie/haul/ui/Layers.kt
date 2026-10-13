@@ -11,6 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.currentCompositionLocalContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -22,6 +23,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -70,7 +72,13 @@ internal fun OverlayHost(content: @Composable () -> Unit) {
     Box(Modifier.fillMaxSize().onGloballyPositioned { overlays.origin = it.positionInRoot() }) {
         CompositionLocalProvider(LocalOverlays provides overlays) { content() }
         overlays.shown.forEach { overlay ->
-            key(overlay) { CompositionLocalProvider(overlay.locals) { overlay.content() } }
+            key(overlay) {
+                CompositionLocalProvider(overlay.locals) {
+                    CompositionLocalProvider(LocalOnTop provides (overlay === overlays.shown.last())) {
+                        overlay.content()
+                    }
+                }
+            }
         }
     }
 }
@@ -95,6 +103,9 @@ internal fun OverPage(content: @Composable () -> Unit) {
     }
 }
 
+/** Whether what is drawn here is the newest thing over the page — the one the keys are for. */
+private val LocalOnTop: ProvidableCompositionLocal<Boolean> = compositionLocalOf { true }
+
 /** Whether [OverPage] draws anything here: inside the storefront, yes. */
 @Composable
 internal fun isOverPage(): Boolean = LocalOverlays.current != null
@@ -103,6 +114,12 @@ internal fun isOverPage(): Boolean = LocalOverlays.current != null
  * A sheet over the whole storefront — the phone's menu, the phone's filter sheet, a review's photos (B-86) — as a
  * `Dialog` drew it: no press over it reaches the page under it, and Escape is [onDismiss]. The sheet holds the
  * focus, so any other key it reads is [onKey]'s (the photos' arrows); `true` when it took the key.
+ *
+ * It holds the focus for as long as it is open (B-144). A mouse press focuses the control pressed, and a control
+ * that then stops being one — the photos' «›» on the last photo, a facet of the filter sheet while the load it sent
+ * runs — takes the focus with it to nowhere: Compose clears it to the window, past the sheet, and the keys stop
+ * reaching it. Whenever nothing inside the sheet is focused, the sheet takes the focus back; unless something opened
+ * over it since, whose keys they are until it closes.
  */
 @Composable
 internal fun SheetOverPage(
@@ -112,7 +129,9 @@ internal fun SheetOverPage(
 ) {
     OverPage {
         val focus = remember { FocusRequester() }
-        LaunchedEffect(focus) { focus.requestFocus() }
+        var held by remember { mutableStateOf(false) }
+        val onTop = LocalOnTop.current
+        LaunchedEffect(onTop, held) { if (onTop && !held) focus.requestFocus() }
         Box(
             Modifier
                 .fillMaxSize()
@@ -122,7 +141,8 @@ internal fun SheetOverPage(
                     val escape = it.key == Key.Escape
                     if (escape && it.type == KeyEventType.KeyDown) onDismiss()
                     escape || (it.type == KeyEventType.KeyDown && onKey(it.key))
-                }.focusable(),
+                }.onFocusChanged { held = it.hasFocus }
+                .focusable(),
         ) { content() }
     }
 }
