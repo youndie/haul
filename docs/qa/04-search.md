@@ -206,7 +206,7 @@ long search is walked in [catalog and filters](03-catalog-and-filters.md) (TC-CA
 ### TC-SRCH-11 — The title, the chips and the picker name what the grid shows
 
 - **Who:** guest
-- **Width:** 1440, 390
+- **Width:** 1440, 1280, 390
 - **Preconditions:** none.
 - **Steps:**
   1. Search `classic` and read the chips; then search `everyday`.
@@ -216,11 +216,17 @@ long search is walked in [catalog and filters](03-catalog-and-filters.md) (TC-CA
   - Step 1: no two chips read the same: a leaf whose name repeats on the page carries its top-level category —
     «Appliances · Classics 15», «Party · Limited 5» — and one that does not stays its name, «Running shoes 5». The
     title counts every match, the «All» chip's number.
-  - Step 2: the results load in place; the title counts the chip's 15, not the 600 of every category; at 1440 the
-    picker reads «Party · Classics», and its menu offers it right after «Party».
+  - Step 2: the chip is reached by scrolling the row sideways — a wheel, a drag or Tab, at every width (B-142) —
+    and stays in view, chosen; the results load in place; the title counts the chip's 15, not the 600 of every
+    category; at 1440 the picker reads «Party · Classics», and its menu offers it right after «Party». Opened by
+    its address, `/search?q=classic&category=party-essentials-classics` draws that chip chosen in the row's view.
   - Step 3: the title is every match again and the picker reads «All categories».
-- **Decided in:** B-119
+- **Decided in:** B-119, B-142
 - **Coverage:** `SearchSaysWhatIsShownTest` «the title counts the chosen chip's results»;
+  `SearchChipsReachTest` «at 1440 every chip is reachable and the chosen one arrives in view»;
+  `SearchChipsReachTest` «at 1280 every chip is reachable and the chosen one arrives in view»;
+  `SearchChipsReachTest` «at 1024 every chip is reachable and the chosen one arrives in view»;
+  `SearchChipsReachTest` «at 390 every chip is reachable and the chosen one arrives in view»;
   `SearchSaysWhatIsShownTest` «no two chips on one search read the same»;
   `SearchSaysWhatIsShownTest` «the picker names the scope a chip chose»;
   `LineAnswersTest` «a card's plus on a scoped search keeps the header's scope»

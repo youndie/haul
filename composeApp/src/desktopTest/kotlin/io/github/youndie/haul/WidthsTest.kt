@@ -39,7 +39,7 @@ import kotlin.test.assertTrue
  *
  * Every text is read off its own layout: a line that ends inside a word (neither side of the break a space, nor
  * the end of the first a hyphen or a dash), a one-line text wider than its room, a text past the window's right
- * edge. A row that scrolls sideways — the phone's categories, a search's kinds below 1280 — runs past the edge
+ * edge. A row that scrolls sideways — the phone's categories, a search's kinds (B-142) — runs past the edge
  * on purpose and is not read for that.
  */
 @OptIn(ExperimentalTestApi::class)
