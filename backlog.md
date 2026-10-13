@@ -43,9 +43,11 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (0)
+## Open (1)
 
-No open tasks.
+| Task | | Priority | Size | Blocked by |
+|---|---|---|---|---|
+| [B-141](docs/backlog/B-141-the-wasm-yarn-lock-task-does-not-flake.md) `[~]` | ci: kotlinWasmStoreYarnLock does not fail on a missing build/wasm/yarn.lock | P2 | S | - |
 
 ## Closed (140)
 
