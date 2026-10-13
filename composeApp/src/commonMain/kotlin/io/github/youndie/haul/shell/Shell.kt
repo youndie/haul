@@ -45,12 +45,16 @@ import io.github.youndie.haul.feature.catalog.titleStyle
 import io.github.youndie.haul.feature.catalog.titleTop
 import io.github.youndie.haul.feature.checkout.CheckoutHeaderView
 import io.github.youndie.haul.feature.identity.SignInActions
+import io.github.youndie.haul.feature.product.BUY_BOX_WIDTH
+import io.github.youndie.haul.feature.product.COLUMNS_GAP
 import io.github.youndie.haul.feature.product.GALLERY_TAG
 import io.github.youndie.haul.feature.product.detailsTop
+import io.github.youndie.haul.feature.product.photoWeight
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.HaulType.browserLeading
 import io.github.youndie.haul.theme.LocalHaulCompact
+import io.github.youndie.haul.theme.LocalHaulMedium
 import io.github.youndie.haul.ui.BalancedText
 import io.github.youndie.haul.ui.CheckoutHeader
 import io.github.youndie.haul.ui.HaulButton
@@ -764,7 +768,7 @@ internal fun notFoundTitle(compact: Boolean): TextStyle =
             lineHeight = 0.95f,
         ).copy(lineBreak = LineBreak.Simple)
 
-/** A product page before its tree: crumbs, the photo, the identity and the buy box as placeholders. */
+/** A product page before its tree: crumbs, the photo, the identity and the buy box as placeholders, in the page's columns. */
 @Composable
 public fun ProductLoading() {
     val compact = LocalHaulCompact.current
@@ -794,26 +798,40 @@ public fun ProductLoading() {
                     BuyBoxSkeleton(Modifier.fillMaxWidth())
                 }
             } else {
-                Row(horizontalArrangement = Arrangement.spacedBy(40.dp)) {
+                // The page's columns from the page's own measures: three at 1440, two below 1280 with the buy box
+                // under the title (B-82) — 1440's three there put a 262 px photo where a 444 px one arrives (B-153).
+                val medium = LocalHaulMedium.current
+                Row(horizontalArrangement = Arrangement.spacedBy(COLUMNS_GAP)) {
                     // The photo takes the gallery's width, as the page draws it since B-71 dropped the
                     // thumbnails: no column the page arrives without (B-104).
-                    Skeleton(Modifier.weight(1.3f).aspectRatio(1f).testTag(GALLERY_TAG), 28.dp)
-                    Box(Modifier.weight(1f)) { IdentitySkeleton(titleHeight = 48.dp) }
-                    BuyBoxSkeleton(Modifier.width(384.dp))
+                    Skeleton(Modifier.weight(photoWeight(medium)).aspectRatio(1f).testTag(GALLERY_TAG), 28.dp)
+                    Box(Modifier.weight(1f)) {
+                        if (medium) {
+                            IdentitySkeleton(titleHeight = 48.dp) { BuyBoxSkeleton(Modifier.fillMaxWidth()) }
+                        } else {
+                            IdentitySkeleton(titleHeight = 48.dp)
+                        }
+                    }
+                    if (!medium) BuyBoxSkeleton(Modifier.width(BUY_BOX_WIDTH))
                 }
             }
         }
     }
 }
 
+/** The brand, the title and the rating, then [buyBox] where the page puts it under them (below 1280), then the choices. */
 @Composable
-private fun IdentitySkeleton(titleHeight: Dp) {
+private fun IdentitySkeleton(
+    titleHeight: Dp,
+    buyBox: (@Composable () -> Unit)? = null,
+) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Skeleton(Modifier.size(60.dp, 13.dp), 5.dp)
         Skeleton(Modifier.fillMaxWidth().height(titleHeight), 10.dp)
         Skeleton(Modifier.fillMaxWidth(0.7f).height(titleHeight), 10.dp)
         Skeleton(Modifier.size(220.dp, 16.dp), 6.dp)
         Skeleton(Modifier.size(160.dp, 12.dp), 5.dp)
+        buyBox?.invoke()
         Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             repeat(2) { Skeleton(Modifier.size(64.dp), 14.dp) }
         }

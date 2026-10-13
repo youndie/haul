@@ -30,7 +30,8 @@ import kotlin.test.assertTrue
  * it came; and the crumbs' placeholder was a 12 px bar where the crumbs' line is 16.8, so the photo came 5 px
  * lower (B-143) — and a fact tile's title is never cut at the tile's edge: the seed's specification names
  * («Noise cancelling», «Connectivity») wrap between words and shrink to fit, while the canvas's «40 h» keeps its
- * display size. At 1440 and on a phone.
+ * display size. At 1440 and on a phone; the photo also at 1280, and at 1024, where the page and its placeholder draw
+ * two columns, not three (B-153).
  */
 @OptIn(ExperimentalTestApi::class)
 class ProductPageLayoutTest {
@@ -38,7 +39,7 @@ class ProductPageLayoutTest {
         runDesktopComposeUiTest(width, HEIGHT) {
             var loaded by mutableStateOf(false)
             setContent {
-                Fixture(compact = width < WIDE) {
+                Fixture(compact = width < WIDE, medium = width < WIDE_FROM) {
                     Page { if (loaded) Body("product_description.json") else ProductLoading() }
                 }
             }
@@ -56,6 +57,9 @@ class ProductPageLayoutTest {
 
     @Test
     fun `the loading photo stands where the photo arrives at 1280`() = photoMovesOnArrival(NARROW_DESKTOP)
+
+    @Test
+    fun `the loading photo stands where the photo arrives at 1024`() = photoMovesOnArrival(MEDIUM)
 
     @Test
     fun `the loading photo stands where the photo arrives on a phone`() = photoMovesOnArrival(PHONE)
@@ -116,10 +120,14 @@ class ProductPageLayoutTest {
     private companion object {
         const val DESKTOP = 1440
         const val NARROW_DESKTOP = 1280
+        const val MEDIUM = 1024
         const val PHONE = 390
 
         /** Below it the phone's arrangement is drawn (`App.kt`'s `COMPACT_BELOW`). */
         const val WIDE = 1024
+
+        /** Below it the desktop is rearranged: the photo and the details share the row (`App.kt`'s `WIDE_FROM`). */
+        const val WIDE_FROM = 1280
         const val HEIGHT = 1600
 
         /** The headphones' first four specifications, which the server sends as the tiles (`ProductScreen`). */
