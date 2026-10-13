@@ -81,6 +81,7 @@ import io.github.youndie.haul.ui.SummaryRow
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.awaitTypedInput
 import io.github.youndie.haul.ui.follows
+import io.github.youndie.haul.ui.inert
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.normal
@@ -914,10 +915,15 @@ private fun Summary(
             )
             Spacer(Modifier.weight(1f))
             summary.back?.let { back ->
+                // While the order is placed the link does nothing, and looks it (B-152): muted and inert, as a
+                // control with nothing to do is (B-100), not in link blue.
                 Text(
                     back.label,
-                    HaulType.text(15f, 700).copy(color = HaulColors.primary),
-                    Modifier.alignByBaseline().testTag(BACK_TO_CART_TAG).follows(back.action.takeUnless { placing }),
+                    HaulType.text(15f, 700).copy(color = if (placing) HaulColors.outlineMuted else HaulColors.primary),
+                    Modifier
+                        .alignByBaseline()
+                        .testTag(BACK_TO_CART_TAG)
+                        .then(if (placing) Modifier.inert() else Modifier.follows(back.action)),
                     softWrap = false,
                 )
             }

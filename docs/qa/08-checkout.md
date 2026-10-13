@@ -167,12 +167,12 @@ is the server's, stored per customer, and the summary is the server's quote (B-1
   2. Press back to checkout, then reload it.
   3. Open the cart.
 - **Expected:**
-  - Step 1: «Placing order…» with the page's links inert, then `/account/orders/HL-…`, «Placed». A double press or a
-    retry is the same order (the key).
+  - Step 1: «Placing order…» with the page's links inert — «Back to cart» muted grey, not link blue — then
+    `/account/orders/HL-…`, «Placed». A double press or a retry is the same order (the key).
   - Step 2: the cart — nothing is left selected to check out (TC-CHK-11).
   - Step 3: the bought lines are gone, and so is a promo code the order was placed with; lines that were not ticked
     are still there.
-- **Decided in:** B-16, B-18, B-94, B-129
+- **Decided in:** B-16, B-18, B-94, B-129, B-152
 - **Coverage:** `CheckoutWiringTest` «place order sends the quote and draws placing until the answer»;
   `CheckoutWiringTest` «the summary's links do nothing while the order is placed»;
   `PlacementRoutesTest` «Maya places her cart by courier and the saga takes stock window and payment»;
