@@ -102,3 +102,10 @@ Each line, what it was and what it is now; one commit each.
   B-78), so nothing is retired here and parity was not re-run.
 - **Not changed**: a `/favicon.ico` request from something that ignores the page's link still answers 404 — no
   catch-all, as B-27 decided.
+- **The page refresh's one side effect in the tests**: `PlusTrialWiringTest` drew the home fixture under the real
+  clock, where its deals ended in 2025, so the page now asked for itself again and the tests' request count moved.
+  It is pinned to the canvas's «now», as the other storefront tests that count requests are.
+- **Where it ran**: the Linux box — `:composeApp:wasmJsBrowserDistribution` (the bundle carries `favicon.svg`);
+  `check :server:installDist` green (server 542 tests, client 491, `viddikVerify`, ktlint); `scripts/e2e.sh` against
+  this branch's image, 10 passed; `scripts/image-check.sh` green, `/favicon.svg` answering `200 image/svg+xml`. The
+  Mac — `make check`, `make docs-against BASE=origin/main`, `ktlintFormat`.
