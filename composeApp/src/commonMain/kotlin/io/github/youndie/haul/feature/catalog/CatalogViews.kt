@@ -3,6 +3,10 @@ package io.github.youndie.haul.feature.catalog
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitHorizontalTouchSlopOrCancellation
+import androidx.compose.foundation.gestures.horizontalDrag
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,6 +34,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onPlaced
@@ -317,7 +324,11 @@ private fun KindChips(
                 if (scroll == null) {
                     Modifier
                 } else {
-                    Modifier.horizontalScroll(scroll).onPlaced { content[0] = it }.padding(start = start)
+                    Modifier
+                        .draggedByMouse(scroll)
+                        .horizontalScroll(scroll)
+                        .onPlaced { content[0] = it }
+                        .padding(start = start)
                 },
             ).height(IntrinsicSize.Max),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -344,6 +355,28 @@ private fun KindChips(
         scroll.scrollTo((pill.first - (view - width) / 2).coerceIn(0, scroll.maxValue))
     }
 }
+
+/**
+ * A mouse dragged across the row scrolls it, as a finger does: Compose scrolls a row under a finger, a wheel and the
+ * keyboard's focus, but not under a mouse held down and moved (B-142). The drag past the slop is consumed, so the pill
+ * it started on is not pressed when the button comes up.
+ */
+private fun Modifier.draggedByMouse(scroll: ScrollState): Modifier =
+    pointerInput(scroll) {
+        awaitEachGesture {
+            val down = awaitFirstDown(requireUnconsumed = false)
+            if (down.type != PointerType.Mouse) return@awaitEachGesture
+            val dragging =
+                awaitHorizontalTouchSlopOrCancellation(down.id) { change, over ->
+                    change.consume()
+                    scroll.dispatchRawDelta(-over)
+                } ?: return@awaitEachGesture
+            horizontalDrag(dragging.id) { change ->
+                scroll.dispatchRawDelta(-change.positionChange().x)
+                change.consume()
+            }
+        }
+    }
 
 /** A chip with a count is a search's category (Search_Results), and its row sits closer to the grid. */
 private fun FilterChips.counted(): Boolean = chips.any { it.count != null }

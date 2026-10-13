@@ -3,6 +3,7 @@ package io.github.youndie.haul.feature.search
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.semantics.SemanticsActions
@@ -54,7 +55,7 @@ import kotlin.test.assertTrue
  * B-142: a search's category chips reach every scope at every width. From 1280 up the row was one line cut under the
  * sort control and did not move — `classic`'s 111 chips ended at «Books · Classics 1», a word cut under the sort, and
  * «Party · Classics» had nothing to press; a search opened on a scope past the line did not show its chip at all.
- * At each band the row scrolls by a sideways wheel, a drag and Tab, the chip past the line opens its scope, and a
+ * At each band the row scrolls by a sideways wheel, a finger's and a mouse's drag and Tab, the chip past the line opens its scope, and a
  * page that arrives on a chosen chip past the line shows it in the row's view.
  */
 @OptIn(ExperimentalTestApi::class)
@@ -103,7 +104,23 @@ class SearchChipsReachTest {
 
             row().performTouchInput { swipeLeft() }
             waitForIdle()
-            assertTrue(offset() > wheeled, "a drag did not move the row at $width")
+            val swiped = offset()
+            assertTrue(swiped > wheeled, "a finger's drag did not move the row at $width")
+
+            row().performMouseInput {
+                moveTo(center)
+                press()
+                repeat(DRAG_STEPS) { moveBy(Offset(-DRAG_STEP, 0f)) }
+                release()
+            }
+            waitForIdle()
+            // The row follows the pointer past the touch slop, as under a finger.
+            val dragged = offset() - swiped
+            assertTrue(
+                dragged > (DRAG_STEPS - 1) * DRAG_STEP && dragged <= DRAG_STEPS * DRAG_STEP,
+                "a mouse's drag of ${DRAG_STEPS * DRAG_STEP} px moved the row $dragged px at $width",
+            )
+            assertEquals(listOf("/ui$SEARCH"), stack.requests.toList(), "the drag pressed a chip at $width")
 
             chip(ALL_CHIP).performSemanticsAction(SemanticsActions.RequestFocus)
             repeat(PARTY_INDEX) { onRoot().performKeyInput { pressKey(Key.Tab) } }
@@ -188,6 +205,8 @@ class SearchChipsReachTest {
     private companion object {
         const val HEIGHT = 900
         const val WHEEL = 6f
+        const val DRAG_STEPS = 10
+        const val DRAG_STEP = 30f
         const val PARTS = "/ui/parts"
         const val SEARCH = "/search?q=classic"
         const val PARTY = "party-essentials-classics"
