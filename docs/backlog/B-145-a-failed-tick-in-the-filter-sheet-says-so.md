@@ -1,7 +1,7 @@
 ---
 id: B-145
 title: "fix: a facet ticked in the filter sheet that fails says so over the sheet"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-12-qa-run
