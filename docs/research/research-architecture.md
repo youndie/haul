@@ -462,8 +462,10 @@ Three bands now, chosen by the page's width (`HaulThemeAtWidth`, `App.kt`):
   whole and keeps «HAUL PLUS» at its end («Catalog» lists every category); a grid takes as many cards of
   168 px as fit (four at 1024) up to the columns the tree asks for; the campaign's figure, the footer's
   wordmark and the product's title are set as large as their width holds (`FittedText`); the catalog's applied
-  filters wrap, the sort at the first line's end. At 1440 each of these draws what it drew, and no 1440 or 390
-  golden moved.
+  filters wrap, the sort at the first line's end; a search's category chips scroll sideways before the sort
+  (B-142 — from 1280 up they were one line cut under it, and `classic`'s 111 left all but a dozen out of reach;
+  wrapping them would push the grid a screen down), and the chosen one is scrolled into view when it arrives.
+  At 1440 each of these draws what it drew, and no 1440 or 390 golden moved.
 - No artboard draws 1024: `Home_Content_1024`, `Catalog_Content_1024`, `Product_Description_1024` and
   `Cart_Content_1024` are goldens without a reference, and `WidthsTest` reads every text of the header and of
   every page's tree at 800, 1024 and 1280 for a word cut at an edge or broken between two lines.

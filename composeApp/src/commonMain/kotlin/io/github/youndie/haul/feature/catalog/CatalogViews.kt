@@ -1,7 +1,12 @@
 package io.github.youndie.haul.feature.catalog
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitHorizontalTouchSlopOrCancellation
+import androidx.compose.foundation.gestures.horizontalDrag
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,21 +25,33 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.HaulType.browserLeading
 import io.github.youndie.haul.theme.LocalHaulCompact
-import io.github.youndie.haul.theme.LocalHaulMedium
 import io.github.youndie.haul.ui.AppliedFilters
 import io.github.youndie.haul.ui.BaselineWrapRow
 import io.github.youndie.haul.ui.Breadcrumbs
@@ -60,6 +77,7 @@ import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.linkedText
 import io.github.youndie.haul.ui.pressable
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 // The category page's components (screen-catalog), each with the margin the page gives it; the
 // numbers are the artboards' (Catalog_Content, Catalog_Empty and their _Phone twins).
@@ -235,8 +253,9 @@ internal fun ResultCount(count: String) {
 
 /**
  * The kinds of a category as pills: one row at 1440, a row that scrolls off the right edge on a phone. A
- * search's row ends in its sort control (B-77) — at the row's right edge at 1440, over the row at the right
- * on a phone, where the chips scroll.
+ * search's row ends in its sort control (B-77) — at the row's right edge on a desktop, over the row at the right
+ * on a phone — and scrolls sideways at every width: a search's categories are as many as its results span, 111 for
+ * `classic`, and each is a scope to press (B-142). The chosen one is scrolled into view when it arrives.
  */
 @Composable
 public fun FilterChipsView(chips: FilterChips) {
@@ -244,13 +263,6 @@ public fun FilterChipsView(chips: FilterChips) {
     val gutter = gutter()
     val bottom = if (compact) (if (chips.counted()) 24.dp else 16.dp) else (if (chips.counted()) 32.dp else 36.dp)
     val sort = chips.sortLabel?.takeIf { chips.sorts.isNotEmpty() }
-    // A flex line stretches its items: the selected pill has no border and is as tall as the others.
-    val pills =
-        @Composable { m: Modifier ->
-            Row(m.height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                chips.chips.forEach { KindChip(it, compact) }
-            }
-        }
     when {
         compact -> {
             Column(Modifier.fillMaxWidth().padding(bottom = bottom)) {
@@ -260,7 +272,7 @@ public fun FilterChipsView(chips: FilterChips) {
                         SortMenu(sort, chips.sorts, Modifier.height(44.dp), textSize = 15f)
                     }
                 }
-                pills(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = gutter))
+                KindChips(chips.chips, compact, Modifier.fillMaxWidth(), rememberScrollState(), start = gutter)
             }
         }
 
@@ -270,23 +282,101 @@ public fun FilterChipsView(chips: FilterChips) {
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Below 1280 the pills run past the sort control (B-82): they scroll sideways, as on a phone.
-                pills(
-                    if (LocalHaulMedium.current) {
-                        Modifier.weight(1f).horizontalScroll(rememberScrollState())
-                    } else {
-                        Modifier.weight(1f)
-                    },
-                )
+                // The pills run past the sort control at every desktop width, not only below 1280 (B-82): from
+                // 1280 up they were one line cut under it, the chips past it out of reach (B-142). Scrolling
+                // sideways as on a phone, not wrapping: a search's 111 categories wrapped would push its grid a
+                // screen down, and the row is the one B-82 already made scroll below 1280.
+                KindChips(chips.chips, compact, Modifier.weight(1f), rememberScrollState())
                 SortMenu(sort, chips.sorts, Modifier.height(44.dp), textSize = 14f)
             }
         }
 
         else -> {
-            pills(Modifier.fillMaxWidth().padding(start = gutter, end = gutter, bottom = bottom))
+            KindChips(
+                chips.chips,
+                compact,
+                Modifier.fillMaxWidth().padding(start = gutter, end = gutter, bottom = bottom),
+            )
         }
     }
 }
+
+/**
+ * The pills on one line. With [scroll] the line scrolls sideways, [start] inside what scrolls, and the chosen pill
+ * is scrolled into view, centred, when it arrives outside the line's view — a search opened on a scope past the
+ * line's end (B-142); a pill in view, pressed or arrived, moves nothing.
+ */
+@Composable
+private fun KindChips(
+    chips: List<Chip>,
+    compact: Boolean,
+    modifier: Modifier,
+    scroll: ScrollState? = null,
+    start: Dp = 0.dp,
+) {
+    // The scrolled content, which the chosen pill's place is measured in, whatever the scroll.
+    val content = remember { arrayOfNulls<LayoutCoordinates>(1) }
+    var chosen by remember { mutableStateOf<IntRange?>(null) }
+    // A flex line stretches its items: the selected pill has no border and is as tall as the others.
+    Row(
+        modifier
+            .then(
+                if (scroll == null) {
+                    Modifier
+                } else {
+                    Modifier
+                        .draggedByMouse(scroll)
+                        .horizontalScroll(scroll)
+                        .onPlaced { content[0] = it }
+                        .padding(start = start)
+                },
+            ).height(IntrinsicSize.Max),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        chips.forEach { chip ->
+            val placed =
+                if (scroll != null && chip.selected) {
+                    Modifier.onGloballyPositioned { pill ->
+                        val left = content[0]?.localPositionOf(pill, Offset.Zero)?.x?.roundToInt()
+                        chosen = left?.let { it until it + pill.size.width }
+                    }
+                } else {
+                    Modifier
+                }
+            KindChip(chip, compact, placed)
+        }
+    }
+    if (scroll == null) return
+    LaunchedEffect(chosen, scroll.viewportSize) {
+        val pill = chosen ?: return@LaunchedEffect
+        val view = scroll.viewportSize
+        if (view == 0 || (pill.first >= scroll.value && pill.last < scroll.value + view)) return@LaunchedEffect
+        val width = pill.last - pill.first + 1
+        scroll.scrollTo((pill.first - (view - width) / 2).coerceIn(0, scroll.maxValue))
+    }
+}
+
+/**
+ * A mouse dragged across the row scrolls it, as a finger does: Compose scrolls a row under a finger, a wheel and the
+ * keyboard's focus, but not under a mouse held down and moved (B-142). The drag past the slop is consumed, so the pill
+ * it started on is not pressed when the button comes up.
+ */
+private fun Modifier.draggedByMouse(scroll: ScrollState): Modifier =
+    pointerInput(scroll) {
+        awaitEachGesture {
+            val down = awaitFirstDown(requireUnconsumed = false)
+            if (down.type != PointerType.Mouse) return@awaitEachGesture
+            val dragging =
+                awaitHorizontalTouchSlopOrCancellation(down.id) { change, over ->
+                    change.consume()
+                    scroll.dispatchRawDelta(-over)
+                } ?: return@awaitEachGesture
+            horizontalDrag(dragging.id) { change ->
+                scroll.dispatchRawDelta(-change.positionChange().x)
+                change.consume()
+            }
+        }
+    }
 
 /** A chip with a count is a search's category (Search_Results), and its row sits closer to the grid. */
 private fun FilterChips.counted(): Boolean = chips.any { it.count != null }
@@ -295,6 +385,7 @@ private fun FilterChips.counted(): Boolean = chips.any { it.count != null }
 private fun KindChip(
     chip: Chip,
     compact: Boolean,
+    modifier: Modifier = Modifier,
 ) {
     val style =
         HaulType
@@ -309,7 +400,7 @@ private fun KindChip(
                 .border(1.dp, HaulColors.outlineVariant, CircleShape)
                 .padding(1.dp)
         }
-    Box(Modifier.fillMaxHeight().then(box).follows(chip.action)) {
+    Box(modifier.fillMaxHeight().then(box).follows(chip.action)) {
         Text(
             chip.count?.let { "${chip.label} $it" } ?: chip.label,
             style,
