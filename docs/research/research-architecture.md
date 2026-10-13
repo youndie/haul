@@ -2272,6 +2272,16 @@ for buttons and fields with no name (fields since B-131). Found in B-131: the 1.
 alone, and a chosen star, a ticked box or a selected swatch reads as any other button; so a state set in semantics
 (`selected`) is there for the desktop tree and the tests, not yet for a screen reader in the browser.
 
+**Found in B-144: an open sheet has to take the key focus back.** A mouse press focuses the control it lands on, and
+when that control stops being one — the photos' «›» on the last photo, disabled; a facet of the filter sheet, whose
+press the sheet withholds while the load it sent runs — Compose clears the focus to the window, past the sheet: the
+arrow keys and Escape stop reaching it (`document.activeElement` stays the canvas, the keys reach the page). So
+`SheetOverPage` takes the focus back whenever nothing inside it holds it, unless something opened over it since (a
+menu's keys are the menu's until it closes). Kept at the layer rather than at each control: a control re-requesting
+the sheet's focus after its press misses a press withdrawn for another reason (the sheet's load), and controls that
+cannot be focused would leave nothing for Tab to reach. The other things over the page have nothing to keep: a
+menu, and the return dialog's reason list, close on the press of an entry, and the dialogs read no key of their own.
+
 **Risk 1. The canvas and the code drift apart without anyone seeing it.** A renderer changed for one
 screen changes every screen that uses the component. Mitigation: one reference PNG per artboard
 (125), exported from the canvas into the client's snapshot directory, and `viddikDesignParity` in

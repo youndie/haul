@@ -116,10 +116,10 @@ internal fun isOverPage(): Boolean = LocalOverlays.current != null
  * focus, so any other key it reads is [onKey]'s (the photos' arrows); `true` when it took the key.
  *
  * It holds the focus for as long as it is open (B-144). A mouse press focuses the control pressed, and a control
- * that then stops being one — the photos' «›» on the last photo, the filter sheet's chips while a load runs — takes
- * the focus with it to nowhere: Compose clears it to the window, past the sheet, and the keys stop reaching it.
- * Whenever nothing inside the sheet is focused, the sheet takes the focus back; unless something opened over it
- * since, whose keys they are until it closes.
+ * that then stops being one — the photos' «›» on the last photo, a facet of the filter sheet while the load it sent
+ * runs — takes the focus with it to nowhere: Compose clears it to the window, past the sheet, and the keys stop
+ * reaching it. Whenever nothing inside the sheet is focused, the sheet takes the focus back; unless something opened
+ * over it since, whose keys they are until it closes.
  */
 @Composable
 internal fun SheetOverPage(

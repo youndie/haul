@@ -43,12 +43,11 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (10)
+## Open (9)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-142](docs/backlog/B-142-the-desktop-search-chips-reach-every-scope.md) `[ ]` | fix: a search's chips row reaches every scope on a desktop | P2 | S | - |
-| [B-144](docs/backlog/B-144-the-photo-viewer-keeps-the-keyboard.md) `[~]` | fix: the review photo viewer keeps the keyboard after a press on its arrows | P2 | XS | - |
 | [B-145](docs/backlog/B-145-a-failed-tick-in-the-filter-sheet-says-so.md) `[ ]` | fix: a facet ticked in the filter sheet that fails says so over the sheet | P2 | S | - |
 | [B-146](docs/backlog/B-146-a-trial-over-a-page-with-no-tree-asks-the-header.md) `[ ]` | fix: a Plus trial started over a page with no tree redraws the header | P2 | S | - |
 | [B-149](docs/backlog/B-149-pictures-everywhere-a-product-is-shown.md) `[ ]` | fix: every product tile draws its picture, and the sample products their own | P2 | M | - |
@@ -58,7 +57,7 @@ A stage is a field on the item, not a directory.
 | [B-147](docs/backlog/B-147-sign-in-presses-offline-say-so.md) `[ ]` | fix: a guest's sign-in presses offline say the store could not be reached | P3 | XS | - |
 | [B-152](docs/backlog/B-152-small-lines-from-the-v060-run.md) `[ ]` | fix: the small lines the v0.6.0 run noticed | P3 | S | - |
 
-## Closed (142)
+## Closed (143)
 
 **Skeleton**
 
@@ -236,6 +235,7 @@ A stage is a field on the item, not a directory.
 - [B-139](docs/backlog/B-139-the-saga-rides-out-a-short-outage.md) `[x]` - server: the order saga rides out a short database outage
 - [B-140](docs/backlog/B-140-the-outage-tests-hold-on-a-busy-runner.md) `[x]` - test: the database outage tests hold on a busy runner
 - [B-141](docs/backlog/B-141-the-wasm-yarn-lock-task-does-not-flake.md) `[x]` - ci: kotlinWasmStoreYarnLock does not fail on a missing build/wasm/yarn.lock
+- [B-144](docs/backlog/B-144-the-photo-viewer-keeps-the-keyboard.md) `[x]` - fix: the review photo viewer keeps the keyboard after a press on its arrows
 - [B-148](docs/backlog/B-148-katcher-files-what-is-broken.md) `[x]` - ops: katcher and the error log get what is broken, not a client's malformed link or an outage per page
 
 <!-- END INDEX -->

@@ -220,7 +220,8 @@ header says a load is on its way. Pages of a search are in [search](04-search.md
   2. Tick two brands one after the other.
   3. Type `200` into the price «to» and press «Done».
   4. Press «Show N items».
-  5. Open the sheet, press ×; open it again and press the browser's back.
+  5. Open the sheet, press ×; open it again and press the browser's back; open it again, tick a brand and press
+     Escape.
 - **Expected:**
   - Step 1: the sheet over the page, the facets drawn from the page's tree.
   - Step 2: each tick loads in place and the sheet stays open, drawn from the new results; while a tick is on its
@@ -229,8 +230,9 @@ header says a load is on its way. Pages of a search are in [search](04-search.md
     blank space instead of «Done» applies it too. A bound typed into «to» while the load «from» sent is on its way
     stays in the field when that answer lands (B-134).
   - Step 4: the sheet closes over its results.
-  - Step 5: × closes it without asking the server; back closes it too.
-- **Decided in:** B-54, B-63, B-69, B-102, B-118, B-134
+  - Step 5: × closes it without asking the server; back closes it too; Escape closes it, after a tick as well
+    (B-144).
+- **Decided in:** B-54, B-63, B-69, B-102, B-118, B-134, B-144
 - **Coverage:** `composeApp:DrawnActionsTest` «ticking two facets keeps the filter sheet open over the new results»;
   `composeApp:DrawnActionsTest` «the filter sheet follows nothing while the page its tick opened is on its way»;
   `composeApp:DrawnActionsTest` «show N items closes the filter sheet over its results»;
@@ -240,6 +242,8 @@ header says a load is on its way. Pages of a search are in [search](04-search.md
   `PriceRangeTest` «a tap on the filter sheet's blank space applies a typed bound»;
   `PriceRangeTest` «the filter sheet keeps a bound typed while the other bound loads»;
   `ClearAllTest` «the filter sheet says clear all only while a filter is applied»;
+  `SheetOverPageTest` «a sheet keeps the keys after the control pressed is gone»;
+  `SheetOverPageTest` «a menu opened over a sheet has the keys until it closes»;
   golden `Catalog_FiltersSheet_Phone`
 
 ### TC-CAT-11 — Filters that leave nothing say so

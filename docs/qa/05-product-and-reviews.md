@@ -403,13 +403,17 @@ search for `sony`).
   3. With a screen reader (or the accessible mirror, `scripts/a11y-check.py`), read the tiles and the viewer.
 - **Expected:**
   - Step 1: the photo large over the dimmed page, «Daniel R.» and «Photo 1 of 2»; «›» shows the second, «‹» the
-    first; «‹» on the first and «›» on the last are faded and press nothing; the arrows do the same.
+    first; «‹» on the first and «›» on the last are faded and press nothing; the arrows do the same, after a press on
+    «›» or «‹» as well (B-144).
   - Step 2: each closes the viewer; the press outside votes nothing; the address does not change and nothing loads.
   - Step 3: «Open photo 1 of 2 by Daniel R.» on a tile; «Close photos», «Previous photo», «Next photo» in the viewer;
     after it closes the mirror holds the page again (B-126).
-- **Decided in:** B-86
+- **Decided in:** B-86, B-144
 - **Coverage:** `ReviewControlsTest` «a review's photo opens its viewer which steps through its photos and closes by the cross»;
   `ReviewControlsTest` «escape closes the photo viewer and the arrow keys step through it»;
+  `ReviewControlsTest` «after a press on an arrow the arrow keys and escape still work»;
+  `ReviewControlsTest` «on a phone after a press on an arrow the arrow keys and escape still work»;
+  `SheetOverPageTest` «a sheet keeps the keys after the control pressed is disabled»;
   `ReviewControlsTest` «a press outside the photo closes the viewer and one on it does not»;
   `ReviewControlsTest` «on a phone a press outside the photo closes the viewer»;
   `NamedPressesTest` «every press and field in the dialogs has a name»
