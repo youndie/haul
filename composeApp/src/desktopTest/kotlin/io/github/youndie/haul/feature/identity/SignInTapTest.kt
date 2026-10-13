@@ -114,6 +114,37 @@ class SignInTapTest {
         }
 
     /**
+     * B-147: a store that did not answer where to sign in is told as unreachable, with the same press to send again —
+     * not as cancelled, which drew the page again from a store that could not be reached. Online again, the press sent
+     * again goes on as the first would have: to the address it asked to come back to.
+     */
+    @Test
+    fun `a sign-in the store did not answer is told as unreachable, and sent again goes on`() =
+        runBlocking {
+            var offline = true
+            var redraws = 0
+            var cancelled = 0
+            val opened = mutableListOf<String>()
+            val again = mutableListOf<suspend () -> Unit>()
+            val actions =
+                SignInActions(
+                    signIn = { if (offline) throw SignInUnreachable(IllegalStateException("offline")) },
+                    redraw = { redraws++ },
+                    cancelled = { cancelled++ },
+                    unreachable = { again += it },
+                    open = { opened += it },
+                )
+
+            assertTrue(actions.handle(NavigateAction("/sign-in?next=%2Faccount%2Forders")))
+
+            assertEquals(1, again.size)
+            assertEquals(0, redraws + cancelled + opened.size, "an unreachable store drew or opened something")
+            offline = false
+            again.single()()
+            assertEquals(listOf("/account/orders"), opened)
+        }
+
+    /**
      * B-47 widened the catch to every `Throwable`, which takes in `CancellationException` too: a press
      * whose page went away must still end as cancelled coroutines do, not as a sign-in that did not go
      * through — that would draw, or send home, a screen nobody is looking at.

@@ -15,6 +15,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import kotlinx.coroutines.runBlocking
+import java.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -34,6 +35,9 @@ class IdentityTest {
     private var guests = 0
     private var signInOff = false
 
+    /** The browser offline: every request fails with no answer (B-147). */
+    private var offline = false
+
     /** Bearer tokens answered `401 unauthenticated` — what the server says of a lapsed token. */
     private val lapsed = mutableSetOf<String>()
 
@@ -47,6 +51,7 @@ class IdentityTest {
         HttpClient(
             MockEngine { request ->
                 requests += request
+                if (offline) throw IOException("net::ERR_INTERNET_DISCONNECTED")
                 val bearer = request.headers[HttpHeaders.Authorization]?.removePrefix("Bearer ")
                 val guest = request.headers[GUEST_HEADER]
                 val path = request.url.encodedPath
@@ -286,6 +291,26 @@ class IdentityTest {
             assertFailsWith<SignInUnavailable> { identity.signIn() }
 
             assertNull(store.load().tokens)
+        }
+
+    /**
+     * B-147: a store that does not answer where to sign in is not a server without sign-in, nor a sign-in the shopper
+     * abandoned: it says it could not be reached, either way in, and nothing changes. Online again, the sign-in goes on.
+     */
+    @Test
+    fun `a store that does not answer where to sign in could not be reached, and nothing changes`() =
+        runBlocking {
+            home()
+            val identity = Identity(IdentityApi(http), provider, store, Here())
+            offline = true
+
+            assertFailsWith<SignInUnreachable> { identity.signIn() }
+            assertFailsWith<SignInUnreachable> { identity.signInHere("/cart") }
+
+            assertEquals(Session(guestId = "g-1"), store.load())
+            offline = false
+            identity.signIn()
+            assertTrue(identity.signedIn)
         }
 
     @Test

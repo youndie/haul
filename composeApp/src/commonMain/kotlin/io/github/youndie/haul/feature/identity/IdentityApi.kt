@@ -12,6 +12,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
+import kotlinx.coroutines.CancellationException
 
 /**
  * The server's identity routes (endpoint-identity), as the browser calls them. The two paths here are
@@ -25,9 +26,20 @@ public class IdentityApi(
     public suspend fun createGuest(): String =
         haulJson.decodeFromString(GuestDto.serializer(), expect(http.post(GUESTS), HttpStatusCode.Created)).id
 
-    /** Where to sign in, or `null` on a server with sign-in off (`503 unavailable`). */
+    /**
+     * Where to sign in, or `null` on a server with sign-in off (`503 unavailable`). A request that got no answer at
+     * all — the browser offline, the store down — throws [SignInUnreachable] (B-147): the press that asked says so.
+     */
     public suspend fun settings(): SignInSettings? {
-        val response = http.get(SIGN_IN_SETTINGS)
+        val response =
+            try {
+                http.get(SIGN_IN_SETTINGS)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                // Throwable: in the browser a failed fetch is a JavaScript error, which is no `Exception` on Wasm.
+                throw SignInUnreachable(e)
+            }
         if (response.status == HttpStatusCode.ServiceUnavailable) return null
         return haulJson.decodeFromString(SignInSettings.serializer(), expect(response, HttpStatusCode.OK))
     }
@@ -60,6 +72,14 @@ public class IdentityApi(
         public const val SIGN_IN_SETTINGS: String = "/api/v1/sign-in"
     }
 }
+
+/**
+ * The store did not answer the sign-in's request for where to sign in (B-147): no answer at all, not a refusal. The
+ * press that started the sign-in says «Couldn’t reach the store» and offers it again, as any press with no answer does.
+ */
+public class SignInUnreachable(
+    cause: Throwable,
+) : Exception("the store did not answer the request for where to sign in", cause)
 
 /** An identity route refused: its status and, when the body said, its [code]. */
 public class IdentityFailure(

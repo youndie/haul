@@ -19,9 +19,11 @@ import kotlinx.coroutines.CancellationException
  * caller has somewhere else to be: a page that asked for the sign-in itself (B-44) has nothing to draw
  * for a guest, and goes home. A popup the browser blocked ([SignInPopupBlocked]) is not a shopper's
  * choice and is not left unsaid (B-66): it is [blocked]'s, with the sign-in's own address, and the shell
- * draws the sign-in page that says why and signs in in this tab instead. A press while a sign-in is
- * already under way ([SignInPending], B-46) does none of these: that sign-in's own press answers when it
- * ends.
+ * draws the sign-in page that says why and signs in in this tab instead. A store that did not answer the
+ * sign-in's request at all ([SignInUnreachable], B-147) is no shopper's choice either: it is [unreachable]'s,
+ * given the same press to send again — the shell says «Couldn’t reach the store» with «Retry», and draws
+ * nothing again, which would ask the unreachable store once more. A press while a sign-in is already under
+ * way ([SignInPending], B-46) does none of these: that sign-in's own press answers when it ends.
  *
  * [SIGN_OUT] is the client's own address for the header's «Sign out» (B-66): [signOut] forgets the
  * customer, then [signedOut] draws what a guest sees. [handle] says whether the action was sign-in's or
@@ -32,6 +34,7 @@ public class SignInActions(
     private val redraw: () -> Unit,
     private val cancelled: () -> Unit = redraw,
     private val blocked: (deeplink: String) -> Unit = { cancelled() },
+    private val unreachable: (again: suspend () -> Unit) -> Unit = { cancelled() },
     private val signOut: () -> Unit = {},
     private val signedOut: () -> Unit = redraw,
     private val open: (address: String) -> Unit,
@@ -48,12 +51,13 @@ public class SignInActions(
             Outcome.SignedIn -> next(deeplink).let { next -> if (next == null) redraw() else open(next) }
             Outcome.NotSignedIn -> cancelled()
             Outcome.Blocked -> blocked(deeplink)
+            Outcome.Unreachable -> unreachable { handle(action) }
             Outcome.AlreadyUnderWay -> Unit // the press that started it answers when it ends
         }
         return true
     }
 
-    private enum class Outcome { SignedIn, NotSignedIn, Blocked, AlreadyUnderWay }
+    private enum class Outcome { SignedIn, NotSignedIn, Blocked, Unreachable, AlreadyUnderWay }
 
     /** How the shopper came back. */
     @Suppress(
@@ -70,6 +74,8 @@ public class SignInActions(
             Outcome.AlreadyUnderWay
         } catch (_: SignInPopupBlocked) {
             Outcome.Blocked
+        } catch (_: SignInUnreachable) {
+            Outcome.Unreachable
         } catch (_: Throwable) {
             // Throwable, not Exception: in the browser a fetch that fails during the token exchange is a
             // JavaScript error, which is no `Exception` on Wasm — caught narrower, it escaped the press
