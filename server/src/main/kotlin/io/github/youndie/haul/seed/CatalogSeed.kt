@@ -267,7 +267,9 @@ internal object CatalogSeed {
      * seeded before.
      */
     internal fun inSentence(name: String): String =
-        name.split(' ').joinToString(" ") { word -> if (word.drop(1).any(Char::isUpperCase)) word else word.lowercase() }
+        name.split(' ').joinToString(" ") { word ->
+            if (word.drop(1).any(Char::isUpperCase)) word else word.lowercase()
+        }
 
     private fun slugOf(name: String): String =
         name

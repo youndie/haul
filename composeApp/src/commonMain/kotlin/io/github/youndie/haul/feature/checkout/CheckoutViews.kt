@@ -81,8 +81,8 @@ import io.github.youndie.haul.ui.SummaryRow
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.awaitTypedInput
 import io.github.youndie.haul.ui.follows
-import io.github.youndie.haul.ui.inert
 import io.github.youndie.haul.ui.gutter
+import io.github.youndie.haul.ui.inert
 import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.pressable
