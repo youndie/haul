@@ -1,7 +1,7 @@
 ---
 id: B-151
 title: "fix: selection controls say their state, dialogs hide the page beneath, and the trial dialog closes on Escape"
-status: open
+status: wip
 priority: P2
 size: M
 stage: stage-12-qa-run
