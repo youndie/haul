@@ -1585,7 +1585,8 @@ left out:
 - **No «Get the app» block in the footer**, since there is no app: `HaulFooter.appTitle` and `appText` left the wire,
   and the block's place at 1440 stays empty so the footer keeps the canvas's frame.
 - **Checkout's note is only «Your card is charged when the order ships.»** — for a card; «By placing the order you
-  agree to the Terms of Sale.» named a page the store does not have, and with no card there is no note.
+  agree to the Terms of Sale.» named a page the store does not have, and with no card there is no note. Haul Pay's
+  reads «The first of 4 payments is charged when the order ships.» (B-152).
 
 **Decided in B-70, a running stand keeps its deals of the day.**
 

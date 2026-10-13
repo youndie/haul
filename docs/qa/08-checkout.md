@@ -148,10 +148,12 @@ is the server's, stored per customer, and the summary is the server's quote (B-1
   2. As Sam, look for it.
 - **Expected:**
   - Step 1: «4 payments of $128» (a quarter of the total, the last taking what rounding left); chosen like any way
-    to pay.
+    to pay; the note under «Place order» then reads «The first of 4 payments is charged when the order ships.»
+    (a card's reads «Your card is charged when the order ships.», pay on delivery's nothing).
   - Step 2: not offered under $50; choosing it is refused.
-- **Decided in:** D6, B-14, B-24
+- **Decided in:** D6, B-14, B-24, B-152
 - **Coverage:** `CheckoutRoutesTest` «Haul Pay is refused for a total under fifty dollars»;
+  `CheckoutRoutesTest` «the note says what is charged when the order ships»;
   `CheckoutWiringTest` «a way to pay is chosen»;
   `InstalmentScheduleTest` «the last payment takes what rounding left»
 
