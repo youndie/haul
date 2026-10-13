@@ -42,6 +42,7 @@ import io.github.youndie.kompot.commands.LoadAction
 import io.github.youndie.kompot.commands.UpdateHistory
 import io.github.youndie.kompot.commands.kompotUpdate
 import io.github.youndie.kompot.standard.ColumnComponent
+import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.RefreshAction
 import io.github.youndie.kompot.standard.TextComponent
 import kotlinx.serialization.PolymorphicSerializer
@@ -108,6 +109,45 @@ class ProductPageLinksTest {
     }
 
     private fun ComposeUiTest.waitForRequest(path: String) = waitUntil(timeoutMillis = 5_000) { path in requests }
+
+    /**
+     * B-152: a press on the option already chosen opened the page shown again; checkout's chosen way to pay sends
+     * nothing for the same press. The chosen swatch and the chosen pill press nothing; another option opens its SKU.
+     */
+    @Test
+    fun `the chosen variant presses nothing and another opens its sku`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            val page = decode("product_description.json") as ColumnComponent
+            val linked =
+                page.copy(
+                    children =
+                        page.children.map { child ->
+                            if (child !is ProductDetails) return@map child
+                            child.copy(
+                                variants =
+                                    child.variants.map { group ->
+                                        group.copy(
+                                            options =
+                                                group.options.map {
+                                                    it.copy(action = NavigateAction("$PRODUCT?sku=${it.skuId}"))
+                                                },
+                                        )
+                                    },
+                            )
+                        },
+                )
+            serve("/ui$PRODUCT?sku=p-sony-wh-1000xm6-1", NEXT_PAGE)
+            storefront(linked)
+            onNodeWithContentDescription("Midnight Black").performClick()
+            onNodeWithText("Headphones only").performClick()
+            waitForIdle()
+            assertEquals(listOf("/ui$PRODUCT"), requests.filter { it.startsWith("/ui/p/") })
+            assertEquals(listOf(PRODUCT), history.entries)
+
+            onNodeWithText("+ Travel case").performClick()
+            onNodeWithText(NEXT).assertExists()
+            assertEquals(listOf(PRODUCT, "$PRODUCT?sku=p-sony-wh-1000xm6-1"), history.entries)
+        }
 
     @Test
     fun `the brand opens its products in the category`() =

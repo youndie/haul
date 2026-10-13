@@ -66,6 +66,7 @@ import io.github.youndie.haul.ui.SellerSummary
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.UNSAVE
 import io.github.youndie.haul.ui.VariantGroup
+import io.github.youndie.haul.ui.VariantOption
 import io.github.youndie.haul.ui.accented
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.followsToTabs
@@ -404,7 +405,7 @@ private fun Variants(group: VariantGroup) {
                     // The selected ring is CSS's box-shadow: 2 px of Paper, then 2 px of Cobalt, outside.
                     // A swatch shows no words: its option's name is what it reads as (B-126).
                     Box(
-                        Modifier.size(64.dp).named(option.label).follows(option.action),
+                        Modifier.size(64.dp).named(option.label).follows(option.pressAction()),
                         contentAlignment = Alignment.Center,
                     ) {
                         if (option.selected) {
@@ -456,7 +457,7 @@ private fun Variants(group: VariantGroup) {
                     Text(
                         option.label,
                         HaulType.text(15f, 500),
-                        box.follows(option.action).padding(horizontal = 16.dp, vertical = 12.dp),
+                        box.follows(option.pressAction()).padding(horizontal = 16.dp, vertical = 12.dp),
                         softWrap = false,
                     )
                 }
@@ -464,6 +465,12 @@ private fun Variants(group: VariantGroup) {
         }
     }
 }
+
+/**
+ * What pressing [this] option does: nothing when it is the one chosen (B-152) — it opened the page shown again, as a
+ * new visit; checkout's chosen way to pay or to deliver sends nothing either.
+ */
+private fun VariantOption.pressAction(): KompotAction? = action.takeUnless { selected }
 
 /** The key facts as a two-column table under a hairline. */
 @Composable
