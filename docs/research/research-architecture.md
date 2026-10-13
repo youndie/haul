@@ -1663,8 +1663,9 @@ saying katcher is off, though tracy keeps every `warn`.
 - **katcher is on on the stand**: the owner registered the application («Haul») and the infrastructure release
   carries its key and the address (vedutsya-raboty/infra#104). A `500` is filed with the release the image was
   built from — on a local stack with katcher's own image, and by `ObservabilityTest` against a fake endpoint, through
-  a real route whose table is gone. Every failure the catch-all answers is handed to katcher — a `503` and Ktor's own `4xx` included
-  (`ErrorAnswers.kt`, as B-32 decided); a client leaving a stream is not (B-110).
+  a real route whose table is gone. Every failure the catch-all answered was handed to katcher — a `503` and Ktor's own `4xx`
+  included (`ErrorAnswers.kt`, as B-32 decided); a client leaving a stream was not (B-110). Narrowed to the `500`s by
+  B-148, below.
 - **Every SLF4J line from `warn` up is shipped to tracy** (`ops/Observability.kt`, `shipWarnings`): tracy's agent
   captures nothing by itself on the JVM — its Ktor plugin carries spans and its API what is written through it —
   and the Logback appender it ships is the host's to attach; nothing attached it, so no `log.warn` or `log.error`
@@ -1676,6 +1677,33 @@ saying katcher is off, though tracy keeps every `warn`.
 - **What `main` logs before the application starts is not shipped**: the migrations, the seed, a photo store that
   refused (`Application.kt`) run before tracy is installed, and stay in the pod's log. Shipping them means making
   the agent before the database, outside the module that installs it; not done.
+
+**Decided in B-148, katcher gets what the store got wrong (2026-10-13).** B-32 had the catch-all report everything it
+answered — «if it got there, nobody expected it» — and left narrowing it to whoever read katcher. The v0.6.0 run read
+it: four groups in an hour on the stand, each a guest's malformed link (`Url decode failed …`), and on a local stack
+every page shown during a database outage logged `ERROR … unhandled` with the whole `ExposedSQLException` stack — on
+the stand, a katcher report per page.
+
+- **katcher is sent an unexpected `500`, nothing else** (`ErrorAnswers.kt`): a bug, logged at `error` with its stack
+  before the report. What the catch-all answers otherwise is no defect of the store and is a line at `info` with no
+  stack: Ktor's own `4xx` — a query or a path that does not decode, `NotFoundException`, a body too large or of the
+  wrong type — are the sender's; a `503` is an outage.
+- **An outage is said once, by the pool that met it**: `FailFastDataSource`'s `warn` when a connection first could
+  not be had, now with what the database's address answered («Connection to … refused»), not again until a
+  connection is had. tracy ships it (from `warn`); every page the outage fails is
+  `GET /ui/home → 503: the database cannot be reached (<cause>)` at `info`. katcher holds none of it: the readiness
+  probe, metrik's `503`s and that one line in tracy are where an outage shows. Rejected: one katcher report per
+  outage — it needs the catch-all to know when an outage begins and ends, which the pool already does, and files an
+  operational event among the bugs. A `503` whose connection died under a statement (SQLSTATE `08`) without the pool
+  ever timing out on an ask — a database back before a new connection was needed — would leave the `info` lines
+  only; read from the code, not caused.
+- **The page at a malformed address ends with the page** (`PageAtAnyQuery`, `WebBundle.kt`). B-117 answered it ahead
+  of routing from an `onCall` hook, but Ktor's routing does not ask whether a call was answered before resolving it,
+  and resolving reads the parameters: the query was decoded after the page had gone, and its `BadRequestException`
+  reached the catch-all — the stand's groups were for addresses answered `200`. The hook is now an interceptor that
+  `finish()`es the call. Not changed: `OneCategoryAddress`'s redirect of another form of a category's address has the
+  same shape, so by the same reading a query that does not decode behind it leaves an `info` line for a `301` (not
+  exercised), and files nothing.
 
 ### D7. Numbers the canvas implies, fixed here
 
