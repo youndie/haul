@@ -257,7 +257,8 @@ def walk_pluses(cdp, base, path, wh, out):
     step = {"pluses": path, "width": wh[0]}
     if not load(cdp, base, path):
         return {**step, "error": "the page never drew"}
-    labels = [n["label"] for n in mirror(cdp) if n["id"] == CARD_ADD]
+    # By its id, or by the one name every «+» had before B-151.
+    labels = [n["label"] for n in mirror(cdp) if n["id"] == CARD_ADD or n["label"] == "Add to cart"]
     wrong = [label for label in labels if not (label.startswith("Add ") and label.endswith(" to cart"))
              or label == "Add to cart"]
     step.update({"count": len(labels), "distinct": len(set(labels)), "examples": labels[:3], "wrong": wrong})
