@@ -27,6 +27,7 @@ import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Icon
+import io.github.youndie.haul.ui.NoticeOverPage
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.kompot.KompotAction
@@ -104,7 +105,7 @@ internal class MessageState {
 }
 
 /**
- * The message [state] holds, at the bottom of the page, until its time is up or its button is pressed — or, for one
+ * The message [state] holds, at the bottom of the page and over whatever is open on it, until its time is up or its button is pressed — or, for one
  * with no time ([MessageState.Shown.untilAnswered]), until its button is pressed or the page changes.
  */
 @Composable
@@ -116,17 +117,20 @@ internal fun MessageHost(state: MessageState) {
             state.dismiss(shown)
         }
     }
-    Box(Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.BottomCenter) {
-        MessageNotice(
-            shown.message,
-            onAction =
-                shown.button?.let { (_, action) ->
-                    {
-                        state.dismiss(shown)
-                        shown.follow(action)
-                    }
-                },
-        )
+    // Over whatever is open on the page, as the notice of a load that did not arrive is (B-145).
+    NoticeOverPage {
+        Box(Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.BottomCenter) {
+            MessageNotice(
+                shown.message,
+                onAction =
+                    shown.button?.let { (_, action) ->
+                        {
+                            state.dismiss(shown)
+                            shown.follow(action)
+                        }
+                    },
+            )
+        }
     }
 }
 

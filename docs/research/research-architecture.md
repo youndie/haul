@@ -2371,6 +2371,21 @@ the sheet's focus after its press misses a press withdrawn for another reason (t
 cannot be focused would leave nothing for Tab to reach. The other things over the page have nothing to keep: a
 menu, and the return dialog's reason list, close on the press of an entry, and the dialogs read no key of their own.
 
+**Decided in B-145, a notice the shopper has to act on is drawn over whatever is open.** On a phone a facet is
+ticked in the filter sheet, which covers the page; a tick that did not arrive left «The page didn’t update» with
+«Retry» under the sheet — nothing seen, and the press meant for Retry landed on the sheet's «Show N items», which
+closed it. Two ways were open: the sheet saying itself that its tick did not go through, with a Retry of its own,
+or the notice drawn above the sheet. The second was taken because it is what the shell's frame for a notice already
+is (B-62, B-75, B-92, B-136): one notice per page, held by the shell, drawn at the bottom of the window over what is
+there — it only had to be over the overlays too. So `OverlayHost` has a layer above every overlay
+(`NoticeOverPage`, `ui/Layers.kt`), and the not-updated notice and kompot's messages are drawn in it: over the
+filter sheet, the phone's menu (whose entries close it before they are followed, so nothing raises a notice while
+it is open — now it would be seen) and the dialogs a `present` draws (the Plus trial's «Couldn't reach the store»
+was already over them, and stays). A sheet-own notice would have been a second frame for the same failure, and a
+second Retry in the tree beside the page's. The cost: while the notice is up it covers the sheet's «Show N items»;
+«×» still closes the sheet, and a Retry that goes through takes the notice away. A sheet that holds the keys
+(B-144) leaves them with a notice's control Tab reached, so its Retry is reachable from the keyboard.
+
 **Risk 1. The canvas and the code drift apart without anyone seeing it.** A renderer changed for one
 screen changes every screen that uses the component. Mitigation: one reference PNG per artboard
 (125), exported from the canvas into the client's snapshot directory, and `viddikDesignParity` in

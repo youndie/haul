@@ -8,6 +8,7 @@ import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
@@ -16,6 +17,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import io.github.youndie.haul.feature.cart.CartCommand
@@ -55,6 +57,7 @@ import io.github.youndie.kompot.standard.SequenceAction
 import io.github.youndie.kompot.standard.ShowMessageAction
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.serialization.PolymorphicSerializer
+import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -88,10 +91,14 @@ class InPlaceAnswersTest {
 
     private fun gate(path: String) = CompletableDeferred<Unit>().also { gates[path] = it }
 
+    /** Paths the network does not reach: their requests fail as a fetch does offline. */
+    private val offline = mutableSetOf<String>()
+
     private val transport =
         HaulTransport { path ->
             requests += path
             gates[path]?.await()
+            if (path in offline) throw IOException("offline: $path")
             val queue = answers[path] ?: error("nothing answers $path")
             if (queue.size > 1) queue.removeFirst() else queue.first()
         }
@@ -356,6 +363,40 @@ class InPlaceAnswersTest {
             waitForIdle()
             onNodeWithContentDescription(CLOSE_FILTERS).assertExists()
             onNodeWithText("Lume").assertHasClickAction()
+            assertEquals(listOf(MUGS, BY_OSTRA), history.entries)
+        }
+
+    /**
+     * B-145: on a phone a facet is ticked in the filter sheet, which covers the page; a tick that does not arrive
+     * says so over the sheet, not under it, and its Retry — pressed where it is drawn, as a shopper's finger
+     * would — is the notice's, not the sheet's «Show N items» beneath it: the tick is applied in place, the sheet
+     * still open over it.
+     */
+    @Test
+    fun `a tick in the filter sheet that does not arrive says so over the sheet and Retry applies it`() =
+        runDesktopComposeUiTest(PHONE, HEIGHT) {
+            mugs()
+            offline += PARTS + BY_OSTRA
+            storefront(compact = true)
+            waitForText("Filters")
+            onNodeWithText("Filters").performClick()
+            waitUntil(
+                timeoutMillis = 5_000,
+            ) { onAllNodes(hasContentDescription(CLOSE_FILTERS)).fetchSemanticsNodes().isNotEmpty() }
+
+            onNodeWithText("Ostra").performClick()
+            waitUntil(timeoutMillis = 5_000) { tagged(NOT_UPDATED_TAG) }
+            waitForIdle()
+            onNodeWithContentDescription(CLOSE_FILTERS).assertExists()
+            assertEquals(listOf(MUGS), history.entries, "a tick that did not arrive moved the address")
+
+            offline.clear()
+            onNode(hasText("Retry") and hasAnyAncestor(hasTestTag(NOT_UPDATED_TAG))).performMouseInput { click() }
+            waitUntil(timeoutMillis = 5_000) { requests.count { it == PARTS + BY_OSTRA } == 2 }
+            waitForText("1 applied")
+            onNodeWithTag(NOT_UPDATED_TAG).assertDoesNotExist()
+            onNodeWithContentDescription(CLOSE_FILTERS).assertExists()
+            assertEquals(listOf("/ui$MUGS", PARTS + BY_OSTRA, PARTS + BY_OSTRA), requests.toList())
             assertEquals(listOf(MUGS, BY_OSTRA), history.entries)
         }
 

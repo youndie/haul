@@ -13,7 +13,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHasNoClickAction
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.click
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performKeyInput
@@ -30,21 +33,26 @@ import kotlin.test.assertEquals
  * B-144 at the layer every sheet is drawn in: a sheet keeps the keys while it is open, whichever of its controls a
  * mouse press focused and whatever became of that control since — disabled (the photos' «›» on the last photo) or
  * gone (the filter sheet's «Clear all» once nothing is applied). A menu opened over a sheet has the keys until it
- * closes, and then the sheet has them again. Every key is sent to the window, wherever the focus is.
+ * closes, and then the sheet has them again; so has a notice drawn over the sheet that Tab reached (B-145). Every
+ * key is sent to the window, wherever the focus is.
  */
 @OptIn(ExperimentalTestApi::class)
 class SheetOverPageTest {
     private val keys = mutableListOf<Key>()
     private var dismissed = 0
 
-    private fun ComposeUiTest.sheet(content: @Composable () -> Unit) =
-        setContent {
-            HaulTheme(FixtureFonts.fonts, compact = false) {
-                OverlayHost {
-                    SheetOverPage(onDismiss = { dismissed += 1 }, onKey = { keys.add(it) }) { content() }
-                }
+    private fun ComposeUiTest.sheet(
+        notice: @Composable () -> Unit = {},
+        onKey: (Key) -> Boolean = { keys.add(it) },
+        content: @Composable () -> Unit,
+    ) = setContent {
+        HaulTheme(FixtureFonts.fonts, compact = false) {
+            OverlayHost {
+                SheetOverPage(onDismiss = { dismissed += 1 }, onKey = onKey) { content() }
+                notice()
             }
         }
+    }
 
     private fun ComposeUiTest.press(key: Key) {
         onRoot().performKeyInput { pressKey(key) }
@@ -101,7 +109,38 @@ class SheetOverPageTest {
             assertEquals(1, dismissed)
         }
 
+    /**
+     * «The page didn’t update» over the filter sheet a tick was pressed in (B-145): Tab from the sheet reaches its
+     * «Retry», which keeps the focus for Enter instead of the sheet taking it back; once the notice is gone, the
+     * sheet has the keys again.
+     */
+    @Test
+    fun `a notice over a sheet keeps the focus Tab gave it`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            var shown by mutableStateOf(true)
+            var retried = 0
+            // The filter sheet reads no key of its own: Tab moves the focus.
+            sheet(notice = {
+                if (shown) NoticeOverPage { Box(Modifier.size(44.dp).testTag(NOTICE).pressable { retried += 1 }) }
+            }, onKey = { false }) {
+                Box(Modifier.size(44.dp).testTag(CONTROL).pressable {})
+            }
+            repeat(TABS) {
+                if (onAllNodes(isFocused() and hasTestTag(NOTICE)).fetchSemanticsNodes().isEmpty()) press(Key.Tab)
+            }
+            onNodeWithTag(NOTICE).assertIsFocused()
+            press(Key.Enter)
+            assertEquals(1, retried, "Enter on the notice's control did not press it")
+
+            shown = false
+            waitForIdle()
+            press(Key.Escape)
+            assertEquals(1, dismissed, "the sheet did not take the keys back once the notice was gone")
+        }
+
     private companion object {
+        const val NOTICE = "notice"
+        const val TABS = 4
         const val WIDTH = 1440
         const val HEIGHT = 900
         const val CONTROL = "control"

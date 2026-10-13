@@ -59,6 +59,7 @@ import io.github.youndie.haul.ui.LocalPageScroll
 import io.github.youndie.haul.ui.LocalSearchInput
 import io.github.youndie.haul.ui.LocalTabsInView
 import io.github.youndie.haul.ui.MIN_SEARCH_QUERY
+import io.github.youndie.haul.ui.NoticeOverPage
 import io.github.youndie.haul.ui.OverlayHost
 import io.github.youndie.haul.ui.PlusTrialDialog
 import io.github.youndie.haul.ui.SearchFieldState
@@ -177,7 +178,8 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * `update` of the nodes it changes, which go into the screen's override store, and the address they make,
  * which the history takes without a load ([Navigator.record]). The line under the header is on while it
  * is on its way; one that does not arrive leaves the page under the same notice, whose Retry presses it
- * again. A cart command answers `update` the same way — the header's count and the control pressed. Back
+ * again — drawn over whatever is open on the page as well, the phone's filter sheet the tick was pressed in
+ * among them (B-145). A cart command answers `update` the same way — the header's count and the control pressed. Back
  * and forward to an address recorded so load its page as any visit does, and the page that arrives
  * replaces whatever the updates drew.
  */
@@ -493,11 +495,13 @@ public fun Storefront(
                                             if (recovery == Recovery.QueryTooShort) {
                                                 LaunchedEffect(cause) { navigator.withdraw() }
                                             }
-                                            Box(
-                                                Modifier.fillMaxSize().padding(16.dp),
-                                                contentAlignment = Alignment.BottomCenter,
-                                            ) {
-                                                NotUpdatedNotice(cause, retry)
+                                            NoticeOverPage {
+                                                Box(
+                                                    Modifier.fillMaxSize().padding(16.dp),
+                                                    contentAlignment = Alignment.BottomCenter,
+                                                ) {
+                                                    NotUpdatedNotice(cause, retry)
+                                                }
                                             }
                                         }
                                     }
@@ -528,9 +532,12 @@ public fun Storefront(
                                 Modifier.offset { IntOffset(0, (headerHeight - scroll.value).coerceAtLeast(0)) },
                             )
                         }
+                        // Over whatever is open as well: on a phone a tick is pressed in the filter sheet (B-145).
                         unanswered?.let { press ->
-                            Box(Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.BottomCenter) {
-                                NotUpdatedNotice(press.cause, press.retry)
+                            NoticeOverPage {
+                                Box(Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.BottomCenter) {
+                                    NotUpdatedNotice(press.cause, press.retry)
+                                }
                             }
                         }
                         presented?.let { PresentedOverlay(it, registry) { presented = null } }
