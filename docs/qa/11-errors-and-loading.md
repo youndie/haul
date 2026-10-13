@@ -37,12 +37,15 @@ the server's own: `503`).
 - **Expected:**
   - Step 1: within about a third of a second the header's shape (strip, logo's place, search field, shortcuts,
     category row) with the sweeping line under it; seconds later the store replaces it — never both at once, never
-    a blank in between.
+    a blank in between. The store's first frame already has its own faces — «Haul» in Bodoni Moda, the category row in
+    Archivo, the strip in JetBrains Mono — and no word is redrawn in another face or moves to another line after it.
   - Step 2: checkout's own header shape (logo, three steps), not the storefront's.
-- **Decided in:** B-80, B-90
+- **Decided in:** B-80, B-90, B-150
 - **Coverage:** `StaticFrameTest` «the page carries the frame the entry point removes»;
   `StaticFrameTest` «a cold checkout draws the checkout's header shape»;
-  `StaticFrameTest` «the page fits the first round trip»; script `scripts/measure-first-load.sh`;
+  `StaticFrameTest` «the page fits the first round trip»;
+  `StaticFrameTest` «the page preloads every bundled font the way the entry point reads it»;
+  script `scripts/measure-first-load.sh`; script `scripts/first-frame-faces.py`;
   manual: the swap is only seen in a real browser on a throttled link
 
 ### TC-ERR-03 — A load within a page that fails keeps the page under a notice
