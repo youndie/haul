@@ -59,6 +59,7 @@ import io.github.youndie.haul.ui.FormProduct
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Icon
+import io.github.youndie.haul.ui.LineTile
 import io.github.youndie.haul.ui.QuestionForm
 import io.github.youndie.haul.ui.ReviewForm
 import io.github.youndie.haul.ui.Text
@@ -67,7 +68,6 @@ import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.pointerPress
 import io.github.youndie.haul.ui.pressable
-import io.github.youndie.haul.ui.toneColor
 import io.github.youndie.kompot.KompotAction
 import kotlinx.coroutines.launch
 
@@ -357,7 +357,8 @@ private fun DialogCard(
             horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(Modifier.size(56.dp).background(toneColor(product.tone), RoundedCornerShape(12.dp)))
+            // The product's photo or picture over its tile (B-149), as its card and its page draw it.
+            LineTile(product.image, product.tone, 12.dp, Modifier.size(56.dp))
             Column(Modifier.weight(1f)) {
                 Text(product.name, HaulType.text(14f, 600, lineHeight = 1.35f), softWrap = false, maxLines = 1)
                 Text(

@@ -31,6 +31,7 @@ import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Icon
+import io.github.youndie.haul.ui.LineTile
 import io.github.youndie.haul.ui.Review
 import io.github.youndie.haul.ui.SheetOverPage
 import io.github.youndie.haul.ui.Text
@@ -39,11 +40,11 @@ import io.github.youndie.haul.ui.isOverPage
 import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.swallowsPresses
-import io.github.youndie.haul.ui.toneColor
 
-// A review's photos (B-86): the tiles under its words, and the viewer a tile opens over the page. The photos are
-// the tones of their placeholders until B-78 decides where pictures come from (research D8), so the viewer shows
-// the tile large; what it adds is the way through a review's photos one at a time.
+// A review's photos (B-86): the tiles under its words, and the viewer a tile opens over the page. The seed has no
+// shoppers' photography, so each photo is the reviewed product's picture over its placeholder's tone (B-149, research
+// D8), drawn small on the tile and large in the viewer; the viewer adds the way through a review's photos one at a
+// time.
 
 /**
  * [review]'s photo tiles, 72 px each; inside the storefront each opens [ReviewPhotoViewer] at its photo, and is named
@@ -59,7 +60,6 @@ internal fun ReviewPhotoTiles(review: Review) {
             Box(
                 Modifier
                     .size(72.dp)
-                    .background(toneColor(tone), RoundedCornerShape(12.dp))
                     .testTag(reviewPhotoTag(index))
                     .then(
                         if (opens) {
@@ -68,7 +68,7 @@ internal fun ReviewPhotoTiles(review: Review) {
                             Modifier
                         },
                     ),
-            )
+            ) { LineTile(review.images.getOrNull(index), tone, 12.dp, Modifier.matchParentSize()) }
         }
     }
     open?.let { shown -> ReviewPhotoViewer(review, shown, onShow = { open = it }, onClose = { open = null }) }
@@ -138,9 +138,8 @@ internal fun ReviewPhotoViewer(
                     Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f)
-                        .background(toneColor(review.photos[shown]), RoundedCornerShape(20.dp))
                         .named(photoName(review, shown, opens = false)),
-                )
+                ) { LineTile(review.images.getOrNull(shown), review.photos[shown], 20.dp, Modifier.matchParentSize()) }
                 if (count > 1) {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Box(Modifier.weight(1f))

@@ -3,24 +3,35 @@ package io.github.youndie.haul.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import coil3.EventListener
 import coil3.ImageLoader
 import coil3.PlatformContext
+import coil3.annotation.ExperimentalCoilApi
 import coil3.compose.AsyncImagePainter
+import coil3.compose.LocalPlatformContext
 import coil3.compose.rememberAsyncImagePainter
+import coil3.compose.useExistingImageAsPlaceholder
 import coil3.network.ktor3.KtorNetworkFetcherFactory
 import coil3.request.CachePolicy
+import coil3.request.ImageRequest
 import coil3.serviceLoaderEnabled
 import coil3.svg.SvgDecoder
 import io.ktor.client.HttpClient
@@ -109,7 +120,7 @@ public fun coilPhotoLoader(
             // `HttpClient()` of its own, ahead of this one — and [http] is never asked.
             .serviceLoaderEnabled(false)
             // The seed's pictures are SVG (B-78): Skia's SVG renderer, which skiko's wasm already carries, draws
-            // them at the size the tile asks for.
+            // them at the size the tile asks for — the box's, in pixels (B-149, below).
             .components {
                 add(KtorNetworkFetcherFactory(httpClient = { http }))
                 add(SvgDecoder.Factory())
@@ -132,22 +143,66 @@ private class CoilPhotoLoader(
         url: String,
         modifier: Modifier,
         placeholder: @Composable () -> Unit,
-    ) {
-        val painter = rememberAsyncImagePainter(resolve(url), images, contentScale = ContentScale.Crop)
-        val state by painter.state.collectAsState()
-        Box(modifier) {
-            // Drawn from the start, because Coil sizes the request by what the painter is drawn into; the
-            // painter draws nothing until the photo has arrived, and the placeholder covers it until then.
-            Image(
-                painter,
-                contentDescription = null,
-                modifier =
-                    Modifier.matchParentSize().then(
-                        if (state is AsyncImagePainter.State.Success) Modifier.testTag(PHOTO_TAG) else Modifier,
-                    ),
-                contentScale = ContentScale.Crop,
-            )
-            if (state !is AsyncImagePainter.State.Success) placeholder()
+    ) = key(url) {
+        // Decoded at the size it is drawn, and again whenever its box outgrows that (B-149): a picture is SVG,
+        // rasterised once at the size asked for, and one asked for at the size of its first draw stayed that size
+        // when the page widened — the product page's picture went soft after a resize. Never asked for smaller: a
+        // larger bitmap drawn smaller stays sharp. Asked for once the box has a size, as Coil's own sizing waits for
+        // the first draw.
+        var decodeAt by remember { mutableStateOf<IntSize?>(null) }
+        Box(modifier.onSizeChanged { box -> decodeAt = outgrown(decodeAt, box) }) {
+            val size = decodeAt
+            if (size == null) placeholder() else Sized(resolve(url), size, placeholder)
         }
     }
+
+    @OptIn(ExperimentalCoilApi::class)
+    @Composable
+    private fun BoxScope.Sized(
+        url: String,
+        size: IntSize,
+        placeholder: @Composable () -> Unit,
+    ) {
+        val context = LocalPlatformContext.current
+        val request =
+            remember(size) {
+                ImageRequest
+                    .Builder(context)
+                    .data(url)
+                    .size(size.width, size.height)
+                    // Asked again at a larger size, the picture already on screen stays until the sharper one is in.
+                    .useExistingImageAsPlaceholder(true)
+                    .build()
+            }
+        val painter = rememberAsyncImagePainter(request, images, contentScale = ContentScale.Crop)
+        val state by painter.state.collectAsState()
+        // The painter draws nothing until the photo has arrived, and the placeholder covers it until then.
+        Image(
+            painter,
+            contentDescription = null,
+            modifier =
+                Modifier.matchParentSize().then(
+                    if (state is AsyncImagePainter.State.Success) Modifier.testTag(PHOTO_TAG) else Modifier,
+                ),
+            contentScale = ContentScale.Crop,
+        )
+        if (state !is AsyncImagePainter.State.Success && state.painter == null) placeholder()
+    }
 }
+
+/**
+ * The size a photo drawn in [box] is decoded at: [decoded] while it covers the box, else the box rounded up to
+ * [DECODE_STEP] pixels — so a page widened by a drag asks again every few steps, not at every pixel.
+ */
+internal fun outgrown(
+    decoded: IntSize?,
+    box: IntSize,
+): IntSize? {
+    if (box.width <= 0 || box.height <= 0) return decoded
+    if (decoded != null && box.width <= decoded.width && box.height <= decoded.height) return decoded
+
+    fun up(px: Int) = (px + DECODE_STEP - 1) / DECODE_STEP * DECODE_STEP
+    return IntSize(maxOf(up(box.width), decoded?.width ?: 0), maxOf(up(box.height), decoded?.height ?: 0))
+}
+
+private const val DECODE_STEP = 64

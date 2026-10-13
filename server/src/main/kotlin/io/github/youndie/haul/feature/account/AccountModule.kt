@@ -23,6 +23,7 @@ internal val accountModule =
                 loyalty = get(),
                 saved = get(),
                 savedScreen = get(),
+                photos = get(),
             )
         }
     }

@@ -357,6 +357,23 @@ internal object SampleOrders {
     const val CABLE_SKU = "p-usb-c-cable-0"
     const val THROW_SKU = "p-cotton-throw-0"
 
+    /**
+     * What the pictures of the products the seed does not sell are drawn from, by SKU (B-149): the category whose
+     * object stands for each — the canvas's yoga mat, sweater and so on are in no seeded one — and its colour, as
+     * the order page's fixtures name them (`OrderFixturesTest.bought`).
+     */
+    val ART: Map<String, Pair<String, String?>> =
+        mapOf(
+            YOGA_MAT_SKU to ("yoga-mats" to "Black"),
+            SWEATER_SKU to ("fashion" to "Moss"),
+            SERUM_SKU to ("beauty" to null),
+            VACUUM_SKU to ("appliances" to null),
+            BLOCKS_SKU to ("kids-toys" to null),
+            BAGS_SKU to ("grocery" to "Clear"),
+            CABLE_SKU to ("computers" to "White"),
+            THROW_SKU to ("duvet-covers" to null),
+        )
+
     /** The tiles the canvas draws for the products the seed does not sell, by SKU. */
     val TONES: Map<String, String> =
         mapOf(

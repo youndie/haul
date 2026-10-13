@@ -9,6 +9,7 @@ import io.github.youndie.haul.feature.cart.screen.CartScreen
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.PriceList
+import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.money
 import io.github.youndie.haul.feature.catalog.screen.navigation
@@ -67,6 +68,7 @@ internal class AccountScreen(
     private val loyalty: Loyalty,
     private val saved: SavedLists,
     private val savedScreen: SavedScreen,
+    private val photos: ProductPhotos,
 ) {
     suspend fun build(
         customer: Customer,
@@ -102,12 +104,11 @@ internal class AccountScreen(
                     order.order.placed.lines
                         .map { it.skuId }
                 }.toSet()
-        val tones =
-            catalog
-                // Tones only: no price is drawn from this read.
-                .listedBySkus(skus, PriceList.Public)
-                .flatMap { listed -> listed.skus.map { it.id to listed.product.tone } }
-                .toMap()
+        // Tiles only: no price is drawn from this read. Each line's tile carries the photo or picture its order's
+        // page draws (B-149).
+        val listed = catalog.listedBySkus(skus, PriceList.Public)
+        val tones = listed.flatMap { item -> item.skus.map { it.id to item.product.tone } }.toMap()
+        val images = listed.flatMap { item -> item.skus.map { it.id to photos.url(item.product, it) } }.toMap()
         val orders =
             tracked.map { order ->
                 val placed = order.order.placed
@@ -126,6 +127,9 @@ internal class AccountScreen(
                     tones =
                         order.order.placed.lines
                             .map { tones[it.skuId].orEmpty() },
+                    images =
+                        order.order.placed.lines
+                            .map { images[it.skuId] },
                     card =
                         if (state.active) {
                             OrderScreen.card(orderScreen.view(customer.id, order, customer.firstName))
@@ -247,8 +251,9 @@ internal enum class OrderState(
 
 /**
  * One of the customer's orders as the account draws it: its [state], when it was placed and for how much
- * ([totalCents] — what was paid and kept once part of it is refunded, B-101), one tile per line ([tones]), and —
- * while it is on its way — its [card] (`OrderScreen.card`).
+ * ([totalCents] — what was paid and kept once part of it is refunded, B-101), one tile per line ([tones]) with the
+ * line's photo or picture over it ([images], `null` for a product no longer sold — B-149), and — while it is on its
+ * way — its [card] (`OrderScreen.card`).
  */
 internal data class AccountOrder(
     val id: String,
@@ -256,6 +261,7 @@ internal data class AccountOrder(
     val placedAt: OffsetDateTime,
     val totalCents: Int,
     val tones: List<String>,
+    val images: List<String?>,
     val card: OrderCard?,
 )
 
@@ -436,6 +442,7 @@ private class AccountPageBuilder(
             accent = card.accent,
             lead = card.lead,
             tones = if (card.pickupCode == null) order.tones else emptyList(),
+            images = if (card.pickupCode == null) order.images else emptyList(),
             steps = card.steps,
             pickup = card.pickupCode?.let { AccountPickup("Pickup code", it) },
             details = Link("Details", NavigateAction(OrderPaths.page(order.id))),
@@ -509,6 +516,7 @@ private class AccountPageBuilder(
             date = MONTH_DAY.format(order.placedAt.atZoneSameInstant(STORE)),
             number = "#${order.id}",
             tones = order.tones,
+            images = order.images,
             total = CartScreen.exact(order.totalCents),
             status = state.label,
             statusKind = state.kind,

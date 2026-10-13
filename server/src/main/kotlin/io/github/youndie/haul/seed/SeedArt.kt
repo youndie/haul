@@ -17,6 +17,8 @@ import java.util.concurrent.ConcurrentHashMap
  *   other category by its top level's), in its SKU's colour, over its tile tone, in one of three compositions
  *   chosen by its id — so the products of one category share a picture set and differ by colour and composition.
  * - **A category's tile** is its object, plain, over the category's tone.
+ * - **A shopper's photo** in a review is the reviewed product's object, plain, over the photo's tone, framed by
+ *   another of the three compositions than the product's own picture (B-149).
  * - **The hero** of the Autumn mega sale is falling leaves over its Cobalt; **Tech week's banner** a laptop over its
  *   tone — the two places the canvas keeps for a picture (`Home_Content`'s «CAMPAIGN IMAGE» and «LAPTOP»). Free
  *   delivery weekend's banner has no picture place on the canvas, and draws none.
@@ -66,14 +68,47 @@ internal object SeedArt : Illustrations {
     override fun product(
         product: Product,
         colour: String?,
+    ): String = name(productPicture(product.id, product.categorySlug, colour, product.tone))
+
+    override fun reviewPhoto(
+        product: Product,
+        tone: String,
+        index: Int,
     ): String =
         name(
             Picture.ProductPicture(
                 motifOf(product.categorySlug).slug,
-                Math.floorMod(product.id.hashCode(), VARIANTS),
-                colour?.let(::slug)?.takeIf { it in SWATCHES } ?: PLAIN,
-                toneOf(product.tone),
+                // A shopper's photo is framed otherwise than the product's own picture, and each of theirs otherwise
+                // than the one before.
+                Math.floorMod(product.id.hashCode() + index + 1, VARIANTS),
+                PLAIN,
+                toneOf(tone),
             ),
+        )
+
+    /**
+     * The product [id] of [categorySlug] in [colour] over [tone], drawn: the picture [product] names, as SVG. The seed
+     * stores it as a sample product's photo when there is object storage (B-149), so the sample products are drawn
+     * as their own kind there too.
+     */
+    fun productSvg(
+        id: String,
+        categorySlug: String,
+        colour: String?,
+        tone: String,
+    ): String = productPicture(id, categorySlug, colour, tone).draw()
+
+    private fun productPicture(
+        id: String,
+        categorySlug: String,
+        colour: String?,
+        tone: String,
+    ): Picture =
+        Picture.ProductPicture(
+            motifOf(categorySlug).slug,
+            Math.floorMod(id.hashCode(), VARIANTS),
+            colour?.let(::slug)?.takeIf { it in SWATCHES } ?: PLAIN,
+            toneOf(tone),
         )
 
     override fun category(category: Category): String =

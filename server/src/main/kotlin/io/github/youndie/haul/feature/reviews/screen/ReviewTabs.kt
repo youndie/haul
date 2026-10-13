@@ -3,6 +3,8 @@ package io.github.youndie.haul.feature.reviews.screen
 import io.github.youndie.haul.StoreClock
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.Listed
+import io.github.youndie.haul.feature.catalog.domain.Product
+import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.Seller
 import io.github.youndie.haul.feature.catalog.domain.Sku
 import io.github.youndie.haul.feature.catalog.domain.count
@@ -64,6 +66,7 @@ import kotlin.math.roundToInt
 internal class ReviewTabs(
     private val reviews: ReviewRepository,
     private val clock: StoreClock,
+    private val photos: ProductPhotos,
 ) {
     suspend fun reviews(
         item: Listed,
@@ -104,7 +107,7 @@ internal class ReviewTabs(
                     )
                 },
             actionLabel = own?.let { "You reviewed this on ${day(it.createdAt)}" } ?: WRITE_REVIEW,
-            reviews = listed.map { review(it, viewer, it.id in voted) },
+            reviews = listed.map { review(it, product, viewer, it.id in voted) },
             action = if (own == null) writeReview(item, sku, viewer) else null,
             moreLabel = if (found.size > shown) "Show more reviews" else null,
             more = if (found.size > shown) more(item, at, ProductTab.Reviews, shown, stars) else null,
@@ -164,6 +167,7 @@ internal class ReviewTabs(
      */
     private fun review(
         review: StoredReview,
+        product: Product,
         viewer: Viewer,
         voted: Boolean,
     ): Review =
@@ -176,6 +180,8 @@ internal class ReviewTabs(
             title = review.title,
             text = review.body,
             photos = review.photos,
+            // A shopper's photo is drawn as the product's picture over its tone (B-149): the seed has no photography.
+            images = review.photos.mapIndexed { index, tone -> photos.reviewPhoto(product, tone, index) },
             helpful =
                 when (review.helpful) {
                     0 -> null
@@ -280,7 +286,8 @@ internal class ReviewTabs(
      * The product as a dialog names it: its listing name, as its card, cart line and order line write it
      * (B-45, B-60) — not brand and title, which named the duvet «Brooklyn Home Co. Linen Duvet …» after its
      * seller — then the chosen SKU's options, the colour first, as the canvas writes «Midnight Black ·
-     * Headphones only» (`jsonb` keeps an object's keys in its own order), and its tile.
+     * Headphones only» (`jsonb` keeps an object's keys in its own order), and its tile with the photo or picture its
+     * page draws for that SKU (B-149).
      */
     private fun formProduct(
         item: Listed,
@@ -293,6 +300,7 @@ internal class ReviewTabs(
                     .sortedBy { if (it.key == COLOUR) 0 else 1 }
                     .joinToString(" · ") { it.value },
             tone = item.product.tone,
+            image = photos.url(item.product, sku),
         )
 
     private fun forCustomer(

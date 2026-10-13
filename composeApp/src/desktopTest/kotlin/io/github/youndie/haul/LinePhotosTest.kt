@@ -1,6 +1,7 @@
 package io.github.youndie.haul
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -8,7 +9,11 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import io.github.youndie.haul.feature.order.ReturnFormView
+import io.github.youndie.haul.feature.product.QuestionFormView
+import io.github.youndie.haul.feature.product.ReviewFormView
 import io.github.youndie.haul.feature.returns.ReturnEntry
+import io.github.youndie.haul.feature.reviews.QuestionEntry
+import io.github.youndie.haul.feature.reviews.ReviewEntry
 import io.github.youndie.haul.feature.search.SearchSuggestOverlay
 import io.github.youndie.haul.registry.haulJson
 import io.github.youndie.haul.theme.HaulTheme
@@ -16,7 +21,11 @@ import io.github.youndie.haul.ui.LocalHaulNow
 import io.github.youndie.haul.ui.LocalPhotoLoader
 import io.github.youndie.haul.ui.OrderBody
 import io.github.youndie.haul.ui.PhotoLoader
+import io.github.youndie.haul.ui.ProductQuestions
+import io.github.youndie.haul.ui.ProductReviews
+import io.github.youndie.haul.ui.QuestionForm
 import io.github.youndie.haul.ui.ReturnForm
+import io.github.youndie.haul.ui.ReviewForm
 import io.github.youndie.haul.ui.SearchSuggestPanel
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.standard.ColumnComponent
@@ -73,6 +82,84 @@ class LinePhotosTest {
                 "the return dialog's photos drawn",
             )
         }
+
+    /**
+     * B-149: the account's order cards and its history drew their lines as plain tones — the wire named no picture.
+     * The bodies are the server's, which name one per line now: every address in them is drawn, the Saved list's
+     * cards' with them.
+     */
+    @Test
+    fun `the account's order cards and history rows draw their pictures`() {
+        drawsEvery("account_content.json")
+        drawsEvery("account_orders.json")
+    }
+
+    /** B-149: the review and question dialogs drew their product as a plain tone. */
+    @Test
+    fun `the review and question dialogs draw their product's picture`() =
+        runDesktopComposeUiTest(1_440, 1_200) {
+            val reviews = decode("product_reviews.json").children().filterIsInstance<ProductReviews>().single()
+            val questions = decode("product_questions.json").children().filterIsInstance<ProductQuestions>().single()
+            val review = (reviews.action as PresentAction).content as ReviewForm
+            val question = (questions.action as PresentAction).content as QuestionForm
+            assertTrue(review.product.image != null && question.product.image != null, "a dialog names no picture")
+            setContent {
+                HaulTheme(FixtureFonts.fonts, compact = false) {
+                    CompositionLocalProvider(LocalPhotoLoader provides marking, LocalHaulNow provides CANVAS_NOW) {
+                        Column {
+                            ReviewFormView(review, ReviewEntry())
+                            QuestionFormView(question, QuestionEntry())
+                        }
+                    }
+                }
+            }
+            waitForIdle()
+            assertEquals(2, onAllNodes(hasTestTag(PHOTO), useUnmergedTree = true).fetchSemanticsNodes().size)
+        }
+
+    /** Every address [body] names — an `image`, or an entry of `images` — is drawn through the loader. */
+    private fun drawsEvery(body: String) =
+        runDesktopComposeUiTest(1_440, 3_000) {
+            val named = addresses(haulJson.parseToJsonElement(read(body)))
+            assertTrue(named > 0, "$body names no picture")
+            setContent {
+                HaulTheme(FixtureFonts.fonts, compact = false) {
+                    CompositionLocalProvider(LocalPhotoLoader provides marking, LocalHaulNow provides CANVAS_NOW) {
+                        Page { Body(body) }
+                    }
+                }
+            }
+            waitForIdle()
+            assertEquals(
+                named,
+                onAllNodes(hasTestTag(PHOTO), useUnmergedTree = true).fetchSemanticsNodes().size,
+                "$body: the pictures drawn",
+            )
+        }
+
+    /** How many pictures [element] names: each `image`, and each non-null entry of an `images`. */
+    private fun addresses(element: JsonElement): Int =
+        when (element) {
+            is JsonArray -> {
+                element.sumOf { addresses(it) }
+            }
+
+            is JsonObject -> {
+                element.entries.sumOf { (key, value) ->
+                    when {
+                        key == "image" && value is JsonPrimitive && value.isString -> 1
+                        key == "images" && value is JsonArray -> value.count { it is JsonPrimitive && it.isString }
+                        else -> addresses(value)
+                    }
+                }
+            }
+
+            else -> {
+                0
+            }
+        }
+
+    private fun KompotComponent.children(): List<KompotComponent> = (this as ColumnComponent).children
 
     private fun photos(
         body: String,

@@ -460,7 +460,8 @@
                                         "product": {
                                             "name": "Silicone Food Storage Bags, Set of 6",
                                             "detail": "Clear",
-                                            "tone": "#E3F5D8"
+                                            "tone": "#E3F5D8",
+                                            "image": "/images/art/p_grocery_1_plain_e3f5d8.9434990337.svg"
                                         },
                                         "ratingLabel": "Your rating",
                                         "titleLabel": "Title",
@@ -497,7 +498,8 @@
                                         "product": {
                                             "name": "USB-C Charging Cable, 2 m, 2-pack",
                                             "detail": "White",
-                                            "tone": "#E6E4FF"
+                                            "tone": "#E6E4FF",
+                                            "image": "/images/art/p_computers_2_plain_e6e4ff.8069ae5316.svg"
                                         },
                                         "ratingLabel": "Your rating",
                                         "titleLabel": "Title",

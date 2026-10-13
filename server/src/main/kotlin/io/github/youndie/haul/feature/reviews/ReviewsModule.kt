@@ -10,5 +10,5 @@ internal val reviewsModule =
     module {
         single<ReviewRepository> { ExposedReviews(get()) }
         single { ReviewCommands(get(), get(), get()) }
-        single { ReviewTabs(get(), get()) }
+        single { ReviewTabs(get(), get(), get()) }
     }

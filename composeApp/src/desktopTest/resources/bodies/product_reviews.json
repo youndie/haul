@@ -272,6 +272,10 @@
       "#E9E6E0",
       "#E6E4FF"
      ],
+     "images": [
+      "/images/art/p_headphones_1_plain_e9e6e0.8f71f088d7.svg",
+      "/images/art/p_headphones_2_plain_e6e4ff.094c24dda9.svg"
+     ],
      "helpfulCommand": {
       "url": "/api/v1/reviews/r-sony-daniel/helpful",
       "vote": {
@@ -426,7 +430,8 @@
      "product": {
       "name": "Sony WH-1000XM6 Wireless Noise Cancelling Headphones",
       "detail": "Midnight Black · Headphones only",
-      "tone": "#E6E4FF"
+      "tone": "#E6E4FF",
+      "image": "/images/art/p_headphones_0_midnight-black_e6e4ff.686ea916f7.svg"
      },
      "ratingLabel": "Your rating",
      "titleLabel": "Title",
