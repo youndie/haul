@@ -126,15 +126,17 @@ is the server's, stored per customer, and the summary is the server's quote (B-1
 - **Steps:**
   1. Turn the points toggle on.
   2. Turn it off.
+  3. Read the toggle with a screen reader (or the accessible mirror, `scripts/a11y-check.py`), off and on.
 - **Expected:**
   - Step 1: −$24.80, Total $487.20 (capped at the items after discounts — never the delivery); Haul Pay's offer
     follows the new total.
   - Step 2: back to $512.
-- **Decided in:** D6, B-23
+  - Step 3: «Use 2,480 points (−$24.80), off. 100 points = $1 · all or nothing», and «…, on. …» once turned on.
+- **Decided in:** D6, B-23, B-151
 - **Coverage:** `CheckoutWiringTest` «the points toggle turns the points on and off»;
   `PointsTest` «points are capped at the items after discounts»;
   `PointsTest` «Maya pays with her 2480 points and her balance is 0 until the order earns»;
-  golden `Checkout_PointsApplied`
+  `NamedPressesTest` «boxes and switches say what they do and whether they are on»; golden `Checkout_PointsApplied`
 
 ### TC-CHK-07 — Haul Pay is four payments, offered from $50 to $2,000
 

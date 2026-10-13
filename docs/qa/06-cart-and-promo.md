@@ -38,13 +38,18 @@ the empty cart. «Buy now» is walked on the product page (TC-PDP-06); a command
   2. Press «Checkout» (a guest: «Sign in to check out») and «Delete selected».
   3. Tick two lines and press «Delete selected».
   4. Press «Remove» on the last line.
+  5. Read the lines' boxes and «Select all» with a screen reader (or the accessible mirror, `scripts/a11y-check.py`);
+     tick a box and read it again.
 - **Expected:**
   - Step 1: the totals count the ticked lines only; with none ticked, «Checkout» is grey under a muted label and
     «Delete selected» is muted, not Cobalt; no «Discount −$0.00» row, and no points line — the order earns none.
   - Step 2: nothing happens.
   - Step 3: the two lines go.
   - Step 4: that line goes.
-- **Decided in:** B-11, B-100, B-129
+  - Step 5: each box is named for what it does and whether it is ticked — «Select Sony WH-1000XM6 Wireless Noise
+    Cancelling Headphones, ticked», «…, not ticked» — and «Select all» says «ticked», «partly ticked» or «not
+    ticked»; the tick turns the name. The line's photo keeps the product's name alone.
+- **Decided in:** B-11, B-100, B-129, B-151
 - **Coverage:** `CartWiringTest` «with nothing ticked checkout and delete selected are idle»;
   `CustomerCartTest` «a cart with nothing ticked promises no points»;
   `CartWiringTest` «with lines ticked checkout and delete selected are live»;
@@ -52,7 +57,8 @@ the empty cart. «Buy now» is walked on the product page (TC-PDP-06); a command
   `CartWiringTest` «delete selected deletes the ticked lines»;
   `CartWiringTest` «remove deletes the line where the selection says»;
   `CartRoutesTest` «nothing selected disables checkout»;
-  `CartRoutesTest` «totals count the selected lines and deleted lines go»; golden `Cart_NothingSelected`
+  `CartRoutesTest` «totals count the selected lines and deleted lines go»;
+  `NamedPressesTest` «boxes and switches say what they do and whether they are on»; golden `Cart_NothingSelected`
 
 ### TC-CART-03 — «Save for later» moves the line to the Saved list and says so
 

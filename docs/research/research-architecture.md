@@ -2359,7 +2359,8 @@ every popup, the main pages and the review dialog in headless Chromium and reads
 for buttons and fields with no name (fields since B-131). Found in B-131: the 1.12 mirror writes a node's `role`, its
 `aria-label` and `aria-live` and nothing of its state — a field is a `role="textbox"` named by its content description
 alone, and a chosen star, a ticked box or a selected swatch reads as any other button; so a state set in semantics
-(`selected`) is there for the desktop tree and the tests, not yet for a screen reader in the browser.
+(`selected`) is there for the desktop tree and the tests, not yet for a screen reader in the browser. (B-151 put the
+state of the cart's boxes and checkout's points switch into their names; 1.13's mirror writes `aria-checked`.)
 
 **Found in B-144: an open sheet has to take the key focus back.** A mouse press focuses the control it lands on, and
 when that control stops being one — the photos' «›» on the last photo, disabled; a facet of the filter sheet, whose
@@ -2369,7 +2370,8 @@ arrow keys and Escape stop reaching it (`document.activeElement` stays the canva
 menu's keys are the menu's until it closes). Kept at the layer rather than at each control: a control re-requesting
 the sheet's focus after its press misses a press withdrawn for another reason (the sheet's load), and controls that
 cannot be focused would leave nothing for Tab to reach. The other things over the page have nothing to keep: a
-menu, and the return dialog's reason list, close on the press of an entry, and the dialogs read no key of their own.
+menu, and the return dialog's reason list, close on the press of an entry. (Since B-151 the dialogs are sheets too,
+and keep the keys the same way.)
 
 **Decided in B-145, a notice the shopper has to act on is drawn over whatever is open.** On a phone a facet is
 ticked in the filter sheet, which covers the page; a tick that did not arrive left «The page didn’t update» with
@@ -2385,6 +2387,25 @@ was already over them, and stays). A sheet-own notice would have been a second f
 second Retry in the tree beside the page's. The cost: while the notice is up it covers the sheet's «Show N items»;
 «×» still closes the sheet, and a Retry that goes through takes the notice away. A sheet that holds the keys
 (B-144) leaves them with a notice's control Tab reached, so its Retry is reachable from the keyboard.
+
+**Decided in B-151, a box or a switch says its state in its name, and a sheet or a dialog hides the page under it.**
+The 1.12 mirror carries a role and a name and no state (B-131), so the cart's line boxes, «Select all» and
+checkout's points switch are named for what they do and whether they are on — «Select Sony WH-1000XM6, ticked»,
+«Select all, partly ticked», «Use 2,480 points (−$24.80), off. 100 points = $1 · all or nothing» (`Modifier.toggles`,
+`ui/Links.kt`) — and carry the state in semantics as well. Their role there stays a button's: the mirror makes a
+`Role.Checkbox` a `role="checkbox"` with no `aria-checked`, and Chromium reads that as not checked (measured: a
+`role="checkbox"` named «Select A, ticked» is `checked: false` in `Accessibility.getFullAXTree`), so a ticked box
+would have said «ticked» and «not checked» at once. 1.13's mirror writes `aria-checked` (read in 1.13.0-alpha02's
+library): on it the role becomes the box's or the switch's, and the word in the name can go. A card's «+» is named
+by its product, «Add <product> to cart». What a `present` draws — the review, question, return and Plus trial
+dialogs — is a `SheetOverPage` now, and every sheet is modal: while one is open `OverlayHost` clears the semantics
+of the page and of whatever opened before it (`clearAndSetSemantics`, which the mirror honours — it walks
+`replacedChildren` — where `hideFromAccessibility` it does not read), so the mirror holds the sheet alone, as a
+modal `Dialog` would; a menu is not modal and leaves the page as it is, and the notices (B-145) stay over all of it.
+A dialog's scrim is a press of the pointer's alone (`pointerPress`): as a press in semantics it was a button with the
+whole dialog in it, read as one. Escape reaches a dialog as it reaches the other sheets, after what has the focus
+inside it declined the key — the return dialog's reason list closes first — so the Plus trial's dialog, which closed
+on no key, and the review dialogs close on Escape.
 
 **Risk 1. The canvas and the code drift apart without anyone seeing it.** A renderer changed for one
 screen changes every screen that uses the component. Mitigation: one reference PNG per artboard

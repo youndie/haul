@@ -246,14 +246,20 @@ search for `sony`).
   1. As a guest, press «Write a review».
   2. As Sam, open the dialog, type, press «Cancel»; open it again and press ×.
   3. Open it, type, take the network away (DevTools offline) and press «Post».
+  4. Back online, open it, read the page with a screen reader (or the accessible mirror, `scripts/a11y-check.py`),
+     type in a field and press Escape.
 - **Expected:**
   - Step 1: the sign-in instead of the dialog.
   - Step 2: the dialog goes, nothing sent.
   - Step 3: «Couldn't reach the store» in the dialog, what was typed kept; a refusal of the server's is drawn in the
     dialog, the field it names under it, and the page is not fetched again.
-- **Decided in:** B-22, B-92
+  - Step 4: only the dialog is read — nothing of the page under it, and the dialog is not one button holding its
+    text; Escape takes it away, with the caret in a field too, and nothing is sent.
+- **Decided in:** B-22, B-92, B-151
 - **Coverage:** `ReviewWiringTest` «a guest is sent to sign in»;
   `ReviewWiringTest` «cancel and the close button take the dialog away and send nothing»;
+  `ReviewWiringTest` «escape takes the dialog away and sends nothing»;
+  `NamedPressesTest` «an open dialog or sheet leaves only itself in the tree»;
   `ReviewWiringTest` «no answer keeps the dialog and what was typed»;
   `ReviewWiringTest` «the server's refusal is drawn in the dialog and the page is not fetched again»;
   `ReviewWiringTest` «a field the server refused is drawn under it»
