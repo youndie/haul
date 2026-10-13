@@ -803,9 +803,9 @@ with «All» says so; the bar drawn pressed, or «All», lists every review agai
 and is no press. The rating, the caption and the bars stay the product's whatever is listed; the viewer's own review
 leads the list only among its stars. A review's photo opens the review's photos over the page, one at a time, «‹» and
 «›» or the arrow keys between them, closed by «×», Escape or a press outside the photo — drawn in the storefront's
-own layer (`SheetOverPage`), for the reason B-126 found below, and each press named. The photos are still their
-placeholders' tones (D8: B-78 drew pictures for the products, the categories and the sale, not for shoppers'
-photos), so the viewer shows the tone large.
+own layer (`SheetOverPage`), for the reason B-126 found below, and each press named. The seed has no shoppers'
+photography: since B-149 each photo is a picture of the reviewed product over its placeholder's tone (D8), small on
+its tile and large in the viewer.
 
 ### D3. PostgreSQL; the access layer is chosen at scaffold
 
@@ -1786,7 +1786,8 @@ when the server has an S3-compatible bucket (`HAUL_S3_ENDPOINT`, `_BUCKET`, `_AC
 needs no CORS — with an immutable cache header, because the key holds the content's hash. No endpoint, no
 photos: the server starts as before and every tile is the placeholder. The client draws a photo over the
 placeholder tile, which stays while the photo is absent, loading or failed (Coil 3 in the bundle). The
-seed draws photos for the sample products of §6 in code; real product photography is the owner's
+seed draws photos for the sample products of §6 in code (since B-149 each is the product's own picture, below);
+real product photography is the owner's
 question (B-30 findings), and until it is answered the generated catalog keeps its tiles. The fixtures
 name no photo, so every artboard's parity is what it was. Since B-108 every tile of a product carries the same
 address: a cart line, checkout's «Your order», an order's line and the suggest panel's «Top products»
@@ -1825,6 +1826,26 @@ from what names it, and the photo route serves it under `/images/art/<name>.svg`
   `composeApp/src/desktopTest/resources/art` at once (`ArtLoader`), and `ArtFixturesTest` holds that directory to what
   the server draws under each name, so a golden shows what a shopper gets. The artboards draw a striped tile where
   the pictures stand, so every one of them with a tile left the parity comparison in B-85 (§1.6).
+
+**Decided in B-149: every tile of a product draws its picture, and the sample products their own.** The v0.6.0
+run found three gaps in B-78's pictures:
+
+- **The sample products' stored photos** were one tinted box for all fifteen (B-30's still life), so with object
+  storage the headphones, the earbuds, the mug and the duvet looked alike. `SeedPhotos` stores each product's own
+  picture now — `SeedArt`'s drawing of its category's object in its first SKU's colour — as SVG under
+  `products/<id>/<hash>.svg`, which the photo route serves as it serves a picture (`Content-Security-Policy:
+  default-src 'none'`). A store seeded before keeps nothing stale: a key the seed stored that is not today's is
+  replaced on the next start, and a key that is not the seed's is left alone.
+- **The tiles whose wire named no picture** — the review and question dialogs' product (`FormProduct.image`), the
+  account's order cards and history rows (`ActiveOrder.images`, `HistoryRow.images`, one per line, as the order's
+  page draws them) and a review's photos (`Review.images`, one per tone: the reviewed product's object, plain, over
+  the photo's tone, in another of the three compositions than the product's own picture, so each photo differs).
+- **Art drawn large was soft**: the client asked Coil for a picture without a size, and Coil's SVG decoder then
+  rasterises at the SVG's own size — 240 px — which the product page scaled up to ≈768 px at 800. The loader asks for
+  the size of the box the picture is drawn in, in pixels, and again — keeping the picture on screen until the
+  sharper one is in — whenever the box outgrows it (a window widened); never for a smaller one. The pictures are
+  still asked for after the first frame; their bytes do not change, only the size they are rasterised at (D9,
+  «Measured in B-149»).
 
 ### D9. No server rendering, no SEO
 

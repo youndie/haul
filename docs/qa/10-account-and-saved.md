@@ -17,16 +17,17 @@ Payment methods, Settings) are hidden in v1 (D6).
   - Step 1: «Plus member since 2023»; the tiles — points («worth $24.80 on your next order»), Haul Plus, Price drops
     (three tiles, B-19; Saved's count is the header menu's); at most three active orders as cards («Arriving tomorrow, 15:00 – 18:00» with the steps, or «Ready for
     pickup» with the code); the last four of the rest, «All orders» whenever one is left out. No other customer's
-    order.
+    order. A card's and a row's tiles draw each line's photo or picture, as the order's page does (B-149).
   - Step 2: that order's page, wherever pressed («Details ›» says what the press does).
   - Step 3: the order's page; the history.
-- **Decided in:** B-19, B-74, B-108
+- **Decided in:** B-19, B-74, B-108, B-149
 - **Coverage:** `AccountRoutesTest` «the overview draws the customer's own orders and nobody else's»;
   `AccountRoutesTest` «the tiles are the member's standing or the trial's offer»;
   `AccountWiringTest` «an active order's card opens its order's page wherever it is pressed»;
   `AccountWiringTest` «an active order's card opens its order's page wherever it is pressed on a phone»;
   `AccountWiringTest` «the overview's links open the order pages and the history»;
-  `AccountWiringTest` «every row of the overview's history opens its order's page»; golden `Account_Content`
+  `AccountWiringTest` «every row of the overview's history opens its order's page»; golden `Account_Content`;
+  `LinePhotosTest` «the account's order cards and history rows draw their pictures»
 
 ### TC-ACC-02 — A tile is pressed only where it has a page
 
