@@ -1,7 +1,7 @@
 ---
 id: B-148
 title: "ops: katcher and the error log get what is broken, not a client's malformed link or an outage per page"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-12-qa-run
