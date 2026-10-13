@@ -191,3 +191,35 @@ and only Maya and Sam can sign in; on a local stack, the e2e's shildik.
   `LapsedHeaderTest` «a sign-in the provider would not renew draws the guest's header and signing in brings hers
   back»;
   manual: the stand's five-minute token is real time, which the tests stand in for with a fake transport
+
+### TC-SIGN-09 — A guest's sign-in presses offline say the store could not be reached
+
+- **Who:** a guest
+- **Width:** 1440
+- **Preconditions:** a page loaded, then DevTools «Offline»; for step 3, a page opened offline.
+- **Steps:**
+  1. Offline, press «Sign in», «Orders», «Saved», «HAUL PLUS» and a product card's heart, one at a time.
+  2. Online again, press «Retry» on the last message.
+  3. On a page that did not load (offline from the start), press «Saved».
+  4. Offline on `/sign-in?next=%2Fcart`, press «Sign in»; at a blocked popup, press «Sign in on this page».
+- **Expected:**
+  - Step 1: each press sends `GET /api/v1/sign-in`, which fails, and nothing after it: the page stays as it was under
+    «Couldn't reach the store» with «Retry», which stays until it is pressed or the page changes — not a page asked
+    for again, not silence.
+  - Step 2: the press goes on as it does online — the provider's window, then the page its `next` names, or the same
+    page signed in.
+  - Step 3: the same message over the page that says it could not reach Haul.
+  - Step 4: the same message over the sign-in page, which stays as it was (not «The sign-in didn't go through»).
+- **Decided in:** B-92, B-136, B-147
+- **Coverage:** `OfflineSignInTest` «the header's sign-in offline says so and the page stays, and Retry online signs
+  in»;
+  `OfflineSignInTest` «a guest's orders offline says so, and Retry online lands on them»;
+  `OfflineSignInTest` «a guest's saved on a page that failed offline says so, and Retry online lands on them»;
+  `OfflineSignInTest` «a guest's HAUL PLUS offline says so»;
+  `OfflineSignInTest` «a guest's heart offline says so»;
+  `OfflineSignInTest` «the prompt's sign-in offline says so and stays, and Retry online loads the page»;
+  `OfflineSignInTest` «the sign-in page's sign-in offline says so»;
+  `OfflineSignInTest` «signing in on this page offline says so, and Retry online leaves for the provider»;
+  `IdentityTest` «a store that does not answer where to sign in could not be reached, and nothing changes»;
+  `SignInTapTest` «a sign-in the store did not answer is told as unreachable, and sent again goes on»;
+  manual: the provider's window opening for a moment before the request fails is a real browser's

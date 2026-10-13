@@ -134,7 +134,8 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * ([SignInActions]) wherever it is pressed — a tree, the shell's own header, a prompt ([Signing], B-66):
  * [signIn] runs, then the page its `next` names opens (B-41), or the screen is drawn again, signed in or
  * not; a popup the browser blocked opens the sign-in page, which says so and signs in in this tab
- * through [session]. `/sign-in` itself — a reload, a shared link, back or forward — is that page
+ * through [session]; a store that did not answer where to sign in leaves the page as it was under «Couldn’t reach
+ * the store» and «Retry», the same press again (B-147). `/sign-in` itself — a reload, a shared link, back or forward — is that page
  * ([SignInPage]), drawn by the client. The header's «Sign out» (`/sign-out`) forgets the customer
  * through [session] and draws the page again for a guest, or goes home from a customer's page. A page
  * refused for want of a sign-in (`401`: a guest on a customer's page, or a sign-in lapsed past
@@ -315,7 +316,11 @@ public fun Storefront(
     val home = remember(navigator) { { navigator.open("/") } }
     // The sign-in page a blocked popup led to: it says why (B-66).
     var blockedAt by remember { mutableStateOf<String?>(null) }
-    val signing = remember(navigator, signIn, session) { Signing(signIn, session, navigator) { blockedAt = it } }
+    // A sign-in the store did not answer says so over the page (B-147), as any press with no answer does.
+    val signing =
+        remember(navigator, signIn, session) {
+            Signing(signIn, session, navigator, messages, scope) { blockedAt = it }
+        }
     // The suggest panel and the header of a page the shell draws itself — loading, an error, a page that is
     // not there, a prompt, the sign-in page — are not a renderer's, so their links are followed here; sign-in's
     // and sign-out's as everywhere else (B-66), the page loaded again for who is looking once they are done.
@@ -408,6 +413,8 @@ public fun Storefront(
                         }
                     }
                     shellPresented?.let { PresentedOverlay(it, registry) { shellPresented = null } }
+                    // Its presses' messages too — a sign-in the store did not answer (B-147) — or they are never seen.
+                    MessageHost(messages)
                     return@SearchSuggestOverlay
                 }
                 // The screen's `load`s (B-63): whether one is on its way, and which press is the last — the only

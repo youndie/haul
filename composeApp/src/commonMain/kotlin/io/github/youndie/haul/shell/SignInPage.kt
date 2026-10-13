@@ -12,9 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import io.github.youndie.haul.feature.identity.SessionControls
 import io.github.youndie.haul.feature.identity.SignInActions
+import io.github.youndie.haul.feature.identity.SignInUnreachable
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.kompot.standard.NavigateAction
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 // B-66: `/sign-in` is the client's own page. A press on «Sign in» never needed it — sign-in's actions
@@ -41,11 +43,16 @@ public const val TRY_POPUP_AGAIN_LABEL: String = "Try the sign-in window again"
  * signs in in this tab. A popup the browser blocked is [onBlocked]'s, told the sign-in page it leads to,
  * which is then opened: the page says why and offers the sign-in in this tab, returning to the press's
  * `next` — or, when the press named none, the page it was on, and on the sign-in page that page's own `next`.
+ * A store that did not answer the sign-in's request ([SignInUnreachable], B-147) is said in [messages], over the
+ * page the press was on, as any press with no answer is (B-92): «Couldn’t reach the store», and «Retry», the
+ * same press again in [scope]; the page stays as it was, asked for nothing.
  */
 internal class Signing(
     val signIn: suspend () -> Unit,
     val session: SessionControls?,
     private val navigator: Navigator,
+    private val messages: MessageState,
+    private val scope: CoroutineScope,
     private val onBlocked: (signInPage: String) -> Unit,
 ) {
     /**
@@ -65,10 +72,16 @@ internal class Signing(
             redraw = redraw,
             cancelled = cancelled,
             blocked = { deeplink -> blocked(address, deeplink) },
+            unreachable = { again -> unreachable { scope.launch { again() } } },
             signOut = { session?.signOut() },
             signedOut = { if (address.kind.isCustomers) navigator.open("/") else redraw() },
             open = open,
         )
+
+    /** «Couldn’t reach the store» over the page, its «Retry» [again] — the press that got no answer (B-147). */
+    fun unreachable(again: () -> Unit) {
+        messages.show(noAnswer(again)) { (it as? PressAgain)?.press?.invoke() }
+    }
 
     private fun blocked(
         address: Address,
@@ -99,7 +112,8 @@ private enum class SignInState { Asking, Blocked, Returning, Failed }
  * answer from it — the browser's back (B-116) — did not go through, and the page says so and offers
  * another. Otherwise it asks: «Sign in» opens the popup, and when the browser blocks it ([blocked], or a
  * press here that is blocked) the page says so and offers the sign-in in this tab — [Signing.session]'s,
- * when there is one — and the popup once more. Sent on means the page's entry becomes the `next`
+ * when there is one — and the popup once more. A press here the store did not answer — either way in, offline —
+ * leaves the page as it is under «Couldn’t reach the store» and «Retry» ([Signing.unreachable], B-147). Sent on means the page's entry becomes the `next`
  * ([Navigator.redirect]): back does not return to a sign-in that is done. A `next` that is not a
  * storefront address is the home page.
  *
@@ -146,9 +160,17 @@ internal fun SignInPage(
             signing.actions(address, redraw = { navigator.redirect(next) }, cancelled = {}, open = navigator::redirect)
         }
     val popup = { scope.launch { actions.handle(NavigateAction(address.value)) } }
-    val here = {
+
+    fun here() {
         scope.launch {
-            if (!signedInHere(session, SignInActions.next(address.value))) state = SignInState.Failed
+            when (signedInHere(session, SignInActions.next(address.value))) {
+                Leaving.Left -> Unit
+
+                Leaving.Failed -> state = SignInState.Failed
+
+                // The store did not say where to sign in (B-147): said over the page, which stays as it was.
+                Leaving.Unreachable -> signing.unreachable(::here)
+            }
         }
     }
     val canSignInHere = session?.canSignInHere == true
@@ -240,7 +262,19 @@ private suspend fun finished(
         false
     }
 
-/** Leaves for the sign-in in this tab; `false` when it could not leave (no sign-in, storage refused). */
+/** How a sign-in in this tab left, or why it could not. */
+private enum class Leaving {
+    /** On its way to the provider's page. */
+    Left,
+
+    /** It could not leave: no sign-in in this tab, a server without sign-in, storage refused. */
+    Failed,
+
+    /** The store did not answer where to sign in (B-147). */
+    Unreachable,
+}
+
+/** Leaves for the sign-in in this tab. */
 @Suppress(
     "ktlint:kapkan:swallowed-failure",
     "A sign-in that could not leave the page is drawn as the page that says so and offers another.",
@@ -248,12 +282,14 @@ private suspend fun finished(
 private suspend fun signedInHere(
     session: SessionControls?,
     next: String?,
-): Boolean =
+): Leaving =
     try {
-        session?.signInHere(next) ?: return false
-        true
+        session?.signInHere(next) ?: return Leaving.Failed
+        Leaving.Left
     } catch (e: CancellationException) {
         throw e
+    } catch (_: SignInUnreachable) {
+        Leaving.Unreachable
     } catch (_: Throwable) {
-        false
+        Leaving.Failed
     }
