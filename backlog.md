@@ -43,7 +43,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (8)
+## Open (7)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -55,7 +55,7 @@ A stage is a field on the item, not a directory.
 | [B-147](docs/backlog/B-147-sign-in-presses-offline-say-so.md) `[ ]` | fix: a guest's sign-in presses offline say the store could not be reached | P3 | XS | - |
 | [B-152](docs/backlog/B-152-small-lines-from-the-v060-run.md) `[ ]` | fix: the small lines the v0.6.0 run noticed | P3 | S | - |
 
-## Closed (144)
+## Closed (145)
 
 **Skeleton**
 
