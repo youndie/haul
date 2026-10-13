@@ -10,9 +10,13 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onFirst
@@ -27,14 +31,19 @@ import io.github.youndie.haul.shell.HaulTransport
 import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulTheme
+import io.github.youndie.haul.ui.CARD_ADD_TAG
 import io.github.youndie.haul.ui.CART_BUTTON_TAG
+import io.github.youndie.haul.ui.HEADER_MENU_TAG
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Icon
+import io.github.youndie.haul.ui.OPEN_MENU
+import io.github.youndie.haul.ui.OVER_PAGE_TAG
 import io.github.youndie.kompot.standard.RefreshAction
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -48,8 +57,12 @@ import kotlin.test.assertEquals
  * Each screen is drawn from its wire body at both widths by the storefront itself, at the address it is served at —
  * the shell's own presses (the search field's, the header's menu) are there only then — and every node with a
  * click action or a text to set in the merged tree is read the way the mirror's is. A dialog is opened as a shopper
- * opens it, by pressing what presents it, and read with the page under it. The header's cart button is read on its
- * own as well: on a phone it draws the count alone, which names it «3» and not as the cart.
+ * opens it, by pressing what presents it. The header's cart button is read on its own as well: on a phone it draws
+ * the count alone, which names it «3» and not as the cart.
+ *
+ * B-151: a box to tick or a switch says what it does and whether it is on in its name — the 1.12 mirror carries no
+ * state — and has the role and the state for whatever reads them; a card's «+» is named by its product; an open
+ * dialog or sheet leaves only itself in the tree, and no press holds a dialog's body.
  */
 @OptIn(ExperimentalTestApi::class)
 class NamedPressesTest {
@@ -69,6 +82,81 @@ class NamedPressesTest {
                 listOf(false, true).flatMap { compact -> unnamedPresses(dialog.address, dialog.body, compact, dialog) }
             }
         assertEquals(emptyList(), unnamed, "presses and fields with no name in a dialog, by dialog and width")
+    }
+
+    /**
+     * The cart's boxes — one line unticked, so both states are read — «Select all» partly ticked, and checkout's
+     * points switch: each named for what it does and whether it is on, with its state, and a button's role while the
+     * mirror writes no state (a checkbox's would read as not checked, `MIRRORED_ROLE`).
+     */
+    @Test
+    fun `boxes and switches say what they do and whether they are on`() {
+        val said =
+            listOf(false, true).flatMap { compact ->
+                onScreen("/cart", oneUnticked(read("cart_content.json")), compact) { toggles() } +
+                    onScreen("/checkout", read("checkout_content.json"), compact) { toggles() }
+            }
+        val expected =
+            listOf("wide", "phone").flatMap { width ->
+                listOf(
+                    "/cart $width: Button On «Select Sony WH-1000XM6 Wireless Noise Cancelling Headphones, ticked»",
+                    "/cart $width: Button Off «Select Linen Duvet Cover Set, Queen, not ticked»",
+                    "/cart $width: Button On «Select Stoneware Mug, 12 oz, ticked»",
+                    "/cart $width: Button Indeterminate «Select all, partly ticked»",
+                    "/checkout $width: Button Off «Use 2,480 points (−\$24.80), off. 100 points = \$1 · all or nothing»",
+                )
+            }
+        assertEquals(expected.sorted(), said.sorted())
+    }
+
+    /** Each card's «+» names the product of its card: «Add Sony WH-1000XM6 to cart», not six «Add to cart» in a row. */
+    @Test
+    fun `each card's plus names its product`() {
+        val unnamed =
+            listOf("/" to "home_content.json", "/c/electronics" to "catalog_content.json").flatMap { (address, body) ->
+                // The products of the cards the body sends: a card is what has a title, a price and an `add`.
+                val named = cardTitles(Json.parseToJsonElement(read(body))).map { "Add $it to cart" }.toSet()
+                listOf(false, true).flatMap { compact ->
+                    onScreen(address, read(body), compact) {
+                        val pluses = onAllNodesWithTag(CARD_ADD_TAG).fetchSemanticsNodes().map { described(it) }
+                        val few =
+                            if (pluses.toSet().size <
+                                2
+                            ) {
+                                listOf("${pluses.toSet()} on ${pluses.size} cards")
+                            } else {
+                                emptyList()
+                            }
+                        few + pluses.filterNot { it in named }.map { "«+» named «$it», not by a card's product" }
+                    }
+                }
+            }
+        assertEquals(emptyList(), unnamed, "cards' «+» not named by their product")
+    }
+
+    /**
+     * With a dialog or a sheet open, nothing of the page under it is in the tree — no press, field or words — and no
+     * press holds a dialog's body: the scrim was a press with the whole dialog in it, read as one button.
+     */
+    @Test
+    fun `an open dialog or sheet leaves only itself in the tree`() {
+        val exposed =
+            (DIALOGS.flatMap { dialog -> listOf(false, true).map { dialog to it } } + SHEETS.map { it to true })
+                .flatMap { (dialog, compact) ->
+                    onScreen(dialog.address, read(dialog.body), compact, dialog) {
+                        val under =
+                            onAllNodes(
+                                (hasClickAction() or hasSetTextAction() or hasWords()) and
+                                    !hasTestTag(OVER_PAGE_TAG) and !hasAnyAncestor(hasTestTag(OVER_PAGE_TAG)),
+                            ).fetchSemanticsNodes()
+                        val holding =
+                            onAllNodes(hasClickAction() and hasAnyDescendant(hasTestTag(dialog.close)))
+                                .fetchSemanticsNodes()
+                        under.map { "under it: «${name(it)}» ${describe(it)}" } +
+                            holding.map { "a press holding the dialog: «${name(it).take(60)}…» ${describe(it)}" }
+                    }
+                }
+        assertEquals(emptyList(), exposed, "the page under an open dialog or sheet, or a press holding a dialog")
     }
 
     /** The control: a press with nothing to read is reported, so the check is seen to be able to fail. */
@@ -96,8 +184,20 @@ class NamedPressesTest {
         body: String,
         compact: Boolean,
         dialog: Dialog? = null,
+    ): List<String> = onScreen(address, read(body), compact, dialog) { unnamed() + unnamedCart() }
+
+    /**
+     * The storefront at [address] drawn from [body] at a width, [dialog] opened over it when there is one, and what
+     * [check] finds there, each by where it was found.
+     */
+    private fun onScreen(
+        address: String,
+        body: String,
+        compact: Boolean,
+        dialog: Dialog? = null,
+        check: ComposeUiTest.() -> List<String>,
     ): List<String> {
-        val tree = withFacetActions(read(body))
+        val tree = withFacetActions(body)
         val transport = HaulTransport { HaulResponse(200, tree) }
         val history = FakeHistory(address)
         var found = emptyList<String>()
@@ -126,7 +226,7 @@ class NamedPressesTest {
                 waitForIdle()
             }
             val where = "${dialog?.name ?: address} ${if (compact) "phone" else "wide"}"
-            found = (unnamed() + unnamedCart()).map { "$where: $it" }
+            found = check().map { "$where: $it" }
         }
         return found
     }
@@ -165,6 +265,80 @@ class NamedPressesTest {
             fields.filter { described(it).isBlank() }.map { "field ${describe(it)}" }
     }
 
+    /** Every node with a state to toggle: its role, its state and its name — its label, which the mirror reads. */
+    private fun ComposeUiTest.toggles(): List<String> =
+        onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsProperties.ToggleableState)).fetchSemanticsNodes().map {
+            val role = it.config.getOrNull(SemanticsProperties.Role)
+            "$role ${it.config[SemanticsProperties.ToggleableState]} «${described(it)}»"
+        }
+
+    /** The titles of the product cards in a body: what has a title, a price and an `add`. */
+    private fun cardTitles(element: JsonElement): List<String> =
+        when (element) {
+            is JsonObject -> {
+                val own =
+                    (element["title"] as? JsonPrimitive)
+                        ?.takeIf { "price" in element && "add" in element }
+                        ?.content
+                listOfNotNull(own) + element.values.flatMap(::cardTitles)
+            }
+
+            is JsonArray -> {
+                element.flatMap(::cardTitles)
+            }
+
+            else -> {
+                emptyList()
+            }
+        }
+
+    /** Words drawn or a name: what the mirror would hold as a node. */
+    private fun hasWords(): SemanticsMatcher =
+        SemanticsMatcher("has words") { node ->
+            val config = node.config
+            config.getOrNull(SemanticsProperties.Text).orEmpty().any { it.text.isNotBlank() } ||
+                config.getOrNull(SemanticsProperties.ContentDescription).orEmpty().any { it.isNotBlank() }
+        }
+
+    /** The cart's body with its second line unticked: «Select all» partly ticked. */
+    private fun oneUnticked(body: String): String {
+        var line = 0
+
+        fun walk(element: JsonElement): JsonElement =
+            when (element) {
+                is JsonObject -> {
+                    val walked = JsonObject(element.mapValues { (_, value) -> walk(value) })
+                    when {
+                        "skuId" in walked && "selected" in walked && line++ == 1 -> {
+                            JsonObject(walked + ("selected" to JsonPrimitive(false)))
+                        }
+
+                        "allSelected" in walked -> {
+                            val partly =
+                                mapOf(
+                                    "allSelected" to JsonPrimitive(false),
+                                    "selectedCount" to JsonPrimitive(2),
+                                )
+                            JsonObject(walked + partly)
+                        }
+
+                        else -> {
+                            walked
+                        }
+                    }
+                }
+
+                is JsonArray -> {
+                    JsonArray(element.map(::walk))
+                }
+
+                else -> {
+                    element
+                }
+            }
+        return walk(Json.parseToJsonElement(body)).toString()
+    }
+
     /** The header's cart button, when its name does not say it is the cart. */
     private fun ComposeUiTest.unnamedCart(): List<String> =
         onAllNodesWithTag(CART_BUTTON_TAG)
@@ -199,7 +373,10 @@ class NamedPressesTest {
         return (own + " " + node.children.joinToString(" ") { name(it) }).filterNot { it in INVISIBLE }.trim()
     }
 
-    /** A dialog the storefront presents over [body] at [address] when [opener] is pressed; [close] is its «×». */
+    /**
+     * A dialog the storefront presents over [body] at [address] when [opener] is pressed; [close] is its «×» — for a
+     * sheet, a node that is there while it is open.
+     */
     private class Dialog(
         val name: String,
         val address: String,
@@ -272,6 +449,13 @@ class NamedPressesTest {
                     "Open photo 1 of 2 by Daniel R.",
                     PHOTO_CLOSE_TAG,
                 ),
+            )
+
+        /** The phone's sheets: the header's menu and the catalog's filters (B-151 reads what is under them). */
+        val SHEETS =
+            listOf(
+                Dialog("phone menu", "/", "home_content.json", OPEN_MENU, HEADER_MENU_TAG),
+                Dialog("filter sheet", "/c/electronics", "catalog_content.json", "Filters", OVER_PAGE_TAG),
             )
     }
 }

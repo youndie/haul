@@ -65,6 +65,7 @@ import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.awaitTypedInput
 import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.normal
+import io.github.youndie.haul.ui.pointerPress
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.toneColor
 import io.github.youndie.kompot.KompotAction
@@ -79,6 +80,9 @@ import kotlinx.coroutines.launch
  * The scrim and the card over the page: [content] at the canvas's place, the rest of the page dimmed.
  * Pressing the scrim is [onDismiss]; a card taller than the window scrolls. [compactTop] is how far down
  * a phone's card starts: 120 px for the review dialogs, 140 for the Plus trial's (B-23).
+ *
+ * The scrim's press is the pointer's alone (B-151): a press in semantics is a button there, and the card inside
+ * it — the whole dialog — was read as one. A reader of the page closes the dialog by its «×», or by Escape.
  */
 @Composable
 public fun DialogOverlay(
@@ -87,7 +91,7 @@ public fun DialogOverlay(
     content: @Composable () -> Unit,
 ) {
     val compact = LocalHaulCompact.current
-    Box(Modifier.fillMaxSize().background(HaulColors.scrim).pressable(onDismiss)) {
+    Box(Modifier.fillMaxSize().background(HaulColors.scrim).pointerPress(onDismiss)) {
         Box(
             Modifier
                 .fillMaxWidth()

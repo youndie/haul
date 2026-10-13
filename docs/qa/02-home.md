@@ -131,13 +131,19 @@ their place, «Picked for you», the Plus block. A card's «+» is walked here o
 - **Steps:**
   1. Read the Plus block as each of the three.
   2. As a guest, press «Try 30 days free».
+  3. As Sam, press «Try 30 days free», read the page with a screen reader (or the accessible mirror,
+     `scripts/a11y-check.py`), and press Escape.
 - **Expected:**
   - Step 1: a guest and Sam see «Try 30 days free»; Maya sees no upsell, but what Plus saved her this year ($186 on
     the seed, plus the fees waived on her orders since) and when it renews.
   - Step 2: the sign-in.
-- **Decided in:** B-23; B-123 (the $186 is the seeding day's year's, so a stand seeded after 2025 shows it too)
+  - Step 3: the trial's dialog, and only it is read — nothing of the home page under it; Escape closes it, as it
+    closes the menus and the other dialogs, and starts nothing.
+- **Decided in:** B-23; B-151; B-123 (the $186 is the seeding day's year's, so a stand seeded after 2025 shows it too)
 - **Coverage:** `MembershipRoutesTest` «the trial is offered to a non-member and the savings shown to a member»;
-  `HomeRoutesTest` «a guest sees the campaign the deals and the Plus offer»; `SaleCalendarTest` «a stand seeded on
+  `HomeRoutesTest` «a guest sees the campaign the deals and the Plus offer»;
+  `PlusTrialWiringTest` «escape closes the dialog and sends nothing»;
+  `NamedPressesTest` «an open dialog or sheet leaves only itself in the tree»; `SaleCalendarTest` «a stand seeded on
   another day shows Maya's carried Plus savings»; golden `Home_Content`
 
 ### TC-HOME-08 — The home page draws pictures, not captions

@@ -34,9 +34,9 @@ import io.github.youndie.haul.shell.NOT_UPDATED_TAG
 import io.github.youndie.haul.shell.PAGE_SCROLL_TAG
 import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.theme.HaulTheme
-import io.github.youndie.haul.ui.ADD_TO_CART
 import io.github.youndie.haul.ui.AppliedFilters
 import io.github.youndie.haul.ui.Breadcrumbs
+import io.github.youndie.haul.ui.CARD_ADD_TAG
 import io.github.youndie.haul.ui.Crumb
 import io.github.youndie.haul.ui.Facet
 import io.github.youndie.haul.ui.FacetOption
@@ -273,12 +273,12 @@ class InPlaceAnswersTest {
             assertTrue(!exists("7"), "the cart counts 7 before the press")
             onNodeWithTag(MESSAGE_TAG).assertDoesNotExist()
 
-            onAllNodes(hasContentDescription(ADD_TO_CART))[0].performClick()
+            onAllNodes(hasTestTag(CARD_ADD_TAG))[0].performClick()
             waitForText("7")
             onNodeWithTag(MESSAGE_TAG).assertExists()
             onNode(hasText("View cart") and hasAnyAncestor(hasTestTag(MESSAGE_TAG))).assertExists()
             assertTrue(exists(ADDED), "«+» does not say the item was added")
-            onAllNodes(hasContentDescription(ADD_TO_CART))[0].performClick()
+            onAllNodes(hasTestTag(CARD_ADD_TAG))[0].performClick()
             waitUntil(timeoutMillis = 5_000) { sent.size == 2 }
             assertEquals(
                 listOf(LineChange(quantity = 1), LineChange(quantity = 2)),
@@ -300,7 +300,7 @@ class InPlaceAnswersTest {
             mugs()
             storefront()
             waitForText(card("Stoneware", 0))
-            val plus = onAllNodes(hasContentDescription(ADD_TO_CART))[1]
+            val plus = onAllNodes(hasTestTag(CARD_ADD_TAG))[1]
             plus.assertIsNotEnabled()
             plus.performClick()
             waitForIdle()
@@ -308,7 +308,7 @@ class InPlaceAnswersTest {
             assertEquals(listOf(MUGS), history.entries, "«+» with nothing to add opened the product")
             assertEquals(listOf("/ui$MUGS"), requests.toList())
             onNodeWithTag(MESSAGE_TAG).assertDoesNotExist()
-            onAllNodes(hasContentDescription(ADD_TO_CART))[0].assertIsEnabled()
+            onAllNodes(hasTestTag(CARD_ADD_TAG))[0].assertIsEnabled()
         }
 
     /**
@@ -322,11 +322,11 @@ class InPlaceAnswersTest {
             cartAnswer = kompotUpdate { addComponent(header.copy(cartCount = 7)) }
             storefront()
             waitForText(card("Stoneware", 0))
-            onAllNodes(hasContentDescription(ADD_TO_CART))[0].performClick()
+            onAllNodes(hasTestTag(CARD_ADD_TAG))[0].performClick()
             waitForText("7")
 
             cartAnswer = RefreshAction
-            onAllNodes(hasContentDescription(ADD_TO_CART))[0].performClick()
+            onAllNodes(hasTestTag(CARD_ADD_TAG))[0].performClick()
             waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
             waitUntil(timeoutMillis = 5_000) { !exists("7") }
             assertEquals(listOf("/ui$MUGS", "/ui$MUGS"), requests.toList(), "a refresh asked for another page")

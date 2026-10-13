@@ -1,5 +1,6 @@
 package io.github.youndie.haul.feature.product
 
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasAnyAncestor
@@ -9,7 +10,9 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import io.github.youndie.haul.CANVAS_NOW
 import io.github.youndie.haul.ErrorCode
@@ -183,6 +186,23 @@ class ReviewWiringTest {
             onNodeWithTag(SUBMIT_TAG).assertDoesNotExist()
             onNodeWithTag(WRITE_REVIEW_TAG).performClick()
             onNodeWithTag(CLOSE_TAG).performClick()
+            onNodeWithTag(SUBMIT_TAG).assertDoesNotExist()
+            assertEquals(emptyList(), sent.toList())
+            assertEquals(1, requests.size)
+        }
+
+    /**
+     * B-151: Escape takes the dialog away, as it closes the menus and the photo viewer — with the caret in a field
+     * too, which leaves the key to the dialog — and sends nothing.
+     */
+    @Test
+    fun `escape takes the dialog away and sends nothing`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            reviews()
+            onNodeWithTag(WRITE_REVIEW_TAG).performClick()
+            onNodeWithTag(TITLE_TAG).performTextInput("Quiet")
+            onNodeWithTag(TITLE_TAG).performKeyInput { pressKey(Key.Escape) }
+            waitForIdle()
             onNodeWithTag(SUBMIT_TAG).assertDoesNotExist()
             assertEquals(emptyList(), sent.toList())
             assertEquals(1, requests.size)
