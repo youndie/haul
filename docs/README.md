@@ -23,8 +23,9 @@ run top to bottom.
 | API | `api/` | URL, method, auth tier, where the contract lives | the `shared` module |
 | Service | `services/` | who owns the data, dependencies, deploy, local setup | this repository |
 
-Nothing is built yet. The feature, screen, endpoint and service documents are drafted in an open
-pull request and arrive here one by one, `active`, as the code behind each lands.
+What is here today: the research, the backlog and the QA catalogue. The feature, screen, endpoint and service
+documents are drafted in an open pull request and arrive here one by one, `active`; until then the research and
+the backlog items carry the decisions, and the code is the reference.
 
 **Backlog** — [backlog.md](../backlog.md): the index and the decisions; the items themselves are
 one file each in [`backlog/`](backlog/), cited as `[B-12](backlog/B-12-shildik-sign-in-in-the-browser.md)`.
