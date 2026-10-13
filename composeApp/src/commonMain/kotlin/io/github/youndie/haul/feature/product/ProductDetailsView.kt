@@ -109,9 +109,9 @@ public fun ProductDetailsView(details: ProductDetails) {
         // as on a phone, and the photo and the rest share the width.
         Row(
             Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = detailsTop(compact = false)),
-            horizontalArrangement = Arrangement.spacedBy(40.dp),
+            horizontalArrangement = Arrangement.spacedBy(COLUMNS_GAP),
         ) {
-            Photo(details, Modifier.weight(1f), radius = 28.dp)
+            Photo(details, Modifier.weight(photoWeight(medium = true)), radius = 28.dp)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(24.dp)) {
                 Brand(details)
                 Title(details, compact = false, Modifier.negativeTop(8.dp))
@@ -125,11 +125,11 @@ public fun ProductDetailsView(details: ProductDetails) {
     } else {
         Row(
             Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = detailsTop(compact = false)),
-            horizontalArrangement = Arrangement.spacedBy(40.dp),
+            horizontalArrangement = Arrangement.spacedBy(COLUMNS_GAP),
         ) {
             // The canvas's thumbnails beside the photo drew photos no product has; the product's one photo
             // takes the gallery's width (B-71).
-            Photo(details, Modifier.weight(1.3f), radius = 28.dp)
+            Photo(details, Modifier.weight(photoWeight(medium = false)), radius = 28.dp)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(24.dp)) {
                 Brand(details)
                 Title(details, compact = false, Modifier.negativeTop(8.dp))
@@ -138,13 +138,25 @@ public fun ProductDetailsView(details: ProductDetails) {
                 Highlights(details.highlights)
                 AllSpecifications(details)
             }
-            BuyBox(details, compact = false, Modifier.width(384.dp))
+            BuyBox(details, compact = false, Modifier.width(BUY_BOX_WIDTH))
         }
     }
 }
 
 /** The space the page leaves under the breadcrumbs, over the photo; the loading page's photo stands under it too (B-143). */
 internal fun detailsTop(compact: Boolean): Dp = if (compact) 16.dp else 28.dp
+
+/**
+ * The photo's share of the desktop's row, beside the details' 1 — 1.3 at 1440's three columns, 1 below 1280's two
+ * (B-82); the loading page's photo takes the same, so it is as wide as the photo that arrives (B-153).
+ */
+internal fun photoWeight(medium: Boolean): Float = if (medium) 1f else 1.3f
+
+/** The gap between the desktop's columns, the loading page's too. */
+internal val COLUMNS_GAP: Dp = 40.dp
+
+/** The buy box's column at 1440, beside the details; below 1280 it stands under the title as wide as the details. */
+internal val BUY_BOX_WIDTH: Dp = 384.dp
 
 /** CSS's negative top margin: the item moves up by [by] and pulls everything under it along. */
 private fun Modifier.negativeTop(by: Dp): Modifier =

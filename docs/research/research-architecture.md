@@ -342,7 +342,8 @@ spaces around it are the page's own: the measures live beside the views that dra
 `crumbsTop`, `titleStyle`, `kindsHeight`, `FILTERS_HEIGHT` in `CatalogViews.kt`, `detailsTop` in
 `ProductDetailsView.kt`) and `shell/Shell.kt` reads them rather than copying the numbers.
 
-- **Matched**, at 1440, 1280 and 390: the product's photo (top, left, width); a category's first card, opened with
+- **Matched**, at 1440, 1280 and 390: the product's photo (top, left, width) — and at 1024, where the placeholder
+  draws the page's two columns from the page's `photoWeight` and `COLUMNS_GAP` (B-153); a category's first card, opened with
   no filter applied — the crumbs, the title, the kinds (their pills 40 px, 37 on a phone, the page's, not the
   canvas's 44 and 40) and on a phone the applied filters' row, which stands there empty; the cart's lines, under a
   title row of 101 px rather than the bar's 96 (`ProductPageLayoutTest`, `LoadingPlaceTest`).
