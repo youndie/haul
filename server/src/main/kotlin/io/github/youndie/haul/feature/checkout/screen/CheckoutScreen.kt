@@ -3,6 +3,7 @@ package io.github.youndie.haul.feature.checkout.screen
 import io.github.youndie.haul.feature.cart.domain.CartOwner
 import io.github.youndie.haul.feature.cart.screen.CartScreen
 import io.github.youndie.haul.feature.cart.screen.summaryRows
+import io.github.youndie.haul.feature.catalog.domain.HaulPay
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.money
@@ -12,6 +13,7 @@ import io.github.youndie.haul.feature.checkout.DeliveryMethod
 import io.github.youndie.haul.feature.checkout.domain.CheckoutCommands
 import io.github.youndie.haul.feature.checkout.domain.CheckoutError
 import io.github.youndie.haul.feature.checkout.domain.CheckoutState
+import io.github.youndie.haul.feature.checkout.domain.PaymentMethod
 import io.github.youndie.haul.feature.checkout.domain.PickupPoint
 import io.github.youndie.haul.feature.checkout.domain.Slot
 import io.github.youndie.haul.feature.membership.domain.PointsRules
@@ -282,8 +284,22 @@ internal class CheckoutScreen(
             totalLabel = "Total",
             total = money(quote.totalCents),
             // The canvas's «By placing the order you agree to the Terms of Sale.» named a page the store does not
-            // have (B-107); what is left is what happens to a card, and with no card there is no note.
-            note = if (quote.payment.card) "Your card is charged when the order ships." else null,
+            // have (B-107); what is left is what happens to a card, and with no card there is no note. Haul Pay
+            // takes its first payment when the order ships (B-24), and says so, not the whole (B-152).
+            note =
+                when {
+                    quote.payment == PaymentMethod.HaulPayPlan -> {
+                        "The first of ${HaulPay.PAYMENTS} payments is charged when the order ships."
+                    }
+
+                    quote.payment.card -> {
+                        "Your card is charged when the order ships."
+                    }
+
+                    else -> {
+                        null
+                    }
+                },
             placeLabel = "Place order · $exact",
             placingLabel = "Placing order…",
             placeEnabled = state.placeable,

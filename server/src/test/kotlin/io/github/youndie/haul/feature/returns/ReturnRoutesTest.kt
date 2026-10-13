@@ -170,9 +170,22 @@ class ReturnRoutesTest {
         delivered { orderId, database ->
             val ledger = Ledger(database)
             http(database, 72.hours) {
+                val charged =
+                    page(orderId)
+                        .summary.facts
+                        .single { it.kind == OrderFactKind.Card }
+                        .detail
                 requestReturn(maya, orderId, ReturnEntry(listOf(0), "doesnt_fit")).assertAccepted()
 
                 val requested = page(orderId)
+                // B-152: the card fact reads as it did on the delivered order until the refund replaces it.
+                assertEquals("$512.00 charged", charged)
+                assertEquals(
+                    charged,
+                    requested.summary.facts
+                        .single { it.kind == OrderFactKind.Card }
+                        .detail,
+                )
                 assertEquals("Return requested", requested.title)
                 assertEquals(
                     "A courier picks it up for free. $349.00 goes back to your card ···· 4821 once the seller has it.",

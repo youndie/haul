@@ -52,13 +52,19 @@ their place, «Picked for you», the Plus block. A card's «+» is walked here o
 - **Steps:**
   1. Open the home page a few minutes after the store's midnight.
   2. Open `/deals`.
+  3. Leave a home page open across the midnight, no reload.
 - **Expected:**
   - Step 1: «Deals of the day» with six deals counted down to the next midnight; the hero's dates moved by a day.
     In the seconds between the midnight and the next look (at most an hour) the popular row stands in (TC-HOME-04).
   - Step 2: the same deals first, then «On sale».
-- **Decided in:** B-58, B-70
+  - Step 3: the countdown reads 00:00:01 in the last second, and at the midnight the page asks for itself again
+    (`GET /ui/home`, again every 30 s while it still names the ended countdown) and draws what the server has — the
+    next day's countdown, or the popular row — without a reload.
+- **Decided in:** B-58, B-70, B-152
 - **Coverage:** `SaleCalendarTest` «a running stand moves its sale at each midnight»;
   `SaleCalendarTest` «the running look moves an ended sale by itself»;
+  `composeApp:StorefrontTest` «the page is asked for again when its countdown ends»;
+  `composeApp:CountdownTest` «the last second reads one until it is over»;
   manual: only a stand that runs through a real midnight shows the look running on its own clock
 
 ### TC-HOME-04 — With no live deal, a row of popular products stands in, and no product is drawn twice

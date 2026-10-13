@@ -529,6 +529,24 @@ class CheckoutRoutesTest {
                 .assertError(HttpStatusCode.UnprocessableEntity, ErrorCode.PaymentMethodNotAllowed)
         }
 
+    /**
+     * B-152: Haul Pay takes its first payment when the order ships, not the whole (B-24); the checkout said «Your card
+     * is charged when the order ships.» whichever was chosen. Pay on delivery says nothing.
+     */
+    @Test
+    fun `the note says what is charged when the order ships`() =
+        signedIn("Sam Ortiz") { token ->
+            mayasLines(token)
+            assertEquals("Your card is charged when the order ships.", checkout(token).only<CheckoutSummary>().note)
+            choose(token, CheckoutChoice(payment = "haul_pay")).assertRefresh()
+            assertEquals(
+                "The first of 4 payments is charged when the order ships.",
+                checkout(token).only<CheckoutSummary>().note,
+            )
+            choose(token, CheckoutChoice(payment = "pay_on_delivery")).assertRefresh()
+            assertEquals(null, checkout(token).only<CheckoutSummary>().note)
+        }
+
     /** «Haul Pay is offered for totals between $50 and $2,000» (feature-checkout): a $24 order is not. */
     @Test
     fun `Haul Pay is refused for a total under fifty dollars`() =

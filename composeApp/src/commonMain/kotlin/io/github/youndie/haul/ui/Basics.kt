@@ -179,18 +179,28 @@ internal fun HaulButton(
 
 /**
  * What a deals countdown reads at [now]: the hours, minutes and seconds left until [endsAt] (ISO-8601,
- * as the server sends it), `00:00:00` once it has passed.
+ * as the server sends it), `00:00:00` once it has passed. A second begun is counted (B-152): the clock ticks a few
+ * milliseconds after each whole second, and a countdown cut down to whole seconds read `00:00:00` a second before
+ * the end.
  */
 public fun countdown(
     endsAt: String,
     now: Instant,
 ): String {
     val left = (parseInstant(endsAt) - now).coerceAtLeast(Duration.ZERO)
-    val seconds = left.inWholeSeconds
+    val seconds = (left.inWholeMilliseconds + MILLIS_PER_SECOND - 1) / MILLIS_PER_SECOND
 
     fun two(n: Long) = n.toString().padStart(2, '0')
     return "${two(seconds / 3600)}:${two(seconds / 60 % 60)}:${two(seconds % 60)}"
 }
+
+/** Whether the countdown to [endsAt] has run out at [now]. */
+internal fun countdownEnded(
+    endsAt: String,
+    now: Instant,
+): Boolean = now >= parseInstant(endsAt)
+
+private const val MILLIS_PER_SECOND = 1_000L
 
 /**
  * An ISO-8601 instant with an offset. Java's `OffsetDateTime` writes no seconds when they are zero

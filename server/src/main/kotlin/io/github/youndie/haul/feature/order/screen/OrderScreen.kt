@@ -947,7 +947,9 @@ private class OrderPage(
                     "${exact(captured)} of ${exact(total)} charged, the rest when it ships"
                 }
 
-                arrived -> {
+                // Received, not arrived (B-152): a return requested since unbuys nothing, and the fact read
+                // «… charged as the shipments shipped» again until the refund replaced it.
+                received -> {
                     "${exact(captured)} charged"
                 }
 

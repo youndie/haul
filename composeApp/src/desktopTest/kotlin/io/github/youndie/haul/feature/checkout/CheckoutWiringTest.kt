@@ -12,6 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertHasNoClickAction
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasParent
@@ -558,6 +560,8 @@ class CheckoutWiringTest {
             onNodeWithTag(PLACE_TAG).performClick()
             waitUntil(timeoutMillis = 5_000) { sent.isNotEmpty() }
             onNodeWithText("Placing order…").assertExists()
+            // B-152: «Back to cart» says it does nothing — inert, not a link — while the order is placed.
+            onNodeWithTag(BACK_TO_CART_TAG).assertIsNotEnabled().assertHasNoClickAction()
             onNodeWithTag(summaryItemTag(0)).performClick()
             onNodeWithTag(BACK_TO_CART_TAG).performClick()
             waitForIdle()

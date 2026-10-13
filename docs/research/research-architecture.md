@@ -444,7 +444,11 @@ logo, the heart, the account, the cart, the search field and a category row cut 
 Where the canvas has no answer the conventional phone pattern is taken:
 
 - **The category row scrolls sideways**; the canvas's cut at the edge reads as the sign that there is more.
-  At rest it is pixel for pixel the row it was.
+  At rest it is pixel for pixel the row it was. The cut is the row's, not a word's (B-152): at 390 the canvas's row
+  ends on «Fashion» with «Beauty» just past the edge, as the store's does at 375, 390 and 800, so at those widths
+  no letter of the next word shows. Kept as drawn: whether a word is cut depends on the width and the categories'
+  names, not on a rule; the menu, not the row, is the phone's way to every category; and a fade or a word pulled
+  into view would move every phone golden for a hint no artboard draws.
 - **A menu button left of the logo** opens a full-screen menu: the account («Sign in» for a guest),
   «Orders», «Saved», «Deals», «HAUL PLUS», then under «Catalog» every top-level category
   (`HaulHeader.catalog`). Each entry follows what the header already carries, so the server is unchanged.
@@ -1585,7 +1589,8 @@ left out:
 - **No «Get the app» block in the footer**, since there is no app: `HaulFooter.appTitle` and `appText` left the wire,
   and the block's place at 1440 stays empty so the footer keeps the canvas's frame.
 - **Checkout's note is only «Your card is charged when the order ships.»** — for a card; «By placing the order you
-  agree to the Terms of Sale.» named a page the store does not have, and with no card there is no note.
+  agree to the Terms of Sale.» named a page the store does not have, and with no card there is no note. Haul Pay's
+  reads «The first of 4 payments is charged when the order ships.» (B-152).
 
 **Decided in B-70, a running stand keeps its deals of the day.**
 

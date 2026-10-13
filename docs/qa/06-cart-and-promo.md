@@ -17,11 +17,13 @@ the empty cart. «Buy now» is walked on the product page (TC-PDP-06); a command
 - **Expected:**
   - Step 1: «−» at one is muted and presses nothing.
   - Step 2: the line goes to 2; the cart is drawn again with its totals.
-  - Step 3: at the stock (or ten) «+» is muted and presses nothing.
+  - Step 3: at the stock (or ten) «+» is muted and presses nothing; at 390 the line's prices read whole — a deal's
+    line at ten puts «$31.49 each» under «$314.90 $449.90» rather than cut it.
   - Step 4: the product at the line's own SKU (`/p/<product>?sku=<sku>` — the travel case's line opens the travel
     case).
-- **Decided in:** B-11, B-100
+- **Decided in:** B-11, B-100, B-152
 - **Coverage:** `CartWiringTest` «minus at one is idle and sends nothing»;
+  `composeApp:WidthsTest` «a phone's cart line keeps its unit price whole»;
   `CartWiringTest` «plus asks for one more and the answer redraws the cart»;
   `CartWiringTest` «plus at the line's limit is idle and sends nothing»;
   `CartRoutesTest` «quantities stay within one to ten and the stock»;

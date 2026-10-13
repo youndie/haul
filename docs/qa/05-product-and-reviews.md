@@ -31,13 +31,16 @@ search for `sony`).
   1. Open «Reviews», then press «+ Travel case».
   2. Press «Add to cart».
   3. Open «Specifications», press «Midnight Black».
+  4. Press the option already chosen — the chosen colour, the chosen bundle.
 - **Expected:**
   - Step 1: the page stays on Reviews (`?sku=…&tab=reviews`), loaded in place, not back to Description.
   - Step 2: the buy box answered with stays on Reviews; the variants still keep the tab.
   - Step 3: still Specifications.
-- **Decided in:** B-62, B-104
+  - Step 4: nothing is sent and the page stays as it is, as for checkout's chosen way to pay.
+- **Decided in:** B-62, B-104, B-152
 - **Coverage:** `ProductRoutesTest` «a variant picked on a tab keeps the tab»;
-  `LineAnswersTest` «add to cart answers the header and the buy box and says so»
+  `LineAnswersTest` «add to cart answers the header and the buy box and says so»;
+  `ProductPageLinksTest` «the chosen variant presses nothing and another opens its sku»
 
 ### TC-PDP-03 — The brand, the rating and «All specifications» lead somewhere
 

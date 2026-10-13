@@ -21,6 +21,13 @@ class CountdownTest {
         assertEquals("00:00:00", countdown("2025-10-07T19:00:00-04:00", CANVAS_NOW))
     }
 
+    /** B-152: the clock ticks just after each whole second; a second begun is still counted, to the end. */
+    @Test
+    fun `the last second reads one until it is over`() {
+        assertEquals("00:00:01", countdown("2025-10-08T00:00-04:00", Instant.parse("2025-10-07T23:59:59.004-04:00")))
+        assertEquals("00:00:00", countdown("2025-10-08T00:00-04:00", Instant.parse("2025-10-08T00:00:00-04:00")))
+    }
+
     @Test
     fun `more than a day left is counted in hours`() {
         assertEquals("25:00:00", countdown("2025-10-08T20:47:23-04:00", Instant.parse("2025-10-07T19:47:23-04:00")))

@@ -148,10 +148,12 @@ is the server's, stored per customer, and the summary is the server's quote (B-1
   2. As Sam, look for it.
 - **Expected:**
   - Step 1: «4 payments of $128» (a quarter of the total, the last taking what rounding left); chosen like any way
-    to pay.
+    to pay; the note under «Place order» then reads «The first of 4 payments is charged when the order ships.»
+    (a card's reads «Your card is charged when the order ships.», pay on delivery's nothing).
   - Step 2: not offered under $50; choosing it is refused.
-- **Decided in:** D6, B-14, B-24
+- **Decided in:** D6, B-14, B-24, B-152
 - **Coverage:** `CheckoutRoutesTest` «Haul Pay is refused for a total under fifty dollars»;
+  `CheckoutRoutesTest` «the note says what is charged when the order ships»;
   `CheckoutWiringTest` «a way to pay is chosen»;
   `InstalmentScheduleTest` «the last payment takes what rounding left»
 
@@ -165,12 +167,12 @@ is the server's, stored per customer, and the summary is the server's quote (B-1
   2. Press back to checkout, then reload it.
   3. Open the cart.
 - **Expected:**
-  - Step 1: «Placing order…» with the page's links inert, then `/account/orders/HL-…`, «Placed». A double press or a
-    retry is the same order (the key).
+  - Step 1: «Placing order…» with the page's links inert — «Back to cart» muted grey, not link blue — then
+    `/account/orders/HL-…`, «Placed». A double press or a retry is the same order (the key).
   - Step 2: the cart — nothing is left selected to check out (TC-CHK-11).
   - Step 3: the bought lines are gone, and so is a promo code the order was placed with; lines that were not ticked
     are still there.
-- **Decided in:** B-16, B-18, B-94, B-129
+- **Decided in:** B-16, B-18, B-94, B-129, B-152
 - **Coverage:** `CheckoutWiringTest` «place order sends the quote and draws placing until the answer»;
   `CheckoutWiringTest` «the summary's links do nothing while the order is placed»;
   `PlacementRoutesTest` «Maya places her cart by courier and the saga takes stock window and payment»;

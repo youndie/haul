@@ -6,6 +6,9 @@
     <base href="/">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Haul</title>
+    <!-- The tab's icon, the logo's «H» and its dot (B-152): from the store's own origin, so the browser does not
+         ask for /favicon.ico, which nothing serves. It is not waited for: the frame paints before it arrives. -->
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <!-- The four faces, fetched beside the bundle (B-150): the storefront reads them before its first frame
          (loadHaulFonts), so that frame is drawn in them. `fetch` with CORS is how Compose's resources read them. -->
     <link rel="preload" href="composeResources/io.github.youndie.haul.resources/font/archivo.ttf" as="fetch" crossorigin>

@@ -30,15 +30,35 @@ class StaticFrameTest {
 
     /**
      * Anything else the page waited for — a stylesheet, a font face, an image — would be a round trip before the
-     * frame. The fonts' preloads (B-150) are not waited for: they only start the files' transfer.
+     * frame. The fonts' preloads (B-150) and the tab's icon (B-152) are not waited for: the preloads only start the
+     * files' transfer, and the browser paints without the icon.
      */
     @Test
-    fun `the page asks for nothing but the bundle's loader and the fonts' preloads`() {
+    fun `the page asks for nothing but the bundle's loader, the fonts' preloads and its icon`() {
         val fetched = Regex("""\b(?:src|href)\s*=\s*"([^"]*)"""").findAll(page).map { it.groupValues[1] }.toList()
         val fonts = fetched.filter { it.startsWith(FONT_PATH) }
-        assertEquals(listOf("/") + fonts + "composeApp.js", fetched)
-        assertEquals(FONT_FILES.size, Regex("<link").findAll(page).count(), "a <link> other than the fonts' preloads")
+        assertEquals(listOf("/", ICON) + fonts + "composeApp.js", fetched)
+        assertEquals(
+            FONT_FILES.size + 1,
+            Regex("<link").findAll(page).count(),
+            "a <link> other than the fonts' preloads and the icon",
+        )
         listOf("url(", "@import", "<img").forEach { assertTrue(it !in page, "index.html has $it") }
+    }
+
+    /**
+     * B-152: a page that names no icon makes the browser ask for `/favicon.ico` on every first load, which nothing
+     * serves — a 404 and a console error each time. The page names its own, a file of the bundle (so the store's
+     * origin serves it), an SVG that fetches nothing further: no link off the origin, no script.
+     */
+    @Test
+    fun `the page names its icon, a file of the bundle that fetches nothing`() {
+        assertTrue("""<link rel="icon" href="$ICON" type="image/svg+xml">""" in page, "index.html names no icon")
+        val icon = File("src/wasmJsMain/resources/$ICON")
+        assertTrue(icon.isFile, "$ICON is not in the bundle's resources")
+        val svg = icon.readText()
+        assertTrue(svg.startsWith("<svg xmlns=\"http://www.w3.org/2000/svg\""), "$ICON is not an SVG")
+        listOf("href", "<script", "url(", "@import", "<image").forEach { assertTrue(it !in svg, "$ICON has $it") }
     }
 
     /**
@@ -95,6 +115,9 @@ class StaticFrameTest {
     private companion object {
         /** Where the bundle serves Compose's resources (`packageOfResClass` in the module's build). */
         const val FONT_PATH = "composeResources/io.github.youndie.haul.resources/font/"
+
+        /** The tab's icon, beside the page in the bundle. */
+        const val ICON = "favicon.svg"
 
         /** The faces the module bundles. */
         val FONT_FILES: List<String> = File("src/commonMain/composeResources/font").list()!!.sorted()

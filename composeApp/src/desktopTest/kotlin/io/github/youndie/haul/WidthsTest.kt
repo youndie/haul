@@ -12,6 +12,7 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onRoot
@@ -20,6 +21,7 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.ui.CARD_ADD_TAG
+import io.github.youndie.haul.ui.CartBody
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HaulHeaderView
 import io.github.youndie.haul.ui.LocalHaulNow
@@ -27,6 +29,7 @@ import io.github.youndie.haul.ui.PRICE_GAP
 import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.ProductGridView
+import io.github.youndie.kompot.standard.ColumnComponent
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -127,6 +130,38 @@ class WidthsTest {
                 plus.left - struck.right >= with(density) { PRICE_GAP.toPx() },
                 "the old price ${struck.right} against «+» at ${plus.left}",
             )
+        }
+
+    /**
+     * B-152: a phone's cart line at ten with a deal's struck-out price cut «$31.49 each» to «$31.4» at 390 — the
+     * price, the old price and the unit price on one line with no room for the third. What does not fit goes under,
+     * whole, at the phone's widths.
+     */
+    @Test
+    fun `a phone's cart line keeps its unit price whole`() =
+        listOf(375, 390).forEach { width ->
+            runDesktopComposeUiTest(width, 1_000) {
+                val cart = decode("cart_content.json") as ColumnComponent
+                val tree =
+                    cart.copy(
+                        children =
+                            cart.children.map { child ->
+                                if (child !is CartBody) return@map child
+                                val group = child.groups.first()
+                                val line =
+                                    group.lines.first().copy(
+                                        price = "$314.90",
+                                        oldPrice = "$449.90",
+                                        each = "$31.49 each",
+                                        quantity = 10,
+                                    )
+                                child.copy(groups = listOf(group.copy(lines = listOf(line) + group.lines.drop(1))))
+                            },
+                    )
+                atWidth { Page { Render(tree) } }
+                onAllNodesWithText("$31.49 each").assertCountEquals(1)
+                assertReads("a cart line at ten at $width")
+            }
         }
 
     private fun pages(bodies: List<String>) =

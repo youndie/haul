@@ -176,7 +176,7 @@ internal class SearchScreen(
         if (recorded) viewer.customerId?.let { recent.record(it, query.text, clock.now().toOffsetDateTime()) }
         val categories = catalog.categories()
         val matches = search.matching(query)
-        if (matches.isEmpty()) return noResults(query, categories, viewer)
+        if (matches.isEmpty()) return noResults(query, request.category, categories, viewer)
 
         val all = catalog.listed(matches.map { it.productId }, viewer.prices)
         val scope =
@@ -329,6 +329,7 @@ internal class SearchScreen(
 
     private suspend fun noResults(
         query: Query,
+        scope: String?,
         categories: List<Category>,
         viewer: Viewer,
     ): KompotComponent {
@@ -353,7 +354,17 @@ internal class SearchScreen(
                         },
                 ),
             )
-        return Frame.page("search", viewer, navigation(categories), sections, query = query.text)
+        // The picker keeps the scope the address names (B-152): nothing anywhere is still a search in it, and the
+        // picker read «All categories» over `&category=fashion`.
+        return Frame.page(
+            "search",
+            viewer,
+            navigation(categories),
+            sections,
+            query = query.text,
+            scope = scope,
+            categories = categories,
+        )
     }
 
     /** A category chip of the results: chosen when it is the page's [category], and then it carries nothing. */

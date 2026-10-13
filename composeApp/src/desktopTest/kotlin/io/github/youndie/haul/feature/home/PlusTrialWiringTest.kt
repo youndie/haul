@@ -13,6 +13,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
+import io.github.youndie.haul.CANVAS_NOW
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.FakeHistory
 import io.github.youndie.haul.FixtureFonts
@@ -38,6 +39,8 @@ import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 /**
  * The Haul Plus trial in the storefront (B-23), from the home page's own body (`home_plus_trial.json`):
@@ -66,10 +69,19 @@ class PlusTrialWiringTest {
             answer(command)
         }
 
+    /**
+     * The canvas's «now»: the home's deals count down to its midnight, and under the real clock they have long ended,
+     * which asks for the page again (B-152) — a request these tests do not count.
+     */
+    private val clock =
+        object : Clock {
+            override fun now(): Instant = CANVAS_NOW
+        }
+
     private fun ComposeUiTest.storefront() =
         setContent {
             HaulTheme(FixtureFonts.fonts, compact = false) {
-                Storefront(transport, FakeHistory(), signIn = {}, treeCommands = commands)
+                Storefront(transport, FakeHistory(), signIn = {}, clock = clock, treeCommands = commands)
             }
         }
 

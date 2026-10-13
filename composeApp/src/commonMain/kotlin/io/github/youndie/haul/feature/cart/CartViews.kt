@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -300,7 +301,13 @@ private fun PhoneLine(
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(line.title, HaulType.text(15f, 600, lineHeight = 1.3f), Modifier.follows(line.action))
                 Text(line.options, HaulType.text(14f).copy(color = HaulColors.outline))
-                Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // The prices wrap (B-152): at ten with a struck-out price, «$31.49 each» had no room left at 390 and
+                // was cut to «$31.4»; what does not fit beside the price goes under it whole.
+                FlowRow(
+                    Modifier.padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
                     Text(
                         line.price,
                         HaulType.display(24f, 800, letterSpacing = -0.01f),
