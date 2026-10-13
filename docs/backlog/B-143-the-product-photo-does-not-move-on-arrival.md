@@ -1,7 +1,7 @@
 ---
 id: B-143
 title: "fix: the product photo stands where its placeholder stood"
-status: open
+status: wip
 priority: P3
 size: XS
 stage: stage-12-qa-run

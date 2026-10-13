@@ -47,7 +47,7 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-143](docs/backlog/B-143-the-product-photo-does-not-move-on-arrival.md) `[ ]` | fix: the product photo stands where its placeholder stood | P3 | XS | - |
+| [B-143](docs/backlog/B-143-the-product-photo-does-not-move-on-arrival.md) `[~]` | fix: the product photo stands where its placeholder stood | P3 | XS | - |
 | [B-152](docs/backlog/B-152-small-lines-from-the-v060-run.md) `[ ]` | fix: the small lines the v0.6.0 run noticed | P3 | S | - |
 
 ## Closed (150)
