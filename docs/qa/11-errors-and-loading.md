@@ -54,14 +54,17 @@ the server's own: `503`).
 - **Width:** 1440, 390
 - **Preconditions:** a category page drawn.
 - **Steps:**
-  1. Go offline; tick a facet.
+  1. Go offline; tick a facet — at 390 in the sheet «Filters» opens, which stays open.
   2. Go online; press «Retry».
 - **Expected:**
-  - Step 1: the page stays as it was, under «The page didn't update» with «Retry» — not the error page.
-  - Step 2: the tick's results, in place.
-- **Decided in:** B-62, B-63
+  - Step 1: the page stays as it was, under «The page didn't update» with «Retry» — not the error page. At 390 the
+    notice is drawn over the open sheet, its «Retry» where the sheet's «Show N items» is (B-145).
+  - Step 2: the tick's results, in place; at 390 in the sheet, still open («1 applied»).
+- **Decided in:** B-62, B-63, B-145
 - **Coverage:** `KeptPageTest` «a load that fails within a screen keeps the page under a notice and Retry loads it»;
-  `InPlaceAnswersTest` «a tick whose answer does not arrive keeps the page under a notice and Retry presses it again»
+  `InPlaceAnswersTest` «a tick whose answer does not arrive keeps the page under a notice and Retry presses it again»;
+  `InPlaceAnswersTest` «a tick in the filter sheet that does not arrive says so over the sheet and Retry applies it»;
+  `SheetOverPageTest` «a notice over a sheet keeps the focus Tab gave it»
 
 ### TC-ERR-04 — An old or edited link loads the page it meant
 
