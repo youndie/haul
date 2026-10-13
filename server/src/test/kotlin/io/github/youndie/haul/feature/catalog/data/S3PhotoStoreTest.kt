@@ -1,5 +1,6 @@
 package io.github.youndie.haul.feature.catalog.data
 
+import io.github.youndie.haul.seed.SampleCatalog
 import io.github.youndie.haul.seed.SeedPhotos
 import io.github.youndie.haul.testing.SeaweedHarness
 import kotlinx.coroutines.runBlocking
@@ -22,14 +23,15 @@ class S3PhotoStoreTest {
     fun `a stored photo reads back byte for byte`() =
         runBlocking<Unit> {
             val store = SeaweedHarness.store()
-            val png = SeedPhotos.draw("#E6E4FF")
-            val key = SeedPhotos.keyFor("p-sony-wh-1000xm6", png)
+            val product = SampleCatalog.products.first()
+            val svg = SeedPhotos.draw(product).encodeToByteArray()
+            val key = SeedPhotos.keyFor(product.id, svg.decodeToString())
 
-            store.put(key, png, "image/png")
+            store.put(key, svg, "image/svg+xml")
             val read = assertNotNull(store.get(key), "the stored photo is not there")
 
-            assertContentEquals(png, read.bytes)
-            assertEquals("image/png", read.contentType)
+            assertContentEquals(svg, read.bytes)
+            assertEquals("image/svg+xml", read.contentType)
         }
 
     /** «Not there» is `null`, the route's 404 — not an exception, which would be its 500. */

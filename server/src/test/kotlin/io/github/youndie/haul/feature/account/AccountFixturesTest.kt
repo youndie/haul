@@ -4,12 +4,17 @@ import io.github.youndie.haul.feature.account.screen.AccountPage
 import io.github.youndie.haul.feature.account.screen.AccountScreen
 import io.github.youndie.haul.feature.account.screen.AccountView
 import io.github.youndie.haul.feature.account.screen.OrderState
+import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
+import io.github.youndie.haul.feature.catalog.domain.PriceList
+import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.fulfilment.domain.TrackedOrder
 import io.github.youndie.haul.feature.identity.domain.Customer
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.CatalogSeed
+import io.github.youndie.haul.seed.SampleCatalog
 import io.github.youndie.haul.seed.SampleCustomers
+import io.github.youndie.haul.seed.SeedArt
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.testing.FulfilmentWorld
 import io.github.youndie.haul.testing.SampleOrders
@@ -36,7 +41,8 @@ import kotlin.test.assertTrue
  * catalog and Maya's checkout; the points and the membership are the seeded ledger and membership (B-23), and
  * the Saved list's counts are Maya's seeded list (`SampleSaved`, B-20), both of which the route reads too. One
  * part is the canvas's and not the server's, and is checked to be only that: the tiles of lines whose products the
- * seed does not sell, given by the canvas ([SampleOrders.TONES]). #HL-44019 is returned by its own refunded
+ * seed does not sell, given by the canvas ([SampleOrders.TONES]), and their pictures, drawn for the categories
+ * [SampleOrders.ART] names (B-149). #HL-44019 is returned by its own refunded
  * return (B-21), as tracking reads it.
  *
  * The headers are the artboards': Maya with three in the cart, Sam and Jordan with none.
@@ -68,6 +74,24 @@ class AccountFixturesTest {
                         }
                     }
 
+                    // The canvas's products drawn as the catalog would draw them, as the order page's fixtures do.
+                    val catalog = world.koin.get<CatalogRepository>()
+                    val sony = checkNotNull(catalog.product(SampleCatalog.SONY_HEADPHONES, PriceList.Public))
+                    val photos = ProductPhotos(null, SeedArt)
+
+                    /** The picture of the canvas's [sku] in [tone]: its category's object, in its colour. */
+                    fun canvasPicture(
+                        sku: String,
+                        tone: String,
+                    ): String {
+                        val (category, colour) = checkNotNull(SampleOrders.ART[sku]) { "$sku: no picture" }
+                        val productId = sku.removeSuffix("-0")
+                        val product = sony.product.copy(id = productId, tone = tone, categorySlug = category)
+                        val options = colour?.let { mapOf("colour" to it) }.orEmpty()
+                        val shown = sony.skus.first().copy(id = sku, productId = productId, options = options)
+                        return photos.url(product, shown)
+                    }
+
                     /** [customer]'s account over [orders], with the canvas's tiles. */
                     suspend fun view(
                         customer: Customer,
@@ -87,7 +111,11 @@ class AccountFixturesTest {
                                                 ) { "$sku: neither seeded nor the canvas's" }
                                             }
                                         }
-                                    order.copy(tones = tones)
+                                    val images =
+                                        order.images.indices.map { i ->
+                                            order.images[i] ?: canvasPicture(skus[i], tones[i])
+                                        }
+                                    order.copy(tones = tones, images = images)
                                 },
                         )
                     }

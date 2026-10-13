@@ -35,6 +35,16 @@ internal interface Illustrations {
         colour: String?,
     ): String
 
+    /**
+     * The picture standing for photo [index] of a review of [product], whose placeholder is [tone] (B-149): the
+     * product's object, plain, over the photo's tone.
+     */
+    fun reviewPhoto(
+        product: Product,
+        tone: String,
+        index: Int,
+    ): String
+
     /** [category]'s tile. */
     fun category(category: Category): String
 
@@ -67,6 +77,13 @@ internal class ProductPhotos(
         product: Product,
         sku: Sku?,
     ): String = stored(product) ?: "$PATH/$ART${art.product(product, sku?.options?.get(COLOUR))}"
+
+    /** The picture of photo [index] of a review of [product], whose placeholder is [tone] (B-149). */
+    fun reviewPhoto(
+        product: Product,
+        tone: String,
+        index: Int,
+    ): String = "$PATH/$ART${art.reviewPhoto(product, tone, index)}"
 
     /** [category]'s tile picture. */
     fun category(category: Category): String = "$PATH/$ART${art.category(category)}"

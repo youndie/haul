@@ -1,7 +1,11 @@
 package io.github.youndie.haul.feature.product
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertContentDescriptionEquals
@@ -12,6 +16,8 @@ import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.click
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -33,6 +39,8 @@ import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
 import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.theme.HaulTheme
+import io.github.youndie.haul.ui.LocalPhotoLoader
+import io.github.youndie.haul.ui.PhotoLoader
 import io.github.youndie.haul.ui.ProductReviews
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
@@ -71,6 +79,7 @@ class ReviewControlsTest {
     private fun ComposeUiTest.storefront(
         page: KompotComponent = decode("product_reviews.json"),
         compact: Boolean = false,
+        photos: PhotoLoader = unloaded,
     ) {
         pages["/ui${history.entries.single()}"] =
             haulWireJson.encodeToString(PolymorphicSerializer(KompotComponent::class), page)
@@ -81,7 +90,9 @@ class ReviewControlsTest {
             }
         setContent {
             HaulTheme(FixtureFonts.fonts, compact = compact) {
-                Storefront(transport, history, signIn = {}, treeCommands = { RefreshAction })
+                CompositionLocalProvider(LocalPhotoLoader provides photos) {
+                    Storefront(transport, history, signIn = {}, treeCommands = { RefreshAction })
+                }
             }
         }
         waitUntil(timeoutMillis = 5_000) { requests.isNotEmpty() }
@@ -180,6 +191,35 @@ class ReviewControlsTest {
             onNodeWithTag(PHOTO_VIEWER_TAG).assertDoesNotExist()
             assertEquals(listOf("/ui$REVIEWS"), requests.toList(), "a photo loaded a page")
             assertEquals(listOf(REVIEWS), history.entries)
+        }
+
+    /**
+     * B-149: a review's photos were tone tiles, on the review and in the viewer. Each is drawn as the picture the
+     * server names for it, small on its tile and large in the viewer.
+     */
+    @Test
+    fun `a review's photos are drawn as their pictures on the tiles and in the viewer`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            val daniel =
+                decode("product_reviews.json")
+                    .let { it as ColumnComponent }
+                    .children
+                    .filterIsInstance<ProductReviews>()
+                    .single()
+                    .reviews
+                    .first { it.author == "Daniel R." }
+            assertEquals(daniel.photos.size, daniel.images.size, "the body names Daniel's photos no pictures")
+            storefront(photos = tagging)
+            daniel.images.forEachIndexed { index, url ->
+                onNode(hasTestTag(drawn(url)) and hasAnyAncestor(hasTestTag(reviewPhotoTag(index))), true)
+                    .assertExists()
+            }
+            onNodeWithContentDescription("Open photo 2 of 2 by Daniel R.").performScrollTo().performClick()
+            onNode(hasTestTag(drawn(daniel.images[1])) and hasAnyAncestor(hasTestTag(PHOTO_VIEWER_TAG)), true)
+                .assertExists()
+            onNodeWithTag(PHOTO_PREVIOUS_TAG).performClick()
+            onNode(hasTestTag(drawn(daniel.images[0])) and hasAnyAncestor(hasTestTag(PHOTO_VIEWER_TAG)), true)
+                .assertExists()
         }
 
     /** Escape closes the viewer, and the arrow keys step through the photos while it is open. */
@@ -295,3 +335,13 @@ class ReviewControlsTest {
         const val FOURS = "$PARTS$REVIEWS&stars=4"
     }
 }
+
+/** The tag [tagging] marks the picture at [url] with. */
+private fun drawn(url: String): String = "drawn:$url"
+
+/** A loader that draws every picture it is asked for as a box tagged with its address. */
+private val tagging =
+    PhotoLoader { url, modifier, _ -> Box(modifier) { Box(Modifier.matchParentSize().testTag(drawn(url))) } }
+
+/** What the storefront draws photos with when the app provides none: nothing loads. */
+private val unloaded = PhotoLoader { _, modifier, placeholder -> Box(modifier) { placeholder() } }

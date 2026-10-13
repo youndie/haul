@@ -348,19 +348,24 @@ search for `sony`).
 - **Preconditions:** a server with object storage (`HAUL_S3_*`), so the sample products' photos are stored; a product
   without one; and a server without object storage (the stand: «no object storage: seed pictures only» in its log).
 - **Steps:**
-  1. Find a sample product on a card, its page, the cart, checkout's «Your order», an order's line and the suggest
-     panel's «Top products».
+  1. Find a sample product on a card, its page, the cart, checkout's «Your order», an order's line, the suggest
+     panel's «Top products», the review and question dialogs, and — once ordered — the account's order card and its
+     history row.
   2. Find a product with no photo, in the same places.
   3. On the server without storage, open the headphones' page and pick the other colour.
   4. Block `/images/` in DevTools and reload.
+  5. At 800, open the headphones' page; widen the window to 1440 and narrow it back.
 - **Expected:**
-  - Step 1: the same photo in each place, served from the store's own origin (`/images/products/<key>`).
+  - Step 1: the same photo in each place, served from the store's own origin (`/images/products/<key>`, SVG) — the
+    product's own kind: the headphones a pair of headphones, the mug a mug, the duvet bedding, not one tinted box for
+    every sample product (B-149).
   - Step 2: the same picture in each place — the seed's flat drawing of the product's category, in the shown SKU's
     colour, over its tile tone — served from the store's own origin (`/images/art/<name>.svg`).
   - Step 3: every product carries its picture; the page's picture changes colour with the SKU.
   - Step 4: the striped placeholder tile, with no caption, and nothing broken — the tile stays while a photo or a
     picture is absent, loading or failed.
-- **Decided in:** B-30, B-108, B-78
+  - Step 5: the picture is sharp at every width — its edges as crisp at ≈768 px as on a card (B-149).
+- **Decided in:** B-30, B-108, B-78, B-149
 - **Coverage:** `PhotoRoutesTest` «a product with a stored photo carries its address and one without carries its picture»;
   `PhotoRoutesTest` «the cart, checkout, an order and the suggest panel carry the photo the card carries»;
   `PhotoRoutesTest` «without object storage every product carries its picture»;
@@ -368,7 +373,13 @@ search for `sony`).
   `PhotoFallbackTest` «a picture sent as SVG replaces the placeholder tile»;
   `PhotoFallbackTest` «a photo that failed to load leaves the placeholder tile»;
   `PhotoFallbackTest` «a photo still loading shows the placeholder tile»;
-  `LinePhotosTest` «cart lines draw their photos»; golden `ProductCard_Photo`; golden `Product_Description`
+  `LinePhotosTest` «cart lines draw their photos»; golden `ProductCard_Photo`; golden `Product_Description`;
+  `PhotoRoutesTest` «a sample product's stored photo is its own picture»;
+  `SeedPhotosTest` «a photo the seed stored before is replaced by today's and one that is not the seed's is kept»;
+  `PhotoRoutesTest` «the review and question dialogs and a review's photos carry pictures»;
+  `LinePhotosTest` «the review and question dialogs draw their product's picture»;
+  `LinePhotosTest` «the account's order cards and history rows draw their pictures»;
+  `PhotoFallbackTest` «a picture whose box grows is decoded again at its new size»
 
 ### TC-PDP-18 — A bar of the histogram lists the reviews of its stars
 
@@ -408,14 +419,15 @@ search for `sony`).
      review's «Helpful».
   3. With a screen reader (or the accessible mirror, `scripts/a11y-check.py`), read the tiles and the viewer.
 - **Expected:**
-  - Step 1: the photo large over the dimmed page, «Daniel R.» and «Photo 1 of 2»; «›» shows the second, «‹» the
-    first; «‹» on the first and «›» on the last are faded and press nothing; the arrows do the same, after a press on
+  - Step 1: each tile and the viewer draw a picture of the headphones, a different one for each photo (B-149); the
+    photo large over the dimmed page, «Daniel R.» and «Photo 1 of 2»; «›» shows the second, «‹» the first; «‹» on the first and «›» on the last are faded and press nothing; the arrows do the same, after a press on
     «›» or «‹» as well (B-144).
   - Step 2: each closes the viewer; the press outside votes nothing; the address does not change and nothing loads.
   - Step 3: «Open photo 1 of 2 by Daniel R.» on a tile; «Close photos», «Previous photo», «Next photo» in the viewer;
     after it closes the mirror holds the page again (B-126).
-- **Decided in:** B-86, B-144
+- **Decided in:** B-86, B-144, B-149
 - **Coverage:** `ReviewControlsTest` «a review's photo opens its viewer which steps through its photos and closes by the cross»;
+  `ReviewControlsTest` «a review's photos are drawn as their pictures on the tiles and in the viewer»;
   `ReviewControlsTest` «escape closes the photo viewer and the arrow keys step through it»;
   `ReviewControlsTest` «after a press on an arrow the arrow keys and escape still work»;
   `ReviewControlsTest` «on a phone after a press on an arrow the arrow keys and escape still work»;

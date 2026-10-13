@@ -1,6 +1,7 @@
 package io.github.youndie.haul.feature.catalog
 
 import io.github.youndie.haul.db.Databases
+import io.github.youndie.haul.feature.account.AccountPaths
 import io.github.youndie.haul.feature.cart.CartPaths
 import io.github.youndie.haul.feature.catalog.screen.productLink
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
@@ -24,6 +25,7 @@ import io.github.youndie.haul.testing.liveTree
 import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.testing.tree
+import io.github.youndie.haul.ui.AccountBody
 import io.github.youndie.haul.ui.CampaignHero
 import io.github.youndie.haul.ui.CartLine
 import io.github.youndie.haul.ui.CategoryTile
@@ -32,8 +34,12 @@ import io.github.youndie.haul.ui.OrderBody
 import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductDetails
 import io.github.youndie.haul.ui.ProductGrid
+import io.github.youndie.haul.ui.ProductQuestions
+import io.github.youndie.haul.ui.ProductReviews
 import io.github.youndie.haul.ui.PromoBanner
+import io.github.youndie.haul.ui.QuestionForm
 import io.github.youndie.haul.ui.ReturnForm
+import io.github.youndie.haul.ui.ReviewForm
 import io.github.youndie.haul.ui.SearchSuggestPanel
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.decodeKompotComponent
@@ -157,6 +163,10 @@ class PhotoRoutesTest {
                 val returned = form.lines.firstOrNull { it.title == item.title }
                 assertNotNull(returned, "returns: ${form.lines}")
                 assertEquals(url, returned.image, "the return dialog's line")
+                // B-149: the account's history draws the order's lines with the photos its page draws.
+                val history = tree(AccountPaths.ORDERS, maya).only<AccountBody>().history
+                val row = assertNotNull(history?.rows?.firstOrNull { it.id == orderId }, "the history: $history")
+                assertEquals(items.map { it.image.orEmpty() }.sorted(), row.images.map { it.orEmpty() }.sorted())
             }
         }
 
@@ -175,11 +185,75 @@ class PhotoRoutesTest {
             val url = assertNotNull(tree("/ui/p/$sony").only<ProductDetails>().photo)
             val response = get(url)
             assertEquals(HttpStatusCode.OK, response.status)
-            assertEquals(ContentType.Image.PNG, response.contentType()?.withoutParameters())
+            assertEquals(ContentType.Image.SVG, response.contentType()?.withoutParameters())
             assertEquals("public, max-age=31536000, immutable", response.headers[HttpHeaders.CacheControl])
-            val tone = SampleCatalog.products.single { it.id == sony }.tone
-            assertContentEquals(SeedPhotos.draw(tone), response.bodyAsBytes())
+            // A stored SVG is a document of the store's origin as a picture is: it may run and load nothing.
+            assertEquals("default-src 'none'", response.headers["Content-Security-Policy"])
+            val product = SampleCatalog.products.single { it.id == sony }
+            assertContentEquals(SeedPhotos.draw(product).encodeToByteArray(), response.bodyAsBytes())
         }
+
+    /**
+     * B-149: the sample products' stored photos were one tinted box for all fifteen — the headphones, the earbuds,
+     * the mug and the duvet alike. Each is its own picture now: what the server draws for its page without object
+     * storage, its category's object in its first SKU's colour.
+     */
+    @Test
+    fun `a sample product's stored photo is its own picture`() {
+        val ids = SampleCatalog.products.map { it.id }
+        val stored = mutableMapOf<String, String>()
+        haulTest(Photographed.dataSource, Photographed.store) {
+            ids.forEach { id ->
+                val url = assertNotNull(tree("/ui/p/$id").only<ProductDetails>().photo, id)
+                assertTrue(url.startsWith("/images/products/$id/"), "$id: $url")
+                stored[id] = get(url).bodyAsText()
+            }
+        }
+        haulTest(Photographed.dataSource, photoStore = null) {
+            ids.forEach { id ->
+                val url = assertNotNull(tree("/ui/p/$id").only<ProductDetails>().photo, id)
+                assertTrue(url.startsWith("/images/art/"), "$id: $url")
+                assertEquals(get(url).bodyAsText(), stored[id], "$id: the stored photo is not its picture")
+            }
+        }
+        // Positive control: the pictures compared are not one picture either.
+        val mug = stored.getValue(SampleCatalog.STONEWARE_MUG)
+        val duvet = stored.getValue(SampleCatalog.DUVET_COVER)
+        assertEquals(3, setOf(stored.getValue(sony), mug, duvet).size, "the headphones, the mug and the duvet alike")
+    }
+
+    /**
+     * B-149: the review and question dialogs drew their product as a plain tone and a review's photos were tone
+     * tiles — their wire named no picture. The dialogs carry the photo the product's page draws, and each of a
+     * review's photos a picture of the product of its own, served as the seed's pictures are.
+     */
+    @Test
+    fun `the review and question dialogs and a review's photos carry pictures`() {
+        val maya = ShildikHarness.accessToken(ShildikHarness.person("Maya Kowalski", SampleCustomers.MAYA))
+        haulTest(Photographed.dataSource, Photographed.store, signIn = ShildikHarness.signIn) {
+            val photo = assertNotNull(tree("/ui/p/$sony").only<ProductDetails>().photo)
+            val reviews = tree("/ui/p/$sony?tab=reviews", maya).only<ProductReviews>()
+            val review = assertNotNull((reviews.action as? PresentAction)?.content as? ReviewForm, "${reviews.action}")
+            assertEquals(photo, review.product.image, "the review dialog's product")
+            val questions = tree("/ui/p/$sony?tab=questions", maya).only<ProductQuestions>()
+            val question = assertNotNull((questions.action as? PresentAction)?.content as? QuestionForm)
+            assertEquals(photo, question.product.image, "the question dialog's product")
+
+            val shown = reviews.reviews.filter { it.photos.isNotEmpty() }
+            // Positive control: a review with photos is listed (Daniel R.'s two, research §6).
+            assertTrue(shown.isNotEmpty(), "no review with photos")
+            shown.forEach { listed ->
+                assertEquals(listed.photos.size, listed.images.size, "${listed.author}: ${listed.images}")
+                assertEquals(listed.images.size, listed.images.toSet().size, "${listed.author}: one picture twice")
+                listed.images.forEach { url ->
+                    assertTrue(url.startsWith("/images/art/p_headphones_"), url)
+                    val response = get(url)
+                    assertEquals(HttpStatusCode.OK, response.status, url)
+                    assertEquals(SeedArt.svg(url.substringAfterLast('/')), response.bodyAsText(), url)
+                }
+            }
+        }
+    }
 
     /**
      * The route is public and the bucket is not: an object outside the product photos is not served,

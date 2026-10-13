@@ -803,9 +803,9 @@ with «All» says so; the bar drawn pressed, or «All», lists every review agai
 and is no press. The rating, the caption and the bars stay the product's whatever is listed; the viewer's own review
 leads the list only among its stars. A review's photo opens the review's photos over the page, one at a time, «‹» and
 «›» or the arrow keys between them, closed by «×», Escape or a press outside the photo — drawn in the storefront's
-own layer (`SheetOverPage`), for the reason B-126 found below, and each press named. The photos are still their
-placeholders' tones (D8: B-78 drew pictures for the products, the categories and the sale, not for shoppers'
-photos), so the viewer shows the tone large.
+own layer (`SheetOverPage`), for the reason B-126 found below, and each press named. The seed has no shoppers'
+photography: since B-149 each photo is a picture of the reviewed product over its placeholder's tone (D8), small on
+its tile and large in the viewer.
 
 ### D3. PostgreSQL; the access layer is chosen at scaffold
 
@@ -1786,7 +1786,8 @@ when the server has an S3-compatible bucket (`HAUL_S3_ENDPOINT`, `_BUCKET`, `_AC
 needs no CORS — with an immutable cache header, because the key holds the content's hash. No endpoint, no
 photos: the server starts as before and every tile is the placeholder. The client draws a photo over the
 placeholder tile, which stays while the photo is absent, loading or failed (Coil 3 in the bundle). The
-seed draws photos for the sample products of §6 in code; real product photography is the owner's
+seed draws photos for the sample products of §6 in code (since B-149 each is the product's own picture, below);
+real product photography is the owner's
 question (B-30 findings), and until it is answered the generated catalog keeps its tiles. The fixtures
 name no photo, so every artboard's parity is what it was. Since B-108 every tile of a product carries the same
 address: a cart line, checkout's «Your order», an order's line and the suggest panel's «Top products»
@@ -1825,6 +1826,26 @@ from what names it, and the photo route serves it under `/images/art/<name>.svg`
   `composeApp/src/desktopTest/resources/art` at once (`ArtLoader`), and `ArtFixturesTest` holds that directory to what
   the server draws under each name, so a golden shows what a shopper gets. The artboards draw a striped tile where
   the pictures stand, so every one of them with a tile left the parity comparison in B-85 (§1.6).
+
+**Decided in B-149: every tile of a product draws its picture, and the sample products their own.** The v0.6.0
+run found three gaps in B-78's pictures:
+
+- **The sample products' stored photos** were one tinted box for all fifteen (B-30's still life), so with object
+  storage the headphones, the earbuds, the mug and the duvet looked alike. `SeedPhotos` stores each product's own
+  picture now — `SeedArt`'s drawing of its category's object in its first SKU's colour — as SVG under
+  `products/<id>/<hash>.svg`, which the photo route serves as it serves a picture (`Content-Security-Policy:
+  default-src 'none'`). A store seeded before keeps nothing stale: a key the seed stored that is not today's is
+  replaced on the next start, and a key that is not the seed's is left alone.
+- **The tiles whose wire named no picture** — the review and question dialogs' product (`FormProduct.image`), the
+  account's order cards and history rows (`ActiveOrder.images`, `HistoryRow.images`, one per line, as the order's
+  page draws them) and a review's photos (`Review.images`, one per tone: the reviewed product's object, plain, over
+  the photo's tone, in another of the three compositions than the product's own picture, so each photo differs).
+- **Art drawn large was soft**: the client asked Coil for a picture without a size, and Coil's SVG decoder then
+  rasterises at the SVG's own size — 240 px — which the product page scaled up to ≈768 px at 800. The loader asks for
+  the size of the box the picture is drawn in, in pixels, and again — keeping the picture on screen until the
+  sharper one is in — whenever the box outgrows it (a window widened); never for a smaller one. The pictures are
+  still asked for after the first frame; their bytes do not change, only the size they are rasterised at, and
+  neither the first frame nor the pictures' frame moved (D9, «Measured in B-149»).
 
 ### D9. No server rendering, no SEO
 
@@ -2233,6 +2254,39 @@ or ten shots in a fallback each, the faces from 1.5–1.8 s after the swap.
   the first GL call follows its last byte by 0.3 s. Lever, not measured: a lower `fetchpriority` on the preloads might
   let the module through first and compile it while the fonts cross — a few hundred milliseconds at most, since it
   moves the bytes and not their sum.
+
+#### Measured in B-149
+
+**What changed.** The client asks for each picture at the size of the box it is drawn in, and again when the box
+outgrows it, instead of with no size — which Coil's SVG decoder rasterised at the SVG's own 240 px (D8, «Decided in
+B-149»). Nothing before the first frame changes; the question was only whether the first frame or the pictures moved.
+
+**How.** On 2026-10-13, B-34's `image` arm with B-78's relay (`ART=pass`, `STOP_AFTER=8`), `PROFILES=none,fast4g`,
+three rounds per run (the blocked-wasm control first), two passes with the arms interleaved — **before**, the image of
+B-150's branch (`haul/server:b150`, B-150's font preload included), **after**, this branch's (`haul/server:b149`,
+rebased on B-145 and B-146) — each beside a seeded PostgreSQL, a guest on Home, 1440 × 900 at 1×, Chrome for Testing
+149.0.7827.55, on the shared Linux build machine at a 1-minute load average of 2.0–6.5. A first campaign against
+B-145's image read +0.35 s on Fast 4G: that image predates B-150, whose preloaded fonts share the link before the
+first frame (B-150's own +0.5 s, «Measured in B-150»), so it was no «before» for this item and is not reported.
+
+**Bytes.** The app's `.wasm` brotli 1,266 → 1,271 KiB (B-145 and B-146 in it as well); 4,373 → 4,377 KiB transferred
+on Home; the sixteen pictures 24,065 bytes in both — the same SVGs.
+
+| Arm | Profile | First frame | Pictures frame |
+|---|---|---:|---:|
+| before | none | 625 (558–792) | 999 (939–1,264) |
+| after | none | 595 (533–1,028) | 964 (880–1,407) |
+| before | Fast 4G | 5,228 (5,182–5,561) | 6,334 (6,267–6,695) |
+| after | Fast 4G | 5,198 (5,147–5,273) | 6,270 (6,246–6,427) |
+
+Median (min–max) of six runs each, milliseconds. The raw values, pass 1 rounds 1–3 then pass 2 rounds 1–3, first
+frame | pictures frame: before none 792 624 641 558 601 626 | 1264 1051 1023 939 974 972; after none 1028 569 620 640
+533 534 | 1407 1010 958 970 880 894; before Fast 4G 5561 5275 5226 5182 5230 5211 | 6695 6353 6315 6267 6313 6368;
+after Fast 4G 5273 5213 5175 5147 5235 5182 | 6427 6286 6246 6253 6291 6252.
+
+**What it says.** Neither the first frame nor the pictures' frame moves beyond the machine's spread: the ranges
+overlap on both profiles. Rasterising at the box's size — up to ≈768 px on the product page instead of 240 — costs
+nothing measurable on Home, whose sixteen pictures are drawn at card and tile sizes.
 
 ### D10. Documentation in English
 

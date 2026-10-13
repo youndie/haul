@@ -461,7 +461,8 @@
                                         "product": {
                                             "name": "Merino Wool Crewneck Sweater, Unisex",
                                             "detail": "Moss · M",
-                                            "tone": "#FFE5DD"
+                                            "tone": "#FFE5DD",
+                                            "image": "/images/art/p_fashion_0_plain_ffe5dd.742448d5d2.svg"
                                         },
                                         "ratingLabel": "Your rating",
                                         "titleLabel": "Title",
@@ -506,7 +507,8 @@
                                         "product": {
                                             "name": "Vitamin C Brightening Serum, 30 ml",
                                             "detail": "30 ml",
-                                            "tone": "#F1E4F5"
+                                            "tone": "#F1E4F5",
+                                            "image": "/images/art/p_beauty_2_plain_f1e4f5.b177bd64fd.svg"
                                         },
                                         "ratingLabel": "Your rating",
                                         "titleLabel": "Title",

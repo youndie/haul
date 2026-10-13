@@ -43,16 +43,15 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (4)
+## Open (3)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-149](docs/backlog/B-149-pictures-everywhere-a-product-is-shown.md) `[ ]` | fix: every product tile draws its picture, and the sample products their own | P2 | M | - |
 | [B-143](docs/backlog/B-143-the-product-photo-does-not-move-on-arrival.md) `[ ]` | fix: the product photo stands where its placeholder stood | P3 | XS | - |
 | [B-147](docs/backlog/B-147-sign-in-presses-offline-say-so.md) `[ ]` | fix: a guest's sign-in presses offline say the store could not be reached | P3 | XS | - |
 | [B-152](docs/backlog/B-152-small-lines-from-the-v060-run.md) `[ ]` | fix: the small lines the v0.6.0 run noticed | P3 | S | - |
 
-## Closed (148)
+## Closed (149)
 
 **Skeleton**
 
@@ -235,6 +234,7 @@ A stage is a field on the item, not a directory.
 - [B-145](docs/backlog/B-145-a-failed-tick-in-the-filter-sheet-says-so.md) `[x]` - fix: a facet ticked in the filter sheet that fails says so over the sheet
 - [B-146](docs/backlog/B-146-a-trial-over-a-page-with-no-tree-asks-the-header.md) `[x]` - fix: a Plus trial started over a page with no tree redraws the header
 - [B-148](docs/backlog/B-148-katcher-files-what-is-broken.md) `[x]` - ops: katcher and the error log get what is broken, not a client's malformed link or an outage per page
+- [B-149](docs/backlog/B-149-pictures-everywhere-a-product-is-shown.md) `[x]` - fix: every product tile draws its picture, and the sample products their own
 - [B-150](docs/backlog/B-150-the-display-face-is-there-at-the-first-frame.md) `[x]` - fix: the display face is there at the store's first frame
 - [B-151](docs/backlog/B-151-selection-controls-say-their-state.md) `[x]` - fix: selection controls say their state, dialogs hide the page beneath, and the trial dialog closes on Escape
 

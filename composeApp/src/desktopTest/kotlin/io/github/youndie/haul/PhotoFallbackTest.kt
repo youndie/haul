@@ -1,9 +1,15 @@
 package io.github.youndie.haul
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithTag
@@ -137,6 +143,56 @@ class PhotoFallbackTest {
             waitUntil(timeoutMillis = 5_000) { onAllNodesWithTagCount(PHOTO_TAG) == 1 }
             onNodeWithTag(PLACEHOLDER_TAG).assertDoesNotExist()
             assertEquals(listOf("http://haul.test$picture"), requests)
+        }
+
+    /**
+     * B-149: a picture is SVG, rasterised once at the size it is asked for. Asked for with no size, it was decoded at
+     * its own (this one's 24 px, the seed's 240) and drawn scaled up — the product page's picture was soft at 768 px.
+     * It is decoded at its box's size, again once the box outgrows that, and never for a smaller one.
+     */
+    @Test
+    fun `a picture whose box grows is decoded again at its new size`() =
+        runComposeUiTest {
+            val widths = CopyOnWriteArrayList<Int>()
+            val photos =
+                coilPhotoLoader(
+                    HttpClient(
+                        MockEngine {
+                            respond(
+                                SVG,
+                                HttpStatusCode.OK,
+                                headersOf(HttpHeaders.ContentType, "image/svg+xml"),
+                            )
+                        },
+                    ),
+                    origin = "http://haul.test",
+                    events =
+                        object : EventListener() {
+                            override fun onSuccess(
+                                request: ImageRequest,
+                                result: SuccessResult,
+                            ) {
+                                widths += result.image.width
+                            }
+                        },
+                )
+            var side by mutableStateOf(60.dp)
+            var density = 1f
+            setContent {
+                density = LocalDensity.current.density
+                Box(Modifier.size(side)) { photos.Photo("/images/art/p.svg", Modifier.fillMaxSize()) {} }
+            }
+            waitUntil("the picture decoded", timeoutMillis = 10_000) { widths.isNotEmpty() }
+            assertTrue(widths.single() >= 60 * density, "decoded at ${widths.single()} px for a 60 dp box")
+
+            side = 300.dp
+            waitUntil("the picture decoded again", timeoutMillis = 10_000) { widths.size == 2 }
+            assertTrue(widths.last() >= 300 * density, "decoded at ${widths.last()} px for a 300 dp box")
+            onNodeWithTag(PHOTO_TAG).assertExists()
+
+            side = 120.dp
+            waitForIdle()
+            assertEquals(2, widths.size, "a smaller box asked again: $widths")
         }
 
     @Test

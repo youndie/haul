@@ -188,8 +188,9 @@ public data class HistogramBar(
 
 /**
  * A review. [tone] is the avatar's tile tone, [photos] the tones of its photo placeholders (research
- * D8) — a press on one opens the review's photos over the page, the client's own viewer (B-86); [helpful] is «48
- * people found this helpful», the stored count, absent while nobody has.
+ * D8) and [images] the pictures drawn over them, one per tone (B-149) — a press on one opens the review's photos over
+ * the page, the client's own viewer (B-86); [helpful] is «48 people found this helpful», the stored count, absent
+ * while nobody has.
  *
  * «Helpful» ([helpfulLabel]) carries, for a customer, [helpfulCommand] — their vote, or taking it back
  * (B-43) — and for a guest [helpfulAction], the way to sign in. [helpfulVoted] is whether the customer's vote
@@ -207,6 +208,7 @@ public data class Review(
     val title: String,
     val text: String,
     val photos: List<String> = emptyList(),
+    val images: List<String> = emptyList(),
     val helpful: String? = null,
     val helpfulLabel: String = "Helpful",
     val helpfulAction: @Polymorphic KompotAction? = null,
@@ -276,12 +278,16 @@ public data class ProductQuestions(
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 
-/** The product a dialog is about: its name, the chosen SKU's options («Midnight Black · Headphones only»), its tile. */
+/**
+ * The product a dialog is about: its name, the chosen SKU's options («Midnight Black · Headphones only»), its tile
+ * in [tone] and, over it, its photo or picture at [image] — the address its card and its page draw (B-149).
+ */
 @Serializable
 public data class FormProduct(
     val name: String,
     val detail: String,
     val tone: String,
+    val image: String? = null,
 )
 
 /**

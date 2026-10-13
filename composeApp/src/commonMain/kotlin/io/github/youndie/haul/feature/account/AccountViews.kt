@@ -57,6 +57,7 @@ import io.github.youndie.haul.ui.HistoryFilter
 import io.github.youndie.haul.ui.HistoryRow
 import io.github.youndie.haul.ui.HistoryStatusKind
 import io.github.youndie.haul.ui.Icon
+import io.github.youndie.haul.ui.LineTile
 import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.OrderHistory
 import io.github.youndie.haul.ui.Text
@@ -536,7 +537,7 @@ private fun Card(order: ActiveOrder) {
                 Text(pickup.code, HaulType.display(44f, 800, letterSpacing = 0.04f), softWrap = false)
             }
         } else {
-            Tones(order.tones, if (compact) 56.dp else 64.dp, 14.dp, 8.dp, modifier)
+            Tones(order.tones, order.images, if (compact) 56.dp else 64.dp, 14.dp, 8.dp, modifier)
         }
     }
     val details: @Composable () -> Unit = {
@@ -573,17 +574,21 @@ private fun Card(order: ActiveOrder) {
     }
 }
 
-/** A line's tiles: one square of its product's tone per line. */
+/**
+ * An order's tiles: one square per line, its product's photo or picture ([images], B-149) over its tone, as the
+ * order's page draws its lines.
+ */
 @Composable
 private fun Tones(
     tones: List<String>,
+    images: List<String?>,
     size: Dp,
     radius: Dp,
     gap: Dp,
     modifier: Modifier = Modifier,
 ) {
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(gap)) {
-        tones.forEach { Box(Modifier.size(size).background(toneColor(it), RoundedCornerShape(radius))) }
+        tones.forEachIndexed { index, tone -> LineTile(images.getOrNull(index), tone, radius, Modifier.size(size)) }
     }
 }
 
@@ -762,7 +767,7 @@ private fun WideRow(
     ) {
         Text(row.date, normal(15f).copy(color = HaulColors.outline), Modifier.width(100.dp), softWrap = false)
         Text(row.number, HaulType.label(13f, 500, 0f), Modifier.width(150.dp), softWrap = false)
-        Tones(row.tones, 44.dp, 10.dp, 6.dp, Modifier.weight(1f))
+        Tones(row.tones, row.images, 44.dp, 10.dp, 6.dp, Modifier.weight(1f))
         Text(row.total, normal(15f, 600), Modifier.width(110.dp), softWrap = false)
         Box(Modifier.width(150.dp)) { Status(row) }
         Box(Modifier.width(80.dp), contentAlignment = Alignment.CenterEnd) { Action(row, onReorder) }
@@ -805,7 +810,7 @@ private fun PhoneRow(
                 )
             }
             Status(row)
-            Tones(row.tones, 44.dp, 10.dp, 6.dp)
+            Tones(row.tones, row.images, 44.dp, 10.dp, 6.dp)
             Action(row, onReorder)
             Hairline()
         },

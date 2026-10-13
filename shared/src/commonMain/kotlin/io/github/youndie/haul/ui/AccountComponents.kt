@@ -117,8 +117,9 @@ public data class ActiveOrders(
 /**
  * An order on its way, as a card: the [meta] line («#HL-48211 · Placed Oct 5 · $512.00»), the [title] with
  * its [accent] («Arriving *tomorrow*, 15:00 – 18:00») and the [lead] under it; then either its lines'
- * tiles ([tones]) and its [steps], or — waiting at a point — its [pickup] code; and [details], the way to
- * the order's page.
+ * tiles ([tones], with each line's photo or picture over its tile at [images], one per tone and `null` where the
+ * product is not sold any more — B-149) and its [steps], or — waiting at a point — its [pickup] code; and
+ * [details], the way to the order's page.
  */
 @Serializable
 public data class ActiveOrder(
@@ -128,6 +129,7 @@ public data class ActiveOrder(
     val accent: String? = null,
     val lead: String? = null,
     val tones: List<String> = emptyList(),
+    val images: List<String?> = emptyList(),
     val steps: OrderSteps? = null,
     val pickup: AccountPickup? = null,
     val details: Link,
@@ -185,9 +187,10 @@ public enum class HistoryStatusKind {
 }
 
 /**
- * One order in the history: the day it was placed ([date]), its [number], one tile per line ([tones]), the
- * [total], its [status] in a chip of [statusKind], and the way on — [actionLabel] «Track» or «Details»
- * going to the order's page, or «Reorder», a `POST` to [reorderUrl] answered with `navigate` to the cart.
+ * One order in the history: the day it was placed ([date]), its [number], one tile per line ([tones], each
+ * with its line's photo or picture at [images], as on an order card — B-149), the [total], its [status] in a chip
+ * of [statusKind], and the way on — [actionLabel] «Track» or «Details» going to the order's page, or «Reorder», a
+ * `POST` to [reorderUrl] answered with `navigate` to the cart.
  * [action] is the order's page, for every row: a press anywhere on the row but «Reorder» opens it (B-74).
  */
 @Serializable
@@ -196,6 +199,7 @@ public data class HistoryRow(
     val date: String,
     val number: String,
     val tones: List<String>,
+    val images: List<String?> = emptyList(),
     val total: String,
     val status: String,
     val statusKind: HistoryStatusKind,
