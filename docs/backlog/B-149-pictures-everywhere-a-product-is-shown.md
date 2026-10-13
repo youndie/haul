@@ -1,7 +1,7 @@
 ---
 id: B-149
 title: "fix: every product tile draws its picture, and the sample products their own"
-status: open
+status: wip
 priority: P2
 size: M
 stage: stage-12-qa-run

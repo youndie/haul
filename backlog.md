@@ -47,7 +47,7 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-149](docs/backlog/B-149-pictures-everywhere-a-product-is-shown.md) `[ ]` | fix: every product tile draws its picture, and the sample products their own | P2 | M | - |
+| [B-149](docs/backlog/B-149-pictures-everywhere-a-product-is-shown.md) `[~]` | fix: every product tile draws its picture, and the sample products their own | P2 | M | - |
 | [B-143](docs/backlog/B-143-the-product-photo-does-not-move-on-arrival.md) `[ ]` | fix: the product photo stands where its placeholder stood | P3 | XS | - |
 | [B-147](docs/backlog/B-147-sign-in-presses-offline-say-so.md) `[ ]` | fix: a guest's sign-in presses offline say the store could not be reached | P3 | XS | - |
 | [B-152](docs/backlog/B-152-small-lines-from-the-v060-run.md) `[ ]` | fix: the small lines the v0.6.0 run noticed | P3 | S | - |
