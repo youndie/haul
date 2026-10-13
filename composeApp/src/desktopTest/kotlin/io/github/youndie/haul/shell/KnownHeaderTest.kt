@@ -15,8 +15,10 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import io.github.youndie.haul.CANVAS_NOW
+import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.FakeHistory
 import io.github.youndie.haul.FixtureFonts
+import io.github.youndie.haul.feature.home.PLUS_START_TAG
 import io.github.youndie.haul.feature.identity.SessionControls
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.theme.HaulTheme
@@ -24,13 +26,21 @@ import io.github.youndie.haul.ui.CART_BUTTON_TAG
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.LINK_MENU_TAG
 import io.github.youndie.haul.ui.Link
+import io.github.youndie.haul.ui.PLUS_PILL_TAG
+import io.github.youndie.haul.ui.PlusBenefit
+import io.github.youndie.haul.ui.PlusTrialDialog
 import io.github.youndie.haul.ui.SCOPE_PICKER_TAG
 import io.github.youndie.haul.ui.SEARCH_FIELD_TAG
 import io.github.youndie.haul.ui.SIGN_OUT_LABEL
 import io.github.youndie.haul.ui.SearchScope
+import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.standard.CloseAction
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
+import io.github.youndie.kompot.standard.PresentAction
+import io.github.youndie.kompot.standard.RefreshAction
+import io.github.youndie.kompot.standard.SequenceAction
 import io.github.youndie.kompot.standard.TextComponent
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
@@ -217,6 +227,74 @@ class KnownHeaderTest {
         assertEquals(listOf("/deals", "/p/p-does-not-exist"), history.entries)
     }
 
+    /**
+     * B-146: Maya, not a member, on a missing product starts the Plus trial from the header's pill. The trial's
+     * `refresh` drew the page again but asked for no header, so the pill stayed the offer and a second «Start
+     * trial» was refused `409`. The page drawn again asks for its header anew: the pill is the member's, to her
+     * account, and offers no second trial.
+     */
+    @Test
+    fun `a trial started over a page with no tree draws the member's header`() =
+        trialOverMissingProduct { SequenceAction(listOf(CloseAction, RefreshAction)) }
+
+    /** The same when another tab started it first: the refusal draws the page again, and its header the member's. */
+    @Test
+    fun `a trial refused over a page with no tree draws the member's header`() =
+        trialOverMissingProduct {
+            throw CommandRefused(409, ErrorCode.AlreadyMember, "You are a Haul Plus member already")
+        }
+
+    /** Maya on a missing product, her header asked for; «HAUL PLUS», «Start trial», [answer] as the trial's. */
+    private fun trialOverMissingProduct(answer: () -> KompotAction) =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            session.signedIn = true
+            val trials = CopyOnWriteArrayList<TreeCommand>()
+            val commands =
+                TreeCommands { command ->
+                    trials += command
+                    answer()
+                }
+            val history = FakeHistory("/p/p-does-not-exist")
+            storefront(history, commands) { path ->
+                when (path) {
+                    "/ui/p/p-does-not-exist" -> {
+                        notFound("product_not_found")
+                    }
+
+                    // A member once the trial was asked for, whatever it was answered.
+                    HEADER_TREE -> {
+                        tree(
+                            if (trials.isEmpty()) MAYA.copy(plus = PresentAction(TRIAL, "dialog")) else MAYA,
+                        )
+                    }
+
+                    else -> {
+                        destination(path, MAYA)
+                    }
+                }
+            }
+            waitUntil(timeoutMillis = 5_000) { exists(hasText("Maya")) }
+
+            press(hasTestTag(PLUS_PILL_TAG) and hasClickAction())
+            press(hasTestTag(PLUS_START_TAG))
+            waitUntil(timeoutMillis = 5_000) { requests.count { it == HEADER_TREE } == 2 }
+            // The pill reads «HAUL PLUS» either way: what it does is the answer's, drawn once the shell is idle.
+            waitForIdle()
+            waitUntil(timeoutMillis = 5_000) { !exists(hasTestTag(PLUS_START_TAG)) }
+            assertEquals(
+                2,
+                requests.count { it == "/ui/p/p-does-not-exist" },
+                "the trial's refresh drew the page again",
+            )
+
+            press(hasTestTag(PLUS_PILL_TAG) and hasClickAction())
+            waitUntil(timeoutMillis = 5_000) { exists(hasText(pageAt("/account"))) }
+            assertEquals(false, exists(hasTestTag(PLUS_START_TAG)), "a member's pill offered the trial again")
+            assertEquals(listOf<TreeCommand>(TreeCommand.StartTrial(TRIAL.url)), trials.toList())
+            assertEquals(listOf("/p/p-does-not-exist", "/account"), history.entries)
+            assertEquals(2, requests.count { it == HEADER_TREE }, "the member's header was asked for more than once")
+        }
+
     private fun ComposeUiTest.press(matcher: SemanticsMatcher) {
         waitUntil(timeoutMillis = 5_000) { exists(matcher) }
         onAllNodes(matcher)[0].performClick()
@@ -233,6 +311,7 @@ class KnownHeaderTest {
 
     private fun ComposeUiTest.storefront(
         history: FakeHistory,
+        treeCommands: TreeCommands? = null,
         answer: suspend (path: String) -> HaulResponse,
     ) {
         val transport =
@@ -242,7 +321,14 @@ class KnownHeaderTest {
             }
         setContent {
             HaulTheme(FixtureFonts.fonts, compact = false) {
-                Storefront(transport, history, signIn = { signIns += 1 }, clock = FixedClock, session = session)
+                Storefront(
+                    transport,
+                    history,
+                    signIn = { signIns += 1 },
+                    clock = FixedClock,
+                    treeCommands = treeCommands,
+                    session = session,
+                )
             }
         }
     }
@@ -307,6 +393,20 @@ class KnownHeaderTest {
                 orders = NavigateAction("/account/orders"),
                 saved = NavigateAction("/account/saved"),
                 plus = NavigateAction("/account"),
+            )
+
+        /** The trial's dialog, which a non-member's pill presents. */
+        val TRIAL =
+            PlusTrialDialog(
+                id = "plus-trial",
+                eyebrow = "Haul Plus",
+                title = "30 days free",
+                benefits = listOf(PlusBenefit("Free delivery on every order", "No minimum basket")),
+                terms = "30 days free, then $4.99/month",
+                startLabel = "Start trial",
+                dismissLabel = "Not now",
+                url = "/api/v1/me/plus/trial",
+                close = CloseAction,
             )
 
         fun pageAt(address: String) = "The page at $address"

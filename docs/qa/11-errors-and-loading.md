@@ -168,17 +168,21 @@ the server's own: `503`).
   - Step 1: each goes where it would from any page; before any tree has been drawn a category word opens the
     catalog's root `/c`. After a tree, the last tree's links. The account is the one exception: while the header
     alone has not arrived (offline) its slot is a placeholder that presses nothing (B-105).
-  - Step 2: the trial's dialog over the page; its answer draws the page again.
+  - Step 2: the trial's dialog over the page; its answer — started, or refused as a member already — draws the
+    page again and asks for its header anew: the pill is the membership's mark, to the account, and offers no
+    second trial (B-146).
   - Step 3: the menu opens and its entries lead somewhere; its account row is the sign-in or the account.
   - Step 4: the guest's header, asked anew — not the customer's name left behind.
-- **Decided in:** B-67, B-73, B-105
+- **Decided in:** B-67, B-73, B-105, B-146
 - **Coverage:** `ShellHeaderTest` «the header over a page that did not load leads somewhere»;
   `ShellHeaderTest` «the header over a page still loading leads somewhere»;
   `ShellHeaderTest` «after a tree the header of a failed page keeps the tree's links»;
   `ShellHeaderTest` «a non-member's haul plus over a page the shell draws presents the trial»;
   `ShellHeaderTest` «on a phone the menu over a page that did not load opens and leads somewhere»;
   `KnownHeaderTest` «a sign-out over a page with no tree draws the guest's header»;
-  `KnownHeaderTest` «a page with no tree offers the server's search scopes»
+  `KnownHeaderTest` «a page with no tree offers the server's search scopes»;
+  `KnownHeaderTest` «a trial started over a page with no tree draws the member's header»;
+  `KnownHeaderTest` «a trial refused over a page with no tree draws the member's header»
 
 ### TC-ERR-08 — A command refused says why in the server's words; one unanswered offers Retry where it is safe
 

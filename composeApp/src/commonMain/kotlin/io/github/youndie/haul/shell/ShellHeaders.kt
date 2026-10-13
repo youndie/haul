@@ -17,7 +17,9 @@ import kotlinx.coroutines.launch
  * the server draws one for them, it is the client's own: [SHELL_HEADER] for a guest, [CUSTOMER_SHELL_HEADER] for
  * a customer. Who is looking is the session's (`SessionControls.signedIn`), read when a header is drawn and when
  * one is asked for, and followed as it changes (`SessionControls.signedInChanges`, B-130): a sign-in the provider
- * would not renew leaves the customer's header as a sign-out does.
+ * would not renew leaves the customer's header as a sign-out does. What the shopper is changes too without a
+ * sign-in or a sign-out — a Plus trial started makes a member — and the server says so with a `refresh` of the
+ * page, which a page with no tree follows by asking for its header again ([redrawn], B-146).
  */
 internal class ShellHeaders {
     private var last by mutableStateOf<Drawn?>(null)
@@ -30,8 +32,18 @@ internal class ShellHeaders {
         last = Drawn(header, signedIn)
     }
 
-    /** Whether the server has drawn a header for the shopper ([signedIn] or not) looking now. */
-    fun knows(signedIn: Boolean): Boolean = last?.signedIn == signedIn
+    /**
+     * The page is to be drawn again (a `refresh`, B-146): what the server drew may no longer be so — a trial that
+     * made the shopper a member — so the header kept is no longer known and a page with no tree asks for it anew.
+     * It stays drawn until the answer, rather than giving way to the client's own for a moment; an answer that
+     * does not arrive leaves it, and the next visit asks again.
+     */
+    fun redrawn() {
+        last = last?.let { Drawn(it.header, it.signedIn, current = false) }
+    }
+
+    /** Whether the server has drawn a header for the shopper ([signedIn] or not) looking now, and it is current. */
+    fun knows(signedIn: Boolean): Boolean = last?.let { it.current && it.signedIn == signedIn } == true
 
     /** The header for the shopper looking now: the server's last for them, or the client's own. */
     fun of(signedIn: Boolean): HaulHeader =
@@ -40,6 +52,7 @@ internal class ShellHeaders {
     private class Drawn(
         val header: HaulHeader,
         val signedIn: Boolean,
+        val current: Boolean = true,
     )
 }
 
