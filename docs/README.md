@@ -1,31 +1,17 @@
 # docs — Haul
 
-Haul is an open, end-to-end marketplace storefront in Kotlin. The documentation is layered; links
-run top to bottom.
+Haul is an open, end-to-end marketplace storefront in Kotlin. Its documentation is three parts, and the
+code is the reference for everything they do not say.
 
-```
-[ Research (why the architecture is what it is) ]
-                     │
-[ Feature (business + BDD) ] ──▶ [ Client screen ]
-                                        │
-                                        ▼
-                              [ API endpoint (contract, auth tier) ]
-                                        │
-                                        ▼
-                              [ Service (ownership, deploy) ]
-```
+| Part | Where | Answers |
+|---|---|---|
+| Research | [`research/`](research/research-architecture.md) | *why* it is built this way: every decision with its reason, every measurement with its method |
+| Backlog | [`backlog/`](backlog/), indexed in [backlog.md](../backlog.md) | what each change was for, what it found on the way, and what is still open |
+| QA catalogue | [`qa/`](qa/README.md) | what a release must do, case by case, and what each run of it found |
 
-| Layer | Directory | Answers | Source of truth |
-|---|---|---|---|
-| Research | `research/` | *why* it is built this way; what is verified, what is a hypothesis | the artefacts each fact names |
-| Feature | `features/` | *what* the system does and *why*; BDD scenarios | this repository |
-| Client | `screens/` | what the shopper sees: states, actions, navigation | this repository + the screen's code |
-| API | `api/` | URL, method, auth tier, where the contract lives | the `shared` module |
-| Service | `services/` | who owns the data, dependencies, deploy, local setup | this repository |
-
-What is here today: the research, the backlog and the QA catalogue. The feature, screen, endpoint and service
-documents are drafted in an open pull request and arrive here one by one, `active`; until then the research and
-the backlog items carry the decisions, and the code is the reference.
+The feature, screen, endpoint and service layers docs-bootstrap allows for are not kept here (decided
+2026-10-13). Their draft fell about ninety items behind the code while it waited to land and was closed
+(youndie/haul#2); the research, the items and the QA cases already carried the same decisions, closer to the code.
 
 **Backlog** — [backlog.md](../backlog.md): the index and the decisions; the items themselves are
 one file each in [`backlog/`](backlog/), cited as `[B-12](backlog/B-12-shildik-sign-in-in-the-browser.md)`.
@@ -33,18 +19,14 @@ one file each in [`backlog/`](backlog/), cited as `[B-12](backlog/B-12-shildik-s
 ## Conventions
 
 - **`id`** in the frontmatter is unique and equals the filename.
-- Cross-layer links are ids in the frontmatter and ordinary markdown links in the body.
-- One document, one entity. A feature spanning three modules is **one** file with three entries
-  in `involved_services`.
-- BDD scenarios are written from the code, not from memory: check the actual status codes and
-  error strings before a document goes `active`.
-- **The primary consumer is a coding agent.** Every document carries code anchors — paths, not
-  copies.
+- A finding is written from the code, not from memory: the actual status codes, error strings and numbers.
+- **The primary consumer is a coding agent.** Every document carries code anchors — paths, not copies.
 - Language: English. Code identifiers, URLs and HTTP headers verbatim as in the code.
 
 ## Templates
 
-`templates/` holds a copy of the document templates, so the format travels with the repository.
+`templates/` holds the templates of the documents kept here — a backlog item and the research — so the format
+travels with the repository.
 
 ## Checks
 
