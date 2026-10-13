@@ -497,6 +497,36 @@ class StorefrontTest {
             onNodeWithText("04:12:36").assertExists()
         }
 
+    /**
+     * B-152: a home page left open over the store's midnight read 00:00:00 a second before it and stayed on the ended
+     * deals until a reload, while the server had the next day's. The last second reads 00:00:01; at the end the
+     * page is asked for again; a page that still names the ended countdown — the browser's clock ahead of the
+     * server's — is asked for again until the next day's arrives, and then no more.
+     */
+    @Test
+    fun `the page is asked for again when its countdown ends`() =
+        runDesktopComposeUiTest(CANVAS_WIDTH, 1_000) {
+            val today = page(header, SectionHeader(id = "deals", title = "Deals", countdownEndsAt = MIDNIGHT))
+            val tomorrow = page(header, SectionHeader(id = "deals", title = "Deals", countdownEndsAt = NEXT_MIDNIGHT))
+            answer("/ui/home", ok(today), ok(today), ok(tomorrow))
+            now = Instant.parse("2025-10-07T23:59:59.004-04:00")
+            storefront()
+            onNodeWithText("00:00:01").assertExists()
+            assertEquals(listOf("/ui/home"), requests)
+
+            now = Instant.parse("2025-10-08T00:00:00.004-04:00")
+            mainClock.advanceTimeBy(1_000)
+            waitUntil(timeoutMillis = 5_000) { requests.size == 2 }
+            onNodeWithText("00:00:00").assertExists()
+
+            now += 30.seconds
+            mainClock.advanceTimeBy(30_000)
+            waitUntil(timeoutMillis = 5_000) { exists("23:59:30") }
+            now += 60.seconds
+            mainClock.advanceTimeBy(60_000)
+            assertEquals(List(3) { "/ui/home" }, requests.toList())
+        }
+
     private fun ComposeUiTest.exists(text: String): Boolean =
         onAllNodes(
             androidx.compose.ui.test
@@ -520,6 +550,9 @@ class StorefrontTest {
 
         /** The canvas's deals end at local midnight: 04:12:37 from its «now». */
         const val MIDNIGHT = "2025-10-08T00:00-04:00"
+
+        /** The next day's deals end a day later. */
+        const val NEXT_MIDNIGHT = "2025-10-09T00:00-04:00"
 
         val header =
             HaulHeader(

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import io.github.youndie.haul.shell.LocalScreenRefresh
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.HaulType.browserLeading
@@ -47,11 +49,14 @@ import io.github.youndie.haul.ui.ShrinkFirstRow
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.accented
 import io.github.youndie.haul.ui.countdown
+import io.github.youndie.haul.ui.countdownEnded
 import io.github.youndie.haul.ui.following
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.hatching
 import io.github.youndie.haul.ui.toneColor
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.seconds
 
 // The home page's own components (screen-home), each at the width the page is drawn at; the numbers
 // are the artboards' (Home_Content, Home_Guest and their _Phone twins).
@@ -274,6 +279,32 @@ private val HERO_HATCH = Color(0x17FFFFFF)
 private val BANNER_HATCH = Color(0x140F0F0F)
 
 /**
+ * B-152: the deals a countdown counts end with it, and the server has the next day's from that second — a home page
+ * left open over the store's midnight read 00:00:00 over ended deals until a reload. At the end the page is asked
+ * for again in place ([LocalScreenRefresh]), and again every [ASK_AGAIN] while it still draws the countdown that
+ * ended: a browser's clock a little ahead of the server's asks before the server's day has turned. The page that
+ * arrives — the next day's countdown, or the popular row in the seconds before the deals move (TC-HOME-04) — ends
+ * the asking. A view drawn on its own (a screenshot) has no refresh and asks nothing.
+ */
+@Composable
+private fun AskAgainAtTheEnd(
+    endsAt: String,
+    ended: Boolean,
+) {
+    val refresh = LocalScreenRefresh.current
+    LaunchedEffect(endsAt, ended, refresh) {
+        if (!ended || refresh == null) return@LaunchedEffect
+        while (true) {
+            refresh.refresh()
+            delay(ASK_AGAIN)
+        }
+    }
+}
+
+/** How long a page that still draws an ended countdown waits before it asks again. */
+private val ASK_AGAIN = 30.seconds
+
+/**
  * A section's heading: the title with its accent, the deals countdown read against [LocalHaulNow],
  * and the link (or, for «Picked for you», the subtitle) at the right; a phone puts the subtitle under.
  */
@@ -303,8 +334,10 @@ public fun SectionHeaderView(header: SectionHeader) {
                         style = HaulType.display(if (compact) 34f else 56f, 800, letterSpacing = -0.01f),
                     )
                     header.countdownEndsAt?.let { endsAt ->
+                        val now = LocalHaulNow.current
+                        AskAgainAtTheEnd(endsAt, countdownEnded(endsAt, now))
                         Text(
-                            countdown(endsAt, LocalHaulNow.current),
+                            countdown(endsAt, now),
                             HaulType
                                 .label(
                                     if (compact) 15f else 18f,
