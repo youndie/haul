@@ -9,8 +9,9 @@ screen, petich for the order, shildik for sign-in, Compose Multiplatform in the 
    is built this way, the vocabulary, the sample data. A task not read against it looks like «do the
    obvious thing», which here is often wrong.
 2. [backlog.md](backlog.md) and the item you are taking in `docs/backlog/`.
-3. The layer document the task belongs to — feature, screen, endpoint, service. Until its code
-   lands it lives as `status: draft` in the open documentation pull request, not on `main`.
+3. The QA cases the task touches ([docs/qa/](docs/qa/README.md)) — what the store must do there, as a
+   release is walked against it. There are no feature, screen, endpoint or service documents: the code is
+   the reference, and a decision goes into the research or the item.
 
 ## Modules
 

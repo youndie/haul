@@ -250,7 +250,7 @@ its PNG to `design/retired/` with the decision in `manifest.json`'s `retired` li
 never a loosened threshold, never an edited or re-rendered reference. A number over the line with no decision
 behind it is a defect.
 
-**The feature, screen, endpoint and service documents are drafted in an open pull request.** They
-describe intent until the code behind them exists, and intent does not live on `main`. An item that
-lands a feature moves its documents from `draft` to `active` in the same change, after checking each
-scenario against the real status codes and error strings.
+**No feature, screen, endpoint or service documents** (2026-10-13, replacing «drafted in an open pull
+request»). Their draft waited to land while about ninety items changed the code under it, and was closed
+(youndie/haul#2). A decision goes into the research or the item that makes it, what the store must do into
+the QA catalogue, and the code is the reference.
