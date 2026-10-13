@@ -1,6 +1,7 @@
 package io.github.youndie.haul.theme
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontVariation
@@ -11,68 +12,71 @@ import io.github.youndie.haul.resources.bodoni_moda
 import io.github.youndie.haul.resources.bodoni_moda_italic
 import io.github.youndie.haul.resources.jetbrains_mono
 import org.jetbrains.compose.resources.Font
+import org.jetbrains.compose.resources.FontResource
 
 /** The weights the canvas uses, per family; a variable font is asked for one weight at a time. */
-private val ARCHIVO_WEIGHTS = listOf(400, 500, 600, 700, 800)
-private val MONO_WEIGHTS = listOf(500, 600)
-private val BODONI_WEIGHTS = listOf(700, 800, 900)
+internal val ARCHIVO_WEIGHTS = listOf(400, 500, 600, 700, 800)
+internal val MONO_WEIGHTS = listOf(500, 600)
+internal val BODONI_WEIGHTS = listOf(700, 800, 900)
 
 /** The canvas draws Bodoni's italic only for a title's accent, and only at 500. */
-private val BODONI_ITALIC_WEIGHTS = listOf(500)
+internal val BODONI_ITALIC_WEIGHTS = listOf(500)
 
-/** The app's fonts, from the bundled variable files (OFL, `files/licences`). */
-@Composable
-public fun rememberHaulFonts(): HaulFonts {
-    val archivo =
-        FontFamily(
-            ARCHIVO_WEIGHTS.map {
-                Font(
-                    Res.font.archivo,
-                    FontWeight(it),
-                    variationSettings = FontVariation.Settings(FontVariation.weight(it)),
-                )
-            },
+/** The four bundled variable files the faces are cut from (OFL, `files/licences`). */
+internal enum class HaulFontFile(
+    val resource: FontResource,
+) {
+    ARCHIVO(Res.font.archivo),
+    JETBRAINS_MONO(Res.font.jetbrains_mono),
+    BODONI_MODA(Res.font.bodoni_moda),
+    BODONI_MODA_ITALIC(Res.font.bodoni_moda_italic),
+}
+
+/** One face the app draws: [file] at [weight], italic or not, Bodoni Moda's at an [opticalSize]. */
+internal class HaulFace(
+    val file: HaulFontFile,
+    weight: Int,
+    italic: Boolean = false,
+    opticalSize: Float? = null,
+) {
+    val weight: FontWeight = FontWeight(weight)
+    val style: FontStyle = if (italic) FontStyle.Italic else FontStyle.Normal
+    val settings: FontVariation.Settings =
+        FontVariation.Settings(
+            *listOfNotNull(FontVariation.weight(weight), opticalSize?.let { FontVariation.Setting("opsz", it) })
+                .toTypedArray(),
         )
-    val mono =
-        FontFamily(
-            MONO_WEIGHTS.map {
-                Font(
-                    Res.font.jetbrains_mono,
-                    FontWeight(it),
-                    variationSettings = FontVariation.Settings(FontVariation.weight(it)),
-                )
-            },
-        )
+
+    /** Unique per face: the platform keeps one typeface per identity. */
+    val identity: String = "haul:${file.name}:$weight:$style:${opticalSize ?: "-"}"
+}
+
+/**
+ * The app's fonts, each face made by [face]: the families, the weights and Bodoni Moda's optical sizes are
+ * this function's, where the bytes come from is the caller's.
+ */
+internal inline fun haulFonts(face: (HaulFace) -> Font): HaulFonts {
+    val archivo = FontFamily(ARCHIVO_WEIGHTS.map { face(HaulFace(HaulFontFile.ARCHIVO, it)) })
+    val mono = FontFamily(MONO_WEIGHTS.map { face(HaulFace(HaulFontFile.JETBRAINS_MONO, it)) })
     val bodoni =
         BODONI_OPTICAL_SIZES.associateWith { opsz ->
             FontFamily(
-                BODONI_WEIGHTS.map {
-                    Font(
-                        Res.font.bodoni_moda,
-                        FontWeight(it),
-                        variationSettings =
-                            FontVariation.Settings(
-                                FontVariation.weight(it),
-                                FontVariation.Setting("opsz", opsz),
-                            ),
-                    )
-                } +
+                BODONI_WEIGHTS.map { face(HaulFace(HaulFontFile.BODONI_MODA, it, opticalSize = opsz)) } +
                     BODONI_ITALIC_WEIGHTS.map {
-                        Font(
-                            Res.font.bodoni_moda_italic,
-                            FontWeight(it),
-                            FontStyle.Italic,
-                            variationSettings =
-                                FontVariation.Settings(
-                                    FontVariation.weight(it),
-                                    FontVariation.Setting("opsz", opsz),
-                                ),
-                        )
+                        face(HaulFace(HaulFontFile.BODONI_MODA_ITALIC, it, italic = true, opticalSize = opsz))
                     },
             )
         }
     return HaulFonts(archivo, mono, { size -> bodoni.getValue(nearestOpticalSize(size)) })
 }
+
+/**
+ * The app's fonts, loaded by Compose's resources: each face draws in a fallback until its file arrives, and the
+ * page is redrawn in it then. The storefront reads the files before its first frame instead (B-150,
+ * `PreloadedFonts.kt`) and comes here only when that failed.
+ */
+@Composable
+public fun rememberHaulFonts(): HaulFonts = haulFonts { Font(it.file.resource, it.weight, it.style, it.settings) }
 
 /** The optical sizes the canvas draws Bodoni Moda in. */
 private val CANVAS_OPTICAL_SIZES = listOf(22f, 24f, 26f, 28f, 30f, 34f, 40f, 44f, 48f, 56f, 72f, 84f, 96f)

@@ -28,12 +28,33 @@ class StaticFrameTest {
         assertTrue(frame in 0 until script, "the frame at $frame, the script at $script")
     }
 
-    /** Anything else the page asked for — a stylesheet, a font, an image — would be a round trip before the frame. */
+    /**
+     * Anything else the page waited for — a stylesheet, a font face, an image — would be a round trip before the
+     * frame. The fonts' preloads (B-150) are not waited for: they only start the files' transfer.
+     */
     @Test
-    fun `the page asks for nothing but the bundle's loader`() {
+    fun `the page asks for nothing but the bundle's loader and the fonts' preloads`() {
         val fetched = Regex("""\b(?:src|href)\s*=\s*"([^"]*)"""").findAll(page).map { it.groupValues[1] }.toList()
-        assertEquals(listOf("/", "composeApp.js"), fetched)
-        listOf("<link", "url(", "@import", "<img").forEach { assertTrue(it !in page, "index.html has $it") }
+        val fonts = fetched.filter { it.startsWith(FONT_PATH) }
+        assertEquals(listOf("/") + fonts + "composeApp.js", fetched)
+        assertEquals(FONT_FILES.size, Regex("<link").findAll(page).count(), "a <link> other than the fonts' preloads")
+        listOf("url(", "@import", "<img").forEach { assertTrue(it !in page, "index.html has $it") }
+    }
+
+    /**
+     * B-150: the store's first frame is drawn in its faces, which the entry point reads before it mounts. Preloaded
+     * as `fetch` with CORS — what Compose's resources send — so the read takes the preloaded answer; preloaded as a
+     * `font`, or without `crossorigin`, the browser would fetch every file twice. Every bundled face, none else.
+     */
+    @Test
+    fun `the page preloads every bundled font the way the entry point reads it`() {
+        val preloads =
+            Regex("""<link rel="preload" href="$FONT_PATH([^"]+)" as="fetch" crossorigin>""")
+                .findAll(page)
+                .map { it.groupValues[1] }
+                .toList()
+        assertEquals(FONT_FILES, preloads.sorted())
+        assertTrue(page.indexOf("<link") < page.indexOf("id=\"$STATIC_FRAME_ID\""), "the preloads come after the frame")
     }
 
     /**
@@ -69,5 +90,13 @@ class StaticFrameTest {
     fun `the page fits the first round trip`() {
         val size = page.toByteArray().size
         assertTrue(size < 14 * 1024, "index.html is $size bytes")
+    }
+
+    private companion object {
+        /** Where the bundle serves Compose's resources (`packageOfResClass` in the module's build). */
+        const val FONT_PATH = "composeResources/io.github.youndie.haul.resources/font/"
+
+        /** The faces the module bundles. */
+        val FONT_FILES: List<String> = File("src/commonMain/composeResources/font").list()!!.sorted()
     }
 }

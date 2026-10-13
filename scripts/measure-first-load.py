@@ -595,6 +595,9 @@ def run_once(chrome, url, profile_name, blocked, timeout, shot=None, stop_after=
     # B-78: the pictures the page asked for, when the last of them arrived, and the first frame after it.
     pictures = [r for r in data["resources"] if "/images/" in r["name"]]
     pictures_end = max((r["responseEnd"] for r in pictures), default=None)
+    # B-150: when the four faces' last byte arrived and the first frame drawn after it — the first frame in the faces
+    # where the first one was drawn in a fallback.
+    fonts_end = max((r["responseEnd"] for r in data["resources"] if r["name"].split("?")[0].endswith(".ttf")), default=None)
     return {
         "profile": profile_name, "blocked": blocked, "timed_out": timed_out, "stand": before,
         "first_frame_ms": frames[0] if frames else None,
@@ -609,6 +612,8 @@ def run_once(chrome, url, profile_name, blocked, timeout, shot=None, stop_after=
         "pictures": len(pictures), "pictures_bytes": sum(r["transferSize"] for r in pictures),
         "pictures_end_ms": pictures_end,
         "pictures_frame_ms": next((f for f in frames if pictures_end is not None and f >= pictures_end), None),
+        "fonts_end_ms": fonts_end,
+        "fonts_frame_ms": next((f for f in frames if fonts_end is not None and f >= fonts_end), None),
         "transferred_bytes": sum(n for n in finished.values() if n),
         "requests": net, "failed": failed, "resources": data["resources"], "accept_encoding": sorted(accepts),
     }
@@ -718,7 +723,8 @@ def main():
                   f"ticks(removed/gl)={sf.get('removedTick')}/{res['first_gl_tick']} "
                   f"last_byte={res['last_byte_ms']} bytes={res['transferred_bytes']} gl={res['gl_calls']} "
                   f"pictures={res['pictures']}/{res['pictures_bytes']}B end={res['pictures_end_ms']} "
-                  f"pictures_frame={res['pictures_frame_ms']} "
+                  f"pictures_frame={res['pictures_frame_ms']} fonts_end={res['fonts_end_ms']} "
+                  f"fonts_frame={res['fonts_frame_ms']} "
                   f"timeout={res['timed_out']} load={res['stand']['loadavg']} mem={res['stand']['mem_available_mb']}",
                   flush=True)
     raw.close()
@@ -786,7 +792,8 @@ def main():
         floor_ms = 1000 * slow_bytes / PROFILES["slow4g"]["down"]
         floor_ok = med["slow4g"] >= floor_ms
         # The bytes the first frame can have waited for: the bundle's files but the fonts, which Compose
-        # fetches in parallel and draws without (the no-fonts control shows what that frame is). What is not
+        # fetched in parallel and drew without until B-150 (the no-fonts control shows what that frame is); since
+        # B-150 the page preloads them and the first frame waits for them. What is not
         # a bundle file — a screen's tree, a photo, from a live server (B-80) — is asked for by the app once
         # it runs, after its first frame.
         frame_bytes = statistics.median([
@@ -821,6 +828,17 @@ def main():
         if rasteriser:
             lines += ["", f"Rasterised as PNG by this script: {len(pngs)} pictures, "
                       f"{sum(len(v) for v in pngs.values()) / 1024:,.1f} KiB at their own size."]
+    # B-150: the faces — when their last byte arrived and the first frame drawn after it.
+    if any(x["fonts_end_ms"] for x in counted):
+        lines += ["", "The faces (B-150): the four fonts' last byte and the first frame drawn after it (ms, median "
+                  "(min–max) of the counted rounds); a first frame before the last byte was drawn in a fallback:", "",
+                  "| Profile | Last font byte | Faces frame | First frame before the faces |", "|---|---:|---:|---:|"]
+        for p in profiles:
+            xs = [x for x in counted if x["profile"] == p]
+            early = sum(1 for x in xs if x["first_frame_ms"] is not None and x["fonts_end_ms"] is not None
+                        and x["first_frame_ms"] < x["fonts_end_ms"])
+            lines.append(f"| {p} | {spread([x['fonts_end_ms'] for x in xs])} | {spread([x['fonts_frame_ms'] for x in xs])} "
+                         f"| {early} of {len(xs)} |")
     lines += ["", "## Controls", "",
               f"- blocked `.wasm`: GL calls {ctl['gl_calls']}, first frame {ctl['first_frame_ms']} — "
               f"{'PASS' if probe_ok else 'FAIL'}",
