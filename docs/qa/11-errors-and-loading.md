@@ -88,7 +88,8 @@ the server's own: `503`).
   `RefusedPagesTest` «a link whose query does not decode is out of date and leads to its page»;
   `RefusedPagesTest` «an out-of-date search link leads to a search page that asks for a query»;
   `RefusedPagesTest` «a search with nothing typed asks for a query without saying the minimum»;
-  `WebBundleTest` «a storefront address whose query does not decode still answers the page, its tree refuses it»
+  `WebBundleTest` «a storefront address whose query does not decode still answers the page, its tree refuses it»;
+  `WebBundleTest` «a storefront address whose query does not decode ends with the page, no failure behind it»
 
 ### TC-ERR-05 — An error page tells no answer from an error of the store's
 
@@ -116,6 +117,7 @@ the server's own: `503`).
   `StorefrontTest` «a server error draws the error page and Retry loads the page again»;
   `ErrorAnswersTest` «a database that cannot be reached makes a screen 503 unavailable»;
   `DatabaseOutageTest` «a stopped database answers a page in seconds and readiness within its probe's timeout»;
+  `ObservabilityTest` «a database outage answered 503 to every page files nothing and logs no stack per page»;
   `PlacementOutageTest` «a placement rides out a five second outage and the order is placed»;
   golden `Home_Error`; golden `Cart_Error`;
   manual: an error of the store's own cannot be caused on the stand; it needs a local stack with its database stopped

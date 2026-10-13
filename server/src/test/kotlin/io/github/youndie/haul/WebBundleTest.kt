@@ -1,8 +1,12 @@
 package io.github.youndie.haul
 
+import io.github.youndie.haul.testing.BROWSER_ENCODINGS
 import io.github.youndie.haul.testing.CANVAS_NOW
+import io.github.youndie.haul.testing.ERROR_ANSWERS_LOG
 import io.github.youndie.haul.testing.SAGA_CLOCK
 import io.github.youndie.haul.testing.SeededDatabase
+import io.github.youndie.haul.testing.capturingLog
+import io.github.youndie.haul.testing.rawGet
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -23,7 +27,6 @@ import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.runBlocking
 import java.io.File
-import java.net.Socket
 import java.nio.file.Files
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -260,6 +263,22 @@ class WebBundleTest {
             )
         }
 
+    /**
+     * The page is where such a call ends (B-148). Ktor's routing ran after the page had gone and decoded the query
+     * as it resolved the call: the catch-all logged a `400` for an address answered `200`, and on the stand katcher
+     * filed each guest's mangled link as a group.
+     */
+    @Test
+    fun `a storefront address whose query does not decode ends with the page, no failure behind it`() =
+        capturingLog(ERROR_ANSWERS_LOG) { lines ->
+            onCio { port ->
+                MALFORMED.forEach { address ->
+                    assertEquals(HttpStatusCode.OK.value, rawGet(port, address).status, address)
+                }
+            }
+            assertTrue(lines.isEmpty(), "the catch-all met: ${lines.map { it.formattedMessage }}")
+        }
+
     /** The application with the bundle on CIO, the stand's engine, on a free port, for [block]. */
     private fun onCio(block: (port: Int) -> Unit) {
         val server =
@@ -282,37 +301,6 @@ class WebBundleTest {
         }
     }
 
-    /** What a browser sends for [address], byte for byte, as a browser asking for a page would. */
-    private fun rawGet(
-        port: Int,
-        address: String,
-    ): RawResponse =
-        Socket("127.0.0.1", port).use { socket ->
-            socket.soTimeout = 10_000
-            val request = "GET $address HTTP/1.1\r\nHost: haul\r\nAccept-Encoding: $BROWSER\r\nConnection: close\r\n"
-            socket.getOutputStream().write("$request\r\n".toByteArray())
-            val (head, body) =
-                socket
-                    .getInputStream()
-                    .readBytes()
-                    .decodeToString()
-                    .split("\r\n\r\n", limit = 2)
-            val (status, headers) = head.split("\r\n").let { it.first() to it.drop(1) }
-            RawResponse(
-                status = status.split(' ')[1].toInt(),
-                headers = headers.associate { it.substringBefore(':').lowercase() to it.substringAfter(':').trim() },
-                body = body,
-            )
-        }
-
-    private class RawResponse(
-        val status: Int,
-        val headers: Map<String, String>,
-        val body: String,
-    ) {
-        val contentType: ContentType? get() = headers["content-type"]?.let { ContentType.parse(it).withoutParameters() }
-    }
-
     @Test
     fun `the bundle's own files are still the files`() =
         withBundle {
@@ -323,7 +311,7 @@ class WebBundleTest {
     private companion object {
         /** webpack's name for an emitted wasm: twenty hex digits of its content hash. */
         const val MODULE = "bfa5198fb2fe683c613a.wasm"
-        const val BROWSER = "gzip, deflate, br, zstd"
+        const val BROWSER = BROWSER_ENCODINGS
         const val IMMUTABLE = "public, max-age=31536000, immutable"
         const val QUERY_READER = "/api/v1/test/query"
 

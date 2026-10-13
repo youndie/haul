@@ -16,15 +16,19 @@ import java.sql.SQLTransientConnectionException
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
- * The catch-all (B-32): what answers a failure no feature named. It is logged and handed to [report]
- * (katcher, when it is on), and then answered by what it is, every code through [respondError] so the
- * status is the one `status(code)` gives it:
+ * The catch-all (B-32): what answers a failure no feature named. It is answered by what it is, every code through
+ * [respondError] so the status is the one `status(code)` gives it, and only what the store got wrong is handed to
+ * [report] (katcher, when it is on) — B-148:
  * - one of Ktor's own client errors keeps its status — a malformed request is the sender's fault and
  *   must not count against the error budget; a `400` carries `validation_failed`, the rest no body. A query
  *   that does not decode is one: `/ui/…` and `/api/…` answer it here, a storefront page's address is the page
- *   whatever its query ([PageAtAnyQuery], B-117) — the browser would show this JSON as the page's text;
- * - a database that cannot be reached is `unavailable` / `503`: an outage, worth retrying;
- * - anything else is `internal` / `500`: a bug, with nothing of the exception in the body.
+ *   whatever its query ([PageAtAnyQuery], B-117) — the browser would show this JSON as the page's text.
+ *   A line at `info`, not reported: on a public stand they are crawlers' and guests' typos, not defects;
+ * - a database that cannot be reached is `unavailable` / `503`: an outage, worth retrying. A line at `info` with its
+ *   cause and no stack, not reported: the outage is said once, at `warn` with its cause, by the pool that met it
+ *   (`FailFastDataSource`), and every page it fails would otherwise file the same report;
+ * - anything else is `internal` / `500`: a bug, logged at `error` with its stack, reported, and nothing of the
+ *   exception in the body.
  *
  * Cancellation is rethrown, not answered: a call cancelled or timed out is Ktor's to finish. A client that
  * left while it was being answered ([isClientGone]) — a reader leaving the order page closes its update stream
@@ -39,17 +43,27 @@ internal fun StatusPagesConfig.unexpectedFailures(report: (Throwable) -> Unit) {
             return@exception
         }
         val clientStatus = error.clientErrorStatus()
-        // The log before the report: katcher caches to disk, and a crash would leave the log empty.
-        when (clientStatus) {
-            null -> log.error("unhandled: $request", error)
-            else -> log.info("{} → {}: {}", request, clientStatus.value, error.message)
-        }
-        report(error)
         when {
-            clientStatus == HttpStatusCode.BadRequest -> call.respondError(ErrorCode.ValidationFailed, MALFORMED)
-            clientStatus != null -> call.respondText(clientStatus.description, status = clientStatus)
-            error.isDatabaseUnreachable() -> call.respondError(ErrorCode.Unavailable, UNAVAILABLE)
-            else -> call.respondError(ErrorCode.Internal, INTERNAL)
+            clientStatus != null -> {
+                log.info("{} → {}: {}", request, clientStatus.value, error.message)
+                if (clientStatus == HttpStatusCode.BadRequest) {
+                    call.respondError(ErrorCode.ValidationFailed, MALFORMED)
+                } else {
+                    call.respondText(clientStatus.description, status = clientStatus)
+                }
+            }
+
+            error.isDatabaseUnreachable() -> {
+                log.info("{} → 503: the database cannot be reached ({})", request, error.rootCause().message)
+                call.respondError(ErrorCode.Unavailable, UNAVAILABLE)
+            }
+
+            else -> {
+                // The log before the report: katcher caches to disk, and a crash would leave the log empty.
+                log.error("unhandled: $request", error)
+                report(error)
+                call.respondError(ErrorCode.Internal, INTERNAL)
+            }
         }
     }
 }
@@ -82,6 +96,9 @@ private fun Throwable.isDatabaseUnreachable(): Boolean =
         it is SQLTransientConnectionException ||
             (it is SQLException && it.sqlState?.startsWith("08") == true)
     }
+
+/** The deepest cause [causes] reaches: what the database or the network said, under the wrappers. */
+private fun Throwable.rootCause(): Throwable = causes().last()
 
 /** This and what caused it, however deep it was wrapped (within reason). */
 private fun Throwable.causes(): Sequence<Throwable> =
