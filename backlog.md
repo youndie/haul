@@ -43,13 +43,11 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (1)
+## Open (0)
 
-| Task | | Priority | Size | Blocked by |
-|---|---|---|---|---|
-| [B-153](docs/backlog/B-153-the-product-placeholder-at-1024.md) `[~]` | fix: the product page's placeholder at 1024 is the page's two columns | P3 | S | - |
+No open tasks.
 
-## Closed (152)
+## Closed (153)
 
 **Skeleton**
 
@@ -238,6 +236,7 @@ A stage is a field on the item, not a directory.
 - [B-150](docs/backlog/B-150-the-display-face-is-there-at-the-first-frame.md) `[x]` - fix: the display face is there at the store's first frame
 - [B-151](docs/backlog/B-151-selection-controls-say-their-state.md) `[x]` - fix: selection controls say their state, dialogs hide the page beneath, and the trial dialog closes on Escape
 - [B-152](docs/backlog/B-152-small-lines-from-the-v060-run.md) `[x]` - fix: the small lines the v0.6.0 run noticed
+- [B-153](docs/backlog/B-153-the-product-placeholder-at-1024.md) `[x]` - fix: the product page's placeholder at 1024 is the page's two columns
 
 <!-- END INDEX -->
 
