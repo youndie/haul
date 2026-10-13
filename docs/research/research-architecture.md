@@ -146,15 +146,16 @@ against an artboard the code has left.
   moved the store past it. The PNG stays in the tree, beside its reason, as what a reviewer compares a decision
   against. Rejected: re-rendering a canvas nothing here can edit; deleting the PNGs (the manifest would then name
   files nobody can open without the history); a list of exclusions viddik does not read; raising the tolerance.
-- **Retired, 76.** Every artboard that draws a placeholder tile where the store draws the seed's pictures (D8,
+- **Retired, 78.** Every artboard that draws a placeholder tile where the store draws the seed's pictures (D8,
   B-78; the 70 its pull request measured), on the search's pages with B-77's sort and tips as text and on the
   product page with B-71's gallery and seller card; the two product dialogs on a phone, whose page underneath is
   B-71's (`Product_ReviewDialog_Phone` also B-86's bars); and four short phone pages the header's departures take
   past 5 % — B-73's menu button, B-72's strip, B-107's «Search products», B-75's empty cart button
   (`Catalog_Empty_Phone`, `Product_NotFound_Phone`, `Account_NoOrders_Phone`, `Account_Error_Phone`). B-75's
   messages and «N in your cart» and B-133's shipment date had no artboard of their own past the line
-  (`Shell_Message*` and `Product_InCart*` never had one; Order_InTransit went with the pictures).
-- **Kept, 49**, all within 5 %: the loading, error, empty and not-found states, the account's pages and the filter
+  (`Shell_Message*` and `Product_InCart*` never had one; Order_InTransit went with the pictures). B-143's rows of
+  the page's heights moved `Product_Loading_Phone` and `Cart_Loading` 5 px down their length (5.4 % and 5.9 %).
+- **Kept, 47**, all within 5 %: the loading, error, empty and not-found states, the account's pages and the filter
   sheet. Their residual includes the header's departures, still under the line; a decided change that takes one
   of them over retires it in the same pull request, with its reason in the manifest, and a number over the line
   with no decision behind it is a defect.
@@ -332,6 +333,25 @@ page drew one way and another page another; each line was fixed, or the differen
   (`ProductCardView`, `Prices`): a deal of the day with cents, six across at 1440, broke «$432.9» from «9».
 - **A message over the page has a ring of the page's white and a shadow** (`MessageNotice`): Ink on the home
   page's Ink Plus block, «Added to your cart» did not stand out.
+
+**Decided in B-143, a placeholder's rows are the page's heights.** The product page's crumbs placeholder was a
+12 px bar where the crumbs' line is 16.8 px, so the photo came 5 px lower when the page arrived (B-104 had matched
+its left edge and width only). A placeholder row standing for a line of the page's text is now that line's height
+(`lineOf`, the height `Text` gives one line of a style), with the bar the artboard drew centred in it, and the
+spaces around it are the page's own: the measures live beside the views that draw them (`crumbsStyle`,
+`crumbsTop`, `titleStyle`, `kindsHeight`, `FILTERS_HEIGHT` in `CatalogViews.kt`, `detailsTop` in
+`ProductDetailsView.kt`) and `shell/Shell.kt` reads them rather than copying the numbers.
+
+- **Matched**, at 1440, 1280 and 390: the product's photo (top, left, width); a category's first card, opened with
+  no filter applied — the crumbs, the title, the kinds (their pills 40 px, 37 on a phone, the page's, not the
+  canvas's 44 and 40) and on a phone the applied filters' row, which stands there empty; the cart's lines, under a
+  title row of 101 px rather than the bar's 96 (`ProductPageLayoutTest`, `LoadingPlaceTest`).
+- **Not matched, because the page's content decides it**: an order's steps arrive about 150 px lower at 1440 —
+  the title takes two lines there and a lead follows it, which the placeholder cannot know; a category's cards
+  come lower under applied filters (a row of chips on a phone, a second line of them at 1024) and on a phone under
+  a name long enough to put the count under the title («Headphones», 28 px).
+- **Not measured**: the catalog's root and the deals (`TitleSkeleton`), which have no fixture of a page to
+  compare with.
 
 **Decided in B-72, the strip and the footer name only what has a page** (owner's call: wire what has a page,
 draw the rest as text or leave it out). Words in a utility strip or a footer link column read as links

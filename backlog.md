@@ -43,14 +43,13 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (2)
+## Open (1)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-143](docs/backlog/B-143-the-product-photo-does-not-move-on-arrival.md) `[ ]` | fix: the product photo stands where its placeholder stood | P3 | XS | - |
 | [B-152](docs/backlog/B-152-small-lines-from-the-v060-run.md) `[ ]` | fix: the small lines the v0.6.0 run noticed | P3 | S | - |
 
-## Closed (150)
+## Closed (151)
 
 **Skeleton**
 
@@ -229,6 +228,7 @@ A stage is a field on the item, not a directory.
 - [B-140](docs/backlog/B-140-the-outage-tests-hold-on-a-busy-runner.md) `[x]` - test: the database outage tests hold on a busy runner
 - [B-141](docs/backlog/B-141-the-wasm-yarn-lock-task-does-not-flake.md) `[x]` - ci: kotlinWasmStoreYarnLock does not fail on a missing build/wasm/yarn.lock
 - [B-142](docs/backlog/B-142-the-desktop-search-chips-reach-every-scope.md) `[x]` - fix: a search's chips row reaches every scope on a desktop
+- [B-143](docs/backlog/B-143-the-product-photo-does-not-move-on-arrival.md) `[x]` - fix: the product photo stands where its placeholder stood
 - [B-144](docs/backlog/B-144-the-photo-viewer-keeps-the-keyboard.md) `[x]` - fix: the review photo viewer keeps the keyboard after a press on its arrows
 - [B-145](docs/backlog/B-145-a-failed-tick-in-the-filter-sheet-says-so.md) `[x]` - fix: a facet ticked in the filter sheet that fails says so over the sheet
 - [B-146](docs/backlog/B-146-a-trial-over-a-page-with-no-tree-asks-the-header.md) `[x]` - fix: a Plus trial started over a page with no tree redraws the header

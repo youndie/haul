@@ -91,7 +91,7 @@ public fun ProductDetailsView(details: ProductDetails) {
     val gutter = gutter()
     if (compact) {
         Column(
-            Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = 16.dp),
+            Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = detailsTop(compact = true)),
             verticalArrangement = Arrangement.spacedBy(22.dp),
         ) {
             Photo(details, Modifier.fillMaxWidth(), radius = 24.dp)
@@ -107,7 +107,7 @@ public fun ProductDetailsView(details: ProductDetails) {
         // Below 1280 the three columns leave the title 200 px at 1024 (B-82): the buy box goes under the title,
         // as on a phone, and the photo and the rest share the width.
         Row(
-            Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = 28.dp),
+            Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = detailsTop(compact = false)),
             horizontalArrangement = Arrangement.spacedBy(40.dp),
         ) {
             Photo(details, Modifier.weight(1f), radius = 28.dp)
@@ -123,7 +123,7 @@ public fun ProductDetailsView(details: ProductDetails) {
         }
     } else {
         Row(
-            Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = 28.dp),
+            Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = detailsTop(compact = false)),
             horizontalArrangement = Arrangement.spacedBy(40.dp),
         ) {
             // The canvas's thumbnails beside the photo drew photos no product has; the product's one photo
@@ -141,6 +141,9 @@ public fun ProductDetailsView(details: ProductDetails) {
         }
     }
 }
+
+/** The space the page leaves under the breadcrumbs, over the photo; the loading page's photo stands under it too (B-143). */
+internal fun detailsTop(compact: Boolean): Dp = if (compact) 16.dp else 28.dp
 
 /** CSS's negative top margin: the item moves up by [by] and pulls everything under it along. */
 private fun Modifier.negativeTop(by: Dp): Modifier =

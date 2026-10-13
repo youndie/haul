@@ -324,18 +324,20 @@ search for `sony`).
 ### TC-PDP-16 — The loading page and the fact tiles do not jump or cut
 
 - **Who:** guest
-- **Width:** 1440, 390
+- **Width:** 1440, 1280, 390
 - **Preconditions:** a slow network (DevTools «Fast 4G»); the headphones and a product whose facts are long
   specification names.
 - **Steps:**
   1. Open the product from a card and watch the placeholder turn into the page.
   2. Read the fact tiles on Description.
 - **Expected:**
-  - Step 1: the photo's place does not move when the page arrives (no thumbnail column in the placeholder).
+  - Step 1: the photo's place does not move when the page arrives — not sideways (no thumbnail column in the
+    placeholder) and not down (the placeholder's crumbs row is as tall as the crumbs).
   - Step 2: no tile's title is cut («Noise ca»); a long name wraps between words and shrinks to fit; the canvas's
     «40 h», «3 min» keep their display size.
-- **Decided in:** B-71, B-104
+- **Decided in:** B-71, B-104, B-143
 - **Coverage:** `ProductPageLayoutTest` «the loading photo stands where the photo arrives»;
+  `ProductPageLayoutTest` «the loading photo stands where the photo arrives at 1280»;
   `ProductPageLayoutTest` «the loading photo stands where the photo arrives on a phone»;
   `ProductPageLayoutTest` «a fact's title is never cut»;
   `ProductPageLayoutTest` «the canvas's facts keep their display size»;

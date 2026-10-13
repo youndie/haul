@@ -304,6 +304,25 @@ internal fun Text(
     )
 }
 
+/**
+ * How tall [Text] draws one line of [style]: the style's line height, rounded as [Text] rounds it, where the style
+ * sets one, else the face's own line. A placeholder standing for a line of the page's text is this tall, so what
+ * stands under it does not move when the text arrives (B-143).
+ */
+@Composable
+internal fun lineOf(style: TextStyle): Dp {
+    val measurer = rememberTextMeasurer()
+    return with(LocalDensity.current) {
+        val line =
+            if (style.lineHeight.isSpecified) {
+                style.lineHeight.toPx().roundToInt()
+            } else {
+                measurer.measure(" ", style).size.height
+            }
+        line.toDp()
+    }
+}
+
 /** [linked] drawn as [Text] draws text, its links pressed on their own. */
 @Composable
 internal fun Text(

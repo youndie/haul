@@ -213,11 +213,12 @@
     {
       "artboard": "Cart_Loading.dc.html",
       "frame": null,
-      "reference": "Cart_Loading.png",
+      "reference": "retired/Cart_Loading.png",
       "width": 1440,
       "height": 1041,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-143: the placeholder's rows are the page's heights; the title's row is the title's 101 px line, not the canvas's 96 px bar, so the lines and the summary stand 5 px lower, where the page puts them"
     },
     {
       "artboard": "Cart_Loading_Phone.dc.html",
@@ -868,11 +869,12 @@
     {
       "artboard": "Product_Loading_Phone.dc.html",
       "frame": null,
-      "reference": "Product_Loading_Phone.png",
+      "reference": "retired/Product_Loading_Phone.png",
       "width": 390,
       "height": 1547,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-143: the placeholder's rows are the page's heights; the crumbs' row is their 16.8 px line, not the canvas's 12 px bar, so the photo and everything under it stand 5 px lower, where the page puts them"
     },
     {
       "artboard": "Product_NotFound.dc.html",
