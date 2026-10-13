@@ -14,8 +14,8 @@ Payment methods, Settings) are hidden in v1 (D6).
   2. Press an active order's card anywhere — its number, its pickup code, blank space.
   3. Press a history row; press «All orders».
 - **Expected:**
-  - Step 1: «Plus member since 2023»; the tiles — points («worth $24.80 on your next order»), Haul Plus, Saved, Price
-    drops; at most three active orders as cards («Arriving tomorrow, 15:00 – 18:00» with the steps, or «Ready for
+  - Step 1: «Plus member since 2023»; the tiles — points («worth $24.80 on your next order»), Haul Plus, Price drops
+    (three tiles, B-19; Saved's count is the header menu's); at most three active orders as cards («Arriving tomorrow, 15:00 – 18:00» with the steps, or «Ready for
     pickup» with the code); the last four of the rest, «All orders» whenever one is left out. No other customer's
     order.
   - Step 2: that order's page, wherever pressed («Details ›» says what the press does).

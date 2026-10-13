@@ -133,8 +133,9 @@ the empty cart. «Buy now» is walked on the product page (TC-PDP-06); a command
 
 - **Who:** guest
 - **Width:** 1440, 390
-- **Preconditions:** a line added at a deal's price before the deal ended (on the stand: added before the store's
-  midnight and opened after it), and a line whose SKU sold out since.
+- **Preconditions:** a line added at a deal's price before the deal ended, and a line whose SKU sold out since —
+  on a local stack, the deal ended and the stock set in its database. Not on the stand: a seeded stand re-dates the
+  same sample deals at the same prices at each store midnight (B-70), so a line added before it is not changed after.
 - **Steps:**
   1. Open the cart.
   2. Press «OK» on the changed price.
