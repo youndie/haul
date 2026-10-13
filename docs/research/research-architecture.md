@@ -531,6 +531,14 @@ for it:
   draws the storefront again: a sign-in that ended by itself — the provider refused to renew it under a press,
   and `Identity.send` left the guest — changed it with no visit, and Maya's header stayed over a guest's tab.
   A session ends the same way however it ends; blanking the header was rejected (the guest has one of their own).
+  **Since B-146 a `refresh` over such a page asks again too**: what the shopper is can change with no sign-in
+  or sign-out — the Plus trial's answer (`close`, `refresh`) makes a member — and the header kept for the customer
+  was still «known», so the pill stayed the offer and a second «Start trial» met `409 already_member`. A refresh
+  the shell's own handler follows (`ShellHeaders.redrawn`) leaves the kept header drawn until the answer and asks
+  `/ui/header` once more; a page with a tree needed nothing, its refresh draws its own header. Rejected: a
+  membership flag beside `SessionControls.signedIn` (the client does not know the membership — the token does not
+  carry it, the header does) and a signal from the trial's dialog alone (a refresh is how every command says the
+  page changed; the shell's header is part of the page).
 - **Until the server answers, the client's own header follows the session**: `SHELL_HEADER` for a guest,
   `CUSTOMER_SHELL_HEADER` for a customer — the account slot reads «Account» and opens the account's menu with
   «Sign out», no count (the client does not know it), «Orders» and «Saved» lead straight to them and «HAUL PLUS»
