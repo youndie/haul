@@ -141,7 +141,12 @@ private fun fieldEntries(
             change(TextFieldValue(without, TextRange(selection.min)))
             refocus()
         }.takeIf { enabled && selected.isNotEmpty() && copier != null },
-        MenuEntry(COPY) { copier?.copyText(selected) { } }.takeIf { selected.isNotEmpty() && copier != null },
+        MenuEntry(COPY) {
+            copier?.copyText(selected) { }
+            // The menu took the focus and the field let go of its selection; a browser's field keeps it after a copy.
+            change(field)
+            refocus()
+        }.takeIf { selected.isNotEmpty() && copier != null },
         MenuEntry(PASTE) {
             copier?.pasteText { pasted ->
                 if (pasted != null) {
