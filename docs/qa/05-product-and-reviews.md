@@ -466,4 +466,5 @@ search for `sony`).
   `ContextMenusTest` «Copy writes the selected words through the page's clipboard»;
   `ContextMenusTest` «the copy shortcut copies the words selected»;
   `ContextMenusTest` «the right button over a link offers to open it apart and to copy it»;
-  `ContextMenusTest` «a press of the right button off the menu closes it»; `ContextMenusTest` «Escape closes the menu»
+  `ContextMenusTest` «a press off the menu closes it and the right button opens the menu where it pressed»;
+  `ContextMenusTest` «Escape closes the menu»
