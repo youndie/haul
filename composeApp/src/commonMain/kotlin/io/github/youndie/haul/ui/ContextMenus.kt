@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.text.selection.SelectionState
-import androidx.compose.foundation.text.selection.rememberSelectionState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -27,6 +26,9 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.changedToDownIgnoreConsumed
+import androidx.compose.ui.input.pointer.isPrimaryPressed
 import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
@@ -61,32 +63,42 @@ internal class PointMenuShown(
 internal class ContextMenus {
     internal var shown: PointMenuShown? by mutableStateOf(null)
 
-    private val links = mutableListOf<LinkArea>()
+    /** The press the page marked last as one its words count again ([marksRepeatPresses]). */
+    internal var repeat: PointerInputChange? = null
 
-    internal fun add(link: LinkArea) {
-        links += link
+    /** The innermost control that took the last repeat press ([pressesAgain]): it alone presses on the release. */
+    internal var pressedAgain: Any? = null
+
+    /** Whether [press] is the one the page marked last. */
+    internal fun isRepeat(press: PointerInputChange): Boolean =
+        repeat?.let { it.id == press.id && it.uptimeMillis == press.uptimeMillis } == true
+
+    private val areas = mutableListOf<MenuArea>()
+
+    internal fun add(area: MenuArea) {
+        areas += area
     }
 
-    internal fun remove(link: LinkArea) {
-        links -= link
+    internal fun remove(area: MenuArea) {
+        areas -= area
     }
 
-    /** The innermost link drawn at [position] in the window, if any. */
-    internal fun linkAt(position: Offset): LinkArea? =
-        links
-            .mapNotNull { link ->
-                link.coordinates
+    /** The innermost link or field drawn at [position] in the window, if any. */
+    internal fun areaAt(position: Offset): MenuArea? =
+        areas
+            .mapNotNull { area ->
+                area.coordinates
                     ?.takeIf { it.isAttached }
                     ?.boundsInRoot()
-                    ?.let { link to it }
+                    ?.let { area to it }
             }.filter { (_, bounds) -> bounds.contains(position) }
             .minByOrNull { (_, bounds) -> bounds.width * bounds.height }
             ?.first
 }
 
-/** A link on the page: where it is drawn, and its menu's entries. */
-internal class LinkArea(
-    var entries: List<MenuEntry>,
+/** A link or a field on the page ([offersMenu]): where it is drawn, and its menu's entries as they are when asked. */
+internal class MenuArea(
+    var entries: () -> List<MenuEntry>,
 ) {
     var coordinates: LayoutCoordinates? = null
 }
@@ -103,7 +115,9 @@ internal val LocalContextMenus: ProvidableCompositionLocal<ContextMenus?> = stat
 @Composable
 internal fun Selectable(content: @Composable () -> Unit) {
     val menus = remember { ContextMenus() }
-    val selection = rememberSelectionState()
+    // Not `rememberSelectionState`, which is saved with the page: a page visited again by Back got the selection made
+    // on its last visit, pointing at texts of a page no longer drawn, and the next press on it reached nothing (B-155).
+    val selection = remember { SelectionState() }
     val copier = LocalLinkCopier.current
     val overlays = LocalOverlays.current
     val placed = remember { Placed() }
@@ -124,10 +138,17 @@ internal fun Selectable(content: @Composable () -> Unit) {
                     } else {
                         false
                     }
-                }.onRightPress { position ->
+                }.marksRepeatPresses(menus)
+                .onRightPress { position ->
                     val box = placed.coordinates ?: return@onRightPress
                     val inWindow = box.localToRoot(position)
-                    val entries = menus.linkAt(inWindow)?.entries ?: textEntries(selection, copier)
+                    val entries =
+                        menus
+                            .areaAt(inWindow)
+                            ?.entries
+                            ?.invoke()
+                            ?.takeIf { it.isNotEmpty() }
+                            ?: textEntries(selection, copier)
                     menus.shown = PointMenuShown(inWindow - (overlays?.origin ?: Offset.Zero), entries)
                 },
             propagateMinConstraints = true,
@@ -137,6 +158,31 @@ internal fun Selectable(content: @Composable () -> Unit) {
     }
     menus.shown?.let { PointMenu(it, onClose = { menus.shown = null }) }
 }
+
+/**
+ * Marks the press of the left button that the page's selection will count as a second (or third) — within a double
+ * press's time of the last one, and within the slop around it — in [menus], before anything on the page reads it, for
+ * the controls that are pressed all the same ([pressesAgain]). The selection counts across all the page's texts, so it
+ * is counted here, over the whole page, and not by each control. It takes no press.
+ */
+private fun Modifier.marksRepeatPresses(menus: ContextMenus): Modifier =
+    pointerInput(Unit) {
+        var last: PointerInputChange? = null
+        awaitPointerEventScope {
+            while (true) {
+                val event = awaitPointerEvent(PointerEventPass.Initial)
+                val down = event.changes.singleOrNull()?.takeIf { it.changedToDownIgnoreConsumed() } ?: continue
+                if (!event.buttons.isPrimaryPressed) continue
+                val before = last
+                last = down
+                val again =
+                    before != null &&
+                        down.uptimeMillis - before.uptimeMillis < viewConfiguration.doubleTapTimeoutMillis &&
+                        (down.position - before.position).getDistance() < viewConfiguration.touchSlop
+                if (again) menus.repeat = down
+            }
+        }
+    }
 
 /** What the right button offers over the page's words: Copy, when some are selected, and Select all. */
 private fun textEntries(
@@ -160,16 +206,25 @@ private fun selectedWords(selection: SelectionState): String = selection.selecte
  */
 @Composable
 internal fun Modifier.offersLink(action: KompotAction?): Modifier {
-    val menus = LocalContextMenus.current
     val links = LocalLinkCopier.current
     val path = (action as? NavigateAction)?.deeplink
-    if (menus == null || links == null || path == null) return this
-    val entries =
+    if (links == null || path == null) return this
+    return offersMenu {
         listOf(
             MenuEntry(OPEN_IN_NEW_TAB) { links.openApart(path) },
             MenuEntry(COPY_LINK) { links.copy(path) { } },
         )
-    val area = remember(menus) { LinkArea(entries) }
+    }
+}
+
+/**
+ * The right button over this opens [entries] — asked for when it is pressed, so a field offers what its selection is
+ * then — instead of the page's. Empty entries leave the page's menu. Outside a [Selectable] page nothing opens.
+ */
+@Composable
+internal fun Modifier.offersMenu(entries: () -> List<MenuEntry>): Modifier {
+    val menus = LocalContextMenus.current ?: return this
+    val area = remember(menus) { MenuArea(entries) }
     area.entries = entries
     DisposableEffect(menus, area) {
         menus.add(area)

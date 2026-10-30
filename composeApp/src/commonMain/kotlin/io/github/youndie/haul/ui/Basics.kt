@@ -386,7 +386,7 @@ internal fun LinkedBasicText(
                 maxLines = maxLines,
                 inlineContent = inlineContent,
             )
-            links.forEach { link -> Box(Modifier.named(link.label).pressable(link.onPress)) }
+            links.forEach { link -> Box(Modifier.named(link.label).pressable(link.onPress).offersLink(link.action)) }
         },
         modifier = modifier,
     ) { measurables, constraints ->

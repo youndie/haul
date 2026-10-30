@@ -9,7 +9,8 @@ import io.github.youndie.haul.ui.LinkCopier
  * written with `navigator.clipboard`. Where that is refused or missing — no secure context, no permission — the
  * link goes through a selected text area and `document.execCommand('copy')`, which older and insecure pages
  * still allow (B-104). A browser that refuses both says so through `done`, and the button offers the link
- * ([address]) to copy by hand.
+ * ([address]) to copy by hand. The same two ways copy the words selected on a page (B-154); a field's «Paste» reads
+ * with `navigator.clipboard.readText`, which the browser may ask the shopper to allow (B-155).
  */
 internal val clipboardLinks: LinkCopier =
     object : LinkCopier {
@@ -26,7 +27,20 @@ internal val clipboardLinks: LinkCopier =
             text: String,
             done: (Boolean) -> Unit,
         ) = writeText(text, done)
+
+        override fun pasteText(done: (String?) -> Unit) = readText(done)
     }
+
+@JsFun(
+    """(done) => {
+        try {
+            navigator.clipboard.readText().then((text) => done(text), () => done(null));
+        } catch (e) {
+            done(null);
+        }
+    }""",
+)
+private external fun readText(done: (String?) -> Unit)
 
 @JsFun("(link) => { window.open(link, '_blank', 'noopener') }")
 private external fun openTab(link: String)

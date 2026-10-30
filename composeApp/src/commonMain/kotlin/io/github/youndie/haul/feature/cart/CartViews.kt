@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,6 +43,7 @@ import io.github.youndie.haul.ui.CartLine
 import io.github.youndie.haul.ui.CartSelection
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
+import io.github.youndie.haul.ui.HaulTextField
 import io.github.youndie.haul.ui.Icon
 import io.github.youndie.haul.ui.LineTile
 import io.github.youndie.haul.ui.OrderSummary
@@ -674,7 +674,7 @@ private fun PromoFieldView(
                 if (typed.isEmpty()) {
                     Text(field.placeholder, HaulType.text(15f).copy(color = HaulColors.outlineMuted), softWrap = false)
                 }
-                BasicTextField(
+                HaulTextField(
                     typed,
                     { typed = it },
                     Modifier.fillMaxWidth().testTag(PROMO_INPUT_TAG).named(field.placeholder),

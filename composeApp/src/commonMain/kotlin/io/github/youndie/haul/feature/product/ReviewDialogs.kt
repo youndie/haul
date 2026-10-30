@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -58,6 +57,7 @@ import io.github.youndie.haul.theme.LocalHaulCompact
 import io.github.youndie.haul.ui.FormProduct
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
+import io.github.youndie.haul.ui.HaulTextField
 import io.github.youndie.haul.ui.Icon
 import io.github.youndie.haul.ui.LineTile
 import io.github.youndie.haul.ui.QuestionForm
@@ -444,7 +444,7 @@ private fun LineField(
             .padding(horizontal = 16.dp + border.first),
         contentAlignment = Alignment.CenterStart,
     ) {
-        BasicTextField(
+        HaulTextField(
             value,
             onValue,
             Modifier
@@ -480,7 +480,7 @@ private fun AreaField(
     val border = borderOf(error, focused)
     val shape = RoundedCornerShape(14.dp)
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        BasicTextField(
+        HaulTextField(
             value,
             onValue,
             Modifier
