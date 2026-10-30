@@ -124,9 +124,8 @@ internal fun Modifier.pointerPress(onPress: (() -> Unit)?): Modifier =
 /**
  * A control pressed in what the page's words count as a double press is pressed all the same (B-154, B-155), as it
  * was before the words could be selected. The page's selection counts presses — on each text, and across the page
- * between its texts — and on a double press selects a word and takes the release: «Write a review» pressed again just
- * after its dialog closed opened nothing, the footer's «Haul Plus» pressed just after «Track an order» and Back did
- * nothing, a «+» pressed twice added one. The page marks such a press (its [ContextMenus], read by [Selectable] before
+ * between its texts (`isMouseSelectionBetweenTextEnabled`) — and on a double press selects a word and takes the
+ * release: «Write a review» pressed again just after its dialog closed opened nothing. The page marks such a press (its [ContextMenus], read by [Selectable] before
  * anything on it); a control under it takes the press before the words see it and presses on its release inside the
  * control. Every control under it reads it the same way, and only the innermost presses: a «+» on a card. A press the
  * page does not mark — the first, or one off the last — goes to the control as any press does.
