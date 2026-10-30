@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.text.selection.SelectionState
+import androidx.compose.foundation.text.selection.rememberSelectionState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -115,9 +116,7 @@ internal val LocalContextMenus: ProvidableCompositionLocal<ContextMenus?> = stat
 @Composable
 internal fun Selectable(content: @Composable () -> Unit) {
     val menus = remember { ContextMenus() }
-    // Not `rememberSelectionState`, which is saved with the page: a page visited again by Back got the selection made
-    // on its last visit, pointing at texts of a page no longer drawn, and the next press on it reached nothing (B-155).
-    val selection = remember { SelectionState() }
+    val selection = rememberSelectionState()
     val copier = LocalLinkCopier.current
     val overlays = LocalOverlays.current
     val placed = remember { Placed() }
