@@ -53,11 +53,27 @@ on it (the brand, the crumbs, the related products).
   Two artefacts of the walk, not of the store: a hidden browser pane draws no frame between two presses, so a menu
   closed by one is still there for the next; and the automation's ⌘C carries no key code (`code: ""`), which
   Compose maps to no key — a real keyboard's `KeyC` is `Key.C`, checked with a dispatched `KeyboardEvent`.
+- **A control pressed again soon after was not pressed** once the page's words could be selected: two tests of the
+  review dialog went red (`ReviewWiringTest` «cancel and the close button take the dialog away and send nothing» —
+  «Write a review» pressed again just after Cancel opened nothing — and «a vote with no answer offers Retry…», the
+  second «Helpful»). Advancing the test's clock a second between the presses made it green, and Compose's selection
+  counts presses on each text (`ClicksCounter`: a double press's time, the slop around the last press) and on a
+  double press selects the word and takes the release. So a control now reads a press again on the same spot within
+  that measure before anything in it, takes it and presses itself on the release (`pressesAgain` in `ui/Links.kt`,
+  in `pressable` and `toggles`; not in `pointerPress`, the scrims', where a double press on a dialog's words would
+  close it); among controls under one another only the innermost presses. It is a modifier node that takes the
+  newest press on every update: keyed on the press, a card's «+» answered with a new line was pressed through a
+  function reference equal to the old one and sent the old line (`InPlaceAnswersTest` «a card's plus updates the
+  header's count…», red until then). A press without a dialog or a notice between the two did not take the control's
+  press in a test of its own — two clicks and a double click on a `HaulButton` on a `Selectable` both pressed it twice
+  without `pressesAgain` — so the guard is the two review tests, red with `pressesAgain` out of `pressable`; what the
+  dialog between adds was not pinned down.
 - **Left for B-155**: the crumbs' and the category row's words are `TextLink`s — a press with no address — so the
   right button over them opens the words' menu, not a link's; fields; the other pages, the header and the dialogs.
 - **Tests**: `ContextMenusTest` — the menu over words has «Select all» and no «Copy» with nothing selected; «Copy»
   after «Select all» writes the words; the copy shortcut copies them; over a link «Open in new tab» and «Copy link»
   get the link's path and the right button follows nothing; a right press off the menu and Escape close it.
-  **Mutation**, each on the committed change, restored, `git status` clean: the page's reader not taking the press
-  (the link test still green — the menu is the store's either way — but Compose's menu would open under it, which
-  only the browser shows); the copy shortcut's handler removed (red); the link lookup returning nothing (red).
+  **Mutation**, each on the committed change, restored, `git status` clean: the copy shortcut's handler off (red:
+  «the copy shortcut copies the words selected»); the link lookup finding nothing (red: «the right button over a
+  link offers to open it apart and to copy it»); the page's reader not taking the press (all six red — Compose's own
+  menu opens over the store's).
