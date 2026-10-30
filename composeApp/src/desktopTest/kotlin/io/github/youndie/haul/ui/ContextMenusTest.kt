@@ -13,6 +13,7 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -143,14 +144,20 @@ class ContextMenusTest {
         }
 
     @Test
-    fun `a press of the right button off the menu closes it`() =
+    fun `a press off the menu closes it and the right button opens the menu where it pressed`() =
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
             page()
             rightClick(LINK)
             onNodeWithTag(LINK_MENU_TAG).assertExists()
-            onRoot().performMouseInput { rightClick(position = centerRight) }
+            onRoot().performMouseInput { click(position = centerRight) }
             waitForIdle()
             onNodeWithTag(LINK_MENU_TAG).assertDoesNotExist()
+            assertEquals(emptyList(), followed, "the press off the menu reached the page")
+            // As a browser's: the right button off an open menu opens the one where it pressed (B-155).
+            rightClick(LINK)
+            rightClick(TEXT)
+            onNodeWithText(SELECT_ALL).assertExists()
+            onNodeWithText(OPEN_IN_NEW_TAB).assertDoesNotExist()
         }
 
     @Test
