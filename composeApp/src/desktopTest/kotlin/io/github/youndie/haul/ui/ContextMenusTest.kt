@@ -10,6 +10,7 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.doubleClick
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
@@ -156,11 +157,43 @@ class ContextMenusTest {
             onNodeWithTag(LINK_MENU_TAG).assertDoesNotExist()
         }
 
+    /**
+     * The words in a control count presses: a second press soon after was a double press to them, which selected the
+     * control's word and took the release, so the control was pressed once — «Write a review» pressed again just
+     * after its dialog closed opened nothing. A control on a selectable page is pressed as often as it is pressed, and
+     * a card under it not at all.
+     */
+    @Test
+    fun `a control pressed twice at once on the page is pressed twice and the card under it not at all`() =
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            var plus = 0
+            var card = 0
+            setContent {
+                HaulTheme(FixtureFonts.fonts, compact = false) {
+                    OverlayHost {
+                        Selectable {
+                            Box(Modifier.size(240.dp, 120.dp).pressable { card += 1 }) {
+                                Box(
+                                    Modifier.size(80.dp, 40.dp).testTag(PLUS).pressable { plus += 1 },
+                                ) { BasicText(ADD) }
+                            }
+                        }
+                    }
+                }
+            }
+            onNodeWithText(ADD).performMouseInput { doubleClick() }
+            waitForIdle()
+            assertEquals(2, plus, "the second press of «Add» was taken by its word")
+            assertEquals(0, card)
+        }
+
     private companion object {
         const val WIDTH = 640
         const val HEIGHT = 480
         const val TEXT = "words"
         const val LINK = "link"
+        const val PLUS = "plus"
+        const val ADD = "Add to cart"
         const val WORDS = "Up to 40 hours, 3 min charge = 3 h"
         const val PATH = "/c/electronics/audio/headphones?brand=Sony"
     }

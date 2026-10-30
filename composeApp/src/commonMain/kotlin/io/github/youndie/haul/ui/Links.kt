@@ -2,6 +2,7 @@ package io.github.youndie.haul.ui
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.selection.triStateToggleable
 import androidx.compose.runtime.Composable
@@ -12,9 +13,18 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerEvent
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.SuspendingPointerInputModifierNode
+import androidx.compose.ui.input.pointer.changedToDownIgnoreConsumed
+import androidx.compose.ui.input.pointer.isPrimaryPressed
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.node.DelegatingNode
+import androidx.compose.ui.node.ModifierNodeElement
+import androidx.compose.ui.node.PointerInputModifierNode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.disabled
@@ -23,6 +33,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.toggleableState
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.unit.IntSize
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotActionHandler
 
@@ -93,6 +104,7 @@ internal fun Modifier.pressable(onPress: (() -> Unit)?): Modifier =
     } else {
         // No indication: the canvas draws no pressed or hovered state, and a ripple would be one.
         pointerHoverIcon(PointerIcon.Hand)
+            .pressesAgain(onPress)
             .clickable(interactionSource = null, indication = null, role = Role.Button, onClick = onPress)
     }
 
@@ -107,6 +119,92 @@ internal fun Modifier.pointerPress(onPress: (() -> Unit)?): Modifier =
     } else {
         pointerHoverIcon(PointerIcon.Hand).pointerInput(onPress) { detectTapGestures { onPress() } }
     }
+
+/**
+ * A control pressed again on the same spot soon after is pressed again (B-154), as it was before the page's words
+ * could be selected. The words in a control count presses too, and to them such a press is a double press: it
+ * selected the control's word and took the release — «Write a review» pressed again just after its dialog closed
+ * opened nothing, a «+» pressed twice added one. Such a press is read here before anything in the control, by the
+ * words' own measure (a double press's time, the slop around the last press), taken, and pressed on its release
+ * inside the control. Every control under it reads it the same way, and only the innermost presses: a «+» on a card.
+ */
+internal fun Modifier.pressesAgain(onPress: () -> Unit): Modifier = this then PressesAgainElement(onPress)
+
+/**
+ * [pressesAgain]'s element: the node keeps its reader across presses — the last press is its memory — and takes the
+ * newest [onPress] on every update. A reader keyed on the press would have kept an old one: a card's «+» answered
+ * with a new line is pressed through a function reference equal to the old, and pressed again it sent the old line.
+ */
+private class PressesAgainElement(
+    val onPress: () -> Unit,
+) : ModifierNodeElement<PressesAgainNode>() {
+    override fun create(): PressesAgainNode = PressesAgainNode(onPress)
+
+    override fun update(node: PressesAgainNode) {
+        node.onPress = onPress
+    }
+
+    override fun equals(other: Any?): Boolean = other is PressesAgainElement && other.onPress === onPress
+
+    override fun hashCode(): Int = onPress.hashCode()
+}
+
+private class PressesAgainNode(
+    var onPress: () -> Unit,
+) : DelegatingNode(),
+    PointerInputModifierNode {
+    private val me = Any()
+    private var last: PointerInputChange? = null
+
+    private val reader =
+        delegate(
+            SuspendingPointerInputModifierNode {
+                awaitEachGesture {
+                    val event = awaitPointerEvent(PointerEventPass.Initial)
+                    val down =
+                        event.changes.singleOrNull()?.takeIf {
+                            it.changedToDownIgnoreConsumed() &&
+                                event.buttons.isPrimaryPressed
+                        }
+                            ?: return@awaitEachGesture
+                    val before = last
+                    last = down
+                    val again =
+                        before != null &&
+                            down.uptimeMillis - before.uptimeMillis < viewConfiguration.doubleTapTimeoutMillis &&
+                            (down.position - before.position).getDistance() < viewConfiguration.touchSlop
+                    if (!again) return@awaitEachGesture
+                    // The outer controls read the press first; the innermost, last, is the one pressed.
+                    pressedAgain = me
+                    down.consume()
+                    while (true) {
+                        val change =
+                            awaitPointerEvent(PointerEventPass.Initial).changes.firstOrNull { it.id == down.id }
+                                ?: break
+                        change.consume()
+                        if (!change.pressed) {
+                            val inside =
+                                change.position.x in 0f..size.width.toFloat() &&
+                                    change.position.y in 0f..size.height.toFloat()
+                            if (inside && pressedAgain === me) onPress()
+                            break
+                        }
+                    }
+                }
+            },
+        )
+
+    override fun onPointerEvent(
+        pointerEvent: PointerEvent,
+        pass: PointerEventPass,
+        bounds: IntSize,
+    ) = reader.onPointerEvent(pointerEvent, pass, bounds)
+
+    override fun onCancelPointerInput() = reader.onCancelPointerInput()
+}
+
+/** The innermost control of the press [pressesAgain] took last. */
+private var pressedAgain: Any? = null
 
 /**
  * A control that has nothing to do right now and is drawn greyed for it (B-100): not pressable, and disabled for
@@ -148,7 +246,7 @@ internal fun Modifier.toggles(
                 toggleableState = state
             }
         } else {
-            Modifier.pointerHoverIcon(PointerIcon.Hand).triStateToggleable(
+            Modifier.pointerHoverIcon(PointerIcon.Hand).pressesAgain(onPress).triStateToggleable(
                 state,
                 interactionSource = null,
                 indication = null,
