@@ -16,22 +16,31 @@ internal val clipboardLinks: LinkCopier =
         override fun copy(
             path: String,
             done: (Boolean) -> Unit,
-        ) = writeLink(path, done)
+        ) = writeText(origin() + path, done)
 
         override fun address(path: String): String = origin() + path
+
+        override fun openApart(path: String) = openTab(origin() + path)
+
+        override fun copyText(
+            text: String,
+            done: (Boolean) -> Unit,
+        ) = writeText(text, done)
     }
+
+@JsFun("(link) => { window.open(link, '_blank', 'noopener') }")
+private external fun openTab(link: String)
 
 @JsFun("() => window.location.origin")
 private external fun origin(): String
 
 @JsFun(
-    """(path, done) => {
-        const link = window.location.origin + path;
+    """(text, done) => {
         const byHand = () => {
             let area = null;
             try {
                 area = document.createElement('textarea');
-                area.value = link;
+                area.value = text;
                 area.setAttribute('readonly', '');
                 area.style.position = 'fixed';
                 area.style.opacity = '0';
@@ -45,13 +54,13 @@ private external fun origin(): String
             }
         };
         try {
-            navigator.clipboard.writeText(link).then(() => done(true), () => done(byHand()));
+            navigator.clipboard.writeText(text).then(() => done(true), () => done(byHand()));
         } catch (e) {
             done(byHand());
         }
     }""",
 )
-private external fun writeLink(
-    path: String,
+private external fun writeText(
+    text: String,
     done: (Boolean) -> Unit,
 )

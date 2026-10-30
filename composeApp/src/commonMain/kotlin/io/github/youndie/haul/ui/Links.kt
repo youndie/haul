@@ -48,7 +48,7 @@ public val LocalPageScroll: ProvidableCompositionLocal<ScrollState?> = staticCom
 @Composable
 internal fun Modifier.follows(action: KompotAction?): Modifier {
     val handler = LocalHaulActions.current
-    return if (action == null || handler == null) this else pressable { handler.handle(action) }
+    return if (action == null || handler == null) this else pressable { handler.handle(action) }.offersLink(action)
 }
 
 /**
@@ -82,7 +82,7 @@ internal fun Modifier.followsToTabs(action: KompotAction?): Modifier {
         pressable {
             tabs?.ask()
             handler.handle(action)
-        }
+        }.offersLink(action)
     }
 }
 
@@ -243,6 +243,17 @@ public fun interface LinkCopier {
      * (B-104): the browser's origin and the path; the path alone where there is no origin to know.
      */
     public fun address(path: String): String = path
+
+    /** Opens the link to [path] in a tab of its own, as a browser's «Open in new tab» does; nowhere to open, nothing. */
+    public fun openApart(path: String) {}
+
+    /** Puts [text] — words selected on the page (B-154) — on the clipboard as it is; `done` says whether it went. */
+    public fun copyText(
+        text: String,
+        done: (Boolean) -> Unit,
+    ) {
+        done(false)
+    }
 }
 
 /** Whoever copies links: the browser's clipboard in the app; `null` — a screenshot — copies nothing. */

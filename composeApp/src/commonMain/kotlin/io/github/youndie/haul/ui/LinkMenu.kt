@@ -159,7 +159,7 @@ internal fun Menu(
 
 /** The open menu: [entries] in a card, the [current] one in bold; an entry pressed, or Escape, is [onClose] first. */
 @Composable
-private fun MenuColumn(
+internal fun MenuColumn(
     entries: List<MenuEntry>,
     current: String?,
     onClose: () -> Unit,
