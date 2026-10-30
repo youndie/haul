@@ -36,6 +36,7 @@ A stage is a field on the item, not a directory.
 | `stage-10-review` | Review | what a walk through the live stand found: controls that do nothing, behaviour that is wrong or surprising, placeholders |
 | `stage-11-qa` | QA | the full QA pass after v0.3.0: a guest walk of the stand, a signed-in walk of a local stand, and a code audit |
 | `stage-12-qa-run` | QA run | what the catalogue's runs (`docs/qa/runs/`) found failing, from the first, v0.4.0, on |
+| `stage-13-web-habits` | Web habits | what a browser's page does and the canvas did not: words that select and copy, the right button's menu (B-154) |
 
 ## Marks
 
@@ -43,11 +44,13 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (0)
+## Open (1)
 
-No open tasks.
+| Task | | Priority | Size | Blocked by |
+|---|---|---|---|---|
+| [B-155](docs/backlog/B-155-words-select-and-the-right-button-everywhere.md) `[ ]` | feat: words select and the right button opens the store's menu on every page | P2 | M | B-154 |
 
-## Closed (153)
+## Closed (154)
 
 **Skeleton**
 
@@ -237,6 +240,10 @@ No open tasks.
 - [B-151](docs/backlog/B-151-selection-controls-say-their-state.md) `[x]` - fix: selection controls say their state, dialogs hide the page beneath, and the trial dialog closes on Escape
 - [B-152](docs/backlog/B-152-small-lines-from-the-v060-run.md) `[x]` - fix: the small lines the v0.6.0 run noticed
 - [B-153](docs/backlog/B-153-the-product-placeholder-at-1024.md) `[x]` - fix: the product page's placeholder at 1024 is the page's two columns
+
+**Web habits**
+
+- [B-154](docs/backlog/B-154-words-select-and-the-right-button-on-the-product-page.md) `[x]` - feat: the product page's words select, and the right button opens the store's menu
 
 <!-- END INDEX -->
 

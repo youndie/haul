@@ -2314,6 +2314,16 @@ after Fast 4G 5273 5213 5175 5147 5235 5182 | 6427 6286 6246 6253 6291 6252.
 overlap on both profiles. Rasterising at the box's size — up to ≈768 px on the product page instead of 240 — costs
 nothing measurable on Home, whose sixteen pictures are drawn at card and tile sizes.
 
+#### Decided in B-154: words select, and the right button opens the store's menu
+
+A canvas page loses what a browser gives any page for free: no word on it could be selected, and the right button did
+nothing (2026-10-30). The page now selects its words — Compose's `SelectionContainer` — and reads the right button
+itself, opening the store's menu at the pointer: Copy and Select all over words, «Open in new tab» and «Copy link»
+over a link, drawn as the store's other menus. Not Compose's menu: on skiko 1.12 it is the old one, its look and
+items internal, and on the web its presses did nothing; nor its copy shortcut, which waits there for a browser
+`copy` event that never comes. The product page first (B-154), then every page, the header, the dialogs and the
+fields (B-155).
+
 ### D10. Documentation in English
 
 As the sibling reference projects; this repository is read from outside.

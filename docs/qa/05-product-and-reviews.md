@@ -442,3 +442,28 @@ search for `sony`).
   `ReviewControlsTest` «a press outside the photo closes the viewer and one on it does not»;
   `ReviewControlsTest` «on a phone a press outside the photo closes the viewer»;
   `NamedPressesTest` «every press and field in the dialogs has a name»
+
+### TC-PDP-20 — Words select and copy, and the right button opens the store's menu
+
+- **Who:** guest
+- **Width:** 1440
+- **Preconditions:** the headphones, at the top; a mouse.
+- **Steps:**
+  1. Drag over the title, then press ⌘C (Ctrl+C) and paste somewhere else.
+  2. Press the right button over the selected title; press «Copy» and paste. Press the right button over the
+     specifications with nothing selected.
+  3. Press the right button over the brand, «Sony»; press «Copy link» and paste. Again, and press «Open in new tab».
+  4. Open the menu, then press the right button somewhere off it; open it again and press Escape.
+- **Expected:**
+  - Step 1: the words drawn selected; the paste is the selected words.
+  - Step 2: a menu at the pointer drawn as the store's other menus (the sort's, «Catalog»'s), not the browser's:
+    «Copy» and «Select all» over the selection, «Select all» alone with nothing selected; the paste is the words.
+  - Step 3: «Open in new tab» and «Copy link»; the paste is the whole address, `…/c/electronics/audio/headphones?brand=Sony`;
+    the new tab opens that address and this page stays where it was.
+  - Step 4: each closes the menu, and nothing under it is pressed.
+- **Decided in:** B-154
+- **Coverage:** `ContextMenusTest` «the right button over the words opens the storefront's menu with Select all»;
+  `ContextMenusTest` «Copy writes the selected words through the page's clipboard»;
+  `ContextMenusTest` «the copy shortcut copies the words selected»;
+  `ContextMenusTest` «the right button over a link offers to open it apart and to copy it»;
+  `ContextMenusTest` «a press of the right button off the menu closes it»; `ContextMenusTest` «Escape closes the menu»

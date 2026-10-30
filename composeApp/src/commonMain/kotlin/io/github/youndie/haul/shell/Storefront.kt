@@ -65,6 +65,7 @@ import io.github.youndie.haul.ui.PlusTrialDialog
 import io.github.youndie.haul.ui.SearchFieldState
 import io.github.youndie.haul.ui.SearchInput
 import io.github.youndie.haul.ui.SearchSuggestPanel
+import io.github.youndie.haul.ui.Selectable
 import io.github.youndie.haul.ui.SheetOverPage
 import io.github.youndie.haul.ui.TabsInView
 import io.github.youndie.haul.ui.releasingOnBlankPress
@@ -515,7 +516,7 @@ public fun Storefront(
                                     }
                                 },
                             ) { tree ->
-                                Scrolled(scroll) {
+                                Scrolled(scroll, selectable = address.kind in SELECTABLE_PAGES) {
                                     Shown(
                                         tree,
                                         address,
@@ -579,17 +580,27 @@ private fun PresentedOverlay(
     }
 }
 
-/** The page's own scroll: one per screen, so a new address of the screen keeps it and another path starts at the top. */
+/**
+ * The page's own scroll: one per screen, so a new address of the screen keeps it and another path starts at the top.
+ * A [selectable] page's words can be selected and copied, and the right button opens the storefront's menu over it
+ * ([Selectable]).
+ */
 @Composable
 private fun Scrolled(
     scroll: ScrollState,
+    selectable: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     Box(Modifier.testTag(PAGE_SCROLL_TAG).fillMaxSize().verticalScroll(scroll)) {
         val tabs = remember(scroll) { TabsInView() }
-        CompositionLocalProvider(LocalPageScroll provides scroll, LocalTabsInView provides tabs) { content() }
+        CompositionLocalProvider(LocalPageScroll provides scroll, LocalTabsInView provides tabs) {
+            if (selectable) Selectable { content() } else content()
+        }
     }
 }
+
+/** The pages whose words can be selected and that open a menu on the right button (B-154): the product page first. */
+private val SELECTABLE_PAGES = setOf(PageKind.Product)
 
 /** The channel a screen named ([topic]) and where its updates come from. */
 internal class Live(
