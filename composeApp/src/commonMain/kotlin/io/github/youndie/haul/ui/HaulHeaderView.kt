@@ -274,7 +274,7 @@ private fun accountTap(
     if (onAccount == null) {
         Modifier
     } else {
-        Modifier.pressesAgain(onAccount).clickable(
+        Modifier.handOverWords().pressesAgain(onAccount).clickable(
             interactionSource = null,
             indication = null,
             onClickLabel = if (customerName == null) "Sign in" else "Account",

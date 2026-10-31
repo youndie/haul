@@ -20,8 +20,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.layer.GraphicsLayer
+import androidx.compose.ui.graphics.layer.drawLayer
+import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
@@ -39,7 +49,9 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
@@ -279,40 +291,85 @@ internal fun Text(
     val measurer = rememberTextMeasurer()
     val overflow = if (maxLines == Int.MAX_VALUE) TextOverflow.Clip else TextOverflow.Ellipsis
     val crops = style.lineHeight.isSpecified
+    // How far the face's own line reaches above the first line box, as the last layout found it.
+    val reach = remember { IntArray(1) }
+    val glyphs = if (crops) rememberGraphicsLayer() else null
+    val held = modifier.keepsReachBelowLineTop(glyphs, reach)
     LinkedBasicText(
         legible,
         links,
-        modifier.layout { measurable, constraints ->
-            val placeable = measurable.measure(constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity))
-            var top = 0
-            var bottom = placeable.height
-            if (crops) {
-                val width = Constraints(maxWidth = constraints.maxWidth)
-                val lines = measurer.measure(legible, style, overflow, softWrap, maxLines, constraints = width)
-                // Where CSS puts the first line box: the leading (line height minus ascent and descent)
-                // split evenly, so the box's top is (line height + ascent − descent) / 2 above the
-                // baseline. Skia rounds its own line top down, a pixel off at a negative leading.
-                val natural =
-                    measurer.measure(
-                        AnnotatedString("Hg"),
-                        style.copy(lineHeight = TextUnit.Unspecified),
-                        constraints = width,
-                    )
-                val ascent = natural.firstBaseline
-                val descent = natural.getLineBottom(0) - ascent
-                val lineHeight = style.lineHeight.toPx()
-                val cssTop = lines.firstBaseline - (lineHeight + ascent - descent) / 2f
-                top = cssTop.roundToInt().coerceIn(0, placeable.height)
-                bottom = (top + (lineHeight * lines.lineCount).roundToInt()).coerceIn(top, placeable.height)
-            }
-            layout(placeable.width, bottom - top) { placeable.place(0, -top) }
-        },
+        held
+            .layout { measurable, constraints ->
+                val placeable = measurable.measure(constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity))
+                var top = 0
+                var bottom = placeable.height
+                if (crops) {
+                    val width = Constraints(maxWidth = constraints.maxWidth)
+                    val lines = measurer.measure(legible, style, overflow, softWrap, maxLines, constraints = width)
+                    // Where CSS puts the first line box: the leading (line height minus ascent and descent)
+                    // split evenly, so the box's top is (line height + ascent − descent) / 2 above the
+                    // baseline. Skia rounds its own line top down, a pixel off at a negative leading.
+                    val natural =
+                        measurer.measure(
+                            AnnotatedString("Hg"),
+                            style.copy(lineHeight = TextUnit.Unspecified),
+                            constraints = width,
+                        )
+                    val ascent = natural.firstBaseline
+                    val descent = natural.getLineBottom(0) - ascent
+                    val lineHeight = style.lineHeight.toPx()
+                    val cssTop = lines.firstBaseline - (lineHeight + ascent - descent) / 2f
+                    top = cssTop.roundToInt().coerceIn(0, placeable.height)
+                    bottom = (top + (lineHeight * lines.lineCount).roundToInt()).coerceIn(top, placeable.height)
+                }
+                reach[0] = top
+                layout(placeable.width, bottom - top) { placeable.place(0, -top) }
+            }.drawsInto(glyphs),
         style,
         overflow = overflow,
         softWrap = softWrap,
         maxLines = maxLines,
     )
 }
+
+/**
+ * A cropped [Text] takes the pointer from its first line box down, and draws where it draws (B-157). The face's own
+ * line reaches above the line box the text is laid in, over whatever is laid above it, and a selectable text (B-155)
+ * takes the pointer over all of its own: a category's title took the presses meant for the crumbs above it. Only a
+ * clipping layer stops the pointer short of a node's own bounds, and a clip cuts the glyphs too — a «$» in the top
+ * line lost its stroke, and every word in the layer drew its edges a shade differently. So the text is drawn into
+ * [glyphs] under the clip, which keeps nothing of it, and [glyphs] is drawn over the clip as it was recorded, [reach]
+ * above the line box where the text's own layout puts it. Below the line box nothing is cut: what is laid under the
+ * text is reached before it anyway.
+ */
+private fun Modifier.keepsReachBelowLineTop(
+    glyphs: GraphicsLayer?,
+    reach: IntArray,
+): Modifier =
+    if (glyphs == null) {
+        this
+    } else {
+        drawWithContent {
+            drawContent()
+            translate(top = -reach[0].toFloat()) { drawLayer(glyphs) }
+        }.graphicsLayer(clip = true, shape = BelowLineTop)
+    }
+
+/** The text drawn into [glyphs], and nowhere else, for [keepsReachBelowLineTop] to draw. */
+private fun Modifier.drawsInto(glyphs: GraphicsLayer?): Modifier =
+    if (glyphs == null) this else drawWithContent { glyphs.record { this@drawWithContent.drawContent() } }
+
+/** From the first line box's top down, as wide and as deep as anything draws past it. */
+private object BelowLineTop : Shape {
+    override fun createOutline(
+        size: Size,
+        layoutDirection: LayoutDirection,
+        density: Density,
+    ): Outline = Outline.Rectangle(Rect(-REACH, 0f, size.width + REACH, size.height + REACH))
+}
+
+/** Further than any text draws past its box, sideways or down. */
+private const val REACH = 100_000f
 
 /**
  * How tall [Text] draws one line of [style]: the style's line height, rounded as [Text] rounds it, where the style

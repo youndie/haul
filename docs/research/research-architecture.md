@@ -2324,7 +2324,10 @@ items internal, and on the web its presses did nothing; nor its copy shortcut, w
 `copy` event that never comes. The product page first (B-154), then every page, the header, the dialogs and the
 fields (B-155): a field offers Cut, Copy, Paste and Select all through the store's own field, and a link in a
 sentence offers its address. A text drawn past its box over a control takes the control's presses once it can be
-selected; the footer's name and the hero's figure are pictures and stay out of the selection.
+selected; the footer's name and the hero's figure are pictures and stay out of the selection. A text set tighter than
+its face reaches above its first line box, and takes the pointer from there down only — a category's title had taken
+the crumbs above it — while its glyphs draw where they drew (B-157); and a control asks for the hand over its own
+words, which ask for the text cursor (B-157).
 
 ### D10. Documentation in English
 
