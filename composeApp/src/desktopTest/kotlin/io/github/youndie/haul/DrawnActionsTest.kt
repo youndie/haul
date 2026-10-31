@@ -44,10 +44,12 @@ import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.ui.ALL_CATEGORIES
 import io.github.youndie.haul.ui.AppliedFilters
+import io.github.youndie.haul.ui.Breadcrumbs
 import io.github.youndie.haul.ui.CARD_ADD_TAG
 import io.github.youndie.haul.ui.CATEGORY_ROW_TAG
 import io.github.youndie.haul.ui.CampaignHero
 import io.github.youndie.haul.ui.CampaignRow
+import io.github.youndie.haul.ui.Crumb
 import io.github.youndie.haul.ui.Facet
 import io.github.youndie.haul.ui.FacetOption
 import io.github.youndie.haul.ui.FacetPanel
@@ -63,6 +65,7 @@ import io.github.youndie.haul.ui.LinkCopier
 import io.github.youndie.haul.ui.LocalLinkCopier
 import io.github.youndie.haul.ui.OPEN_IN_NEW_TAB
 import io.github.youndie.haul.ui.OPEN_MENU
+import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.PlusBenefit
 import io.github.youndie.haul.ui.PlusTrialDialog
 import io.github.youndie.haul.ui.ProductCard
@@ -314,6 +317,37 @@ class DrawnActionsTest {
             onNodeWithText("Electronics").performClick()
             onNodeWithText(NEXT).assertExists()
             assertEquals(listOf("/", "/c/electronics"), history.entries)
+        }
+
+    /**
+     * A crumb under a category's title is pressed by the pointer, not only by name (B-157). The title's face is set
+     * tighter than its own line, so its text reaches above the line it is laid in, over the crumbs; once the page's
+     * words were selectable (B-155) that reach took the pointer, and a crumb pressed with the mouse did nothing — a
+     * press found by name lands where the pointer would, so only a press at the crumb's place says so.
+     */
+    @Test
+    fun `a crumb under the category's title opens its page when the pointer presses it`() =
+        runDesktopComposeUiTest(WIDTH, 1_000) {
+            answer(
+                "/ui/home",
+                page(
+                    header,
+                    Breadcrumbs(
+                        "breadcrumbs",
+                        listOf(
+                            Crumb("Home", NavigateAction("/")),
+                            Crumb(AUDIO, NavigateAction("/c/audio")),
+                            Crumb("Headphones"),
+                        ),
+                    ),
+                    PageTitle("title", "Headphones", "15 items"),
+                ),
+            )
+            destinations("/c/audio")
+            storefront()
+            onNodeWithContentDescription(AUDIO).performMouseInput { click(center) }
+            onNodeWithText(NEXT).assertExists()
+            assertEquals(listOf("/", "/c/audio"), history.entries)
         }
 
     @Test
@@ -876,6 +910,7 @@ class DrawnActionsTest {
         const val PAGE_3 = "/c/mugs?brand=Haul&page=3"
         const val BY_PRICE = "/c/mugs?brand=Haul&sort=price-asc"
         const val CLEARED = "/c/mugs"
+        const val AUDIO = "Audio"
         const val PARTS = "/ui/parts"
         const val BY_OSTRA = "/c/mugs?brand=Ostra"
         const val BY_BOTH = "/c/mugs?brand=Lume&brand=Ostra"

@@ -104,10 +104,18 @@ internal fun Modifier.pressable(onPress: (() -> Unit)?): Modifier =
         this
     } else {
         // No indication: the canvas draws no pressed or hovered state, and a ripple would be one.
-        pointerHoverIcon(PointerIcon.Hand)
+        handOverWords()
             .pressesAgain(onPress)
             .clickable(interactionSource = null, indication = null, role = Role.Button, onClick = onPress)
     }
+
+/**
+ * The hand over a control, over its words too (B-157). The page's words are selectable (B-155), and a selectable
+ * text asks for the text cursor over itself; a hover icon gives way to its descendants' unless it overrides them,
+ * so a button, a card or a link drawn as words showed the text cursor wherever its words were — over most of it.
+ * A browser draws the hand over a link's or a button's words; so does the store.
+ */
+internal fun Modifier.handOverWords(): Modifier = pointerHoverIcon(PointerIcon.Hand, overrideDescendants = true)
 
 /**
  * A press of the pointer's alone: the hand over it and [onPress] on a tap, and nothing in semantics — no button for
@@ -240,7 +248,7 @@ internal fun Modifier.toggles(
                 toggleableState = state
             }
         } else {
-            Modifier.pointerHoverIcon(PointerIcon.Hand).pressesAgain(onPress).triStateToggleable(
+            Modifier.handOverWords().pressesAgain(onPress).triStateToggleable(
                 state,
                 interactionSource = null,
                 indication = null,

@@ -50,7 +50,7 @@ A stage is a field on the item, not a directory.
 |---|---|---|---|---|
 | [B-156](docs/backlog/B-156-walk-the-selection-on-a-phone.md) `[ ]` | chore: walk the selection and its toolbar on a phone | P3 | S | B-155 |
 
-## Closed (155)
+## Closed (156)
 
 **Skeleton**
 
@@ -245,6 +245,7 @@ A stage is a field on the item, not a directory.
 
 - [B-154](docs/backlog/B-154-words-select-and-the-right-button-on-the-product-page.md) `[x]` - feat: the product page's words select, and the right button opens the store's menu
 - [B-155](docs/backlog/B-155-words-select-and-the-right-button-everywhere.md) `[x]` - feat: words select and the right button opens the store's menu on every page
+- [B-157](docs/backlog/B-157-controls-keep-the-hand-and-crumbs-their-presses.md) `[x]` - fix: controls keep the hand over their words, and crumbs under a title take their presses
 
 <!-- END INDEX -->
 

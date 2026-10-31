@@ -238,3 +238,22 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
   `ContextMenusTest` «a press off the menu closes it and the right button opens the menu where it pressed»;
   `ReviewWiringTest` «cancel and the close button take the dialog away and send nothing»
 
+### TC-HDR-12 — A control shows the hand over its words, and a crumb under a title takes the pointer's press
+
+- **Who:** guest
+- **Width:** 1440
+- **Preconditions:** a mouse; the home page, a category (Headphones) and a product page.
+- **Steps:**
+  1. Hold the pointer over the words of «Catalog», «Sign in», a category in the header's row, a banner's title, a
+     kind chip, a card's name, the sort, a facet's option; then over a heading, a description and the search box.
+  2. On the category, hold the pointer over the crumb «Electronics» right above the title, then press it.
+  3. On the product page, press the crumb «Headphones».
+- **Expected:**
+  - Step 1: the hand over every control, its words included; the text cursor over the heading, the description and
+    the field.
+  - Step 2: the hand over the crumb; the press opens Electronics.
+  - Step 3: the category Headphones opens.
+- **Decided in:** B-157
+- **Coverage:** `composeApp:DrawnActionsTest` «a crumb under the category's title opens its page when the pointer
+  presses it»; manual: the hand — Compose keeps the pointer's icon behind an internal service, out of a test's reach
+
