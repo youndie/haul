@@ -61,8 +61,16 @@ public fun ProductCardView(
     modifier: Modifier = Modifier,
 ) {
     val compact = LocalHaulCompact.current
-    Column(modifier.follows(card.action), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        PhotoTile(card, compact, Modifier.padding(bottom = 4.dp))
+    // Hovered, the card rises and its photo leans in (B-158).
+    val hover = rememberHover()
+    Column(
+        modifier
+            .onHover(hover) { translationY = -CARD_LIFT.toPx() * it }
+            .hovers(hover)
+            .follows(card.action),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        PhotoTile(card, compact, hover, Modifier.padding(bottom = 4.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Prices(
                 price = {
@@ -99,9 +107,10 @@ public fun ProductCardView(
             // draws its buttons then, greyed, and takes the press so that it opens nothing either (B-75).
             val add = card.add
             val press = linePress(add)
+            val plus = rememberHover()
             Box(
                 Modifier
-                    .then(if (add == null) Modifier.swallowsPresses() else Modifier.pressable(press))
+                    .then(if (add == null) Modifier.swallowsPresses() else Modifier.hovers(plus).pressable(press))
                     // Its own node, pressable or not: merged into the card's, a disabled «+» would read as the card.
                     // Named by the product, as six «Add to cart» in a row named nothing (B-151).
                     .testTag(CARD_ADD_TAG)
@@ -121,7 +130,12 @@ public fun ProductCardView(
                     ),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(HaulIcons.plus, 18.dp, if (add == null) HaulColors.outlineMuted else HaulColors.onPrimary)
+                Icon(
+                    HaulIcons.plus,
+                    18.dp,
+                    if (add == null) HaulColors.outlineMuted else HaulColors.onPrimary,
+                    Modifier.onHover(plus) { rotationZ = 90f * it },
+                )
             }
         }
         card.drop?.let { PriceDrop(it) }
@@ -183,6 +197,11 @@ private fun Prices(
     }
 }
 
+/** How far a hovered card rises, the shadow its photo casts then, and how much nearer the photo comes. */
+private val CARD_LIFT = 6.dp
+private val CARD_SHADOW = 18.dp
+private const val PHOTO_LEAN = 0.06f
+
 /** Between the price and the old price, and between the prices and «+». */
 internal val PRICE_GAP = 8.dp
 
@@ -190,17 +209,28 @@ internal val PRICE_GAP = 8.dp
 private fun PhotoTile(
     card: ProductCard,
     compact: Boolean,
+    hover: Hover,
     modifier: Modifier,
 ) {
+    val shape = RoundedCornerShape(18.dp)
     Box(
         modifier
             .fillMaxWidth()
             .aspectRatio(1f)
-            .clip(RoundedCornerShape(18.dp)),
+            .onHover(hover) {
+                shadowElevation = CARD_SHADOW.toPx() * it
+                this.shape = shape
+            }.clip(shape),
     ) {
         // The stored photo (B-30) or the product's picture (B-78) over the canvas's placeholder tile, which stays
         // while there is none; the tile says nothing, a caption only described the missing picture.
-        PhotoOrPlaceholder(card.image, Modifier.matchParentSize()) {
+        PhotoOrPlaceholder(
+            card.image,
+            Modifier.matchParentSize().onHover(hover) {
+                scaleX = 1f + PHOTO_LEAN * it
+                scaleY = 1f + PHOTO_LEAN * it
+            },
+        ) {
             Box(Modifier.fillMaxSize().background(toneColor(card.tone))) { Hatching(Modifier.fillMaxSize()) }
         }
         card.badge?.let {
@@ -234,10 +264,12 @@ internal fun Heart(
     saved: Boolean,
     size: Dp,
 ) {
+    // Pressed, it pops; saved, a ring and sparks of Hot burst from it (B-158).
+    val drawn = Modifier.bumpsOn(saved, from = 0.55f).burstsOn(saved)
     if (saved) {
-        Icon(HaulIcons.heartFilled, size, HaulColors.tertiaryContainer)
+        Icon(HaulIcons.heartFilled, size, HaulColors.tertiaryContainer, drawn)
     } else {
-        Icon(HaulIcons.heart, size, HaulColors.onSurface)
+        Icon(HaulIcons.heart, size, HaulColors.onSurface, drawn)
     }
 }
 

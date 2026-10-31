@@ -274,7 +274,7 @@ private fun accountTap(
     if (onAccount == null) {
         Modifier
     } else {
-        Modifier.handOverWords().pressesAgain(onAccount).clickable(
+        Modifier.handOverWords().sinksWhenPressed().pressesAgain(onAccount).clickable(
             interactionSource = null,
             indication = null,
             onClickLabel = if (customerName == null) "Sign in" else "Account",
@@ -857,7 +857,8 @@ private fun CartButton(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (count <= 0) Spacer(Modifier.width(room / 2))
-        Icon(HaulIcons.bag, 22.dp, HaulColors.onPrimary)
+        // A line put in shakes the bag, pops the badge and rolls its figure (B-158).
+        Icon(HaulIcons.bag, 22.dp, HaulColors.onPrimary, Modifier.wigglesOn(count))
         if (label) {
             Spacer(Modifier.width(gap))
             Text("Cart", HaulType.text(16f, 700).copy(color = HaulColors.onPrimary))
@@ -868,12 +869,13 @@ private fun CartButton(
             Spacer(Modifier.width(gap))
             Box(
                 Modifier
+                    .bumpsOn(count)
                     .defaultMinSize(minWidth = BADGE)
                     .height(BADGE)
                     .background(HaulColors.secondaryContainer, RoundedCornerShape(12.dp))
                     .padding(horizontal = 3.dp),
                 contentAlignment = Alignment.Center,
-            ) { Text(count.toString(), HaulType.text(13f, 800), softWrap = false) }
+            ) { RollingText(count.toString(), HaulType.text(13f, 800)) }
         }
     }
 }

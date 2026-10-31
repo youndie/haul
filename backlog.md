@@ -37,6 +37,7 @@ A stage is a field on the item, not a directory.
 | `stage-11-qa` | QA | the full QA pass after v0.3.0: a guest walk of the stand, a signed-in walk of a local stand, and a code audit |
 | `stage-12-qa-run` | QA run | what the catalogue's runs (`docs/qa/runs/`) found failing, from the first, v0.4.0, on |
 | `stage-13-web-habits` | Web habits | what a browser's page does and the canvas did not: words that select and copy, the right button's menu (B-154) |
+| `stage-14-motion` | Motion | the page moves where the canvas is still — arrival, hover, press, opening, loading — and rests exactly as the canvas draws it (B-158) |
 
 ## Marks
 
@@ -50,7 +51,7 @@ A stage is a field on the item, not a directory.
 |---|---|---|---|---|
 | [B-156](docs/backlog/B-156-walk-the-selection-on-a-phone.md) `[ ]` | chore: walk the selection and its toolbar on a phone | P3 | S | B-155 |
 
-## Closed (156)
+## Closed (157)
 
 **Skeleton**
 
@@ -246,6 +247,10 @@ A stage is a field on the item, not a directory.
 - [B-154](docs/backlog/B-154-words-select-and-the-right-button-on-the-product-page.md) `[x]` - feat: the product page's words select, and the right button opens the store's menu
 - [B-155](docs/backlog/B-155-words-select-and-the-right-button-everywhere.md) `[x]` - feat: words select and the right button opens the store's menu on every page
 - [B-157](docs/backlog/B-157-controls-keep-the-hand-and-crumbs-their-presses.md) `[x]` - fix: controls keep the hand over their words, and crumbs under a title take their presses
+
+**Motion**
+
+- [B-158](docs/backlog/B-158-the-storefront-moves.md) `[x]` - feat: the storefront moves — reveals, hovers, presses, pops, a shimmer and rolling figures
 
 <!-- END INDEX -->
 

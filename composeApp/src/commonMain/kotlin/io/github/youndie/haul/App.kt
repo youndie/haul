@@ -21,7 +21,9 @@ import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.theme.rememberHaulFonts
 import io.github.youndie.haul.ui.LinkCopier
 import io.github.youndie.haul.ui.LocalLinkCopier
+import io.github.youndie.haul.ui.LocalMotion
 import io.github.youndie.haul.ui.LocalPhotoLoader
+import io.github.youndie.haul.ui.Motion
 import io.github.youndie.haul.ui.PhotoLoader
 import io.github.youndie.kompot.realtime.KompotRealtimeSource
 import kotlin.time.Clock
@@ -39,6 +41,7 @@ import kotlin.time.Clock
  * [realtime] streams the updates of a page that names a channel, the order's (B-29); [links] copies a link
  * to a page, the product page's share button (B-71). [fonts] are the faces the entry point has already read, so the
  * first frame is drawn in them (B-150); without them the faces are loaded by Compose and swap in when they arrive.
+ * [motion] is whether the page moves (B-158): [Motion.Still] where the browser asks for reduced motion.
  */
 @Composable
 public fun App(
@@ -54,9 +57,14 @@ public fun App(
     realtime: KompotRealtimeSource? = null,
     links: LinkCopier? = null,
     fonts: HaulFonts? = null,
+    motion: Motion = Motion.Lively,
 ) {
     HaulThemeAtWidth(fonts ?: rememberHaulFonts(), Modifier.fillMaxSize().background(HaulColors.background)) {
-        CompositionLocalProvider(LocalPhotoLoader provides photos, LocalLinkCopier provides links) {
+        CompositionLocalProvider(
+            LocalPhotoLoader provides photos,
+            LocalLinkCopier provides links,
+            LocalMotion provides motion,
+        ) {
             Storefront(
                 transport,
                 history,

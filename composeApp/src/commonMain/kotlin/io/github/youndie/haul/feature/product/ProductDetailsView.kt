@@ -75,6 +75,7 @@ import io.github.youndie.haul.ui.hatching
 import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.rememberHeartPress
+import io.github.youndie.haul.ui.reveal
 import io.github.youndie.haul.ui.toneColor
 import io.github.youndie.kompot.KompotAction
 import kotlinx.coroutines.delay
@@ -95,11 +96,12 @@ public fun ProductDetailsView(details: ProductDetails) {
             Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = detailsTop(compact = true)),
             verticalArrangement = Arrangement.spacedBy(22.dp),
         ) {
-            Photo(details, Modifier.fillMaxWidth(), radius = 24.dp)
+            // The photo and the buy box rise into place as the page arrives (B-158).
+            Photo(details, Modifier.reveal().fillMaxWidth(), radius = 24.dp)
             Brand(details)
             Title(details, compact = true, Modifier.negativeTop(6.dp))
             Rating(details)
-            BuyBox(details, compact = true, Modifier.fillMaxWidth())
+            BuyBox(details, compact = true, Modifier.reveal(1).fillMaxWidth())
             details.variants.forEach { Variants(it) }
             Highlights(details.highlights)
             AllSpecifications(details)
@@ -111,8 +113,8 @@ public fun ProductDetailsView(details: ProductDetails) {
             Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = detailsTop(compact = false)),
             horizontalArrangement = Arrangement.spacedBy(COLUMNS_GAP),
         ) {
-            Photo(details, Modifier.weight(photoWeight(medium = true)), radius = 28.dp)
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+            Photo(details, Modifier.reveal().weight(photoWeight(medium = true)), radius = 28.dp)
+            Column(Modifier.reveal(1).weight(1f), verticalArrangement = Arrangement.spacedBy(24.dp)) {
                 Brand(details)
                 Title(details, compact = false, Modifier.negativeTop(8.dp))
                 Rating(details)
@@ -129,8 +131,9 @@ public fun ProductDetailsView(details: ProductDetails) {
         ) {
             // The canvas's thumbnails beside the photo drew photos no product has; the product's one photo
             // takes the gallery's width (B-71).
-            Photo(details, Modifier.weight(photoWeight(medium = false)), radius = 28.dp)
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+            // The photo, the details and the buy box rise into place one after another as the page arrives (B-158).
+            Photo(details, Modifier.reveal().weight(photoWeight(medium = false)), radius = 28.dp)
+            Column(Modifier.reveal(1).weight(1f), verticalArrangement = Arrangement.spacedBy(24.dp)) {
                 Brand(details)
                 Title(details, compact = false, Modifier.negativeTop(8.dp))
                 Rating(details)
@@ -138,7 +141,7 @@ public fun ProductDetailsView(details: ProductDetails) {
                 Highlights(details.highlights)
                 AllSpecifications(details)
             }
-            BuyBox(details, compact = false, Modifier.width(BUY_BOX_WIDTH))
+            BuyBox(details, compact = false, Modifier.reveal(2).width(BUY_BOX_WIDTH))
         }
     }
 }

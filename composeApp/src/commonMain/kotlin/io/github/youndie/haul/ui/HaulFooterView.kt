@@ -115,10 +115,22 @@ private fun LinkColumn(
     Column(modifier.heightIn(min = columnHeight(compact))) {
         ColumnTitle(column.title, compact)
         column.links.forEach { word ->
-            Text(word, style, Modifier.follows(column.linked.firstOrNull { it.label == word }?.action))
+            // Hovered, a link leans on (B-158).
+            val hover = rememberHover()
+            Text(
+                word,
+                style,
+                Modifier
+                    .onHover(hover) { translationX = LINK_LEAN.toPx() * it }
+                    .hovers(hover)
+                    .follows(column.linked.firstOrNull { it.label == word }?.action),
+            )
         }
     }
 }
+
+/** How far a hovered link leans on. */
+private val LINK_LEAN = 6.dp
 
 /** How many link columns the canvas lays out: in a row at 1440, two rows of two on a phone. */
 private const val COLUMNS = 4

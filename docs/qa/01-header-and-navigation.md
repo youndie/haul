@@ -257,3 +257,32 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
 - **Coverage:** `composeApp:DrawnActionsTest` «a crumb under the category's title opens its page when the pointer
   presses it»; manual: the hand — Compose keeps the pointer's icon behind an internal service, out of a test's reach
 
+### TC-HDR-13 — The page moves, comes to rest as drawn, and is still for reduced motion
+
+- **Who:** guest
+- **Width:** 1440
+- **Preconditions:** a mouse; the home page in a browser that does not ask for reduced motion, then in one that does.
+- **Steps:**
+  1. Open the home page and watch it arrive; scroll down to the deals and the Plus block.
+  2. Hold the pointer over a card, a category tile, a banner, «Shop the sale», «View all deals»; move it away.
+  3. Press a card's «+» and hold the press a moment before releasing.
+  4. Watch the deals countdown across a few seconds.
+  5. Open «Catalog», type two letters in the search box, open a category.
+  6. Turn reduced motion on in the system (or emulate `prefers-reduced-motion: reduce`) and reload.
+- **Expected:**
+  - Step 1: the campaign, its banners and the blocks under them rise into place top to bottom; further down each block
+    rises as it comes into view, the cards of a row left to right.
+  - Step 2: the card rises and its photo comes nearer with a shadow, its «+» turns; the tile rises; the banner rises
+    and its picture tilts; the button lightens and its arrow leans on; each returns once the pointer leaves.
+  - Step 3: the «+» sinks while pressed and springs back; the bag shakes, the badge pops and its figure rolls; the
+    message «Added to your cart» springs up from the bottom.
+  - Step 4: each changing figure rolls down into the next; the others stay still.
+  - Step 5: the menu and the suggest panel drop open; the category's placeholders shimmer, then its cards cascade in.
+  - Step 6: nothing moves; the pages are as in steps 1–5 at rest.
+- **Decided in:** B-158
+- **Coverage:** `composeApp:MotionTest` «a lively home at rest draws what the still home draws»;
+  `composeApp:MotionTest` «a lively home is still arriving a few frames in»;
+  `composeApp:MotionTest` «a ticking figure rolls and comes to rest as the still text»;
+  `composeApp:MotionTest` «a browser that prefers reduced motion gets a still page»;
+  manual: hover, presses and openings — what they look like in motion
+

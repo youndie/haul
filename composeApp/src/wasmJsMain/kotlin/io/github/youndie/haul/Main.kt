@@ -23,6 +23,7 @@ import io.github.youndie.haul.shell.ktorRealtime
 import io.github.youndie.haul.shell.ktorTransport
 import io.github.youndie.haul.shell.ktorTreeCommands
 import io.github.youndie.haul.theme.loadHaulFonts
+import io.github.youndie.haul.ui.Motion
 import io.github.youndie.haul.ui.coilPhotoLoader
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.js.Js
@@ -72,6 +73,8 @@ public fun main() {
     val checkoutCommands = ktorCheckoutCommands(http, origin, identity::send)
     val treeCommands = ktorTreeCommands(http, origin, identity::send)
     val realtime = ktorRealtime(http, origin, identity::send)
+    // A browser that asks for reduced motion gets a still page (B-158).
+    val motion = Motion.preferring(window.matchMedia("(prefers-reduced-motion: reduce)").matches)
     var frame = document.getElementById(STATIC_FRAME_ID)
     MainScope().launch {
         val fonts = loadHaulFonts()
@@ -95,6 +98,7 @@ public fun main() {
                     realtime = realtime,
                     links = clipboardLinks,
                     fonts = fonts,
+                    motion = motion,
                 )
             }
         }

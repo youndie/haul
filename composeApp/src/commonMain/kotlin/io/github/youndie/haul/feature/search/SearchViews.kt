@@ -32,6 +32,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.key.Key
@@ -75,8 +76,10 @@ import io.github.youndie.haul.ui.SearchNoResults
 import io.github.youndie.haul.ui.SearchSuggestPanel
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.accented
+import io.github.youndie.haul.ui.fadesIn
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
+import io.github.youndie.haul.ui.popsIn
 import io.github.youndie.haul.ui.pressable
 import kotlin.math.roundToInt
 
@@ -221,7 +224,7 @@ public fun SearchSuggestOverlay(
         val scrimTop = field.scrimTop
         if (panel == null || bounds == null || scrimTop == null) return@Box
         Box(
-            Modifier.fillMaxSize().drawBehind {
+            Modifier.fillMaxSize().fadesIn().drawBehind {
                 val top = scrimTop - origin.y
                 drawRect(HaulColors.scrim, Offset(0f, top), Size(size.width, size.height - top))
             },
@@ -244,7 +247,10 @@ public fun SearchSuggestOverlay(
             }
         SearchSuggestPanelView(
             panel,
-            placed.onGloballyPositioned { drawn = it.boundsInRoot() },
+            // It drops open under the field (B-158).
+            placed
+                .popsIn(from = 0.98f, rise = (-10).dp, origin = TransformOrigin(0.5f, 0f))
+                .onGloballyPositioned { drawn = it.boundsInRoot() },
             highlighted,
             onClear,
         )

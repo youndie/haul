@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -170,6 +171,8 @@ internal fun MenuColumn(
     LaunchedEffect(focus) { focus.requestFocus() }
     Column(
         Modifier
+            // It drops open from the control, a little spring in it (B-158).
+            .popsIn(from = 0.96f, rise = (-6).dp, origin = TransformOrigin(0.5f, 0f))
             .testTag(LINK_MENU_TAG)
             .focusRequester(focus)
             .onPreviewKeyEvent {

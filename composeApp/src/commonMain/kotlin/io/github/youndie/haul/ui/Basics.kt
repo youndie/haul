@@ -78,13 +78,15 @@ public val LocalHaulNow: ProvidableCompositionLocal<Instant> =
 @Composable
 internal fun gutter(): Dp = if (LocalHaulCompact.current) 16.dp else 48.dp
 
-/** A loading placeholder block (`surfaceContainerHigh`, «Skeleton» on the canvas). */
+/** A loading placeholder block (`surfaceContainerHigh`, «Skeleton» on the canvas), a light passing over it. */
 @Composable
 internal fun Skeleton(
     modifier: Modifier,
     radius: Dp,
 ) {
-    Box(modifier.background(HaulColors.surfaceContainerHigh, RoundedCornerShape(radius)))
+    val shape = RoundedCornerShape(radius)
+    // On a lively page a light sweeps across every placeholder at once (B-158).
+    Box(modifier.background(HaulColors.surfaceContainerHigh, shape).shimmer(shape))
 }
 
 /**
@@ -167,11 +169,14 @@ internal fun HaulButton(
     val drawnFill = if (enabled) fill else HaulColors.outlineVariant
     val drawnBorder = if (enabled || border == null) border else HaulColors.outlineVariant
     val drawnContent = if (enabled) content else HaulColors.outlineMuted
+    // Hovered, a button that does something lightens under its label and its arrow leans on (B-158).
+    val hover = if (enabled && onClick != null) rememberHover() else rememberStillHover()
     Row(
         modifier
-            .then(if (enabled) Modifier.pressable(onClick) else Modifier.inert())
+            .then(if (enabled) Modifier.hovers(hover).pressable(onClick) else Modifier.inert())
             .height(height)
             .then(if (drawnFill != null) Modifier.background(drawnFill, shape) else Modifier)
+            .glowsOnHover(hover, drawnContent, shape)
             // A CSS border takes room of its own, outside the padding.
             .then(
                 if (drawnBorder != null) {
@@ -185,9 +190,14 @@ internal fun HaulButton(
     ) {
         if (icon != null && iconFirst) Icon(icon, iconSize, drawnContent)
         Text(label, HaulType.text(textSize, 700).copy(color = drawnContent), softWrap = false)
-        if (icon != null && !iconFirst) Icon(icon, iconSize, drawnContent)
+        if (icon != null && !iconFirst) {
+            Icon(icon, iconSize, drawnContent, Modifier.onHover(hover) { translationX = ICON_LEAN.toPx() * it })
+        }
     }
 }
+
+/** How far a hovered button's icon after its label leans on. */
+private val ICON_LEAN = 5.dp
 
 /**
  * What a deals countdown reads at [now]: the hours, minutes and seconds left until [endsAt] (ISO-8601,

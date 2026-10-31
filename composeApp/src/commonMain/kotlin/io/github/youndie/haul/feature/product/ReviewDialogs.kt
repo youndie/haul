@@ -64,9 +64,11 @@ import io.github.youndie.haul.ui.QuestionForm
 import io.github.youndie.haul.ui.ReviewForm
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.awaitTypedInput
+import io.github.youndie.haul.ui.fadesIn
 import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.pointerPress
+import io.github.youndie.haul.ui.popsIn
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.kompot.KompotAction
 import kotlinx.coroutines.launch
@@ -91,7 +93,14 @@ public fun DialogOverlay(
     content: @Composable () -> Unit,
 ) {
     val compact = LocalHaulCompact.current
-    Box(Modifier.fillMaxSize().background(HaulColors.scrim).pointerPress(onDismiss)) {
+    // The scrim fades in and the card springs up into its place (B-158).
+    Box(
+        Modifier
+            .fillMaxSize()
+            .fadesIn()
+            .background(HaulColors.scrim)
+            .pointerPress(onDismiss),
+    ) {
         Box(
             Modifier
                 .fillMaxWidth()
@@ -105,7 +114,7 @@ public fun DialogOverlay(
             contentAlignment = Alignment.TopCenter,
         ) {
             // A press on the card is the card's: it never reaches the scrim under it.
-            Box(Modifier.pointerInput(Unit) { detectTapGestures { } }) { content() }
+            Box(Modifier.popsIn(from = 0.92f, rise = 28.dp).pointerInput(Unit) { detectTapGestures { } }) { content() }
         }
     }
 }
