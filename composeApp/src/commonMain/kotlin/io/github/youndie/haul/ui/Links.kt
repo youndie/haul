@@ -103,8 +103,9 @@ internal fun Modifier.pressable(onPress: (() -> Unit)?): Modifier =
     if (onPress == null) {
         this
     } else {
-        // No indication: the canvas draws no pressed or hovered state, and a ripple would be one.
+        // No ripple: the canvas draws none. A press sinks the control instead, on a lively page (B-158).
         handOverWords()
+            .sinksWhenPressed()
             .pressesAgain(onPress)
             .clickable(interactionSource = null, indication = null, role = Role.Button, onClick = onPress)
     }
@@ -248,7 +249,7 @@ internal fun Modifier.toggles(
                 toggleableState = state
             }
         } else {
-            Modifier.handOverWords().pressesAgain(onPress).triStateToggleable(
+            Modifier.handOverWords().sinksWhenPressed().pressesAgain(onPress).triStateToggleable(
                 state,
                 interactionSource = null,
                 indication = null,

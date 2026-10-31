@@ -13,11 +13,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
@@ -30,6 +32,7 @@ import io.github.youndie.haul.ui.Icon
 import io.github.youndie.haul.ui.NoticeOverPage
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.normal
+import io.github.youndie.haul.ui.popsIn
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.standard.MessageLevel
 import io.github.youndie.kompot.standard.ShowMessageAction
@@ -120,16 +123,20 @@ internal fun MessageHost(state: MessageState) {
     // Over whatever is open on the page, as the notice of a load that did not arrive is (B-145).
     NoticeOverPage {
         Box(Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.BottomCenter) {
-            MessageNotice(
-                shown.message,
-                onAction =
-                    shown.button?.let { (_, action) ->
-                        {
-                            state.dismiss(shown)
-                            shown.follow(action)
-                        }
-                    },
-            )
+            // Each message springs up from the bottom edge (B-158).
+            key(shown) {
+                MessageNotice(
+                    shown.message,
+                    onAction =
+                        shown.button?.let { (_, action) ->
+                            {
+                                state.dismiss(shown)
+                                shown.follow(action)
+                            }
+                        },
+                    modifier = Modifier.popsIn(from = 0.9f, rise = 48.dp, origin = TransformOrigin(0.5f, 1f)),
+                )
+            }
         }
     }
 }

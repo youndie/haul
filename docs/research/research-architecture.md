@@ -2329,6 +2329,18 @@ its face reaches above its first line box, and takes the pointer from there down
 the crumbs above it — while its glyphs draw where they drew (B-157); and a control asks for the hand over its own
 words, which ask for the text cursor (B-157).
 
+#### Decided in B-158: the storefront moves, and rests as the canvas draws it
+
+The canvas is still, and so was the store: the owner asked for it to come alive (2026-10-31). Motion is a layer over
+the page at rest, never a different page: blocks rise into place as they arrive or are scrolled to, cards and banners
+answer the pointer, a pressed control sinks, a saved heart bursts, the cart's badge pops and its figure rolls,
+dialogs, menus and messages spring open, placeholders shimmer and photos fade in
+(`composeApp/src/commonMain/kotlin/io/github/youndie/haul/ui/Motion.kt`). All of it plays only under `Motion.Lively`,
+ends exactly where the still page is drawn, and under `Motion.Still` adds no node at all. The goldens and every view
+drawn outside the storefront are still; the storefront is lively unless the browser asks for reduced motion. A lively
+page at rest is the still page to the pixel (`MotionTest`), so the goldens go on describing what a shopper sees once
+the page has settled.
+
 ### D10. Documentation in English
 
 As the sibling reference projects; this repository is read from outside.

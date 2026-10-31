@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.key
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
@@ -49,7 +50,7 @@ public fun ProductGridView(
             Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = gutter),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            grid.cards.forEach { card(it, Modifier.width(160.dp)) }
+            grid.cards.forEachIndexed { index, it -> key(it.id) { card(it, Modifier.width(160.dp).reveal(index)) } }
         }
         return
     }
@@ -59,7 +60,9 @@ public fun ProductGridView(
         Column(verticalArrangement = Arrangement.spacedBy(if (compact) 28.dp else 40.dp)) {
             grid.cards.chunked(columns).forEach { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
-                    row.forEach { card(it, Modifier.weight(1f)) }
+                    // Each card rises into its place as it comes into view, the row left to right (B-158); by its
+                    // id, so a filtered page brings its new cards in and keeps those it shares.
+                    row.forEachIndexed { column, it -> key(it.id) { card(it, Modifier.weight(1f).reveal(column)) } }
                     repeat(columns - row.size) { Box(Modifier.weight(1f)) }
                 }
             }

@@ -76,6 +76,7 @@ import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.accented
 import io.github.youndie.haul.ui.following
 import io.github.youndie.haul.ui.follows
+import io.github.youndie.haul.ui.growsOut
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.pressable
@@ -165,11 +166,13 @@ public fun ProductTabsView(tabs: ProductTabs) {
                         softWrap = false,
                     )
                     Spacer(Modifier.height(16.dp))
-                    // The selected tab's 3 px border, 1 px of it over the row's hairline.
+                    // The selected tab's 3 px border, 1 px of it over the row's hairline; on a lively page it grows
+                    // out from the middle of the tab chosen (B-158).
                     Box(
                         Modifier
                             .fillMaxWidth()
                             .height(3.dp)
+                            .growsOut(tab.selected)
                             .then(if (tab.selected) Modifier.background(HaulColors.inverseSurface) else Modifier),
                     )
                 }

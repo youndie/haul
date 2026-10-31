@@ -1,5 +1,7 @@
 package io.github.youndie.haul.ui
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -7,6 +9,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -16,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.testTag
@@ -175,6 +179,10 @@ private class CoilPhotoLoader(
             }
         val painter = rememberAsyncImagePainter(request, images, contentScale = ContentScale.Crop)
         val state by painter.state.collectAsState()
+        if (lively()) {
+            Arriving(painter, state, placeholder)
+            return
+        }
         // The painter draws nothing until the photo has arrived, and the placeholder covers it until then.
         Image(
             painter,
@@ -187,7 +195,41 @@ private class CoilPhotoLoader(
         )
         if (state !is AsyncImagePainter.State.Success && state.painter == null) placeholder()
     }
+
+    /**
+     * On a lively page a photo that arrives fades in over its placeholder and settles from a little nearer (B-158);
+     * one already there when it is first drawn — from the memory cache — is drawn at once.
+     */
+    @Composable
+    private fun BoxScope.Arriving(
+        painter: AsyncImagePainter,
+        state: AsyncImagePainter.State,
+        placeholder: @Composable () -> Unit,
+    ) {
+        val arrived = state is AsyncImagePainter.State.Success
+        val shown = remember { Animatable(if (arrived) 1f else 0f) }
+        LaunchedEffect(arrived) { if (arrived) shown.animateTo(1f, tween(PHOTO_FADE_MS, easing = Arrive)) }
+        if (shown.value < 1f && state.painter == null) placeholder()
+        Image(
+            painter,
+            contentDescription = null,
+            modifier =
+                Modifier
+                    .matchParentSize()
+                    .graphicsLayer {
+                        val at = shown.value
+                        alpha = at
+                        scaleX = 1f + PHOTO_SETTLE * (1f - at)
+                        scaleY = 1f + PHOTO_SETTLE * (1f - at)
+                    }.then(if (arrived) Modifier.testTag(PHOTO_TAG) else Modifier),
+            contentScale = ContentScale.Crop,
+        )
+    }
 }
+
+/** How long an arriving photo takes to fade in, and how much nearer it starts. */
+private const val PHOTO_FADE_MS = 480
+private const val PHOTO_SETTLE = 0.04f
 
 /**
  * The size a photo drawn in [box] is decoded at: [decoded] while it covers the box, else the box rounded up to
