@@ -204,3 +204,37 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
 - **Decided in:** B-62
 - **Coverage:** `KeptPageTest` «opening a product draws its placeholder at the top and back returns to the catalog»;
   `StorefrontTest` «a card follows its action to the product page and back returns home»
+
+### TC-HDR-11 — Every page's words select, and the right button opens the store's menu
+
+- **Who:** guest
+- **Width:** 1440
+- **Preconditions:** a mouse; any page — home, a category, a product, the cart, a search's results.
+- **Steps:**
+  1. Drag over a heading or a line of text, press ⌘C (Ctrl+C) and paste somewhere else.
+  2. Press the right button over the words; over a crumb («Electronics» on a category); over a product card; over a
+     word of the footer that leads somewhere.
+  3. Press the right button over the search box, the lowest price on a category and the promo code in the cart, with
+     nothing typed, then with a word typed and selected; press each entry.
+  4. Open a dialog (Haul Plus's trial on the home page), drag over its words and press the right button.
+  5. With a menu open, press the right button somewhere else on the page; then the left.
+  6. Press the footer's «Haul Plus», and a button twice quickly (a card's «+»).
+- **Expected:**
+  - Step 1: the words drawn selected; the paste is the words.
+  - Step 2: the store's menu at the pointer, drawn as its other menus: «Copy» (with words selected) and «Select
+    all» over words; «Open in new tab» and «Copy link» over a crumb, a card and a footer word.
+  - Step 3: a field's menu — «Paste» alone while empty; «Cut», «Copy», «Paste», «Select all» with a word selected.
+    «Paste» may make the browser ask to read the clipboard; allowed, the clipboard's text is put in the field, a
+    price's digits only.
+  - Step 4: the dialog's words select and its menu opens over the dialog.
+  - Step 5: the right button opens the menu where it pressed; the left closes it and presses nothing.
+  - Step 6: «Haul Plus» opens its page; the «+» adds two.
+- **Decided in:** B-154, B-155
+- **Coverage:** `composeApp:DrawnActionsTest` «every page opens the store's menu and the footer's words offer their links»;
+  `composeApp:DrawnActionsTest` «the strip names no page it lacks and the footer's words lead where they say»;
+  `ContextMenusTest` «a field's right button offers cut copy paste and select all for its own text»;
+  `ContextMenusTest` «a link in a sentence offers its address»;
+  `ContextMenusTest` «a sheet's words open the store's menu over the sheet»;
+  `ContextMenusTest` «a press off the menu closes it and the right button opens the menu where it pressed»;
+  `ReviewWiringTest` «cancel and the close button take the dialog away and send nothing»
+

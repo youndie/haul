@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -75,6 +74,7 @@ import io.github.youndie.haul.ui.FacetPanel
 import io.github.youndie.haul.ui.FacetRange
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
+import io.github.youndie.haul.ui.HaulTextField
 import io.github.youndie.haul.ui.Icon
 import io.github.youndie.haul.ui.LocalBlankPress
 import io.github.youndie.haul.ui.LocalHaulActions
@@ -440,7 +440,7 @@ private fun PriceInput(
             .onGloballyPositioned { box[0] = it }
             .pointerInput(field) { detectTapGestures { field.requestFocus() } },
     ) {
-        BasicTextField(
+        HaulTextField(
             value,
             { typed -> onValue(typed.filter(Char::isDigit).take(MAX_DIGITS)) },
             Modifier

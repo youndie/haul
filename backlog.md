@@ -48,9 +48,9 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-155](docs/backlog/B-155-words-select-and-the-right-button-everywhere.md) `[ ]` | feat: words select and the right button opens the store's menu on every page | P2 | M | B-154 |
+| [B-156](docs/backlog/B-156-walk-the-selection-on-a-phone.md) `[ ]` | chore: walk the selection and its toolbar on a phone | P3 | S | B-155 |
 
-## Closed (154)
+## Closed (155)
 
 **Skeleton**
 
@@ -244,6 +244,7 @@ A stage is a field on the item, not a directory.
 **Web habits**
 
 - [B-154](docs/backlog/B-154-words-select-and-the-right-button-on-the-product-page.md) `[x]` - feat: the product page's words select, and the right button opens the store's menu
+- [B-155](docs/backlog/B-155-words-select-and-the-right-button-everywhere.md) `[x]` - feat: words select and the right button opens the store's menu on every page
 
 <!-- END INDEX -->
 

@@ -16,15 +16,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.SuspendingPointerInputModifierNode
 import androidx.compose.ui.input.pointer.changedToDownIgnoreConsumed
 import androidx.compose.ui.input.pointer.isPrimaryPressed
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
 import androidx.compose.ui.node.DelegatingNode
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.node.PointerInputModifierNode
+import androidx.compose.ui.node.currentValueOf
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.disabled
@@ -121,12 +122,13 @@ internal fun Modifier.pointerPress(onPress: (() -> Unit)?): Modifier =
     }
 
 /**
- * A control pressed again on the same spot soon after is pressed again (B-154), as it was before the page's words
- * could be selected. The words in a control count presses too, and to them such a press is a double press: it
- * selected the control's word and took the release — «Write a review» pressed again just after its dialog closed
- * opened nothing, a «+» pressed twice added one. Such a press is read here before anything in the control, by the
- * words' own measure (a double press's time, the slop around the last press), taken, and pressed on its release
- * inside the control. Every control under it reads it the same way, and only the innermost presses: a «+» on a card.
+ * A control pressed in what the page's words count as a double press is pressed all the same (B-154, B-155), as it
+ * was before the words could be selected. The page's selection counts presses — on each text, and across the page
+ * between its texts (`isMouseSelectionBetweenTextEnabled`) — and on a double press selects a word and takes the
+ * release: «Write a review» pressed again just after its dialog closed opened nothing. The page marks such a press (its [ContextMenus], read by [Selectable] before
+ * anything on it); a control under it takes the press before the words see it and presses on its release inside the
+ * control. Every control under it reads it the same way, and only the innermost presses: a «+» on a card. A press the
+ * page does not mark — the first, or one off the last — goes to the control as any press does.
  */
 internal fun Modifier.pressesAgain(onPress: () -> Unit): Modifier = this then PressesAgainElement(onPress)
 
@@ -152,9 +154,9 @@ private class PressesAgainElement(
 private class PressesAgainNode(
     var onPress: () -> Unit,
 ) : DelegatingNode(),
-    PointerInputModifierNode {
+    PointerInputModifierNode,
+    CompositionLocalConsumerModifierNode {
     private val me = Any()
-    private var last: PointerInputChange? = null
 
     private val reader =
         delegate(
@@ -167,15 +169,10 @@ private class PressesAgainNode(
                                 event.buttons.isPrimaryPressed
                         }
                             ?: return@awaitEachGesture
-                    val before = last
-                    last = down
-                    val again =
-                        before != null &&
-                            down.uptimeMillis - before.uptimeMillis < viewConfiguration.doubleTapTimeoutMillis &&
-                            (down.position - before.position).getDistance() < viewConfiguration.touchSlop
-                    if (!again) return@awaitEachGesture
+                    val page = currentValueOf(LocalContextMenus) ?: return@awaitEachGesture
+                    if (!page.isRepeat(down)) return@awaitEachGesture
                     // The outer controls read the press first; the innermost, last, is the one pressed.
-                    pressedAgain = me
+                    page.pressedAgain = me
                     down.consume()
                     while (true) {
                         val change =
@@ -186,7 +183,7 @@ private class PressesAgainNode(
                             val inside =
                                 change.position.x in 0f..size.width.toFloat() &&
                                     change.position.y in 0f..size.height.toFloat()
-                            if (inside && pressedAgain === me) onPress()
+                            if (inside && page.pressedAgain === me) onPress()
                             break
                         }
                     }
@@ -202,9 +199,6 @@ private class PressesAgainNode(
 
     override fun onCancelPointerInput() = reader.onCancelPointerInput()
 }
-
-/** The innermost control of the press [pressesAgain] took last. */
-private var pressedAgain: Any? = null
 
 /**
  * A control that has nothing to do right now and is drawn greyed for it (B-100): not pressable, and disabled for
@@ -284,11 +278,15 @@ internal class LinkedText(
     val links: List<TextLink>,
 )
 
-/** The run of [LinkedText.text] from [start] to [end], named [label], that runs [onPress]. */
+/**
+ * The run of [LinkedText.text] from [start] to [end], named [label], that runs [onPress] — following [action], whose
+ * address the right button offers as any link's (B-155).
+ */
 internal class TextLink(
     val start: Int,
     val end: Int,
     val label: String,
+    val action: KompotAction? = null,
     val onPress: () -> Unit,
 )
 
@@ -312,7 +310,11 @@ internal class LinkedTextBuilder {
     ) {
         val start = text.length
         text.append(label)
-        if (action != null && actions != null) links += TextLink(start, text.length, label) { actions.handle(action) }
+        if (action != null &&
+            actions != null
+        ) {
+            links += TextLink(start, text.length, label, action) { actions.handle(action) }
+        }
     }
 
     fun build(): LinkedText = LinkedText(text.toAnnotatedString(), links.toList())
@@ -351,6 +353,14 @@ public fun interface LinkCopier {
         done: (Boolean) -> Unit,
     ) {
         done(false)
+    }
+
+    /**
+     * Reads the clipboard's text for a field's «Paste» (B-155), only when it is pressed; `done` gets `null` where the
+     * browser refuses — no permission, no secure context — or there is nothing to read.
+     */
+    public fun pasteText(done: (String?) -> Unit) {
+        done(null)
     }
 }
 

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -134,22 +135,25 @@ private fun Hero(
                 }
                 // The figure is as large as the card is wide enough for (B-82): 260 px of «70%» run 50 px past
                 // the card's edge at 1024.
-                FittedText(
-                    AnnotatedString(figure),
-                    size = if (compact) 108f else 260f,
-                    style = { fonts, size ->
-                        HaulType
-                            .display(
-                                fonts,
-                                size,
-                                900,
-                                letterSpacing = -0.05f,
-                                lineHeight = if (compact) 0.84f else 0.82f,
-                            ).copy(color = HaulColors.secondaryContainer)
-                    },
-                    modifier = Modifier.offset(x = if (compact) (-4).dp else (-10).dp),
-                    softWrap = false,
-                )
+                // A figure drawn, not words to copy: out of the page's selection, as the footer's name (B-155).
+                DisableSelection {
+                    FittedText(
+                        AnnotatedString(figure),
+                        size = if (compact) 108f else 260f,
+                        style = { fonts, size ->
+                            HaulType
+                                .display(
+                                    fonts,
+                                    size,
+                                    900,
+                                    letterSpacing = -0.05f,
+                                    lineHeight = if (compact) 0.84f else 0.82f,
+                                ).copy(color = HaulColors.secondaryContainer)
+                        },
+                        modifier = Modifier.offset(x = if (compact) (-4).dp else (-10).dp),
+                        softWrap = false,
+                    )
+                }
             }
             val subtitle =
                 @Composable {

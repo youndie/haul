@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
@@ -275,7 +274,7 @@ private fun accountTap(
     if (onAccount == null) {
         Modifier
     } else {
-        Modifier.clickable(
+        Modifier.pressesAgain(onAccount).clickable(
             interactionSource = null,
             indication = null,
             onClickLabel = if (customerName == null) "Sign in" else "Account",
@@ -742,7 +741,7 @@ private fun EditableQuery(
     modifier: Modifier,
 ) {
     LaunchedEffect(header.query, header.scope) { input.show(header.query.orEmpty(), header.scope) }
-    BasicTextField(
+    HaulTextField(
         value = input.text,
         onValueChange = input::type,
         modifier =

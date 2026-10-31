@@ -2322,7 +2322,9 @@ itself, opening the store's menu at the pointer: Copy and Select all over words,
 over a link, drawn as the store's other menus. Not Compose's menu: on skiko 1.12 it is the old one, its look and
 items internal, and on the web its presses did nothing; nor its copy shortcut, which waits there for a browser
 `copy` event that never comes. The product page first (B-154), then every page, the header, the dialogs and the
-fields (B-155).
+fields (B-155): a field offers Cut, Copy, Paste and Select all through the store's own field, and a link in a
+sentence offers its address. A text drawn past its box over a control takes the control's presses once it can be
+selected; the footer's name and the hero's figure are pictures and stay out of the selection.
 
 ### D10. Documentation in English
 

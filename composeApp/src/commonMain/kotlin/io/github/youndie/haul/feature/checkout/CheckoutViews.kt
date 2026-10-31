@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
@@ -71,6 +70,7 @@ import io.github.youndie.haul.ui.DeliveryMethods
 import io.github.youndie.haul.ui.DeliverySlots
 import io.github.youndie.haul.ui.FormField
 import io.github.youndie.haul.ui.HaulIcons
+import io.github.youndie.haul.ui.HaulTextField
 import io.github.youndie.haul.ui.Icon
 import io.github.youndie.haul.ui.LineTile
 import io.github.youndie.haul.ui.Logo
@@ -585,7 +585,7 @@ private fun FieldCell(
             if (value.isEmpty()) {
                 field.placeholder?.let { Text(it, normal(16f).copy(color = HaulColors.outlineMuted), softWrap = false) }
             }
-            BasicTextField(
+            HaulTextField(
                 value,
                 onValue,
                 Modifier

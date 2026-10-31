@@ -173,7 +173,7 @@ internal fun isOverPage(): Boolean = LocalOverlays.current != null
 
 /**
  * A sheet over the whole storefront — the phone's menu, the phone's filter sheet, a review's photos (B-86), a dialog
- * a `present` draws (B-151) — as a `Dialog` drew it: no press over it reaches the page under it, the page is hidden
+ * a `present` draws (B-151) — as a `Dialog` drew it, its words selectable as a page's ([Selectable], B-155): no press over it reaches the page under it, the page is hidden
  * from assistive technology while it is open, and Escape is [onDismiss] — once what has the focus inside it has
  * declined the key: a list open in the return dialog closes first. The sheet holds the focus, so any other key it
  * reads is [onKey]'s (the photos' arrows); `true` when it took the key.
@@ -210,7 +210,7 @@ internal fun SheetOverPage(
                     escape
                 }.onFocusChanged { held = it.hasFocus }
                 .focusable(),
-        ) { content() }
+        ) { Selectable { content() } }
     }
 }
 

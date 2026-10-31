@@ -1,5 +1,6 @@
 package io.github.youndie.haul
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ComposeUiTest
@@ -19,11 +20,14 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.pressKey
+import androidx.compose.ui.test.rightClick
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import androidx.compose.ui.unit.dp
@@ -55,6 +59,9 @@ import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HaulPagination
 import io.github.youndie.haul.ui.LINK_MENU_TAG
 import io.github.youndie.haul.ui.Link
+import io.github.youndie.haul.ui.LinkCopier
+import io.github.youndie.haul.ui.LocalLinkCopier
+import io.github.youndie.haul.ui.OPEN_IN_NEW_TAB
 import io.github.youndie.haul.ui.OPEN_MENU
 import io.github.youndie.haul.ui.PlusBenefit
 import io.github.youndie.haul.ui.PlusTrialDialog
@@ -63,6 +70,7 @@ import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.PromoBanner
 import io.github.youndie.haul.ui.SCOPE_PICKER_TAG
 import io.github.youndie.haul.ui.SEARCH_FIELD_TAG
+import io.github.youndie.haul.ui.SELECT_ALL
 import io.github.youndie.haul.ui.SearchScope
 import io.github.youndie.haul.ui.SearchSuggestPanel
 import io.github.youndie.haul.ui.SectionHeader
@@ -643,6 +651,51 @@ class DrawnActionsTest {
             onNodeWithText("Haul Plus").performClick()
             onNodeWithText(NEXT).assertExists()
             assertEquals(listOf("/", "/account"), history.entries)
+        }
+
+    /**
+     * B-155: every page of the store is selectable and opens the store's menu on the right button — a word of the
+     * footer the client knows nothing to do with offers Select all, a word that leads somewhere offers its address —
+     * and a press on a word still follows it.
+     */
+    @Test
+    fun `every page opens the store's menu and the footer's words offer their links`() =
+        runDesktopComposeUiTest(WIDTH, 1_600) {
+            val opened = mutableListOf<String>()
+            val links =
+                object : LinkCopier {
+                    override fun copy(
+                        path: String,
+                        done: (Boolean) -> Unit,
+                    ) = done(true)
+
+                    override fun openApart(path: String) {
+                        opened += path
+                    }
+                }
+            answer("/ui/home", page(header, footer))
+            destinations("/account")
+            setContent {
+                HaulTheme(FixtureFonts.fonts, compact = false) {
+                    CompositionLocalProvider(LocalLinkCopier provides links) {
+                        Storefront(transport, history, signIn = {}, cartCommands = cartCommands, commands = commands)
+                    }
+                }
+            }
+            onNodeWithText("Gift cards").performMouseInput { rightClick() }
+            waitForIdle()
+            onNodeWithText(SELECT_ALL).assertExists()
+            onNodeWithText(OPEN_IN_NEW_TAB).assertDoesNotExist()
+            onRoot().performKeyInput { pressKey(Key.Escape) }
+            waitForIdle()
+            onNodeWithText("Haul Plus").performMouseInput { rightClick() }
+            waitForIdle()
+            onNodeWithText(OPEN_IN_NEW_TAB).performClick()
+            waitForIdle()
+            assertEquals(listOf("/account"), opened)
+            assertEquals(listOf("/"), history.entries, "the right button followed the link")
+            onNodeWithText("Haul Plus").performClick()
+            onNodeWithText(NEXT).assertExists()
         }
 
     /**

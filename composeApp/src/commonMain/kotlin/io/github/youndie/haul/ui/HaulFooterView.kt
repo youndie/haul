@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -71,25 +72,29 @@ public fun HaulFooterView(footer: HaulFooter) {
             // On a desktop as large as the page is wide enough for (B-82): 420 px of «Haul.» ran past the edge at
             // 1024. The phone's runs past it at 390, as Home_Content_Phone draws it, and is left so.
             val size = if (compact) 150f else 420f
-            FittedText(
-                buildAnnotatedString {
-                    append("Haul")
-                    withStyle(SpanStyle(color = HaulColors.primary)) { append(".") }
-                },
-                size = size,
-                min = if (compact) size else size / 2,
-                style = { fonts, at ->
-                    HaulType
-                        .display(fonts, at, 900, letterSpacing = -0.05f, lineHeight = 0.78f)
-                        .copy(color = HaulColors.secondaryContainer)
-                },
-                modifier =
-                    Modifier
-                        .padding(top = if (compact) 40.dp else 56.dp)
-                        .offset(x = if (compact) (-6).dp else (-14).dp)
-                        .negativeBottomMargin(if (compact) 24.dp else 70.dp),
-                softWrap = false,
-            )
+            // A picture of the name, not words to copy, and out of the page's selection (B-155): selectable, it took
+            // the presses of the column words above it — its text runs past its box — and «Haul Plus» opened nothing.
+            DisableSelection {
+                FittedText(
+                    buildAnnotatedString {
+                        append("Haul")
+                        withStyle(SpanStyle(color = HaulColors.primary)) { append(".") }
+                    },
+                    size = size,
+                    min = if (compact) size else size / 2,
+                    style = { fonts, at ->
+                        HaulType
+                            .display(fonts, at, 900, letterSpacing = -0.05f, lineHeight = 0.78f)
+                            .copy(color = HaulColors.secondaryContainer)
+                    },
+                    modifier =
+                        Modifier
+                            .padding(top = if (compact) 40.dp else 56.dp)
+                            .offset(x = if (compact) (-6).dp else (-14).dp)
+                            .negativeBottomMargin(if (compact) 24.dp else 70.dp),
+                    softWrap = false,
+                )
+            }
         }
     }
 }
