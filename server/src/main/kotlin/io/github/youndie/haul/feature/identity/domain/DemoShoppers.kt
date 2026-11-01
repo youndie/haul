@@ -6,6 +6,8 @@ import io.github.youndie.haul.feature.checkout.domain.CheckoutRepository
 import io.github.youndie.haul.feature.checkout.domain.PaymentMethod
 import io.github.youndie.haul.feature.identity.DemoShopperTokens
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -91,11 +93,29 @@ internal class DemoShoppers(
                 log.warn("a demo shopper was not made: {}", e.message)
                 throw IdentityError.DemoNotMade()
             }
-        customers.signedIn(id, NAME, now)
-        repository.record(id, now)
-        checkouts.saveAddress(id, ADDRESS, editing = null, at = now)
-        checkouts.save(id, checkouts.checkout(id).copy(payment = PaymentMethod.HaulPayPlan.id))
+        try {
+            customers.signedIn(id, NAME, now)
+            repository.record(id, now)
+            checkouts.saveAddress(id, ADDRESS, editing = null, at = now)
+            checkouts.save(id, checkouts.checkout(id).copy(payment = PaymentMethod.HaulPayPlan.id))
+        } catch (e: Exception) {
+            // The person exists at the provider and nobody here knows them, so no sweep would find them: off at once.
+            withContext(NonCancellable) { turnOff(id) }
+            throw e
+        }
         return tokens
+    }
+
+    @Suppress(
+        "ktlint:kapkan:swallowed-failure",
+        "The failure being answered is the store's, already on its way to the caller; a person the provider kept on holds tokens nobody was given.",
+    )
+    private suspend fun turnOff(id: String) {
+        try {
+            accounts.disable(id)
+        } catch (e: DemoAccountFailure) {
+            log.warn("a demo shopper the store did not keep was not turned off either: {}", e.message)
+        }
     }
 
     /**
