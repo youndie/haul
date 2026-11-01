@@ -177,9 +177,10 @@ internal object SampleCatalog {
                 slug = "tech-week",
                 name = "Tech week",
                 // The store sells no laptops: the canvas's «Laptops from $399» opened the deals page (B-172).
-                // The computers from $399, cheapest first — the cheapest is $399.99 (`PromisesAgreeTest`).
-                title = "Computers from $399",
-                subtitle = "Tech week",
+                // The computers from $399, cheapest first — the cheapest is $399.99 (`PromisesAgreeTest`). The eyebrow
+                // names them: «Computers» is wider than the title's 240 px beside the picture, and broke mid-word.
+                title = "From $399",
+                subtitle = "Tech week · Computers",
                 position = 1,
                 tone = "#E6E4FF",
                 startsAt = OffsetDateTime.parse("2025-10-06T00:00:00-04:00"),

@@ -415,7 +415,7 @@ class DrawnActionsTest {
 
     /**
      * B-59: home's banners led nowhere; then both opened the deals page. Since B-172 each opens what it names: Tech
-     * week's «Computers from $399» the computers from $399, cheapest first (its campaign's link), and Haul Plus's
+     * week's «From $399» (Computers) the computers from $399, cheapest first (its campaign's link), and Haul Plus's
      * banner the Plus offer — sign-in for a guest, as the pill. Following each draws that page.
      */
     @Test

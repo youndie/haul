@@ -310,7 +310,7 @@ class PhotoRoutesTest {
             assertEquals(
                 listOf(true, false),
                 banners.map { it.image != null },
-                "Tech week's banner has a picture, Free delivery weekend's has no place for one: ${banners.map {
+                "Tech week's banner has a picture, Haul Plus's has no place for one (B-172): ${banners.map {
                     it.id
                 }}",
             )

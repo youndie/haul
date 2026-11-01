@@ -7,7 +7,7 @@ import kotlin.test.assertEquals
 
 /**
  * V34 rewrites the seed's campaigns as the seed now writes them (B-172) — the sale's copy naming its figures, Tech
- * week's «Computers from $399» with the address it opens, no free-delivery weekend — and this holds the two
+ * week's «From $399» under «Tech week · Computers» with the address it opens, no free-delivery weekend — and this holds the two
  * together: a stand seeded before and migrated must draw the home page a fresh seed draws, or one of them goes on
  * promising «Free delivery on everything» or «Laptops from $399».
  */

@@ -140,10 +140,10 @@ internal class HomeScreen(
     }
 
     /**
-     * A campaign's banner opens what its title names (B-172): the campaign's [Campaign.link] — Tech week's «Computers
-     * from $399» the computers from $399, cheapest first — or, with none, the deals page (B-59: a campaign has no page
-     * of its own, `skus.campaign_slug` being the sale's alone). It opened `/deals` whatever it said: «Laptops from
-     * $399» led to headphones and duvet covers, in a store that sells no laptops.
+     * A campaign's banner opens what it names (B-172): the campaign's [Campaign.link] — Tech week's «From $399» under
+     * «Tech week · Computers» the computers from $399, cheapest first — or, with none, the deals page (B-59: a campaign
+     * has no page of its own, `skus.campaign_slug` being the sale's alone). It opened `/deals` whatever it said:
+     * «Laptops from $399» led to headphones and duvet covers, in a store that sells no laptops.
      */
     private fun banner(campaign: Campaign) =
         PromoBanner(

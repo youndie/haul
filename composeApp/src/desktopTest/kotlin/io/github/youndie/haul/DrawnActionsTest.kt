@@ -411,8 +411,8 @@ class DrawnActionsTest {
         }
 
     /**
-     * B-59, B-172: a banner opens the address it carries, as «Shop the sale» does — Tech week's «Computers from $399»
-     * the computers from $399, cheapest first.
+     * B-59, B-172: a banner opens the address it carries, as «Shop the sale» does — Tech week's «From $399»
+     * (Computers) the computers from $399, cheapest first.
      */
     @Test
     fun `the tech week banner opens the computers it names`() =
@@ -420,7 +420,7 @@ class DrawnActionsTest {
             answer("/ui/home", page(header, campaigns))
             destinations(COMPUTERS_FROM_399)
             storefront()
-            onNodeWithText("Computers from $399").performClick()
+            onNodeWithText("From $399").performClick()
             onNodeWithText(NEXT).assertExists()
             assertEquals(listOf("/", COMPUTERS_FROM_399), history.entries)
             assertEquals(listOf("/ui/home", "/ui$COMPUTERS_FROM_399"), requests)
@@ -1043,8 +1043,8 @@ class DrawnActionsTest {
                 listOf(
                     PromoBanner(
                         id = "banner-tech-week",
-                        eyebrow = "Tech week",
-                        title = "Computers from $399",
+                        eyebrow = "Tech week · Computers",
+                        title = "From $399",
                         tone = "#E6E4FF",
                         action = NavigateAction(COMPUTERS_FROM_399),
                     ),

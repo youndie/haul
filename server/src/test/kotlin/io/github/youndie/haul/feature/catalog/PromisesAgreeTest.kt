@@ -55,7 +55,7 @@ import kotlin.test.fail
  *   Haul Plus's, whose waiver holds on any order — and every benefit Plus lists is a rule the store applies;
  * - **counts**: the sale's figures on the hero are the deals page's own — its count, its categories, its deepest
  *   badge — counted here card by card, and no page writes an abbreviated count it did not draw from data;
- * - **banners**: every banner opens what its title names — «Computers from $399» a page of computers whose cheapest
+ * - **banners**: every banner opens what it names — «Tech week · Computers», «From $399» a page of computers whose cheapest
  *   is $399 and change — and a banner this test cannot read fails it rather than going unchecked.
  */
 class PromisesAgreeTest {
@@ -225,10 +225,12 @@ class PromisesAgreeTest {
                 val banners = home.all().filterIsInstance<PromoBanner>()
                 assertEquals(2, banners.size, "the control: $who's home draws two banners")
                 banners.forEach { banner ->
-                    val from = Regex("""^(\w+) from \$(\d+)$""").find(banner.title)
+                    // «Computers from $399», or «From $399» under an eyebrow naming them: «Tech week · Computers».
+                    val from = Regex("""^(?:(\w+) f|F)rom \$(\d+)$""").find(banner.title)
                     when {
                         from != null -> {
-                            val (named, price) = from.destructured
+                            val (titled, price) = from.destructured
+                            val named = titled.ifEmpty { banner.eyebrow.substringAfterLast(" · ") }
                             val target =
                                 (banner.action as? NavigateAction)?.deeplink ?: fail("«${banner.title}» opens $banner")
                             val page = tree("/ui$target")
