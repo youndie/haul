@@ -77,6 +77,13 @@ public enum class StorefrontPage {
      * them, anonymised — a server tree in the frame, reached from the About page and the demo strip.
      */
     Live,
+
+    /**
+     * `/numbers`, «The stack in numbers» (B-173): what the server was measured to cost — start-up with and without
+     * its AOT cache, latency, CPU and memory under the synthetic shoppers — a server tree in the frame, drawn as the
+     * About page is and reached from it.
+     */
+    Numbers,
     ;
 
     public companion object {
@@ -133,6 +140,10 @@ public enum class StorefrontPage {
 
                 "live" -> {
                     Live.takeIf { rest == 0 }
+                }
+
+                "numbers" -> {
+                    Numbers.takeIf { rest == 0 }
                 }
 
                 else -> {

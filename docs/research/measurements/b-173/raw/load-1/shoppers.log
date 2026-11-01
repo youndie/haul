@@ -1,0 +1,848 @@
+walking http://127.0.0.1:18480 as b173-shopper-1@example.test, b173-shopper-2@example.test, b173-shopper-3@example.test, b173-shopper-4@example.test, b173-shopper-5@example.test, b173-shopper-6@example.test, b173-shopper-7@example.test, b173-shopper-8@example.test: one walk every 2s, at most 16 at once, the order read every 1s for up to 2m, every 10th paid with the declining card
+walk 1 as b173-shopper-1@example.test: «Harbor Pro Yoga mats», order HL-48302 placed after 1.1s, delivered after 4.2s, refunded after 7.3s, sign-in renewed 0 times
+walk 2 as b173-shopper-2@example.test: «Stoneware Mug, 12 oz», order HL-48303 placed after 0.4s, delivered after 4.5s, refunded after 7.7s, sign-in renewed 0 times
+walk 3 as b173-shopper-3@example.test: «Summit Lightweight Limited», order HL-48304 placed after 0.4s, delivered after 3.5s, refunded after 6.6s, sign-in renewed 0 times
+walk 4 as b173-shopper-4@example.test: «Tandem Studio Limited», order HL-48305 placed after 0.4s, delivered after 3.5s, refunded after 6.6s, sign-in renewed 0 times
+walk 5 as b173-shopper-5@example.test: «Ridge Pro Pillows», order HL-48306 placed after 0.4s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 6 as b173-shopper-6@example.test: «Lumen Eco Signature», order HL-48307 placed after 0.4s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 10 as b173-shopper-2@example.test: «Northwind Everyday Limited», order HL-48311 paid with the declining card and refused after 0.5s, its lines back in the cart and removed
+walk 7 as b173-shopper-7@example.test: «Summit Compact Yoga mats», order HL-48308 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 8 as b173-shopper-8@example.test: «Harbor Studio Dumbbells», order HL-48309 placed after 0.4s, delivered after 3.5s, refunded after 6.6s, sign-in renewed 0 times
+walk 9 as b173-shopper-1@example.test: «Sonora SE-188 Noise Cancelling Earbuds», order HL-48310 placed after 0.4s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 11 as b173-shopper-3@example.test: «Fieldnote Essential Signature», order HL-48312 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 12 as b173-shopper-4@example.test: «Northwind Lightweight Pillows», order HL-48313 placed after 0.4s, delivered after 3.5s, refunded after 6.5s, sign-in renewed 0 times
+walk 13 as b173-shopper-5@example.test: «Pace Classic Classics», order HL-48314 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 14 as b173-shopper-6@example.test: «Metro Deluxe Limited», order HL-48315 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 15 as b173-shopper-7@example.test: «Tandem Compact Classics», order HL-48316 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 16 as b173-shopper-8@example.test: «Summit Lightweight Mugs», order HL-48317 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 20 as b173-shopper-4@example.test: «Metro Pro Mugs», order HL-48321 paid with the declining card and refused after 0.4s, its lines back in the cart and removed
+walk 17 as b173-shopper-1@example.test: «Harbor Everyday New in», order HL-48318 placed after 0.4s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 18 as b173-shopper-2@example.test: «Metro Pro Mugs», order HL-48319 placed after 0.4s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 19 as b173-shopper-3@example.test: «Kestrel Compact New in», order HL-48320 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 21 as b173-shopper-5@example.test: «Northwind Essential Signature», order HL-48322 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 22 as b173-shopper-6@example.test: «Ridge Studio Duvet covers», order HL-48323 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 23 as b173-shopper-7@example.test: «Harbor Studio Duvet covers», order HL-48324 placed after 0.3s, delivered after 3.4s, refunded after 6.4s, sign-in renewed 0 times
+walk 24 as b173-shopper-8@example.test: «Ridge Compact Mugs», order HL-48325 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 25 as b173-shopper-1@example.test: «Cloudline Pro New in», order HL-48326 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 26 as b173-shopper-2@example.test: «Tandem Studio Limited», order HL-48327 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 30 as b173-shopper-6@example.test: «Pace Eco Limited», order HL-48331 paid with the declining card and refused after 0.4s, its lines back in the cart and removed
+walk 27 as b173-shopper-3@example.test: «Ridge Compact New in», order HL-48328 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 28 as b173-shopper-4@example.test: «Fieldnote Eco Running shoes», order HL-48329 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 29 as b173-shopper-5@example.test: «Kestrel Essential Signature», order HL-48330 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 31 as b173-shopper-7@example.test: «Harbor Studio Signature», order HL-48332 placed after 0.3s, delivered after 3.4s, refunded after 6.4s, sign-in renewed 0 times
+walk 32 as b173-shopper-8@example.test: «Tandem Eco Signature», order HL-48333 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 33 as b173-shopper-1@example.test: «Ridge Studio Duvet covers», order HL-48334 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 34 as b173-shopper-2@example.test: «Bellwave Hush H597C Headphones, Sandstone», order HL-48335 placed after 0.3s, delivered after 4.3s, refunded after 7.4s, sign-in renewed 0 times
+walk 35 as b173-shopper-3@example.test: «Ridge Travel Signature», order HL-48336 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 36 as b173-shopper-4@example.test: «Harbor Everyday New in», order HL-48337 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 40 as b173-shopper-8@example.test: «Fieldnote Eco Signature», order HL-48341 paid with the declining card and refused after 0.3s, its lines back in the cart and removed
+walk 37 as b173-shopper-5@example.test: «Tandem Classic Classics», order HL-48338 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 38 as b173-shopper-6@example.test: «Fieldnote Classic Duvet covers», order HL-48339 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 39 as b173-shopper-7@example.test: «Oakline Deluxe Classics», order HL-48340 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 41 as b173-shopper-1@example.test: «Kestrel Everyday Limited», order HL-48342 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 42 as b173-shopper-2@example.test: «Kestrel Classic New in», order HL-48343 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 43 as b173-shopper-3@example.test: «Lumen Travel Limited», order HL-48344 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 44 as b173-shopper-4@example.test: «Ridge Compact Limited», order HL-48345 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 45 as b173-shopper-5@example.test: «Metro Everyday New in», order HL-48346 placed after 0.3s, delivered after 4.3s, refunded after 7.4s, sign-in renewed 0 times
+walk 46 as b173-shopper-6@example.test: «Tandem Travel Mugs», order HL-48347 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 50 as b173-shopper-2@example.test: «Harbor Everyday New in», order HL-48351 paid with the declining card and refused after 0.4s, its lines back in the cart and removed
+walk 47 as b173-shopper-7@example.test: «Harbor Studio Signature», order HL-48348 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 48 as b173-shopper-8@example.test: «Pace Compact Signature», order HL-48349 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 49 as b173-shopper-1@example.test: «Tandem Travel Mugs», order HL-48350 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 52 as b173-shopper-4@example.test: «Ridge Studio Classics», order HL-48353 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 51 as b173-shopper-3@example.test: «Bellwave Roam 580P Around-Ear Wireless», order HL-48352 placed after 0.3s, delivered after 5.4s, refunded after 8.4s, sign-in renewed 0 times
+walk 53 as b173-shopper-5@example.test: «Tandem Compact New in», order HL-48354 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 54 as b173-shopper-6@example.test: «Pace Classic Classics», order HL-48355 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 55 as b173-shopper-7@example.test: «Pace Eco Limited», order HL-48356 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 56 as b173-shopper-8@example.test: «Oakline Compact Limited», order HL-48357 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 60 as b173-shopper-4@example.test: «Lumen Classic Signature», order HL-48361 paid with the declining card and refused after 0.3s, its lines back in the cart and removed
+walk 57 as b173-shopper-1@example.test: «Bellwave Hush Ultra 165A Headphones», order HL-48358 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 58 as b173-shopper-2@example.test: «Tandem Studio Limited», order HL-48359 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 59 as b173-shopper-3@example.test: «Lumen Everyday Speakers», order HL-48360 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 61 as b173-shopper-5@example.test: «Ridge Compact Pillows», order HL-48362 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 62 as b173-shopper-6@example.test: «Harbor Everyday New in», order HL-48363 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 63 as b173-shopper-7@example.test: «Harbor Classic Dumbbells», order HL-48364 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 64 as b173-shopper-8@example.test: «Harbor Eco New in», order HL-48365 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 65 as b173-shopper-1@example.test: «Sonora SH-C388N Wireless Noise Cancelling», order HL-48366 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 66 as b173-shopper-2@example.test: «Tandem Lightweight Speakers», order HL-48367 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 70 as b173-shopper-6@example.test: «Ridge Studio Classics», order HL-48371 paid with the declining card and refused after 0.3s, its lines back in the cart and removed
+walk 67 as b173-shopper-3@example.test: «Fieldnote Studio Classics», order HL-48368 placed after 0.3s, delivered after 3.4s, refunded after 6.4s, sign-in renewed 0 times
+walk 68 as b173-shopper-4@example.test: «Northwind Lightweight Yoga mats», order HL-48369 placed after 0.3s, delivered after 3.3s, refunded after 5.4s, sign-in renewed 0 times
+walk 69 as b173-shopper-5@example.test: «Lumen Classic Signature», order HL-48370 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 71 as b173-shopper-7@example.test: «Fieldnote Compact Limited», order HL-48372 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 72 as b173-shopper-8@example.test: «Fieldnote Studio Classics», order HL-48373 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 73 as b173-shopper-1@example.test: «Kestrel Essential New in», order HL-48374 placed after 0.3s, delivered after 3.4s, refunded after 6.4s, sign-in renewed 0 times
+walk 74 as b173-shopper-2@example.test: «Northwind Everyday Limited», order HL-48375 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 75 as b173-shopper-3@example.test: «Ridge Deluxe Limited», order HL-48376 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 76 as b173-shopper-4@example.test: «Metro Everyday New in», order HL-48377 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 80 as b173-shopper-8@example.test: «Oakline Essential Signature», order HL-48381 paid with the declining card and refused after 0.4s, its lines back in the cart and removed
+walk 77 as b173-shopper-5@example.test: «Pace Everyday New in», order HL-48378 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 78 as b173-shopper-6@example.test: «Summit Pro Running jackets», order HL-48379 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 79 as b173-shopper-7@example.test: «Harbor Compact Mugs», order HL-48380 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 81 as b173-shopper-1@example.test: «Summit Lightweight Mugs», order HL-48382 placed after 0.3s, delivered after 3.4s, refunded after 6.4s, sign-in renewed 0 times
+walk 82 as b173-shopper-2@example.test: «Metro Lightweight Classics», order HL-48383 placed after 0.3s, delivered after 3.4s, refunded after 6.4s, sign-in renewed 0 times
+walk 83 as b173-shopper-3@example.test: «Ridge Compact New in», order HL-48384 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 84 as b173-shopper-4@example.test: «Cloudline Everyday Classics», order HL-48385 placed after 0.3s, delivered after 3.4s, refunded after 6.4s, sign-in renewed 0 times
+walk 85 as b173-shopper-5@example.test: «Northwind Everyday Classics», order HL-48386 placed after 0.3s, delivered after 3.4s, refunded after 6.4s, sign-in renewed 0 times
+walk 86 as b173-shopper-6@example.test: «Kestrel Essential New in», order HL-48387 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 90 as b173-shopper-2@example.test: «Lumen Pro Signature», order HL-48391 paid with the declining card and refused after 0.3s, its lines back in the cart and removed
+walk 87 as b173-shopper-7@example.test: «Lumen Lightweight Signature», order HL-48388 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 88 as b173-shopper-8@example.test: «Tandem Compact New in», order HL-48389 placed after 0.3s, delivered after 3.4s, refunded after 6.4s, sign-in renewed 0 times
+walk 89 as b173-shopper-1@example.test: «Tandem Studio Limited», order HL-48390 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 91 as b173-shopper-3@example.test: «Oakline Classic Signature», order HL-48392 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 92 as b173-shopper-4@example.test: «Fieldnote Studio Speakers», order HL-48393 placed after 0.2s, delivered after 3.3s, refunded after 5.3s, sign-in renewed 0 times
+walk 93 as b173-shopper-5@example.test: «Ridge Travel Projectors», order HL-48394 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 94 as b173-shopper-6@example.test: «Kestrel Deluxe Yoga mats», order HL-48395 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 95 as b173-shopper-7@example.test: «Summit Travel Running jackets», order HL-48396 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 96 as b173-shopper-8@example.test: «Lumen Eco Signature», order HL-48397 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 100 as b173-shopper-4@example.test: «Pace Everyday New in», order HL-48401 paid with the declining card and refused after 0.4s, its lines back in the cart and removed
+walk 97 as b173-shopper-1@example.test: «Tandem Studio Limited», order HL-48398 placed after 0.3s, delivered after 3.3s, refunded after 6.5s, sign-in renewed 0 times
+walk 98 as b173-shopper-2@example.test: «Tandem Deluxe Limited», order HL-48399 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 99 as b173-shopper-3@example.test: «Summit Lightweight Limited», order HL-48400 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 101 as b173-shopper-5@example.test: «Metro Compact Speakers», order HL-48402 placed after 0.3s, delivered after 3.4s, refunded after 6.4s, sign-in renewed 0 times
+walk 102 as b173-shopper-6@example.test: «Lumen Eco Limited», order HL-48403 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 103 as b173-shopper-7@example.test: «Fieldnote Deluxe New in», order HL-48404 placed after 0.4s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 104 as b173-shopper-8@example.test: «Tandem Pro Dumbbells», order HL-48405 placed after 0.3s, delivered after 3.4s, refunded after 6.4s, sign-in renewed 0 times
+walk 105 as b173-shopper-1@example.test: «Tandem Pro Dumbbells», order HL-48406 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 106 as b173-shopper-2@example.test: «Harbor Pro Limited», order HL-48407 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 110 as b173-shopper-6@example.test: «Summit Lightweight Duvet covers», order HL-48411 paid with the declining card and refused after 0.5s, its lines back in the cart and removed
+walk 107 as b173-shopper-3@example.test: «Lumen Pro Signature», order HL-48408 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 108 as b173-shopper-4@example.test: «Pace Compact Limited», order HL-48409 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 109 as b173-shopper-5@example.test: «Northwind Travel Limited», order HL-48410 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 111 as b173-shopper-7@example.test: «Bellwave Hush Ultra 165A Headphones», order HL-48412 placed after 0.3s, delivered after 3.4s, refunded after 6.7s, sign-in renewed 0 times
+walk 112 as b173-shopper-8@example.test: «Lumen Travel Limited», order HL-48413 placed after 0.3s, delivered after 3.4s, refunded after 6.8s, sign-in renewed 0 times
+walk 113 as b173-shopper-1@example.test: «Metro Studio Limited», order HL-48414 placed after 0.4s, delivered after 3.5s, refunded after 7.3s, sign-in renewed 0 times
+walk 114 as b173-shopper-2@example.test: «Pace Classic Signature», order HL-48415 placed after 1.1s, delivered after 4.7s, refunded after 10.0s, sign-in renewed 0 times
+walk 115 as b173-shopper-3@example.test: «Ridge Pro Pillows», order HL-48416 placed after 1.8s, delivered after 6.2s, refunded after 10.6s, sign-in renewed 0 times
+walk 120 as b173-shopper-8@example.test: «Kestrel Essential New in», order HL-48421 paid with the declining card and refused after 7.4s, its lines back in the cart and removed
+walk 116 as b173-shopper-4@example.test: «Harbor Compact Mugs», order HL-48417 placed after 5.0s, delivered after 10.2s, refunded after 15.4s, sign-in renewed 0 times
+walk 117 as b173-shopper-5@example.test: «Fieldnote Classic Duvet covers», order HL-48418 placed after 7.9s, delivered after 12.5s, refunded after 16.1s, sign-in renewed 0 times
+walk 118 as b173-shopper-6@example.test: «Cloudline Lightweight Limited», order HL-48419 placed after 6.5s, delivered after 11.0s, refunded after 14.5s, sign-in renewed 0 times
+walk 119 as b173-shopper-7@example.test: «Oakline Everyday New in», order HL-48420 placed after 7.5s, delivered after 11.3s, refunded after 14.7s, sign-in renewed 0 times
+walk 121 as b173-shopper-1@example.test: «Northwind Lightweight Pillows», order HL-48422 placed after 5.5s, delivered after 7.7s, refunded after 11.3s, sign-in renewed 0 times
+walk 122 as b173-shopper-2@example.test: «Northwind Everyday Classics», order HL-48423 placed after 3.5s, delivered after 6.9s, refunded after 11.2s, sign-in renewed 0 times
+walk 123 as b173-shopper-3@example.test: «Ridge Eco Classics», order HL-48424 placed after 1.9s, delivered after 5.2s, refunded after 9.3s, sign-in renewed 0 times
+walk 124 as b173-shopper-4@example.test: «Summit Lightweight Classics», order HL-48425 placed after 0.5s, delivered after 5.3s, refunded after 8.7s, sign-in renewed 0 times
+walk 125 as b173-shopper-5@example.test: «Pace Compact Signature», order HL-48426 placed after 1.0s, delivered after 6.7s, refunded after 9.8s, sign-in renewed 0 times
+walk 130 as b173-shopper-2@example.test: «Metro Lightweight Classics», order HL-48431 paid with the declining card and refused after 0.3s, its lines back in the cart and removed
+walk 126 as b173-shopper-6@example.test: «Fieldnote Studio Signature», order HL-48427 placed after 4.3s, delivered after 7.4s, refunded after 10.4s, sign-in renewed 0 times
+walk 127 as b173-shopper-7@example.test: «Tandem Deluxe Limited», order HL-48428 placed after 2.4s, delivered after 5.5s, refunded after 8.6s, sign-in renewed 0 times
+walk 128 as b173-shopper-8@example.test: «Northwind Lightweight Limited», order HL-48429 placed after 0.5s, delivered after 3.6s, refunded after 6.7s, sign-in renewed 0 times
+walk 129 as b173-shopper-1@example.test: «Harbor Everyday New in», order HL-48430 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 131 as b173-shopper-3@example.test: «Metro Deluxe Yoga mats», order HL-48432 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 132 as b173-shopper-4@example.test: «Metro Deluxe Limited», order HL-48433 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 133 as b173-shopper-5@example.test: «Harbor Studio Duvet covers», order HL-48434 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 134 as b173-shopper-6@example.test: «Northwind Classic Running shoes», order HL-48435 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 135 as b173-shopper-7@example.test: «Summit Pro Running jackets», order HL-48436 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 136 as b173-shopper-8@example.test: «Pace Travel Dumbbells», order HL-48437 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 140 as b173-shopper-4@example.test: «Pace Compact Limited», order HL-48441 paid with the declining card and refused after 0.3s, its lines back in the cart and removed
+walk 137 as b173-shopper-1@example.test: «Metro Studio Mugs», order HL-48438 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 138 as b173-shopper-2@example.test: «Lumen Eco Limited», order HL-48439 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 139 as b173-shopper-3@example.test: «Lumen Travel Limited», order HL-48440 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 141 as b173-shopper-5@example.test: «Harbor Pro Limited», order HL-48442 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 142 as b173-shopper-6@example.test: «Northwind Everyday Pillows», order HL-48443 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 143 as b173-shopper-7@example.test: «Kestrel Studio Classics», order HL-48444 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 144 as b173-shopper-8@example.test: «Metro Compact Speakers», order HL-48445 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 145 as b173-shopper-1@example.test: «Tandem Everyday Signature», order HL-48446 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 146 as b173-shopper-2@example.test: «Ridge Travel Signature», order HL-48447 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 150 as b173-shopper-6@example.test: «Fieldnote Lightweight Pillows», order HL-48451 paid with the declining card and refused after 0.3s, its lines back in the cart and removed
+walk 147 as b173-shopper-3@example.test: «Ridge Travel Signature», order HL-48448 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 148 as b173-shopper-4@example.test: «Harbor Studio Duvet covers», order HL-48449 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 149 as b173-shopper-5@example.test: «Metro Compact Limited», order HL-48450 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 151 as b173-shopper-7@example.test: «Bellwave Hush Buds 938A», order HL-48452 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 152 as b173-shopper-8@example.test: «Fieldnote Eco Signature», order HL-48453 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 153 as b173-shopper-1@example.test: «Fieldnote Essential Signature», order HL-48454 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 154 as b173-shopper-2@example.test: «Ridge Studio Yoga mats», order HL-48455 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 155 as b173-shopper-3@example.test: «Tandem Travel Mugs», order HL-48456 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 156 as b173-shopper-4@example.test: «Oakline Lightweight Dumbbells», order HL-48457 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 160 as b173-shopper-8@example.test: «Tandem Everyday Signature», order HL-48461 paid with the declining card and refused after 0.3s, its lines back in the cart and removed
+walk 157 as b173-shopper-5@example.test: «Bellwave Hush Buds 938A», order HL-48458 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 158 as b173-shopper-6@example.test: «Oakline Deluxe Classics», order HL-48459 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 159 as b173-shopper-7@example.test: «Lumen Lightweight Classics», order HL-48460 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 161 as b173-shopper-1@example.test: «Lumen Pro Signature», order HL-48462 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 162 as b173-shopper-2@example.test: «Lumen Pro New in», order HL-48463 placed after 0.3s, delivered after 3.4s, refunded after 6.4s, sign-in renewed 0 times
+walk 163 as b173-shopper-3@example.test: «Lumen Everyday Speakers», order HL-48464 placed after 0.3s, delivered after 3.4s, refunded after 6.4s, sign-in renewed 0 times
+walk 164 as b173-shopper-4@example.test: «Fieldnote Lightweight Pillows», order HL-48465 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 165 as b173-shopper-5@example.test: «Oakline Essential New in», order HL-48466 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 166 as b173-shopper-6@example.test: «Harbor Lightweight New in», order HL-48467 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 170 as b173-shopper-2@example.test: «Tandem Studio Limited», order HL-48471 paid with the declining card and refused after 0.3s, its lines back in the cart and removed
+walk 167 as b173-shopper-7@example.test: «Harbor Eco New in», order HL-48468 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 168 as b173-shopper-8@example.test: «Summit Lightweight Limited», order HL-48469 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 169 as b173-shopper-1@example.test: «Stoneware Mug, 12 oz», order HL-48470 placed after 0.3s, delivered after 4.3s, refunded after 7.4s, sign-in renewed 0 times
+walk 171 as b173-shopper-3@example.test: «Kestrel Compact Speakers», order HL-48472 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 172 as b173-shopper-4@example.test: «Summit Studio Signature», order HL-48473 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 173 as b173-shopper-5@example.test: «Cloudline Lightweight Classics», order HL-48474 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 174 as b173-shopper-6@example.test: «Oakline Deluxe Classics», order HL-48475 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 175 as b173-shopper-7@example.test: «Bellwave Hush Buds 938A», order HL-48476 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 176 as b173-shopper-8@example.test: «Harbor Studio Dumbbells», order HL-48477 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 180 as b173-shopper-4@example.test: «Cloudline Everyday Classics», order HL-48481 paid with the declining card and refused after 0.3s, its lines back in the cart and removed
+walk 177 as b173-shopper-1@example.test: «Harbor Compact Mugs», order HL-48478 placed after 0.3s, delivered after 4.4s, refunded after 7.4s, sign-in renewed 0 times
+walk 178 as b173-shopper-2@example.test: «Lumen Lightweight Signature», order HL-48479 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 179 as b173-shopper-3@example.test: «Ridge Travel Signature», order HL-48480 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 181 as b173-shopper-5@example.test: «Fieldnote Studio Speakers», order HL-48482 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 182 as b173-shopper-6@example.test: «Oakline Everyday Signature», order HL-48483 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 183 as b173-shopper-7@example.test: «Northwind Lightweight Classics», order HL-48484 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 184 as b173-shopper-8@example.test: «Northwind Everyday Limited», order HL-48485 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 185 as b173-shopper-1@example.test: «Lumen Pro New in», order HL-48486 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 186 as b173-shopper-2@example.test: «Summit Pro Classics», order HL-48487 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 190 as b173-shopper-6@example.test: «Fieldnote Eco Signature», order HL-48491 paid with the declining card and refused after 0.4s, its lines back in the cart and removed
+walk 187 as b173-shopper-3@example.test: «Metro Deluxe Yoga mats», order HL-48488 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 188 as b173-shopper-4@example.test: «Kestrel Essential New in», order HL-48489 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 189 as b173-shopper-5@example.test: «Summit Lightweight Mugs», order HL-48490 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 191 as b173-shopper-7@example.test: «Summit Classic Signature», order HL-48492 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 192 as b173-shopper-8@example.test: «Harbor Everyday New in», order HL-48493 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 193 as b173-shopper-1@example.test: «Harbor Eco New in», order HL-48494 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 194 as b173-shopper-2@example.test: «Tandem Eco Signature», order HL-48495 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 195 as b173-shopper-3@example.test: «Oakline Classic Signature», order HL-48496 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 196 as b173-shopper-4@example.test: «Tandem Everyday Signature», order HL-48497 placed after 0.2s, delivered after 3.3s, refunded after 5.3s, sign-in renewed 0 times
+walk 200 as b173-shopper-8@example.test: «Harbor Compact Mugs», order HL-48501 paid with the declining card and refused after 0.3s, its lines back in the cart and removed
+walk 197 as b173-shopper-5@example.test: «Sonora SH-X527B Extra Bass Noise Cancelling», order HL-48498 placed after 0.2s, delivered after 4.3s, refunded after 7.4s, sign-in renewed 0 times
+walk 198 as b173-shopper-6@example.test: «Cloudline Compact New in», order HL-48499 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 199 as b173-shopper-7@example.test: «Lumen Essential Classics», order HL-48500 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 201 as b173-shopper-1@example.test: «Summit Eco New in», order HL-48502 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 202 as b173-shopper-2@example.test: «Pace Classic Signature», order HL-48503 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 203 as b173-shopper-3@example.test: «Northwind Lightweight Yoga mats», order HL-48504 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 204 as b173-shopper-4@example.test: «Lumen Lightweight Signature», order HL-48505 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 205 as b173-shopper-5@example.test: «Summit Classic Signature», order HL-48506 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 206 as b173-shopper-6@example.test: «Kestrel Classic New in», order HL-48507 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 210 as b173-shopper-2@example.test: «Tandem Everyday Signature», order HL-48511 paid with the declining card and refused after 0.3s, its lines back in the cart and removed
+walk 207 as b173-shopper-7@example.test: «Fieldnote Studio Limited», order HL-48508 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 208 as b173-shopper-8@example.test: «Metro Lightweight Classics», order HL-48509 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 209 as b173-shopper-1@example.test: «Sonora SH-X527B Extra Bass Noise Cancelling», order HL-48510 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 211 as b173-shopper-3@example.test: «Sonora Pulse 208T Wireless Bass Headphones», order HL-48512 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 212 as b173-shopper-4@example.test: «SH-718N Wireless Noise Cancelling Headphones», order HL-48513 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 213 as b173-shopper-5@example.test: «Harbor Classic Dumbbells», order HL-48514 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 214 as b173-shopper-6@example.test: «Summit Studio Signature», order HL-48515 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 215 as b173-shopper-7@example.test: «Metro Studio Limited», order HL-48516 placed after 0.4s, delivered after 3.5s, refunded after 6.5s, sign-in renewed 0 times
+walk 216 as b173-shopper-8@example.test: «Tandem Everyday Signature», order HL-48517 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 220 as b173-shopper-4@example.test: «Kestrel Classic New in», order HL-48521 paid with the declining card and refused after 0.3s, its lines back in the cart and removed
+walk 217 as b173-shopper-1@example.test: «Cloudline Everyday Signature», order HL-48518 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 218 as b173-shopper-2@example.test: «Northwind Eco Running shoes», order HL-48519 placed after 0.2s, delivered after 3.3s, refunded after 5.3s, sign-in renewed 0 times
+walk 219 as b173-shopper-3@example.test: «Ridge Pro Pillows», order HL-48520 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 221 as b173-shopper-5@example.test: «Oakline Everyday Signature», order HL-48522 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 222 as b173-shopper-6@example.test: «Summit Pro Running jackets», order HL-48523 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 223 as b173-shopper-7@example.test: «Northwind Essential Limited», order HL-48524 placed after 0.4s, delivered after 3.5s, refunded after 5.6s, sign-in renewed 0 times
+walk 224 as b173-shopper-8@example.test: «Metro Lightweight Classics», order HL-48525 placed after 0.3s, delivered after 3.4s, refunded after 6.4s, sign-in renewed 0 times
+walk 225 as b173-shopper-1@example.test: «Harbor Compact Mugs», order HL-48526 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 226 as b173-shopper-2@example.test: «Fieldnote Classic Duvet covers», order HL-48527 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 230 as b173-shopper-6@example.test: «Metro Pro Mugs», order HL-48531 paid with the declining card and refused after 0.4s, its lines back in the cart and removed
+walk 227 as b173-shopper-3@example.test: «Lumen Travel Limited», order HL-48528 placed after 0.3s, delivered after 3.4s, refunded after 6.4s, sign-in renewed 0 times
+walk 228 as b173-shopper-4@example.test: «Bellwave Hush 120K, Refurbished», order HL-48529 placed after 0.3s, delivered after 4.4s, refunded after 7.5s, sign-in renewed 0 times
+walk 229 as b173-shopper-5@example.test: «Ridge Pro Signature», order HL-48530 placed after 0.3s, delivered after 3.4s, refunded after 6.4s, sign-in renewed 0 times
+walk 231 as b173-shopper-7@example.test: «Ridge Compact New in», order HL-48532 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 232 as b173-shopper-8@example.test: «Pace Essential Limited», order HL-48533 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 233 as b173-shopper-1@example.test: «Cloudline Everyday Mugs», order HL-48534 placed after 0.4s, delivered after 3.5s, refunded after 6.6s, sign-in renewed 0 times
+walk 235 as b173-shopper-3@example.test: «Fieldnote Compact Classics», order HL-48536 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 234 as b173-shopper-2@example.test: «Bellwave Roam 580P Around-Ear Wireless», order HL-48535 placed after 0.4s, delivered after 5.5s, refunded after 8.6s, sign-in renewed 0 times
+walk 236 as b173-shopper-4@example.test: «Oakline Everyday Signature», order HL-48537 placed after 0.3s, delivered after 3.4s, refunded after 6.6s, sign-in renewed 0 times
+walk 240 as b173-shopper-8@example.test: «Northwind Eco Running shoes», order HL-48541 paid with the declining card and refused after 0.4s, its lines back in the cart and removed
+walk 237 as b173-shopper-5@example.test: «Lumen Eco Signature», order HL-48538 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 238 as b173-shopper-6@example.test: «Summit Compact Yoga mats», order HL-48539 placed after 0.3s, delivered after 3.4s, refunded after 6.6s, sign-in renewed 0 times
+walk 239 as b173-shopper-7@example.test: «SH-718N Wireless Noise Cancelling Headphones», order HL-48540 placed after 0.4s, delivered after 3.5s, refunded after 6.6s, sign-in renewed 0 times
+walk 241 as b173-shopper-1@example.test: «Ridge Compact Pillows», order HL-48542 placed after 0.4s, delivered after 3.5s, refunded after 6.6s, sign-in renewed 0 times
+walk 242 as b173-shopper-2@example.test: «Ridge Compact Mugs», order HL-48543 placed after 0.3s, delivered after 3.4s, refunded after 6.6s, sign-in renewed 0 times
+walk 243 as b173-shopper-3@example.test: «Harbor Studio Duvet covers», order HL-48544 placed after 0.4s, delivered after 3.6s, refunded after 6.7s, sign-in renewed 0 times
+walk 244 as b173-shopper-4@example.test: «Summit Eco New in», order HL-48545 placed after 0.4s, delivered after 3.4s, refunded after 6.6s, sign-in renewed 0 times
+walk 245 as b173-shopper-5@example.test: «Oakline Classic Signature», order HL-48546 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 246 as b173-shopper-6@example.test: «Lumen Lightweight Signature», order HL-48547 placed after 0.3s, delivered after 3.5s, refunded after 6.6s, sign-in renewed 0 times
+walk 250 as b173-shopper-2@example.test: «Tandem Pro Yoga mats», order HL-48551 paid with the declining card and refused after 0.5s, its lines back in the cart and removed
+walk 247 as b173-shopper-7@example.test: «Metro Lightweight Classics», order HL-48548 placed after 0.4s, delivered after 3.5s, refunded after 6.6s, sign-in renewed 0 times
+walk 248 as b173-shopper-8@example.test: «Bellwave Hush 120K, Refurbished», order HL-48549 placed after 0.4s, delivered after 4.5s, refunded after 7.6s, sign-in renewed 0 times
+walk 249 as b173-shopper-1@example.test: «Lumen Lightweight Signature», order HL-48550 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 251 as b173-shopper-3@example.test: «Cloudline Deluxe Classics», order HL-48552 placed after 0.3s, delivered after 3.4s, refunded after 6.4s, sign-in renewed 0 times
+walk 252 as b173-shopper-4@example.test: «Summit Compact Pillows», order HL-48553 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 253 as b173-shopper-5@example.test: «Northwind Travel Limited», order HL-48554 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 254 as b173-shopper-6@example.test: «Northwind Lightweight Classics», order HL-48555 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 255 as b173-shopper-7@example.test: «Summit Lightweight Duvet covers», order HL-48556 placed after 0.2s, delivered after 3.3s, refunded after 5.3s, sign-in renewed 0 times
+walk 256 as b173-shopper-8@example.test: «Ridge Compact Mugs», order HL-48557 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 260 as b173-shopper-4@example.test: «Lumen Everyday Classics», order HL-48561 paid with the declining card and refused after 0.3s, its lines back in the cart and removed
+walk 257 as b173-shopper-1@example.test: «Harbor Studio Dumbbells», order HL-48558 placed after 0.3s, delivered after 4.4s, refunded after 7.4s, sign-in renewed 0 times
+walk 258 as b173-shopper-2@example.test: «Northwind Eco Running shoes», order HL-48559 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 259 as b173-shopper-3@example.test: «Northwind Lightweight Pillows», order HL-48560 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 261 as b173-shopper-5@example.test: «Metro Pro Mugs», order HL-48562 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 262 as b173-shopper-6@example.test: «Fieldnote Compact Limited», order HL-48563 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 263 as b173-shopper-7@example.test: «Ridge Pro Signature», order HL-48564 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 264 as b173-shopper-8@example.test: «Summit Pro Running jackets», order HL-48565 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 265 as b173-shopper-1@example.test: «Fieldnote Eco Dumbbells», order HL-48566 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 266 as b173-shopper-2@example.test: «Northwind Studio Cookware», order HL-48567 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 270 as b173-shopper-6@example.test: «Kestrel Compact New in», order HL-48571 paid with the declining card and refused after 0.3s, its lines back in the cart and removed
+walk 267 as b173-shopper-3@example.test: «Harbor Classic Dumbbells», order HL-48568 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 268 as b173-shopper-4@example.test: «Tandem Studio Limited», order HL-48569 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 269 as b173-shopper-5@example.test: «Tandem Essential Limited», order HL-48570 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 271 as b173-shopper-7@example.test: «Northwind Eco Running shoes», order HL-48572 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 272 as b173-shopper-8@example.test: «SH-718N Wireless Noise Cancelling Headphones», order HL-48573 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 273 as b173-shopper-1@example.test: «Fieldnote Essential Signature», order HL-48574 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 274 as b173-shopper-2@example.test: «Sonora Pulse 208T Wireless Bass Headphones», order HL-48575 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 275 as b173-shopper-3@example.test: «Oakline Classic Projectors», order HL-48576 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 276 as b173-shopper-4@example.test: «Fieldnote Eco Signature», order HL-48577 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 280 as b173-shopper-8@example.test: «Pace Eco Limited», order HL-48581 paid with the declining card and refused after 0.3s, its lines back in the cart and removed
+walk 277 as b173-shopper-5@example.test: «Cloudline Deluxe Classics», order HL-48578 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 278 as b173-shopper-6@example.test: «Pace Essential Limited», order HL-48579 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 279 as b173-shopper-7@example.test: «Metro Lightweight Classics», order HL-48580 placed after 0.3s, delivered after 3.3s, refunded after 5.4s, sign-in renewed 0 times
+walk 281 as b173-shopper-1@example.test: «Lumen Eco Signature», order HL-48582 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 282 as b173-shopper-2@example.test: «Kestrel Classic New in», order HL-48583 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 283 as b173-shopper-3@example.test: «Metro Lightweight Classics», order HL-48584 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 284 as b173-shopper-4@example.test: «Harbor Pro Limited», order HL-48585 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 285 as b173-shopper-5@example.test: «Oakline Essential Signature», order HL-48586 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 286 as b173-shopper-6@example.test: «Cloudline Lightweight Limited», order HL-48587 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 290 as b173-shopper-2@example.test: «Stoneware Mug, 12 oz», order HL-48591 paid with the declining card and refused after 0.4s, its lines back in the cart and removed
+walk 287 as b173-shopper-7@example.test: «Cloudline Deluxe Classics», order HL-48588 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 288 as b173-shopper-8@example.test: «Oakline Classic Projectors», order HL-48589 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 289 as b173-shopper-1@example.test: «Oakline Essential New in», order HL-48590 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 291 as b173-shopper-3@example.test: «Cloudline Lightweight Limited», order HL-48592 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 292 as b173-shopper-4@example.test: «Northwind Travel Limited», order HL-48593 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 293 as b173-shopper-5@example.test: «Pace Everyday New in», order HL-48594 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 294 as b173-shopper-6@example.test: «Tandem Pro Yoga mats», order HL-48595 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 295 as b173-shopper-7@example.test: «Summit Everyday TVs», order HL-48596 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 296 as b173-shopper-8@example.test: «Summit Compact Pillows», order HL-48597 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 300 as b173-shopper-4@example.test: «Kestrel Classic Cookware», order HL-48601 paid with the declining card and refused after 0.5s, its lines back in the cart and removed
+walk 297 as b173-shopper-1@example.test: «Metro Compact Speakers», order HL-48598 placed after 0.6s, delivered after 3.7s, refunded after 6.8s, sign-in renewed 0 times
+walk 298 as b173-shopper-2@example.test: «Summit Lightweight Classics», order HL-48599 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 299 as b173-shopper-3@example.test: «Metro Deluxe Yoga mats», order HL-48600 placed after 0.3s, delivered after 3.4s, refunded after 6.6s, sign-in renewed 0 times
+walk 301 as b173-shopper-5@example.test: «Kestrel Compact New in», order HL-48602 placed after 0.4s, delivered after 3.5s, refunded after 6.7s, sign-in renewed 0 times
+walk 302 as b173-shopper-6@example.test: «Kestrel Lightweight Running jackets», order HL-48603 placed after 0.3s, delivered after 3.4s, refunded after 6.6s, sign-in renewed 0 times
+walk 303 as b173-shopper-7@example.test: «Kestrel Compact New in», order HL-48604 placed after 0.5s, delivered after 2.6s, refunded after 5.8s, sign-in renewed 0 times
+walk 304 as b173-shopper-8@example.test: «Lumen Everyday Speakers», order HL-48605 placed after 0.4s, delivered after 3.5s, refunded after 6.8s, sign-in renewed 0 times
+walk 305 as b173-shopper-1@example.test: «Stoneware Mug, 12 oz», order HL-48606 placed after 0.4s, delivered after 4.6s, refunded after 7.8s, sign-in renewed 0 times
+walk 306 as b173-shopper-2@example.test: «Metro Lightweight Classics», order HL-48607 placed after 0.5s, delivered after 3.6s, refunded after 6.8s, sign-in renewed 0 times
+walk 310 as b173-shopper-6@example.test: «Sonora Arena 519 Wireless Gaming Headset», order HL-48611 paid with the declining card and refused after 0.7s, its lines back in the cart and removed
+walk 307 as b173-shopper-3@example.test: «Kestrel Classic New in», order HL-48608 placed after 0.5s, delivered after 3.7s, refunded after 6.9s, sign-in renewed 0 times
+walk 308 as b173-shopper-4@example.test: «Ridge Travel Signature», order HL-48609 placed after 0.6s, delivered after 3.8s, refunded after 6.9s, sign-in renewed 0 times
+walk 309 as b173-shopper-5@example.test: «Metro Lightweight Classics», order HL-48610 placed after 0.5s, delivered after 3.7s, refunded after 6.8s, sign-in renewed 0 times
+walk 311 as b173-shopper-7@example.test: «Lumen Eco Signature», order HL-48612 placed after 0.4s, delivered after 3.5s, refunded after 6.7s, sign-in renewed 0 times
+walk 312 as b173-shopper-8@example.test: «Cloudline Studio New in», order HL-48613 placed after 0.4s, delivered after 3.6s, refunded after 6.7s, sign-in renewed 0 times
+walk 313 as b173-shopper-1@example.test: «Fieldnote Studio Speakers», order HL-48614 placed after 0.5s, delivered after 3.6s, refunded after 6.7s, sign-in renewed 0 times
+walk 314 as b173-shopper-2@example.test: «Summit Compact Yoga mats», order HL-48615 placed after 0.4s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 315 as b173-shopper-3@example.test: «Cloudline Deluxe Classics», order HL-48616 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 316 as b173-shopper-4@example.test: «Cloudline Everyday Signature», order HL-48617 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 320 as b173-shopper-8@example.test: «Lumen Classic Limited», order HL-48621 paid with the declining card and refused after 0.4s, its lines back in the cart and removed
+walk 317 as b173-shopper-5@example.test: «Northwind Everyday Classics», order HL-48618 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 318 as b173-shopper-6@example.test: «Northwind Lightweight Yoga mats», order HL-48619 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 319 as b173-shopper-7@example.test: «Northwind Lightweight Yoga mats», order HL-48620 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 321 as b173-shopper-1@example.test: «Summit Everyday TVs», order HL-48622 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 322 as b173-shopper-2@example.test: «Tandem Travel Mugs», order HL-48623 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 323 as b173-shopper-3@example.test: «Ridge Compact Limited», order HL-48624 placed after 0.3s, delivered after 3.4s, refunded after 6.4s, sign-in renewed 0 times
+walk 324 as b173-shopper-4@example.test: «Pace Classic Signature», order HL-48625 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 325 as b173-shopper-5@example.test: «Summit Compact Pillows», order HL-48626 placed after 0.3s, delivered after 3.3s, refunded after 6.5s, sign-in renewed 0 times
+walk 326 as b173-shopper-6@example.test: «Kestrel Classic New in», order HL-48627 placed after 0.3s, delivered after 3.3s, refunded after 6.5s, sign-in renewed 0 times
+walk 330 as b173-shopper-2@example.test: «Ridge Studio Yoga mats», order HL-48631 paid with the declining card and refused after 0.4s, its lines back in the cart and removed
+walk 327 as b173-shopper-7@example.test: «Sonora Arena 519 Wireless Gaming Headset», order HL-48628 placed after 0.4s, delivered after 3.5s, refunded after 6.6s, sign-in renewed 0 times
+walk 328 as b173-shopper-8@example.test: «Metro Compact Limited», order HL-48629 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 329 as b173-shopper-1@example.test: «Summit Eco New in», order HL-48630 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 331 as b173-shopper-3@example.test: «Fieldnote Essential Signature», order HL-48632 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 332 as b173-shopper-4@example.test: «Fieldnote Compact Classics», order HL-48633 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 333 as b173-shopper-5@example.test: «Metro Lightweight Classics», order HL-48634 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 334 as b173-shopper-6@example.test: «Lumen Everyday Classics», order HL-48635 placed after 0.3s, delivered after 3.4s, refunded after 5.5s, sign-in renewed 0 times
+walk 335 as b173-shopper-7@example.test: «Ridge Pro Signature», order HL-48636 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 336 as b173-shopper-8@example.test: «Ridge Travel Signature», order HL-48637 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 340 as b173-shopper-4@example.test: «Fieldnote Compact Classics», order HL-48641 paid with the declining card and refused after 0.6s, its lines back in the cart and removed
+walk 337 as b173-shopper-1@example.test: «Sonora SH-X527B Extra Bass Noise Cancelling», order HL-48638 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 338 as b173-shopper-2@example.test: «Ridge Deluxe Classics», order HL-48639 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 339 as b173-shopper-3@example.test: «Harbor Everyday New in», order HL-48640 placed after 0.4s, delivered after 3.5s, refunded after 6.6s, sign-in renewed 0 times
+walk 341 as b173-shopper-5@example.test: «Tandem Compact Classics», order HL-48642 placed after 0.4s, delivered after 3.5s, refunded after 6.6s, sign-in renewed 0 times
+walk 342 as b173-shopper-6@example.test: «Summit Compact Yoga mats», order HL-48643 placed after 0.3s, delivered after 3.4s, refunded after 6.6s, sign-in renewed 0 times
+walk 343 as b173-shopper-7@example.test: «Summit Pro Running jackets», order HL-48644 placed after 0.3s, delivered after 3.5s, refunded after 6.6s, sign-in renewed 0 times
+walk 344 as b173-shopper-8@example.test: «Oakline Studio Limited», order HL-48645 placed after 0.8s, delivered after 3.8s, refunded after 7.0s, sign-in renewed 0 times
+walk 345 as b173-shopper-1@example.test: «Summit Compact Yoga mats», order HL-48646 placed after 0.4s, delivered after 3.5s, refunded after 6.7s, sign-in renewed 0 times
+walk 346 as b173-shopper-2@example.test: «Tandem Essential Limited», order HL-48647 placed after 0.3s, delivered after 3.5s, refunded after 6.8s, sign-in renewed 0 times
+walk 350 as b173-shopper-6@example.test: «Sonora Monitor 630R Professional Studio Headphones», order HL-48651 paid with the declining card and refused after 0.7s, its lines back in the cart and removed
+walk 347 as b173-shopper-3@example.test: «Metro Lightweight Classics», order HL-48648 placed after 0.8s, delivered after 4.0s, refunded after 7.2s, sign-in renewed 0 times
+walk 348 as b173-shopper-4@example.test: «Fieldnote Classic Duvet covers», order HL-48649 placed after 0.8s, delivered after 4.0s, refunded after 7.1s, sign-in renewed 0 times
+walk 349 as b173-shopper-5@example.test: «Sonora Arena 519 Wireless Gaming Headset», order HL-48650 placed after 0.9s, delivered after 4.1s, refunded after 7.2s, sign-in renewed 0 times
+walk 351 as b173-shopper-7@example.test: «Northwind Classic Running shoes», order HL-48652 placed after 0.6s, delivered after 3.8s, refunded after 5.9s, sign-in renewed 0 times
+walk 352 as b173-shopper-8@example.test: «Tandem Essential Limited», order HL-48653 placed after 0.4s, delivered after 3.5s, refunded after 6.7s, sign-in renewed 0 times
+walk 353 as b173-shopper-1@example.test: «Summit Deluxe Dumbbells», order HL-48654 placed after 0.4s, delivered after 3.5s, refunded after 6.6s, sign-in renewed 0 times
+walk 354 as b173-shopper-2@example.test: «Summit Pro Signature», order HL-48655 placed after 0.3s, delivered after 3.4s, refunded after 6.6s, sign-in renewed 0 times
+walk 355 as b173-shopper-3@example.test: «Metro Studio Limited», order HL-48656 placed after 0.3s, delivered after 3.4s, refunded after 6.6s, sign-in renewed 0 times
+walk 356 as b173-shopper-4@example.test: «Northwind Lightweight Pillows», order HL-48657 placed after 0.5s, delivered after 3.7s, refunded after 6.8s, sign-in renewed 0 times
+walk 360 as b173-shopper-8@example.test: «Fieldnote Studio Limited», order HL-48661 paid with the declining card and refused after 0.8s, its lines back in the cart and removed
+walk 357 as b173-shopper-5@example.test: «Cloudline Everyday Signature», order HL-48658 placed after 0.4s, delivered after 3.6s, refunded after 6.8s, sign-in renewed 0 times
+walk 358 as b173-shopper-6@example.test: «Northwind Lightweight Classics», order HL-48659 placed after 0.5s, delivered after 3.6s, refunded after 6.8s, sign-in renewed 0 times
+walk 359 as b173-shopper-7@example.test: «Cloudline Pro Classics», order HL-48660 placed after 0.5s, delivered after 3.7s, refunded after 6.9s, sign-in renewed 0 times
+walk 361 as b173-shopper-1@example.test: «Northwind Everyday Pillows», order HL-48662 placed after 0.4s, delivered after 3.6s, refunded after 6.8s, sign-in renewed 0 times
+walk 362 as b173-shopper-2@example.test: «Bellwave Hush 120K, Refurbished», order HL-48663 placed after 0.4s, delivered after 4.6s, refunded after 7.8s, sign-in renewed 0 times
+walk 363 as b173-shopper-3@example.test: «Pace Essential Limited», order HL-48664 placed after 0.5s, delivered after 3.7s, refunded after 7.9s, sign-in renewed 0 times
+walk 364 as b173-shopper-4@example.test: «Sonora SE-188 Noise Cancelling Earbuds», order HL-48665 placed after 0.6s, delivered after 3.8s, refunded after 6.9s, sign-in renewed 0 times
+walk 365 as b173-shopper-5@example.test: «SH-718N Wireless Noise Cancelling Headphones», order HL-48666 placed after 0.7s, delivered after 4.8s, refunded after 8.0s, sign-in renewed 0 times
+walk 366 as b173-shopper-6@example.test: «Harbor Pro Running jackets», order HL-48667 placed after 0.6s, delivered after 3.7s, refunded after 6.9s, sign-in renewed 0 times
+walk 370 as b173-shopper-2@example.test: «Cloudline Lightweight Limited», order HL-48671 paid with the declining card and refused after 0.9s, its lines back in the cart and removed
+walk 367 as b173-shopper-7@example.test: «Ridge Compact Limited», order HL-48668 placed after 0.4s, delivered after 3.6s, refunded after 6.8s, sign-in renewed 0 times
+walk 368 as b173-shopper-8@example.test: «Pace Compact Limited», order HL-48669 placed after 0.6s, delivered after 3.7s, refunded after 6.9s, sign-in renewed 0 times
+walk 369 as b173-shopper-1@example.test: «Metro Compact Limited», order HL-48670 placed after 0.7s, delivered after 3.9s, refunded after 7.0s, sign-in renewed 0 times
+walk 371 as b173-shopper-3@example.test: «Stoneware Mug, 12 oz», order HL-48672 placed after 0.4s, delivered after 4.6s, refunded after 7.8s, sign-in renewed 0 times
+walk 372 as b173-shopper-4@example.test: «Northwind Essential Signature», order HL-48673 placed after 0.4s, delivered after 3.5s, refunded after 6.7s, sign-in renewed 0 times
+walk 373 as b173-shopper-5@example.test: «Northwind Essential Signature», order HL-48674 placed after 0.6s, delivered after 3.8s, refunded after 6.9s, sign-in renewed 0 times
+walk 374 as b173-shopper-6@example.test: «Lumen Eco Limited», order HL-48675 placed after 0.6s, delivered after 3.8s, refunded after 6.9s, sign-in renewed 0 times
+walk 375 as b173-shopper-7@example.test: «Metro Everyday New in», order HL-48676 placed after 0.5s, delivered after 3.7s, refunded after 6.8s, sign-in renewed 0 times
+walk 376 as b173-shopper-8@example.test: «Summit Deluxe Dumbbells», order HL-48677 placed after 0.5s, delivered after 3.6s, refunded after 6.7s, sign-in renewed 0 times
+walk 380 as b173-shopper-4@example.test: «Cloudline Deluxe Classics», order HL-48681 paid with the declining card and refused after 0.3s, its lines back in the cart and removed
+walk 377 as b173-shopper-1@example.test: «Kestrel Lightweight Running jackets», order HL-48678 placed after 0.4s, delivered after 3.5s, refunded after 6.6s, sign-in renewed 0 times
+walk 378 as b173-shopper-2@example.test: «Northwind Everyday Limited», order HL-48679 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 379 as b173-shopper-3@example.test: «Ridge Compact New in», order HL-48680 placed after 0.3s, delivered after 3.4s, refunded after 6.4s, sign-in renewed 0 times
+walk 381 as b173-shopper-5@example.test: «Oakline Studio Limited», order HL-48682 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 382 as b173-shopper-6@example.test: «Bellwave Hush Ultra 165A Headphones», order HL-48683 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 383 as b173-shopper-7@example.test: «Metro Lightweight Classics», order HL-48684 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 384 as b173-shopper-8@example.test: «SH-718N Wireless Noise Cancelling Headphones», order HL-48685 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 385 as b173-shopper-1@example.test: «Kestrel Everyday Limited», order HL-48686 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 386 as b173-shopper-2@example.test: «Lumen Eco Limited», order HL-48687 placed after 0.2s, delivered after 3.3s, refunded after 5.3s, sign-in renewed 0 times
+walk 390 as b173-shopper-6@example.test: «Pace Everyday New in», order HL-48691 paid with the declining card and refused after 0.3s, its lines back in the cart and removed
+walk 387 as b173-shopper-3@example.test: «Lumen Everyday Classics», order HL-48688 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 388 as b173-shopper-4@example.test: «Pace Essential Mugs», order HL-48689 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 389 as b173-shopper-5@example.test: «Metro Deluxe Limited», order HL-48690 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 391 as b173-shopper-7@example.test: «Tandem Deluxe Limited», order HL-48692 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 392 as b173-shopper-8@example.test: «Metro Lightweight Classics», order HL-48693 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 393 as b173-shopper-1@example.test: «Harbor Lightweight Limited», order HL-48694 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 394 as b173-shopper-2@example.test: «Kestrel Classic New in», order HL-48695 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 395 as b173-shopper-3@example.test: «Metro Studio Mugs», order HL-48696 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 396 as b173-shopper-4@example.test: «Lumen Essential Cookware», order HL-48697 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 400 as b173-shopper-8@example.test: «Tandem Studio Limited», order HL-48701 paid with the declining card and refused after 0.3s, its lines back in the cart and removed
+walk 397 as b173-shopper-5@example.test: «Harbor Studio TVs», order HL-48698 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 398 as b173-shopper-6@example.test: «Northwind Lightweight Classics», order HL-48699 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 399 as b173-shopper-7@example.test: «Tandem Travel New in», order HL-48700 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 401 as b173-shopper-1@example.test: «Summit Compact Pillows», order HL-48702 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 402 as b173-shopper-2@example.test: «Pace Deluxe TVs», order HL-48703 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 403 as b173-shopper-3@example.test: «Pace Everyday New in», order HL-48704 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 404 as b173-shopper-4@example.test: «Cloudline Eco Limited», order HL-48705 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 405 as b173-shopper-5@example.test: «Tandem Lightweight Speakers», order HL-48706 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 406 as b173-shopper-6@example.test: «Stoneware Mug, 12 oz», order HL-48707 placed after 0.2s, delivered after 4.3s, refunded after 7.3s, sign-in renewed 0 times
+walk 410 as b173-shopper-2@example.test: «Harbor Everyday New in», order HL-48711 paid with the declining card and refused after 0.4s, its lines back in the cart and removed
+walk 407 as b173-shopper-7@example.test: «Harbor Classic Dumbbells», order HL-48708 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 408 as b173-shopper-8@example.test: «Oakline Essential New in», order HL-48709 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 409 as b173-shopper-1@example.test: «Ridge Studio Yoga mats», order HL-48710 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 411 as b173-shopper-3@example.test: «Sonora Pulse 208T Wireless Bass Headphones», order HL-48712 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 412 as b173-shopper-4@example.test: «Fieldnote Eco Signature», order HL-48713 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 413 as b173-shopper-5@example.test: «Cloudline Travel Classics», order HL-48714 placed after 0.3s, delivered after 3.4s, refunded after 6.6s, sign-in renewed 0 times
+walk 414 as b173-shopper-6@example.test: «Harbor Pro Running jackets», order HL-48715 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 416 as b173-shopper-8@example.test: «Oakline Everyday Signature», order HL-48717 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 415 as b173-shopper-7@example.test: «Bellwave Roam 580P Around-Ear Wireless», order HL-48716 placed after 0.3s, delivered after 5.4s, refunded after 8.5s, sign-in renewed 0 times
+walk 420 as b173-shopper-4@example.test: «Summit Eco New in», order HL-48721 paid with the declining card and refused after 0.4s, its lines back in the cart and removed
+walk 417 as b173-shopper-1@example.test: «Harbor Eco New in», order HL-48718 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 418 as b173-shopper-2@example.test: «Northwind Essential Limited», order HL-48719 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 419 as b173-shopper-3@example.test: «Fieldnote Compact Classics», order HL-48720 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 421 as b173-shopper-5@example.test: «Harbor Classic Dumbbells», order HL-48722 placed after 0.4s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 422 as b173-shopper-6@example.test: «Lumen Everyday Speakers», order HL-48723 placed after 0.3s, delivered after 3.4s, refunded after 6.4s, sign-in renewed 0 times
+walk 423 as b173-shopper-7@example.test: «Fieldnote Compact Classics», order HL-48724 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 424 as b173-shopper-8@example.test: «Sonora SH-C388N Wireless Noise Cancelling», order HL-48725 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 425 as b173-shopper-1@example.test: «Lumen Lightweight Signature», order HL-48726 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 426 as b173-shopper-2@example.test: «Oakline Essential New in», order HL-48727 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 430 as b173-shopper-6@example.test: «Kestrel Deluxe Yoga mats», order HL-48731 paid with the declining card and refused after 0.3s, its lines back in the cart and removed
+walk 427 as b173-shopper-3@example.test: «Sonora Pulse 208T Wireless Bass Headphones», order HL-48728 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 428 as b173-shopper-4@example.test: «Metro Compact Speakers», order HL-48729 placed after 0.2s, delivered after 3.3s, refunded after 6.3s, sign-in renewed 0 times
+walk 429 as b173-shopper-5@example.test: «Pace Compact Signature», order HL-48730 placed after 0.2s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 431 as b173-shopper-7@example.test: «Ridge Studio Yoga mats», order HL-48732 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 432 as b173-shopper-8@example.test: «Bellwave Hush 120K, Refurbished», order HL-48733 placed after 0.3s, delivered after 4.4s, refunded after 7.5s, sign-in renewed 0 times
+walk 433 as b173-shopper-1@example.test: «Pace Compact Limited», order HL-48734 placed after 0.3s, delivered after 3.4s, refunded after 6.6s, sign-in renewed 0 times
+walk 434 as b173-shopper-2@example.test: «Northwind Studio Signature», order HL-48735 placed after 0.3s, delivered after 4.5s, refunded after 7.6s, sign-in renewed 0 times
+walk 435 as b173-shopper-3@example.test: «Harbor Studio TVs», order HL-48736 placed after 0.4s, delivered after 3.5s, refunded after 6.6s, sign-in renewed 0 times
+walk 436 as b173-shopper-4@example.test: «Harbor Pro Running jackets», order HL-48737 placed after 0.3s, delivered after 3.3s, refunded after 6.5s, sign-in renewed 0 times
+walk 440 as b173-shopper-8@example.test: «Fieldnote Studio Classics», order HL-48741 paid with the declining card and refused after 0.4s, its lines back in the cart and removed
+walk 437 as b173-shopper-5@example.test: «Cloudline Travel Classics», order HL-48738 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 438 as b173-shopper-6@example.test: «Oakline Studio Limited», order HL-48739 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 439 as b173-shopper-7@example.test: «Northwind Essential Limited», order HL-48740 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 441 as b173-shopper-1@example.test: «Lumen Pro Signature», order HL-48742 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 442 as b173-shopper-2@example.test: «Tandem Eco Limited», order HL-48743 placed after 0.3s, delivered after 3.3s, refunded after 6.4s, sign-in renewed 0 times
+walk 443 as b173-shopper-3@example.test: «Summit Essential New in», order HL-48744 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 444 as b173-shopper-4@example.test: «SH-718N Wireless Noise Cancelling Headphones», order HL-48745 placed after 0.4s, delivered after 3.5s, refunded after 6.6s, sign-in renewed 0 times
+walk 448 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 445 as b173-shopper-5@example.test: «Harbor Pro Yoga mats», order HL-48746 placed after 0.3s, delivered after 3.4s, refunded after 6.5s, sign-in renewed 0 times
+walk 449 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 446 as b173-shopper-6@example.test: «Sonora SE-188 Noise Cancelling Earbuds», order HL-48747 placed after 0.3s, delivered after 3.4s, refunded after 6.6s, sign-in renewed 0 times
+walk 450 as b173-shopper-2@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 447 as b173-shopper-7@example.test: «Fieldnote Eco Running shoes», order HL-48748 placed after 0.3s, delivered after 3.4s, refunded after 7.2s, sign-in renewed 0 times
+walk 451 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 452 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 453 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 454 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 455 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 456 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 457 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 458 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 459 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 460 as b173-shopper-4@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 461 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 462 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 463 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 464 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 465 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 466 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 467 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 468 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 469 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 470 as b173-shopper-6@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 471 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 472 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 473 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 474 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 475 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 476 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 477 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 478 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 479 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 480 as b173-shopper-8@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 481 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 482 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 483 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 484 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 485 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 486 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 487 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 488 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 489 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 490 as b173-shopper-2@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 491 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 492 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 493 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 494 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 495 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 496 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 497 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 498 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 499 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 500 as b173-shopper-4@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 501 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 502 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 503 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 504 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 505 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 506 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 507 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 508 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 509 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 510 as b173-shopper-6@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 511 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 512 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 513 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 514 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 515 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 516 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 517 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 518 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 519 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 520 as b173-shopper-8@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 521 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 522 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 523 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+skipped a start: 16 walks are still waiting on their orders
+skipped a start: 16 walks are still waiting on their orders
+skipped a start: 16 walks are still waiting on their orders
+skipped a start: 16 walks are still waiting on their orders
+skipped a start: 16 walks are still waiting on their orders
+skipped a start: 16 walks are still waiting on their orders
+skipped a start: 16 walks are still waiting on their orders
+skipped a start: 16 walks are still waiting on their orders
+skipped a start: 16 walks are still waiting on their orders
+skipped a start: 16 walks are still waiting on their orders
+walk 524 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+skipped a start: 16 walks are still waiting on their orders
+skipped a start: 16 walks are still waiting on their orders
+walk 525 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+skipped a start: 16 walks are still waiting on their orders
+walk 526 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 527 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 528 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 529 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 530 as b173-shopper-2@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 531 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 534 as b173-shopper-6@example.test failed at step «sign in as b173-shopper-6@example.test and take the cart along»: signing b173-shopper-6@example.test in answered 401 to «»
+walk 533 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 532 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 535 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 536 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 537 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 538 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 539 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 540 as b173-shopper-4@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 541 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 542 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 543 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 544 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 545 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 546 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 547 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 548 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 549 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 550 as b173-shopper-6@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 551 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 552 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 553 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 554 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 555 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 556 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 557 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 558 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 559 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 560 as b173-shopper-8@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 561 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 562 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 563 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 564 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 565 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 566 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 567 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 568 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 569 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 570 as b173-shopper-2@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 571 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 572 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 573 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 574 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 575 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 576 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 577 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 578 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 579 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 580 as b173-shopper-4@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 581 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 582 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 583 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 584 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 585 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 586 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 587 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 588 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 589 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 590 as b173-shopper-6@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 591 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 592 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 593 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 594 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 595 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 596 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 597 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 598 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 599 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 600 as b173-shopper-8@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 601 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 602 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 603 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 604 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 605 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 606 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 607 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 608 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 609 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 610 as b173-shopper-2@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 611 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 612 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 613 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 614 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 615 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 616 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 617 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 618 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 619 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 620 as b173-shopper-4@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 621 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 622 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 623 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 624 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 625 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 626 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 627 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 628 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 629 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 630 as b173-shopper-6@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 631 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 632 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 633 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 634 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 635 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 636 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 637 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 638 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 639 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 640 as b173-shopper-8@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 641 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 642 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 643 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 644 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 645 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 646 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 647 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 648 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 649 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 650 as b173-shopper-2@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 651 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 652 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 653 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 654 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 655 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 656 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 657 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+skipped a start: 16 walks are still waiting on their orders
+skipped a start: 16 walks are still waiting on their orders
+skipped a start: 16 walks are still waiting on their orders
+skipped a start: 16 walks are still waiting on their orders
+skipped a start: 16 walks are still waiting on their orders
+walk 658 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+skipped a start: 16 walks are still waiting on their orders
+skipped a start: 16 walks are still waiting on their orders
+walk 659 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+skipped a start: 16 walks are still waiting on their orders
+walk 660 as b173-shopper-4@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+skipped a start: 16 walks are still waiting on their orders
+skipped a start: 16 walks are still waiting on their orders
+skipped a start: 16 walks are still waiting on their orders
+walk 661 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 662 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 670 as b173-shopper-6@example.test failed at step «sign in as b173-shopper-6@example.test and take the cart along»: signing b173-shopper-6@example.test in answered 401 to «»
+walk 663 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 664 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 665 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 666 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 667 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 668 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 669 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 671 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 672 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 673 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 674 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 675 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 676 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 677 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 678 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 679 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 680 as b173-shopper-8@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 681 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 682 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 683 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 684 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 685 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 686 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 687 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 688 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 689 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 690 as b173-shopper-2@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 691 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 692 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 693 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 694 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 695 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 696 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 697 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 698 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 699 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 700 as b173-shopper-4@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 701 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 702 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 703 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 704 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 705 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 706 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 707 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 708 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 709 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 710 as b173-shopper-6@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 711 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 712 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 713 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 714 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 715 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 716 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 717 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 718 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 719 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 720 as b173-shopper-8@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 721 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 722 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 723 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 724 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 725 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 726 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 727 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 728 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 729 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 730 as b173-shopper-2@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 731 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 732 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 733 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 734 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 735 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 736 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 737 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 738 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 739 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 740 as b173-shopper-4@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 741 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 742 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 743 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 744 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 745 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 746 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 747 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 748 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 749 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 750 as b173-shopper-6@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 751 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 752 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 753 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 754 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 755 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 756 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 757 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 758 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 759 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 760 as b173-shopper-8@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 761 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 762 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 763 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 764 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 765 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 766 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 767 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 768 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 769 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 770 as b173-shopper-2@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 771 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 772 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 773 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 774 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 775 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 776 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 777 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 778 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 779 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 780 as b173-shopper-4@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 781 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 782 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 783 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 784 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 785 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 786 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 787 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 788 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 789 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 790 as b173-shopper-6@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 791 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 792 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 793 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 794 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 795 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 796 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 797 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 798 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 799 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 800 as b173-shopper-8@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 801 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 802 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 803 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 804 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 805 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 806 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 807 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 808 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 809 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 810 as b173-shopper-2@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 811 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 812 as b173-shopper-4@example.test failed at step «check out by courier and place the order»: no window has room
+walk 813 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 814 as b173-shopper-6@example.test failed at step «check out by courier and place the order»: no window has room
+walk 815 as b173-shopper-7@example.test failed at step «check out by courier and place the order»: no window has room
+walk 816 as b173-shopper-8@example.test failed at step «check out by courier and place the order»: no window has room
+walk 817 as b173-shopper-1@example.test failed at step «check out by courier and place the order»: no window has room
+walk 818 as b173-shopper-2@example.test failed at step «check out by courier and place the order»: no window has room
+walk 819 as b173-shopper-3@example.test failed at step «check out by courier and place the order»: no window has room
+walk 820 as b173-shopper-4@example.test failed at step «pay with the declining card and see the order refused»: no window has room
+walk 821 as b173-shopper-5@example.test failed at step «check out by courier and place the order»: no window has room
+walk 822 as b173-shopper-6@example.test failed at step «a guest arrives»: null
+walk 823 as b173-shopper-7@example.test failed at step «a guest arrives»: null

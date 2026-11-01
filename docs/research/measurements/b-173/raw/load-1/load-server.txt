@@ -1,0 +1,2 @@
+aot: {"aot_lines": 33, "aot_linked": true, "aot_opened": true, "aot_errors": 0}
+state (running oomkilled exitcode restarts): true false 0 0

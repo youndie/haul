@@ -339,7 +339,8 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
 - **Steps:**
   1. Press «About this demo» in the line above the header.
   2. Read the page.
-  3. Press «Source on GitHub», then «Read the README»; then «Watch the live orders» (B-164).
+  3. Press «Source on GitHub», then «Read the README»; then «Watch the live orders» (B-164); then «The stack in
+     numbers» (B-173).
   4. Reload `/about`; open `/about` in a new tab by its address.
   5. Look at the footer.
 - **Expected:**
@@ -349,7 +350,7 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
     «What is real» (the saga and its compensations; the sellers, couriers and payments, simulated; the observability)
     and «What is not» (no money moves, no parcel ships, the products, reviews and sellers invented).
   - Step 3: the repository, then its README, each in a tab of its own; the store's tab stays on `/about`. «Watch the
-    live orders» opens `/live` in the store's own tab (TC-ORD-13).
+    live orders» opens `/live` in the store's own tab (TC-ORD-13), «The stack in numbers» `/numbers` (TC-HDR-19).
   - Step 4: the page each time, not a «page isn’t here».
   - Step 5: the footer is as on the home page — «Deals», «Haul Plus», «Track an order»; no «About» in it, on purpose.
 - **Decided in:** B-160
@@ -453,3 +454,28 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
   the cart in reading order and rings each control»; `FocusRingTest` «every control Tab reaches on the main screens is
   ringed»; manual: the browser's own keys and pointer — the document's capture listener, the Tab Chromium spends on
   the page after a field — which the desktop tests do not have
+
+### TC-HDR-19 — «The stack in numbers» shows what the server was measured to cost, and only that
+
+- **Who:** guest
+- **Width:** 1440, 390
+- **Preconditions:** none.
+- **Steps:**
+  1. Open «About this demo» and press «The stack in numbers».
+  2. Read the page; open `docs/research/measurements/b-173/README.md` beside it.
+  3. Press «Read the method and the raw runs», then «About this demo».
+  4. Reload `/numbers`; open it in a new tab by its address.
+- **Expected:**
+  - Step 1: `/numbers`, under the store's header, with the footer; the tab reads «The stack in numbers · Haul».
+  - Step 2: «What this server costs, measured», the day and the commit in the lead, then «Start-up» (with the AOT
+    cache, without it, what it buys, docker's own share, the verdict), «Latency under load» (the load, the five routes
+    each at the median and p99, the run at twice the rate, the verdict), «CPU per request», «Memory» and «How it was
+    measured». Every number is the README's results table's, and each section ends on the verdict the README gives.
+  - Step 3: the measurement's directory on GitHub in a tab of its own; then `/about` in the store's tab.
+  - Step 4: the page each time, not a «page isn’t here».
+- **Decided in:** B-173
+- **Coverage:** `server:NumbersRoutesTest` «the numbers page is the frame around what the server was measured to
+  cost»; `server:NumbersRoutesTest` «every number on the page is one the measurement wrote»; `server:NumbersRoutesTest`
+  «the about page leads to the numbers»; `server:TabTitlesTest` «every page a guest opens names its tab»;
+  `composeApp:AddressTest` «an address is the page the server serves at it»; golden `Numbers_Content`; golden
+  `Numbers_Content_Phone`; manual: the README read beside the page, GitHub's tab

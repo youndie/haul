@@ -84,6 +84,7 @@ class AboutRoutesTest {
                 listOf(
                     OpenUrlAction("https://github.com/youndie/haul"),
                     NavigateAction("/live"),
+                    NavigateAction("/numbers"),
                     OpenUrlAction("https://github.com/youndie/haul#readme"),
                 ),
                 about.links.map { it.action },

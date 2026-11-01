@@ -75,6 +75,9 @@ class AddressTest {
         assertEquals("/ui/live", Address("/live").screen)
         assertEquals(PageKind.Live, Address("/live").kind)
         assertEquals(PageKind.Other, Address("/live/HL-48302").kind)
+        // «The stack in numbers» (B-173): drawn as the About page is.
+        assertEquals("/ui/numbers", Address("/numbers").screen)
+        assertEquals(PageKind.About, Address("/numbers").kind)
         // The catalog's root (B-49), every top-level category: a page, with placeholders of its own (B-108).
         assertEquals("/ui/c", Address("/c").screen)
         assertEquals(PageKind.Categories, Address("/c").kind)

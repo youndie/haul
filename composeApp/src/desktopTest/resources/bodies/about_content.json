@@ -116,6 +116,13 @@
           }
         },
         {
+          "label": "The stack in numbers",
+          "action": {
+            "type": "navigate",
+            "deeplink": "/numbers"
+          }
+        },
+        {
           "label": "Read the README",
           "action": {
             "type": "open_url",

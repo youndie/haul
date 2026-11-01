@@ -73,6 +73,7 @@ internal object AboutScreen {
                 listOf(
                     Link("Source on GitHub", OpenUrlAction(REPOSITORY)),
                     Link("Watch the live orders", NavigateAction(LIVE_ORDERS)),
+                    Link("The stack in numbers", NavigateAction(NumbersScreen.ADDRESS)),
                     Link("Read the README", OpenUrlAction(README)),
                 ),
         )

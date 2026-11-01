@@ -1,0 +1,1 @@
+R = 200 rps (half of the highest unsaturated step, 400); generator ceiling at 400 rps cleared: True

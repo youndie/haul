@@ -301,6 +301,7 @@ class UniqueIdsTest {
                 "/ui/deals",
                 "/ui/deals?page=2",
                 "/ui/about",
+                "/ui/numbers",
                 "/ui/p/${SampleCatalog.SONORA_HEADPHONES}",
                 "/ui/p/${SampleCatalog.SONORA_HEADPHONES}?sku=${SampleCatalog.SONORA_HEADPHONES}-1&tab=reviews",
                 "/ui/p/${SampleCatalog.SONORA_HEADPHONES}?tab=specifications",

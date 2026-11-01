@@ -1,0 +1,4 @@
+limit 192m: ready=True died_after_s=None state(running oomkilled exitcode)=true false 0 OutOfMemoryError_in_log=False
+
+limit 128m: ready=True died_after_s=110.5 state(running oomkilled exitcode)=false false 3 OutOfMemoryError_in_log=True
+Terminating due to java.lang.OutOfMemoryError: Java heap space
