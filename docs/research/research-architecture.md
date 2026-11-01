@@ -2573,9 +2573,12 @@ spreads over 100 ms, so the home's first window is the still page 544 ms after i
 already drawn in this session — arrives at rest: the storefront remembers the addresses whose trees it drew, by the
 whole address, query included, in memory only, so a reload starts over (`SeenPages`, `LocalArrivesAtRest`). The
 whole page arrives at rest, below the fold too, since a page come back to is one already seen; a new address an update
-records (a filter) is a page not seen before, and its new cards rise in as in B-158. Hover follows a mouse pointer
-alone: a touch neither starts a hover nor keeps one, and a pressed control still sinks under a finger. Under
-`Motion.Still` nothing of this applies, and a lively page at rest is still the still page to the pixel.
+records (a filter) is a page not seen before, and its new cards rise in as in B-158. Photos are decoded anew on every
+visit, so on a page come back to they are drawn as they arrive, without B-158's fade. Hover follows a mouse pointer
+alone: a touch neither starts a hover nor keeps one the mouse left, and a pressed control still sinks under a finger.
+Compose 1.12's web input already drops a finger's enter and exit, so a finger alone never started a hover there; the
+phone's lifted card was not reproduced in Chromium's touch emulation (B-168's findings). Under `Motion.Still` nothing
+of this applies, and a lively page at rest is still the still page to the pixel.
 
 ### D10. Documentation in English
 

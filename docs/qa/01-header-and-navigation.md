@@ -271,7 +271,7 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
   5. Open «Catalog», type two letters in the search box, open a category.
   6. Turn reduced motion on in the system (or emulate `prefers-reduced-motion: reduce`) and reload.
   7. With motion on again, open a product from the home page, go back, then forward; open the home from the logo.
-  8. At 390 by touch, tap a card's «+»; then press a card and drag the finger off it before lifting.
+  8. At 390 by touch, tap a card's «+».
 - **Expected:**
   - Step 1: the campaign, its banners and the blocks under them rise into place top to bottom, quickly — the first
     screen is at rest in about half a second; further down each block rises as it comes into view, the cards of a row
@@ -285,7 +285,7 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
   - Step 6: nothing moves; the pages are as in steps 1–5 at rest.
   - Step 7: the home back, the product forward and the home from the logo are each drawn at rest at once: a page
     already seen in the tab does not rise in again. A reload plays the arrival again.
-  - Step 8: the «+» sinks while pressed and springs back, and so does the card; neither stays lifted or leaned as
+  - Step 8: the «+» sinks while pressed and springs back; the card stays where it rests, not lifted or leaned as
     under a mouse.
 - **Decided in:** B-158, B-168
 - **Coverage:** `composeApp:MotionTest` «a lively home at rest draws what the still home draws»;
