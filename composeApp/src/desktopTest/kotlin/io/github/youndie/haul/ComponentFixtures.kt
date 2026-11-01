@@ -27,6 +27,7 @@ import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.KompotScreen
 import io.github.youndie.kompot.form.FormController
 import io.github.youndie.kompot.form.FormSchema
+import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.viddik.annotations.ViddikScreenshot
 import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.builtins.ListSerializer
@@ -97,6 +98,28 @@ internal fun HeaderMenuPhone() = Fixture(compact = true) { HeaderMenuSheet(menuH
 @ViddikScreenshot(name = "Menu_Guest_Phone", group = "HaulHeader", width = 390, height = 844)
 @Composable
 internal fun HeaderMenuGuestPhone() = Fixture(compact = true) { HeaderMenuSheet(menuHeader(null)) }
+
+/**
+ * B-162: a guest on a store that offers the demo shopper — «Demo shopper» beside «Sign in». No artboard draws it, so it
+ * has no parity reference.
+ */
+@ViddikScreenshot(name = "Guest_Demo", group = "HaulHeader", width = 1440, height = 186)
+@Composable
+internal fun HeaderGuestDemo() = Fixture(compact = false) { Render(demoHeader()) }
+
+/** B-162: the same at 1024, the narrowest desktop width, where the row has the least room for it. */
+@ViddikScreenshot(name = "Guest_Demo_1024", group = "HaulHeader", width = 1024, height = 262)
+@Composable
+internal fun HeaderGuestDemo1024() = Fixture(compact = false, medium = true) { Render(demoHeader()) }
+
+/** B-162: a guest's phone menu on such a store: «Try as a demo shopper» under «Sign in». */
+@ViddikScreenshot(name = "Menu_Guest_Demo_Phone", group = "HaulHeader", width = 390, height = 844)
+@Composable
+internal fun HeaderMenuGuestDemoPhone() =
+    Fixture(compact = true) { HeaderMenuSheet(menuHeader(null).copy(demo = NavigateAction("/demo-shopper"))) }
+
+private fun demoHeader(): HaulHeader =
+    (decode("haul_header_guest.json") as HaulHeader).copy(demo = NavigateAction("/demo-shopper"))
 
 /** The header as the server sends it, with the catalog: the seed's 32 top-level categories (`CatalogSeed`). */
 private fun menuHeader(customerName: String?): HaulHeader =

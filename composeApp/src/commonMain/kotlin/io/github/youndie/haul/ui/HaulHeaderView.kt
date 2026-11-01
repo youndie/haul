@@ -360,6 +360,8 @@ private fun WideHeader(
                 }
 
                 header.customerName == null -> {
+                    // «Try as a demo shopper» beside «Sign in» (B-162), while the server offers one.
+                    header.demo?.let { DemoShopperPill(it) }
                     Shortcut(HaulIcons.person, "Sign in", weight = 700, modifier = account)
                 }
 
@@ -406,6 +408,34 @@ private fun WideHeader(
         )
     }
 }
+
+/**
+ * The wide header's «Try as a demo shopper» (B-162): a pill beside «Sign in», in the Plus pill's colour, worded short
+ * — «Demo shopper» — so the row keeps its room at 1024; its name to a screen reader is the whole offer.
+ */
+@Composable
+private fun DemoShopperPill(action: KompotAction) {
+    Text(
+        DEMO_SHOPPER_PILL,
+        HaulType.text(14f, 700),
+        Modifier
+            .testTag(DEMO_SHOPPER_TAG)
+            .semantics { contentDescription = DEMO_SHOPPER_NAME }
+            .follows(action)
+            .background(HaulColors.secondaryContainer, RoundedCornerShape(12.dp))
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        softWrap = false,
+    )
+}
+
+/** What the wide header's demo pill reads (B-162). */
+public const val DEMO_SHOPPER_PILL: String = "Demo shopper"
+
+/** What it is called to a screen reader: the offer in full, as the sign-in page and the phone's menu word it. */
+public const val DEMO_SHOPPER_NAME: String = "Try as a demo shopper"
+
+/** The tag of the wide header's demo pill, for the tests that press it. */
+public const val DEMO_SHOPPER_TAG: String = "demo-shopper"
 
 /** The name of the search field's button, an icon (B-126). */
 private const val SEARCH = "Search"

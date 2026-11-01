@@ -35,6 +35,9 @@ class IdentityTest {
     private var guests = 0
     private var signInOff = false
 
+    /** What `POST /api/v1/demo-shoppers` answers (B-162): tokens, or the server's refusal when [demoFull]. */
+    private var demoFull = false
+
     /** The browser offline: every request fails with no answer (B-147). */
     private var offline = false
 
@@ -79,6 +82,14 @@ class IdentityTest {
 
                     request.url.encodedPath == IdentityApi.SIGN_IN_SETTINGS -> {
                         settingsAnswer()
+                    }
+
+                    request.url.encodedPath == IdentityApi.DEMO_SHOPPERS && demoFull -> {
+                        respond(DEMO_FULL, HttpStatusCode.ServiceUnavailable, JSON)
+                    }
+
+                    request.url.encodedPath == IdentityApi.DEMO_SHOPPERS -> {
+                        respond(DEMO_TOKENS, HttpStatusCode.Created, JSON)
                     }
 
                     else -> {
@@ -158,6 +169,34 @@ class IdentityTest {
             val last = requests.last()
             assertEquals("Bearer access-1", last.headers[HttpHeaders.Authorization])
             assertNull(last.headers[GUEST_HEADER])
+        }
+
+    /** B-162: the demo shopper's tokens are kept as a sign-in's, and the guest cart merges into them. */
+    @Test
+    fun `a demo shopper is signed in with the server's tokens and gets the guest cart`() =
+        runBlocking {
+            home()
+            identity.tryAsDemoShopper()
+
+            assertEquals(HttpMethod.Post, requests.single { it.url.encodedPath == IdentityApi.DEMO_SHOPPERS }.method)
+            val merge = requests.single { it.url.encodedPath == settings.mergeUrl }
+            assertEquals("Bearer demo-access", merge.headers[HttpHeaders.Authorization])
+            assertEquals("g-1", merge.headers[GUEST_HEADER])
+            assertEquals(Tokens("demo-access", "demo-refresh"), store.load().tokens)
+            assertTrue(identity.signedIn)
+        }
+
+    @Test
+    fun `a demo shopper the server refuses says why and leaves the guest as they were`() =
+        runBlocking {
+            home()
+            demoFull = true
+
+            val refused = assertFailsWith<DemoShopperRefused> { identity.tryAsDemoShopper() }
+
+            assertEquals("Every demo shopper for today is taken", refused.reason)
+            assertNull(store.load().tokens)
+            assertEquals("g-1", store.load().guestId)
         }
 
     @Test
@@ -425,6 +464,8 @@ class IdentityTest {
     private companion object {
         const val CHECKOUT = "/ui/checkout"
         const val UNAUTHENTICATED = """{"code":"unauthenticated","message":"no"}"""
+        const val DEMO_TOKENS = """{"accessToken":"demo-access","refreshToken":"demo-refresh"}"""
+        const val DEMO_FULL = """{"code":"unavailable","message":"Every demo shopper for today is taken"}"""
         const val GUEST_NOT_FOUND = """{"code":"guest_not_found","message":"no such guest"}"""
         val JSON = headersOf(HttpHeaders.ContentType, "application/json")
     }

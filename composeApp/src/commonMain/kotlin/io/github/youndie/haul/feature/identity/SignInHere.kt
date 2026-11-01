@@ -80,4 +80,11 @@ public interface SessionControls {
 
     /** Finishes the sign-in that came back — the tokens kept, the guest cart merged — and answers its next. */
     public suspend fun finishSignInHere(): String?
+
+    /**
+     * «Try as a demo shopper» (B-162): signs in as a customer the server makes for this browser alone, the guest cart
+     * merged as after any sign-in. Throws [SignInUnavailable] where there is none, [DemoShopperRefused] when the
+     * server would not make one, [SignInUnreachable] when it did not answer.
+     */
+    public suspend fun tryAsDemoShopper(): Unit = throw SignInUnavailable()
 }

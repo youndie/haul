@@ -44,6 +44,27 @@ public class IdentityApi(
         return haulJson.decodeFromString(SignInSettings.serializer(), expect(response, HttpStatusCode.OK))
     }
 
+    /**
+     * A demo shopper of this browser's own (`POST /api/v1/demo-shoppers`, `201`, B-162): their tokens. A refusal — no
+     * demo on this server, today's all taken, the provider down — throws [DemoShopperRefused] with what the server
+     * said; no answer at all throws [SignInUnreachable], as the sign-in's settings do.
+     */
+    public suspend fun demoShopper(): Tokens {
+        val response =
+            try {
+                http.post(DEMO_SHOPPERS)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                // Throwable: in the browser a failed fetch is a JavaScript error, which is no `Exception` on Wasm.
+                throw SignInUnreachable(e)
+            }
+        val body = response.bodyAsText()
+        if (response.status != HttpStatusCode.Created) throw DemoShopperRefused(errorMessage(body))
+        val tokens = haulJson.decodeFromString(DemoShopperTokens.serializer(), body)
+        return Tokens(tokens.accessToken, tokens.refreshToken)
+    }
+
     /** Sign-in's merge of [guestId]'s cart into the customer's the [token] names; answered `refresh`. */
     public suspend fun merge(
         url: String,
@@ -70,6 +91,7 @@ public class IdentityApi(
     public companion object {
         public const val GUESTS: String = "/api/v1/guests"
         public const val SIGN_IN_SETTINGS: String = "/api/v1/sign-in"
+        public const val DEMO_SHOPPERS: String = "/api/v1/demo-shoppers"
     }
 }
 
@@ -81,11 +103,31 @@ public class SignInUnreachable(
     cause: Throwable,
 ) : Exception("the store did not answer the request for where to sign in", cause)
 
+/**
+ * The server would not make a demo shopper (B-162): [reason] is what it said — every one of today's taken, the
+ * provider down — or `null` when the body said nothing.
+ */
+public class DemoShopperRefused(
+    public val reason: String?,
+) : Exception("the demo shopper was refused: ${reason ?: "no reason given"}")
+
 /** An identity route refused: its status and, when the body said, its [code]. */
 public class IdentityFailure(
     public val status: Int,
     public val code: ErrorCode?,
 ) : Exception("identity route answered $status ${code ?: ""}".trim())
+
+/** The body's message; a body that is not an `ErrorBody` (a proxy's page) has none. */
+@Suppress(
+    "ktlint:kapkan:swallowed-failure",
+    "A body that does not parse says nothing to show; the press says its own words instead.",
+)
+internal fun errorMessage(body: String): String? =
+    try {
+        haulJson.decodeFromString(ErrorBody.serializer(), body).message
+    } catch (_: IllegalArgumentException) {
+        null
+    }
 
 /** The body's error code; a body that is not an `ErrorBody` (a proxy's page) has none. */
 @Suppress(
