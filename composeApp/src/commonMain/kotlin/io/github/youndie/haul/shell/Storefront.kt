@@ -56,6 +56,7 @@ import io.github.youndie.haul.ui.LocalAskForHeader
 import io.github.youndie.haul.ui.LocalBlankPress
 import io.github.youndie.haul.ui.LocalHaulActions
 import io.github.youndie.haul.ui.LocalHaulNow
+import io.github.youndie.haul.ui.LocalHeaderDrawn
 import io.github.youndie.haul.ui.LocalHeaderMeasured
 import io.github.youndie.haul.ui.LocalHeaderMenu
 import io.github.youndie.haul.ui.LocalLinkCopier
@@ -91,7 +92,6 @@ import io.github.youndie.kompot.form.FormSchema
 import io.github.youndie.kompot.realtime.KompotRealtimeSource
 import io.github.youndie.kompot.rememberKompotScreenLoaderState
 import io.github.youndie.kompot.standard.CloseAction
-import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.OpenUrlAction
 import io.github.youndie.kompot.standard.PresentAction
@@ -166,6 +166,9 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * page that came with no tree, the header alone asked of [transport] ([AskForHeader], B-105); before either,
  * the client's own for a guest or for a customer, as [session] says ([ShellHeaders]) — followed as it changes,
  * so a sign-in that ends by itself, its renewal refused, asks for the guest's header as a sign-out does (B-130).
+ * A page on its way draws the server's header as it was last drawn, the count an `update` wrote included, so a
+ * visit changes nothing in it until the next tree brings its own (B-170); only the client's own header — the first
+ * page on its way — is drawn as a placeholder, no name and no count.
  * The sign-in page asks for no header while it loads: it is a way through; a press on its phone menu or its search
  * picker asks for the header alone, once per visit ([askForHeaderOnPress], B-138). Its presses
  * are followed here: a link opens, sign-in's go through [Signing], a `present` (a non-member's «HAUL PLUS»)
@@ -323,12 +326,23 @@ public fun Storefront(
             }
         }
 
-    // The header the server last drew for who is looking — a tree's, or the header alone (B-105): a page that is
-    // not there is drawn under it (Product_NotFound), and so are a page's placeholders and errors, as a
-    // placeholder (B-67). Who is looking is read again on each visit and each header drawn.
+    // The header the server last drew for who is looking — a tree's as drawn, an `update` included, or the header
+    // alone (B-105): a page that is not there is drawn under it (Product_NotFound), and so are a page's placeholders
+    // and errors (B-67), as it is (B-170) — a placeholder only while it is the client's own. Who is looking is read
+    // again on each visit and each header drawn.
     val headers = remember { ShellHeaders() }
     val signedIn = customer
     val shellHeader = headers.of(signedIn)
+    // Every header a tree draws, an `update` of it included, as the one kept over the next page's placeholder (B-170).
+    val headerDrawn =
+        remember(headers, session) {
+            { header: HaulHeader ->
+                headers.drawn(
+                    header,
+                    session?.signedIn == true,
+                )
+            }
+        }
     var signedOut by remember { mutableIntStateOf(0) }
     val home = remember(navigator) { { navigator.open("/") } }
     // The sign-in page a blocked popup led to: it says why (B-66).
@@ -399,6 +413,9 @@ public fun Storefront(
             LocalHeaderMenu provides menu,
             // The header of a page the shell draws itself: the server's last for who is looking (B-67, B-105).
             LocalShellHeader provides shellHeader,
+            // Drawn as it is once the server drew it for who is looking; the client's own as a placeholder (B-170).
+            LocalShellHeaderDrawn provides headers.serverDrew(signedIn),
+            LocalHeaderDrawn provides headerDrawn,
             LocalBlankPress provides blankPress,
         ) {
             SearchSuggestOverlay(
@@ -561,7 +578,6 @@ public fun Storefront(
                                         InPlace(overrides, loading) { unanswered = it },
                                         messages,
                                         tab,
-                                        { headers.drawn(it, session?.signedIn == true) },
                                         { signedOut += 1 },
                                     ) {
                                         presented =
@@ -711,7 +727,6 @@ private fun Shown(
     inPlace: InPlace,
     messages: MessageState,
     tab: TabTitle,
-    onHeader: (HaulHeader) -> Unit,
     onSignedOut: () -> Unit,
     onPresent: (Presented?) -> Unit,
 ) {
@@ -719,7 +734,6 @@ private fun Shown(
     // The trees a refresh brought: fetched here, not by the loader, so the screen is told of each one — an
     // arrival drops the overrides even when the tree is equal to the one drawn (kompot §4.4, B-64).
     var refreshed by remember { mutableIntStateOf(0) }
-    LaunchedEffect(tree) { tree.header()?.let(onHeader) }
     // The tab names the tree drawn — a refresh's too — in the frame that draws it (B-161); «Under the hood» outlines it
     // (B-163), a reference to the tree drawn and nothing more.
     val hood = LocalUnderTheHood.current
@@ -890,13 +904,6 @@ private suspend fun HaulTransport.treeOrNull(
     } catch (failed: ScreenFailed) {
         if (failed.asksForSignIn) signedOut()
         null
-    }
-
-private fun KompotComponent.header(): HaulHeader? =
-    when (this) {
-        is HaulHeader -> this
-        is ColumnComponent -> children.firstNotNullOfOrNull { it.header() }
-        else -> null
     }
 
 /** The page's placeholders while its tree is on its way. */
