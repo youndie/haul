@@ -77,3 +77,8 @@ make, not a chart default. The owner decides between:
 
 Also for the owner: demo shoppers' reviews and questions are public until the sweep, and shildik 0.4.1 cannot delete a
 person, so swept ones stay in the realm, disabled.
+
+## Decided (2026-11-01)
+
+The owner chose to turn it on as it is: `server.demoShoppers: true` in infra's values for haul, with the deploy of
+v0.8.0.

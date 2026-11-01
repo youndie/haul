@@ -1,7 +1,7 @@
 ---
 id: B-176
 title: "feat: a second client — desktop — draws the same server trees"
-status: question
+status: done
 priority: P3
 size: L
 stage: stage-15-showcase
@@ -64,3 +64,8 @@ The owner decides:
   `oidc-appsupport`'s JVM flow into `DesktopIdentity.kt` (sign-in, renewal, sign-out) and walks it against the stand.
 - **(b)** leave the desktop a guest's: browse and the cart, as now, and close the item.
 
+
+## Decided (2026-11-01)
+
+The owner chose (a): shildik released with `0cbc2c7` (0.5.0), sign-in wired in B-178. This item is done as a
+guest's desktop client.

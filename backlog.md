@@ -38,7 +38,7 @@ A stage is a field on the item, not a directory.
 | `stage-12-qa-run` | QA run | what the catalogue's runs (`docs/qa/runs/`) found failing, from the first, v0.4.0, on |
 | `stage-13-web-habits` | Web habits | what a browser's page does and the canvas did not: words that select and copy, the right button's menu (B-154) |
 | `stage-14-motion` | Motion | the page moves where the canvas is still — arrival, hover, press, opening, loading — and rests exactly as the canvas draws it (B-158) |
-| `stage-15-showcase` | Showcase | the stand shows the stack it is built on: it says it is a demo, a visitor reaches the money half, the machinery is visible, the numbers are measured (B-159…B-176) |
+| `stage-15-showcase` | Showcase | the stand shows the stack it is built on: it says it is a demo, a visitor reaches the money half, the machinery is visible, the numbers are measured (B-159…B-178) |
 
 ## Marks
 
@@ -46,14 +46,15 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (2)
+## Open (3)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
+| [B-177](docs/backlog/B-177-order-and-account-in-whole-pixels.md) `[ ]` | refactor: lay the order and account pages out in whole pixels | P2 | M | - |
 | [B-156](docs/backlog/B-156-walk-the-selection-on-a-phone.md) `[ ]` | chore: walk the selection and its toolbar on a phone | P3 | S | B-155 |
-| [B-176](docs/backlog/B-176-a-second-client-draws-the-same-trees.md) `[?]` | feat: a second client — desktop — draws the same server trees | P3 | L | - |
+| [B-178](docs/backlog/B-178-desktop-sign-in.md) `[ ]` | feat: the desktop client signs in through the system browser | P3 | M | - |
 
-## Closed (174)
+## Closed (175)
 
 **Skeleton**
 
@@ -273,6 +274,7 @@ A stage is a field on the item, not a directory.
 - [B-173](docs/backlog/B-173-the-stack-in-numbers.md) `[x]` - feat: «The stack in numbers» — start-up with and without the AOT cache, latency, memory, measured
 - [B-174](docs/backlog/B-174-two-replicas.md) `[x]` - feat: the server runs as two replicas — an external bus, one leader for the simulators
 - [B-175](docs/backlog/B-175-the-cost-of-compose-web.md) `[x]` - docs: audit the pixel workarounds since B-85 and write down what Compose for Web cost
+- [B-176](docs/backlog/B-176-a-second-client-draws-the-same-trees.md) `[x]` - feat: a second client — desktop — draws the same server trees
 
 <!-- END INDEX -->
 
