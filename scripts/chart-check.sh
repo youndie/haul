@@ -76,7 +76,8 @@ policies=$(printf '%s\n' "$STAND_RENDER" | grep -c '^kind: NetworkPolicy')
 says "the management port admits the hook only" 'app.kubernetes.io/name: shildik-bootstrap'
 # B-162: the demo shoppers — off by default (the bootstrap token is the owner's to hand to the server); on, through
 # the provider's management port and its bootstrap token.
-DEMO_RENDER=$(helm template haul "$CHART" "${STAND[@]}" --set server.demoShoppers=true 2>&1)
+DEMO=(--set server.demoShoppers=true)
+DEMO_RENDER=$(helm template haul "$CHART" "${STAND[@]}" "${DEMO[@]}" 2>&1)
 says_demo() { # name, expected text — in the stand's render with the demo on
   case "$DEMO_RENDER" in
     *"$2"*) say "the demo's render: $1" ok ;;
@@ -97,9 +98,9 @@ case "$(helm template haul "$CHART" "${REQUIRED[@]}" --set server.demoShoppers=t
   *HAUL_DEMO_*) say "no provider: no demo shoppers" "FAILED — a demo variable is rendered"; failed=1 ;;
   *) say "no provider: no demo shoppers" ok ;;
 esac
-renders "the stand's shape, a demo limit" "${STAND[@]}" --set server.demoDailyLimit=50
+renders "the stand's shape, a demo limit" "${STAND[@]}" "${DEMO[@]}" --set server.demoDailyLimit=50
 refuses "a demo limit that is not a positive number" "server.demoDailyLimit=many is not a positive number" \
-  "${STAND[@]}" --set server.demoDailyLimit=many
+  "${STAND[@]}" "${DEMO[@]}" --set server.demoDailyLimit=many
 case "$(helm template haul "$CHART" "${STAND[@]}" -s templates/ingress.yaml)" in
   *"port: 9000"*) say "the management port is not routed" "FAILED — an IngressRoute names 9000"; failed=1 ;;
   *) say "the management port is not routed" ok ;;
