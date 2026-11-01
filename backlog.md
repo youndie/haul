@@ -51,7 +51,7 @@ A stage is a field on the item, not a directory.
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-159](docs/backlog/B-159-the-orders-history-answers-in-time.md) `[ ]` | fix: the orders' history answers in time, however many orders the customer has | P0 | S | - |
-| [B-160](docs/backlog/B-160-the-stand-says-it-is-a-kotlin-demo.md) `[ ]` | feat: the stand says it is a demo built with Kotlin, and links to its source | P1 | S | - |
+| [B-160](docs/backlog/B-160-the-stand-says-it-is-a-kotlin-demo.md) `[~]` | feat: the stand says it is a demo built with Kotlin, and links to its source | P1 | S | - |
 | [B-161](docs/backlog/B-161-every-page-has-its-title-and-preview.md) `[ ]` | feat: every page has its own title, a description and a link preview | P1 | S | - |
 | [B-162](docs/backlog/B-162-a-visitor-tries-the-money-half-in-one-click.md) `[ ]` | feat: a visitor tries checkout, the live order and a return as a demo shopper, in one click | P1 | M | - |
 | [B-163](docs/backlog/B-163-under-the-hood-shows-the-tree.md) `[ ]` | feat: «Under the hood» shows the screen's kompot tree, what it cost and what updated | P1 | M | B-160 |

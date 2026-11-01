@@ -1,7 +1,7 @@
 ---
 id: B-160
 title: "feat: the stand says it is a demo built with Kotlin, and links to its source"
-status: open
+status: wip
 priority: P1
 size: S
 stage: stage-15-showcase
