@@ -15,8 +15,9 @@ import kotlinx.serialization.json.jsonObject
 // A node is an object with a `type` and an `id`; everything else on it is a field, its value said short.
 
 /**
- * A node of the outline: its wire [type] and [id], the field it hangs from in its parent — [via], `null` for a
- * child of `children` and for the root — its [fields], said short, and its [children]. [key] is its place in the
+ * A node of the outline: its wire [type] — or, for a component the wire sends without one (a card in a grid's list),
+ * the field it is in, «cards[]» — and [id], the field it hangs from in its parent — [via], `null` for a child of
+ * `children`, the root and a node named by its field — its [fields], said short, and its [children]. [key] is its place in the
  * outline («0/2/1»), which keeps what is open while the page's updates replace nodes around it.
  */
 internal class HoodNode(
@@ -42,7 +43,7 @@ internal object HoodOutline {
     fun of(
         tree: KompotComponent,
         replaced: Map<String, Replaced> = emptyMap(),
-    ): HoodNode = node(encode(tree), via = null, key = "0", floor = 0L, replaced)
+    ): HoodNode = node(encode(tree), via = null, key = "0", floor = 0L, replaced, unnamed = "")
 
     private fun encode(component: KompotComponent): JsonObject =
         haulJson.encodeToJsonElement(PolymorphicSerializer(KompotComponent::class), component).jsonObject
@@ -53,6 +54,7 @@ internal object HoodOutline {
         key: String,
         floor: Long,
         replaced: Map<String, Replaced>,
+        unnamed: String,
     ): HoodNode {
         val id = sent.text(ID).orEmpty()
         // As kompot's store does: an update applies under a node only when it is newer than what drew that node.
@@ -63,26 +65,38 @@ internal object HoodOutline {
         val children = mutableListOf<HoodNode>()
         drawn.forEach { (name, value) ->
             if (name == TYPE || name == ID) return@forEach
-            val nodes = nodesIn(value)
-            nodes.forEach {
-                children += node(it, via = name.takeIf { it != CHILDREN }, "$key/${children.size}", below, replaced)
+            val nodes = nodesIn(value, inList = false)
+            nodes.forEach { (found, inList) ->
+                // A component in a list of one type — a grid's cards, a grid's tiles — goes without its `type` on
+                // the wire; it is named by the field it is in.
+                val named = if (inList) "$name[]" else name
+                children +=
+                    node(found, via = name.takeIf { it != CHILDREN }, "$key/${children.size}", below, replaced, named)
             }
             val onlyNodes = nodes.isNotEmpty() && (value.isNode() || (value is JsonArray && value.all { it.isNode() }))
             if (!onlyNodes) fields += HoodField(name, said(value))
         }
-        return HoodNode(drawn.text(TYPE).orEmpty(), id, via, fields, children, key)
+        val type = drawn.text(TYPE)
+        return HoodNode(type ?: unnamed, id, via.takeIf { type != null }, fields, children, key)
     }
 
-    /** The nodes inside [value], the outermost ones: a node's own nodes are its children. */
-    private fun nodesIn(value: JsonElement): List<JsonObject> =
+    /** The nodes inside [value], the outermost ones — a node's own nodes are its children — and whether in a list. */
+    private fun nodesIn(
+        value: JsonElement,
+        inList: Boolean,
+    ): List<Pair<JsonObject, Boolean>> =
         when {
-            value.isNode() -> listOf(value as JsonObject)
-            value is JsonObject -> value.values.flatMap(::nodesIn)
-            value is JsonArray -> value.flatMap(::nodesIn)
+            value.isNode() -> listOf(value as JsonObject to inList)
+            value is JsonObject -> value.values.flatMap { nodesIn(it, inList = false) }
+            value is JsonArray -> value.flatMap { nodesIn(it, inList = true) }
             else -> emptyList()
         }
 
-    private fun JsonElement.isNode(): Boolean = this is JsonObject && text(TYPE) != null && text(ID) != null
+    /**
+     * Whether [this] is a node: an object with an `id`, every component's. A component's `type` is on it wherever the
+     * field holds any component; in a list of one type it is left out, and the object is still a node.
+     */
+    private fun JsonElement.isNode(): Boolean = this is JsonObject && text(ID) != null
 
     private fun JsonObject.text(name: String): String? = (this[name] as? JsonPrimitive)?.takeIf { it.isString }?.content
 
