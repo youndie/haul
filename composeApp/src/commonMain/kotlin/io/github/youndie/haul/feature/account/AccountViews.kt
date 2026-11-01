@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import io.github.youndie.haul.feature.catalog.PaginationView
 import io.github.youndie.haul.feature.order.StepColumns
 import io.github.youndie.haul.feature.saved.SavedListView
 import io.github.youndie.haul.theme.HaulColors
@@ -164,6 +165,7 @@ private fun Main(
                 history.empty?.let { EmptyStateView(it) }
                 if (history.rows.isNotEmpty()) Rows(history.rows, onReorder, remember { CssBox(carry = true) })
                 history.none?.let { Note(it) }
+                history.pagination?.let { PaginationView(it) }
             }
         }
         body.saved?.let { SavedListView(it) }
