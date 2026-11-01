@@ -970,18 +970,12 @@ the same registry and renderers, in a window.
   the Go menu's Back and Forward, ⌘[ and ⌘] on a Mac, Alt and the arrows elsewhere), the window's title for the
   tab's, the system clipboard and browser for the links (`DesktopLinks`; «Open in new tab» opens the store's
   address in the system's browser), and the guest kept in the user's preferences, one per server, where the browser
-  keeps it in `localStorage` (`PreferencesSessionStore`); a customer's tokens last the window, as a tab's
-  `sessionStorage` does. Motion is on: the JVM reads no system-wide «reduce motion», and a setting of the app's own
+  keeps it in `localStorage` (`PreferencesSessionStore`); since B-178 a customer's tokens are kept there too, where a
+  tab's `sessionStorage` keeps them for the tab. Motion is on: the JVM reads no system-wide «reduce motion», and a setting of the app's own
   was not worth one.
-- **Sign-in is not there yet** — the item's question. kotlin-multiplatform-oidc 0.18.4 publishes a JVM variant of
-  `oidc-appsupport` (its Gradle metadata), the system browser and a listener on a loopback port, which shildik's app
-  contour accepts from `0cbc2c7` on, a public client's `http://127.0.0.1/<path>` on any port
-  (`youndie/shildik@731b955!/docs/api/protocol-oidc-app.md`). The stand has neither: its provider is shildik 0.4.1,
-  released before that commit, and the chart registers `haul-web` with one return address,
-  `https://<hostname>/signed-in.html` (`charts/haul/files/shildik-bootstrap.py`). Until both move, the desktop's
-  «Sign in» ends as on a server with sign-in off — the shopper stays the guest they were, cart and all — and
-  «Try as a demo shopper» (B-162) signs in without the provider where the server offers it, though its five-minute
-  token cannot be renewed without the provider's flow either.
+- **Sign-in was not there** — the item's question, decided by the owner as (a): shildik released with the loopback
+  address (0.5.0) and the desktop's sign-in wired in B-178 (D5, «Decided in B-178»). Until then the desktop's «Sign
+  in» ended as on a server with sign-in off, and a demo shopper's five-minute token could not be renewed.
 - **What the desktop does not pay of the web's costs** (B-175's list, «The cost of Compose for Web 1.12»): the
   bundle's download before the first frame (the runtime ships in the package: the `.deb` is 66 MB, 152 MB
   installed), the tab title written by hand (a window's title is Compose's), the fonts fetched from Google for a
@@ -1296,7 +1290,7 @@ the account need a shildik token; signing in merges the guest cart.
   bundle that posts its address to the opener and closes; the realm's public client registers
   `<origin>/signed-in.html`. `offline_access` is asked for, because shildik's access token lives five
   minutes and a refresh token is issued only when asked.
-- **The server verifies with shildik's own `oidc-auth-server`** (0.4.1.23): signature against the
+- **The server verifies with shildik's own `oidc-auth-server`** (0.4.1.23; 0.5.0.24 since B-178): signature against the
   realm's JWKS, lifetime, `iss`; Haul adds `azp` = its client, so a token the realm issued to another
   of its clients is refused. The issuer and the client are `HAUL_OIDC_ISSUER` and
   `HAUL_OIDC_CLIENT_ID`, set together or not at all; neither is a server with sign-in off (every
@@ -1417,6 +1411,56 @@ the live order and returns all need a customer (above), and the realm is closed 
   «Every demo shopper for today is taken — try again later». The three `HAUL_DEMO_*` are set together or not at all,
   and a demo without sign-in refuses the start.
 - Rejected, as the item did: one shared demo account with a published password, and a guest checkout.
+
+**Decided in B-178, the desktop's sign-in.** B-176 left the desktop app a guest's (D2, «Decided in B-176»): the stand's
+provider took no return address a desktop can listen on.
+
+- **The provider moved to shildik 0.5.0** (the chart's `shildik.version`, the server's suite, the e2e and the desktop's
+  test; `oidc-auth-server` 0.5.0.24), the first release that matches a public client's `http://127.0.0.1/<path>` on any
+  port (RFC 8252 §7.3; `youndie/shildik@a4de01c!/docs/api/protocol-oidc-app.md`). Nothing else in its changes since
+  0.4.1 touched Haul: the server's suite is green on it unchanged.
+- **The loopback address is registered on `haul-web`, not on a client of the desktop's own.** The chart's
+  `shildik.desktopRedirectUri` (`http://127.0.0.1/signed-in`, refused at render with a port or on a name) is the
+  client's second return address beside `https://<hostname>/signed-in.html`. A second public client (`haul-desktop`)
+  was the alternative and lost on two facts: the server accepts one client's tokens (`azp` = `HAUL_OIDC_CLIENT_ID`,
+  «Decided in B-12»), so a second client is a second accepted `azp` on every customer route; and a refresh token renews
+  only at the client it was issued to, so a demo shopper's — made by the server at `haul-web` (B-162) — could not be
+  renewed by a desktop signed in at another client. What a separate client would have bought — revoking the desktop
+  apart from the browser — nothing here does. A public client's loopback address admits no one new: any program on a
+  person's machine can already start a code flow at a public client; PKCE binds the code to whoever started it.
+- **The realm's hook re-creates the client once.** Its set of addresses differs from the stand's, so the next upgrade
+  deletes `haul-web` and creates it with both (the management API cannot edit return addresses in place), and every
+  upgrade after finds it as wanted. `scripts/bootstrap-check.py` (run by `scripts/chart-check.sh`) runs the hook against
+  a fake management API through the three cases; against a real shildik 0.5.0, by hand on the build box: a sign-in made
+  at the client before its re-creation was still renewed after it (`200`), the loopback address was refused before
+  (`400`) and accepted after on two different ports.
+- **The desktop signs in with kotlin-multiplatform-oidc's JVM flow** (`JvmCodeAuthFlowFactory`, the same 0.18.4 as the
+  browser's), `LoopbackSignInFlow` in `composeApp/src/desktopMain/kotlin/io/github/youndie/haul/feature/identity/DesktopIdentity.kt`:
+  the code flow with PKCE, the provider's page in the system's browser, the code caught by a listener on a loopback
+  port and exchanged in the app. The listener is Haul's own (`LoopbackListener`, the JDK's `com.sun.net.httpserver` —
+  `jdk.httpserver` joins the packaged runtime): the library's binds port 8080 on every interface, a fixed port that is
+  the local stack's and an address other machines reach; Haul's binds `127.0.0.1` on a port the system picks, before
+  the browser opens, so the return address names a port already listening. It answers the return once («Signed in to
+  Haul — you can close this tab and go back to the app») and closes. A press while a sign-in is under way opens its page
+  again — the app cannot see a tab the person closed — and starts no second one; a sign-in not finished in ten minutes
+  ends as one that did not go through. The library keeps the request's state and verifier, while the sign-in is under
+  way, in a file of its own in the user's home directory (its JVM `PreferencesFactory`, one for every app on it); it
+  is emptied when the code comes back.
+- **Renewal and the demo shopper.** A `401` is answered as in the browser (`Identity.send`): the token renewed with the
+  refresh token at `haul-web`, or the shopper signed out. So a demo shopper's token, which B-176's desktop let lapse
+  after five minutes, is renewed like any sign-in's.
+- **The tokens outlive the window**, kept per server in the user's preferences beside the guest
+  (`PreferencesSessionStore`): an installed app that asked for a password on every start would not be one. A tab's
+  `sessionStorage` is the browser's equivalent and stays so. The preferences are the user's own (a plist on macOS, the
+  registry's current user on Windows, `~/.java` on Linux); the system's keychain would be safer and the JVM has no API
+  for it. Signing out forgets them there too; the provider is not asked to end anything, as in the browser.
+- **Walked in a test, against the provider's image** (`DesktopSignInTest`, shildik at the chart's version, the realm
+  registered with the chart's addresses read from `charts/haul/values.yaml`): the test is the person at the browser —
+  it fetches the page the app opened, posts the password form and follows the provider's redirect, which reaches the
+  listener; then renewal past the token's `exp` on the store's clock, sign-out, a press during a sign-in, a sign-in
+  abandoned, and a demo-shaped token (signed in at the browser's return page) renewed by the desktop. shildik accepts a
+  spent refresh token for a few seconds and revokes the chain after (its `protocol-oidc-browser` §4a), so the test
+  does not ask it twice.
 
 **Decided in B-14, checkout and the quote.**
 

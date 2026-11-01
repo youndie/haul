@@ -91,7 +91,8 @@ echo "--- the hook's script, run by hand once more:"
 in_pod b27-boot "app.kubernetes.io/instance=haul,app.kubernetes.io/name=shildik-bootstrap" \
   charts/haul/files/shildik-bootstrap.py \
   SHILDIK_MANAGEMENT=http://haul-shildik:9000 SHILDIK_PUBLIC=$ISSUER SHILDIK_ISSUER=$ISSUER SHILDIK_REALM=haul \
-  SHILDIK_CLIENT_ID=haul-web SHILDIK_REDIRECT_URI=https://haul.example/signed-in.html \
+  SHILDIK_CLIENT_ID=haul-web \
+  'SHILDIK_REDIRECT_URIS=["https://haul.example/signed-in.html","http://127.0.0.1/signed-in"]' \
   "SHILDIK_BOOTSTRAP_TOKEN=$BOOT" "DEMO_PASSWORD=$DEMO" \
   'DEMO_PEOPLE=[{"id":"maya","name":"Maya Kowalski","email":"maya@example.com"},{"id":"sam","name":"Sam Ortiz","email":"sam@example.com"}]' \
   || exit 1

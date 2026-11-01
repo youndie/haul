@@ -103,7 +103,9 @@ JDK 25 toolchain itself). The server's tests need Docker: PostgreSQL runs in Tes
 **The same store as a desktop app**, drawing the same server trees with the same renderers in a window:
 `./gradlew :composeApp:run` browses the public stand, `./gradlew :composeApp:run -Pserver=http://localhost:8080`
 the server above; `:composeApp:packageDistributionForCurrentOS` builds its installer (`.dmg`, `.msi` or `.deb`).
-Sign-in there is not wired yet: it browses and fills a guest's cart.
+It signs in through the system's browser, which returns to a listener on a loopback port (the provider must accept
+`http://127.0.0.1/signed-in` on any port, as the chart registers it with shildik 0.5.0), and keeps the sign-in
+between runs.
 
 ## Numbers, honestly
 

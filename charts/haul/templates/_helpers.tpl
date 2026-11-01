@@ -66,7 +66,7 @@ https://{{ include "haul.require" (dict "name" "shildik.hostname" "because" "the
 {{- end }}
 
 {{/*
-The storefront's one return page, registered on its public client: `signed-in.html` beside the bundle,
+The browser's return page, registered on the storefront's public client: `signed-in.html` beside the bundle,
 on the storefront's own host (the client builds `<origin>/signed-in.html`, `Main.kt`).
 */}}
 {{- define "haul.redirectUri" -}}
