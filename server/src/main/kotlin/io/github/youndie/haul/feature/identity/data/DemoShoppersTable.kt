@@ -4,7 +4,7 @@ import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.javatime.timestampWithTimeZone
 
-/** The Exposed side of `demo_shoppers` (V31__demo_shoppers.sql, B-162); `SchemaTest` holds the two together. */
+/** The Exposed side of `demo_shoppers` (V32__demo_shoppers.sql, B-162); `SchemaTest` holds the two together. */
 internal object DemoShoppersTable : Table("demo_shoppers") {
     val customerId = text("customer_id").references(CustomersTable.id, onDelete = ReferenceOption.CASCADE)
     val createdAt = timestampWithTimeZone("created_at")

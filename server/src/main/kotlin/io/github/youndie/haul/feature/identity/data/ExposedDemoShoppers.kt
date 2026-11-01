@@ -19,7 +19,7 @@ import java.sql.Connection
 import java.time.OffsetDateTime
 
 /**
- * Demo shoppers over Exposed (V31). The sweep is SQL of its own, in one transaction: it reaches into every
+ * Demo shoppers over Exposed (V32). The sweep is SQL of its own, in one transaction: it reaches into every
  * feature's tables, because a demo shopper's traces are in all of them, and half a sweep would leave a product
  * counting a review nobody can see or a window holding a place for an order that is gone.
  */

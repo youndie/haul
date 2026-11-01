@@ -1205,7 +1205,7 @@ the live order and returns all need a customer (above), and the realm is closed 
   delete a person, so a swept one stays in the realm, turned off. A scoped admin role or a delete route in shildik
   would remove the first and the last; neither is needed for the demo.
 - **Swept after a day.** Every hour (`DemoOffer.SWEEP_EVERY`) the demo shoppers made more than a day ago
-  (`demo_shoppers`, V31) are turned off at the provider first — one the provider does not turn off waits for the next
+  (`demo_shoppers`, V32) are turned off at the provider first — one the provider does not turn off waits for the next
   sweep, since forgotten here first its token would still renew there — and then forgotten in one transaction
   (`ExposedDemoShoppers.forget`): what their orders reserved goes back on the shelf, less what a return already put
   back, and their windows' places back to the windows; their payments, saga rows and idempotency keys go; their
