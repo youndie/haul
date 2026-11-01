@@ -81,8 +81,9 @@ class HaulColorSchemeTest {
         File(SERVER)
             .walk()
             .filter { it.extension == "kt" }
-            .flatMap { file -> TONE.findAll(file.readText()).flatMap { HEX.findAll(it.value).map { hex -> hex.value } } }
-            .map { it.uppercase() }
+            .flatMap { file ->
+                TONE.findAll(file.readText()).flatMap { HEX.findAll(it.value).map { hex -> hex.value } }
+            }.map { it.uppercase() }
             .toSet()
 
     private fun contrast(pair: Pair<Color, Color>): Double {

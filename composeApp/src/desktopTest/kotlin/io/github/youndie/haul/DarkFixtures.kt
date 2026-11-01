@@ -117,7 +117,8 @@ internal fun FooterThemePhoneDark() = Dark { Fixture(compact = true) { FooterWit
 /** The guest home's footer (`home_guest.json`) with the switch, [chosen] chosen. */
 @Composable
 private fun FooterWithSwitch(chosen: ThemeMode) {
-    val footer = remember { (decode("home_guest.json") as ColumnComponent).children.filterIsInstance<HaulFooter>().first() }
+    val footer =
+        remember { (decode("home_guest.json") as ColumnComponent).children.filterIsInstance<HaulFooter>().first() }
     val choice = remember(chosen) { ThemeChoice(MemoryThemeMemory(chosen)) }
     CompositionLocalProvider(LocalThemeChoice provides choice) {
         Box(Modifier.fillMaxWidth()) { HaulFooterView(footer) }

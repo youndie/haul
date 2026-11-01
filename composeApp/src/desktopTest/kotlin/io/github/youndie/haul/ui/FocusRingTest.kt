@@ -151,7 +151,8 @@ class FocusRingTest {
             ).any { at ->
                 val x = at.x.toInt()
                 val y = at.y.toInt()
-                x in 0 until pixels.width && y in 0 until pixels.height && pixels[x, y].near(HaulColorScheme.Light.primary)
+                x in 0 until pixels.width && y in 0 until pixels.height &&
+                    pixels[x, y].near(HaulColorScheme.Light.primary)
             }
         }
     }
@@ -328,7 +329,11 @@ class FocusRingTest {
         var drawn = 0
         for (x in xs) {
             for (y in ys) {
-                if (ringed[x, y].near(HaulColorScheme.Light.primary) && !plain[x, y].near(HaulColorScheme.Light.primary)) drawn += 1
+                if (ringed[x, y].near(HaulColorScheme.Light.primary) &&
+                    !plain[x, y].near(HaulColorScheme.Light.primary)
+                ) {
+                    drawn += 1
+                }
             }
         }
         return drawn >= RING_PIXELS

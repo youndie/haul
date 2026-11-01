@@ -114,7 +114,11 @@ class StaticFrameTest {
      */
     @Test
     fun `the frame is drawn in the light and the dark scheme's roles`() {
-        val blocks = Regex("""(:root[^{]*)\{([^}]*)\}""").findAll(page).map { it.groupValues[1].trim() to it.groupValues[2] }
+        val blocks =
+            Regex("""(:root[^{]*)\{([^}]*)\}""").findAll(page).map {
+                it.groupValues[1].trim() to
+                    it.groupValues[2]
+            }
         val light = blocks.single { it.first == ":root" }.second
         val darkWhenAsked = blocks.single { it.first == """:root:not([$THEME_ATTRIBUTE="light"])""" }.second
         val darkWhenChosen = blocks.single { it.first == """:root[$THEME_ATTRIBUTE="dark"]""" }.second
@@ -157,7 +161,10 @@ class StaticFrameTest {
         ).mapValues { (_, colour) -> "#%06X".format(colour.toArgb() and 0xFFFFFF) }
 
     private fun values(block: String): Map<String, String> =
-        Regex("""--([a-z]+):\s*(#[0-9A-Fa-f]{6})""").findAll(block).associate { it.groupValues[1] to it.groupValues[2].uppercase() }
+        Regex("""--([a-z]+):\s*(#[0-9A-Fa-f]{6})""").findAll(block).associate {
+            it.groupValues[1] to
+                it.groupValues[2].uppercase()
+        }
 
     /**
      * Within a first TCP window (ten segments, about 14 KB) even uncompressed: the frame arrives in the page's

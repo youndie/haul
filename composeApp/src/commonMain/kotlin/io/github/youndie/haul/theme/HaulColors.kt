@@ -111,7 +111,14 @@ public class HaulColorScheme(
      * and a tone the dark page keeps as sent (the Acid of a Plus banner and a member's avatar, a Hot banner) — and the
      * scheme's own ink on a tile it draws as its dark counterpart.
      */
-    public fun onTone(tone: String): Color = if (tone.removePrefix("#").uppercase() in tones) onSurface else Light.onSurface
+    public fun onTone(tone: String): Color =
+        if (tone.removePrefix("#").uppercase() in
+            tones
+        ) {
+            onSurface
+        } else {
+            Light.onSurface
+        }
 
     public companion object {
         /** The canvas's: every value as `canvas.json` and the light goldens draw it. */

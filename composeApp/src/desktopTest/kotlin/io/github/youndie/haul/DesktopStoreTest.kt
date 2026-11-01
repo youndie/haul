@@ -7,14 +7,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.test.ComposeUiTest
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import io.github.youndie.haul.feature.identity.GUEST_HEADER
 import io.github.youndie.haul.feature.identity.MemorySessionStore
@@ -116,7 +116,9 @@ class DesktopStoreTest {
                     systemDark = systemDark,
                 )
             }
-            waitUntil(timeoutMillis = 10_000) { onAllNodesWithTag(themeTag(ThemeMode.Dark)).fetchSemanticsNodes().isNotEmpty() }
+            waitUntil(
+                timeoutMillis = 10_000,
+            ) { onAllNodesWithTag(themeTag(ThemeMode.Dark)).fetchSemanticsNodes().isNotEmpty() }
             assertEquals(HaulColorScheme.Light.background, pageGround())
 
             systemDark = true

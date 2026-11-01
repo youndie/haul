@@ -18,7 +18,11 @@ class HardCodedColourTest {
                 .flatMap { root -> File(root).walk().filter { it.extension == "kt" }.toList() }
                 .flatMap { file -> colours(file.invariantSeparatorsPath, file.readText()) }
         val kept = found.filterNot { finding -> ALLOWED.any { it.keeps(finding) } }
-        assertEquals(emptyList(), kept.map { it.toString() }, "a colour outside the theme: make it a role of both schemes")
+        assertEquals(
+            emptyList(),
+            kept.map { it.toString() },
+            "a colour outside the theme: make it a role of both schemes",
+        )
         val stale = ALLOWED.filter { allowed -> found.none { allowed.keeps(it) } }
         assertEquals(emptyList(), stale, "an allow-list entry that keeps nothing any more: take it out")
     }
@@ -96,7 +100,11 @@ class HardCodedColourTest {
 
                 source[i] == '"' -> {
                     var j = i + 1
-                    while (j < source.length && source[j] != '"' && source[j] != '\n') j += if (source[j] == '\\') 2 else 1
+                    while (j < source.length && source[j] != '"' &&
+                        source[j] != '\n'
+                    ) {
+                        j += if (source[j] == '\\') 2 else 1
+                    }
                     val end = minOf(j + 1, source.length)
                     out.append(source, i, end)
                     i = end
