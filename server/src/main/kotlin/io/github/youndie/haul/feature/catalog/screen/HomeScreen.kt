@@ -11,7 +11,6 @@ import io.github.youndie.haul.feature.catalog.domain.PriceList
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.SaleFigures
 import io.github.youndie.haul.feature.catalog.domain.liveSale
-import io.github.youndie.haul.feature.catalog.domain.onSale
 import io.github.youndie.haul.feature.membership.screen.PlusOffer
 import io.github.youndie.haul.feature.recommendations.screen.PickedSection
 import io.github.youndie.haul.shell.Frame
@@ -207,14 +206,14 @@ internal suspend fun popular(
         .map { card(it, calendar, photos, viewer, inPlace = inPlace) }
 
 /**
- * The sale's figures for a viewer at [prices] (B-172): [SaleFigures] of what the deals page lists as on sale
- * ([onSale]) — one read of the catalogue, as the deals page makes, so the hero and that page cannot count apart.
+ * The sale's figures for a viewer at [prices] (B-172): [SaleFigures] of every product's prices, by the rule the deals
+ * page lists what is on sale by ([onSale]), so the hero and that page cannot count apart.
  */
 internal suspend fun saleFigures(
     catalog: CatalogRepository,
     categories: List<Category>,
     prices: PriceList,
-): SaleFigures = SaleFigures.of(onSale(catalog.listedIn(categories.map { it.slug }.toSet(), prices)), categories)
+): SaleFigures = SaleFigures.of(catalog.priced(prices), categories)
 
 /**
  * The popular row's header, «Popular on Haul», on home and in the empty cart alike (B-87): the title names what the

@@ -168,9 +168,26 @@ internal data class Listed(
     val skus: List<Sku>,
 ) {
     /** The SKU a card shows: the cheapest in stock, or the cheapest at all when none is. */
-    val shown: Sku = skus.filter { it.stock > 0 }.minByOrNull { it.priceCents } ?: skus.minBy { it.priceCents }
+    val shown: Sku = shownOf(skus)
     val inStock: Boolean get() = shown.stock > 0
     val colours: Set<String> get() = skus.mapNotNull { it.options["colour"] }.toSet()
+}
+
+/** The SKU of [skus] a card shows ([Listed.shown]): the cheapest in stock, or the cheapest at all when none is. */
+internal fun shownOf(skus: List<Sku>): Sku =
+    skus.filter { it.stock > 0 }.minByOrNull { it.priceCents } ?: skus.minBy { it.priceCents }
+
+/**
+ * A product's category and its SKUs' prices, without the rest of the product (B-172): what the sale's figures
+ * ([SaleFigures]) read for the whole catalogue on every home page, where the products themselves are not drawn.
+ * Its SKUs carry no options. [shown] is the SKU a card of the product shows, as [Listed.shown] is.
+ */
+internal data class PricedProduct(
+    val productId: String,
+    val categorySlug: String,
+    val skus: List<Sku>,
+) {
+    val shown: Sku get() = shownOf(skus)
 }
 
 /**
@@ -211,4 +228,7 @@ internal interface CatalogRepository {
 
     /** The deals live on the store's clock, by id; an ended or a future deal is not among them. */
     suspend fun deals(): List<Deal>
+
+    /** Every product of the catalogue with its SKUs' prices, the product itself left out (B-172). */
+    suspend fun priced(prices: PriceList): List<PricedProduct>
 }

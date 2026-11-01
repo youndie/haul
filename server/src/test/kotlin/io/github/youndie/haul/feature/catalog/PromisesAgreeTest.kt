@@ -325,9 +325,8 @@ class PromisesAgreeTest {
                     element.forEach { walk(it, component) }
                 }
 
-                else -> {
-                    Unit
-                }
+                // A number, a boolean or a null draws no words.
+                is JsonPrimitive -> {}
             }
         }
         val json = Json.parseToJsonElement(haulWireJson.encodeKompotComponent(this))
