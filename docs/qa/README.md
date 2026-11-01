@@ -16,7 +16,7 @@ of the design canvas is never an expected result — the canvas is a historical 
 | [01-header-and-navigation.md](01-header-and-navigation.md) | `TC-HDR` | the header at 1440, 1024 and on a phone, its menus, the footer, back and forward |
 | [02-home.md](02-home.md) | `TC-HOME` | the hero, banners, deals of the day and their countdown, the popular row, «Picked for you», the Plus block |
 | [03-catalog-and-filters.md](03-catalog-and-filters.md) | `TC-CAT` | the catalog's root, a category's one address, kinds and subcategories, facets, the price range, chips, «Clear all», the sort, pages and «Show N more», the filter sheet, the deals page, a card's «+» |
-| [04-search.md](04-search.md) | `TC-SRCH` | the suggest panel, the scope picker, relevance, a query too short, no results, recent searches |
+| [04-search.md](04-search.md) | `TC-SRCH` | the suggest panel, the scope picker, relevance, finding a product by what it is, a query too short, no results, recent searches |
 | [05-product-and-reviews.md](05-product-and-reviews.md) | `TC-PDP` | variants and tabs, the links, share, the buy box, prices, reviews and questions, the dialogs, «Helpful» |
 | [06-cart-and-promo.md](06-cart-and-promo.md) | `TC-CART` | steppers and limits, the selection, «Save for later», promo codes, the summary, changed lines, the empty cart |
 | [07-sign-in.md](07-sign-in.md) | `TC-SIGN` | the popup, a blocked popup, `/sign-in`, `next`, the prompt, sign-out, a lapsed sign-in |
