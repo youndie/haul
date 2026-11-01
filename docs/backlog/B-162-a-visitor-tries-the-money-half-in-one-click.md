@@ -1,7 +1,7 @@
 ---
 id: B-162
 title: "feat: a visitor tries checkout, the live order and a return as a demo shopper, in one click"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-15-showcase
