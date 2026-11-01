@@ -50,7 +50,7 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-163](docs/backlog/B-163-under-the-hood-shows-the-tree.md) `[ ]` | feat: «Under the hood» shows the screen's kompot tree, what it cost and what updated | P1 | M | B-160 |
+| [B-163](docs/backlog/B-163-under-the-hood-shows-the-tree.md) `[~]` | feat: «Under the hood» shows the screen's kompot tree, what it cost and what updated | P1 | M | B-160 |
 | [B-164](docs/backlog/B-164-a-public-feed-of-live-orders.md) `[ ]` | feat: a public feed of live orders shows the saga's steps and its compensations | P1 | M | - |
 | [B-167](docs/backlog/B-167-keyboard-focus-is-visible.md) `[ ]` | fix: the control the keyboard is on is visibly marked | P2 | S/M | - |
 | [B-168](docs/backlog/B-168-arrival-is-quick-and-plays-once.md) `[ ]` | fix: the arrival is quick above the fold, does not replay on Back, and hover is for a mouse | P2 | S | - |

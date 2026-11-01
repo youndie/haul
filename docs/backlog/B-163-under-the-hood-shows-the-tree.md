@@ -1,7 +1,7 @@
 ---
 id: B-163
 title: "feat: «Under the hood» shows the screen's kompot tree, what it cost and what updated"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-15-showcase
