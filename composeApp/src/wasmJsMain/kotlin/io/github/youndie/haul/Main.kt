@@ -15,6 +15,7 @@ import io.github.youndie.haul.feature.identity.IdentityApi
 import io.github.youndie.haul.feature.identity.OidcSignInFlow
 import io.github.youndie.haul.feature.identity.PopupSignInFlow
 import io.github.youndie.haul.feature.identity.SIGN_IN_WINDOW
+import io.github.youndie.haul.shell.BrowserDemoNoteMemory
 import io.github.youndie.haul.shell.STATIC_FRAME_ID
 import io.github.youndie.haul.shell.WindowHistory
 import io.github.youndie.haul.shell.clipboardLinks
@@ -75,6 +76,8 @@ public fun main() {
     val realtime = ktorRealtime(http, origin, identity::send)
     // A browser that asks for reduced motion gets a still page (B-158).
     val motion = Motion.preferring(window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+    // The demo strip closed stays closed for the tab's session (B-160).
+    val demoNote = BrowserDemoNoteMemory()
     var frame = document.getElementById(STATIC_FRAME_ID)
     MainScope().launch {
         val fonts = loadHaulFonts()
@@ -99,6 +102,7 @@ public fun main() {
                     links = clipboardLinks,
                     fonts = fonts,
                     motion = motion,
+                    demoNote = demoNote,
                 )
             }
         }

@@ -65,6 +65,12 @@ public enum class StorefrontPage {
      * and draws the page itself — no tree — for a reload, a link or back onto it (B-66).
      */
     SignIn,
+
+    /**
+     * `/about`, «About this demo» (B-160): what the stand is, what it is built with, what is real and what is not —
+     * a server tree in the frame, reached from the demo strip and by its address.
+     */
+    About,
     ;
 
     public companion object {
@@ -113,6 +119,10 @@ public enum class StorefrontPage {
 
                 "sign-in" -> {
                     SignIn.takeIf { rest == 0 }
+                }
+
+                "about" -> {
+                    About.takeIf { rest == 0 }
                 }
 
                 else -> {

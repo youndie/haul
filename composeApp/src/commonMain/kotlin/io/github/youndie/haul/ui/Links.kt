@@ -356,6 +356,12 @@ public fun interface LinkCopier {
     /** Opens the link to [path] in a tab of its own, as a browser's «Open in new tab» does; nowhere to open, nothing. */
     public fun openApart(path: String) {}
 
+    /**
+     * Opens [url] — a whole address off the storefront, an `open_url`'s: the repository (B-160) — in a tab of its own,
+     * so the store stays where it was; nowhere to open, nothing.
+     */
+    public fun openUrl(url: String) {}
+
     /** Puts [text] — words selected on the page (B-154) — on the clipboard as it is; `done` says whether it went. */
     public fun copyText(
         text: String,

@@ -413,6 +413,25 @@ whatever their style, so the ones with no page are left out rather than drawn as
   a picker that runs the search as soon as a category is chosen (it would leave the page while the shopper
   may not have typed yet).
 
+**Decided in B-160, the stand says it is a demo — in a strip of its own and an About page** (owner, 2026-11-01).
+Four reviews of the stand found nothing on it said it was a demo or what it was built with.
+
+- **The strip is not part of the header tree.** In `HaulHeader` it would have moved nearly every golden and every
+  client body, and taken the canvas references past their tolerance. The server answers it alone, `GET /ui/demo`
+  (`DemoNote`: the words, «About this demo» to `/about`, «Source on GitHub» to the repository); the storefront's root
+  (`App` → `DemoStripped`, `shell/DemoStrip.kt`) asks for it a frame after the first page has drawn, so the first
+  load waits for nothing more, and draws it at the top of every page's scroll, the pages the shell draws itself
+  included. A close hides it for the session (`sessionStorage`; memory on the desktop) and it is not asked for again.
+  `Storefront` drawn on its own — the shell's tests — and every golden have no strip.
+- **A link off the store is kompot's `open_url`**, already in the wire's standard set: the shell opens it in a tab of
+  its own (`LinkCopier.openUrl`), and the right button offers its whole address.
+- **The About page, `/about`, is a server tree in the frame** (`GET /ui/about`: the header, `AboutBody`, the footer):
+  what the stack is, what is real (the saga and its compensations, the simulators, the observability) and what is
+  not (no money moves, no parcel ships, the products, reviews and sellers are invented), and the repository and its
+  README. It is a `StorefrontPage`, so a reload of it is the page (B-36).
+- **The footer is left as it is.** A word there would move every footer golden; the strip leads to the About page
+  from every page. Rejected: a banner over the hero, a modal on arrival.
+
 **Decided in B-124, the empty field is recall.** A customer pressing the empty search field — or emptying it while
 in it — is offered their recent searches at once: the last ten, newest first, «Clear», each row in the picker's
 scope; a guest's empty field asks nothing. Until then the press drew a caret, and the recent list showed only once

@@ -10,7 +10,8 @@ import io.github.youndie.haul.ui.LinkCopier
  * link goes through a selected text area and `document.execCommand('copy')`, which older and insecure pages
  * still allow (B-104). A browser that refuses both says so through `done`, and the button offers the link
  * ([address]) to copy by hand. The same two ways copy the words selected on a page (B-154); a field's «Paste» reads
- * with `navigator.clipboard.readText`, which the browser may ask the shopper to allow (B-155).
+ * with `navigator.clipboard.readText`, which the browser may ask the shopper to allow (B-155). A link off the store —
+ * the repository's (B-160) — opens in a tab of its own, `noopener`, as «Open in new tab» does.
  */
 internal val clipboardLinks: LinkCopier =
     object : LinkCopier {
@@ -22,6 +23,8 @@ internal val clipboardLinks: LinkCopier =
         override fun address(path: String): String = origin() + path
 
         override fun openApart(path: String) = openTab(origin() + path)
+
+        override fun openUrl(url: String) = openTab(url)
 
         override fun copyText(
             text: String,
