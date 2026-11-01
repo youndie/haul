@@ -72,11 +72,17 @@ public fun liveOrderToggleTag(id: String): String = "live-order-toggle-$id"
 /** The tag on the trail of order [id], drawn while its row is open. */
 public fun liveOrderTrailTag(id: String): String = "live-order-trail-$id"
 
-/** The page's body (`LiveOrdersBody` on the wire): the head, then the rows, newest first, then the note. */
+/**
+ * The page's body (`LiveOrdersBody` on the wire): the head, then the rows, newest first, then the note. The rows
+ * [open] at first are drawn open — a screenshot's; a visitor's page opens none until pressed.
+ */
 @Composable
-public fun LiveOrdersBodyView(body: LiveOrdersBody) {
+public fun LiveOrdersBodyView(
+    body: LiveOrdersBody,
+    open: Set<String> = emptySet(),
+) {
     val compact = LocalHaulCompact.current
-    var opened by remember { mutableStateOf(emptySet<String>()) }
+    var opened by remember { mutableStateOf(open) }
     Column(
         Modifier
             .testTag(LIVE_ORDERS_TAG)
@@ -125,9 +131,9 @@ public fun LiveOrdersBodyView(body: LiveOrdersBody) {
         ) {
             body.empty?.let { Empty(it) }
             body.orders.forEach { order ->
-                val open = order.id in opened
-                Order(order, open, if (open) body.close else body.open) {
-                    opened = if (open) opened - order.id else opened + order.id
+                val shown = order.id in opened
+                Order(order, shown, if (shown) body.close else body.open) {
+                    opened = if (shown) opened - order.id else opened + order.id
                 }
             }
         }
@@ -317,7 +323,25 @@ private fun Step(step: LiveStep) {
                 textDecoration = if (step.state == LiveStepState.Undone) TextDecoration.LineThrough else null,
             ),
         )
-        val aside = if (step.state == LiveStepState.Done) step.at ?: step.word.takeIf { it != DONE } else step.word
+        // Done, its time, or what it says beyond «done» («charged $64»); the rest, what they say; a step not reached
+        // yet, nothing — it is drawn grey.
+        val aside =
+            when (step.state) {
+                LiveStepState.Done -> {
+                    listOfNotNull(
+                        step.word.takeIf { it != DONE },
+                        step.at,
+                    ).joinToString(" · ").ifEmpty { null }
+                }
+
+                LiveStepState.Pending -> {
+                    null
+                }
+
+                else -> {
+                    step.word
+                }
+            }
         aside?.let { Text(it, HaulType.text(size).copy(color = look.aside)) }
     }
 }

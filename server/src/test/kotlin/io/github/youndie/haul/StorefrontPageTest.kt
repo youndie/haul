@@ -27,6 +27,7 @@ class StorefrontPageTest {
         assertEquals(StorefrontPage.Saved, StorefrontPage.of("/account/saved"))
         assertEquals(StorefrontPage.SignIn, StorefrontPage.of("/sign-in"))
         assertEquals(StorefrontPage.About, StorefrontPage.of("/about"))
+        assertEquals(StorefrontPage.Live, StorefrontPage.of("/live"))
     }
 
     @Test
@@ -62,6 +63,8 @@ class StorefrontPageTest {
             "/sign-in/",
             "/about/",
             "/about/stack",
+            "/live/",
+            "/live/HL-48302",
         ).forEach { assertNull(StorefrontPage.of(it), "«$it»") }
     }
 }

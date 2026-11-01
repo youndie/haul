@@ -317,7 +317,7 @@ internal class LiveScreen(
                     lines += captured to
                         LiveTrailLine(
                             at.format(captured),
-                            "${shipment.seller}’s share charged as it left: ${money(cents)}",
+                            "${shipment.seller}: its share charged as it left, ${money(cents)}",
                             state = LiveStepState.Done,
                         )
                 }
@@ -439,11 +439,11 @@ internal class LiveScreen(
 
         private val MOVES =
             mapOf(
-                ShipmentStatus.PACKED to "$SELLER packed its part",
-                ShipmentStatus.IN_TRANSIT to "$SELLER’s parcel left for the road",
-                ShipmentStatus.READY_FOR_PICKUP to "$SELLER’s parcel is ready to collect",
-                ShipmentStatus.DELIVERED to "$SELLER’s parcel delivered",
-                ShipmentStatus.PICKED_UP to "$SELLER’s parcel collected",
+                ShipmentStatus.PACKED to "$SELLER: packed",
+                ShipmentStatus.IN_TRANSIT to "$SELLER: on its way",
+                ShipmentStatus.READY_FOR_PICKUP to "$SELLER: ready to collect",
+                ShipmentStatus.DELIVERED to "$SELLER: delivered",
+                ShipmentStatus.PICKED_UP to "$SELLER: collected",
             )
 
         private val SHIPMENT_LABELS =
