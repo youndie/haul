@@ -62,6 +62,9 @@ kotlin {
             implementation(compose.desktop.currentOs)
             // The desktop app's requests — the trees, the commands, the photos, the stream — over Ktor's own engine.
             implementation(libs.ktor.client.cio)
+            // The desktop's sign-in (B-178): the same library's JVM flow — the system's browser, the code caught on a
+            // loopback port — against the same realm and client as the browser's.
+            implementation(libs.oidc.appsupport)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
@@ -72,6 +75,8 @@ kotlin {
             implementation(wip.compose.ui.test)
             implementation(project.dependencies.platform("io.ktor:ktor-bom:${wip.versions.ktor.get()}"))
             implementation(libs.ktor.client.mock)
+            // The desktop's sign-in against the provider's own image (B-178), as the server's suite runs it.
+            implementation(libs.testcontainers.core)
         }
     }
 }
@@ -121,10 +126,11 @@ compose.desktop {
             // Fixed, and at least 1: macOS refuses an app version whose first number is 0, and nothing here is
             // released, so no installed copy has to be upgraded from it.
             packageVersion = "1.0.0"
-            // jlink keeps only what is named: these four are what `suggestRuntimeModules` (jdeps over the app's
-            // jars) names beside Compose's own — `java.prefs` is where the guest is kept. A module missing here fails
-            // only in the installed app, never in `run`, which runs on the whole JDK.
-            modules("java.instrument", "java.management", "java.prefs", "jdk.unsupported")
+            // jlink keeps only what is named: these are what `suggestRuntimeModules` (jdeps over the app's jars) names
+            // beside Compose's own — `java.prefs` is where the guest and a sign-in are kept, `jdk.httpserver` the
+            // sign-in's loopback listener (B-178). A module missing here fails only in the installed app, never in
+            // `run`, which runs on the whole JDK.
+            modules("java.instrument", "java.management", "java.prefs", "jdk.httpserver", "jdk.unsupported")
             linux {
                 // `.deb` refuses to build without one.
                 debMaintainer = "youndie@users.noreply.github.com"
@@ -166,5 +172,10 @@ tasks.named<Test>("desktopTest") {
     inputs
         .dir("../server/src/main/kotlin")
         .withPropertyName("serverStrings")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    // DesktopSignInTest signs in against the provider release and the return address the chart deploys (B-178).
+    inputs
+        .file("../charts/haul/values.yaml")
+        .withPropertyName("chartValues")
         .withPathSensitivity(PathSensitivity.RELATIVE)
 }

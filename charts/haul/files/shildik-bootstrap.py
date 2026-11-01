@@ -5,8 +5,10 @@ management API — the one way in: the deploy account cannot exec into a pod, an
 is one binary with no shell. Every step converges rather than creates, so a second run changes nothing:
 
 - the realm, closed to strangers (only the password method exists, and its people are made here);
-- the storefront's public client with exactly one return page, re-created when it differs (a public
-  client has no secret to lose, and the API cannot edit its return pages in place);
+- the storefront's public client with exactly the return addresses the values name — the browser's page
+  and the desktop app's loopback address (B-178) — re-created when its set differs (a public client has
+  no secret to lose, and the API cannot edit its return addresses in place), so a changed set is one
+  delete and one create at the next upgrade, and every upgrade after it finds the client as wanted;
 - the sample customers, by the ids the seed knows them by, with the password the deploy passes —
   or none of them when it passes none;
 - and last, discovery on the provider's public port names the issuer the server is configured with:
@@ -27,7 +29,7 @@ PUBLIC = os.environ["SHILDIK_PUBLIC"].rstrip("/")
 ISSUER = os.environ["SHILDIK_ISSUER"].rstrip("/")
 REALM = os.environ["SHILDIK_REALM"]
 CLIENT = os.environ["SHILDIK_CLIENT_ID"]
-REDIRECT = os.environ["SHILDIK_REDIRECT_URI"]
+REDIRECTS = json.loads(os.environ["SHILDIK_REDIRECT_URIS"])
 TOKEN = os.environ["SHILDIK_BOOTSTRAP_TOKEN"]
 PASSWORD = os.environ.get("DEMO_PASSWORD", "")
 PEOPLE = json.loads(os.environ.get("DEMO_PEOPLE") or "[]")
@@ -88,15 +90,16 @@ def client():
     status, clients = call("GET", url)
     must(status, clients, (200,), "listing the clients")
     found = next((c for c in clients if c.get("clientId") == CLIENT), None)
-    if found is not None and found.get("public") and set(found.get("redirectUris", [])) == {REDIRECT}:
-        print(f"client {CLIENT}: as wanted, returns to {REDIRECT}")
+    wanted = ", ".join(REDIRECTS)
+    if found is not None and found.get("public") and set(found.get("redirectUris", [])) == set(REDIRECTS):
+        print(f"client {CLIENT}: as wanted, returns to {wanted}")
         return
     if found is not None:
         status, answer = call("DELETE", f"{url}/{CLIENT}")
         must(status, answer, (204,), f"deleting the client {CLIENT} that returned to {found.get('redirectUris')}")
-    status, answer = call("POST", url, {"clientId": CLIENT, "public": True, "redirectUris": [REDIRECT]})
+    status, answer = call("POST", url, {"clientId": CLIENT, "public": True, "redirectUris": REDIRECTS})
     must(status, answer, (201,), f"creating the client {CLIENT}")
-    print(f"client {CLIENT}: {'re-created' if found else 'created'}, public, returns to {REDIRECT}")
+    print(f"client {CLIENT}: {'re-created' if found else 'created'}, public, returns to {wanted}")
 
 
 def people():

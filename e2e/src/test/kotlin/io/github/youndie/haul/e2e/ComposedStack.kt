@@ -48,7 +48,7 @@ internal object ComposedStack {
     private const val POSTGRES = "postgres:18-alpine"
 
     /** The provider's image, the release the server's own suite signs in against (`ShildikHarness`). */
-    private const val SHILDIK = "ghcr.io/youndie/shildik-sqlite:0.4.1"
+    private const val SHILDIK = "ghcr.io/youndie/shildik-sqlite:0.5.0"
     private const val BOOTSTRAP = "bootstrap"
     const val REALM = "haul"
 

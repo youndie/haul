@@ -66,11 +66,28 @@ https://{{ include "haul.require" (dict "name" "shildik.hostname" "because" "the
 {{- end }}
 
 {{/*
-The storefront's one return page, registered on its public client: `signed-in.html` beside the bundle,
+The browser's return page, registered on the storefront's public client: `signed-in.html` beside the bundle,
 on the storefront's own host (the client builds `<origin>/signed-in.html`, `Main.kt`).
 */}}
 {{- define "haul.redirectUri" -}}
 https://{{ include "haul.require" (dict "name" "hostname" "because" "the storefront's public client registers https://<hostname>/signed-in.html as its return page" "value" .Values.hostname) }}/signed-in.html
+{{- end }}
+
+{{/*
+Every return address of the storefront's public client, as JSON: the browser's page and, unless
+`shildik.desktopRedirectUri` is empty, the desktop app's loopback address (B-178). The loopback one is
+refused unless it is what shildik matches on any port — `http`, `127.0.0.1` or `[::1]`, no port, a path:
+with a port it would match that port alone, and the app picks a free one at every sign-in.
+*/}}
+{{- define "haul.redirectUris" -}}
+{{- $uris := list (include "haul.redirectUri" .) }}
+{{- with .Values.shildik.desktopRedirectUri }}
+{{- if not (regexMatch "^http://(127\\.0\\.0\\.1|\\[::1\\])/[^?#]*$" .) }}
+{{- fail (printf "haul: shildik.desktopRedirectUri=%s is not a loopback address without a port (http://127.0.0.1/<path> or http://[::1]/<path>), which shildik matches on any port" .) }}
+{{- end }}
+{{- $uris = append $uris . }}
+{{- end }}
+{{- $uris | toJson }}
 {{- end }}
 
 {{/*

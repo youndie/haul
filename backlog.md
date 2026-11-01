@@ -46,14 +46,13 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (2)
+## Open (1)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-156](docs/backlog/B-156-walk-the-selection-on-a-phone.md) `[ ]` | chore: walk the selection and its toolbar on a phone | P3 | S | B-155 |
-| [B-178](docs/backlog/B-178-desktop-sign-in.md) `[ ]` | feat: the desktop client signs in through the system browser | P3 | M | - |
 
-## Closed (176)
+## Closed (177)
 
 **Skeleton**
 
@@ -275,6 +274,7 @@ A stage is a field on the item, not a directory.
 - [B-175](docs/backlog/B-175-the-cost-of-compose-web.md) `[x]` - docs: audit the pixel workarounds since B-85 and write down what Compose for Web cost
 - [B-176](docs/backlog/B-176-a-second-client-draws-the-same-trees.md) `[x]` - feat: a second client — desktop — draws the same server trees
 - [B-177](docs/backlog/B-177-order-and-account-in-whole-pixels.md) `[x]` - refactor: lay the order and account pages out in whole pixels
+- [B-178](docs/backlog/B-178-desktop-sign-in.md) `[x]` - feat: the desktop client signs in through the system browser
 
 <!-- END INDEX -->
 

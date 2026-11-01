@@ -208,8 +208,8 @@ spec:
               value: {{ .Values.shildik.realm | quote }}
             - name: SHILDIK_CLIENT_ID
               value: {{ .Values.shildik.clientId | quote }}
-            - name: SHILDIK_REDIRECT_URI
-              value: {{ include "haul.redirectUri" . | quote }}
+            - name: SHILDIK_REDIRECT_URIS
+              value: {{ include "haul.redirectUris" . | quote }}
             - name: DEMO_PEOPLE
               value: {{ .Values.shildik.demoPeople | toJson | quote }}
             - name: SHILDIK_BOOTSTRAP_TOKEN
