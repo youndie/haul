@@ -142,7 +142,7 @@ class KeptHeaderTest {
             }
         val cartCommands = CartCommands { checkNotNull(cartAnswer) { "nothing answers ${it.url}" } }
         setContent {
-            HaulTheme(FixtureFonts.fonts) {
+            HaulTheme(FixtureFonts.fonts, compact = false) {
                 Storefront(transport, history, signIn = {}, cartCommands = cartCommands)
             }
         }
@@ -181,7 +181,7 @@ class KeptHeaderTest {
         fun signIn() = hasText("Sign in") and hasClickAction()
 
         /** The cart button's count. */
-        fun count(n: Int) = hasText("$n") and hasAnyAncestor(hasTestTag(CART_BUTTON_TAG))
+        fun count(n: Int) = hasTestTag(CART_BUTTON_TAG) and hasText("$n")
 
         fun pageAt(address: String) = "The page at $address"
 

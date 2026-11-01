@@ -334,15 +334,8 @@ public fun Storefront(
     val signedIn = customer
     val shellHeader = headers.of(signedIn)
     // Every header a tree draws, an `update` of it included, as the one kept over the next page's placeholder (B-170).
-    val headerDrawn =
-        remember(headers, session) {
-            { header: HaulHeader ->
-                headers.drawn(
-                    header,
-                    session?.signedIn == true,
-                )
-            }
-        }
+    val headerDrawn: (HaulHeader) -> Unit =
+        remember(headers, session) { { headers.drawn(it, session?.signedIn == true) } }
     var signedOut by remember { mutableIntStateOf(0) }
     val home = remember(navigator) { { navigator.open("/") } }
     // The sign-in page a blocked popup led to: it says why (B-66).
