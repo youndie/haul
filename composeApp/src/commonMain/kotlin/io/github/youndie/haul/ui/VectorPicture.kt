@@ -12,20 +12,25 @@ import coil3.fetch.SourceFetchResult
 import coil3.request.Options
 import org.jetbrains.skia.Canvas
 import org.jetbrains.skia.Data
+import org.jetbrains.skia.Image
 import org.jetbrains.skia.Picture
 import org.jetbrains.skia.PictureRecorder
 import org.jetbrains.skia.Rect
+import org.jetbrains.skia.Surface
 import org.jetbrains.skia.svg.SVGDOM
 import org.jetbrains.skia.svg.SVGLengthUnit
+import kotlin.math.roundToInt
 
 // The seed's pictures drawn as vectors (B-181). Until B-181 Coil's SVG decoder rasterised each picture once, at the
 // size of its box rounded up to 64 px (B-149), and the bitmap was what the page drew: scaled down to the box with a
 // bilinear filter, scaled up 6 % under a hovered card's lean and 4 % in a photo's arrival, and kept at the larger size
 // after a zoom out — never at one pixel per pixel, so never quite sharp. Now an SVG is parsed once by Skia's SVG
-// renderer and recorded as a Skia picture: its drawing commands, not its pixels. The page replays the picture at draw
-// time, through whatever the canvas's transform is — the page's density, a card's lean, a zoom — so its edges are
-// rasterised where they land, at every size. Replaying a recorded picture skips the SVG tree's walk, which a frame of
-// a scrolled grid would otherwise pay per tile («Measured in B-181»).
+// renderer and recorded as a Skia picture: its drawing commands, not its pixels. At draw time the picture is
+// rasterised at exactly the device pixels it covers — read off the canvas's transform: the page's density, a zoom, a
+// card's lean drawn in the draw phase — and that raster is kept and drawn one pixel per pixel while the size holds.
+// Replaying the vectors on every frame instead was sharp too, but a scrolled grid of them dropped half its frames at
+// 2× in software GL; the kept raster scrolls as the bitmaps did («Measured in B-181»). A transform that turns the
+// picture (a banner's tilt) draws the vectors themselves.
 
 /** An SVG, parsed once and recorded: drawn at any size by [VectorPicturePainter], sharp at every one. */
 public class VectorPicture internal constructor(
@@ -34,9 +39,52 @@ public class VectorPicture internal constructor(
     public val width: Float,
     public val height: Float,
 ) {
-    /** Draws the picture into [canvas] at its own size; the canvas's transform sizes and places it. */
+    /** The rasters kept, newest last: a few sizes, as one picture is drawn in a card, a line and a dialog at once. */
+    private val rasters = ArrayList<Pair<Long, Image>>(KEPT_RASTERS)
+
+    /**
+     * Draws the picture into [canvas] at its own size; the canvas's transform sizes and places it. Scaled and moved
+     * only, it is drawn as a raster of the device pixels it covers, placed on whole pixels; turned or skewed, as
+     * vectors.
+     */
     internal fun draw(canvas: Canvas) {
-        canvas.drawPicture(picture)
+        val m = canvas.localToDeviceAsMatrix33.mat
+        val turned = m[1] != 0f || m[3] != 0f || m[6] != 0f || m[7] != 0f || m[0] <= 0f || m[4] <= 0f
+        val w = (width * m[0]).roundToInt()
+        val h = (height * m[4]).roundToInt()
+        if (turned || w <= 0 || h <= 0 || w > MAX_RASTER || h > MAX_RASTER) {
+            canvas.drawPicture(picture)
+            return
+        }
+        val raster = rasterAt(w, h)
+        canvas.save()
+        canvas.resetMatrix()
+        canvas.drawImage(raster, m[2].roundToInt().toFloat(), m[5].roundToInt().toFloat())
+        canvas.restore()
+    }
+
+    private fun rasterAt(
+        w: Int,
+        h: Int,
+    ): Image {
+        val key = w.toLong() shl Int.SIZE_BITS or h.toLong()
+        rasters.firstOrNull { it.first == key }?.let { return it.second }
+        val surface = Surface.makeRasterN32Premul(w, h)
+        surface.canvas.scale(w / width, h / height)
+        surface.canvas.drawPicture(picture)
+        val raster = surface.makeImageSnapshot()
+        surface.close()
+        // A raster dropped here may still be in a frame recorded before: the recording holds its own reference.
+        if (rasters.size == KEPT_RASTERS) rasters.removeAt(0).second.close()
+        rasters += key to raster
+        return raster
+    }
+
+    private companion object {
+        const val KEPT_RASTERS = 3
+
+        /** A side past which a picture is drawn as vectors rather than kept as a raster: no page draws one so large. */
+        const val MAX_RASTER = 4096
     }
 }
 
@@ -59,7 +107,7 @@ public fun vectorPicture(bytes: ByteArray): VectorPicture? {
     return VectorPicture(recorder.finishRecordingAsPicture(), width, height)
 }
 
-/** Paints a [VectorPicture] into the painter's box, stretched to it: the picture replayed, never a bitmap of it. */
+/** Paints a [VectorPicture] into the painter's box, stretched to it, at the device pixels the box covers. */
 public class VectorPicturePainter(
     private val picture: VectorPicture,
 ) : Painter() {

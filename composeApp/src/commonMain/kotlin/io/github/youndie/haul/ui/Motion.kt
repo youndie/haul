@@ -26,20 +26,26 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.GraphicsLayerScope
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.addOutline
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
@@ -383,6 +389,45 @@ internal fun Modifier.onHover(
     hover: Hover,
     block: GraphicsLayerScope.(Float) -> Unit,
 ): Modifier = if (hover.source == null) this else graphicsLayer { block(hover.progress) }
+
+/**
+ * Drawn grown by [by] — and turned by [degrees] — about [pivot] at [hover]'s progress; still, as it is. Unlike
+ * [onHover]'s layer, which scales the pixels it recorded, this draws what is inside again at its grown size, so a
+ * picture under it is rasterised at the pixels it then covers and stays sharp while the pointer rests on it (B-181).
+ * Nothing inside may be a layer of its own for that, a [clip] included: clip with [clipDrawn].
+ */
+internal fun Modifier.growsOnHover(
+    hover: Hover,
+    by: Float,
+    pivot: TransformOrigin = TransformOrigin.Center,
+    degrees: Float = 0f,
+): Modifier =
+    if (hover.source == null) {
+        this
+    } else {
+        drawWithContent {
+            val at = hover.progress
+            if (at == 0f) {
+                drawContent()
+            } else {
+                val origin = Offset(size.width * pivot.pivotFractionX, size.height * pivot.pivotFractionY)
+                withTransform({
+                    if (degrees != 0f) rotate(degrees * at, origin)
+                    scale(1f + by * at, 1f + by * at, origin)
+                }) { this@drawWithContent.drawContent() }
+            }
+        }
+    }
+
+/**
+ * Clipped to [shape] as it is drawn rather than as a layer (B-181): what is inside is drawn with the transform it is
+ * drawn under — [growsOnHover]'s — instead of being recorded at rest and scaled.
+ */
+internal fun Modifier.clipDrawn(shape: Shape): Modifier =
+    drawWithCache {
+        val outline = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@drawWithCache)) }
+        onDrawWithContent { clipPath(outline) { this@onDrawWithContent.drawContent() } }
+    }
 
 /** Over its background and under its content, [tint] lightly over [shape] as [hover] comes in. */
 internal fun Modifier.glowsOnHover(

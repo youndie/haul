@@ -20,6 +20,11 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
@@ -275,11 +280,18 @@ private class CoilPhotoLoader(
             modifier =
                 Modifier
                     .matchParentSize()
-                    .graphicsLayer {
+                    // Drawn faded and nearer in the draw phase, not as a layer: a layer would keep the picture's pixels
+                    // at rest and scale them, and the arrived picture would sit in that layer for good (B-181).
+                    .drawWithContent {
                         val at = shown.value
-                        alpha = at
-                        scaleX = 1f + PHOTO_SETTLE * (1f - at)
-                        scaleY = 1f + PHOTO_SETTLE * (1f - at)
+                        if (at >= 1f) {
+                            drawContent()
+                        } else {
+                            val fade = Paint().apply { alpha = at }
+                            drawContext.canvas.saveLayer(Rect(Offset.Zero, size), fade)
+                            scale(1f + PHOTO_SETTLE * (1f - at)) { this@drawWithContent.drawContent() }
+                            drawContext.canvas.restore()
+                        }
                     }.then(if (arrived) Modifier.testTag(PHOTO_TAG) else Modifier),
             contentScale = ContentScale.Crop,
         )

@@ -238,10 +238,7 @@ private fun PhotoTile(
         // while there is none; the tile says nothing, a caption only described the missing picture.
         PhotoOrPlaceholder(
             card.image,
-            Modifier.matchParentSize().onHover(hover) {
-                scaleX = 1f + PHOTO_LEAN * it
-                scaleY = 1f + PHOTO_LEAN * it
-            },
+            Modifier.matchParentSize().growsOnHover(hover, PHOTO_LEAN),
         ) {
             Box(Modifier.fillMaxSize().background(toneColor(card.tone))) { Hatching(Modifier.fillMaxSize()) }
         }
