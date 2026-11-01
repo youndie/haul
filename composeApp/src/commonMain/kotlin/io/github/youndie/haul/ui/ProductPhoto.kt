@@ -179,7 +179,10 @@ private class CoilPhotoLoader(
             }
         val painter = rememberAsyncImagePainter(request, images, contentScale = ContentScale.Crop)
         val state by painter.state.collectAsState()
-        if (lively()) {
+        // On a page come back to (B-168) a photo is drawn as it arrives, with no fade: the page arrives at rest.
+        val arrivesAtRest = LocalArrivesAtRest.current
+        val fades = remember { !arrivesAtRest }
+        if (lively() && fades) {
             Arriving(painter, state, placeholder)
             return
         }

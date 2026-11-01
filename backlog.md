@@ -46,12 +46,11 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (8)
+## Open (7)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-167](docs/backlog/B-167-keyboard-focus-is-visible.md) `[ ]` | fix: the control the keyboard is on is visibly marked | P2 | S/M | - |
-| [B-168](docs/backlog/B-168-arrival-is-quick-and-plays-once.md) `[ ]` | fix: the arrival is quick above the fold, does not replay on Back, and hover is for a mouse | P2 | S | - |
 | [B-170](docs/backlog/B-170-the-header-keeps-its-content-across-pages.md) `[ ]` | fix: the header keeps its content while the next page loads | P2 | S | - |
 | [B-173](docs/backlog/B-173-the-stack-in-numbers.md) `[ ]` | feat: «The stack in numbers» — start-up with and without the AOT cache, latency, memory, measured | P2 | M | - |
 | [B-156](docs/backlog/B-156-walk-the-selection-on-a-phone.md) `[ ]` | chore: walk the selection and its toolbar on a phone | P3 | S | B-155 |
@@ -59,7 +58,7 @@ A stage is a field on the item, not a directory.
 | [B-175](docs/backlog/B-175-the-cost-of-compose-web.md) `[ ]` | docs: audit the pixel workarounds since B-85 and write down what Compose for Web cost | P3 | M | - |
 | [B-176](docs/backlog/B-176-a-second-client-draws-the-same-trees.md) `[ ]` | feat: a second client — desktop — draws the same server trees | P3 | L | - |
 
-## Closed (168)
+## Closed (169)
 
 **Skeleton**
 
@@ -259,6 +258,7 @@ A stage is a field on the item, not a directory.
 **Motion**
 
 - [B-158](docs/backlog/B-158-the-storefront-moves.md) `[x]` - feat: the storefront moves — reveals, hovers, presses, pops, a shimmer and rolling figures
+- [B-168](docs/backlog/B-168-arrival-is-quick-and-plays-once.md) `[x]` - fix: the arrival is quick above the fold, does not replay on Back, and hover is for a mouse
 
 **Showcase**
 
