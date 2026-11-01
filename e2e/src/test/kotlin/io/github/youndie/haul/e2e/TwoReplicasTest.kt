@@ -165,15 +165,13 @@ class TwoReplicasTest {
             assertEquals(emptySet(), statuses.keys intersect (UNFINISHED + BROKEN), "sagas left unfinished or broken")
             assertEquals(0, count("SELECT count(*) FROM orders WHERE status = 'placing'"), "an order still placing")
 
+            // One order a person: a walk that placed has exactly one, the one cut before it placed at most one.
             val everybody = people.map { it.id } + alone.id
             val orders = ordersOf(everybody)
-            assertEquals(
-                everybody.associateWith { 1 },
-                everybody.associateWith { id ->
-                    orders.count { it.second == id }
-                },
-                "orders per person",
-            )
+            val placedBy = everybody.associateWith { id -> orders.count { it.second == id } }
+            val walked = people.filter { it !in failed }.map { it.id } + alone.id
+            assertEquals(walked.associateWith { 1 }, placedBy.filterKeys { it in walked }, "orders per person")
+            assertTrue(placedBy.values.all { it <= 1 }, "a person with two orders: $placedBy")
             for ((order, _) in orders) {
                 assertEquals(
                     1,
