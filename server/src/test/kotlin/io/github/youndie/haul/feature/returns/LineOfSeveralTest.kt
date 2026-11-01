@@ -173,7 +173,10 @@ class LineOfSeveralTest {
             """{"skuId":"sku","sellerId":"seller","title":"Sonora","quantity":2,"priceCents":69800,"listCents":89800}"""
         val line = Json.decodeFromString(OrderPayload.Line.serializer(), stored)
 
-        assertEquals(OrderPayload.Line("sku", "seller", "Sonora", 2, totalCents = 69_800, listTotalCents = 89_800), line)
+        assertEquals(
+            OrderPayload.Line("sku", "seller", "Sonora", 2, totalCents = 69_800, listTotalCents = 89_800),
+            line,
+        )
         assertEquals(stored, Json.encodeToString(OrderPayload.Line.serializer(), line))
     }
 

@@ -191,7 +191,11 @@ class ShipmentLifecycleTest {
                 val collected = assertNotNull(world.track(order)).shipments.first { it.id == sonora }
                 assertEquals(PICKED_UP, collected.status)
                 assertNull(collected.pickupCode, "a collected shipment shows no code")
-                assertEquals(PickupCodes.of(sagaId, sonora), world.storedCodes(order)[sonora], "the code stays on the row")
+                assertEquals(
+                    PickupCodes.of(sagaId, sonora),
+                    world.storedCodes(order)[sonora],
+                    "the code stays on the row",
+                )
                 world.advance(120.hours)
                 assertEquals(OrderProgress.PickedUp, world.track(order)?.progress)
             }

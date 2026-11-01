@@ -248,7 +248,9 @@ class OrderRoutesTest {
                     .flatMap { it.items }
                     .mapNotNull { it.review }
             assertEquals(
-                listOf(Link("Your review", NavigateAction("/p/$SONORA_HEADPHONES?sku=$SONORA_HEADPHONES-0&tab=reviews"))),
+                listOf(
+                    Link("Your review", NavigateAction("/p/$SONORA_HEADPHONES?sku=$SONORA_HEADPHONES-0&tab=reviews")),
+                ),
                 links.filter { it.label == "Your review" },
             )
             assertEquals(

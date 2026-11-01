@@ -94,7 +94,14 @@ class SearchRoutesTest {
             assertEquals(3, panel.products.size, "sonora matches more than three products")
             // A guest has no recent searches (feature-search); sign-in arrives with B-12.
             assertTrue(panel.recent.isEmpty())
-            val sonora = catalog.products.count { it.brand == "Sonora" || it.title.contains("sonora", ignoreCase = true) }
+            val sonora =
+                catalog.products.count {
+                    it.brand == "Sonora" ||
+                        it.title.contains(
+                            "sonora",
+                            ignoreCase = true,
+                        )
+                }
             assertEquals("All $sonora results", panel.allResultsLabel)
         }
 

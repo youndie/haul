@@ -129,7 +129,10 @@ class PhotoRoutesTest {
                 url = assertNotNull(tree("/ui/p/$sonora").only<ProductDetails>().photo)
                 val lines = tree(CartPaths.SCREEN, maya).all().filterIsInstance<CartLine>()
                 val line =
-                    assertNotNull(lines.firstOrNull { it.productId == sonora }, "the cart: ${lines.map { it.productId }}")
+                    assertNotNull(
+                        lines.firstOrNull { it.productId == sonora },
+                        "the cart: ${lines.map { it.productId }}",
+                    )
                 assertEquals(url, line.image, "the cart line")
                 val items = tree(CheckoutPaths.SCREEN, maya).only<CheckoutSummary>().items
                 val item = assertNotNull(items.firstOrNull { it.action == productLink(sonora) }, "checkout: $items")

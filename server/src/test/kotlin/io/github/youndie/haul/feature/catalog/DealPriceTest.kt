@@ -220,7 +220,11 @@ class DealPriceTest {
 
             clock.at = CatalogSeed.DEALS_END
             assertTrue(dealCards().isEmpty(), "a deal of the canvas's day is drawn the day after")
-            assertEquals("$349" to "$449", productPrice(SampleCatalog.SONORA_DEAL.skuId), "the sale ended with the deal")
+            assertEquals(
+                "$349" to "$449",
+                productPrice(SampleCatalog.SONORA_DEAL.skuId),
+                "the sale ended with the deal",
+            )
         }
 
     /**

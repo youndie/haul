@@ -114,7 +114,9 @@ class ReviewFixturesTest {
     ): String? {
         val maya = Viewer(firstName = "Maya", customerId = SampleCustomers.MAYA)
         val built =
-            Json.parseToJsonElement(haulWireJson.encodeKompotComponent(screen.build(SONORA_HEADPHONES, null, tab, maya)))
+            Json.parseToJsonElement(
+                haulWireJson.encodeKompotComponent(screen.build(SONORA_HEADPHONES, null, tab, maya)),
+            )
         val drawn = Json.parseToJsonElement(File(bodies, name).readText())
         val owned =
             setOf(

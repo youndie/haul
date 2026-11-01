@@ -25,7 +25,10 @@ class SeedReviewsTest {
 
             assertEquals(emptyList(), dataSource.miscounted(), "products whose counts are not their rows")
             assertEquals(2_341 to 86, dataSource.counts(SONORA_HEADPHONES))
-            assertEquals(mapOf(5 to 1_966, 4 to 281, 3 to 47, 2 to 24, 1 to 23), dataSource.histogram(SONORA_HEADPHONES))
+            assertEquals(
+                mapOf(5 to 1_966, 4 to 281, 3 to 47, 2 to 24, 1 to 23),
+                dataSource.histogram(SONORA_HEADPHONES),
+            )
             // The seed's counts are the ones stored: what the cards and the sorts read.
             val seeded =
                 CatalogSeed.generate(CatalogSeed.CANVAS_DAY).products.associate {
@@ -67,7 +70,10 @@ class SeedReviewsTest {
             )
             assertEquals(emptyList(), dataSource.miscounted())
             assertEquals(2_342 to 86, dataSource.counts(SONORA_HEADPHONES), "the seed's 2,341 and Maya's")
-            assertEquals(mapOf(5 to 1_967, 4 to 281, 3 to 47, 2 to 24, 1 to 23), dataSource.histogram(SONORA_HEADPHONES))
+            assertEquals(
+                mapOf(5 to 1_967, 4 to 281, 3 to 47, 2 to 24, 1 to 23),
+                dataSource.histogram(SONORA_HEADPHONES),
+            )
             val seeded = CatalogSeed.generate(CatalogSeed.CANVAS_DAY).products.single { it.id == generated }
             assertEquals(seeded.reviewsCount to seeded.questionsCount, dataSource.counts(generated))
 
@@ -141,7 +147,10 @@ class SeedReviewsTest {
                 "UPDATE products SET rating = 4.8 WHERE id = '$SONORA_HEADPHONES'",
                 "UPDATE products SET rating = 1.0 WHERE id = '$generated'",
             )
-            assertEquals(mapOf(5 to 1_826, 4 to 328, 3 to 94, 2 to 47, 1 to 46), dataSource.histogram(SONORA_HEADPHONES))
+            assertEquals(
+                mapOf(5 to 1_826, 4 to 328, 3 to 94, 2 to 47, 1 to 46),
+                dataSource.histogram(SONORA_HEADPHONES),
+            )
             assertEquals(
                 listOf(SONORA_HEADPHONES, generated).sorted(),
                 dataSource.miscounted(),

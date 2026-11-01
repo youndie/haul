@@ -209,7 +209,11 @@ class LineAnswersTest {
         haulTest {
             val sonora = SampleCatalog.SONORA_HEADPHONES
             // Each page's address, and the SKU its links name: none, or the one named.
-            val pages = listOf("/ui/p/$sonora?tab=reviews" to "", "/ui/p/$sonora?sku=$sonora-1&tab=reviews" to "sku=$sonora-1&")
+            val pages =
+                listOf(
+                    "/ui/p/$sonora?tab=reviews" to "",
+                    "/ui/p/$sonora?sku=$sonora-1&tab=reviews" to "sku=$sonora-1&",
+                )
             for ((path, sku) in pages) {
                 val guest = guest()
                 val details = page(path, guest).only<ProductDetails>()

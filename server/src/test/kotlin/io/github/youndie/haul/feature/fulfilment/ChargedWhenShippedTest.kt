@@ -123,7 +123,11 @@ class ChargedWhenShippedTest {
                         FulfilmentPace.STORE,
                     )
                 assertFailsWith<IllegalStateException> { runBlocking { first.advance() } }
-                assertEquals(mapOf(sonora to PACKED, brooklyn to PACKED), world.statuses(order), "the move never landed")
+                assertEquals(
+                    mapOf(sonora to PACKED, brooklyn to PACKED),
+                    world.statuses(order),
+                    "the move never landed",
+                )
                 assertEquals(mapOf(sonora to 34_900), world.captures(order), "the capture did")
 
                 assertEquals(1, world.advance(24.hours), "the next process moves Sonora")

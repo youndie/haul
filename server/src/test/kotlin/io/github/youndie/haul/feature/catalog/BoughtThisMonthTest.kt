@@ -103,7 +103,13 @@ class BoughtThisMonthTest {
      */
     @Test
     fun `only placed orders of the product inside the last thirty days count`() {
-        order("HL-1", now.minusDays(1), OrderStatus.Placed, mallard(20), line(BELLWAVE, SampleHeadphones.BELLWAVE_STORE, 100))
+        order(
+            "HL-1",
+            now.minusDays(1),
+            OrderStatus.Placed,
+            mallard(20),
+            line(BELLWAVE, SampleHeadphones.BELLWAVE_STORE, 100),
+        )
         order("HL-2", now.minusDays(10), OrderStatus.Placed, mallard(15))
         order("HL-3", now.minusDays(29), OrderStatus.Placed, mallard(15))
         refunded("HL-3")
