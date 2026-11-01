@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
+import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
@@ -558,6 +559,11 @@ internal fun FlexPair(
  * block's own font as well (its strut), and sits the run on that font's baseline. [strut] is the
  * block's font — Archivo 16 px at the default line height for an eyebrow in a campaign or the Plus block. Only the
  * canvas asked for it; the run alone moves fourteen goldens past `viddikVerify`, the home's by up to 9 % (B-175).
+ *
+ * The strut is a space drawn zero pixels wide, and it is kept out of the page's selection: a press on blank space
+ * starts the selection at the text nearest to it and brings the point into view beside that text, and beside a text
+ * of no width Compose 1.12 reports the point at the top of the page's scroll — a press under «Every order.» scrolled
+ * the home page to its top (B-179). It holds no words to copy either.
  */
 @Composable
 internal fun InlineLine(
@@ -567,7 +573,7 @@ internal fun InlineLine(
     modifier: Modifier = Modifier,
 ) {
     Row(modifier) {
-        Text(" ", strut, Modifier.width(0.dp).alignByBaseline())
+        DisableSelection { Text(" ", strut, Modifier.width(0.dp).alignByBaseline()) }
         Text(text, style, Modifier.alignByBaseline(), softWrap = false)
     }
 }

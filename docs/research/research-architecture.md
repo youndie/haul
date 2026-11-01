@@ -2714,6 +2714,15 @@ its face reaches above its first line box, and takes the pointer from there down
 the crumbs above it — while its glyphs draw where they drew (B-157); and a control asks for the hand over its own
 words, which ask for the text cursor (B-157).
 
+A press on blank space starts a selection too — the container's own observer takes any press no text took — and
+Compose 1.12 brings the pressed point into view beside the text the selection resolved to
+(`SelectionManager.bringDraggedPositionIntoView`, behind `ComposeFoundationFlags.isSelectionAutoScrollEnabled`, the
+same call that scrolls a drag past the window's edge). Beside a text of no width the point reaches the page's scroll
+as if the text sat at the scroll's top (`NodeCoordinator.localBoundingBoxOf` answers `Rect.Zero` for an empty
+child), and the page scrolls after it to its top: a press under «Every order.» did, beside `InlineLine`'s strut, a
+space drawn zero pixels wide. The strut is left out of the selection (B-179); a text that measures zero wide on a
+selectable page would do the same again.
+
 #### Decided in B-158: the storefront moves, and rests as the canvas draws it
 
 The canvas is still, and so was the store: the owner asked for it to come alive (2026-10-31). Motion is a layer over
@@ -3239,7 +3248,7 @@ part of a larger file.
 
 | What a browser gives a page | What Compose 1.12 does on the web | What Haul built | Code |
 |---|---|---|---|
-| **Selecting words and copying them** | `SelectionContainer` selects by drag and double press; ⌘C/Ctrl+C waits for a browser `copy` event that never comes, so nothing is copied (B-154) | every page and sheet a `Selectable` with its own copy shortcut through `navigator.clipboard` (`ui/ContextMenus.kt`, `shell/ClipboardLinks.kt`); the selection's double-press counter took a control's second press, so a control reads it back first (`pressesAgain`); a text set tighter than its face took the pointer over the control above it, so it is drawn through a layer that reaches below its first line box only (`keepsReachBelowLineTop`, B-157); the pictures drawn as words left out (`DisableSelection`, two places) | about 720 lines (`ContextMenus.kt` 351, `HaulTextField.kt` 167, `ClipboardLinks.kt` 83, about 80 in `Links.kt`, 40 in `Basics.kt`); `ContextMenusTest` 273 and about 90 in `DrawnActionsTest`. Three pull requests, about 1,230 lines added (B-154, B-155, B-157) |
+| **Selecting words and copying them** | `SelectionContainer` selects by drag and double press; ⌘C/Ctrl+C waits for a browser `copy` event that never comes, so nothing is copied (B-154) | every page and sheet a `Selectable` with its own copy shortcut through `navigator.clipboard` (`ui/ContextMenus.kt`, `shell/ClipboardLinks.kt`); the selection's double-press counter took a control's second press, so a control reads it back first (`pressesAgain`); a text set tighter than its face took the pointer over the control above it, so it is drawn through a layer that reaches below its first line box only (`keepsReachBelowLineTop`, B-157); the pictures drawn as words left out (`DisableSelection`, two places), and the strut of `InlineLine`, beside which a press on blank space scrolled the page to its top (B-179) | about 720 lines (`ContextMenus.kt` 351, `HaulTextField.kt` 167, `ClipboardLinks.kt` 83, about 80 in `Links.kt`, 40 in `Basics.kt`); `ContextMenusTest` 273 and about 90 in `DrawnActionsTest`. Three pull requests, about 1,230 lines added (B-154, B-155, B-157) |
 | **The right button's menu**: Copy and Select all over words, «Open in new tab» and «Copy link» over a link, Cut/Copy/Paste in a field | the old skiko text menu: its look and entries internal, and on the web its presses do nothing (B-154) | the page reads the right button before Compose and opens the store's own menu at the pointer (`PointMenu`); a link offers its address (`offersLink`, every `follows`); the six fields are a field of the store's that keeps its own selection for the menu to read (`HaulTextField`, B-155) | in the row above |
 | **The hand over a link or a button** | `pointerHoverIcon` works, but a selectable text asks for the text cursor over itself, and a control drawn as words showed it over most of it | `handOverWords` on every control (B-157) | 7 lines, 3 call sites; not in a test — Compose keeps the pointer icon behind an internal service — walked in the browser |
 | **Keyboard focus that shows, and Tab in reading order** | a `clickable` is in the Tab order, Tab moves in composition order, Enter and Space press; nothing is drawn where the focus is | a ring as `:focus-visible` draws it, decided by the page's last input, with the document telling the page every key and press before Compose (`ui/FocusRing.kt`, `shell/BrowserKeyboardFocus.kt`, B-167); an open sheet takes the focus back when a control in it stops being one (B-144) | 261 lines, taken by `pressable`, `follows`, `toggles`, the menus and the fields; `FocusRingTest` 413, `SheetOverPageTest` 148 |
