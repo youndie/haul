@@ -18,6 +18,7 @@ import io.github.youndie.kompot.standard.OpenUrlAction
  *
  * - [note] is the demo strip the storefront draws above every page until it is closed (`GET /ui/demo`). It is a tree
  *   of its own, not a part of the header: in the header it would have moved every page's golden and every client body.
+ *   It names the «Under the hood» toggle (B-163), whose panel — the page's tree and its request — is the client's.
  * - [page] is «About this demo» (`GET /ui/about`, the page at `/about`): the frame — header, the body, the footer —
  *   around what the stack is, what is real and what is not. The footer is left as it is: a link there would move every
  *   footer's golden, and the strip already leads here on every page.
@@ -31,6 +32,9 @@ internal object AboutScreen {
     /** The repository, where «Source on GitHub» goes. */
     const val REPOSITORY = "https://github.com/youndie/haul"
 
+    /** «Live orders» (B-164): every order's saga as it runs, which the strip and the page lead to. */
+    const val LIVE_ORDERS = "/live"
+
     /** The repository's README, as GitHub shows it under the files. */
     const val README = "$REPOSITORY#readme"
 
@@ -41,9 +45,11 @@ internal object AboutScreen {
             links =
                 listOf(
                     Link("About this demo", NavigateAction(ADDRESS)),
+                    Link("Live orders", NavigateAction(LIVE_ORDERS)),
                     Link("Source on GitHub", OpenUrlAction(REPOSITORY)),
                 ),
             close = "Close the demo note",
+            hood = "Under the hood",
         )
 
     fun page(
@@ -66,6 +72,7 @@ internal object AboutScreen {
             links =
                 listOf(
                     Link("Source on GitHub", OpenUrlAction(REPOSITORY)),
+                    Link("Watch the live orders", NavigateAction(LIVE_ORDERS)),
                     Link("Read the README", OpenUrlAction(README)),
                 ),
         )

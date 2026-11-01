@@ -39,8 +39,11 @@ class AboutRoutesTest {
             assertTrue("demo" in note.text && "Kotlin" in note.text, note.text)
             val links = note.links.associate { it.label to it.action }
             assertEquals(NavigateAction("/about"), links["About this demo"])
+            assertEquals(NavigateAction("/live"), links["Live orders"], "the strip leads to the live orders (B-164)")
             assertEquals(OpenUrlAction("https://github.com/youndie/haul"), links["Source on GitHub"])
             assertEquals(StorefrontPage.About, StorefrontPage.of("/about"), "a reload of the strip's link is no page")
+            // The panel's toggle is named by the server; the panel itself is the client's (B-163).
+            assertEquals("Under the hood", note.hood)
         }
 
     @Test
@@ -80,6 +83,7 @@ class AboutRoutesTest {
             assertEquals(
                 listOf(
                     OpenUrlAction("https://github.com/youndie/haul"),
+                    NavigateAction("/live"),
                     OpenUrlAction("https://github.com/youndie/haul#readme"),
                 ),
                 about.links.map { it.action },

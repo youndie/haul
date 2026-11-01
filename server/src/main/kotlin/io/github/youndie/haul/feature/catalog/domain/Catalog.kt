@@ -136,7 +136,7 @@ internal data class Campaign(
 }
 
 /**
- * The sale home's hero announces and the empty cart's line names («up to −70% in the Autumn mega sale»):
+ * The sale home's hero announces and the empty cart's line names («up to −49% in the Autumn mega sale»):
  * the first of [campaigns] by position, while it is live for [prices] at [at] — a Plus member's from its
  * early access — else `null`, and then neither is drawn (B-59). Before, both were drawn for good: past the
  * sale's end the hero announced a sale whose prices were gone (B-58's findings).

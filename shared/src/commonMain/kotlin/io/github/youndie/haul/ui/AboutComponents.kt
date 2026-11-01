@@ -13,7 +13,10 @@ import kotlinx.serialization.Serializable
  * The demo strip: one quiet line above every page of the storefront, until the visitor closes it — [text], what the
  * store is, and [links] after it: «About this demo» (`navigate` to `/about`) and «Source on GitHub» (`open_url` to
  * the repository, which the client opens in a tab of its own). [close] is the close control's name for assistive
- * technology; closing is the client's, remembered for the session, and sends nothing.
+ * technology; closing is the client's, remembered for the session, and sends nothing. [hood] is the name of the
+ * «Under the hood» toggle (B-163), which opens the client's panel over the page — the screen's tree, the request that
+ * brought it and the updates that replace its parts; the panel is the client's and sends nothing, and a strip without
+ * the name draws no toggle.
  *
  * Not part of any page's tree: the storefront asks for it on its own (`GET /ui/demo`) once the first page has drawn,
  * and draws it above whatever page is shown. In the header it would have moved every page's golden and every
@@ -27,6 +30,7 @@ public data class DemoNote(
     val text: String,
     val links: List<Link>,
     val close: String,
+    val hood: String? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 

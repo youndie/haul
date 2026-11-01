@@ -104,7 +104,7 @@ class SaleAnnouncementsTest {
         }
 
     /**
-     * From the sale's end home draws no hero and no row at all — nothing announces «Up to −70%» whose prices
+     * From the sale's end home draws no hero and no row at all — nothing announces «Up to −49%» whose prices
      * are gone — while the rest of the page stays; a minute before, the hero is still there.
      */
     @Test

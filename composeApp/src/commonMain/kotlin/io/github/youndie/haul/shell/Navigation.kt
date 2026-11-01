@@ -41,6 +41,9 @@ public enum class PageKind {
 
     /** `/about`: «About this demo», what the stand is and is built with (B-160). */
     About,
+
+    /** `/live`: «Live orders», every order's saga as it runs (B-164). */
+    Live,
     Other,
     ;
 
@@ -74,6 +77,7 @@ public data class Address(
             StorefrontPage.Categories -> PageKind.Categories
             StorefrontPage.Deals -> PageKind.Deals
             StorefrontPage.About -> PageKind.About
+            StorefrontPage.Live -> PageKind.Live
             null -> PageKind.Other
         }
 

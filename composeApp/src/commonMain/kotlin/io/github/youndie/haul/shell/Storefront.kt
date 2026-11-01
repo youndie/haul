@@ -217,7 +217,10 @@ public fun Storefront(
         val stop = history.listen(navigator::arrived)
         onDispose { stop() }
     }
-    val registry = remember { haulRegistry() }
+    // Under the storefront's root, «Under the hood» flashes what a partial update replaces (B-163): each node is drawn
+    // in a box that knows where it is. Drawn on its own — the shell's tests — the registry is as it was.
+    val hood = LocalUnderTheHood.current
+    val registry = remember(hood) { haulRegistry().let { plain -> hood?.let(plain::flashedBy) ?: plain } }
     val now by rememberNow(clock)
     val focus = LocalFocusManager.current
     val scope = rememberCoroutineScope()
@@ -417,7 +420,10 @@ public fun Storefront(
                 val screen = address.path to signedOut
                 if (address.kind == PageKind.SignIn) {
                     // The client's own page (B-66): no tree to load, and no filter sheet over it; one per visit.
-                    SideEffect { tab.named(SIGN_IN_TITLE) }
+                    SideEffect {
+                        tab.named(SIGN_IN_TITLE)
+                        hood?.noTree(address.screen)
+                    }
                     key(visit) {
                         // It asks for nothing while it loads; its phone menu and its picker ask for the header alone
                         // when pressed (B-138).
@@ -476,7 +482,10 @@ public fun Storefront(
                                         .tree
                                 },
                                 loading = {
-                                    SideEffect { tab.placeholder() }
+                                    SideEffect {
+                                        tab.placeholder()
+                                        hood?.noTree(address.screen)
+                                    }
                                     Scrolled(
                                         scroll,
                                         drawn = false,
@@ -499,7 +508,10 @@ public fun Storefront(
                                         }
 
                                         loader.screen == null -> {
-                                            SideEffect { tab.named(STORE_TITLE) }
+                                            SideEffect {
+                                                tab.named(STORE_TITLE)
+                                                hood?.noTree(address.screen)
+                                            }
                                             AskForHeader(headers, transport, signedIn, visit, loads)
                                             Scrolled(scroll) {
                                                 if (cause.asksForSignIn && signedInFor != loads) {
@@ -708,8 +720,13 @@ private fun Shown(
     // arrival drops the overrides even when the tree is equal to the one drawn (kompot §4.4, B-64).
     var refreshed by remember { mutableIntStateOf(0) }
     LaunchedEffect(tree) { tree.header()?.let(onHeader) }
-    // The tab names the tree drawn — a refresh's too — in the frame that draws it (B-161).
-    SideEffect { tab.named(tree.tabTitle()) }
+    // The tab names the tree drawn — a refresh's too — in the frame that draws it (B-161); «Under the hood» outlines it
+    // (B-163), a reference to the tree drawn and nothing more.
+    val hood = LocalUnderTheHood.current
+    SideEffect {
+        tab.named(tree.tabTitle())
+        hood?.shown(tree, address.screen)
+    }
     val scope = rememberCoroutineScope()
     // One refresh for the screen, reading the address and the tree drawn when it runs (B-93). A new address of
     // the screen (B-62) arrives before its tree, and a refresh remembered with the address then wrote into the
@@ -757,9 +774,13 @@ private fun Shown(
                         .withUpdates(inPlace.overrides) { deeplink, history ->
                             navigator.record(deeplink, replace = history == UpdateHistory.REPLACE)
                         }
+                        // Each update told to «Under the hood» as it is written (B-163).
+                        .watchedBy(hood)
                         // Above `withUpdates`: a load's answer goes down the chain from here.
                         .withLoad(scope, inPlace.loading) { url ->
-                            transport.parts(url, onSignedOut, inPlace.unanswered) { top.handle(LoadAction(url)) }
+                            transport
+                                .parts(url, onSignedOut, inPlace.unanswered) { top.handle(LoadAction(url)) }
+                                .also { hood?.answered("GET", url, it) }
                         },
                     onPresent,
                 )
@@ -893,7 +914,7 @@ private fun Loading(address: Address) {
         PageKind.Order -> OrderLoading()
         PageKind.Categories -> CategoriesLoading()
         PageKind.Deals -> DealsLoading()
-        PageKind.SignIn, PageKind.About, PageKind.Other -> PendingHeader()
+        PageKind.SignIn, PageKind.About, PageKind.Live, PageKind.Other -> PendingHeader()
     }
 }
 
@@ -990,6 +1011,7 @@ private val PageKind.subject: String
             PageKind.Deals,
             PageKind.SignIn,
             PageKind.About,
+            PageKind.Live,
             PageKind.Other,
             -> "This page"
         }

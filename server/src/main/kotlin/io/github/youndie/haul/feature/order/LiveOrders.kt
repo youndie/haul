@@ -20,7 +20,7 @@ private val log = LoggerFactory.getLogger("io.github.youndie.haul.order.live")
 
 /**
  * The order page's live updates (B-29, research consequence 3), through kompot's realtime: the page's tree
- * names its channel ([topic]), the page listens on it (`GET /ui/updates`, [OrderPaths.UPDATES]), and every
+ * names its channel ([topic]), the page listens on it (`GET /ui/updates`), and every
  * time the simulated world or the placement saga moves the order ([OrderMoves]) the order's
  * [io.github.youndie.haul.ui.OrderBody] is drawn again and handed to whoever listens as kompot's
  * `UpdateComponentMessage` — the same body the page would get by loading again, by the same [OrderScreen].
