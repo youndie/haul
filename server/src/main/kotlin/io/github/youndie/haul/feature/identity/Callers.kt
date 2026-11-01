@@ -3,6 +3,7 @@ package io.github.youndie.haul.feature.identity
 import io.github.youndie.haul.StoreClock
 import io.github.youndie.haul.feature.identity.domain.Customer
 import io.github.youndie.haul.feature.identity.domain.Customers
+import io.github.youndie.haul.feature.identity.domain.DemoShoppers
 import io.github.youndie.haul.feature.identity.domain.Guests
 import io.github.youndie.haul.feature.identity.domain.IdentityError
 import io.github.youndie.shildik.oidc.OidcPrincipal
@@ -50,6 +51,12 @@ internal class Callers(
     private suspend fun customer(principal: OidcPrincipal): Customer {
         // A person's token always has a subject; one without is a service's, and is not a shopper.
         val sub = principal.subject?.takeIf { it.isNotBlank() } ?: throw IdentityError.Unauthenticated()
+        // A demo shopper is made by the demo's route, never by a first request (B-162): one with no customer behind
+        // the token was swept, and is refused rather than made again, empty.
+        if (sub.startsWith(DemoShoppers.DEMO_PREFIX)) {
+            return customers.customer(sub)
+                ?: throw IdentityError.Unauthenticated()
+        }
         return customers.signedIn(sub, name(principal, sub), clock.now().toOffsetDateTime())
     }
 

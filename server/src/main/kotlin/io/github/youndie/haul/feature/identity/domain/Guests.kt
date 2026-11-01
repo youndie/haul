@@ -27,6 +27,15 @@ internal sealed class IdentityError(
 
     /** Sign-in asked of a server that has none configured: `503 unavailable`, the deployment's condition. */
     class SignInOff : IdentityError(ErrorCode.Unavailable, "Sign-in is not configured on this server")
+
+    /** A demo shopper asked of a server whose demo is off (B-162): `503 unavailable`, as sign-in off is. */
+    class DemoOff : IdentityError(ErrorCode.Unavailable, "The demo shopper is not available on this store")
+
+    /** As many demo shoppers were made today as the store makes in a day (B-162): `503 unavailable` until some go. */
+    class DemoFull : IdentityError(ErrorCode.Unavailable, "Every demo shopper for today is taken — try again later")
+
+    /** The provider did not make or sign in the demo shopper (B-162): `503 unavailable`, nothing kept here. */
+    class DemoNotMade : IdentityError(ErrorCode.Unavailable, "The demo shopper could not be made just now — try again")
 }
 
 /** The guests the server issued (research D5). A guest is an id and the cart it owns. */

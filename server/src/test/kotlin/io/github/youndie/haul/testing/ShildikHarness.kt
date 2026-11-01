@@ -3,6 +3,7 @@ package io.github.youndie.haul.testing
 import com.github.dockerjava.api.model.ExposedPort
 import com.github.dockerjava.api.model.PortBinding
 import com.github.dockerjava.api.model.Ports
+import io.github.youndie.haul.feature.identity.DemoShopperConfig
 import io.github.youndie.haul.feature.identity.SignInConfig
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -91,6 +92,31 @@ internal object ShildikHarness {
 
     /** What the server under test is configured with. */
     val signIn: SignInConfig get() = realm.let { SignInConfig(issuer, CLIENT) }
+
+    /**
+     * Demo shoppers made in this realm (B-162): through its management port with the bootstrap token, as a stand's
+     * server reaches its own release's shildik, returning to the storefront client's one page. [token] other than
+     * the bootstrap's is a management API that refuses.
+     */
+    fun demo(
+        dailyLimit: Int = DemoShopperConfig.DEFAULT_DAILY_LIMIT,
+        token: String = BOOTSTRAP,
+    ): DemoShopperConfig = realm.let { DemoShopperConfig(management, token, REDIRECT, dailyLimit) }
+
+    /** The token endpoint's answer to [refreshToken] for the storefront's client: its status alone. */
+    fun refreshStatus(refreshToken: String): Int {
+        val discovery = json(get("$issuer/.well-known/openid-configuration"))
+        return send(
+            HttpRequest
+                .newBuilder(URI(discovery.text("token_endpoint")))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(
+                    HttpRequest.BodyPublishers.ofString(
+                        form("grant_type" to "refresh_token", "refresh_token" to refreshToken, "client_id" to CLIENT),
+                    ),
+                ).build(),
+        ).statusCode()
+    }
 
     /**
      * A person in the realm, named [name]; returns their id, which is the `sub` of their tokens. A new

@@ -21,7 +21,8 @@ import io.github.youndie.kompot.standard.NavigateAction
  * customer's id, `null` for a guest, and [customer] the customer as signed in (their membership, B-23);
  * [inCart] is how many of each SKU their cart holds, by SKU id; [saved] the products in their Saved list,
  * whose hearts are drawn filled (B-20); [place] the city and ZIP of the address a courier delivers to them, `null`
- * until they have one (B-98); [Viewers] tells them from a request.
+ * until they have one (B-98); [demo] whether a guest is offered «Try as a demo shopper» (B-162); [Viewers] tells them
+ * from a request.
  */
 internal data class Viewer(
     val firstName: String? = null,
@@ -31,6 +32,7 @@ internal data class Viewer(
     val saved: Set<String> = emptySet(),
     val customer: Customer? = null,
     val place: String? = null,
+    val demo: Boolean = false,
 ) {
     /** Whose prices the viewer's screens draw: a member's — a trial included — or everybody's (B-53). */
     val prices: PriceList get() = PriceList.of(customer?.plus == true)
@@ -98,6 +100,7 @@ internal object Frame {
             plus = plus(viewer),
             scopes = scopes,
             scope = scope?.takeIf { s -> scopes.any { it.category == s } },
+            demo = NavigateAction(DEMO_SHOPPER).takeIf { viewer.customerId == null && viewer.demo },
         )
     }
 
@@ -161,6 +164,12 @@ internal object Frame {
 
     /** Where the account shortcut sends a guest: the client opens the provider's page (feature-identity). */
     const val SIGN_IN = "/sign-in"
+
+    /**
+     * «Try as a demo shopper» (B-162): the client's own word, as `/sign-out` is — answered by making a demo shopper of
+     * the visitor's own and signing them in, never followed as a page.
+     */
+    const val DEMO_SHOPPER = "/demo-shopper"
 
     /** Where it sends a customer. */
     const val ACCOUNT = "/account"
