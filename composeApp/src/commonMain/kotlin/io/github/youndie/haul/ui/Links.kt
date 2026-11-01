@@ -297,13 +297,17 @@ internal fun Modifier.toggles(
  */
 private val MIRRORED_ROLE = Role.Button
 
-/** How a box or a switch says its state in its name: «ticked», «partly ticked», «not ticked»; «on», «off». */
+/**
+ * How a box, a switch or one of a set of choices says its state in its name: «ticked», «partly ticked», «not ticked»;
+ * «on», «off»; «chosen», «not chosen» (the theme's, B-180).
+ */
 internal fun stateWord(
     state: ToggleableState,
     kind: Role,
 ): String =
     when {
         kind == Role.Switch -> if (state == ToggleableState.On) "on" else "off"
+        kind == Role.RadioButton -> if (state == ToggleableState.On) "chosen" else "not chosen"
         state == ToggleableState.On -> "ticked"
         state == ToggleableState.Indeterminate -> "partly ticked"
         else -> "not ticked"

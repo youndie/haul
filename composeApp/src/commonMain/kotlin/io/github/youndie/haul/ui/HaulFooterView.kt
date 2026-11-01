@@ -10,12 +10,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.state.ToggleableState
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -23,6 +30,10 @@ import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
+import io.github.youndie.haul.theme.LocalThemeChoice
+import io.github.youndie.haul.theme.THEME_TITLE
+import io.github.youndie.haul.theme.ThemeChoice
+import io.github.youndie.haul.theme.ThemeMode
 
 /**
  * The footer (`HaulFooter` on the wire), with the gap the page leaves above it: up to four link columns at 1440,
@@ -35,6 +46,7 @@ import io.github.youndie.haul.theme.LocalHaulCompact
 @Composable
 public fun HaulFooterView(footer: HaulFooter) {
     val compact = LocalHaulCompact.current
+    val theme = LocalThemeChoice.current
     Column(Modifier.fillMaxWidth()) {
         Spacer(Modifier.height(if (compact) 64.dp else 80.dp))
         Column(
@@ -59,13 +71,21 @@ public fun HaulFooterView(footer: HaulFooter) {
                     }
                     // A row of columns the canvas has and the wire does not: its height, empty.
                     repeat(COLUMNS / 2 - rows.size) { Spacer(Modifier.height(columnHeight(compact = true))) }
+                    // The theme's switch, on a row of its own under the canvas's two (B-180).
+                    if (theme != null) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            ThemeColumn(theme, compact = true, Modifier.weight(1f))
+                            Box(Modifier.weight(1f))
+                        }
+                    }
                 }
             } else {
                 Row(horizontalArrangement = Arrangement.spacedBy(32.dp)) {
                     footer.columns.forEach { LinkColumn(it, compact = false, Modifier.weight(1f)) }
                     repeat(COLUMNS - footer.columns.size) { Box(Modifier.weight(1f)) }
-                    // The canvas's «Get the app» place, empty: there is no app (B-107).
-                    Box(Modifier.weight(1.4f))
+                    // The canvas's «Get the app» place: there is no app (B-107), and the storefront puts the theme's
+                    // switch there (B-180); empty where nothing holds one — a golden.
+                    Box(Modifier.weight(1.4f)) { if (theme != null) ThemeColumn(theme, compact = false) }
                 }
             }
             // On a desktop as large as the page is wide enough for (B-82): 420 px of «Haul.» ran past the edge at
@@ -127,6 +147,59 @@ private fun LinkColumn(
         }
     }
 }
+
+/**
+ * The theme's switch (B-180): a column of the footer's, «Theme» over «System», «Light» and «Dark», the chosen one in
+ * Acid with a dot before it. The footer is where a shopper looks for what is the site's rather than a page's — and it
+ * is on every page but checkout, at both widths, where the header has no room left at 390.
+ */
+@Composable
+private fun ThemeColumn(
+    theme: ThemeChoice,
+    compact: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val style =
+        HaulType
+            .text(
+                if (compact) 14f else 15f,
+                lineHeight = 2f,
+            ).copy(color = HaulColors.onBand)
+    Column(modifier.heightIn(min = columnHeight(compact)).testTag(THEME_SWITCH_TAG)) {
+        ColumnTitle(THEME_TITLE, compact)
+        ThemeMode.entries.forEach { mode ->
+            val chosen = theme.mode == mode
+            val hover = rememberHover()
+            Row(
+                Modifier
+                    .testTag(themeTag(mode))
+                    .onHover(hover) { translationX = LINK_LEAN.toPx() * it }
+                    .hovers(hover)
+                    .toggles(
+                        mode.label,
+                        if (chosen) ToggleableState.On else ToggleableState.Off,
+                        Role.RadioButton,
+                        onPress = { theme.choose(mode) },
+                    ),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (chosen) Box(Modifier.size(7.dp).background(HaulColors.secondaryContainer, CircleShape))
+                Text(
+                    mode.label,
+                    if (chosen) style.copy(color = HaulColors.secondaryContainer, fontWeight = FontWeight(700)) else style,
+                    softWrap = false,
+                )
+            }
+        }
+    }
+}
+
+/** The tag of the footer's theme switch, for the tests that find it. */
+public const val THEME_SWITCH_TAG: String = "theme-switch"
+
+/** The tag of one of the switch's choices. */
+public fun themeTag(mode: ThemeMode): String = "theme:${mode.key}"
 
 /** How far a hovered link leans on. */
 private val LINK_LEAN = 6.dp

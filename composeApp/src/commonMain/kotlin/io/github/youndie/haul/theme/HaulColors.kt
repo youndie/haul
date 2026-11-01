@@ -6,6 +6,7 @@ import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 
 /**
  * The canvas's colour roles (`canvas/canvas.json`, `roles`), named as the canvas names them, in one scheme: [Light] is
@@ -106,7 +107,17 @@ public class HaulColorScheme(
         return tones[key] ?: hexColor(tone) ?: stone
     }
 
+    /**
+     * The words drawn on a tile of [tone]: the canvas's Ink on a light tile — every tone of a light page, and the Acid a
+     * Plus banner and a member's avatar keep on a dark one — and the dark scheme's Paper on a dark tile.
+     */
+    public fun onTone(tone: String): Color =
+        if (tone(tone).luminance() > LIGHT_TILE) Light.onSurface else Dark.onSurface
+
     public companion object {
+        /** A tile lighter than this takes Ink; the canvas's tones are all above it, their dark counterparts below. */
+        private const val LIGHT_TILE = 0.4f
+
         /** The canvas's: every value as `canvas.json` and the light goldens draw it. */
         public val Light: HaulColorScheme =
             HaulColorScheme(
@@ -314,4 +325,9 @@ public object HaulColors {
     @Composable
     @ReadOnlyComposable
     public fun tone(tone: String): Color = scheme.tone(tone)
+
+    /** The words on a tile of a tree's tone ([HaulColorScheme.onTone]). */
+    @Composable
+    @ReadOnlyComposable
+    public fun onTone(tone: String): Color = scheme.onTone(tone)
 }

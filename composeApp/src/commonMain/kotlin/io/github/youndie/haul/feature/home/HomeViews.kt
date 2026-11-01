@@ -264,11 +264,12 @@ private fun Banner(
                     }.clip(RoundedCornerShape(18.dp)),
             ) { Box(Modifier.fillMaxSize().hatching(HaulColors.bannerHatch)) }
         }
+        val ink = HaulColors.onTone(banner.tone)
         Column(
             Modifier.fillMaxSize().padding(if (compact) 20.dp else 32.dp),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(banner.eyebrow.uppercase(), HaulType.label(if (compact) 11f else 12f, 600, 0.08f))
+            Text(banner.eyebrow.uppercase(), HaulType.label(if (compact) 11f else 12f, 600, 0.08f).copy(color = ink))
             // The phone's banner shrinks a long title (Home_Guest_Phone: 28 px for «Laptops from $399»,
             // 24 px for «Free delivery on everything»).
             val size =
@@ -287,7 +288,7 @@ private fun Banner(
                         800,
                         letterSpacing = if (compact) -0.01f else -0.02f,
                         lineHeight = 0.95f,
-                    ),
+                    ).copy(color = ink),
             )
             val action = banner.actionLabel
             val subtitle = banner.subtitle
@@ -297,11 +298,11 @@ private fun Banner(
                         horizontalArrangement = Arrangement.spacedBy(if (compact) 6.dp else 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(action, HaulType.text(if (compact) 14f else 15f, 700))
+                        Text(action, HaulType.text(if (compact) 14f else 15f, 700).copy(color = ink))
                         Icon(
                             HaulIcons.arrowRight,
                             if (compact) 16.dp else 18.dp,
-                            HaulColors.onSurface,
+                            ink,
                             Modifier.onHover(hover) { translationX = ARROW_LEAN.toPx() * it },
                         )
                     }
@@ -311,9 +312,9 @@ private fun Banner(
                     Text(
                         subtitle,
                         if (compact) {
-                            HaulType.text(13f, 600, lineHeight = 1.3f)
+                            HaulType.text(13f, 600, lineHeight = 1.3f).copy(color = ink)
                         } else {
-                            HaulType.text(15f, 600)
+                            HaulType.text(15f, 600).copy(color = ink)
                         },
                     )
                 }

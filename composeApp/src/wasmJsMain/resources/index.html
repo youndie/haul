@@ -34,31 +34,46 @@
     <link rel="preload" href="composeResources/io.github.youndie.haul.resources/font/bodoni_moda_italic.ttf" as="fetch" crossorigin>
     <!-- Checkout draws a header of its own (B-90): the frame takes its shape on that address. -->
     <script>if (location.pathname === "/checkout") document.documentElement.className = "checkout";</script>
+    <!-- The shopper's theme, kept by the store (B-180, BrowserThemeMemory): marked before the frame is parsed, so its first
+         paint is in the scheme the store will draw. Nothing kept, the styles follow the browser's prefers-color-scheme. -->
+    <script>try { var t = localStorage.getItem("haul.theme"); if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t); } catch (e) {}</script>
     <style>
-        html, body { margin: 0; height: 100%; background: #F5F3EE; overscroll-behavior: none; }
+        /* The roles the frame draws in, HaulColorScheme's (B-180): the light one, the dark one where the browser asks
+           for it and nothing was chosen, and the dark one where the shopper chose it. StaticFrameTest holds them to
+           the schemes. */
+        :root { color-scheme: light; --background: #F5F3EE; --lowest: #FFFFFF; --high: #E9E6E0; --ink: #0F0F0F;
+            --rule: #E2DED6; --control: #C9C4BA; --primary: #2F2BFF; --inverse: #0F0F0F; --band: #0F0F0F; }
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) { color-scheme: dark; --background: #141311; --lowest: #211F1C; --high: #2A2824;
+                --ink: #F2EFE8; --rule: #3A3731; --control: #5C5850; --primary: #A3A0FF; --inverse: #F2EFE8; --band: #2B2925; }
+        }
+        :root[data-theme="dark"] { color-scheme: dark; --background: #141311; --lowest: #211F1C; --high: #2A2824;
+            --ink: #F2EFE8; --rule: #3A3731; --control: #5C5850; --primary: #A3A0FF; --inverse: #F2EFE8; --band: #2B2925; }
+        html, body { margin: 0; height: 100%; background: var(--background); overscroll-behavior: none; }
         /* The page before the bundle runs (B-80): the header's shape and a line sweeping under it, the
-           measures of HaulHeaderView at each of its widths, the colours of HaulColors. Shapes only — the words need the fonts, which
+           measures of HaulHeaderView at each of its widths, the roles above. Shapes only — the words need the fonts, which
            arrive with the bundle. Main.kt removes it in the frame Compose first draws. */
-        #haul-frame { position: fixed; inset: 0 0 auto 0; z-index: 1; background: #FFF; }
-        #haul-frame i { display: block; flex: none; background: #E9E6E0; border-radius: 5px; }
-        #haul-frame .strip { height: 36px; background: #0F0F0F; }
+        #haul-frame { position: fixed; inset: 0 0 auto 0; z-index: 1; background: var(--lowest); }
+        #haul-frame i { display: block; flex: none; background: var(--high); border-radius: 5px; }
+        #haul-frame .strip { height: 36px; background: var(--band); }
         #haul-frame .row { display: flex; align-items: center; gap: 20px; height: 96px; padding: 0 48px; }
         #haul-frame .logo { position: relative; width: 104px; height: 36px; margin-right: 28px; border-radius: 8px; }
         #haul-frame .logo::after { content: ""; position: absolute; top: -4px; right: -14px; width: 11px; height: 11px;
-            border-radius: 50%; background: #2F2BFF; }
-        #haul-frame .catalog { width: 128px; height: 56px; border-radius: 16px; background: #2F2BFF; }
-        #haul-frame .search { flex: 1; height: 56px; box-sizing: border-box; border: 2px solid #0F0F0F; border-radius: 16px; background: none; }
+            border-radius: 50%; background: var(--primary); }
+        #haul-frame .catalog { width: 128px; height: 56px; border-radius: 16px; background: var(--primary); }
+        #haul-frame .search { flex: 1; height: 56px; box-sizing: border-box; border: 2px solid var(--ink); border-radius: 16px; background: none; }
         #haul-frame .shortcut { display: flex; flex-direction: column; align-items: center; gap: 7px; width: 76px;
             margin-left: -14px; background: none; }
-        #haul-frame .shortcut::before, #haul-frame .shortcut::after { content: ""; background: #E9E6E0; }
+        #haul-frame .shortcut::before, #haul-frame .shortcut::after { content: ""; background: var(--high); }
         #haul-frame .shortcut::before { width: 24px; height: 24px; border-radius: 7px; }
         #haul-frame .shortcut::after { width: 40px; height: 10px; border-radius: 5px; }
-        #haul-frame .cart { width: 127px; height: 56px; border-radius: 16px; background: #0F0F0F; }
+        #haul-frame .cart { width: 127px; height: 56px; border-radius: 16px; background: var(--inverse); }
         #haul-frame .menu, #haul-frame .heart, #haul-frame .account { display: none; }
         #haul-frame .words { display: flex; align-items: center; gap: 28px; height: 52px; padding: 0 48px;
-            border-bottom: 1px solid #E2DED6; overflow: hidden; }
+            border-bottom: 1px solid var(--rule); overflow: hidden; }
         #haul-frame .words i { width: 72px; height: 12px; }
         #haul-frame svg { display: block; width: 100%; height: 3px; }
+        #haul-frame rect { fill: var(--primary); }
         #haul-frame .sweep { animation: haul-sweep 1.2s linear infinite; }
         @keyframes haul-sweep { from { transform: translateX(-30px); } to { transform: translateX(100px); } }
         /* Checkout's header (CheckoutHeaderView, B-90): no strip, the logo, three steps and «Secure checkout» on one
@@ -66,14 +81,14 @@
         #haul-frame .co { display: none; }
         .checkout #haul-frame .strip, .checkout #haul-frame .row, .checkout #haul-frame .words { display: none; }
         .checkout #haul-frame .co { display: flex; align-items: center; justify-content: space-between; height: 88px;
-            padding: 0 48px; border-bottom: 1px solid #E2DED6; }
+            padding: 0 48px; border-bottom: 1px solid var(--rule); }
         #haul-frame .co .logo { margin-right: 0; }
         #haul-frame .steps, #haul-frame .step { display: flex; align-items: center; gap: 14px; }
         #haul-frame .step { gap: 10px; }
         #haul-frame .step::before { content: ""; box-sizing: border-box; width: 30px; height: 30px; border-radius: 50%;
-            border: 2px solid #C9C4BA; }
-        #haul-frame .step::after { content: ""; width: 64px; height: 12px; border-radius: 5px; background: #E9E6E0; }
-        #haul-frame .steps b { display: block; width: 56px; height: 2px; background: #E2DED6; }
+            border: 2px solid var(--control); }
+        #haul-frame .step::after { content: ""; width: 64px; height: 12px; border-radius: 5px; background: var(--high); }
+        #haul-frame .steps b { display: block; width: 56px; height: 2px; background: var(--rule); }
         #haul-frame .secure { width: 136px; height: 12px; }
         /* Below 1280 the search field takes a row of its own under the logo's (B-82): 20 px around each 56. */
         @media (min-width: 1024px) and (max-width: 1279.98px) {
@@ -93,11 +108,11 @@
             #haul-frame .account { width: 44px; height: 20px; border-radius: 6px; }
             #haul-frame .cart { width: 48px; height: 44px; margin-left: 4px; border-radius: 14px; }
             #haul-frame .search { order: 1; flex-basis: 100%; height: 50px; border-radius: 14px; }
-            #haul-frame .words { gap: 22px; height: 46px; padding: 0 16px; border-top: 1px solid #E2DED6; }
+            #haul-frame .words { gap: 22px; height: 46px; padding: 0 16px; border-top: 1px solid var(--rule); }
             .checkout #haul-frame .co { flex-wrap: wrap; height: auto; padding: 0 16px; }
             #haul-frame .co .logo { margin: 17px 0; }
             #haul-frame .steps { order: 1; flex: 0 0 100%; height: 52px; gap: 8px; margin: 0 -16px; padding: 0 16px;
-                border-top: 1px solid #E2DED6; }
+                border-top: 1px solid var(--rule); }
             #haul-frame .step { gap: 6px; }
             #haul-frame .step::before { width: 24px; height: 24px; }
             #haul-frame .step::after { width: 52px; height: 10px; }
@@ -118,8 +133,8 @@
     <div class="words"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <div class="co"><i class="logo"></i><div class="steps"><div class="step"></div><b></b><div class="step"></div><b></b><div class="step"></div></div><i class="secure"></i></div>
     <svg viewBox="0 0 100 3" preserveAspectRatio="none" aria-hidden="true">
-        <rect width="100" height="3" fill="#2F2BFF" fill-opacity="0.16"/>
-        <rect class="sweep" width="30" height="3" fill="#2F2BFF"/>
+        <rect width="100" height="3" fill-opacity="0.16"/>
+        <rect class="sweep" width="30" height="3"/>
     </svg>
 </div>
 <script src="composeApp.js"></script>

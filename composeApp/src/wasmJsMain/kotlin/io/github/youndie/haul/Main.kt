@@ -25,6 +25,9 @@ import io.github.youndie.haul.shell.ktorCommands
 import io.github.youndie.haul.shell.ktorRealtime
 import io.github.youndie.haul.shell.ktorTransport
 import io.github.youndie.haul.shell.ktorTreeCommands
+import io.github.youndie.haul.theme.BrowserThemeMemory
+import io.github.youndie.haul.theme.ThemeChoice
+import io.github.youndie.haul.theme.browserPrefersDark
 import io.github.youndie.haul.theme.loadHaulFonts
 import io.github.youndie.haul.ui.Motion
 import io.github.youndie.haul.ui.coilPhotoLoader
@@ -54,6 +57,9 @@ import kotlinx.coroutines.launch
  * cannot be read, it mounts anyway and draws as it did then.
  *
  * The tab is titled by the page drawn ([WindowTitle], B-161); until a tree names one, it reads the page's own `<title>`.
+ *
+ * The page is drawn in the browser's scheme, followed while it is open, unless the shopper chose one in the footer
+ * (B-180), kept in `localStorage`; `index.html` reads the same key, so its frame is already in that scheme.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 public fun main() {
@@ -84,6 +90,9 @@ public fun main() {
     val demoNote = BrowserDemoNoteMemory()
     // The ring around the control the keyboard is on, only when the keyboard put it there (B-167).
     val keyboard = browserKeyboardFocus()
+    // The browser's scheme, followed as it changes, and the shopper's choice over it, kept per browser (B-180).
+    val systemDark = browserPrefersDark()
+    val theme = ThemeChoice(BrowserThemeMemory())
     var frame = document.getElementById(STATIC_FRAME_ID)
     MainScope().launch {
         val fonts = loadHaulFonts()
@@ -111,6 +120,8 @@ public fun main() {
                     title = WindowTitle,
                     demoNote = demoNote,
                     keyboard = keyboard,
+                    theme = theme,
+                    systemDark = systemDark.value,
                 )
             }
         }

@@ -177,7 +177,9 @@ private fun Profile(profile: AccountProfile) {
         ) {
             Text(
                 profile.initials,
-                HaulType.display(if (compact) 20f else 26f, 800, letterSpacing = -0.01f),
+                HaulType
+                    .display(if (compact) 20f else 26f, 800, letterSpacing = -0.01f)
+                    .copy(color = HaulColors.onTone(profile.tone)),
                 softWrap = false,
             )
         }

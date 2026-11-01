@@ -562,7 +562,7 @@ private fun ReviewCard(
                 Modifier.size(40.dp).background(toneColor(review.tone), CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(review.initial, HaulType.text(16f, 700))
+                Text(review.initial, HaulType.text(16f, 700).copy(color = HaulColors.onTone(review.tone)))
             }
             Column(Modifier.weight(1f)) {
                 Text(review.author, HaulType.text(14f, 600))
