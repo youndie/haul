@@ -59,5 +59,5 @@ fix.
     menus rechecked against Compose's new one.
 - **Not removed, though their reason moved:** `FlexPair`, `InlineLine`, `subPixelSlack`, `normal()` and `SpacedWords`
   were the canvas's; each is small, and a re-recording to take one out shows a developer nothing.
-- **Noticed, not changed:** the README's «168 screenshot goldens» is 181 on `main`.
+- **Noticed, not changed:** the README's «168 screenshot goldens» is 183 on `main`.
 

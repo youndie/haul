@@ -3024,7 +3024,7 @@ artboard to the pixel; since B-85 the goldens are the reference. B-175 listed ev
 each whether its reason still holds. **How it was measured**: on the WSL build box, in a copy of the tree outside the
 mutagen replica, each workaround was taken out by a patch and every golden recorded with `viddikRecord --force`;
 each recording was compared pixel by pixel with the tree's own recording, which matched the committed goldens
-181 of 181. `viddikVerify` refuses a golden where more than 0.05 % of the pixels differ by more than 2 on a channel
+181 of 181 (the tree before B-173 added two). `viddikVerify` refuses a golden where more than 0.05 % of the pixels differ by more than 2 on a channel
 (viddik 0.7.0's defaults, and the count below is that one); run on the first patch, it refused the two goldens the
 comparison named, with the same pixel counts.
 
