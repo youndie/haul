@@ -1,0 +1,45 @@
+> Task :e2e:testClasses UP-TO-DATE
+
+> Task :e2e:test
+
+TwoReplicasTest > a replica killed in the middle of sagas loses no order and doubles none() STANDARD_ERROR
+    SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+    SLF4J: Defaulting to no-operation (NOP) logger implementation
+    SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+
+TwoReplicasTest > a replica killed in the middle of sagas loses no order and doubles none() STANDARD_OUT
+    B-174 kill: 0.01s the delivery windows locked; the leader is a
+    B-174 kill: 0.83s the lone placement waits inside its saga on a
+    B-174 kill: 2.88s killing a: 2 of its sessions and 6 of b's wait inside a saga; 8 sagas unfinished; the front has 1 placements on a
+    B-174 kill: 3.30s a killed, the delivery windows unlocked
+    B-174 kill: 3.31s b holds the election's lock, 0.31s after the kill
+    B-174 kill: 10.76s b leads, 7.77s after the kill
+    B-174 kill: 16.31s every walk ended; the front cut 2: [Cut(request=PUT /api/v1/me/checkout, upstream=http://127.0.0.1:52242, resendable=true), Cut(request=POST /api/v1/orders, upstream=http://127.0.0.1:52242, resendable=true)]
+    B-174 kill: replica-0f48ae67-647e-4263-99e9-a886cd227dc7@example.test placed HL-48310, refunded after 13.608189105s
+    B-174 kill: replica-22c8a6d7-ea9c-4f4c-b926-aff75c25b7ae@example.test placed HL-48306, refunded after 14.585333286s
+    B-174 kill: replica-3882f58f-0b22-48c4-82c7-8b6c1b7300b3@example.test placed HL-48304, refunded after 15.332449389s
+    B-174 kill: replica-5c5c8c31-923a-41cb-a9f5-5d25e2b40185@example.test placed HL-48309, refunded after 13.829502333s
+    B-174 kill: replica-6de64e9d-a1cc-4144-864e-108cbcb0de4d@example.test stopped: step «check out by courier and place the order»: HTTP/1.1 header parser received no bytes
+    B-174 kill: replica-739ef42c-4345-47ab-b481-1a459a33457a@example.test placed HL-48305, refunded after 14.832747322s
+    B-174 kill: replica-9417b774-d0df-47a3-b361-7e8872ceed31@example.test placed HL-48303, refunded after 15.082403300s
+    B-174 kill: replica-f3736f70-f57f-4d33-9a13-a107b63fb72c@example.test placed HL-48308, refunded after 14.086976515s
+    B-174 kill: replica-fed1895f-54e2-4136-8048-b34392369541@example.test placed HL-48307, refunded after 14.330400472s
+    B-174 kill: 71.04s the lone order HL-48302 is placed, carried on by b's sweeper
+    B-174 kill: 71.08s the sagas: {COMPLETED=9}
+    B-174 kill: 73.00s a replaced, ready
+
+TwoReplicasTest > a replica killed in the middle of sagas loses no order and doubles none() PASSED
+
+TwoReplicasTest > a move made on one replica reaches a page listening on the other() STANDARD_OUT
+    B-174 bus: b placed HL-48311, a's page drew it: «Placed»
+
+TwoReplicasTest > a move made on one replica reaches a page listening on the other() PASSED
+
+Gradle Test Executor 1 STANDARD_ERROR
+    Exception in thread "live live:orders" java.io.UncheckedIOException: java.io.IOException: closed
+test: filtered to *TwoReplicasTest — not checked for unrun tests
+
+BUILD SUCCESSFUL in 1m 34s
+9 actionable tasks: 2 executed, 7 up-to-date
+Configuration cache entry reused.
+rc=0

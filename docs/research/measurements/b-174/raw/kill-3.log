@@ -1,0 +1,112 @@
+> Task :e2e:testClasses UP-TO-DATE
+
+> Task :e2e:test
+
+TwoReplicasTest > a replica killed in the middle of sagas loses no order and doubles none() STANDARD_ERROR
+    SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+    SLF4J: Defaulting to no-operation (NOP) logger implementation
+    SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+
+TwoReplicasTest > a replica killed in the middle of sagas loses no order and doubles none() STANDARD_OUT
+    B-174 kill: 0.01s the delivery windows locked; the leader is a
+    B-174 kill: 1.01s the lone placement waits inside its saga on a
+    B-174 kill: 3.06s killing a: 4 of its sessions and 4 of b's wait inside a saga; 8 sagas unfinished; the front has 3 placements on a
+    B-174 kill: 3.44s a killed, the delivery windows unlocked
+    B-174 kill: 5.04s b holds the election's lock, 1.90s after the kill
+    B-174 kill: 12.59s b leads, 9.45s after the kill
+    B-174 kill: 18.47s every walk ended; the front cut 4: [Cut(request=POST /api/v1/me/addresses, upstream=http://127.0.0.1:52606, resendable=false), Cut(request=POST /api/v1/orders, upstream=http://127.0.0.1:52606, resendable=true), Cut(request=POST /api/v1/orders, upstream=http://127.0.0.1:52606, resendable=true), Cut(request=POST /api/v1/orders, upstream=http://127.0.0.1:52606, resendable=true)]
+    B-174 kill: replica-1cb7a908-87a2-4d23-855b-1b12ade3cb06@example.test placed HL-48303, refunded after 15.846067407s
+    B-174 kill: replica-24c1e1c8-3bad-4628-9f11-95bfbe18f950@example.test placed HL-48304, refunded after 16.609962983s
+    B-174 kill: replica-25b09e7b-2cad-4d8c-9a72-f9d7f9a257c3@example.test stopped: step «check out by courier and place the order»: POST /api/v1/me/addresses answered 502, not 200: 
+    B-174 kill: replica-5722a174-8f09-4c73-837c-1f940db35272@example.test placed HL-48309, refunded after 15.357342823s
+    B-174 kill: replica-95767f72-5f43-4faf-ae87-9ac7fb254a8e@example.test placed HL-48308, refunded after 16.131741931s
+    B-174 kill: replica-9c718a63-1be3-4950-92bd-0dbc4fb7fa34@example.test placed HL-48306, refunded after 16.108193621s
+    B-174 kill: replica-9ef3289e-05b3-499b-95ba-dd8ba13ed7ef@example.test placed HL-48307, refunded after 15.858085985s
+    B-174 kill: replica-b01a9597-9735-40f6-9acd-baf433de2561@example.test placed HL-48305, refunded after 15.345060127s
+    B-174 kill: replica-ea2cfe9e-3645-4727-ac04-b3addeb4b7da@example.test stopped: step «check out by courier and place the order»: HTTP/1.1 header parser received no bytes
+    B-174 kill: 73.25s the lone order HL-48302 is placed, carried on by b's sweeper
+    B-174 kill: 73.29s the sagas: {COMPLETED=8}
+    B-174 kill: 75.18s a replaced, ready
+
+TwoReplicasTest > a replica killed in the middle of sagas loses no order and doubles none() PASSED
+
+TwoReplicasTest > a move made on one replica reaches a page listening on the other() STANDARD_OUT
+    B-174 bus: b placed HL-48310, a's page drew it: «Placed»
+
+TwoReplicasTest > a move made on one replica reaches a page listening on the other() PASSED
+
+Caused by: java.io.IOException: chunked transfer encoding, state: READING_LENGTH
+	at java.net.http/jdk.internal.net.http.common.Utils.wrapWithExtraDetail(Utils.java:459)
+	at java.net.http/jdk.internal.net.http.Http1Response$BodyReader.onReadError(Http1Response.java:677)
+	at java.net.http/jdk.internal.net.http.Http1AsyncReceiver.checkForErrors(Http1AsyncReceiver.java:304)
+	at java.net.http/jdk.internal.net.http.Http1AsyncReceiver.flush(Http1AsyncReceiver.java:270)
+	at java.net.http/jdk.internal.net.http.common.SequentialScheduler$LockingRestartableTask.run(SequentialScheduler.java:182)
+	at java.net.http/jdk.internal.net.http.common.SequentialScheduler$CompleteRestartableTask.run(SequentialScheduler.java:149)
+	at java.net.http/jdk.internal.net.http.common.SequentialScheduler$SchedulableTask.run(SequentialScheduler.java:207)
+	at java.net.http/jdk.internal.net.http.HttpClientImpl$DelegatingExecutor.execute(HttpClientImpl.java:168)
+	at java.net.http/jdk.internal.net.http.common.SequentialScheduler.runOrSchedule(SequentialScheduler.java:282)
+	at java.net.http/jdk.internal.net.http.common.SequentialScheduler.runOrSchedule(SequentialScheduler.java:251)
+	at java.net.http/jdk.internal.net.http.Http1AsyncReceiver.onReadError(Http1AsyncReceiver.java:518)
+	at java.net.http/jdk.internal.net.http.Http1AsyncReceiver.lambda$handlePendingDelegate$1(Http1AsyncReceiver.java:382)
+	at java.net.http/jdk.internal.net.http.Http1AsyncReceiver$Http1AsyncDelegateSubscription.cancel(Http1AsyncReceiver.java:163)
+	at java.net.http/jdk.internal.net.http.common.HttpBodySubscriberWrapper$SubscriptionWrapper.cancel(HttpBodySubscriberWrapper.java:92)
+	at java.net.http/jdk.internal.net.http.ResponseSubscribers$HttpResponseInputStream.close(ResponseSubscribers.java:564)
+	at java.net.http/jdk.internal.net.http.common.Utils.close(Utils.java:812)
+	at java.net.http/jdk.internal.net.http.ResponseSubscribers.lambda$createLineStream$1(ResponseSubscribers.java:586)
+	at java.base/java.util.stream.AbstractPipeline.close(AbstractPipeline.java:355)
+	at io.github.youndie.haul.e2e.LiveStream.close(Storefront.kt:215)
+	at kotlin.jdk7.AutoCloseableKt.closeFinally(AutoCloseableJVM.kt:43)
+	at io.github.youndie.haul.e2e.TwoReplicasTest.a move made on one replica reaches a page listening on the other(TwoReplicasTest.kt:40)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:728)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:218)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:214)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:139)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:151)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+
+> Task :e2e:test
+test: filtered to *TwoReplicasTest — not checked for unrun tests
+
+BUILD SUCCESSFUL in 1m 37s
+9 actionable tasks: 2 executed, 7 up-to-date
+Configuration cache entry reused.
+rc=0

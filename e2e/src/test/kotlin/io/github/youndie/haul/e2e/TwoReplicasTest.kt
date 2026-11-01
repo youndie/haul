@@ -72,6 +72,7 @@ class TwoReplicasTest {
     fun `a replica killed in the middle of sagas loses no order and doubles none`() {
         val leader = awaitLeader()
         val survivor = ComposedStack.replicas.single { it != leader }
+        val ledBefore = occurrences(survivor, "${survivor.name} leads:")
         val stockBefore = ComposedStack.stock()
         val people = List(WALKS) { person("Kim Killed $it") }
         val alone = person("Ada Alone")
@@ -93,7 +94,11 @@ class TwoReplicasTest {
                 val firstWaiting = TimeSource.Monotonic.markNow()
                 println("B-174 kill: ${at()} the lone placement waits inside its saga on ${leader.name}")
 
-                people.forEach { threads += walkInThread(it, ComposedStack.origin, outcomes, resend = true) }
+                // A quarter of a second apart, as shoppers arrive, not all in one instant at the provider's sign-in.
+                people.forEach {
+                    threads += walkInThread(it, ComposedStack.origin, outcomes, resend = true)
+                    Thread.sleep(ARRIVALS.inWholeMilliseconds)
+                }
                 // Until the front has a placement of theirs on the leader waiting too — well inside the saga member's
                 // ten seconds, which the lone placement's clock started on.
                 while (firstWaiting.elapsedNow() < 6.seconds &&
@@ -119,13 +124,14 @@ class TwoReplicasTest {
                 println("B-174 kill: ${at()} ${leader.name} killed, the delivery windows unlocked")
 
                 val took = awaitLeaderIs(survivor, within = 1.minutes)
+                assertTrue(took, "${survivor.name} did not take the election's lock")
                 println(
-                    "B-174 kill: ${at()} ${survivor.name} leads, ${killed.elapsedNow().toString(
-                        DurationUnit.SECONDS,
-                        2,
-                    )} after the kill",
+                    "B-174 kill: ${at()} ${survivor.name} holds the election's lock, ${killed.since()} after the kill",
                 )
-                assertTrue(took, "${survivor.name} did not take the leadership")
+                // It leads once the dead leader's local lease is over: vojak waits it out after a release that was not clean.
+                val leads = awaitLog(survivor, "${survivor.name} leads:", ledBefore, within = 1.minutes)
+                assertTrue(leads, "${survivor.name} never said it leads")
+                println("B-174 kill: ${at()} ${survivor.name} leads, ${killed.since()} after the kill")
             }
 
             threads.forEach { it.join(4.minutes.inWholeMilliseconds) }
@@ -233,6 +239,28 @@ class TwoReplicasTest {
             resend = resend,
         )
 
+    private fun TimeSource.Monotonic.ValueTimeMark.since(): String = elapsedNow().toString(DurationUnit.SECONDS, 2)
+
+    private fun occurrences(
+        replica: Replica,
+        line: String,
+    ): Int = replica.log(Int.MAX_VALUE).lines().count { line in it }
+
+    /** Until [replica] has printed [line] more than [before] times; `false` past [within]. */
+    private fun awaitLog(
+        replica: Replica,
+        line: String,
+        before: Int,
+        within: Duration,
+    ): Boolean {
+        val since = TimeSource.Monotonic.markNow()
+        while (since.elapsedNow() < within) {
+            if (occurrences(replica, line) > before) return true
+            Thread.sleep(100)
+        }
+        return false
+    }
+
     private fun walkInThread(
         person: Person,
         origin: String,
@@ -336,6 +364,7 @@ class TwoReplicasTest {
 
         /** The walks through the front while the leader dies: enough that the front gives the leader some. */
         const val WALKS = 8
+        val ARRIVALS = 250.milliseconds
 
         val UNFINISHED = setOf("PROCESSING", "COMPENSATING", "DRAFT")
         val BROKEN = setOf("FAILED", "COMPENSATION_FAILED")
