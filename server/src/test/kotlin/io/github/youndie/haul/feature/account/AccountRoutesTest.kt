@@ -40,6 +40,11 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
+import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Proxy
+import java.sql.Connection
+import java.util.concurrent.atomic.AtomicInteger
+import javax.sql.DataSource
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -48,7 +53,7 @@ import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 
 /**
@@ -313,6 +318,10 @@ class AccountRoutesTest {
      * The order on its way still comes first, the chips still count every order, and the next page is the next
      * twenty. The orders behind it are copies of one placed order, delivered, written straight into the tables:
      * placing five thousand through the saga would take the test longer than the defect took the stand.
+     *
+     * What is held is the number of statements a page sends, which does not depend on the machine: the time
+     * did — 176 ms on an idle box, 489 ms on the CI runner building two pushes at once. The time is still bounded,
+     * loosely, so a page that sends few statements but reads far too much is caught too.
      */
     @Test
     fun `a history of thousands of orders answers in time a page at a time`() =
@@ -323,10 +332,14 @@ class AccountRoutesTest {
                 connection.createStatement().use { it.execute(COPIES.replace("?", "'$placed'")) }
                 if (!connection.autoCommit) connection.commit()
             }
-            haulTest(database, signIn = ShildikHarness.signIn) {
+            val counted = CountingDataSource(database)
+            haulTest(counted, signIn = ShildikHarness.signIn) {
                 // The first request warms the route; the best of three is the one compared, so a pause of the
                 // test's own machine is not read as the route's.
                 account(maya, AccountPaths.ORDERS)
+                val sent = counted.statements.get()
+                account(maya, AccountPaths.ORDERS)
+                val statements = counted.statements.get() - sent
                 val took =
                     (1..3).minOf {
                         val started = TimeSource.Monotonic.markNow()
@@ -351,9 +364,41 @@ class AccountRoutesTest {
                     )
                 assertEquals(20, second.rows.size)
                 assertEquals(emptySet(), second.rows.map { it.id }.toSet() intersect first.rows.map { it.id }.toSet())
-                assertTrue(took < 300.milliseconds, "the history of ${COPIED + 1} orders took $took")
+                assertTrue(statements < 100, "a page of the history sent $statements statements")
+                assertTrue(took < 2.seconds, "the history of ${COPIED + 1} orders took $took")
             }
         }
+
+    /**
+     * [origin] counting every statement its connections prepare or create: one a query, whichever way Exposed
+     * sends it.
+     */
+    private class CountingDataSource(
+        private val origin: DataSource,
+    ) : DataSource by origin {
+        val statements = AtomicInteger()
+
+        override fun getConnection(): Connection = counting(origin.connection)
+
+        override fun getConnection(
+            username: String?,
+            password: String?,
+        ): Connection = counting(origin.getConnection(username, password))
+
+        private fun counting(connection: Connection): Connection =
+            Proxy.newProxyInstance(javaClass.classLoader, arrayOf(Connection::class.java)) { _, method, args ->
+                if (method.name == "prepareStatement" || method.name == "createStatement" ||
+                    method.name == "prepareCall"
+                ) {
+                    statements.incrementAndGet()
+                }
+                try {
+                    method.invoke(connection, *(args ?: emptyArray()))
+                } catch (e: InvocationTargetException) {
+                    throw e.targetException
+                }
+            } as Connection
+    }
 
     private companion object {
         const val COPIED = 5_000
