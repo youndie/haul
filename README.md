@@ -59,7 +59,7 @@ The image is public. With Docker, a database and the server — seeded with the 
 ```bash
 docker network create haul
 docker run -d --name haul-db --network haul -e POSTGRES_DB=haul -e POSTGRES_USER=haul -e POSTGRES_PASSWORD=haul postgres:18-alpine
-docker run -d --name haul --network haul -p 8080:8080 -e HAUL_DB_URL=jdbc:postgresql://haul-db:5432/haul -e HAUL_DB_USER=haul -e HAUL_DB_PASSWORD=haul -e HAUL_SEED=true ghcr.io/youndie/haul-server:v0.6.1
+docker run -d --name haul --network haul -p 8080:8080 -e HAUL_DB_URL=jdbc:postgresql://haul-db:5432/haul -e HAUL_DB_USER=haul -e HAUL_DB_PASSWORD=haul -e HAUL_SEED=true ghcr.io/youndie/haul-server:v0.7.2
 ```
 
 Then open <http://localhost:8080> (ready in about ten seconds). Sign-in stays off until the server is given a
