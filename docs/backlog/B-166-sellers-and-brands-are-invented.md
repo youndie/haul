@@ -63,7 +63,7 @@ reviews. The product review (2026-11-01) flagged it as a risk worth removing bef
   brands, and stay; so do the canvas copy's «Ridge Trail GTX» (a generic suffix) and «Bluetooth»/«USB-C» (standards).
 - **README**: its screenshots (`docs/images/*.png`) still show Sony and Bose; B-165 owns the README.
 - **Goldens**: `viddikRecord --force` in a copy outside the mutagen replica on Linux changed 68; each was looked at
-  (old and new crops of every changed band): 66 change only in the renamed words and what they reflow (the hero's
+  (old and new crops of every changed band): 65 change only in the renamed words and what they reflow (the hero's
   title is a line shorter on the phone and at 1024, so the page below it moves up; a card's rating moves up a pixel
   under a one-line title), plus `DisplayFace_Characters`, whose specimen line read «WH-1000XM6 — …». `Search_Results`
   and `Search_Autocomplete` re-rendered five anti-aliased pixels of a chip, nothing renamed, and were left as they
