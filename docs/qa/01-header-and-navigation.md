@@ -219,6 +219,8 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
   4. Open a dialog (Haul Plus's trial on the home page), drag over its words and press the right button.
   5. With a menu open, press the right button somewhere else on the page; then the left.
   6. Press the footer's «Haul Plus», and a button twice quickly (a card's «+»).
+  7. On the home page, scroll to the foot and press the blank space under «Every order.»; drag over its title, then
+     press the blank space again. Back at the top, drag from a line of words down past the window's foot.
 - **Expected:**
   - Step 1: the words drawn selected; the paste is the words.
   - Step 2: the store's menu at the pointer, drawn as its other menus: «Copy» (with words selected) and «Select
@@ -229,14 +231,19 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
   - Step 4: the dialog's words select and its menu opens over the dialog.
   - Step 5: the right button opens the menu where it pressed; the left closes it and presses nothing.
   - Step 6: «Haul Plus» opens its page; the «+» adds two.
-- **Decided in:** B-154, B-155
+  - Step 7: each press on blank space leaves the page where it was, the second clearing the title's selection; the
+    drag scrolls the page with the selection.
+- **Decided in:** B-154, B-155, B-179
 - **Coverage:** `composeApp:DrawnActionsTest` «every page opens the store's menu and the footer's words offer their links»;
   `composeApp:DrawnActionsTest` «the strip names no page it lacks and the footer's words lead where they say»;
   `ContextMenusTest` «a field's right button offers cut copy paste and select all for its own text»;
   `ContextMenusTest` «a link in a sentence offers its address»;
   `ContextMenusTest` «a sheet's words open the store's menu over the sheet»;
   `ContextMenusTest` «a press off the menu closes it and the right button opens the menu where it pressed»;
-  `ReviewWiringTest` «cancel and the close button take the dialog away and send nothing»
+  `ReviewWiringTest` «cancel and the close button take the dialog away and send nothing»;
+  `BlankPressTest` «a press on blank space low on the home page keeps its scroll»;
+  `BlankPressTest` «a press on blank space still clears the words selected»;
+  `BlankPressTest` «a drag past the window's foot scrolls the page with the selection»
 
 ### TC-HDR-12 — A control shows the hand over its words, and a crumb under a title takes the pointer's press
 
