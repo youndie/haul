@@ -69,4 +69,10 @@ would come to a showcase for.
   /ui/parts/c/electronics?brand=Northwind — replaced title, kinds, results · server 8.7 ms»; the product and the cart
   showed `GET /ui/p/p-sonora-sh-718n` and `GET /ui/cart` with their numbers, at 1440 and 390; the panel's «×» closed
   it. `/api/v1/sign-in` answered without the header.
+- **First load** (`scripts/measure-first-load.sh`, the `main` arm, 7 rounds, no throttling and Slow 4G, on the WSL
+  box; this branch against a clone of `origin/main` at `2f1b32b`): the app's `.wasm` grew from 5,826 to 5,901 kB
+  raw, 1,300 to 1,313 kB brotli (+1 %); the first frame's median went from 627 to 666 ms unthrottled (ranges
+  582–805 and 564–878, overlapping) and from 26,496 to 26,515 ms on Slow 4G — the 13 kB at that bandwidth. The first
+  page asks for nothing more: `/ui/home`, then the strip's `/ui/demo`, as before, and opening the panel asks for
+  nothing. `Main.kt` still calls `App(...)` once with plain arguments; `WiredArmTest` passes.
 
