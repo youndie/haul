@@ -2,6 +2,7 @@ package io.github.youndie.haul.db
 
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.Seeder
+import io.github.youndie.haul.seed.campaignsBeforeV34
 import io.github.youndie.haul.testing.PostgresHarness
 import javax.sql.DataSource
 import kotlin.test.Test
@@ -29,7 +30,7 @@ class LeafNameMigrationTest {
     @Test
     fun `a catalog seeded before V30 describes its TVs as the seed does`() =
         PostgresHarness.freshDatabase(upTo = "29").use { dataSource ->
-            Seeder.seedIfEmpty(Databases.connect(dataSource), catalog)
+            Seeder.seedIfEmpty(Databases.connect(dataSource), catalog.campaignsBeforeV34())
             // What the seed wrote before B-152: the whole leaf in lower case.
             dataSource.execute("UPDATE products SET description = replace(description, ' TVs by ', ' tvs by ')")
             val before = dataSource.descriptions()
