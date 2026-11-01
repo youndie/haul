@@ -53,7 +53,8 @@ its own day):
 - **Goldens**: re-recorded with `--force` in a copy outside the replica; changed and looked at: `Home_Content`,
   `Home_Content_1024`, `Home_Content_Phone`, `Home_Guest`, `Home_Guest_Phone`, `Home_PlusTrialDialog`,
   `Home_PlusTrialDialog_Phone`, `Cart_Empty`, `Cart_Empty_Phone`, `Search_Recent`, `Search_Recent_Phone`,
-  `Search_Results`, `Search_Autocomplete` (the home under the search panel). None has an active design reference
+  `Search_Results`, `Search_Autocomplete` (the home under the search panel), and after merging B-163 `Hood_Panel` (the home
+  behind the panel). None has an active design reference
   (`design/`), so parity is unchanged.
 - **QA**: TC-HOME-01 (figures, banners), TC-HOME-07 (benefits), TC-HOME-08 (Plus's banner has no picture), new
   TC-HOME-09 (every promise is a rule), TC-CART empty cart (−49 %).
