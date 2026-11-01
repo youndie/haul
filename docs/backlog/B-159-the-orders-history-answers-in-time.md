@@ -1,7 +1,7 @@
 ---
 id: B-159
 title: "fix: the orders' history answers in time, however many orders the customer has"
-status: open
+status: wip
 priority: P0
 size: S
 stage: stage-15-showcase
