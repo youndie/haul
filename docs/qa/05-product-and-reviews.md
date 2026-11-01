@@ -14,13 +14,18 @@ search for `sonora`).
   2. Press «+ Travel case», then «Silver».
 - **Expected:**
   - Step 1: the cheapest SKU in stock is shown; the title under the brand is «SH-718N Wireless Noise Cancelling
-    Headphones», the hyphen drawn; «12K bought this month» (a product under 50 a month says nothing).
+    Headphones», the hyphen drawn; «12K bought this month» (a product under 50 a month says nothing). At 390 the
+    colour and the bundle stand in the buy box between the price and «Add to cart», so the choice is seen before the
+    buttons; at 1440 they stand in the details' column beside the buy box.
   - Step 2: the price follows the bundle; Silver is drawn out of stock, with neither «Add to cart» nor «Buy now».
-- **Decided in:** B-45, B-52, B-106
+- **Decided in:** B-45, B-52, B-106, B-169
 - **Coverage:** `ProductRoutesTest` «the product page opens on the cheapest SKU in stock»;
   `ProductRoutesTest` «a variant changes the price»; `ProductRoutesTest` «an out of stock SKU is drawn out of stock»;
   `ProductRoutesTest` «the headphones carry the bought line the canvas draws»;
-  `BoughtThisMonthTest` «below fifty the page says nothing»
+  `BoughtThisMonthTest` «below fifty the page says nothing»;
+  `ProductPageLayoutTest` «on a phone the choices stand above the buy buttons»;
+  `ProductPageLayoutTest` «at 1440 the choices stay in the details' column beside the buy box»;
+  golden `Product_Description_Phone`; golden `Product_OutOfStock_Phone`
 
 ### TC-PDP-02 — A variant picked on a tab keeps the tab
 

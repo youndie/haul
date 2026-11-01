@@ -3,9 +3,11 @@ package io.github.youndie.haul.feature.product
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
@@ -32,6 +34,10 @@ import kotlin.test.assertTrue
  * («Noise cancelling», «Connectivity») wrap between words and shrink to fit, while the canvas's «40 h» keeps its
  * display size. At 1440 and on a phone; the photo also at 1280, and at 1024, where the page and its placeholder draw
  * two columns, not three (B-153).
+ *
+ * B-169: on a phone every choice — the colour's swatches, the bundle's pills — stands above «Add to cart» and «Buy
+ * now», so a shopper sees there is a choice before pressing; at 1440 the choices stay in the details' column, beside
+ * the buy box.
  */
 @OptIn(ExperimentalTestApi::class)
 class ProductPageLayoutTest {
@@ -113,6 +119,51 @@ class ProductPageLayoutTest {
 
     @Test
     fun `the canvas's facts keep their display size on a phone`() = canvasFacts(compact = true)
+
+    /** Where the choices and the buy buttons of the server's headphones page stand at [width]. */
+    private fun choicesAndButtons(
+        width: Int,
+        check: (choices: List<Rect>, buttons: List<Rect>) -> Unit,
+    ) = runDesktopComposeUiTest(width, HEIGHT) {
+        setContent {
+            Fixture(
+                compact = width < WIDE,
+                medium = width in WIDE until WIDE_FROM,
+            ) { Page { Body("product_description.json") } }
+        }
+        waitForIdle()
+        val choices =
+            listOf(
+                onNodeWithContentDescription("Midnight Black"),
+                onNodeWithContentDescription("Silver"),
+                onNodeWithText("Headphones only"),
+                onNodeWithText("+ Travel case"),
+                onNodeWithText("+ 2-year care"),
+            ).map { it.fetchSemanticsNode().boundsInRoot }
+        val buttons = listOf("Add to cart", "Buy now").map { onNodeWithText(it).fetchSemanticsNode().boundsInRoot }
+        check(choices, buttons)
+    }
+
+    @Test
+    fun `on a phone the choices stand above the buy buttons`() =
+        choicesAndButtons(PHONE) { choices, buttons ->
+            val firstButton = buttons.minOf { it.top }
+            for (choice in choices) {
+                assertTrue(
+                    choice.bottom <= firstButton,
+                    "a choice at $choice stands below the buy buttons at $firstButton",
+                )
+            }
+        }
+
+    @Test
+    fun `at 1440 the choices stay in the details' column beside the buy box`() =
+        choicesAndButtons(DESKTOP) { choices, buttons ->
+            val buyBox = buttons.minOf { it.left }
+            for (choice in choices) {
+                assertTrue(choice.right < buyBox, "a choice at $choice is not left of the buy box at $buyBox")
+            }
+        }
 
     private fun description(): ProductDescription =
         (decode("product_description.json") as ColumnComponent).children.filterIsInstance<ProductDescription>().single()
