@@ -50,7 +50,7 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-181](docs/backlog/B-181-vector-pictures.md) `[ ]` | feat: pictures drawn as vectors, sharp at any size, with dark versions | P2 | M | - |
+| [B-181](docs/backlog/B-181-vector-pictures.md) `[~]` | feat: pictures drawn as vectors, sharp at any size, with dark versions | P2 | M | - |
 | [B-156](docs/backlog/B-156-walk-the-selection-on-a-phone.md) `[ ]` | chore: walk the selection and its toolbar on a phone | P3 | S | B-155 |
 
 ## Closed (179)

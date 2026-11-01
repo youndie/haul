@@ -1,7 +1,7 @@
 ---
 id: B-181
 title: "feat: pictures drawn as vectors, sharp at any size, with dark versions"
-status: open
+status: wip
 priority: P2
 size: M
 stage: stage-15-showcase
