@@ -49,12 +49,13 @@ class HomeRoutesTest {
     /**
      * B-105: the header alone is the one every page draws — the client draws it over a page that came with no
      * tree, so its category words lead to their categories, as the tree's do, rather than to the catalog's root.
+     * All but the tab's title, which names the page the header tops (B-161), and the header alone tops none.
      */
     @Test
     fun `the header alone is the one the home page draws`() =
         haulTest {
             val header = tree("/ui/header")
-            assertEquals(tree("/ui/home").only<HaulHeader>(), header)
+            assertEquals(tree("/ui/home").only<HaulHeader>().copy(tabTitle = null), header)
             assertEquals(
                 NavigateAction("/c/electronics"),
                 (header as HaulHeader).catalog.single { it.label == "Electronics" }.action,

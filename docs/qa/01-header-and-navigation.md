@@ -286,3 +286,30 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
   `composeApp:MotionTest` «a browser that prefers reduced motion gets a still page»;
   manual: hover, presses and openings — what they look like in motion
 
+
+### TC-HDR-14 — The tab's title names the page shown, back and forward included
+
+- **Who:** guest; Maya
+- **Width:** any
+- **Preconditions:** a fresh tab on the home page.
+- **Steps:**
+  1. Read the tab's title before and after the home page appears.
+  2. Open a product from the deals, then its category from the crumbs, then search for `running shoes`.
+  3. Press the browser's Back three times, then Forward once.
+  4. Open the cart, «Deals», the catalog's root (`/c`) and an address that is not there (`/p/nothing`).
+  5. As Maya: open the account, «Orders», «Saved», an order and checkout; sign out and open `/sign-in`.
+- **Expected:**
+  - Step 1: «Haul — a demo store built end to end in Kotlin» throughout — the page's own title, then the home's.
+  - Step 2: the product's listing name and «· Haul» («Sony WH-1000XM6 Wireless Noise Cancelling Headphones · Haul»),
+    then the category's name («Headphones · Haul»), then «Search: running shoes · Haul»; «Haul» alone only for the
+    moment the next page's placeholder is drawn.
+  - Step 3: each page's title again as it reappears, the home's last; Forward the category's.
+  - Step 4: «Cart · Haul», «Deals · Haul», «Catalog · Haul»; the page not there «Haul».
+  - Step 5: «Your account · Haul», «Your orders · Haul», «Saved · Haul», «Order #HL-… · Haul», «Checkout · Haul»;
+    «Sign in · Haul».
+- **Decided in:** B-161
+- **Coverage:** `composeApp:TabTitleTest` «the tab follows two pages and back again»;
+  `composeApp:TabTitleTest` «a cold load leaves the page's title until the tree names it»;
+  `composeApp:TabTitleTest` «a page with no tree is the store's and the sign-in page is sign-in's»;
+  `TabTitlesTest` «every page a guest opens names its tab»; `TabTitlesTest` «the header alone names no page»;
+  manual: the browser's own tab and history list, and the customer's pages, whose titles only their fixtures hold

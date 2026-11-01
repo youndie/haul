@@ -12,6 +12,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -185,6 +186,11 @@ public val LocalScreenRefresh: ProvidableCompositionLocal<ScreenRefresh?> = stat
  * among them (B-145). A cart command answers `update` the same way — the header's count and the control pressed. Back
  * and forward to an address recorded so load its page as any visit does, and the page that arrives
  * replaces whatever the updates drew.
+ *
+ * The browser's tab is titled by the page drawn ([title], [TabTitle], B-161): the title its tree's header names, the
+ * server's copy, followed through every visit, back and forward included, and every tree a refresh or a load behind
+ * the page brings; «Sign in · Haul» on the sign-in page, «Haul» on a page the shell draws itself with no tree and
+ * under a placeholder once a page has named the tab.
  */
 @Composable
 public fun Storefront(
@@ -198,8 +204,10 @@ public fun Storefront(
     treeCommands: TreeCommands? = null,
     realtime: KompotRealtimeSource? = null,
     session: SessionControls? = null,
+    title: BrowserTitle? = null,
 ) {
     val navigator = remember(history) { Navigator(history) }
+    val tab = remember(title) { TabTitle(title) }
     DisposableEffect(navigator) {
         val stop = history.listen(navigator::arrived)
         onDispose { stop() }
@@ -402,6 +410,7 @@ public fun Storefront(
                 val screen = address.path to signedOut
                 if (address.kind == PageKind.SignIn) {
                     // The client's own page (B-66): no tree to load, and no filter sheet over it; one per visit.
+                    SideEffect { tab.named(SIGN_IN_TITLE) }
                     key(visit) {
                         // It asks for nothing while it loads; its phone menu and its picker ask for the header alone
                         // when pressed (B-138).
@@ -460,6 +469,7 @@ public fun Storefront(
                                         .tree
                                 },
                                 loading = {
+                                    SideEffect { tab.placeholder() }
                                     Scrolled(
                                         scroll,
                                     ) { Box(Modifier.testTag(LOADING_TAG)) { Loading(address) } }
@@ -472,6 +482,7 @@ public fun Storefront(
                                         recovery is Recovery.Redirect -> {
                                             LaunchedEffect(cause) { navigator.redirect(recovery.location) }
                                             if (loader.screen == null) {
+                                                SideEffect { tab.placeholder() }
                                                 Scrolled(
                                                     scroll,
                                                 ) { Box(Modifier.testTag(LOADING_TAG)) { Loading(address) } }
@@ -479,6 +490,7 @@ public fun Storefront(
                                         }
 
                                         loader.screen == null -> {
+                                            SideEffect { tab.named(STORE_TITLE) }
                                             AskForHeader(headers, transport, signedIn, visit, loads)
                                             Scrolled(scroll) {
                                                 if (cause.asksForSignIn && signedInFor != loads) {
@@ -527,6 +539,7 @@ public fun Storefront(
                                         live,
                                         InPlace(overrides, loading) { unanswered = it },
                                         messages,
+                                        tab,
                                         { headers.drawn(it, session?.signedIn == true) },
                                         { signedOut += 1 },
                                     ) {
@@ -642,7 +655,8 @@ internal class Presented(
  * `present` and `close` are [onPresent]'s, a `show_message` is [messages]' (B-75), and a `sequence` is each of
  * its actions in turn — «Add to cart» answers `update`, then `show_message`. A [live] screen
  * listens on its channel while it is shown, and an update redraws the node it names (B-29); a refresh starts it
- * over from the tree it brought, so an update older than the tree never covers it.
+ * over from the tree it brought, so an update older than the tree never covers it. The tab is titled as the tree
+ * drawn names it ([tab], B-161).
  */
 @Composable
 private fun Shown(
@@ -655,6 +669,7 @@ private fun Shown(
     live: Live?,
     inPlace: InPlace,
     messages: MessageState,
+    tab: TabTitle,
     onHeader: (HaulHeader) -> Unit,
     onSignedOut: () -> Unit,
     onPresent: (Presented?) -> Unit,
@@ -664,6 +679,8 @@ private fun Shown(
     // arrival drops the overrides even when the tree is equal to the one drawn (kompot §4.4, B-64).
     var refreshed by remember { mutableIntStateOf(0) }
     LaunchedEffect(tree) { tree.header()?.let(onHeader) }
+    // The tab names the tree drawn — a refresh's too — in the frame that draws it (B-161).
+    SideEffect { tab.named(tree.tabTitle()) }
     val scope = rememberCoroutineScope()
     // One refresh for the screen, reading the address and the tree drawn when it runs (B-93). A new address of
     // the screen (B-62) arrives before its tree, and a refresh remembered with the address then wrote into the

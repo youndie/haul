@@ -22,6 +22,7 @@ import kotlinx.serialization.Serializable
  * [steps] with the [current] one marked (an index into them), and [secureLabel]. The steps before
  * [current] are done and drawn ticked (B-79): the server marks what the stored checkout has filled in.
  * A [current] outside the steps marks none — the client's Loading and Error, which know nothing yet.
+ * [tabTitle] is the browser tab's title for the checkout, as `HaulHeader`'s is for every other page (B-161).
  */
 @Serializable
 @SerialName("haul_checkout_header")
@@ -32,6 +33,7 @@ public data class CheckoutHeader(
     val current: Int = 0,
     val secureLabel: String,
     val home: @Polymorphic KompotAction? = null,
+    val tabTitle: String? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 

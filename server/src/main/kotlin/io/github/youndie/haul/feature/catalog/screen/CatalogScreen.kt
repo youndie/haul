@@ -157,7 +157,7 @@ internal class CatalogScreen(
                     pagination = pagination(page, url::pages) { _, to -> Parts.load(to) },
                 )
             }
-        return Frame.page("catalog", viewer, navigation(categories), sections)
+        return Frame.page("catalog", viewer, navigation(categories), sections, Frame.title(category.name))
     }
 
     /**
@@ -186,7 +186,14 @@ internal class CatalogScreen(
                         },
                 ),
             )
-        return Frame.page("categories-page", viewer, navigation(categories), sections, footer = true)
+        return Frame.page(
+            "categories-page",
+            viewer,
+            navigation(categories),
+            sections,
+            Frame.title(ROOT_TITLE),
+            footer = true,
+        )
     }
 
     /**

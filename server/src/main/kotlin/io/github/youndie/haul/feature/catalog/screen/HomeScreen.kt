@@ -103,7 +103,7 @@ internal class HomeScreen(
         }
         sections += PlusOffer.block(viewer, viewer.customer?.let { loyalty.standing(it) })
         sections += picked.build(viewer, onPage = productsIn(sections))
-        return Frame.page("home", viewer, navigation(categories), sections, footer = true)
+        return Frame.page("home", viewer, navigation(categories), sections, Frame.HOME_TITLE, footer = true)
     }
 
     /** The products the rows in [sections] draw, whichever rows those are. */

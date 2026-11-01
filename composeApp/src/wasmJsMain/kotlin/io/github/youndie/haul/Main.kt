@@ -17,6 +17,7 @@ import io.github.youndie.haul.feature.identity.PopupSignInFlow
 import io.github.youndie.haul.feature.identity.SIGN_IN_WINDOW
 import io.github.youndie.haul.shell.STATIC_FRAME_ID
 import io.github.youndie.haul.shell.WindowHistory
+import io.github.youndie.haul.shell.WindowTitle
 import io.github.youndie.haul.shell.clipboardLinks
 import io.github.youndie.haul.shell.ktorCommands
 import io.github.youndie.haul.shell.ktorRealtime
@@ -49,6 +50,8 @@ import kotlinx.coroutines.launch
  * bundle, and the storefront is mounted only once their bytes are read ([loadHaulFonts]). Mounted at once, it drew
  * the page in a fallback face and redrew it in Bodoni Moda when the files landed, reflowing every title. If a file
  * cannot be read, it mounts anyway and draws as it did then.
+ *
+ * The tab is titled by the page drawn ([WindowTitle], B-161); until a tree names one, it reads the page's own `<title>`.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 public fun main() {
@@ -99,6 +102,7 @@ public fun main() {
                     links = clipboardLinks,
                     fonts = fonts,
                     motion = motion,
+                    title = WindowTitle,
                 )
             }
         }

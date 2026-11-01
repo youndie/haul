@@ -62,7 +62,7 @@ internal class DealsScreen(
             pagination(shown, ::address) { to, address ->
                 if (deals == null && to.first > 1) Parts.load(address) else NavigateAction(address)
             }
-        return Frame.page("deals-page", viewer, navigation(categories), sections, footer = true)
+        return Frame.page("deals-page", viewer, navigation(categories), sections, Frame.title("Deals"), footer = true)
     }
 
     /** How far the shown price is under the old one, as a fraction of the old; 0 when it is not. */
