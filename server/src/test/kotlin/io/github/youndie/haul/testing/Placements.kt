@@ -17,7 +17,7 @@ import io.github.youndie.haul.feature.payment.data.PaymentCapturesTable
 import io.github.youndie.haul.feature.payment.data.PaymentRefundsTable
 import io.github.youndie.haul.feature.returns.data.ReturnsTable
 import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
-import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_HEADPHONES
 import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
@@ -30,7 +30,7 @@ import java.time.LocalDate
 import javax.sql.DataSource
 
 /** Maya's three SKUs (research §6): the headphones, the duvet cover set, the mug set. */
-internal val MAYAS_SKUS: List<String> = listOf("$SONY_HEADPHONES-0", "$DUVET_COVER-0", "$STONEWARE_MUG-0")
+internal val MAYAS_SKUS: List<String> = listOf("$SONORA_HEADPHONES-0", "$DUVET_COVER-0", "$STONEWARE_MUG-0")
 
 /**
  * What placement left in the database, read past every repository — the rows themselves, so a test

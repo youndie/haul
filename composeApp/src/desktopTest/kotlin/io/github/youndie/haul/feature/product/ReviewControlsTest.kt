@@ -330,7 +330,7 @@ class ReviewControlsTest {
         const val PHONE = 390
         const val HEIGHT = 900
         const val PARTS = "/ui/parts"
-        const val REVIEWS = "/p/p-sony-wh-1000xm6?tab=reviews"
+        const val REVIEWS = "/p/p-sonora-sh-718n?tab=reviews"
         const val ALL = "$PARTS$REVIEWS"
         const val FOURS = "$PARTS$REVIEWS&stars=4"
     }

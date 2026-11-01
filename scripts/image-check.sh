@@ -51,7 +51,7 @@ br_cache=$(header "$h" cache-control)
 gz_enc=$(header "$(headers "$module" gzip)" content-encoding)
 page_cache=$(header "$(headers "" "$BROWSER")" cache-control)
 map=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/composeApp.js.map")
-ADDRESS=p/p-sony-wh-1000xm6
+ADDRESS=p/p-sonora-sh-718n
 addr_status=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/$ADDRESS")
 h=$(headers "$ADDRESS" "$BROWSER")
 addr_type=$(header "$h" content-type); addr_cache=$(header "$h" cache-control); addr_enc=$(header "$h" content-encoding)

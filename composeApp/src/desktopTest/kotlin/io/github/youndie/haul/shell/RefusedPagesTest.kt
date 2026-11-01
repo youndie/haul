@@ -322,7 +322,7 @@ class RefusedPagesTest {
                 "/c/electronics?brand=%E0%A4%A",
                 "/search?q=%zz",
                 "/c/electronics?%zz",
-                "/p/p-sony-wh-1000xm6?sku=%zz",
+                "/p/p-sonora-sh-718n?sku=%zz",
             )
 
         val FIXED =

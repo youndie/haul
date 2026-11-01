@@ -1,5 +1,6 @@
 package io.github.youndie.haul.db
 
+import io.github.youndie.haul.seed.RealNames
 import io.github.youndie.haul.seed.SampleCatalog
 import io.github.youndie.haul.testing.PostgresHarness
 import kotlin.test.Test
@@ -8,7 +9,7 @@ import kotlin.test.assertTrue
 
 /**
  * V25 gives a catalogue seeded before it the listing names the seed gives the sample products (B-45), so a
- * stand that was already running writes «Sony WH-1000XM6 …» on its cards as a fresh one does. The names are
+ * stand that was already running writes «Sonora SH-718N …» on its cards as a fresh one does. The names are
  * written twice — in the migration's SQL and in `SampleCatalog` — and this is what holds them together: a
  * name changed in one place only fails here instead of making the running stand and a fresh seed disagree.
  */
@@ -27,7 +28,9 @@ class ListingNameMigrationTest {
                     statement.execute(
                         "INSERT INTO sellers (id, name, rating, positive_percent, years_on_haul) VALUES ('s', 'S', 4.5, 90, 1)",
                     )
-                    (named.keys + OTHER).forEach { id ->
+                    (named.keys + OTHER).forEach { new ->
+                        // Under the id the seed gave it then: V31 renames it after (B-166).
+                        val id = RealNames.old(new)
                         statement.execute(
                             "INSERT INTO products ($PRODUCT_COLUMNS) " +
                                 "VALUES ('$id', 's', 'c', '$id', 'b', 'd', '[]', 4.5, 0, 0, '#FFFFFF', 'l', now(), '$id')",

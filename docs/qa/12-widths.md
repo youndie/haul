@@ -48,7 +48,7 @@ width, a fresh load per width.
   2. Read the deals row on home.
   3. Read the category's applied filters and the sort.
 - **Expected:**
-  - Step 1: «WH-1000XM6» whole — the title set as large as its width holds.
+  - Step 1: «SH-718N» whole — the title set as large as its width holds.
   - Step 2: a card's old price beside the price when the two fit, whole under it when they do not — never
     «$432.9» over «9».
   - Step 3: the chips wrap, the sort at the first line's end, «Sort: Popular» whole.

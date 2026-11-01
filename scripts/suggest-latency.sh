@@ -35,7 +35,7 @@ for _ in $(seq 240); do
   sleep 0.5
 done
 
-QUERIES=("running shoes" "headphones" "sony" "wireless earbuds" "yoga mats" "heaphones" "xqzt")
+QUERIES=("running shoes" "headphones" "sonora" "wireless earbuds" "yoga mats" "heaphones" "xqzt")
 ARGS=()
 LABELS=()
 for q in "${QUERIES[@]}"; do

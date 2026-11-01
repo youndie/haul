@@ -54,8 +54,8 @@ import kotlin.test.assertTrue
  * a new guest, so the shared database's carts never meet.
  */
 class CartRoutesTest {
-    private val headphones = "${SampleCatalog.SONY_HEADPHONES}-0"
-    private val silverHeadphones = "${SampleCatalog.SONY_HEADPHONES}-3"
+    private val headphones = "${SampleCatalog.SONORA_HEADPHONES}-0"
+    private val silverHeadphones = "${SampleCatalog.SONORA_HEADPHONES}-3"
     private val duvet = "${SampleCatalog.DUVET_COVER}-0"
     private val mug = "${SampleCatalog.STONEWARE_MUG}-0"
 
@@ -86,7 +86,7 @@ class CartRoutesTest {
             assertEquals("$512", summary.total)
             // Content: three items in two seller groups, in the order they were added, all selected.
             val groups = tree.all().filterIsInstance<CartGroup>()
-            assertEquals(listOf("Sony Official Store", "Brooklyn Home Co."), groups.map { it.seller })
+            assertEquals(listOf("Sonora Audio", "Brooklyn Home Co."), groups.map { it.seller })
             assertEquals(listOf("Courier · Tomorrow", "Courier · Thu, Oct 9"), groups.map { it.delivery })
             assertEquals(listOf(listOf(headphones), listOf(duvet, mug)), groups.map { g -> g.lines.map { it.skuId } })
             assertTrue(groups.flatMap { it.lines }.all { it.selected && it.selectable && it.change == null })
@@ -97,7 +97,7 @@ class CartRoutesTest {
             // change the line that is there and never add it (B-125).
             assertEquals("/api/v1/cart/lines/$headphones?existing=true" to null, line.url to line.acknowledgeUrl)
             // The tile and the title open the product at the line's SKU, not at the product's default (B-100).
-            assertEquals(NavigateAction("/p/${SampleCatalog.SONY_HEADPHONES}?sku=$headphones"), line.action)
+            assertEquals(NavigateAction("/p/${SampleCatalog.SONORA_HEADPHONES}?sku=$headphones"), line.action)
             assertEquals(
                 CartSelection("selection", allSelected = true, selectedCount = 3, linesUrl = "/api/v1/cart/lines"),
                 tree.only<CartSelection>(),
@@ -420,10 +420,10 @@ class CartRoutesTest {
     fun `a line opens the product at its own SKU`() =
         haulTest {
             val guest = guest()
-            val travel = "${SampleCatalog.SONY_HEADPHONES}-1"
+            val travel = "${SampleCatalog.SONORA_HEADPHONES}-1"
             putLine(guest, travel, LineChange(quantity = 1)).assertRefresh()
             val line = cart(guest).all().filterIsInstance<CartLine>().single()
-            assertEquals(NavigateAction("/p/${SampleCatalog.SONY_HEADPHONES}?sku=$travel"), line.action)
+            assertEquals(NavigateAction("/p/${SampleCatalog.SONORA_HEADPHONES}?sku=$travel"), line.action)
         }
 
     /**

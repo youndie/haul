@@ -31,12 +31,12 @@ import kotlin.time.Duration.Companion.milliseconds
  * The simulated courier's side of a return (B-21, feature-orders: «the simulator picks it up and refunds»):
  * collected a day after it is asked for, refunded a day after that — the money goes back once, when the
  * seller has the parcel, and never more than the line was paid. Maya's order is delivered at 72 hours and
- * she returns Sony's headphones, $349.00, at 72 hours.
+ * she returns Sonora's headphones, $349.00, at 72 hours.
  */
 class ReturnLifecycleTest {
     private val asked = 72.hours
 
-    /** Maya's order delivered, Sony's line asked back at [asked]; the order's id. */
+    /** Maya's order delivered, Sonora's line asked back at [asked]; the order's id. */
     private fun FulfilmentWorld.returned(choice: CheckoutChoice = CheckoutChoice(slotId = "2025-10-08T15")): String {
         val order = place(choice)
         advance(Duration.ZERO)

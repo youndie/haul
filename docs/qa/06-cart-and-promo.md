@@ -48,7 +48,7 @@ the empty cart. «Buy now» is walked on the product page (TC-PDP-06); a command
   - Step 2: nothing happens.
   - Step 3: the two lines go.
   - Step 4: that line goes.
-  - Step 5: each box is named for what it does and whether it is ticked — «Select Sony WH-1000XM6 Wireless Noise
+  - Step 5: each box is named for what it does and whether it is ticked — «Select Sonora SH-718N Wireless Noise
     Cancelling Headphones, ticked», «…, not ticked» — and «Select all» says «ticked», «partly ticked» or «not
     ticked»; the tick turns the name. The line's photo keeps the product's name alone.
 - **Decided in:** B-11, B-100, B-129, B-151

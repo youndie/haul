@@ -40,7 +40,7 @@ _m = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_m)
 
 # A seeded product (server/.../seed/SampleCatalog.kt), and what the search field is given to open the panel.
-PRODUCT = "/p/p-sony-wh-1000xm6"
+PRODUCT = "/p/p-sonora-sh-718n"
 QUERY = "head"
 
 

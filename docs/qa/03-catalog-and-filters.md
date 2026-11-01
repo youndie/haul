@@ -10,11 +10,11 @@ header says a load is on its way. Pages of a search are in [search](04-search.md
 - **Width:** 1440
 - **Preconditions:** none.
 - **Steps:**
-  1. Open `/c/headphones?brand=Sony` typed into the address bar.
+  1. Open `/c/headphones?brand=Sonora` typed into the address bar.
   2. On the page, tick another brand.
   3. Open a product and press the category in its breadcrumbs.
 - **Expected:**
-  - Step 1: the address becomes `/c/electronics/audio/headphones?brand=Sony` (a `301`, the query kept) and the page
+  - Step 1: the address becomes `/c/electronics/audio/headphones?brand=Sonora` (a `301`, the query kept) and the page
     draws.
   - Step 2: one request, the parts (`GET /ui/parts/c/electronics/audio/headphones?…`); the address keeps its form; the
     page is not loaded a second time.
@@ -50,13 +50,13 @@ header says a load is on its way. Pages of a search are in [search](04-search.md
 - **Width:** 1440
 - **Preconditions:** headphones, scrolled so the facets are in view.
 - **Steps:**
-  1. Tick «Sony».
+  1. Tick «Sonora».
   2. Tick a second brand straight after, before the first answer lands.
   3. Press back, then forward.
   4. Reload the page.
 - **Expected:**
   - Step 1: one `GET /ui/parts/…`; the header, the crumbs and the scroll stay, no placeholder, the line under the
-    header while it loads; the title, the counts and the results change; the address gains `brand=Sony`.
+    header while it loads; the title, the counts and the results change; the address gains `brand=Sonora`.
   - Step 2: the last tick wins.
   - Step 3: back draws the results before the tick; forward the tick's.
   - Step 4: the reload draws what was shown.
@@ -291,7 +291,7 @@ header says a load is on its way. Pages of a search are in [search](04-search.md
   - Step 1: nothing is sent, no message, and the product does not open (the press is the «+»'s). A card of a
     product with nothing in stock names no delivery day: it ends at its rating.
   - Step 2: it is added, «Added to your cart», and the card's «+» is greyed after it.
-  - Step 3: each «+» is named by its card's product — «Add Sony WH-1000XM6 Wireless Noise Cancelling Headphones to
+  - Step 3: each «+» is named by its card's product — «Add Sonora SH-718N Wireless Noise Cancelling Headphones to
     cart» — not «Add to cart» on every card.
 - **Decided in:** B-37, B-75, B-81, B-120, B-151
 - **Coverage:** `server:DrawnActionsTest` «a card out of stock has no plus»;

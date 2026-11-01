@@ -59,13 +59,13 @@ class OutOfStockPromiseTest {
     @Test
     fun `the chosen SKU decides the page's day and the card keeps the day of the SKU in stock`() =
         haulTest {
-            val midnight = tree("/ui/p/$SONY?sku=$SONY-0").only<ProductDetails>()
+            val midnight = tree("/ui/p/$SONORA?sku=$SONORA-0").only<ProductDetails>()
             assertEquals(
                 listOf("Courier · Tomorrow", "Pickup point · Thu, Oct 9", "Returns"),
                 midnight.delivery.map { it.title },
             )
 
-            val silver = tree("/ui/p/$SONY?sku=$SONY-3").only<ProductDetails>()
+            val silver = tree("/ui/p/$SONORA?sku=$SONORA-3").only<ProductDetails>()
             assertEquals(emptyList(), silver.delivery, "Silver is out of stock and still promises a day")
             assertEquals("Midnight Black is in stock and arrives tomorrow.", silver.stockAdvice?.text)
 
@@ -73,11 +73,11 @@ class OutOfStockPromiseTest {
                 tree("/ui/c/electronics/audio/headphones")
                     .only<ProductGrid>()
                     .cards
-                    .single { it.productId == SONY }
+                    .single { it.productId == SONORA }
             assertEquals("Tomorrow", card.delivery)
         }
 
     private companion object {
-        const val SONY = "p-sony-wh-1000xm6"
+        const val SONORA = "p-sonora-sh-718n"
     }
 }

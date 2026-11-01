@@ -52,7 +52,6 @@ A stage is a field on the item, not a directory.
 |---|---|---|---|---|
 | [B-163](docs/backlog/B-163-under-the-hood-shows-the-tree.md) `[ ]` | feat: «Under the hood» shows the screen's kompot tree, what it cost and what updated | P1 | M | B-160 |
 | [B-164](docs/backlog/B-164-a-public-feed-of-live-orders.md) `[ ]` | feat: a public feed of live orders shows the saga's steps and its compensations | P1 | M | - |
-| [B-166](docs/backlog/B-166-sellers-and-brands-are-invented.md) `[ ]` | fix: sellers and brands in the sample data are invented, not real companies' | P2 | M | - |
 | [B-167](docs/backlog/B-167-keyboard-focus-is-visible.md) `[ ]` | fix: the control the keyboard is on is visibly marked | P2 | S/M | - |
 | [B-168](docs/backlog/B-168-arrival-is-quick-and-plays-once.md) `[ ]` | fix: the arrival is quick above the fold, does not replay on Back, and hover is for a mouse | P2 | S | - |
 | [B-169](docs/backlog/B-169-on-a-phone-the-variant-comes-before-the-buy.md) `[ ]` | fix: on a phone the product's variant is chosen before its buy buttons | P2 | S | - |
@@ -273,6 +272,7 @@ A stage is a field on the item, not a directory.
 - [B-161](docs/backlog/B-161-every-page-has-its-title-and-preview.md) `[x]` - feat: every page has its own title, a description and a link preview
 - [B-162](docs/backlog/B-162-a-visitor-tries-the-money-half-in-one-click.md) `[x]` - feat: a visitor tries checkout, the live order and a return as a demo shopper, in one click
 - [B-165](docs/backlog/B-165-readme-says-what-to-look-at.md) `[x]` - docs: the README says what to look at in five minutes, and the repository points at the stand
+- [B-166](docs/backlog/B-166-sellers-and-brands-are-invented.md) `[x]` - fix: sellers and brands in the sample data are invented, not real companies'
 
 <!-- END INDEX -->
 

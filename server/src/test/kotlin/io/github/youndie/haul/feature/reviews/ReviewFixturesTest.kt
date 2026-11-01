@@ -14,7 +14,7 @@ import io.github.youndie.haul.feature.reviews.domain.StoredReview
 import io.github.youndie.haul.feature.reviews.screen.ReviewTabs
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.CatalogSeed
-import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_HEADPHONES
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.seed.SeedArt
 import io.github.youndie.haul.shell.Viewer
@@ -68,7 +68,7 @@ class ReviewFixturesTest {
                         reviews.write(
                             StoredReview(
                                 id = "r-mayas",
-                                productId = SONY_HEADPHONES,
+                                productId = SONORA_HEADPHONES,
                                 customerId = SampleCustomers.MAYA,
                                 author = "Maya K.",
                                 rating = 5,
@@ -83,7 +83,7 @@ class ReviewFixturesTest {
                                 createdAt = CatalogSeed.NOW,
                             ),
                         )
-                        reviews.vote("r-sony-aisha", SampleCustomers.MAYA, helpful = true, at = CatalogSeed.NOW)
+                        reviews.vote("r-sonora-aisha", SampleCustomers.MAYA, helpful = true, at = CatalogSeed.NOW)
                         compare("product_reviews_mine.json", screen(database), ProductTab.Reviews)
                     },
                 )
@@ -114,7 +114,9 @@ class ReviewFixturesTest {
     ): String? {
         val maya = Viewer(firstName = "Maya", customerId = SampleCustomers.MAYA)
         val built =
-            Json.parseToJsonElement(haulWireJson.encodeKompotComponent(screen.build(SONY_HEADPHONES, null, tab, maya)))
+            Json.parseToJsonElement(
+                haulWireJson.encodeKompotComponent(screen.build(SONORA_HEADPHONES, null, tab, maya)),
+            )
         val drawn = Json.parseToJsonElement(File(bodies, name).readText())
         val owned =
             setOf(

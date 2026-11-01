@@ -6,7 +6,7 @@ import io.github.youndie.haul.feature.account.screen.AccountScreen
 import io.github.youndie.haul.feature.cart.CartPaths
 import io.github.youndie.haul.feature.saved.screen.SavedFilter
 import io.github.youndie.haul.haulWireJson
-import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_HEADPHONES
 import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.shell.Frame
@@ -127,11 +127,11 @@ class SavedRoutesTest {
     @Test
     fun `a product let go leaves the list and a second let-go changes nothing`() =
         world {
-            delete(SavedPaths.item(SONY_HEADPHONES)) { bearerAuth(maya) }.assertRefresh()
-            delete(SavedPaths.item(SONY_HEADPHONES)) { bearerAuth(maya) }.assertRefresh()
+            delete(SavedPaths.item(SONORA_HEADPHONES)) { bearerAuth(maya) }.assertRefresh()
+            delete(SavedPaths.item(SONORA_HEADPHONES)) { bearerAuth(maya) }.assertRefresh()
             val all = everything(maya)
             assertEquals(47, all.size)
-            assertTrue(SONY_HEADPHONES !in all)
+            assertTrue(SONORA_HEADPHONES !in all)
             val body = saved(maya)
             assertEquals(
                 listOf("All" to "47", "Price dropped" to "5"),
@@ -240,7 +240,7 @@ class SavedRoutesTest {
             )
             assertEquals(listOf("All"), list.filters.filter { it.selected }.map { it.label })
             assertTrue(list.cards.all { it.saved && it.heartCommand?.save == false }, "every heart lets its product go")
-            assertEquals(SONY_HEADPHONES to "Price dropped −$100", list.cards[1].productId to list.cards[1].drop)
+            assertEquals(SONORA_HEADPHONES to "Price dropped −$100", list.cards[1].productId to list.cards[1].drop)
             val pagination = checkNotNull(list.pagination)
             assertEquals(listOf("1", "2"), pagination.pages)
             assertNull(pagination.moreLabel)
@@ -316,7 +316,7 @@ class SavedRoutesTest {
             val moved = ShowMessageAction("Moved to your Saved list", actionLabel = "View saved", action = toSaved)
             assertEquals(SequenceAction(listOf(RefreshAction, moved)), post(url) { bearerAuth(maya) }.action())
             val cart = tree(maya, CartPaths.SCREEN).all().filterIsInstance<CartLine>()
-            assertEquals(listOf(SONY_HEADPHONES, "p-linen-duvet-cover-set"), cart.map { it.productId })
+            assertEquals(listOf(SONORA_HEADPHONES, "p-linen-duvet-cover-set"), cart.map { it.productId })
             assertEquals(
                 STONEWARE_MUG,
                 saved(maya)
@@ -349,9 +349,9 @@ class SavedRoutesTest {
         world {
             val home = tree(maya, "/ui/home")
             val cards = home.all().filterIsInstance<ProductCard>()
-            val sony = cards.first { it.productId == SONY_HEADPHONES }
-            assertTrue(sony.saved)
-            assertEquals(SaveCommand(SavedPaths.item(SONY_HEADPHONES), save = false), sony.heartCommand)
+            val sonora = cards.first { it.productId == SONORA_HEADPHONES }
+            assertTrue(sonora.saved)
+            assertEquals(SaveCommand(SavedPaths.item(SONORA_HEADPHONES), save = false), sonora.heartCommand)
             val unsaved = cards.first { !it.saved }
             assertEquals(SaveCommand(SavedPaths.item(unsaved.productId), save = true), unsaved.heartCommand)
             assertTrue(cards.all { it.heartAction == null })

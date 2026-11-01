@@ -78,7 +78,7 @@ class SaleCalendarTest {
         val canvas = CatalogSeed.generate(CatalogSeed.CANVAS_DAY)
         assertEquals(SampleCatalog.campaigns, canvas.campaigns, "the canvas's day moved the campaigns")
         assertTrue(canvas.deals.all { it.startsAt == CatalogSeed.DEALS_START && it.endsAt == CatalogSeed.DEALS_END })
-        assertTrue(SampleCatalog.SONY_DEAL in canvas.deals)
+        assertTrue(SampleCatalog.SONORA_DEAL in canvas.deals)
         assertEquals(SamplePromoCodes.all, canvas.promoCodes, "the canvas's day moved a promo code")
 
         val stand = CatalogSeed.generate(STAND_DAY)
@@ -305,7 +305,7 @@ class SaleCalendarTest {
             dataSource.sql("UPDATE deals SET sku_id = '${SampleCatalog.STONEWARE_MUG}-0' WHERE id = 'deal-4'")
             dataSource.sql(
                 "INSERT INTO deals (id, sku_id, price_cents, starts_at, ends_at) VALUES ('own', " +
-                    "'${SampleCatalog.SONY_HEADPHONES}-0', 30000, '${CatalogSeed.DEALS_START}', '${CatalogSeed.DEALS_END}')",
+                    "'${SampleCatalog.SONORA_HEADPHONES}-0', 30000, '${CatalogSeed.DEALS_START}', '${CatalogSeed.DEALS_END}')",
             )
             dataSource.sql(
                 "INSERT INTO promo_codes (code, percent_off, cap_cents, starts_at, ends_at) VALUES ('OWN10', 10, " +
@@ -477,7 +477,7 @@ class SaleCalendarTest {
 
     /** A guest's cart holding the headphones, so a promo code has something to count against. */
     private suspend fun HttpClient.cartWithHeadphones(): String =
-        guest().also { putLine(it, "${SampleCatalog.SONY_HEADPHONES}-0", LineChange(quantity = 1)).assertRefresh() }
+        guest().also { putLine(it, "${SampleCatalog.SONORA_HEADPHONES}-0", LineChange(quantity = 1)).assertRefresh() }
 
     /** What the tests compare between the canvas and a stand: prices and windows, never delivery days. */
     private data class Drawn(
@@ -500,7 +500,7 @@ class SaleCalendarTest {
                     deals = deals(home).map { listOf(it.productId, it.price, it.oldPrice, it.badge) },
                     onSale = tree("/ui/deals").only<PageTitle>().count,
                     headphones =
-                        tree("/ui/p/${SampleCatalog.SONY_HEADPHONES}")
+                        tree("/ui/p/${SampleCatalog.SONORA_HEADPHONES}")
                             .only<ProductDetails>()
                             .let { it.price to it.oldPrice },
                     hero = home.only<CampaignHero>().eyebrow,

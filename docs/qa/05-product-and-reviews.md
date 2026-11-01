@@ -1,8 +1,8 @@
 # Product and reviews — `TC-PDP`
 
 The product page: variants and tabs, the links on it, share, the buy box and its prices, reviews and questions,
-their dialogs and «Helpful». The sample product is the Sony WH-1000XM6 (`/p/…` from the home page's deal or a
-search for `sony`).
+their dialogs and «Helpful». The sample product is the Sonora SH-718N (`/p/…` from the home page's deal or a
+search for `sonora`).
 
 ### TC-PDP-01 — The page opens on the cheapest SKU in stock, and a variant changes the price
 
@@ -13,7 +13,7 @@ search for `sony`).
   1. Open the headphones.
   2. Press «+ Travel case», then «Silver».
 - **Expected:**
-  - Step 1: the cheapest SKU in stock is shown; the title under the brand is «WH-1000XM6 Wireless Noise Cancelling
+  - Step 1: the cheapest SKU in stock is shown; the title under the brand is «SH-718N Wireless Noise Cancelling
     Headphones», the hyphen drawn; «12K bought this month» (a product under 50 a month says nothing).
   - Step 2: the price follows the bundle; Silver is drawn out of stock, with neither «Add to cart» nor «Buy now».
 - **Decided in:** B-45, B-52, B-106
@@ -48,13 +48,13 @@ search for `sony`).
 - **Width:** 1440, 390
 - **Preconditions:** the headphones, scrolled to the top.
 - **Steps:**
-  1. Press the brand, «Sony».
+  1. Press the brand, «Sonora».
   2. Back; press the stars or «2,341 reviews».
   3. Press «All specifications».
   4. Look at the seller's card.
   5. Open the Reviews tab by its address (`?tab=reviews`), scrolled to the top, and press «2,341 reviews».
 - **Expected:**
-  - Step 1: headphones with «Sony» ticked (`/c/electronics/audio/headphones?brand=Sony`).
+  - Step 1: headphones with «Sonora» ticked (`/c/electronics/audio/headphones?brand=Sonora`).
   - Step 2: the Reviews tab, on the same page, the tab row brought into view with the reviews under it.
   - Step 3: the Specifications tab, brought into view the same way.
   - Step 4: no chevron — there is no seller page. (The review photos and the histogram's bars are controls since
@@ -315,7 +315,7 @@ search for `sony`).
 - **Steps:**
   1. Read the product's title, its price and its rating; a card's price with cents; an order's title.
 - **Expected:**
-  - Step 1: «WH-1000XM6» with its hyphen, «4.8» not «1.8», «$31.49» not «$31.19», the order title's dash and
+  - Step 1: «SH-718N» with its hyphen, «4.8» not «1.8», «$31.49» not «$31.19», the order title's dash and
     «#HL-48303» — figures and punctuation in the legible cut. Letters' hairlines (an H's bar) may still vanish at
     the largest sizes: recorded, not a failure (B-106).
 - **Decided in:** B-106
@@ -452,13 +452,13 @@ search for `sony`).
   1. Drag over the title, then press ⌘C (Ctrl+C) and paste somewhere else.
   2. Press the right button over the selected title; press «Copy» and paste. Press the right button over the
      specifications with nothing selected.
-  3. Press the right button over the brand, «Sony»; press «Copy link» and paste. Again, and press «Open in new tab».
+  3. Press the right button over the brand, «Sonora»; press «Copy link» and paste. Again, and press «Open in new tab».
   4. Open the menu, then press the right button somewhere off it; open it again and press Escape.
 - **Expected:**
   - Step 1: the words drawn selected; the paste is the selected words.
   - Step 2: a menu at the pointer drawn as the store's other menus (the sort's, «Catalog»'s), not the browser's:
     «Copy» and «Select all» over the selection, «Select all» alone with nothing selected; the paste is the words.
-  - Step 3: «Open in new tab» and «Copy link»; the paste is the whole address, `…/c/electronics/audio/headphones?brand=Sony`;
+  - Step 3: «Open in new tab» and «Copy link»; the paste is the whole address, `…/c/electronics/audio/headphones?brand=Sonora`;
     the new tab opens that address and this page stays where it was.
   - Step 4: each closes the menu, and nothing under it is pressed.
 - **Decided in:** B-154

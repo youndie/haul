@@ -957,7 +957,7 @@ and on the stand.
   compared across processes, which is the saga clock's reason for being, and the store's «now» is not it.
 - **The pace is a decision** (`FulfilmentPace.STORE`): packed 4 h after the seller sees the order, on the
   road 20 h later plus a day per dispatch day (the most of the shipment's products'), delivered or ready
-  to collect a day after that, collected two days later — inside the five days a point holds it. So Sony
+  to collect a day after that, collected two days later — inside the five days a point holds it. So Sonora
   ships a day before Brooklyn Home Co., as the canvas promises. `HAUL_FULFILMENT_SPEED` runs the same
   schedule that many times quicker (default 1; 1440 is a day a minute), polled every tenth of the
   shortest step, between 1 s and 1 min. The pace does not follow the window the shopper chose.
@@ -1443,7 +1443,7 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   (`Viewer.saved`). The header's «Saved» and the account menu's go to the list.
 - **Maya's 48 and 6 are seeded rows** (`seed/SampleSaved.kt`): the canvas's Saved pages draw products the seed does
   not sell, so her list is the headphones saved at their old $449 (−$100) and the duvet cover set at its old $179
-  (−$40), the Bose and the Sony studio headphones at their price, and generated products picked by a fixed stride —
+  (−$40), the Bellwave and the Sonora studio headphones at their price, and generated products picked by a fixed stride —
   four discounted ones saved at their old price. The fixtures keep the canvas's cards (`SavedFixturesTest` holds the
   rest of each body to the server's tree, and each card to the shape of a server card).
 
@@ -1593,7 +1593,7 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   the lower of the two. The catalog repository reads a SKU's deals with its campaign, so the deal card, every other
   card of the product, the product page, search, the Saved list's drops, the cart, the quote and placement read one
   price. The deal card is the deal's SKU as the catalog prices it; the five generated deals are drawn as before — 70 %
-  of the SKU's price under that price — and now charged so; the Sony deal is the sale's own $349 under $449.
+  of the SKU's price under that price — and now charged so; the Sonora deal is the sale's own $349 under $449.
 - **An ended deal is gone**: `CatalogRepository.deals()` returns the deals live on the store's clock, so its card
   leaves the home page, the deals page and the empty cart's picks, and its SKU sells at its campaign or regular price
   again; a line put into a cart at the deal's price is then a changed price (B-11's rule).
@@ -2600,7 +2600,7 @@ second Retry in the tree beside the page's. The cost: while the notice is up it 
 
 **Decided in B-151, a box or a switch says its state in its name, and a sheet or a dialog hides the page under it.**
 The 1.12 mirror carries a role and a name and no state (B-131), so the cart's line boxes, «Select all» and
-checkout's points switch are named for what they do and whether they are on — «Select Sony WH-1000XM6, ticked»,
+checkout's points switch are named for what they do and whether they are on — «Select Sonora SH-718N, ticked»,
 «Select all, partly ticked», «Use 2,480 points (−$24.80), off. 100 points = $1 · all or nothing» (`Modifier.toggles`,
 `ui/Links.kt`) — and carry the state in semantics as well. Their role there stays a button's: the mirror makes a
 `Role.Checkbox` a `role="checkbox"` with no `aria-checked`, and Chromium reads that as not checked (measured: a
@@ -2773,14 +2773,26 @@ for the database. The canvas's «Search 2.4 million products» is not drawn at a
 | `Address` | 148 Wythe Avenue, Apt 4F, Brooklyn, NY 11211 |
 | `PaymentMethod` | Card ···· 4821, expires 08/28 (approves); test card ···· 0002 (declines) |
 | `PickupPoint` | 214 Bedford Ave, 240 m, open until 21:00; 96 N 6th St, 650 m, open until 22:00; 315 Grand St, 900 m, open until 20:00; lockers «Wythe & N 7th», 180 m, and «Bedford Ave station», 700 m, 24/7 |
-| `Seller` | Sony Official Store — 4.9, 98 %, 6 yrs; Brooklyn Home Co. — 4.8, 97 %, 3 yrs |
-| `Product` | Sony WH-1000XM6 — listed as «Sony WH-1000XM6 Wireless Noise Cancelling Headphones» on cards, in the cart and on the order, «WH-1000XM6 Wireless Noise Cancelling Headphones» under the brand on its page (B-45); $349, was $449, −22 %, 4.8, 2,341 reviews, 86 questions; Midnight Black, Silver (out of stock); bundles Headphones only / + Travel case / + 2-year care; description headline «Silence, tuned to you», accent «to you»; «12K bought this month» from a seeded base of 12,340 (B-52) |
+| `Seller` | Sonora Audio — 4.9, 98 %, 6 yrs; Brooklyn Home Co. — 4.8, 97 %, 3 yrs |
+| `Product` | Sonora SH-718N — listed as «Sonora SH-718N Wireless Noise Cancelling Headphones» on cards, in the cart and on the order, «SH-718N Wireless Noise Cancelling Headphones» under the brand on its page (B-45); $349, was $449, −22 %, 4.8, 2,341 reviews, 86 questions; Midnight Black, Silver (out of stock); bundles Headphones only / + Travel case / + 2-year care; description headline «Silence, tuned to you», accent «to you»; «12K bought this month» from a seeded base of 12,340 (B-52) |
 | `Cart` (Maya) | the headphones $349, Linen Duvet Cover Set Queen Oat $139 (was $179), Stoneware Mug 12 oz Sage set of 2 $24; Items $652.00, Discount −$140.00, Delivery Free, Total $512, 1,024 points; with points −$24.80 → $487.20 |
 | `PromoCode` | `AUTUMN10` — 10 % off items up to $50, 2025-10-07…14; `SUMMER5` — expired 2025-08-31 |
 | `Order` | #HL-48211 (Oct 5, $512.00, in transit); #HL-47960 (Oct 3, $58.00, ready for pickup, code 4821, held until Oct 10); #HL-46102 (Sep 24, $103.00), #HL-45277 (Sep 11, $299.00), #HL-42860 (Aug 12, $42.00) delivered; #HL-44019 (Aug 30, $87.50) returned; #HL-48302 placed from the checkout fixture; #HL-48303 cancelled, card ···· 0002; Sam's #HL-45890 (Sep 18, $103.00) delivered. None is seeded: the fixture tests write them (`server/src/test/kotlin/io/github/youndie/haul/testing/SampleOrders.kt`) |
 
 The canvas's *canvas/canvas.json* and the artboards hold the rest of the copy (product lists,
 campaigns, reviews); the fixtures take it from there, not from this table.
+
+**The brands and sellers are invented** (B-166). The canvas sold real companies' headphones under their names —
+Sony, Bose and Marshall, from «Sony Official Store», «Bose Store» and «Marshall Store» — beside invented reviews and
+prices, and its brand facet listed JBL, Apple and Sennheiser; the store now sells Sonora, Bellwave and Mallard
+headphones from Sonora Audio, Bellwave Store and Mallard Store, with invented model numbers («Sonora SH-718N»), the
+codec LC3 for LDAC, and Juno, Aspen and Halvorsen in the facet. Prices, categories, pictures and reviews stayed: each
+renamed product id keeps its old id's `String.hashCode()` modulo 2,991, which is what the seed's picture variant
+(3) and generated reviews' copy (997) are chosen by, and sorts where the old one did among every other id — the model
+numbers are what make both hold. V31 renames a catalogue seeded before; `InventedBrandsTest` looks for the removed
+names in every seeded row, the server's code and the client's bodies and fixtures. The canvas and its references
+keep the old names (they are historical, §1.6); the migrations before V31 and the backlog's done items, which record
+what was, do too.
 
 The headphones' histogram on Product_Reviews (78 / 14 / 4 / 2 / 2 % of 2,341) averages 4.6, not the 4.8
 every artboard writes. The seed kept both as drawn until B-86, which made the rating the histogram's average: the

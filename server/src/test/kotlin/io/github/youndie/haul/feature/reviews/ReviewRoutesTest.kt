@@ -6,8 +6,8 @@ import io.github.youndie.haul.feature.reviews.data.ExposedReviews
 import io.github.youndie.haul.feature.reviews.domain.StoredReview
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
-import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
-import io.github.youndie.haul.seed.SampleCatalog.SONY_STORE
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_HEADPHONES
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_STORE
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.testing.SeededDatabase
@@ -62,9 +62,9 @@ import kotlin.test.assertTrue
  * the product's, which every other test reads.
  */
 class ReviewRoutesTest {
-    private val sony = SONY_HEADPHONES
-    private val reviewsTab = "/ui/p/$sony?tab=reviews"
-    private val questionsTab = "/ui/p/$sony?tab=questions"
+    private val sonora = SONORA_HEADPHONES
+    private val reviewsTab = "/ui/p/$sonora?tab=reviews"
+    private val questionsTab = "/ui/p/$sonora?tab=questions"
     private val good =
         ReviewEntry(
             rating = 5,
@@ -121,7 +121,7 @@ class ReviewRoutesTest {
             val questions = tree(questionsTab).only<ProductQuestions>().questions.take(2)
             assertEquals(listOf("Asked Sep 29, 2025", "Asked Sep 14, 2025"), questions.map { it.asked })
             assertEquals(
-                listOf("Sony Official Store · Sep 30, 2025", "Sony Official Store · Sep 15, 2025"),
+                listOf("Sonora Audio · Sep 30, 2025", "Sonora Audio · Sep 15, 2025"),
                 questions.map { it.answeredBy },
             )
         }
@@ -132,12 +132,12 @@ class ReviewRoutesTest {
             val questions = tree(questionsTab).only<ProductQuestions>()
             assertEquals("86", questions.count)
             assertEquals("questions", questions.caption)
-            assertEquals("Answers come from Sony Official Store.", questions.text)
+            assertEquals("Answers come from Sonora Audio.", questions.text)
             // The canvas's two answered ones are the newest answered of the 86 the seed stores (B-99).
             assertEquals(10, questions.questions.size)
             assertEquals(listOf("Asked Sep 29", "Asked Sep 14"), questions.questions.take(2).map { it.asked })
             assertEquals(
-                listOf("Sony Official Store · Sep 30", "Sony Official Store · Sep 15"),
+                listOf("Sonora Audio · Sep 30", "Sonora Audio · Sep 15"),
                 questions.questions.take(2).map { it.answeredBy },
             )
             assertEquals(List(10) { null }, questions.questions.map { it.pendingLabel })
@@ -156,15 +156,15 @@ class ReviewRoutesTest {
         signedIn { token ->
             val review = assertIs<PresentAction>(customerTree(token, reviewsTab).only<ProductReviews>().action)
             val form = assertIs<ReviewForm>(review.content)
-            assertEquals(ReviewPaths.reviews(sony), form.url)
-            assertEquals("Sony WH-1000XM6 Wireless Noise Cancelling Headphones", form.product.name)
+            assertEquals(ReviewPaths.reviews(sonora), form.url)
+            assertEquals("Sonora SH-718N Wireless Noise Cancelling Headphones", form.product.name)
             assertEquals("Midnight Black · Headphones only", form.product.detail)
             assertEquals(CloseAction, form.close)
             val question = assertIs<PresentAction>(customerTree(token, questionsTab).only<ProductQuestions>().action)
             val ask = assertIs<QuestionForm>(question.content)
-            assertEquals(ReviewPaths.questions(sony), ask.url)
+            assertEquals(ReviewPaths.questions(sonora), ask.url)
             assertEquals("10 – 1,000 characters", ask.hint)
-            // B-99: what happens to the question, not «Sony answers questions», which nothing does.
+            // B-99: what happens to the question, not «Sonora answers questions», which nothing does.
             assertEquals(
                 "Your question appears on this page for other shoppers, marked «Not answered yet». " +
                     "Sellers can’t answer new questions on Haul yet.",
@@ -172,7 +172,7 @@ class ReviewRoutesTest {
             )
             // The chosen SKU is the dialog's: Silver with a travel case.
             val silver =
-                assertIs<PresentAction>(customerTree(token, "$reviewsTab&sku=$sony-4").only<ProductReviews>().action)
+                assertIs<PresentAction>(customerTree(token, "$reviewsTab&sku=$sonora-4").only<ProductReviews>().action)
             assertEquals("Silver · + Travel case", assertIs<ReviewForm>(silver.content).product.detail)
         }
 
@@ -264,7 +264,7 @@ class ReviewRoutesTest {
                 ExposedReviews(Databases.connect(dataSource)).write(
                     StoredReview(
                         id = "r-mayas-old",
-                        productId = sony,
+                        productId = sonora,
                         customerId = SampleCustomers.MAYA,
                         author = "Maya K.",
                         rating = 4,
@@ -332,7 +332,7 @@ class ReviewRoutesTest {
                     good.copy(rating = 6, title = "x".repeat(121)),
                 ).assertError(HttpStatusCode.BadRequest, ErrorCode.ValidationFailed)
             assertEquals(listOf("rating", "title"), long.fields.map { it.field })
-            post(ReviewPaths.reviews(sony)) {
+            post(ReviewPaths.reviews(sonora)) {
                 bearerAuth(token)
                 contentType(ContentType.Application.Json)
                 setBody("{\"rating\": \"five\"}")
@@ -534,7 +534,7 @@ class ReviewRoutesTest {
         token: String?,
         entry: ReviewEntry,
     ): HttpResponse =
-        post(ReviewPaths.reviews(sony)) {
+        post(ReviewPaths.reviews(sonora)) {
             token?.let { bearerAuth(it) }
             contentType(ContentType.Application.Json)
             setBody(haulWireJson.encodeToString(ReviewEntry.serializer(), entry))
@@ -544,7 +544,7 @@ class ReviewRoutesTest {
         token: String?,
         entry: QuestionEntry,
     ): HttpResponse =
-        post(ReviewPaths.questions(sony)) {
+        post(ReviewPaths.questions(sonora)) {
             token?.let { bearerAuth(it) }
             contentType(ContentType.Application.Json)
             setBody(haulWireJson.encodeToString(QuestionEntry.serializer(), entry))
@@ -590,9 +590,9 @@ class ReviewRoutesTest {
         connection.use { c ->
             c.prepareStatement("SELECT id FROM reviews WHERE customer_id = ? AND product_id = ?").use {
                 it.setString(1, customer)
-                it.setString(2, sony)
+                it.setString(2, sonora)
                 it.executeQuery().use { rows ->
-                    check(rows.next()) { "$customer has no review of $sony" }
+                    check(rows.next()) { "$customer has no review of $sonora" }
                     rows.getString(1)
                 }
             }
@@ -604,7 +604,7 @@ class ReviewRoutesTest {
         assertEquals(SequenceAction(listOf(CloseAction, RefreshAction)), haulWireJson.decodeKompotAction(bodyAsText()))
     }
 
-    /** One order of [customer]'s holding the headphones from the Sony store, its shipment [status]. */
+    /** One order of [customer]'s holding the headphones from the Sonora store, its shipment [status]. */
     private fun DataSource.order(
         id: String,
         customer: String,
@@ -619,10 +619,10 @@ class ReviewRoutesTest {
                     VALUES ('$id', 'saga-$id', '$customer', 'placed', 'courier', 'card', 34900, 0, 0, 34900, 349,
                         '2025-09-20T10:00:00-04:00');
                     INSERT INTO order_lines (order_id, position, sku_id, seller_id, title, quantity, price_cents, list_cents)
-                    VALUES ('$id', 1, '$sony-0', '$SONY_STORE', 'WH-1000XM6 Wireless Noise Cancelling Headphones', 1,
+                    VALUES ('$id', 1, '$sonora-0', '$SONORA_STORE', 'SH-718N Wireless Noise Cancelling Headphones', 1,
                         34900, 44900);
                     INSERT INTO shipments (id, order_id, seller_id, position, status)
-                    VALUES ('$id-1', '$id', '$SONY_STORE', 1, '$status');
+                    VALUES ('$id-1', '$id', '$SONORA_STORE', 1, '$status');
                     """.trimIndent(),
                 )
             }
@@ -641,7 +641,7 @@ class ReviewRoutesTest {
 
     private companion object {
         /** The seed's two reviews of the headphones (`SampleReviews`): nobody's, so anyone may vote. */
-        const val DANIEL = "r-sony-daniel"
-        const val AISHA = "r-sony-aisha"
+        const val DANIEL = "r-sonora-daniel"
+        const val AISHA = "r-sonora-aisha"
     }
 }

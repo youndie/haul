@@ -14,7 +14,7 @@ import io.github.youndie.haul.feature.identity.domain.Customer
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
-import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_HEADPHONES
 import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.seed.SeedArt
@@ -117,7 +117,7 @@ class CartFixturesTest {
             check("cart_content.json", mayas())
 
             // Nothing ticked (B-100): no artboard draws it; the golden shows checkout and «Delete selected» idle.
-            val skus = listOf(SONY_HEADPHONES, DUVET_COVER, STONEWARE_MUG).map { "$it-0" }
+            val skus = listOf(SONORA_HEADPHONES, DUVET_COVER, STONEWARE_MUG).map { "$it-0" }
             skus.forEach { commands.changeLine(maya, it, LineChange(selected = false)) }
             check("cart_nothing_selected.json", mayas())
             skus.forEach { commands.changeLine(maya, it, LineChange(selected = true)) }
@@ -135,12 +135,12 @@ class CartFixturesTest {
             dataSource.sql("UPDATE skus SET price_cents = 2400 WHERE id = '$STONEWARE_MUG-0'")
 
             val guest = CartOwner.Guest(ExposedGuests(database).create(CatalogSeed.NOW))
-            listOf(SONY_HEADPHONES, DUVET_COVER, STONEWARE_MUG).forEach {
+            listOf(SONORA_HEADPHONES, DUVET_COVER, STONEWARE_MUG).forEach {
                 commands.changeLine(guest, "$it-0", LineChange(quantity = 1))
             }
             check("cart_guest.json", screen.build(guest, Viewer()))
 
-            commands.removeLines(maya, listOf("$SONY_HEADPHONES-0", "$DUVET_COVER-0", "$STONEWARE_MUG-0"))
+            commands.removeLines(maya, listOf("$SONORA_HEADPHONES-0", "$DUVET_COVER-0", "$STONEWARE_MUG-0"))
             check("cart_empty.json", mayas(), picksFromBody = true)
 
             assertEquals(emptyList(), mismatches, "bodies that are not the server's trees (see build/cart-fixtures)")

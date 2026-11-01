@@ -342,7 +342,7 @@ internal class ReviewTabs(
         /**
          * What the question dialog says happens (B-99): the question is shown on the page, unanswered, and
          * nothing answers it — the seed's answers are the only ones there are (feature-reviews: no seller
-         * side). It promised «Sony answers questions. You'll see the answer on this page.» before.
+         * side). It promised «Sonora answers questions. You'll see the answer on this page.» before.
          */
         const val QUESTION_NOTE =
             "Your question appears on this page for other shoppers, marked «Not answered yet». " +

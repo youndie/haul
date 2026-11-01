@@ -72,13 +72,13 @@ the server's own: `503`).
 - **Width:** 1440
 - **Preconditions:** none.
 - **Steps:**
-  1. Open `/c/electronics?sort=bogus&brand=Sony`.
+  1. Open `/c/electronics?sort=bogus&brand=Sonora`.
   2. Open the headphones at a `sku=` the product does not have.
   3. Open `/search?q=mug&page=x&from=3`.
   4. Open an address the server refuses without naming a parameter it has (a malformed request), such as
-     `/c/electronics?brand=%E0%A4%A`, `/search?q=%zz`, `/c/electronics?%zz` or `/p/p-sony-wh-1000xm6?sku=%zz`.
+     `/c/electronics?brand=%E0%A4%A`, `/search?q=%zz`, `/c/electronics?%zz` or `/p/p-sonora-sh-718n?sku=%zz`.
 - **Expected:**
-  - Step 1: the category with `brand=Sony` and without `sort` — no message, no Retry.
+  - Step 1: the category with `brand=Sonora` and without `sort` — no message, no Retry.
   - Step 2: the product at its default SKU.
   - Step 3: `page` dropped, then `from` — one parameter per refusal, the rest of the query as written.
   - Step 4: «This link is out of date», with «Open the page» (its path) or «Go to the home page». From

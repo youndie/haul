@@ -2,7 +2,7 @@ package io.github.youndie.haul.seed
 
 import io.github.youndie.haul.feature.reviews.domain.StoredQuestion
 import io.github.youndie.haul.feature.reviews.domain.StoredReview
-import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_HEADPHONES
 import java.time.OffsetDateTime
 
 /**
@@ -19,8 +19,8 @@ internal object SampleReviews {
     val reviews: List<StoredReview> =
         listOf(
             StoredReview(
-                id = "r-sony-daniel",
-                productId = SONY_HEADPHONES,
+                id = "r-sonora-daniel",
+                productId = SONORA_HEADPHONES,
                 customerId = null,
                 author = "Daniel R.",
                 rating = 5,
@@ -35,8 +35,8 @@ internal object SampleReviews {
                 createdAt = at("2025-09-28T14:10:00-04:00"),
             ),
             StoredReview(
-                id = "r-sony-aisha",
-                productId = SONY_HEADPHONES,
+                id = "r-sonora-aisha",
+                productId = SONORA_HEADPHONES,
                 customerId = null,
                 author = "Aisha K.",
                 rating = 4,
@@ -61,13 +61,13 @@ internal object SampleReviews {
      * number with the two reviews above.
      */
     val ratingCounts: Map<String, Map<Int, Int>> =
-        mapOf(SONY_HEADPHONES to mapOf(5 to 1_966, 4 to 281, 3 to 47, 2 to 24, 1 to 23))
+        mapOf(SONORA_HEADPHONES to mapOf(5 to 1_966, 4 to 281, 3 to 47, 2 to 24, 1 to 23))
 
     val questions: List<StoredQuestion> =
         listOf(
             StoredQuestion(
-                id = "q-sony-cable",
-                productId = SONY_HEADPHONES,
+                id = "q-sonora-cable",
+                productId = SONORA_HEADPHONES,
                 customerId = null,
                 text = "Can I use them with a cable on a plane?",
                 askedAt = at("2025-09-29T11:00:00-04:00"),
@@ -75,8 +75,8 @@ internal object SampleReviews {
                 answeredAt = at("2025-09-30T10:15:00-04:00"),
             ),
             StoredQuestion(
-                id = "q-sony-multipoint",
-                productId = SONY_HEADPHONES,
+                id = "q-sonora-multipoint",
+                productId = SONORA_HEADPHONES,
                 customerId = null,
                 text = "Do they connect to a laptop and a phone at the same time?",
                 askedAt = at("2025-09-14T16:40:00-04:00"),
@@ -84,8 +84,8 @@ internal object SampleReviews {
                 answeredAt = at("2025-09-15T09:05:00-04:00"),
             ),
             StoredQuestion(
-                id = "q-sony-headband",
-                productId = SONY_HEADPHONES,
+                id = "q-sonora-headband",
+                productId = SONORA_HEADPHONES,
                 customerId = null,
                 text = "Is the headband adjustable enough for a small head?",
                 askedAt = at("2025-10-06T20:25:00-04:00"),

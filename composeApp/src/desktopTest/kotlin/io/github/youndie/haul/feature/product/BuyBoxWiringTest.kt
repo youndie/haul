@@ -214,8 +214,8 @@ class BuyBoxWiringTest {
     private companion object {
         const val WIDTH = 1440
         const val HEIGHT = 1_500
-        const val ADDRESS = "/p/p-sony-wh-1000xm6"
-        const val LINE = "/api/v1/cart/lines/p-sony-wh-1000xm6-0"
+        const val ADDRESS = "/p/p-sonora-sh-718n"
+        const val LINE = "/api/v1/cart/lines/p-sonora-sh-718n-0"
         const val NEXT = "The next page"
 
         val ADD = LineCommand(LINE, LineChange(quantity = 1))

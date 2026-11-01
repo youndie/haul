@@ -7,7 +7,7 @@ import io.github.youndie.haul.feature.checkout.CheckoutPaths
 import io.github.youndie.haul.feature.identity.GUEST_HEADER
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.CatalogSeed
-import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_HEADPHONES
 import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
 import io.github.youndie.haul.testing.ShildikHarness
 import io.github.youndie.haul.testing.action
@@ -62,7 +62,7 @@ class ProductButtonsTest {
     fun `add to cart puts one more of the SKU shown into the cart`() =
         haulTest {
             val guest = guest()
-            val travel = "$SONY_HEADPHONES-1"
+            val travel = "$SONORA_HEADPHONES-1"
             val add =
                 assertNotNull(details(guest, travel).add, "the travel-case bundle in stock offers no «Add to cart»")
             assertEquals(LineCommand(CartPaths.line(travel) + "?answer=details", LineChange(quantity = 1)), add)
@@ -85,7 +85,7 @@ class ProductButtonsTest {
     fun `a guest's buy now puts the SKU shown in once and goes to checkout through sign-in`() =
         haulTest {
             val guest = guest()
-            val sku = "$SONY_HEADPHONES-0"
+            val sku = "$SONORA_HEADPHONES-0"
             val buy = assertNotNull(details(guest, sku).buy, "the headphones in stock offer no «Buy now»")
             assertEquals(CartPaths.line(sku), buy.url)
             assertEquals(LineChange(selected = true, alone = true), buy.change)
@@ -113,7 +113,7 @@ class ProductButtonsTest {
         val token = ShildikHarness.accessToken(ShildikHarness.person("Buy Now"))
         haulTest(signIn = ShildikHarness.signIn) {
             val mug = "$STONEWARE_MUG-0"
-            val headphones = "$SONY_HEADPHONES-0"
+            val headphones = "$SONORA_HEADPHONES-0"
             putLine(headphones, LineChange(quantity = 1)) { bearerAuth(token) }.assertRefresh()
             putLine(mug, LineChange(quantity = 2)) { bearerAuth(token) }.assertRefresh()
             val buy =
@@ -164,7 +164,7 @@ class ProductButtonsTest {
     @Test
     fun `out of stock neither add to cart nor buy now is offered`() =
         haulTest {
-            val silver = details(guest(), "$SONY_HEADPHONES-3")
+            val silver = details(guest(), "$SONORA_HEADPHONES-3")
             assertFalse(silver.inStock, "Silver is in stock in the seed now; the test needs another SKU")
             assertNull(silver.add, "Silver is out of stock and offers «Add to cart»")
             assertNull(silver.buy, "Silver is out of stock and offers «Buy now»")

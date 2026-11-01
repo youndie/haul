@@ -40,7 +40,7 @@ import kotlinx.serialization.Serializable
  * is in, `null` for all of them or off the search page. The strip says where the store delivers and for how much, and
  * nothing else: «Sell on HAUL», «Help» and the language had no page behind them and are gone (B-72).
  *
- * [tabTitle] is the browser tab's title for the page this header tops (B-161): «Sony WH-1000XM6 Wireless Noise
+ * [tabTitle] is the browser tab's title for the page this header tops (B-161): «Sonora SH-718N Wireless Noise
  * Cancelling Headphones · Haul», «Deals · Haul» — the server's copy, which the client puts in `document.title` and
  * never composes. `null` on a header that tops no page: the header alone (`/ui/header`, B-105) and the header an
  * `update` redraws (B-63), which the client never reads it from.

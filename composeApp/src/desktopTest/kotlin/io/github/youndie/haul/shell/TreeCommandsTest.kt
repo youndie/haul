@@ -171,9 +171,9 @@ class TreeCommandsTest {
         }
 
     private companion object {
-        const val HELPFUL = "/api/v1/reviews/r-sony-aisha/helpful"
-        const val REVIEWS = "/api/v1/products/p-sony-wh-1000xm6/reviews"
-        const val QUESTIONS = "/api/v1/products/p-sony-wh-1000xm6/questions"
+        const val HELPFUL = "/api/v1/reviews/r-sonora-aisha/helpful"
+        const val REVIEWS = "/api/v1/products/p-sonora-sh-718n/reviews"
+        const val QUESTIONS = "/api/v1/products/p-sonora-sh-718n/questions"
         const val RETURNS = "/api/v1/me/orders/HL-46102/returns"
         const val TRIAL = "/api/v1/me/plus/trial"
         const val CLOSED = """{"type":"sequence","actions":[{"type":"close"},{"type":"refresh"}]}"""

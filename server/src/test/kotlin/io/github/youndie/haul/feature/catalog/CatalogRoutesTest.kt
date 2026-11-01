@@ -33,13 +33,13 @@ class CatalogRoutesTest {
         haulTest {
             val page =
                 tree(
-                    "/ui/c/electronics/audio/headphones?brand=Sony&brand=Bose&price_min=80&price_max=400&feature=Noise%20cancelling",
+                    "/ui/c/electronics/audio/headphones?brand=Sonora&brand=Bellwave&price_min=80&price_max=400&feature=Noise%20cancelling",
                 )
             val cards = page.only<ProductGrid>().cards
             assertTrue(cards.isNotEmpty(), "the filters matched nothing — the scenario would pass on an empty page")
             cards.forEach { card ->
                 val product = catalog.products.single { it.id == card.productId }
-                assertTrue(product.brand in setOf("Sony", "Bose"), "${product.title} is not Sony or Bose")
+                assertTrue(product.brand in setOf("Sonora", "Bellwave"), "${product.title} is not Sonora or Bellwave")
                 assertTrue("Noise cancelling" in product.features, "${product.title} does not cancel noise")
                 val dollars =
                     card.price
@@ -55,7 +55,7 @@ class CatalogRoutesTest {
     @Test
     fun `a filter set with no products answers an empty page with its facets`() =
         haulTest {
-            val page = tree("/ui/c/electronics/audio/headphones?brand=Marshall&colour=Pink")
+            val page = tree("/ui/c/electronics/audio/headphones?brand=Mallard&colour=Pink")
             assertTrue(page.all().none { it is ProductGrid }, "a grid was drawn for an empty result")
             assertEquals("No items match these filters", page.only<EmptyState>().title)
             assertEquals("0 items", page.only<PageTitle>().count)
@@ -65,7 +65,7 @@ class CatalogRoutesTest {
                     .facets
                     .single { it.key == "brand" }
                     .options
-            assertTrue(brands.any { it.label == "Marshall" && it.selected }, "the brand facet lost its values")
+            assertTrue(brands.any { it.label == "Mallard" && it.selected }, "the brand facet lost its values")
         }
 
     /**
@@ -100,7 +100,7 @@ class CatalogRoutesTest {
     fun `an option with nothing to show presses nothing unless it is ticked`() =
         haulTest {
             val options =
-                tree("/ui/c/electronics/audio/headphones?brand=Marshall&colour=Pink")
+                tree("/ui/c/electronics/audio/headphones?brand=Mallard&colour=Pink")
                     .only<FacetPanel>()
                     .facets
                     .filter { it.kind != "range" }

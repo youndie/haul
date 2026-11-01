@@ -54,13 +54,13 @@ class SeedTest {
     @Test
     fun `the generated catalog carries the sample products at their canvas prices`() {
         val catalog = CatalogSeed.generate(CatalogSeed.CANVAS_DAY)
-        val headphones = catalog.skus.first { it.id == "${SampleCatalog.SONY_HEADPHONES}-0" }
+        val headphones = catalog.skus.first { it.id == "${SampleCatalog.SONORA_HEADPHONES}-0" }
         assertEquals(34_900, headphones.priceCents)
         assertEquals(44_900, headphones.oldPriceCents)
         assertTrue(
             catalog.skus
                 .filter {
-                    it.productId == SampleCatalog.SONY_HEADPHONES &&
+                    it.productId == SampleCatalog.SONORA_HEADPHONES &&
                         it.options.toString().contains("Silver")
                 }.all { it.stock == 0 },
         )

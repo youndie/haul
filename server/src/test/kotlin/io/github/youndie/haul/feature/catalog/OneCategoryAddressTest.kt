@@ -29,7 +29,7 @@ import kotlin.test.fail
  * B-68: a category has one address, the slugs from its top-level category down to it. The shell takes two
  * addresses for one screen only when their paths are equal (B-62), so a page opened by a link whose filters
  * named another form of the same category was loaded whole on the first tick — seen on the stand at
- * `/c/electronics/headphones`, whose «Sony» loaded `/ui/parts/c/headphones?brand=Sony` and then the page.
+ * `/c/electronics/headphones`, whose «Sonora» loaded `/ui/parts/c/headphones?brand=Sonora` and then the page.
  */
 class OneCategoryAddressTest {
     private val seed = CatalogSeed.generate(CatalogSeed.CANVAS_DAY).categories
@@ -74,7 +74,7 @@ class OneCategoryAddressTest {
         haulTest {
             val still = config { followRedirects = false }
             val crumbs =
-                tree("/ui/p/${SampleCatalog.SONY_HEADPHONES}")
+                tree("/ui/p/${SampleCatalog.SONORA_HEADPHONES}")
                     .only<Breadcrumbs>()
                     .crumbs
                     .mapNotNull { (it.action as? NavigateAction)?.deeplink }
@@ -103,14 +103,14 @@ class OneCategoryAddressTest {
         haulTest {
             val still = config { followRedirects = false }
             mapOf(
-                "/c/headphones?brand=Sony&feature=Noise%20cancelling" to
-                    "/c/electronics/audio/headphones?brand=Sony&feature=Noise%20cancelling",
+                "/c/headphones?brand=Sonora&feature=Noise%20cancelling" to
+                    "/c/electronics/audio/headphones?brand=Sonora&feature=Noise%20cancelling",
                 "/c/electronics/headphones" to "/c/electronics/audio/headphones",
-                "/ui/c/headphones?brand=Sony" to "/ui/c/electronics/audio/headphones?brand=Sony",
+                "/ui/c/headphones?brand=Sonora" to "/ui/c/electronics/audio/headphones?brand=Sonora",
                 "/ui/c/audio/headphones?sort=rating" to "/ui/c/electronics/audio/headphones?sort=rating",
                 "/ui/c/audio" to "/ui/c/electronics/audio",
-                "${Parts.PREFIX}/c/headphones?brand=Sony" to
-                    "${Parts.PREFIX}/c/electronics/audio/headphones?brand=Sony",
+                "${Parts.PREFIX}/c/headphones?brand=Sonora" to
+                    "${Parts.PREFIX}/c/electronics/audio/headphones?brand=Sonora",
             ).forEach { (asked, address) ->
                 val response = still.get(asked)
                 assertEquals(HttpStatusCode.MovedPermanently, response.status, asked)
@@ -118,7 +118,7 @@ class OneCategoryAddressTest {
             }
             // The address itself, the catalog's root and a category that is not there are the routes' own answers.
             mapOf(
-                "/ui/c/electronics/audio/headphones?brand=Sony" to HttpStatusCode.OK,
+                "/ui/c/electronics/audio/headphones?brand=Sonora" to HttpStatusCode.OK,
                 "/ui/c/electronics" to HttpStatusCode.OK,
                 "/ui/c" to HttpStatusCode.OK,
                 "/ui/c/no-such-thing" to HttpStatusCode.NotFound,
@@ -137,7 +137,7 @@ class OneCategoryAddressTest {
                 "/ui/search?q=everyday",
                 "/ui/search?q=zzqxv",
                 "/ui/search/suggest?q=running%20sh",
-                "/ui/p/${SampleCatalog.SONY_HEADPHONES}",
+                "/ui/p/${SampleCatalog.SONORA_HEADPHONES}",
                 "/ui/p/" +
                     CatalogSeed
                         .generate(

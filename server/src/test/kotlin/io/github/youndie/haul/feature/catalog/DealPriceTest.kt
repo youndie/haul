@@ -206,38 +206,42 @@ class DealPriceTest {
         }
 
     /**
-     * The Sony deal is the headphones at the Autumn mega sale's own $349: its card stays $349 under $449,
+     * The Sonora deal is the headphones at the Autumn mega sale's own $349: its card stays $349 under $449,
      * −22 %, and is charged $349; when the deal ends the sale still sells the headphones at $349.
      */
     @Test
-    fun `the Sony deal is unchanged`() =
+    fun `the Sonora deal is unchanged`() =
         store { clock, database ->
-            val sony = dealCard(SampleCatalog.SONY_DEAL)
-            assertEquals(listOf("$349", "$449", "−22%"), listOf(sony.price, sony.oldPrice, sony.badge))
-            assertEquals("$349" to "$449", productPrice(SampleCatalog.SONY_DEAL.skuId))
-            press(assertNotNull(sony.add))
-            assertEquals(listOf(34_900), checkOut("sam-sony", database))
+            val sonora = dealCard(SampleCatalog.SONORA_DEAL)
+            assertEquals(listOf("$349", "$449", "−22%"), listOf(sonora.price, sonora.oldPrice, sonora.badge))
+            assertEquals("$349" to "$449", productPrice(SampleCatalog.SONORA_DEAL.skuId))
+            press(assertNotNull(sonora.add))
+            assertEquals(listOf(34_900), checkOut("sam-sonora", database))
 
             clock.at = CatalogSeed.DEALS_END
             assertTrue(dealCards().isEmpty(), "a deal of the canvas's day is drawn the day after")
-            assertEquals("$349" to "$449", productPrice(SampleCatalog.SONY_DEAL.skuId), "the sale ended with the deal")
+            assertEquals(
+                "$349" to "$449",
+                productPrice(SampleCatalog.SONORA_DEAL.skuId),
+                "the sale ended with the deal",
+            )
         }
 
     /**
-     * A deal and a campaign on one SKU sell at the lower of the two: the Sony deal moved to $399, above the
+     * A deal and a campaign on one SKU sell at the lower of the two: the Sonora deal moved to $399, above the
      * sale's $349, leaves the headphones at the sale's price under the regular one; moved to $299, below it,
      * makes them $299 under the sale's $349 — on the card, the product page and in the cart.
      */
     @Test
     fun `a deal and a campaign on one SKU take the lower price`() =
         store { _, database ->
-            val skuId = SampleCatalog.SONY_DEAL.skuId
-            database.sql("UPDATE deals SET price_cents = 39900 WHERE id = '${SampleCatalog.SONY_DEAL.id}'")
-            assertEquals("$349" to "$449", dealCard(SampleCatalog.SONY_DEAL).let { it.price to it.oldPrice })
+            val skuId = SampleCatalog.SONORA_DEAL.skuId
+            database.sql("UPDATE deals SET price_cents = 39900 WHERE id = '${SampleCatalog.SONORA_DEAL.id}'")
+            assertEquals("$349" to "$449", dealCard(SampleCatalog.SONORA_DEAL).let { it.price to it.oldPrice })
             assertEquals("$349" to "$449", productPrice(skuId))
 
-            database.sql("UPDATE deals SET price_cents = 29900 WHERE id = '${SampleCatalog.SONY_DEAL.id}'")
-            val card = dealCard(SampleCatalog.SONY_DEAL)
+            database.sql("UPDATE deals SET price_cents = 29900 WHERE id = '${SampleCatalog.SONORA_DEAL.id}'")
+            val card = dealCard(SampleCatalog.SONORA_DEAL)
             assertEquals("$299" to "$349", card.price to card.oldPrice)
             assertEquals("$299" to "$349", productPrice(skuId))
             press(assertNotNull(card.add))
@@ -254,7 +258,7 @@ class DealPriceTest {
         get() =
             assertNotNull(
                 seed.deals.firstOrNull { deal ->
-                    deal != SampleCatalog.SONY_DEAL &&
+                    deal != SampleCatalog.SONORA_DEAL &&
                         skuOf(deal).campaignSlug == null &&
                         deal.priceCents >= Totals.FREE_DELIVERY_FROM_CENTS
                 },

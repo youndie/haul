@@ -86,14 +86,14 @@ class CampaignEndTest {
 
     /** The headphones' buy box: the price and the struck-through one. */
     private suspend fun HttpClient.productPrice(token: String): Pair<String, String?> =
-        page("/ui/p/$SONY?sku=$SONY_SKU", token).only<ProductDetails>().let { it.price to it.oldPrice }
+        page("/ui/p/$SONORA?sku=$SONORA_SKU", token).only<ProductDetails>().let { it.price to it.oldPrice }
 
     /** The headphones' card in their category: its price, the struck-through one and the badge. */
     private suspend fun HttpClient.card(token: String): List<String?> =
-        page("/ui/c/electronics/audio/headphones?brand=Sony", token)
+        page("/ui/c/electronics/audio/headphones?brand=Sonora", token)
             .all()
             .filterIsInstance<ProductCard>()
-            .single { it.productId == SONY }
+            .single { it.productId == SONORA }
             .let { listOf(it.price, it.oldPrice, it.badge) }
 
     private suspend fun HttpClient.putLine(skuId: String) =
@@ -160,21 +160,21 @@ class CampaignEndTest {
     @Test
     fun `at the sale's end the cart the checkout and placement charge the regular price`() =
         store { clock, database ->
-            putLine(SONY_SKU)
+            putLine(SONORA_SKU)
             putLine(MUG_SKU)
             pickUp()
-            assertEquals("$349", cartLine(SONY_SKU).price)
+            assertEquals("$349", cartLine(SONORA_SKU).price)
             val stale = checkout()
             assertEquals("$373", stale.total)
 
             clock.at = AUTUMN_END
-            val line = cartLine(SONY_SKU)
+            val line = cartLine(SONORA_SKU)
             assertEquals("$449", line.price, "the cart charges the ended sale's price")
             assertEquals("Price changed: now $449", line.change)
             place("sam-stale", stale).assertError(HttpStatusCode.Conflict, ErrorCode.CartChanged)
 
-            post(CartPaths.acknowledge(SONY_SKU)) { bearerAuth(sam) }.assertRefresh()
-            assertNull(cartLine(SONY_SKU).change)
+            post(CartPaths.acknowledge(SONORA_SKU)) { bearerAuth(sam) }.assertRefresh()
+            assertNull(cartLine(SONORA_SKU).change)
             assertEquals("$473", cartTotal())
             val summary = checkout()
             assertEquals("$473", summary.total)
@@ -185,8 +185,8 @@ class CampaignEndTest {
         }
 
     private companion object {
-        const val SONY = SampleCatalog.SONY_HEADPHONES
-        const val SONY_SKU = "${SampleCatalog.SONY_HEADPHONES}-0"
+        const val SONORA = SampleCatalog.SONORA_HEADPHONES
+        const val SONORA_SKU = "${SampleCatalog.SONORA_HEADPHONES}-0"
         const val MUG_SKU = "${SampleCatalog.STONEWARE_MUG}-0"
 
         /** The Autumn mega sale's end (research §6): Oct 15, 2025, New York's midnight. */

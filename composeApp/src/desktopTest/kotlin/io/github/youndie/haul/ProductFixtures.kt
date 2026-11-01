@@ -84,7 +84,7 @@ internal fun ProductShareRefused() =
     Fixture(compact = true) {
         Box(Modifier.fillMaxSize().background(toneColor("#E6E4FF"))) {
             ShareFallback(
-                "https://haul.kotlin.website/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0",
+                "https://haul.kotlin.website/p/p-sonora-sh-718n?sku=p-sonora-sh-718n-0",
                 Modifier.align(Alignment.TopEnd).padding(14.dp),
             ) {}
         }
@@ -97,7 +97,7 @@ private fun specFacts(): KompotComponent {
         listOf(
             Highlight("Battery", "Up to 40 hours, 3 min charge = 3 h"),
             Highlight("Noise cancelling", "Adaptive, 12 microphones"),
-            Highlight("Connectivity", "Bluetooth 5.4 · LDAC · multipoint"),
+            Highlight("Connectivity", "Bluetooth 5.4 · LC3 · multipoint"),
             Highlight("Weight", "250 g"),
         )
     return page.copy(children = page.children.map { if (it is ProductDescription) it.copy(facts = facts) else it })
