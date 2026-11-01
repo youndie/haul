@@ -14,6 +14,7 @@ import io.github.youndie.haul.feature.identity.SessionControls
 import io.github.youndie.haul.feature.identity.SignInActions
 import io.github.youndie.haul.feature.identity.SignInUnavailable
 import io.github.youndie.haul.feature.identity.SignInUnreachable
+import io.github.youndie.haul.ui.DEMO_SHOPPER_NAME
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.kompot.standard.MessageLevel
 import io.github.youndie.kompot.standard.NavigateAction
@@ -113,7 +114,7 @@ internal class Signing(
 }
 
 /** «Try as a demo shopper» (B-162): the sign-in page's and the prompt's second way in, and the phone menu's row. */
-public const val DEMO_SHOPPER_LABEL: String = "Try as a demo shopper"
+public const val DEMO_SHOPPER_LABEL: String = DEMO_SHOPPER_NAME
 
 /** What a refused demo shopper says when the server said nothing. */
 internal const val DEMO_REFUSED: String = "The demo shopper isn’t available just now. Try again in a moment."
