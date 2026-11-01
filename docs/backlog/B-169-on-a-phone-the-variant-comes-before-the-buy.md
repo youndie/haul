@@ -32,8 +32,12 @@ On a phone's product page the colour and size choice sits below «Add to cart» 
   box — and is left unchanged, as the assignment says; the B-169 test does not pin it either way.
 - The phone's product artboards (`Product_Description_Phone`, `Product_OutOfStock_Phone` and the tabs') were
   already retired (B-71, B-78), so no design reference moves; `Product_Error_Phone` draws no choices.
-- `viddikRecord --force` also rewrote `Search_Autocomplete` and `Search_Results` (1440) with a few hundred bytes'
-  difference; the change cannot reach the search page, they were left as they are and `viddikVerify` accepts them.
+- The first `viddikRecord --force` (before main's B-172 was merged in) also rewrote `Search_Autocomplete` and
+  `Search_Results`; this change cannot reach the search page, so they were not brought back. After merging main a
+  second `--force` recording matched every golden byte for byte.
+- `viddikDesignParity` (report-only): every phone product artboard is retired (no reference); the ones that remain
+  are unchanged — `Product_Loading` 3.52 %, `Product_NotFound` 1.50 %, `Product_Error` 1.95 %, `Product_Error_Phone`
+  4.86 %, all ok.
 
 ## Where the checks ran (2026-11-01)
 
@@ -42,3 +46,7 @@ On a phone's product page the colour and size choice sits below «Add to cart» 
   the commit before, the phone test fails («a choice at … 1449 stands below the buy buttons at 996»), restored.
 - Goldens recorded with `viddikRecord --force` in a copy outside the mutagen replica; the eight phone product
   pages moved and were looked at; no 1440 or 1024 product golden moved.
+- After merging main: `./gradlew check :server:installDist :composeApp:wasmJsBrowserDistribution` green on the WSL
+  box (`desktopTest` every test in 71 classes, `viddikVerify`, `:server:test` with Testcontainers), `make check`
+  green. `scripts/image-check.sh`, `scripts/e2e.sh` and the other image scripts were not run: the change is the
+  client's layout alone, and CI runs them.
