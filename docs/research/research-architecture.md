@@ -73,8 +73,9 @@ B-29:** a channel is one customer's — delivered by the order and its customer,
 (`404 order_not_found`) to anybody else; every stream opens with the order as it is, so a move made
 while the page loaded or reconnected is not lost, and the browser reconnects by itself (a second,
 doubling to thirty) rather than reloading the page. A page that leaves ends its stream quietly: the broken pipe its next
-write meets is a line at `debug`, not an unhandled error for katcher (B-110). The bus is in memory: one process serves the
-pages and runs the simulated world, and a second replica would need kompot's Redis bus.
+write meets is a line at `debug`, not an unhandled error for katcher (B-110). The broadcaster's bus is kompot's in-memory
+one and holds the listeners of one process; since B-174 what travels between replicas is the order's id, over
+PostgreSQL's `LISTEN`/`NOTIFY`, and the replica a page is connected to draws its frame («Decided in B-174», D4).
 
 ### 1.3 petich storage
 
@@ -1191,6 +1192,65 @@ and on the stand.
   QA pass offered; the owner recorded no call, and the store holds one return per order everywhere (the table,
   the refund, points and restock keys, the order's progress), so the rule is shown rather than changed.
 
+**Decided in B-174, two replicas (2026-11-01).** Until then the server was one replica by construction: the live
+pages' bus was the process's, and the simulated world, the sweeper and the sweeps ran in every process. Now any
+number serve one database, and the chart allows it (`server.replicas`, still 1 by default: whether the stand runs two
+is the deploy's call).
+
+- **What travels between replicas is the order's id, over PostgreSQL's `LISTEN`/`NOTIFY`** (`ops/PostgresBus.kt`,
+  channel `haul_order_moves`). `OrderMoves` keeps the moves this process made apart from those it heard
+  (`madeHere`, `heard`); the bus sends the first and hands the second in, and `orders` — what `LiveOrders` and
+  `LiveFeed` collect — is both. A frame is a customer's page drawn for that customer, up to tens of kilobytes, and a
+  notification holds 8,000 bytes, so each replica that has a page listening draws the frame itself, from the same
+  rows, as for its own moves; the ids of a burst go together, at most 4,000 bytes a notification. The bus listens on
+  one connection of its own, outside the pool; a notification carries its sender's origin and a replica drops its
+  own. **Best effort, as the in-process bus was**: a move not sent (the database away) or sent while a listener was
+  reconnecting is a page one step behind until the next move or its next connection, which starts with the order as
+  it is. A listening session that fails, or stops answering the check made every 10 s, is opened again after a
+  second.
+- **Why not booblik, nor kompot's Redis bus.** Both are another pod with its own storage, its own failure and its own
+  deploy, for a guarantee the pages do not need: a live page needs the moves fanned out to whoever listens now, not a
+  durable log of them — a page that missed one catches up from the rows on its next connection, by design since B-29.
+  PostgreSQL is already the one thing every replica must reach, its notifications are delivered after the move's
+  commit, and its 8,000-byte limit is met by sending ids.
+- **One replica leads; the simulated world, the saga's sweeper, the sample sale's re-dating and the demo shoppers'
+  sweep run on it alone** (`ops/Leader.kt`), elected with vojak (`io.github.youndie.vojak:vojak-jdbc` 0.1.0.6, the
+  owner's advisory-lock election, its JDBC store) under the name `simulated-world` in the namespace `haul`, its table
+  `haul_leader_epoch`, over a two-connection pool of its own so a held leadership never takes one from the requests.
+  Every replica serves every route and runs its own placements' sagas. vojak's timing is its default: a 15 s lease
+  the server enforces, 7.5 s the leader believes itself without renewing, a renewal every 5 s, a follower's poll
+  every 2 s. A leader that stops closes its election first (`ApplicationStopping`), so the next one takes over within
+  a poll; a killed one's session ends with its process, and the next leader waits out the 7.5 s before it starts.
+  The leader shows as `vojak <replica>` in `pg_stat_activity`; a replica is `HAUL_REPLICA`, else the pod's name, and
+  its pool's sessions are `haul <replica>`.
+- **The sweeper is the leader's because petich's has no claim**: two instances re-driving one saga both run the
+  member and only one wins the write (`SuspendedPetichSweeper.stuckAfter`). The placement's own path is any
+  replica's: a placement sent again under its key to another replica carries the saga on at once, wherever it
+  stopped, and answers the one order (`Placement.place`).
+- **A handover costs a repeated look, never a doubled effect.** vojak promises at most one leader at any instant, not
+  at most one effect: work the old leader had sent may still land. Every pass is safe twice — a move is a
+  conditional update under the shipment's lock, a capture and a refund are keyed, a restock is once per order, a
+  Haul Pay payment is claimed (two concurrent passes: `ChargedWhenShippedTest`, `ReturnLifecycleTest`,
+  `ReturnRestocksTest`, `HaulPayPlanTest`), and `LeaderTest` hands the world over in the middle of an order and
+  finds each share charged once.
+- **What else a process holds, and why it may stay there**: kompot's broadcaster holds this process's listeners — by
+  design, each replica draws for its own; «Live orders» keeps its last drawing until a move is heard, from any
+  replica, and admits 200 listeners per replica; `SeedArt`'s names and `StackNumbers` are the same in every process
+  (the seed's drawings, a resource); `FailFastDataSource`'s «unreachable» is this replica's pool's, rightly its own;
+  facets are counted per request from the rows (B-05), not cached; the demo shoppers' daily limit is a count of rows,
+  and two replicas making the last one together can make one more — as two requests on one replica could. A guest, a
+  cart and a sign-in are rows and tokens; the pages a visitor has seen are the browser's.
+- **Connections**: a replica holds its pool (`server.dbPoolSize`, 10), the election's two and the bus's one; with a
+  rollout's extra pod, a count past 97 is refused at render.
+- **Shown** (`e2e/…/TwoReplicasTest.kt`; the composed stack runs two replicas behind a front that takes turns, so
+  every e2e walks both): a page on the follower hears an order the leader placed and moved; and the leader killed
+  (SIGKILL) while placements wait inside `reserve-slot` on both replicas — the test holds the delivery windows' table
+  lock — loses no order and doubles none. Four runs on the build box: 2–6 of the leader's sessions inside a saga at
+  the kill, 8 sagas unfinished; every cut placement sent again under its key answered its one order; the survivor took
+  the lock 0.3–1.9 s after the kill and led 7.8–9.5 s after it; the placement nobody sent again was carried on by its
+  sweeper 68–70 s after; every saga `COMPLETED`, one order a person, each captured its total
+  ([measurements/b-174](measurements/b-174/README.md)). The control without the bus: the follower's page heard nothing.
+
 ### D5. Sign-in through shildik; guests can browse and fill a cart
 
 Decision: a guest has a server-issued id (`X-Haul-Guest`) and a cart; checkout, saving, reviews and
@@ -1912,8 +1972,9 @@ and a key.
   minutes: a courier order is packed in under a minute, leaves within five and arrives within fifteen,
   so it moves while a visitor watches its page; the server's suggested 1,440 delivers it before the
   visitor has opened the page.
-- **One replica, refused above one at render**: the order page's live updates go through a bus held in
-  the process (B-29).
+- **One replica by default, any number allowed** (B-174; one was refused at render while the live updates' bus
+  was the process's own, B-29): `server.replicas`, refused at 0 and where the replicas' pools would pass PostgreSQL's
+  97 connections during a rollout («Decided in B-174», D4).
 - **NetworkPolicies** (`networkPolicy`, on by default): the database admits only the server, the
   provider's management port only the hook; the provider's public port is open, since Traefik and the
   server's key fetches reach it from outside the namespace.

@@ -61,6 +61,10 @@ import kotlin.time.TimeSource
  * saga undid what it had done (the stock, the window); the walk then puts the listed card back and removes the
  * lines, still holding the [cart], so the next walk of the person finds the checkout as a visitor would and buys
  * nothing twice.
+ *
+ * **A request a replica's death cut is sent again when that is safe** ([resend], on unless a test says otherwise,
+ * B-174): a read, a choice, and the placement under the key it was first sent with — which answers the one order, the
+ * saga carried on wherever it stopped, rather than placing a second.
  */
 internal class Walk(
     val number: Int,
@@ -74,8 +78,12 @@ internal class Walk(
     private val random: Random = Random.Default,
     transport: Transport = Transport.DIRECT,
     private val testCardKey: TestCardKey? = null,
+    resend: Boolean = true,
 ) {
-    private val shop = Storefront(origin, transport)
+    private val shop = Storefront(origin, transport, resend)
+
+    /** How many requests the walk sent again after a replica went away under them (B-174). */
+    val resent: Int get() = shop.resent
     private val started = TimeSource.Monotonic.markNow()
 
     fun take(): Walked {

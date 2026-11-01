@@ -46,6 +46,10 @@ oidc = "0.18.4"
 # The build research §1.1 names and the sibling reference service runs; petich-postgres pins Exposed
 # 1.4.0 in its own POM, which is the version above.
 petich = "0.4.0.112"
+# One replica of several runs the simulated world (B-174): the owner's leader election on PostgreSQL advisory
+# locks, its store over the JDBC `DataSource` the server already has. A main-branch build in the snapshots
+# repository, read anonymously, as kompot's is.
+vojak = "0.1.0.6"
 
 [libraries]
 ktor-server-core = { module = "io.ktor:ktor-server-core" }
@@ -98,6 +102,7 @@ shildik-oidcAuthServer = { module = "io.github.youndie.shildik:oidc-auth-server"
 petich-core = { module = "io.github.youndie.petich:petich-core", version.ref = "petich" }
 petich-postgres = { module = "io.github.youndie.petich:petich-postgres", version.ref = "petich" }
 petich-idempotency = { module = "io.github.youndie.petich:petich-idempotency", version.ref = "petich" }
+vojak-jdbc = { module = "io.github.youndie.vojak:vojak-jdbc", version.ref = "vojak" }
 oidc-appsupport = { module = "io.github.kalinjul.kotlin.multiplatform:oidc-appsupport", version.ref = "oidc" }
 
 [plugins]

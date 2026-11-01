@@ -192,3 +192,34 @@ host, its tracy and its logs.
 - **Decided in:** B-164, B-31, B-89
 - **Coverage:** `server:LiveUpdatesTest` «the live orders hear an order go in transit without loading again»;
   manual: only the stand has the shoppers' traffic, its pace and a real proxy in front of the stream
+
+### TC-STAND-10 — With two replicas, either one's page is live, and a killed one loses no order
+
+- **Who:** operator
+- **Width:** 1440
+- **Preconditions:** the release with `server.replicas: 2` and the shoppers on; both pods ready; access to the
+  release's PostgreSQL (`psql` in its pod).
+- **Steps:**
+  1. Ask the database who leads: `SELECT application_name FROM pg_stat_activity WHERE application_name LIKE 'vojak %'`.
+  2. Forward a port to each pod (`kubectl port-forward pod/<one> 8081:8080`, `pod/<other> 8082:8080`), open
+     `http://localhost:8081/live` and `http://localhost:8082/live`, and leave both open.
+  3. Kill the leading pod without grace (`kubectl delete pod <it> --grace-period=0 --force`) while the shoppers walk.
+  4. Ask again who leads, every few seconds, for a minute; read the surviving pod's log.
+  5. Ten minutes later: `SELECT status, count(*) FROM petiches GROUP BY status` and
+     `SELECT count(*) FROM orders WHERE status = 'placing'`.
+- **Expected:**
+  - Step 1: one row, `vojak <pod>`.
+  - Step 2: both pages move with every order, whichever pod made the move.
+  - Step 4: the other pod leads within about ten seconds of the kill («… leads: the simulated world, the saga's
+    sweeper and the sweeps run here»), and a new pod comes up as a follower; the page forwarded to the killed pod
+    stops with its forward, the other keeps moving.
+  - Step 5: no saga `PROCESSING`, `COMPENSATING`, `FAILED` or `COMPENSATION_FAILED`; no order placing; the shoppers'
+    log shows no walk stopped at its placement.
+- **Decided in:** B-174
+- **Coverage:** `TwoReplicasTest` «a move made on one replica reaches a page listening on the other»;
+  `TwoReplicasTest` «a replica killed in the middle of sagas loses no order and doubles none»;
+  `server:LeaderTest` «one of two replicas leads and the other takes over once its session is gone»;
+  `server:LeaderTest` «a leader that stops hands over within a poll»;
+  `server:PostgresBusTest` «a move told on one replica is heard on the other and not on itself»;
+  script `scripts/chart-check.sh`;
+  manual: only the stand has two pods behind a real Service and Traefik, its pace and its shoppers

@@ -35,7 +35,9 @@ private val log = LoggerFactory.getLogger("io.github.youndie.haul.live")
  * - **at most [capacity] listeners at once** ([admit]): past it the stream is refused `503` and the page keeps what it
  *   drew, its client asking again later.
  *
- * The bus is kompot's in-memory one, as for the order page: a second replica would need the bus between them (B-174).
+ * **On every replica** (B-174): the moves include the other replicas' ([OrderMoves.heard], through the replicas' bus),
+ * so each replica draws for its own listeners, at most once per [pause], and a drawing it kept is dropped by a move
+ * made anywhere. [capacity] is per replica: two replicas admit twice as many.
  */
 internal class LiveFeed(
     private val moves: OrderMoves,

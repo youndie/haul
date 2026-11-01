@@ -66,7 +66,11 @@ dependencies {
     implementation(libs.hikari)
     implementation(libs.flyway.core)
     runtimeOnly(libs.flyway.postgresql)
-    runtimeOnly(libs.postgresql)
+    // Compiled against since B-174: the replicas' bus listens with the driver's own `PGConnection`, which
+    // JDBC has no word for (`ops/PostgresBus.kt`).
+    implementation(libs.postgresql)
+    // Which replica runs the simulated world, the saga's sweeper and the sweeps (B-174, `ops/Leader.kt`).
+    implementation(libs.vojak.jdbc)
 
     testImplementation(kotlin("test"))
     testImplementation(libs.ktor.server.testHost)

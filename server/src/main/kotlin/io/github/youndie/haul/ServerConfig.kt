@@ -27,7 +27,19 @@ internal class ServerConfig(
                 user = required("HAUL_DB_USER"),
                 password = required("HAUL_DB_PASSWORD"),
                 maximumPoolSize = env("HAUL_DB_POOL_SIZE")?.toInt() ?: DatabaseConfig.DEFAULT_POOL_SIZE,
+                applicationName = "haul $replica",
             )
+
+    /**
+     * Which replica this is (B-174): `HAUL_REPLICA`, else the pod's name (Kubernetes' `HOSTNAME`), else `local`. What
+     * the leader election shows (`vojak <replica>`), what the pool's sessions are named in `pg_stat_activity`
+     * (`haul <replica>`) and the agents' instance — never what decides anything.
+     */
+    val replica: String
+        get() =
+            env("HAUL_REPLICA")?.takeIf { it.isNotBlank() }
+                ?: env("HOSTNAME")?.takeIf { it.isNotBlank() }
+                ?: "local"
 
     /** Seed the catalog on start when it is empty. Off by default: a production database is not a demo. */
     val seed: Boolean get() = env("HAUL_SEED")?.toBooleanStrict() ?: false
@@ -147,7 +159,7 @@ internal class ServerConfig(
             ObservabilitySettings(
                 release = commit,
                 environment = env("HAUL_ENVIRONMENT") ?: "local",
-                instance = env("HOSTNAME")?.takeIf { it.isNotBlank() } ?: "local",
+                instance = replica,
                 metrik = agent("METRIK"),
                 tracy = agent("TRACY"),
                 tracySampleRate =

@@ -2,6 +2,7 @@ package io.github.youndie.haul.e2e
 
 import io.github.youndie.haul.ErrorBody
 import io.github.youndie.haul.StorefrontPage
+import io.github.youndie.haul.feature.checkout.IDEMPOTENCY_KEY_HEADER
 import io.github.youndie.haul.feature.identity.GUEST_HEADER
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.kompot.KompotAction
@@ -13,6 +14,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import java.io.IOException
 import java.net.URI
 import java.net.URLEncoder
 import java.net.http.HttpClient
@@ -38,10 +40,17 @@ import kotlin.concurrent.thread
  * minutes at the stand's speed, B-31) needs it; without [renew] the `401` is the answer.
  *
  * [transport] is how a request reaches the server: the JDK's client, unless a test stands between them.
+ *
+ * **With [resend], a request that may be sent again is** (B-174): one that broke off or was answered `502`, `503` or
+ * `504` — a replica that died under it, or a rollout's — is sent once a second up to [RESENDS] more times when sending
+ * it twice cannot do a thing twice: a `GET`, a `PUT` (every one here sets a value), and a placement, whose
+ * `Idempotency-Key` answers the order the first one placed. What the storefront's client does on the stand; off, a
+ * test sees the first answer, whatever it was.
  */
 internal class Storefront(
     private val origin: String,
     private val transport: Transport = Transport.DIRECT,
+    private val resend: Boolean = false,
 ) {
     var guest: String? = null
     var token: String? = null
@@ -103,18 +112,49 @@ internal class Storefront(
                     method,
                     body?.let { HttpRequest.BodyPublishers.ofString(it) } ?: HttpRequest.BodyPublishers.noBody(),
                 ).build()
-        var response = transport.send(request())
+        val again = resend && (method in RESENDABLE || IDEMPOTENCY_KEY_HEADER in headers)
+        var response = deliver(again, ::request)
         val renew = renew
         if (response.statusCode() == UNAUTHORIZED && token != null && renew != null) {
             token = renew()
             renewals += 1
-            response = transport.send(request())
+            response = deliver(again, ::request)
         }
         return Answer("$method $url", response.statusCode(), response.body())
     }
 
-    private companion object {
-        const val UNAUTHORIZED = 401
+    /** How many times a request that may be sent again was: what a walk across a replica's death shows. */
+    var resent: Int = 0
+        private set
+
+    private fun deliver(
+        again: Boolean,
+        request: () -> HttpRequest,
+    ): HttpResponse<String> {
+        var left = if (again) RESENDS else 0
+        while (true) {
+            val response =
+                try {
+                    transport.send(request())
+                } catch (e: IOException) {
+                    if (left == 0) throw e
+                    null
+                }
+            if (response != null && (left == 0 || response.statusCode() !in GONE)) return response
+            left -= 1
+            resent += 1
+            Thread.sleep(RESEND_AFTER_MILLIS)
+        }
+    }
+
+    companion object {
+        private const val UNAUTHORIZED = 401
+
+        /** How many more times a request that may be sent again is. */
+        const val RESENDS = 5
+        private const val RESEND_AFTER_MILLIS = 1_000L
+        private val GONE = setOf(502, 503, 504)
+        private val RESENDABLE = setOf("GET", "PUT")
     }
 }
 
