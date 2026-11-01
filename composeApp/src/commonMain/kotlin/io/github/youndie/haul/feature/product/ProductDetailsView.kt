@@ -83,8 +83,9 @@ import kotlin.math.roundToInt
 
 // The top of the product page (screen-product): the gallery, the identity and choices, the buy box.
 // At 1440 the three stand side by side (1.3fr, 1fr, 384 px, 40 apart); on a phone they stack, the buy
-// box between the rating and the choices. Numbers are the artboards' (Product_Description,
-// Product_OutOfStock and their _Phone twins).
+// box under the rating with the choices inside it, between the price and the buttons (B-169: the
+// canvas drew them under the whole box, and a shopper pressed «Add to cart» before seeing there was a
+// choice). Numbers are the artboards' (Product_Description, Product_OutOfStock and their _Phone twins).
 
 /** The details, with the space the page leaves under the breadcrumbs. */
 @Composable
@@ -101,8 +102,9 @@ public fun ProductDetailsView(details: ProductDetails) {
             Brand(details)
             Title(details, compact = true, Modifier.negativeTop(6.dp))
             Rating(details)
-            BuyBox(details, compact = true, Modifier.reveal(1).fillMaxWidth())
-            details.variants.forEach { Variants(it) }
+            BuyBox(details, compact = true, Modifier.reveal(1).fillMaxWidth()) {
+                details.variants.forEach { Variants(it, ground = HaulColors.surfaceContainerLowest) }
+            }
             Highlights(details.highlights)
             AllSpecifications(details)
         }
@@ -393,10 +395,16 @@ private fun Rating(details: ProductDetails) {
 
 private const val STARS = 5
 
-/** A choice: colour swatches («Color: Midnight Black»), or pills under the group's name. */
+/**
+ * A choice: colour swatches («Color: Midnight Black»), or pills under the group's name. [ground] is what it is
+ * drawn on — the page, or on a phone the buy box (B-169) — and the gap in the chosen swatch's ring is drawn in it.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Variants(group: VariantGroup) {
+private fun Variants(
+    group: VariantGroup,
+    ground: Color = HaulColors.background,
+) {
     val swatches = group.options.any { it.swatch != null }
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (swatches) {
@@ -429,7 +437,7 @@ private fun Variants(group: VariantGroup) {
                                 Modifier
                                     .requiredSize(
                                         68.dp,
-                                    ).background(HaulColors.background, RoundedCornerShape(16.dp)),
+                                    ).background(ground, RoundedCornerShape(16.dp)),
                             )
                         }
                         Box(
@@ -578,7 +586,8 @@ internal fun LabelledRows(
 }
 
 /**
- * The buy box: the price for the chosen SKU, the buttons, then the delivery lines — or, out of stock,
+ * The buy box: the price for the chosen SKU, the [choices] where the layout puts them inside the box (a phone's,
+ * B-169), the buttons, then the delivery lines — or, out of stock,
  * «Save» and where to turn — and the seller, drawn as words: there is no seller's page to open (B-71).
  * «Add to cart» and «Buy now» send the line changes the tree gave them (B-48); out of stock the tree gives
  * none and they are drawn greyed, pressing nothing, and so is «Add to cart» alone at the line's limit (B-75).
@@ -590,6 +599,7 @@ private fun BuyBox(
     details: ProductDetails,
     compact: Boolean,
     modifier: Modifier,
+    choices: @Composable () -> Unit = {},
 ) {
     val shape = RoundedCornerShape(if (compact) 24.dp else 28.dp)
     Box(modifier) {
@@ -603,6 +613,7 @@ private fun BuyBox(
             verticalArrangement = Arrangement.spacedBy(22.dp),
         ) {
             Price(details, compact)
+            choices()
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 val live = details.inStock
                 val adds = live && details.add != null
