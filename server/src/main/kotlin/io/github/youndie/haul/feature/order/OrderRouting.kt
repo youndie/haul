@@ -10,25 +10,16 @@ import io.github.youndie.haul.feature.order.screen.OrderScreen
 import io.github.youndie.haul.feature.order.screen.ReorderAnswer
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.shell.Viewers
+import io.github.youndie.haul.shell.respondUpdates
 import io.github.youndie.kompot.ktor.respondKompotAction
 import io.github.youndie.kompot.realtime.KompotScreenResponse
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.response.header
-import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import io.ktor.server.sse.SSEServerContent
-import io.ktor.server.sse.heartbeat
-import io.ktor.sse.ServerSentEvent
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.withContext
 import org.koin.ktor.ext.inject
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * The order's page and its reorder (endpoint-orders), in the customer tier: a request without a verified
@@ -40,17 +31,15 @@ import kotlin.time.Duration.Companion.seconds
  * went in, the message alone over the order ([ReorderAnswer], B-101).
  *
  * The page is live (B-29): its tree comes in kompot's `KompotScreenResponse`, naming the order's channel, and
- * [OrderPaths.UPDATES] streams that channel's frames ([LiveOrders]) — in the same tier and refused the same way:
- * a topic that is not an order's, or an order that is not the caller's, is `404 order_not_found` before the
- * stream opens. The stream's first frame is the order as it is then; every move after is one more; a `ping`
- * every [HEARTBEAT] keeps an idle stream through a proxy (kompot's SPEC §16.6).
+ * `GET /ui/updates` streams that channel's frames ([respondOrderUpdates]). That route is mounted in the public tier
+ * since B-164, because «Live orders» streams there too; an order's topic is refused there as here, `401` without a
+ * sign-in.
  */
 internal fun Route.orderRouting() {
     val screen by inject<OrderScreen>()
     val reorder by inject<Reorder>()
     val callers by inject<Callers>()
     val viewers by inject<Viewers>()
-    val live by inject<LiveOrders>()
 
     suspend fun ApplicationCall.caller(): Caller.Customer =
         callers.of(this) as? Caller.Customer ?: throw IdentityError.Unauthenticated()
@@ -68,34 +57,6 @@ internal fun Route.orderRouting() {
         )
     }
 
-    get(OrderPaths.UPDATES) {
-        val customer = call.caller().customer
-        val topic = call.request.queryParameters["topic"].orEmpty()
-        val orderId =
-            LiveOrders.orderOf(topic)?.takeIf { live.owns(customer.id, it) } ?: throw OrderError.NotFound(topic)
-        call.response.header(HttpHeaders.CacheControl, "no-store")
-        // A proxy that buffers would hold every frame back until the stream ends.
-        call.response.header("X-Accel-Buffering", "no")
-        call.respond(
-            SSEServerContent(call) {
-                heartbeat {
-                    period = HEARTBEAT
-                    event = ServerSentEvent(event = "ping")
-                }
-                // Conflated: every frame is the whole body, so a page that fell behind needs only the last.
-                val frames = Channel<String>(Channel.CONFLATED)
-                live.subscribe(customer.id, orderId, frames)
-                try {
-                    // Listening before drawing the first: a move in between is heard rather than lost.
-                    live.frame(customer.id, customer.firstName, orderId)?.let { send(ServerSentEvent(data = it)) }
-                    for (frame in frames) send(ServerSentEvent(data = frame))
-                } finally {
-                    withContext(NonCancellable) { live.unsubscribe(customer.id, orderId, frames) }
-                }
-            },
-        )
-    }
-
     post(OrderPaths.REORDER) {
         val customer = call.caller().customer
         val reordered = reorder.reorder(CartOwner.Customer(customer.id, customer.plus), call.parameters["id"]!!)
@@ -103,8 +64,25 @@ internal fun Route.orderRouting() {
     }
 }
 
-/** How often an idle stream says it is alive: kompot's reference interval (SPEC §16.6). */
-private val HEARTBEAT = 20.seconds
+/**
+ * The order page's stream (B-29), which `GET /ui/updates` hands an order's topic to: the customer's, refused the same
+ * way as the page — no sign-in is `401`, a topic that is not an order's or an order that is not the caller's is
+ * `404 order_not_found` before the stream opens. The stream's first frame is the order as it is then; every move after
+ * is one more.
+ */
+internal suspend fun ApplicationCall.respondOrderUpdates(
+    topic: String,
+    callers: Callers,
+    live: LiveOrders,
+) {
+    val customer = (callers.of(this) as? Caller.Customer ?: throw IdentityError.Unauthenticated()).customer
+    val orderId = LiveOrders.orderOf(topic)?.takeIf { live.owns(customer.id, it) } ?: throw OrderError.NotFound(topic)
+    respondUpdates(
+        subscribe = { live.subscribe(customer.id, orderId, it) },
+        unsubscribe = { live.unsubscribe(customer.id, orderId, it) },
+        first = { live.frame(customer.id, customer.firstName, orderId) },
+    )
+}
 
 /**
  * The order's paths: the server's strings (CLAUDE.md). [page] is the storefront's address of an order —
@@ -113,9 +91,6 @@ private val HEARTBEAT = 20.seconds
 internal object OrderPaths {
     const val SCREEN = "/ui/account/orders/{id}"
     const val REORDER = "/api/v1/me/orders/{id}/reorder"
-
-    /** The live page's stream (B-29): `?topic=` is the channel its tree names, as kompot's SPEC §16.6 has it. */
-    const val UPDATES = "/ui/updates"
 
     /** `/account/orders/HL-48302`: under the account, as the page's crumbs say (screen-order). */
     fun page(orderId: String): String = "/account/orders/$orderId"

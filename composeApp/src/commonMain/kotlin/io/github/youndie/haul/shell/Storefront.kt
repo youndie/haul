@@ -893,7 +893,7 @@ private fun Loading(address: Address) {
         PageKind.Order -> OrderLoading()
         PageKind.Categories -> CategoriesLoading()
         PageKind.Deals -> DealsLoading()
-        PageKind.SignIn, PageKind.About, PageKind.Other -> PendingHeader()
+        PageKind.SignIn, PageKind.About, PageKind.Live, PageKind.Other -> PendingHeader()
     }
 }
 
@@ -990,6 +990,7 @@ private val PageKind.subject: String
             PageKind.Deals,
             PageKind.SignIn,
             PageKind.About,
+            PageKind.Live,
             PageKind.Other,
             -> "This page"
         }

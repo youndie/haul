@@ -53,14 +53,31 @@ internal fun orderSaga(
     trail: OrderTrail = OrderTrail.NONE,
 ): PetichDefinition<OrderPayload> =
     petichDefinition(ORDER_SAGA) {
-        traced(trail, "reserve-stock", ReserveStock(stock))
-        traced(trail, "reserve-slot", ReserveSlot(slots))
-        traced(trail, "redeem-points", RedeemPoints(points))
-        traced(trail, "open-order", OpenOrder(orders, moves))
-        traced(trail, "authorise-payment", AuthorisePayment(payments, orders))
-        traced(trail, "confirm", Confirm(orders, moves))
-        tracedAnnouncement(trail, "clear-cart", ClearBoughtLines(carts))
+        traced(trail, OrderSagaMembers.RESERVE_STOCK, ReserveStock(stock))
+        traced(trail, OrderSagaMembers.RESERVE_SLOT, ReserveSlot(slots))
+        traced(trail, OrderSagaMembers.REDEEM_POINTS, RedeemPoints(points))
+        traced(trail, OrderSagaMembers.OPEN_ORDER, OpenOrder(orders, moves))
+        traced(trail, OrderSagaMembers.AUTHORISE_PAYMENT, AuthorisePayment(payments, orders))
+        traced(trail, OrderSagaMembers.CONFIRM, Confirm(orders, moves))
+        tracedAnnouncement(trail, OrderSagaMembers.CLEAR_CART, ClearBoughtLines(carts))
     }
+
+/**
+ * The saga's members by their keys, in the order [orderSaga] runs them — the names its rows, its trail in tracy and the
+ * public feed of live orders (B-164) know them by. [STEPS] are the members that can be undone, in their order; the
+ * announcement [CLEAR_CART] is not among them.
+ */
+internal object OrderSagaMembers {
+    const val RESERVE_STOCK = "reserve-stock"
+    const val RESERVE_SLOT = "reserve-slot"
+    const val REDEEM_POINTS = "redeem-points"
+    const val OPEN_ORDER = "open-order"
+    const val AUTHORISE_PAYMENT = "authorise-payment"
+    const val CONFIRM = "confirm"
+    const val CLEAR_CART = "clear-cart"
+
+    val STEPS: List<String> = listOf(RESERVE_STOCK, RESERVE_SLOT, REDEEM_POINTS, OPEN_ORDER, AUTHORISE_PAYMENT, CONFIRM)
+}
 
 /** Every line's units off its SKU's stock, held by the order; a shortage refuses the saga (`out_of_stock`). */
 internal class ReserveStock(

@@ -19,6 +19,7 @@ import io.github.youndie.haul.feature.fulfilment.domain.OrderTracking
 import io.github.youndie.haul.feature.fulfilment.domain.TrackedOrder
 import io.github.youndie.haul.feature.fulfilment.fulfilmentModule
 import io.github.youndie.haul.feature.identity.identityModule
+import io.github.youndie.haul.feature.live.liveModule
 import io.github.youndie.haul.feature.membership.membershipModule
 import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.domain.Placement
@@ -105,6 +106,7 @@ internal class FulfilmentWorld(
                 accountModule,
                 returnsModule,
                 membershipModule,
+                liveModule,
                 overrides,
             )
         }
