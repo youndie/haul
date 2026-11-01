@@ -71,3 +71,7 @@ the runs in [measurements/b-174](../research/measurements/b-174/README.md).
 **For the owner — two replicas on the stand** is a values change in the stand's deploy (`server.replicas: 2`, with
 the shoppers on to see it): nothing else changes, the database has the connections. Not done here: no deploy, no
 infra change. The stand has been one pod since B-27; the cost is a second 768 MiB pod.
+
+## Decided (2026-11-01)
+
+The owner allowed two on the stand: `server.replicas: 2` in infra's values for haul, with the deploy of v0.8.0.
