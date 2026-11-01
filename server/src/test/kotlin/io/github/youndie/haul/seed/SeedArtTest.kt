@@ -74,7 +74,9 @@ class SeedArtTest {
             assertTrue(svg.length < MAX_BYTES, "$name is ${svg.length} bytes")
             // B-181: and its dark version beside it, the same art over the tone's dark counterpart.
             val dark = assertNotNull(SeedArt.svg(PictureVersions.dark(name)!!), "$name's dark version")
-            DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(ByteArrayInputStream(dark.encodeToByteArray()))
+            DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+                ByteArrayInputStream(dark.encodeToByteArray()),
+            )
             assertNotEquals(svg, dark, name)
             assertTrue("fill=\"#1D1B39\"" in dark, "$name's dark version is not drawn over E6E4FF's counterpart")
         }

@@ -365,7 +365,11 @@ class PhotoRoutesTest {
             assertEquals(HttpStatusCode.OK, get(url).status, "the control picture is not served")
             val stale = url.substringBeforeLast('.').substringBeforeLast('.') + ".0000000000.svg"
             assertEquals(HttpStatusCode.NotFound, get(stale).status)
-            assertEquals(HttpStatusCode.NotFound, get(PictureVersions.dark(stale)!!).status, "a stale name's dark version")
+            assertEquals(
+                HttpStatusCode.NotFound,
+                get(PictureVersions.dark(stale)!!).status,
+                "a stale name's dark version",
+            )
             assertEquals(HttpStatusCode.NotFound, get("/images/art/p_nothing_0_plain_e6e4ff.0000000000.svg").status)
             assertEquals(HttpStatusCode.NotFound, get("/images/art/../products/nobody/0000000000000000.png").status)
         }

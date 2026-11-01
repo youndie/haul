@@ -151,15 +151,14 @@ class PhotoFallbackTest {
         }
 
     /**
-     * B-149: a raster photo is decoded at the size it is asked for. Asked for with no size, it was decoded at its own
-     * and drawn scaled up — soft in a large box. It is decoded at its box's size, again once the box outgrows that,
-     * and never for a smaller one.
+     * B-149: a raster photo is decoded at the size it is asked for — a large photo sampled down to its box, not held
+     * at its own size. It is decoded at its box's size, again once the box outgrows that, and never for a smaller one.
      */
     @Test
     fun `a raster photo whose box grows is decoded again at its new size`() =
         runComposeUiTest {
             val widths = CopyOnWriteArrayList<Int>()
-            val photos = recording(widths, png(), "image/png")
+            val photos = recording(widths, png(side = 1200), "image/png")
             var side by mutableStateOf(60.dp)
             var density = 1f
             setContent {
@@ -168,6 +167,7 @@ class PhotoFallbackTest {
             }
             waitUntil("the photo decoded", timeoutMillis = 10_000) { widths.isNotEmpty() }
             assertTrue(widths.single() >= 60 * density, "decoded at ${widths.single()} px for a 60 dp box")
+            assertTrue(widths.single() < 1200, "decoded at its own ${widths.single()} px for a 60 dp box")
 
             side = 300.dp
             waitUntil("the photo decoded again", timeoutMillis = 10_000) { widths.size == 2 }
@@ -243,7 +243,10 @@ class PhotoFallbackTest {
     @Test
     fun `on a light page a raster photo fills its tile`() =
         runComposeUiTest {
-            drawCard(card, loader { respond(png(), HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "image/png")) })
+            drawCard(
+                card,
+                loader { respond(png(), HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "image/png")) },
+            )
             awaitLoad()
             waitUntil(timeoutMillis = 5_000) { onAllNodesWithTagCount(PHOTO_TAG) == 1 }
             assertEquals(236f, onNodeWithTag(PHOTO_TAG).fetchSemanticsNode().boundsInRoot.width / density.density, 1f)
@@ -320,11 +323,11 @@ class PhotoFallbackTest {
             .let { onAllNodes(it).fetchSemanticsNodes().size }
 
     /** A small PNG, drawn here: the test downloads nothing. */
-    private fun png(): ByteArray {
-        val image = BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB)
+    private fun png(side: Int = 16): ByteArray {
+        val image = BufferedImage(side, side, BufferedImage.TYPE_INT_RGB)
         image.createGraphics().apply {
             color = Color(0x6E68A6)
-            fillRect(0, 0, 16, 16)
+            fillRect(0, 0, side, side)
             dispose()
         }
         return ByteArrayOutputStream().use {

@@ -20,7 +20,12 @@ class DarkArtTest {
 
     @Test
     fun `every picture has a dark version over its tile's dark colour`() {
-        val light = art.listFiles().orEmpty().map { it.name }.filter { PictureVersions.light(it) == null }
+        val light =
+            art
+                .listFiles()
+                .orEmpty()
+                .map { it.name }
+                .filter { PictureVersions.light(it) == null }
         // Positive control: the pictures are there, so «every one» was looked for.
         assertTrue(light.size > 20, "${light.size} pictures in $art")
         light.forEach { name ->
@@ -32,7 +37,11 @@ class DarkArtTest {
             if (tone in KEPT) {
                 assertEquals(File(art, name).readText(), dark.readText(), "$name: a kept tone's picture changed")
             } else {
-                assertEquals("#%06X".format(HaulColorScheme.Dark.tone(tone).toArgb() and 0xFFFFFF), drawn, "$name's dark ground")
+                assertEquals(
+                    "#%06X".format(HaulColorScheme.Dark.tone(tone).toArgb() and 0xFFFFFF),
+                    drawn,
+                    "$name's dark ground",
+                )
                 assertEquals(tone, ground(File(art, name).readText()), "$name's light ground")
             }
         }

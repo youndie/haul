@@ -2,8 +2,8 @@ package io.github.youndie.haul.ui
 
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.skiaCanvas
 import coil3.ImageLoader
 import coil3.decode.DecodeResult
 import coil3.decode.Decoder
@@ -48,7 +48,8 @@ public fun vectorPicture(bytes: ByteArray): VectorPicture? {
     val svg = runCatching { SVGDOM(Data.makeFromBytes(bytes)) }.getOrNull() ?: return null
     val root = svg.root ?: return null
     val box = root.viewBox
-    val width = root.width.takeIf { it.unit == SVGLengthUnit.NUMBER || it.unit == SVGLengthUnit.PX }?.value ?: box?.width
+    val width =
+        root.width.takeIf { it.unit == SVGLengthUnit.NUMBER || it.unit == SVGLengthUnit.PX }?.value ?: box?.width
     val height =
         root.height.takeIf { it.unit == SVGLengthUnit.NUMBER || it.unit == SVGLengthUnit.PX }?.value ?: box?.height
     if (width == null || height == null || width <= 0f || height <= 0f) return null
@@ -65,7 +66,7 @@ public class VectorPicturePainter(
     override val intrinsicSize: Size = Size(picture.width, picture.height)
 
     override fun DrawScope.onDraw() {
-        val canvas = drawContext.canvas.nativeCanvas
+        val canvas = drawContext.canvas.skiaCanvas
         canvas.save()
         canvas.scale(size.width / picture.width, size.height / picture.height)
         picture.draw(canvas)
@@ -94,7 +95,12 @@ internal class VectorPictureDecoder(
     private val source: ImageSource,
 ) : Decoder {
     override suspend fun decode(): DecodeResult {
-        val bytes = source.source().use { it.readByteArray() }
+        val bytes =
+            try {
+                source.source().readByteArray()
+            } finally {
+                source.close()
+            }
         val picture = checkNotNull(vectorPicture(bytes)) { "an SVG Skia cannot draw" }
         return DecodeResult(VectorImage(picture), isSampled = false)
     }

@@ -157,7 +157,8 @@ internal object SeedArt : Illustrations {
     private fun name(picture: Picture): String = names.getOrPut(picture) { nameOf(picture) }
 
     /** [picture]'s name: its key and the hash of both its drawings, so neither changes under the name. */
-    private fun nameOf(picture: Picture): String = "${picture.key}.${hash(picture.draw(false) + picture.draw(true))}.svg"
+    private fun nameOf(picture: Picture): String =
+        "${picture.key}.${hash(picture.draw(false) + picture.draw(true))}.svg"
 
     private fun hash(svg: String): String =
         MessageDigest
@@ -202,7 +203,8 @@ internal object SeedArt : Illustrations {
         ) : Picture {
             override val key = "c_${motif}_$tone"
 
-            override fun draw(dark: Boolean): String = square(SeedMotifs.bySlug.getValue(motif), 0, null, Ground.of(tone, dark))
+            override fun draw(dark: Boolean): String =
+                square(SeedMotifs.bySlug.getValue(motif), 0, null, Ground.of(tone, dark))
         }
 
         data class Hero(

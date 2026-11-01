@@ -192,11 +192,22 @@ private class CoilPhotoLoader(
         // An SVG is a vector (B-181): one decode serves every size, so it is asked for at once, at its own size.
         if (url.endsWith(SVG)) {
             Box(modifier) { Sized(resolve(url), null, placeholder) }
-            return@key
+        } else {
+            Raster(url, modifier, placeholder)
         }
-        // A raster photo is decoded at the size it is drawn, and again whenever its box outgrows that (B-149): a
-        // request that names no size is decoded at the photo's own, which a large box scaled up. Never asked for
-        // smaller: a larger bitmap drawn smaller stays sharp. Asked for once the box has a size.
+    }
+
+    /**
+     * A raster photo, decoded at the size it is drawn and again whenever its box outgrows that (B-149): a request
+     * that names no size is decoded at the photo's own, which a large box scaled up. Never asked for smaller: a
+     * larger bitmap drawn smaller stays sharp. Asked for once the box has a size.
+     */
+    @Composable
+    private fun Raster(
+        url: String,
+        modifier: Modifier,
+        placeholder: @Composable () -> Unit,
+    ) {
         var decodeAt by remember { mutableStateOf<IntSize?>(null) }
         Box(modifier.onSizeChanged { box -> decodeAt = outgrown(decodeAt, box) }) {
             val size = decodeAt
