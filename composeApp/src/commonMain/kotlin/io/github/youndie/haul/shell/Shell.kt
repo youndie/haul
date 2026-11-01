@@ -345,8 +345,7 @@ private fun ErrorPage(
                     .text(
                         if (compact) 16f else 18f,
                         lineHeight = 1.5f,
-                    )
-                    .copy(color = HaulColors.onSurfaceVariant),
+                    ).copy(color = HaulColors.onSurfaceVariant),
                 Modifier.widthIn(max = 560.dp),
             )
             HaulButton(

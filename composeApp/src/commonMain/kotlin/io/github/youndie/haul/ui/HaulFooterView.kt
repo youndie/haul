@@ -109,8 +109,7 @@ private fun LinkColumn(
             .text(
                 if (compact) 14f else 15f,
                 lineHeight = 2f,
-            )
-            .copy(color = HaulColors.inverseOnSurface)
+            ).copy(color = HaulColors.inverseOnSurface)
     Column(modifier.heightIn(min = columnHeight(compact))) {
         ColumnTitle(column.title, compact)
         column.links.forEach { word ->
