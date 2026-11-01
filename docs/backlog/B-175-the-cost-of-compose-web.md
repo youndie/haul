@@ -48,12 +48,13 @@ fix.
 - **Removed: `browserLeading()` alone**, twelve calls of a `TextStyle.copy` with the leading every `HaulType` style
   with a set line height already has (`style()` sets it). Every other canvas-only workaround is now what the goldens
   hold; taking one out means re-recording goldens, which B-85 leaves to a decision, so the code says why each stays
-  (`Text`, `FlexPair`, `InlineLine`, `normal()`, `CssLayout.kt`).
+  (`Text`, `FlexPair`, `InlineLine`, `normal()`, `CssLayout.kt` — the last since removed by B-177).
 - **Proposed follow-ups, not filed** (the item was told not to add items):
   - *Lay the order and account pages out in whole pixels*: drop `CssColumn`/`CssBox`/`cssLines` and the fraction
     bookkeeping in `AccountViews.kt` (`Tiles`, `GridPair`, `PhoneRow`) and `OrderViews.kt`, about 100 lines of
     `CssLayout.kt` and as many in the two pages, and re-record the 23 goldens it moves (0.29–5.99 %). The only removal
     here that buys code back; it needs the owner's yes to pages that sit a few pixels from where they are now.
+    *Since filed and done as B-177* (the owner's yes, 2026-11-01): the same 23 goldens, the same 0.29–5.99 %.
   - *On Compose 1.13* (after Kotlin 2.5.20): `OverlayHost` back to `Popup`/`Dialog` (CMP-9368), `linkedText` back to
     `LinkAnnotation`, `MIRRORED_ROLE` and the state words out of the names (`aria-checked`), and the store's text
     menus rechecked against Compose's new one.

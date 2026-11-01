@@ -60,7 +60,8 @@ Feature: `feature-account` — its scenarios are this item's acceptance where it
   The page lays out on fractional line boxes: B-18's `CssColumn` moved to `ui/CssLayout.kt`, and a nested block whose
   `CssBox` opts in (`carry`) now starts from the fraction of its own start, so a tile at 446.4 + 372.4 is drawn at 819
   as Chrome draws it rather than at 446 + 372 (measured in Chrome on the artboard: the tiles at 446.391, 596.188,
-  818.781). The order page's boxes do not opt in; its goldens are unchanged.
+  818.781). The order page's boxes do not opt in; its goldens are unchanged. (B-177 laid the page out in whole
+  pixels again once the canvas was no longer the reference; `ui/CssLayout.kt` is gone.)
 - **Parity** (`viddikDesignParity --component "Account*"`, references rendered on Linux with grayscale text,
   tolerance untouched), all twelve within 5 %: Loading 0.60 / 0.40, Content 1.38 / 2.99, NotMember 1.42 / 2.69,
   Orders 1.37 / 2.87, NoOrders 1.93 / 3.60, Error 1.46 / 2.86 (wide / phone). Four rounds: the tabs and chips sized
