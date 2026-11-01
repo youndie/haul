@@ -5,6 +5,8 @@ import com.zaxxer.hikari.HikariDataSource
 import com.zaxxer.hikari.util.DriverDataSource
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.jdbc.Database
+import java.sql.Connection
+import java.sql.DriverManager
 import java.util.Properties
 import javax.sql.DataSource
 import kotlin.time.Duration
@@ -24,6 +26,8 @@ internal data class DatabaseConfig(
     val password: String,
     val maximumPoolSize: Int = DEFAULT_POOL_SIZE,
     val connectionTimeout: Duration = CONNECTION_TIMEOUT,
+    /** What the pool's sessions are called in `pg_stat_activity` (B-174: which replica a backend is). */
+    val applicationName: String = "haul",
 ) {
     companion object {
         const val DEFAULT_POOL_SIZE = 10
@@ -53,7 +57,7 @@ internal object Databases {
                         DriverDataSource(
                             config.url,
                             "org.postgresql.Driver",
-                            Properties(),
+                            Properties().apply { setProperty("ApplicationName", config.applicationName) },
                             config.user,
                             config.password,
                         ),
@@ -66,6 +70,50 @@ internal object Databases {
                     minOf(DatabaseConfig.VALIDATION_TIMEOUT, config.connectionTimeout).inWholeMilliseconds
             },
         )
+
+    /**
+     * The leader election's own pool (B-174, `ops/Leader.kt`): a held leadership keeps one connection for as long as
+     * it lasts, and its epoch is bumped on a second, so two — and the requests' pool keeps all of its own.
+     */
+    fun leaseSource(config: DatabaseConfig): HikariDataSource =
+        HikariDataSource(
+            HikariConfig().apply {
+                jdbcUrl = config.url
+                username = config.user
+                password = config.password
+                poolName = "haul-leader"
+                maximumPoolSize = LEASE_POOL_SIZE
+                minimumIdle = 1
+                connectionTimeout = config.connectionTimeout.inWholeMilliseconds
+                validationTimeout =
+                    minOf(DatabaseConfig.VALIDATION_TIMEOUT, config.connectionTimeout).inWholeMilliseconds
+            },
+        )
+
+    /**
+     * A connection of its own each time, outside every pool: the replicas' bus listens on one for as long as the
+     * process lives (B-174, `ops/PostgresBus.kt`), which a pool would count as a leak.
+     */
+    fun listener(config: DatabaseConfig): () -> Connection =
+        {
+            DriverManager.getConnection(
+                config.url,
+                Properties().apply {
+                    setProperty("user", config.user)
+                    setProperty("password", config.password)
+                    setProperty("ApplicationName", "${config.applicationName} bus")
+                    setProperty(
+                        "connectTimeout",
+                        config.connectionTimeout.inWholeSeconds
+                            .coerceAtLeast(1)
+                            .toString(),
+                    )
+                    setProperty("tcpKeepAlive", "true")
+                },
+            )
+        }
+
+    private const val LEASE_POOL_SIZE = 2
 
     /**
      * Applies the migrations in `db/migration`. Flyway takes PostgreSQL's advisory lock itself, so a

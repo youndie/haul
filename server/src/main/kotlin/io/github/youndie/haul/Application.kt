@@ -5,6 +5,7 @@ import io.github.youndie.haul.feature.catalog.data.PhotoStoreException
 import io.github.youndie.haul.feature.catalog.data.S3PhotoStore
 import io.github.youndie.haul.feature.checkout.domain.TestCardAccess
 import io.github.youndie.haul.feature.identity.DemoOffer
+import io.github.youndie.haul.ops.Replicas
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SaleRedater
 import io.github.youndie.haul.seed.SeedPhotos
@@ -60,8 +61,17 @@ public fun main() {
         demo?.dailyLimit,
     )
 
+    // However many replicas the chart runs, this is one of them (B-174): the leader election's own pool and the bus's
+    // own connection, beside the requests' pool.
+    val leases = Databases.leaseSource(config.database)
+    val replicas = Replicas.Shared(config.replica, Databases.listener(config.database), leases)
+    log.info("replica {}: moves shared through the database, the simulated world on the elected leader", config.replica)
+
     embeddedServer(CIO, port = config.port) {
-        monitor.subscribe(ApplicationStopped) { dataSource.close() }
+        monitor.subscribe(ApplicationStopped) {
+            leases.close()
+            dataSource.close()
+        }
         haulModule(
             dataSource,
             clock,
@@ -77,6 +87,7 @@ public fun main() {
             saleLook = if (config.seed) SaleRedater.LOOK else null,
             demo = demo,
             demoSweep = DemoOffer.SWEEP_EVERY,
+            replicas = replicas,
         )
     }.start(wait = true)
 }

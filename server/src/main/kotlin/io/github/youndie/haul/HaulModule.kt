@@ -41,6 +41,7 @@ import io.github.youndie.haul.feature.membership.membershipModule
 import io.github.youndie.haul.feature.membership.membershipRouting
 import io.github.youndie.haul.feature.order.LiveOrders
 import io.github.youndie.haul.feature.order.domain.OrderError
+import io.github.youndie.haul.feature.order.domain.OrderMoves
 import io.github.youndie.haul.feature.order.orderModule
 import io.github.youndie.haul.feature.order.orderRouting
 import io.github.youndie.haul.feature.order.saga.sweeperPatience
@@ -58,7 +59,10 @@ import io.github.youndie.haul.feature.search.customerSearchRouting
 import io.github.youndie.haul.feature.search.domain.SearchError
 import io.github.youndie.haul.feature.search.searchModule
 import io.github.youndie.haul.feature.search.searchRouting
+import io.github.youndie.haul.ops.Leader
 import io.github.youndie.haul.ops.ObservabilitySettings
+import io.github.youndie.haul.ops.PostgresBus
+import io.github.youndie.haul.ops.Replicas
 import io.github.youndie.haul.ops.installObservability
 import io.github.youndie.haul.ops.probes
 import io.github.youndie.haul.seed.SaleRedater
@@ -67,10 +71,12 @@ import io.github.youndie.haul.shell.TreeTiming
 import io.github.youndie.petich.PetichClock
 import io.github.youndie.petich.SuspendedPetichSweeper
 import io.github.youndie.shildik.oidc.JWT_AUTH_OIDC
+import io.github.youndie.vojak.Election
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.ApplicationStopping
 import io.ktor.server.application.install
 import io.ktor.server.auth.UnauthorizedResponse
 import io.ktor.server.auth.authenticate
@@ -78,7 +84,12 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.routing
 import io.ktor.server.sse.SSE
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.dsl.module
 import org.koin.ktor.ext.get
 import org.koin.ktor.plugin.Koin
@@ -86,6 +97,7 @@ import java.io.File
 import java.time.ZonedDateTime
 import javax.sql.DataSource
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /** «Now» for everything that shows a date, read in one place so a test can hold it still. */
 internal fun interface StoreClock {
@@ -125,6 +137,10 @@ internal fun interface StoreClock {
  * [saleLook] keeps a seeded stand's sample sale on the store's day while it runs (B-70, [SaleRedater]): looked
  * at each store midnight and at least every [saleLook]. `main` passes it only when it seeds (`HAUL_SEED`); `null`
  * — a test, or a store that was never seeded — runs nothing.
+ *
+ * [replicas] says whether this is the only server on its database (B-174): [Replicas.Alone] — a test — runs the
+ * sweeper, the simulated world and the sweeps here and hears only its own moves; `main` is always
+ * [Replicas.Shared], whatever the chart's count, and [shareWithReplicas] says what that changes.
  */
 internal fun Application.haulModule(
     dataSource: DataSource,
@@ -140,6 +156,7 @@ internal fun Application.haulModule(
     testCard: TestCardAccess = TestCardAccess.NONE,
     demo: DemoShopperConfig? = null,
     demoSweep: Duration? = null,
+    replicas: Replicas = Replicas.Alone,
 ) {
     require(demo == null || signIn != null) { "a demo shopper needs sign-in: the realm they are made in" }
     val observers = installObservability(observability)
@@ -190,20 +207,27 @@ internal fun Application.haulModule(
             liveModule,
         )
     }
-    // Carries on what a process that died left mid-saga, from the first moment this one serves; it
-    // stops with the application, whose scope it runs in. Saga work: it waits out a short outage (B-139).
-    get<SuspendedPetichSweeper>().start(this + sweeperPatience())
     // The order's live page (B-29): listening to the moves before anything can make one.
     get<LiveOrders>().start(this)
     // «Live orders» (B-164): the same moves, drawn for everybody, over the broadcaster the line above started.
     get<LiveFeed>().start(this)
-    // The simulated world after placement, in the same scope: shipments move and are charged as they ship,
-    // returns are refunded, and Haul Pay's payments are taken as they come due.
-    fulfilment.interval?.let { FulfilmentRunner(get(), get(), get(), it).start(this) }
-    // The sample sale moved to the new day at each store midnight, so a stand that runs for days keeps its deals.
-    saleLook?.let { SaleRedater(database, clock).start(this, it) }
-    // Demo shoppers older than a day forgotten, with everything they did (B-162).
-    demoSweep?.let { get<DemoOffer>().startSweeping(this, it) }
+    // What runs once among the replicas (B-174), in the scope it is handed — the application's when alone, the
+    // leadership's when shared, which ends when this replica stops leading.
+    val singletons: (CoroutineScope) -> Unit = { scope ->
+        // Carries on what a process that died left mid-saga. Saga work: it waits out a short outage (B-139).
+        get<SuspendedPetichSweeper>().start(scope + sweeperPatience())
+        // The simulated world after placement: shipments move and are charged as they ship, returns are refunded,
+        // and Haul Pay's payments are taken as they come due.
+        fulfilment.interval?.let { FulfilmentRunner(get(), get(), get(), it).start(scope) }
+        // The sample sale moved to the new day at each store midnight, so a stand that runs for days keeps its deals.
+        saleLook?.let { SaleRedater(database, clock).start(scope, it) }
+        // Demo shoppers older than a day forgotten, with everything they did (B-162).
+        demoSweep?.let { get<DemoOffer>().startSweeping(scope, it) }
+    }
+    when (replicas) {
+        Replicas.Alone -> singletons(this)
+        is Replicas.Shared -> shareWithReplicas(replicas, pool, singletons)
+    }
     // Server-sent events, the live pages' stream (B-29, B-164).
     install(SSE)
     install(StatusPages) {
@@ -275,6 +299,31 @@ internal fun Application.haulModule(
         web?.let { webBundle(it) }
     }
 }
+
+/**
+ * One replica of several (B-174): the moves this process makes go to the others and theirs come here, through
+ * PostgreSQL ([PostgresBus] on [Replicas.MOVES]), so a page is live whichever replica it is connected to; and
+ * [singletons] run on the elected [Leader] only, started when this replica takes the leadership and cancelled when
+ * it loses it. Stopping closes the election first, while the pool is still open, so the release is a clean one and
+ * the next leader takes over within a poll rather than after vojak's `localLease`.
+ */
+private fun Application.shareWithReplicas(
+    replicas: Replicas.Shared,
+    pool: DataSource,
+    singletons: (CoroutineScope) -> Unit,
+) {
+    val moves = get<OrderMoves>()
+    PostgresBus(Replicas.MOVES, replicas.listen, pool).start(this, moves.madeHere, moves::heard)
+    val leader = Leader(replicas.leases, Leader.candidate(replicas.name), replicas.timing)
+    val election = CompletableDeferred<Election>()
+    launch { election.complete(leader.elect(this@shareWithReplicas, singletons)) }
+    monitor.subscribe(ApplicationStopping) {
+        runBlocking { withTimeoutOrNull(ELECTION_CLOSE) { election.await().close() } }
+    }
+}
+
+/** The most stopping waits for the leader's work to stop and its lease to be given back. */
+private val ELECTION_CLOSE = 5.seconds
 
 /** The one shape of every refusal: [ErrorBody] with the status its [code] maps to, unless [status] says otherwise. */
 internal suspend fun ApplicationCall.respondError(

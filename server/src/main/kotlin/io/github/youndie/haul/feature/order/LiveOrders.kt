@@ -33,10 +33,10 @@ private val log = LoggerFactory.getLogger("io.github.youndie.haul.order.live")
  * **What a listener is sent first is the order as it is now** ([frame]): a move between the page's load and
  * its listening, or while it was reconnecting, is not lost — the next connection starts where the order is.
  *
- * The broadcaster's bus is kompot's in-memory one: a move is heard by the pages connected to the process
- * that made it. One process runs the simulated world and serves the pages (haul-server); a second replica
- * would need a bus between them (kompot's Redis one) and could not skip the drawing by its own count as
- * [publish] does.
+ * **Every replica hears every move** (B-174): [moves] carries this process's and, through the replicas' bus
+ * ([io.github.youndie.haul.ops.PostgresBus]), the ids of the orders the others moved. The broadcaster stays kompot's
+ * in-memory one, holding this process's listeners only: what travels between the replicas is the order's id, and the
+ * replica a page is connected to draws the frame, so [publish] still skips the drawing when nobody listens here.
  */
 internal class LiveOrders(
     private val moves: OrderMoves,
@@ -92,9 +92,9 @@ internal class LiveOrders(
 
     /**
      * Draws [orderId] again for its customer and hands it to their listeners. Nobody listening — the order
-     * moved while nobody looks, which is nearly always — draws nothing: the bus is in memory, so the
-     * listeners here are all there are. A failure is said and dropped; the page catches up on its next load
-     * or connection, and the next move is tried as usual.
+     * moved while nobody looks, which is nearly always — draws nothing: the broadcaster holds this process's
+     * listeners, and a replica with a page listening draws it there, from the same move. A failure is said and
+     * dropped; the page catches up on its next load or connection, and the next move is tried as usual.
      */
     private suspend fun publish(orderId: String) {
         try {

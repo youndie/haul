@@ -33,6 +33,9 @@ internal object PostgresHarness {
     /** Every database handed out and not closed yet, with where it was opened. */
     private val open = mutableMapOf<HikariDataSource, Throwable>()
 
+    /** Each database's own address, for a connection outside its pool (B-174: the replicas' bus listens on one). */
+    private val urls = mutableMapOf<HikariDataSource, String>()
+
     private val container: PostgreSQLContainer<Nothing> =
         PostgreSQLContainer<Nothing>(DockerImageName.parse(IMAGE)).apply {
             withDatabaseName("haul")
@@ -55,6 +58,7 @@ internal object PostgresHarness {
                 DatabaseConfig(url, container.username, container.password, maximumPoolSize = POOL_SIZE),
             ).also {
                 synchronized(open) { open[it] = Throwable(name) }
+                synchronized(urls) { urls[it] = url }
                 val applied =
                     if (upTo == null) {
                         Databases.migrate(it)
@@ -71,6 +75,14 @@ internal object PostgresHarness {
                 check(applied > 0) { "Flyway applied no migrations — is db/migration on the classpath?" }
             }
     }
+
+    /** Where [database] — one [freshDatabase] handed out — is, for what must connect past its pool. */
+    fun config(database: HikariDataSource): DatabaseConfig =
+        DatabaseConfig(
+            checkNotNull(synchronized(urls) { urls[database] }) { "not a database this harness made" },
+            container.username,
+            container.password,
+        )
 
     private fun checkNoneLeft() =
         synchronized(open) {
