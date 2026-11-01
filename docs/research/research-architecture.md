@@ -60,7 +60,7 @@ Verified against `youndie/kompot@d35ae36`.
 
 **Consequence 2.** A server built by kompot has to run on the JVM (D1). The browser client and
 the screenshot tests share one renderer: `kompot-client` on wasmJs ships, the same on
-`jvm("desktop")` draws the references the parity check compares against.
+`jvm("desktop")` draws the references the parity check compares against — and, since B-176, the desktop app (D2).
 
 **Consequence 3.** Live order tracking through `kompot-realtime-server` is available on the JVM,
 and B-29 built it on kompot's own pieces at the pinned version: the order's tree comes in
@@ -954,6 +954,43 @@ leads the list only among its stars. A review's photo opens the review's photos 
 own layer (`SheetOverPage`), for the reason B-126 found below, and each press named. The seed has no shoppers'
 photography: since B-149 each photo is a picture of the reviewed product over its placeholder's tone (D8), small on
 its tile and large in the viewer.
+
+**Decided in B-176, a second client: the desktop draws the same trees.** Server-driven UI promises one server and
+many clients; until B-176 Haul had one. `composeApp`'s `jvm("desktop")` target, which drew only the goldens, now has
+a `main` (`composeApp/src/desktopMain/kotlin/io/github/youndie/haul/DesktopMain.kt`) that opens the same `App`, with
+the same registry and renderers, in a window.
+
+- **The server changed in nothing.** Walked against the stand as it was (`/version` answered v0.7.2): home, the cart, a card's «+» that
+  put a line in a new guest's cart — the same trees the browser is answered, the same commands, the same photos.
+  The only difference a window makes is that it has no origin: the browser sends the store's bare paths (`POST
+  /api/v1/guests`, `GET /api/v1/sign-in`, the merge's address) to the page's own origin by itself, and the desktop's
+  one Ktor client (CIO) sends them to the server it was pointed at (`storeClient`'s `defaultRequest`). Which server
+  is `--server=<origin>` or `HAUL_SERVER`, the stand when neither says.
+- **What is the browser's there is the window's here**: an in-app back stack for the history (`BackStackHistory`,
+  the Go menu's Back and Forward, ⌘[ and ⌘] on a Mac, Alt and the arrows elsewhere), the window's title for the
+  tab's, the system clipboard and browser for the links (`DesktopLinks`; «Open in new tab» opens the store's
+  address in the system's browser), and the guest kept in the user's preferences, one per server, where the browser
+  keeps it in `localStorage` (`PreferencesSessionStore`); a customer's tokens last the window, as a tab's
+  `sessionStorage` does. Motion is on: the JVM reads no system-wide «reduce motion», and a setting of the app's own
+  was not worth one.
+- **Sign-in is not there yet** — the item's question. kotlin-multiplatform-oidc 0.18.4 publishes a JVM variant of
+  `oidc-appsupport` (its Gradle metadata), the system browser and a listener on a loopback port, which shildik's app
+  contour accepts from `0cbc2c7` on, a public client's `http://127.0.0.1/<path>` on any port
+  (`youndie/shildik@731b955!/docs/api/protocol-oidc-app.md`). The stand has neither: its provider is shildik 0.4.1,
+  released before that commit, and the chart registers `haul-web` with one return address,
+  `https://<hostname>/signed-in.html` (`charts/haul/files/shildik-bootstrap.py`). Until both move, the desktop's
+  «Sign in» ends as on a server with sign-in off — the shopper stays the guest they were, cart and all — and
+  «Try as a demo shopper» (B-162) signs in without the provider where the server offers it, though its five-minute
+  token cannot be renewed without the provider's flow either.
+- **What the desktop does not pay of the web's costs** (B-175's list, «The cost of Compose for Web 1.12»): the
+  bundle's download before the first frame (the runtime ships in the package: the `.deb` is 66 MB, 152 MB
+  installed), the tab title written by hand (a window's title is Compose's), the fonts fetched from Google for a
+  code point no bundled face has (the downloader is the web's), the keys that reach a field a frame after a press
+  (the desktop applies input at once, as B-76 found), and the assistive-technology mirror (the desktop's is Java's
+  accessibility). The page's own habits — selection, the store's menus, the focus ring — are the store's on both.
+  Read from what each of B-175's rows says it is for, not walked one by one in the window.
+- **Packaged, not published**: `compose.desktop.application` names a `.dmg`, an `.msi` and a `.deb`; jpackage builds
+  only its host's, and the `.deb` was built on the Linux build box. No workflow builds or publishes them.
 
 ### D3. PostgreSQL; the access layer is chosen at scaffold
 

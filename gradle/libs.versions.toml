@@ -94,6 +94,8 @@ coil-networkKtor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref
 coil-svg = { module = "io.coil-kt.coil3:coil-svg", version.ref = "coil" }
 ktor-client-core = { module = "io.ktor:ktor-client-core" }
 ktor-client-js = { module = "io.ktor:ktor-client-js" }
+# The desktop app's engine (B-176): Ktor's own, on coroutines, so the desktop needs no HTTP library beside Ktor.
+ktor-client-cio = { module = "io.ktor:ktor-client-cio" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock" }
 
 shildik-oidcAuthServer = { module = "io.github.youndie.shildik:oidc-auth-server", version.ref = "shildik" }

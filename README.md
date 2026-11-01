@@ -80,7 +80,7 @@ always orders moving through the saga.
 |---|---|
 | `shared` | the contract: the store's components on the wire, error codes, money and time (JVM, Wasm) |
 | `server` | every screen as a tree, every command, the saga, the simulators |
-| `composeApp` | the storefront (Wasm); its JVM target only draws the screenshots |
+| `composeApp` | the storefront (Wasm), and the same storefront as a desktop app (JVM), which also draws the screenshots |
 | `e2e` | the whole path over HTTP against the image; its `main` is the synthetic shoppers |
 
 ## Run it
@@ -100,6 +100,11 @@ Helm chart in [`charts/haul`](charts/haul) is what the public stand runs, provid
 To build from source, `./gradlew :server:installDist :composeApp:wasmJsBrowserDistribution` (Gradle fetches the
 JDK 25 toolchain itself). The server's tests need Docker: PostgreSQL runs in Testcontainers.
 
+**The same store as a desktop app**, drawing the same server trees with the same renderers in a window:
+`./gradlew :composeApp:run` browses the public stand, `./gradlew :composeApp:run -Pserver=http://localhost:8080`
+the server above; `:composeApp:packageDistributionForCurrentOS` builds its installer (`.dmg`, `.msi` or `.deb`).
+Sign-in there is not wired yet: it browses and fills a guest's cart.
+
 ## Numbers, honestly
 
 - **First load**: the store's first frame — drawn in its own faces — at about **0.6 s** on loopback, **5.2 s** on
@@ -108,7 +113,7 @@ JDK 25 toolchain itself). The server's tests need Docker: PostgreSQL runs in Tes
   [`scripts/measure-first-load.py`](scripts/measure-first-load.py); the method and every run are in the research.
 - **Checks on every pull request**: about 540 server tests against a real PostgreSQL, about 490 client tests,
   about 180 screenshot goldens, the image with its AOT cache, the chart, and the whole buy-receive-return path over HTTP.
-- **Releases are walked**: a catalogue of 146 QA cases ([`docs/qa`](docs/qa/README.md)), and each run's result is
+- **Releases are walked**: a catalogue of 155 QA cases ([`docs/qa`](docs/qa/README.md)), and each run's result is
   in [`docs/qa/runs`](docs/qa/runs).
 
 ## What it is not

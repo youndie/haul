@@ -19,7 +19,7 @@ screen, petich for the order, shildik for sign-in, Compose Multiplatform in the 
 |---|---|---|
 | `:shared` | the contract: Haul components on the wire, `ErrorCode`, money and time — paths are the server's strings, the client follows actions | jvm, wasmJs |
 | `:server` | every screen as a kompot tree, every command, the order saga, the simulators; an `application` | JVM |
-| `:composeApp` | the storefront; `jvm("desktop")` only draws the screenshots | wasmJs, desktop |
+| `:composeApp` | the storefront; `jvm("desktop")` draws the screenshots and is the desktop app (B-176) | wasmJs, desktop |
 | `:e2e` | the whole path over HTTP against a composed stack; its `main` is the synthetic shoppers that walk it on a stand (B-31) | JVM |
 
 One root package everywhere, `io.github.youndie.haul`; a feature lives in `feature/<name>/` in every

@@ -51,7 +51,7 @@ A stage is a field on the item, not a directory.
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-156](docs/backlog/B-156-walk-the-selection-on-a-phone.md) `[ ]` | chore: walk the selection and its toolbar on a phone | P3 | S | B-155 |
-| [B-176](docs/backlog/B-176-a-second-client-draws-the-same-trees.md) `[ ]` | feat: a second client — desktop — draws the same server trees | P3 | L | - |
+| [B-176](docs/backlog/B-176-a-second-client-draws-the-same-trees.md) `[?]` | feat: a second client — desktop — draws the same server trees | P3 | L | - |
 
 ## Closed (174)
 
