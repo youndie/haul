@@ -3,6 +3,7 @@ package io.github.youndie.haul.e2e
 import com.github.dockerjava.api.model.ExposedPort
 import com.github.dockerjava.api.model.PortBinding
 import com.github.dockerjava.api.model.Ports
+import org.testcontainers.DockerClientFactory
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.Wait
@@ -12,6 +13,7 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.sql.Connection
 import java.sql.DriverManager
 import java.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -20,7 +22,8 @@ import kotlin.time.TimeSource
 
 /**
  * The stack the whole path runs against, started from the test: PostgreSQL, shildik with a realm, and
- * the server's own image — the one `scripts/image-build.sh` builds, named by `haul.e2e.image` — with
+ * the server's own image, twice — two [replicas] behind a [front] that takes turns, as a stand with
+ * `server.replicas: 2` runs (B-174) — the one `scripts/image-build.sh` builds, named by `haul.e2e.image` — with
  * the configuration a stand gives it (`ServerConfig`): the database, the seed, the realm, the
  * fulfilment clock run [FULFILMENT_SPEED] times the store's pace, the key the shoppers' declining walks
  * choose the test card with ([TEST_CARD_KEY]), and the realm's management port the demo shoppers are made through
@@ -106,37 +109,93 @@ internal object ComposedStack {
             it.realm(CLIENT, REDIRECT)
         }
 
-    private val serverPort: Int = freePort()
+    /**
+     * The server, twice (B-174): two replicas of the image on one database, as a stand runs them with
+     * `server.replicas: 2` — each serving every route and every live page, the moves shared through the database, the
+     * simulated world on the one elected leader. Started together, as a rollout starts them: the migrations and the
+     * seed take their advisory locks, and the second waits.
+     */
+    val replicas: List<Replica> = listOf(Replica("a", freePort()), Replica("b", freePort()))
 
-    /** Where the storefront answers: the page, the trees under `/ui`, the commands under `/api`. */
-    val origin = "http://127.0.0.1:$serverPort"
+    /**
+     * Where the storefront answers: the page, the trees under `/ui`, the commands under `/api` — through [front], which
+     * hands each request to the next replica in turn, as the stand's Service does, so a path walks both.
+     */
+    val front: RoundRobinFront = RoundRobinFront(replicas.map { it.origin })
+    val origin: String = front.origin
 
-    private val server: GenericContainer<*> =
-        GenericContainer(DockerImageName.parse(image)).apply {
-            withNetworkMode("host")
-            withEnv("PORT", serverPort.toString())
-            withEnv("HAUL_DB_URL", "jdbc:postgresql://127.0.0.1:${postgres.getMappedPort(5432)}/haul")
-            withEnv("HAUL_DB_USER", postgres.username)
-            withEnv("HAUL_DB_PASSWORD", postgres.password)
-            withEnv("HAUL_SEED", "true")
-            withEnv("HAUL_OIDC_ISSUER", issuer)
-            withEnv("HAUL_OIDC_CLIENT_ID", CLIENT)
-            withEnv("HAUL_FULFILMENT_SPEED", FULFILMENT_SPEED.toString())
-            withEnv("HAUL_ENVIRONMENT", "e2e")
-            withEnv("HAUL_COMMIT", "e2e")
-            withEnv("HAUL_TEST_CARD_KEY", TEST_CARD_KEY)
-            // Demo shoppers made in the realm through its management port (B-162), as a stand's server reaches its
-            // release's shildik: on the host's network the port Docker mapped is on 127.0.0.1.
-            withEnv("HAUL_DEMO_MANAGEMENT_URL", "http://127.0.0.1:${shildik.getMappedPort(9000)}")
-            withEnv("HAUL_DEMO_MANAGEMENT_TOKEN", BOOTSTRAP)
-            withEnv("HAUL_DEMO_REDIRECT_URI", REDIRECT)
-            // On the host's network there is no mapped port to wait on; readiness is polled below.
-            start()
+    /** One replica of the server: [name] is its `HAUL_REPLICA`, which names its sessions in `pg_stat_activity`. */
+    internal class Replica(
+        val name: String,
+        val port: Int,
+    ) {
+        val origin = "http://127.0.0.1:$port"
+
+        @Volatile
+        var container: GenericContainer<*> = container()
+            private set
+
+        /** Ends the process at once, as a node that dies or `kubectl delete --grace-period=0` does: SIGKILL. */
+        fun kill() {
+            DockerClientFactory
+                .instance()
+                .client()
+                .killContainerCmd(container.containerId)
+                .exec()
         }
 
-    init {
-        awaitReady()
+        /** A new container in place of a killed one, on the same port and name, once it is ready. */
+        fun replace() {
+            // Testcontainers removes the killed one; it was never running a moment ago, and stopping it says nothing.
+            container.stop()
+            container = container()
+            awaitReady(this)
+        }
+
+        fun log(lines: Int): String =
+            container.logs
+                .lines()
+                .takeLast(lines)
+                .joinToString("\n")
+
+        private fun container(): GenericContainer<*> =
+            GenericContainer(DockerImageName.parse(image)).apply {
+                withNetworkMode("host")
+                withEnv("PORT", port.toString())
+                withEnv("HAUL_REPLICA", name)
+                withEnv("HAUL_DB_URL", "jdbc:postgresql://127.0.0.1:${postgres.getMappedPort(5432)}/haul")
+                withEnv("HAUL_DB_USER", postgres.username)
+                withEnv("HAUL_DB_PASSWORD", postgres.password)
+                withEnv("HAUL_SEED", "true")
+                withEnv("HAUL_OIDC_ISSUER", issuer)
+                withEnv("HAUL_OIDC_CLIENT_ID", CLIENT)
+                withEnv("HAUL_FULFILMENT_SPEED", FULFILMENT_SPEED.toString())
+                withEnv("HAUL_ENVIRONMENT", "e2e")
+                withEnv("HAUL_COMMIT", "e2e")
+                withEnv("HAUL_TEST_CARD_KEY", TEST_CARD_KEY)
+                // Demo shoppers made in the realm through its management port (B-162), as a stand's server reaches its
+                // release's shildik: on the host's network the port Docker mapped is on 127.0.0.1.
+                withEnv("HAUL_DEMO_MANAGEMENT_URL", "http://127.0.0.1:${shildik.getMappedPort(9000)}")
+                withEnv("HAUL_DEMO_MANAGEMENT_TOKEN", BOOTSTRAP)
+                withEnv("HAUL_DEMO_REDIRECT_URI", REDIRECT)
+                // On the host's network there is no mapped port to wait on; readiness is polled below.
+                start()
+            }
     }
+
+    init {
+        replicas.forEach(::awaitReady)
+    }
+
+    /** The replica that leads — holds the election's lock (`vojak <name>` in `pg_stat_activity`) — or `null` for none. */
+    fun leader(): Replica? =
+        query("SELECT application_name FROM pg_stat_activity WHERE application_name LIKE 'vojak %'") { it.getString(1) }
+            .singleOrNull()
+            ?.removePrefix("vojak ")
+            ?.let { name -> replicas.single { it.name == name } }
+
+    /** A connection to the server's database, past the server: for what a test must hold or read there itself. */
+    fun connection(): Connection = DriverManager.getConnection(postgres.jdbcUrl, postgres.username, postgres.password)
 
     /**
      * Every SKU's stock, read off the server's database (B-88): the wire never carries the count — a product
@@ -158,47 +217,67 @@ internal object ComposedStack {
             it.getString(1) to it.getString(2)
         }.single()
 
+    /** [orderId]'s lines as units per SKU: what it bought. */
+    fun linesOf(orderId: String): Map<String, Int> =
+        query("SELECT sku_id, sum(quantity) FROM order_lines WHERE order_id = ? GROUP BY sku_id", orderId) {
+            it.getString(1) to it.getInt(2)
+        }.toMap()
+
+    /** The rows [sql] reads with [parameters] — a string, or an array of them for `= ANY (?)` — each made by [row]. */
+    fun <T> rows(
+        sql: String,
+        vararg parameters: Any,
+        row: (java.sql.ResultSet) -> T,
+    ): List<T> = query(sql, *parameters, row = row)
+
     private fun <T> query(
         sql: String,
-        vararg parameters: String,
+        vararg parameters: Any,
         row: (java.sql.ResultSet) -> T,
     ): List<T> =
-        DriverManager.getConnection(postgres.jdbcUrl, postgres.username, postgres.password).use { connection ->
+        connection().use { connection ->
             connection.prepareStatement(sql).use { statement ->
-                parameters.forEachIndexed { index, value -> statement.setString(index + 1, value) }
+                parameters.forEachIndexed { index, value ->
+                    when (value) {
+                        is Array<*> -> statement.setArray(index + 1, connection.createArrayOf("text", value))
+                        else -> statement.setObject(index + 1, value)
+                    }
+                }
                 statement.executeQuery().use { rows ->
                     generateSequence { if (rows.next()) row(rows) else null }.toList()
                 }
             }
         }
 
-    /** What the server printed, for a failure message: the last [lines] of it. */
-    fun serverLog(lines: Int = 80): String =
-        server.logs
-            .lines()
-            .takeLast(lines)
-            .joinToString("\n")
+    /** What the servers printed, for a failure message: the last [lines] of each replica's. */
+    fun serverLog(lines: Int = 80): String = replicas.joinToString("\n") { "--- replica ${it.name}:\n${it.log(lines)}" }
 
     /**
-     * Until `/readyz` answers 200 — the database reached, the migrations and the seed done — or a
+     * Until [replica]'s `/readyz` answers 200 — the database reached, the migrations and the seed done — or a
      * minute, which is far past a start with the AOT cache and a fresh seed.
      */
-    private fun awaitReady() {
+    private fun awaitReady(replica: Replica) {
         val started = TimeSource.Monotonic.markNow()
         while (started.elapsedNow() < 1.minutes) {
-            check(server.isRunning) { "the server's container stopped before it was ready:\n${serverLog()}" }
+            check(replica.container.isRunning) {
+                "the replica ${replica.name}'s container stopped before it was ready:\n${replica.log(80)}"
+            }
             val status =
                 runCatching {
                     http
                         .send(
-                            HttpRequest.newBuilder(URI("$origin/readyz")).timeout(Duration.ofSeconds(2)).build(),
+                            HttpRequest
+                                .newBuilder(
+                                    URI("${replica.origin}/readyz"),
+                                ).timeout(Duration.ofSeconds(2))
+                                .build(),
                             HttpResponse.BodyHandlers.discarding(),
                         ).statusCode()
                 }.getOrNull()
             if (status == 200) return
             Thread.sleep(0.5.seconds.inWholeMilliseconds)
         }
-        error("the server was not ready within a minute:\n${serverLog()}")
+        error("the replica ${replica.name} was not ready within a minute:\n${replica.log(80)}")
     }
 
     private fun freePort(): Int = ServerSocket(0).use { it.localPort }
