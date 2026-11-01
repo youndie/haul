@@ -18,8 +18,9 @@ pixels, and running in public at **[haul.kotlin.website](https://haul.kotlin.web
    the parts that changed arrive (`/ui/parts/c/electronics?sort=price-asc` answers an `update` naming the nodes it
    replaces), and the address follows without a reload — [`Parts.kt`](server/src/main/kotlin/io/github/youndie/haul/shell/Parts.kt).
 4. **Place an order and follow it** — an order is a [petich](https://github.com/youndie/petich) saga that reserves,
-   authorises and undoes in reverse ([`OrderSaga.kt`](server/src/main/kotlin/io/github/youndie/haul/feature/order/saga/OrderSaga.kt));
-   checkout needs a sign-in on the stand for now.
+   authorises and undoes in reverse ([`OrderSaga.kt`](server/src/main/kotlin/io/github/youndie/haul/feature/order/saga/OrderSaga.kt)).
+   No account is needed: «Try as a demo shopper» makes a customer of your own in one press, with an address and Haul
+   Pay set, and forgets them after a day ([`DemoShoppers.kt`](server/src/main/kotlin/io/github/youndie/haul/feature/identity/domain/DemoShoppers.kt)).
 
 Haul exists to put a whole Kotlin stack through a real product rather than a demo app: every screen is a tree
 the server sends, the browser draws it with Compose Multiplatform on WebAssembly, and an order is a saga that
@@ -92,7 +93,7 @@ JDK 25 toolchain itself). The server's tests need Docker: PostgreSQL runs in Tes
   [`scripts/measure-first-load.py`](scripts/measure-first-load.py); the method and every run are in the research.
 - **Checks on every pull request**: about 540 server tests against a real PostgreSQL, about 490 client tests,
   168 screenshot goldens, the image with its AOT cache, the chart, and the whole buy-receive-return path over HTTP.
-- **Releases are walked**: a catalogue of 134 QA cases ([`docs/qa`](docs/qa/README.md)), and each run's result is
+- **Releases are walked**: a catalogue of 146 QA cases ([`docs/qa`](docs/qa/README.md)), and each run's result is
   in [`docs/qa/runs`](docs/qa/runs).
 
 ## What it is not
