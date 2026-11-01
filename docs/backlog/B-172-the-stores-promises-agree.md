@@ -1,7 +1,7 @@
 ---
 id: B-172
 title: "fix: the store's promises agree with its rules and with each other"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-15-showcase

@@ -57,7 +57,7 @@ A stage is a field on the item, not a directory.
 | [B-169](docs/backlog/B-169-on-a-phone-the-variant-comes-before-the-buy.md) `[ ]` | fix: on a phone the product's variant is chosen before its buy buttons | P2 | S | - |
 | [B-170](docs/backlog/B-170-the-header-keeps-its-content-across-pages.md) `[ ]` | fix: the header keeps its content while the next page loads | P2 | S | - |
 | [B-171](docs/backlog/B-171-search-finds-a-product-by-its-kind.md) `[ ]` | fix: search finds a product by the words of its kind, not only of its name | P2 | S | - |
-| [B-172](docs/backlog/B-172-the-stores-promises-agree.md) `[ ]` | fix: the store's promises agree with its rules and with each other | P2 | S | - |
+| [B-172](docs/backlog/B-172-the-stores-promises-agree.md) `[~]` | fix: the store's promises agree with its rules and with each other | P2 | S | - |
 | [B-173](docs/backlog/B-173-the-stack-in-numbers.md) `[ ]` | feat: «The stack in numbers» — start-up with and without the AOT cache, latency, memory, measured | P2 | M | - |
 | [B-156](docs/backlog/B-156-walk-the-selection-on-a-phone.md) `[ ]` | chore: walk the selection and its toolbar on a phone | P3 | S | B-155 |
 | [B-174](docs/backlog/B-174-two-replicas.md) `[ ]` | feat: the server runs as two replicas — an external bus, one leader for the simulators | P3 | L | - |
