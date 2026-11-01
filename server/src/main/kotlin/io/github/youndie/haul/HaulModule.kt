@@ -63,6 +63,7 @@ import io.github.youndie.haul.ops.installObservability
 import io.github.youndie.haul.ops.probes
 import io.github.youndie.haul.seed.SaleRedater
 import io.github.youndie.haul.seed.SeedArt
+import io.github.youndie.haul.shell.TreeTiming
 import io.github.youndie.petich.PetichClock
 import io.github.youndie.petich.SuspendedPetichSweeper
 import io.github.youndie.shildik.oidc.JWT_AUTH_OIDC
@@ -238,6 +239,8 @@ internal fun Application.haulModule(
         }
         unexpectedFailures(report = observers.reportFailure)
     }
+    // Every tree says how long the server took over it, for «Under the hood» (B-163); first, so a redirect has it too.
+    install(TreeTiming)
     // A category answers at one address; any other form of it is redirected there (B-68).
     install(OneCategoryAddress)
     // A page's address is the page whatever its query, one that does not decode included (B-117).

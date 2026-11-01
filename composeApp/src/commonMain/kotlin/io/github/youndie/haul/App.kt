@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.feature.cart.CartCommands
@@ -19,6 +20,7 @@ import io.github.youndie.haul.shell.HaulTransport
 import io.github.youndie.haul.shell.MemoryDemoNoteMemory
 import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.shell.TreeCommands
+import io.github.youndie.haul.shell.UnderTheHood
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulFonts
 import io.github.youndie.haul.theme.HaulTheme
@@ -49,7 +51,9 @@ import kotlin.time.Clock
  * [demoNote] remembers whether the visitor closed the demo strip the storefront draws above its pages (B-160): the
  * browser's `sessionStorage` there, memory by default. The strip is the root's alone: `Storefront` drawn on its own —
  * the shell's tests — and every golden have none. [title] is the browser tab's title,
- * which follows the page drawn (B-161).
+ * which follows the page drawn (B-161). The strip's «Under the hood» opens a panel over the page — the screen's tree,
+ * the request that brought it and the updates it takes (B-163) — so [transport]'s requests and [cartCommands]'
+ * answers are watched here; the root's alone, like the strip.
  */
 @Composable
 public fun App(
@@ -75,13 +79,18 @@ public fun App(
             LocalLinkCopier provides links,
             LocalMotion provides motion,
         ) {
-            DemoStripped(transport, demoNote) {
+            // «Under the hood» (B-163): the trees' requests remembered as the transport makes them, the cart's
+            // answers told to the panel while it is open; the panel itself is drawn by the strip, over the pages.
+            val hood = remember(motion) { UnderTheHood(motion) }
+            val heard = remember(transport, hood) { hood.recording(transport) }
+            val cart = remember(cartCommands, hood) { cartCommands?.let(hood::watching) }
+            DemoStripped(heard, demoNote, hood) {
                 Storefront(
-                    transport,
+                    heard,
                     history,
                     identity::signIn,
                     clock,
-                    cartCommands,
+                    cart,
                     commands,
                     checkoutCommands,
                     treeCommands,

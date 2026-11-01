@@ -14,11 +14,17 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -40,13 +46,20 @@ public const val DEMO_NOTE_CLOSE_TAG: String = "demo-note-close"
  * control, [onClose]; without one (a tree that carried the note) nothing closes it. At 1440 it is one line; on a
  * phone the words wrap and the links take the line under them. The links follow their actions: «About this demo»
  * opens the About page, «Source on GitHub» the repository in a tab of its own.
+ *
+ * [onHood] is the «Under the hood» toggle's press (B-163), drawn after the links — on a phone on a line of its own —
+ * as a pill named by the note's `hood`, filled while [hoodOpen]; without a press or a name there is no toggle, so a
+ * strip drawn on its own (a golden) is as before.
  */
 @Composable
 public fun DemoNoteView(
     note: DemoNote,
     onClose: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    onHood: (() -> Unit)? = null,
+    hoodOpen: Boolean = false,
 ) {
+    val hood = note.hood?.takeIf { onHood != null }
     val compact = LocalHaulCompact.current
     val size = if (compact) 12f else 13f
     val words = HaulType.text(size, lineHeight = 1.4f).copy(color = HaulColors.onSurfaceVariant)
@@ -73,6 +86,9 @@ public fun DemoNoteView(
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(note.text, words)
                 NoteLinks(note.links, link)
+                if (hood != null && onHood != null) {
+                    HoodToggle(hood, hoodOpen, onHood, link, Modifier.padding(top = 6.dp, bottom = 2.dp))
+                }
             }
         } else {
             FlowRow(
@@ -82,6 +98,7 @@ public fun DemoNoteView(
             ) {
                 Text(note.text, words)
                 NoteLinks(note.links, link)
+                if (hood != null && onHood != null) HoodToggle(hood, hoodOpen, onHood, link)
             }
         }
         if (onClose != null) {
@@ -96,6 +113,45 @@ public fun DemoNoteView(
                 contentAlignment = Alignment.Center,
             ) { Icon(HaulIcons.close, 12.dp, HaulColors.onSurfaceVariant) }
         }
+    }
+}
+
+/** The tag on the strip's «Under the hood» toggle. */
+public const val HOOD_TOGGLE_TAG: String = "under-the-hood-toggle"
+
+/**
+ * «Under the hood» (B-163): a pill drawn around the words without growing the line — its edge reaches into the strip's
+ * padding — outlined while the panel is closed, filled with the ink while it is open; a switch to assistive technology.
+ */
+@Composable
+private fun HoodToggle(
+    label: String,
+    open: Boolean,
+    onPress: () -> Unit,
+    style: TextStyle,
+    modifier: Modifier = Modifier,
+) {
+    val state = if (open) ToggleableState.On else ToggleableState.Off
+    Box(
+        modifier
+            .testTag(HOOD_TOGGLE_TAG)
+            .toggles(label, state, Role.Switch, onPress)
+            .drawBehind {
+                val reach = 3.dp.toPx()
+                val corner = CornerRadius(size.height / 2 + reach)
+                val topLeft = Offset(0f, -reach)
+                val pill = Size(size.width, size.height + 2 * reach)
+                if (open) {
+                    drawRoundRect(HaulColors.inverseSurface, topLeft, pill, corner)
+                } else {
+                    drawRoundRect(HaulColors.outline, topLeft, pill, corner, style = Stroke(1.dp.toPx()))
+                }
+            }.padding(horizontal = 10.dp),
+    ) {
+        Text(
+            label,
+            style.copy(textDecoration = null, color = if (open) HaulColors.inverseOnSurface else HaulColors.onSurface),
+        )
     }
 }
 

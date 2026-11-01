@@ -26,10 +26,14 @@ import kotlin.coroutines.cancellation.CancellationException
 // How the shell asks its server for a screen or a suggest panel: one function, so a test swaps the
 // network for a fake and the browser's goes through whatever every request needs on the way.
 
-/** What the server answered: its status and its body as text. */
+/**
+ * What the server answered: its status and its body as text, and — for a tree — its `Server-Timing` header,
+ * [serverTiming], how long the server took over it (B-163), which «Under the hood» shows.
+ */
 public class HaulResponse(
     public val status: Int,
     public val body: String,
+    public val serverTiming: String? = null,
 )
 
 /** `GET`s a path on the page's origin («/ui/home») and returns whatever the server answered; no answer throws. */
@@ -54,8 +58,11 @@ public fun ktorTransport(
             send { headers ->
                 http.get(origin.trimEnd('/') + path) { headers.forEach { (name, value) -> header(name, value) } }
             }
-        HaulResponse(response.status.value, response.bodyAsText())
+        HaulResponse(response.status.value, response.bodyAsText(), response.headers[SERVER_TIMING])
     }
+
+/** The header every tree carries (B-163): `app;dur=<ms>`, the server's time over it. */
+internal const val SERVER_TIMING: String = "Server-Timing"
 
 /**
  * Sends a request a tree names by its method and path alone (B-37) — «Clear» on recent searches: [method]
