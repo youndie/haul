@@ -58,13 +58,18 @@ class NumbersRoutesTest {
                 body.sections.map { it.title },
             )
             assertEquals(
-                listOf("The home page", "A category", "A product", "Search suggestions", "Live orders"),
-                body.sections[1]
-                    .points
-                    .map { it.name }
-                    .drop(1)
-                    .dropLast(1),
-                "every route the load asked for, between the load and the verdict",
+                listOf(
+                    "The load",
+                    "The home page",
+                    "A category",
+                    "A product",
+                    "Search suggestions",
+                    "Live orders",
+                    "At twice the rate",
+                    "Verdict",
+                ),
+                body.sections[1].points.map { it.name },
+                "the load, every route it asked for, the run at twice the rate and the verdict",
             )
             val numbers = StackNumbers.measured
             assertTrue(
