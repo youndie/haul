@@ -50,7 +50,7 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-167](docs/backlog/B-167-keyboard-focus-is-visible.md) `[ ]` | fix: the control the keyboard is on is visibly marked | P2 | S/M | - |
+| [B-167](docs/backlog/B-167-keyboard-focus-is-visible.md) `[~]` | fix: the control the keyboard is on is visibly marked | P2 | S/M | - |
 | [B-169](docs/backlog/B-169-on-a-phone-the-variant-comes-before-the-buy.md) `[ ]` | fix: on a phone the product's variant is chosen before its buy buttons | P2 | S | - |
 | [B-170](docs/backlog/B-170-the-header-keeps-its-content-across-pages.md) `[ ]` | fix: the header keeps its content while the next page loads | P2 | S | - |
 | [B-173](docs/backlog/B-173-the-stack-in-numbers.md) `[ ]` | feat: «The stack in numbers» — start-up with and without the AOT cache, latency, memory, measured | P2 | M | - |

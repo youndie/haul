@@ -1,7 +1,7 @@
 ---
 id: B-167
 title: "fix: the control the keyboard is on is visibly marked"
-status: open
+status: wip
 priority: P2
 size: S/M
 stage: stage-15-showcase
