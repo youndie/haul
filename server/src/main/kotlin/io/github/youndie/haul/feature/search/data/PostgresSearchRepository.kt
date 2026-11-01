@@ -9,9 +9,16 @@ import java.sql.Connection
 import javax.sql.DataSource
 
 /**
- * Search over PostgreSQL full text and `pg_trgm` (research, open question 1), in plain SQL: the
- * expressions are the ones `V3__search.sql` and `V25__listing_name.sql` index, character for character,
- * or the planner does not use the index.
+ * Search over PostgreSQL full text and `pg_trgm` (research, open question 1), in plain SQL. A product is matched
+ * on two documents (B-171): its name — the listing name, the title when there is none, and the brand — weighted
+ * `A`, and what it is — its kind, its features («Wireless»), its category's name and that category's parent's
+ * («Headphones», «Audio») — weighted `B`. Every typed word is required, in either. A product whose name holds
+ * every word, or whose title or listing name holds the query as typed, comes before one found only by what it
+ * is; inside each, `ts_rank` over both documents, then the most reviewed.
+ *
+ * The category names come from a join, so the matched document is no expression `V3__search.sql` or
+ * `V25__listing_name.sql` could index; at the seed's size the planner used neither of their indexes anyway
+ * (B-09), and the next step at a marketplace's size is a stored, weighted `tsvector` column.
  */
 internal class PostgresSearchRepository(
     private val dataSource: DataSource,
@@ -20,10 +27,9 @@ internal class PostgresSearchRepository(
         if (query.words.isEmpty()) return emptyList()
         return sql { connection ->
             connection.prepareStatement(MATCHING).use { statement ->
-                statement.setString(1, tsQuery(query))
+                statement.setString(1, "%${like(query.text)}%")
                 statement.setString(2, "%${like(query.text)}%")
-                statement.setString(3, "%${like(query.text)}%")
-                statement.setString(4, tsQuery(query))
+                statement.setString(3, tsQuery(query))
                 statement.executeQuery().use { rows ->
                     buildList { while (rows.next()) add(Match(rows.getString(1), rows.getString(2))) }
                 }
@@ -68,16 +74,29 @@ internal class PostgresSearchRepository(
     private fun like(text: String): String = text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
     private companion object {
-        // What the cards write (B-45, V25): the listing name, the title when there is none.
-        const val DOCUMENT =
-            "to_tsvector('english', coalesce(p.listing_name, p.title) || ' ' || p.brand || ' ' || coalesce(p.kind, ''))"
+        // What the cards write (B-45, V25): the listing name, the title when there is none; and the brand.
+        const val NAME = "to_tsvector('english', coalesce(p.listing_name, p.title) || ' ' || p.brand)"
+
+        // What the product is (B-171): its kind, its features (a JSON array, whose punctuation full text drops),
+        // its leaf category's name and the name of the category above it.
+        const val KIND =
+            "to_tsvector('english', coalesce(p.kind, '') || ' ' || p.features::text || ' ' || c.name || ' ' || " +
+                "coalesce(parent.name, ''))"
 
         val MATCHING =
             """
-            SELECT p.id, p.category_slug
-            FROM products p
-            WHERE $DOCUMENT @@ to_tsquery('english', ?) OR lower(p.title) LIKE ? OR lower(p.listing_name) LIKE ?
-            ORDER BY ts_rank($DOCUMENT, to_tsquery('english', ?)) DESC, p.reviews_count DESC, p.id
+            SELECT m.id, m.category_slug
+            FROM (
+                SELECT p.id, p.category_slug, p.reviews_count, $NAME AS name_doc, $KIND AS kind_doc,
+                       lower(p.title) LIKE ? OR coalesce(lower(p.listing_name) LIKE ?, false) AS spelt
+                FROM products p
+                JOIN categories c ON c.slug = p.category_slug
+                LEFT JOIN categories parent ON parent.slug = c.parent_slug
+            ) m
+            CROSS JOIN LATERAL (SELECT setweight(m.name_doc, 'A') || setweight(m.kind_doc, 'B') AS document) d
+            CROSS JOIN to_tsquery('english', ?) q
+            WHERE d.document @@ q OR m.spelt
+            ORDER BY (m.name_doc @@ q OR m.spelt) DESC, ts_rank(d.document, q) DESC, m.reviews_count DESC, m.id
             """.trimIndent()
 
         val TERMS =

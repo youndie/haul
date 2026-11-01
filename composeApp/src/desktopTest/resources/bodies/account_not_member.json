@@ -283,10 +283,6 @@
                             "detail": "No minimum basket"
                         },
                         {
-                            "title": "Next-day courier",
-                            "detail": "Whatever the order total"
-                        },
-                        {
                             "title": "Double points",
                             "detail": "2 points for every dollar"
                         },
@@ -499,10 +495,6 @@
                                     {
                                         "title": "Free delivery on every order",
                                         "detail": "No minimum basket"
-                                    },
-                                    {
-                                        "title": "Next-day courier",
-                                        "detail": "Whatever the order total"
                                     },
                                     {
                                         "title": "Double points",

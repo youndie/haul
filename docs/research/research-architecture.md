@@ -1751,6 +1751,42 @@ left out:
   agree to the Terms of Sale.» named a page the store does not have, and with no card there is no note. Haul Pay's
   reads «The first of 4 payments is charged when the order ships.» (B-152).
 
+**Decided in B-172, the store's promises agree with its rules and with each other.** A shopper reviewing the stand
+(2026-11-01) found the home page contradicting the store: «Free delivery over $35» in the header beside a banner «Free
+delivery on everything», with Haul Plus sold for free delivery; «1.2 million items marked down» beside a deals page of
+832; «Up to −70%» where nothing was more than −49 %; «Laptops from $399» opening the deals page of a store with no
+laptops. Each promise is now the rule, counted, or reworded:
+
+- **The sale's figures are the catalogue's.** The sale's copy names them — «Up to {deepest}», «{items} marked down
+  across {categories}» — and the hero and the empty cart's line write them in (`SaleFigures`,
+  `feature/catalog/domain/Sale.kt`) from what is on sale for the viewer by the rule the deals page lists by (`onSale`:
+  the shown SKU under its old price): «Up to −49%», «832 items marked down across 32 categories» on the seed. They are
+  read from prices alone (`CatalogRepository.priced`), not from listed products: reading every product made the home
+  six times slower (5.8 → 35 ms median in the server's tests; about twice a category page's after). A copy without the
+  names is drawn as it is, so a store's own campaign may still state its figure.
+- **A banner opens what it names.** A campaign carries the address its banner opens (`campaigns.link`, V34; none opens
+  `/deals`, as since B-59). Tech week reads «From $399» under «Tech week · Computers» and opens
+  `/c/computers?price_min=399&sort=price-asc`, whose first card is $399.99: the store sells no laptops, and «Computers
+  from $399» broke mid-word in the desktop banner's title beside its picture, so the eyebrow names them. Rejected:
+  giving Computers a «Laptops» leaf — a change of the generated catalogue, its names and a stand's rows, for a banner.
+- **Free delivery on everything is Haul Plus's.** No rule waived delivery on a free-delivery weekend, so its campaign
+  is gone (V34 deletes the seed's row) and Plus's own banner takes its place (`PlusOffer.banner`), not a campaign:
+  «With Haul Plus», «Free delivery on everything», then the offer — «Start a free month», the trial as the pill presents
+  it (sign-in for a guest, the dialog for a customer: B-59's Plus clause), in words of its own beside the block's «Try
+  30 days free»; to a member «Included in your membership» and nothing to press, as the pill (B-108). It is drawn while
+  the row is, beside the campaigns' banners (campaigns first, two in all). Rejected: making the weekend true — a rule
+  D7 does not have, which the header's «over $35» would then contradict for two days.
+- **Plus lists only what Plus does**: free delivery on every order with no minimum basket, double points, sale prices
+  24 hours early. The canvas's «Next-day courier · Whatever the order total» and «Next-day delivery with no minimum»
+  were not Plus's: every shopper's courier day is the same (`DeliveryCalendar`), member or not, whatever the total.
+- **Kept**: the header's «Free delivery over $35» (read as «from $35» since B-11) on every page, a member's too — true
+  for a member, and the shell draws the same header before it knows who is signed in; the account tile's «Free delivery
+  and double points, then $4.99 / month», though a renewal charges nothing in v1 (B-23).
+- **Held by** `PromisesAgreeTest`: every «free delivery» on the home, deals, product, account and empty cart pages is
+  the $35 rule or Plus's, and `Totals` agrees; every Plus benefit maps to a checked rule, an unknown one fails; the
+  hero's figures are the deals page's counted card by card; every banner opens a page with what its title names, and
+  a banner it cannot read fails it.
+
 **Decided in B-70, a running stand keeps its deals of the day.**
 
 - **The start-up re-date runs at each store midnight too** (`SaleRedater`, `seed/SaleRedater.kt`): a stand started on
@@ -2784,13 +2820,42 @@ number about petich, tracy or metrik can be taken on them. Mitigation: synthetic
 since B-31 and on the stand since v0.3.0 (`shoppers.enabled` in the stand's values).
 
 **Open question 1. Search quality on PostgreSQL full text with `pg_trgm`.** *Settled for the seed in
-B-09; open beyond it.* Search matches a product when its `to_tsvector('english', listing name, brand,
-kind)` — the listing name being the title when the product has none (B-45) — matches every typed word as
-a prefix (`running:* & sh:*`), or its lower-cased title or listing name contains the query (`LIKE`, under
-trigram indexes); query suggestions are category, brand and kind names that start with the query, then
-those with a word that does, then the ones `similarity()` finds (a misspelling — «heaphones» is offered
-«headphones»). The indexes are in `V3__search.sql` and `V25__listing_name.sql`
+B-09; open beyond it.* Search matches a product when every typed word, each a prefix (`running:* & sh:*`), is in
+its full-text document, or its lower-cased title or listing name contains the query (`LIKE`, under trigram
+indexes); query suggestions are category, brand and kind names that start with the query, then those with a word
+that does, then the ones `similarity()` finds (a misspelling — «heaphones» is offered «headphones»)
 (`server/src/main/kotlin/io/github/youndie/haul/feature/search/data/PostgresSearchRepository.kt`).
+
+**Decided in B-171: a product is found by what it is as well as by its name, and its name comes first.** A
+shopper's «wireless headphones» found three products — the ones whose name holds both words — and not the
+catalogue's «Sonora SH-C388N Wireless Noise Cancelling», whose name does not say «headphones», nor six more
+wireless headphones whose names lack one of the two words: the document was the name, the brand and the kind
+only. The rule since:
+
+| Document | What is in it | Weight |
+|---|---|---|
+| the name | the listing name (the title when there is none, B-45) and the brand | `A` (1.0) |
+| what it is | the kind («Over-ear»), the features («Wireless», «Noise cancelling»), the leaf category's name («Headphones») and its parent's («Audio») | `B` (0.4) |
+
+- Every typed word is required, in either document — «wireless headphones» does not find the headphones that are
+  not wireless, and «wireless xqzt» finds nothing.
+- The order: first every product whose name holds every word, or whose title or listing name contains the query
+  as typed; then the rest; inside each, `ts_rank` over both documents, then the most reviewed, then the id. The
+  first key is not `ts_rank`'s weights restated: `ts_rank` adds a term for each pair of the words near each other,
+  whatever their weight, so a product whose features repeat «wireless headphones» four times outranked every name
+  match by `ts_rank` alone (`SearchByKindTest`).
+- Not in either document: the description, the specifications (a «Model» value is an id, «P-000-00»), the
+  top-level category («Electronics» would be every thirty-second product) and the seller.
+- The suggest panel's products, categories and «All N results» are this matching, so they changed with it; the
+  query suggestions (`terms`) did not — they already offered category and kind names.
+- The documents join the categories, so they are no expression an index can hold: the full-text indexes of
+  `V3__search.sql` and `V25__listing_name.sql` serve no statement since. The planner used neither at 1,920
+  products before (below) either; at a marketplace's size the next step is a stored, weighted `tsvector` column
+  the seed and the catalogue's writes keep.
+
+On the seed: «wireless headphones» found 3 and finds 12, the three whose name holds both words first; «headphones»
+found the 8 named so and finds all 15 in the category; «audio» found nothing and finds the 30 under Audio; «xqzt»
+finds nothing, as before.
 
 Measured with `scripts/suggest-latency.sh` on 2026-10-08: the server from `installDist` on the JVM
 (JDK 25.0.4, no AOT cache, CIO) and PostgreSQL 18.6 (`postgres:18-alpine`, default configuration) in
@@ -2811,6 +2876,26 @@ that, PostgreSQL spends about 7.4 ms on the matching statement and 4.7 ms on the
 size**, before and after an explicit `ANALYZE`: it scans 1,920 rows and computes the `tsvector` per
 row. So the number says the seed is served comfortably, and nothing about the indexes; at marketplace
 scale the next step is a stored `tsvector` column and a prepared statement, measured the same way.
+
+Measured again in B-171 on 2026-11-01, the same way on the same machine (JDK 25, PostgreSQL 18.6, 1,920 products;
+load average 4–10 from other workloads, more than in October), before and after the change, interleaved, 1,200
+requests a run:
+
+| Run | statement | cold first request | p50 | p90 | p99 | max |
+|---|---|---|---|---|---|---|
+| before 1 | name, brand, kind | 110.2 ms | 18.98 ms | 23.37 ms | 29.10 ms | 47.88 ms |
+| after 1 | B-171 | 99.5 ms | 17.40 ms | 20.72 ms | 25.16 ms | 34.06 ms |
+| before 2 | name, brand, kind | 118.8 ms | 16.00 ms | 18.89 ms | 22.50 ms | 30.65 ms |
+| after 2 | B-171 | 148.9 ms | 14.80 ms | 17.74 ms | 20.99 ms | 25.48 ms |
+| before 3 | name, brand, kind | 145.3 ms | 15.37 ms | 25.54 ms | 39.47 ms | 249.97 ms |
+| after (`scripts/suggest-latency.sh` as committed) | B-171 | 95.1 ms | 15.61 ms | 20.97 ms | 26.95 ms | 32.17 ms |
+
+The query list is B-09's with «sonora» where it had «sony» (B-166 renamed the brand). The suggestion's latency did
+not move beyond the machine's noise: p50 14.8–17.4 ms after against B-09's 17.6–18.0 ms and this morning's
+15.4–19.0 ms before; p99 21.0–27.0 ms after against B-09's 24.4–25.4 ms and 22.5–39.5 ms before. Inside it, the
+matching statement costs PostgreSQL more — 7.6–12.8 ms against 5.4–7.2 ms for the old one on the same database
+(«running sh», `EXPLAIN ANALYZE`), for the join and the second `tsvector` per row; the planner still scans every
+product.
 
 ---
 

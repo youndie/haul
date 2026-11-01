@@ -125,6 +125,8 @@ internal data class Campaign(
     val startsAt: OffsetDateTime,
     val endsAt: OffsetDateTime,
     val plusEarlyAccessAt: OffsetDateTime?,
+    /** The storefront address its banner opens (B-172); `null` opens the deals page, as every banner did (B-59). */
+    val link: String? = null,
 ) {
     /** When its prices hold — the rule a SKU of it is priced by ([CampaignPricing]). */
     val window: CampaignWindow get() = CampaignWindow(startsAt, endsAt, plusEarlyAccessAt)
@@ -134,7 +136,7 @@ internal data class Campaign(
 }
 
 /**
- * The sale home's hero announces and the empty cart's line names («up to −70% in the Autumn mega sale»):
+ * The sale home's hero announces and the empty cart's line names («up to −49% in the Autumn mega sale»):
  * the first of [campaigns] by position, while it is live for [prices] at [at] — a Plus member's from its
  * early access — else `null`, and then neither is drawn (B-59). Before, both were drawn for good: past the
  * sale's end the hero announced a sale whose prices were gone (B-58's findings).
@@ -166,9 +168,26 @@ internal data class Listed(
     val skus: List<Sku>,
 ) {
     /** The SKU a card shows: the cheapest in stock, or the cheapest at all when none is. */
-    val shown: Sku = skus.filter { it.stock > 0 }.minByOrNull { it.priceCents } ?: skus.minBy { it.priceCents }
+    val shown: Sku = shownOf(skus)
     val inStock: Boolean get() = shown.stock > 0
     val colours: Set<String> get() = skus.mapNotNull { it.options["colour"] }.toSet()
+}
+
+/** The SKU of [skus] a card shows ([Listed.shown]): the cheapest in stock, or the cheapest at all when none is. */
+internal fun shownOf(skus: List<Sku>): Sku =
+    skus.filter { it.stock > 0 }.minByOrNull { it.priceCents } ?: skus.minBy { it.priceCents }
+
+/**
+ * A product's category and its SKUs' prices, without the rest of the product (B-172): what the sale's figures
+ * ([SaleFigures]) read for the whole catalogue on every home page, where the products themselves are not drawn.
+ * Its SKUs carry no options. [shown] is the SKU a card of the product shows, as [Listed.shown] is.
+ */
+internal data class PricedProduct(
+    val productId: String,
+    val categorySlug: String,
+    val skus: List<Sku>,
+) {
+    val shown: Sku get() = shownOf(skus)
 }
 
 /**
@@ -209,4 +228,7 @@ internal interface CatalogRepository {
 
     /** The deals live on the store's clock, by id; an ended or a future deal is not among them. */
     suspend fun deals(): List<Deal>
+
+    /** Every product of the catalogue with its SKUs' prices, the product itself left out (B-172). */
+    suspend fun priced(prices: PriceList): List<PricedProduct>
 }

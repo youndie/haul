@@ -14,6 +14,7 @@ import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
+import io.github.youndie.haul.feature.catalog.domain.SaleFigures
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.liveSale
 import io.github.youndie.haul.feature.catalog.domain.money
@@ -23,6 +24,7 @@ import io.github.youndie.haul.feature.catalog.screen.navigation
 import io.github.youndie.haul.feature.catalog.screen.popular
 import io.github.youndie.haul.feature.catalog.screen.popularTitle
 import io.github.youndie.haul.feature.catalog.screen.productLink
+import io.github.youndie.haul.feature.catalog.screen.saleFigures
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.ui.CartBody
@@ -224,7 +226,7 @@ internal class CartScreen(
                     id = "empty",
                     title = "Your cart is empty",
                     accent = "empty",
-                    text = sale?.let(::saleLine),
+                    text = sale?.let { saleLine(it, saleFigures(catalog, categories, owner.prices)) },
                     actionLabel = "See today’s deals",
                     action = NavigateAction(Frame.DEALS),
                     primary = true,
@@ -261,12 +263,16 @@ internal class CartScreen(
 
         /**
          * The empty cart's sale line (Cart_Empty), drawn from the sale itself (B-107): «Today’s deals end at
-         * midnight — up to −70% in the Autumn mega sale.» — its title, the first letter lowered to run on, and its
-         * name. The canvas wrote the sale's words into the line, which then named the autumn sale whatever the
-         * sale was.
+         * midnight — up to −49% in the Autumn mega sale.» — its title with its [figures] written in (B-172), the first
+         * letter lowered to run on, and its name. The canvas wrote the sale's words into the line, which then named
+         * the autumn sale whatever the sale was, and its «−70%» was deeper than any discount the store had.
          */
-        fun saleLine(sale: Campaign): String =
-            "Today’s deals end at midnight — ${sale.title.replaceFirstChar { it.lowercase() }} in the ${sale.name}."
+        fun saleLine(
+            sale: Campaign,
+            figures: SaleFigures,
+        ): String =
+            "Today’s deals end at midnight — ${figures.fill(sale.title).replaceFirstChar { it.lowercase() }} " +
+                "in the ${sale.name}."
 
         /** Checkout asks a guest to sign in first (feature-cart); the client opens the provider's page. */
         const val SIGN_IN = "${Frame.SIGN_IN}?next=%2Fcheckout"

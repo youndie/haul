@@ -36,14 +36,14 @@ import kotlin.test.assertTrue
 
 /**
  * What announces the sale is drawn only while there is a sale to announce (B-59), on the store's clock: home's
- * hero while the Autumn mega sale is live for the viewer, each banner until its campaign ends, the empty
- * cart's «Today's deals end at midnight — up to −70% in the Autumn mega sale.» while a deal and the sale
- * are both live. Both name the sale as its campaign row does (B-107).
+ * hero while the Autumn mega sale is live for the viewer, each campaign's banner until its campaign ends, the empty
+ * cart's «Today's deals end at midnight — up to −49% in the Autumn mega sale.» while a deal and the sale
+ * are both live. Both name the sale as its campaign row does (B-107), its figure the catalogue's (B-172).
  *
  * Before B-59 all three were drawn for good: past the sale's end (Oct 15, 2025) home announced «Up to −70%»
  * beside «Laptops from $399» whose week was over, and the empty cart promised deals and −70 % on a stand that
- * had neither (B-58's findings). In the seed Tech week and the free-delivery weekend end on Oct 13, the sale
- * on Oct 15, the deals at the canvas day's midnight.
+ * had neither (B-58's findings). In the seed Tech week ends on Oct 13, the sale on Oct 15, the deals at the canvas
+ * day's midnight; Haul Plus's banner is no campaign's (B-172) and stays while the row does.
  */
 class SaleAnnouncementsTest {
     private val maya by lazy {
@@ -84,9 +84,9 @@ class SaleAnnouncementsTest {
     }
 
     /**
-     * A banner is drawn until its campaign ends — the free-delivery weekend before it opens too, as the canvas
-     * draws it on Oct 7 — and from its end it is gone while the sale's hero stays: a minute before Oct 13 both
-     * banners are there, at midnight neither.
+     * A campaign's banner is drawn until its campaign ends, and from its end it is gone while the sale's hero stays:
+     * a minute before Oct 13 Tech week's banner is there, at midnight it is not, and Haul Plus's — no campaign's —
+     * is left beside the hero.
      */
     @Test
     fun `a banner is drawn until its campaign ends`() =
@@ -99,12 +99,12 @@ class SaleAnnouncementsTest {
 
             clock.at = BANNERS_END
             val row = assertNotNull(tree("/ui/home").row(), "the sale's hero went with its banners")
-            assertEquals(emptyList(), row.banners.map { it.id }, "a banner of an ended campaign is drawn")
+            assertEquals(listOf("banner-plus"), row.banners.map { it.id }, "a banner of an ended campaign is drawn")
             assertEquals("campaign-autumn-mega-sale", row.hero.id)
         }
 
     /**
-     * From the sale's end home draws no hero and no row at all — nothing announces «Up to −70%» whose prices
+     * From the sale's end home draws no hero and no row at all — nothing announces «Up to −49%» whose prices
      * are gone — while the rest of the page stays; a minute before, the hero is still there.
      */
     @Test
@@ -143,7 +143,7 @@ class SaleAnnouncementsTest {
         store { clock ->
             val guest = guest()
             assertEquals(
-                "Today’s deals end at midnight — up to −70% in the Autumn mega sale.",
+                "Today’s deals end at midnight — up to −49% in the Autumn mega sale.",
                 cart(guest).only<EmptyState>().text,
                 "the control: the canvas's line",
             )
@@ -208,7 +208,7 @@ class SaleAnnouncementsTest {
         }
 
     private companion object {
-        val BANNERS = listOf("banner-tech-week", "banner-free-delivery-weekend")
+        val BANNERS = listOf("banner-tech-week", "banner-plus")
         val PICKS = setOf("picked-title", "picked")
         val EARLY_ACCESS: OffsetDateTime = OffsetDateTime.parse("2025-10-06T12:00:00-04:00")
         val BANNERS_END: OffsetDateTime = OffsetDateTime.parse("2025-10-13T00:00:00-04:00")

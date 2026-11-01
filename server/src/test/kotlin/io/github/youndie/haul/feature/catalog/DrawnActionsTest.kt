@@ -414,19 +414,20 @@ class DrawnActionsTest {
         }
 
     /**
-     * B-59: home's banners led nowhere. Each now opens the deals page — neither banner's campaign has a SKU
-     * of its own to filter the page by — and following it draws that page.
+     * B-59: home's banners led nowhere; then both opened the deals page. Since B-172 each opens what it names: Tech
+     * week's «From $399» (Computers) the computers from $399, cheapest first (its campaign's link), and Haul Plus's
+     * banner the Plus offer — sign-in for a guest, as the pill. Following each draws that page.
      */
     @Test
-    fun `each of home's banners opens the deals page`() =
+    fun `each of home's banners opens what it names`() =
         haulTest {
             val banners = tree("/ui/home").only<CampaignRow>().banners
-            assertEquals(listOf("banner-tech-week", "banner-free-delivery-weekend"), banners.map { it.id })
+            assertEquals(listOf("banner-tech-week", "banner-plus"), banners.map { it.id })
             assertTrue(seed.skus.none { it.campaignSlug in banners.map { b -> b.id.removePrefix("banner-") } })
-            banners.forEach { banner ->
-                assertEquals(NavigateAction("/deals"), banner.action, banner.id)
-                assertEquals("Deals", follow(banner.action).only<PageTitle>().title, banner.id)
-            }
+            val (tech, plus) = banners
+            assertEquals(NavigateAction("/c/computers?price_min=399&sort=price-asc"), tech.action)
+            assertEquals("Computers", follow(tech.action).only<PageTitle>().title)
+            assertEquals(NavigateAction("/sign-in"), plus.action)
         }
 
     @Test
