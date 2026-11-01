@@ -1196,8 +1196,9 @@ the live order and returns all need a customer (above), and the realm is closed 
   version on the stand. (c) A token haul issues itself, verified beside shildik's, would be a second issuer on every
   customer route and a renewal path of its own in the browser. **(a) was taken:** it needs nothing new on the
   cluster — the server reaches the release's provider at `http://<release>-shildik:9000` with the bootstrap token from
-  the provider's own Secret, and the NetworkPolicy admits the server to that port (`server.demoShoppers`, on by
-  default with the release's provider). Its costs: the internet-facing server holds the realm's admin token, which can
+  the provider's own Secret, and the NetworkPolicy admits the server to that port (`server.demoShoppers`, **off by
+  default** — handing the realm's admin token to the server that faces the internet is the owner's decision, not a
+  default; on, it needs the release's provider). Its costs: the internet-facing server holds the realm's admin token, which can
   do everything in the realm, not only make people (the realm holds only the stand's sample people and the
   storefront's client); the walk reads shildik's sign-in page as the e2e and the server's suite read it, so a page
   that changes its form breaks it — the server's suite runs it against the provider's image; and shildik 0.4.1 cannot

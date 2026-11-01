@@ -74,19 +74,26 @@ policies=$(printf '%s\n' "$STAND_RENDER" | grep -c '^kind: NetworkPolicy')
 [ "$policies" = 2 ] && say "the stand's render: two network policies" ok \
   || { say "the stand's render: two network policies" "FAILED — $policies"; failed=1; }
 says "the management port admits the hook only" 'app.kubernetes.io/name: shildik-bootstrap'
-# B-162: the demo shoppers — on with the release's provider, through its management port and its bootstrap token.
-says "the server makes demo shoppers through the management port" 'value: "http://haul-shildik:9000"'
-says "the demo's token is the provider's bootstrap token" "$(printf 'name: HAUL_DEMO_MANAGEMENT_TOKEN\n              valueFrom:\n                secretKeyRef:\n                  name: haul-shildik\n                  key: bootstrap-token')"
-says "the management port admits the server" "$(printf 'app.kubernetes.io/name: shildik-bootstrap\n        - podSelector:\n            matchLabels:\n              app.kubernetes.io/instance: haul\n              app.kubernetes.io/name: haul-server')"
+# B-162: the demo shoppers — off by default (the bootstrap token is the owner's to hand to the server); on, through
+# the provider's management port and its bootstrap token.
+DEMO_RENDER=$(helm template haul "$CHART" "${STAND[@]}" --set server.demoShoppers=true 2>&1)
+says_demo() { # name, expected text — in the stand's render with the demo on
+  case "$DEMO_RENDER" in
+    *"$2"*) say "the demo's render: $1" ok ;;
+    *) say "the demo's render: $1" "FAILED — no «$2»"; failed=1 ;;
+  esac
+}
+says_demo "the server makes demo shoppers through the management port" 'value: "http://haul-shildik:9000"'
+says_demo "the demo's token is the provider's bootstrap token" "$(printf 'name: HAUL_DEMO_MANAGEMENT_TOKEN\n              valueFrom:\n                secretKeyRef:\n                  name: haul-shildik\n                  key: bootstrap-token')"
+says_demo "the management port admits the server" "$(printf 'app.kubernetes.io/name: shildik-bootstrap\n        - podSelector:\n            matchLabels:\n              app.kubernetes.io/instance: haul\n              app.kubernetes.io/name: haul-server')"
 server_admitted() { helm template haul "$CHART" "${STAND[@]}" "$@" -s templates/networkpolicy.yaml 2>&1 | grep -c 'name: haul-server'; }
-no_demo=$(helm template haul "$CHART" "${STAND[@]}" --set server.demoShoppers=false -s templates/server.yaml 2>&1)
-if [ "$(server_admitted)" = 2 ] && [ "$(server_admitted --set server.demoShoppers=false)" = 1 ] \
-  && ! printf '%s\n' "$no_demo" | grep -q HAUL_DEMO_; then
-  say "no demo: no demo variables, no management port for the server" ok
+if [ "$(server_admitted --set server.demoShoppers=true)" = 2 ] && [ "$(server_admitted)" = 1 ] \
+  && ! printf '%s\n' "$STAND_RENDER" | grep -q HAUL_DEMO_; then
+  say "no demo by default: no demo variables, no management port for the server" ok
 else
-  say "no demo: no demo variables, no management port for the server" FAILED; failed=1
+  say "no demo by default: no demo variables, no management port for the server" FAILED; failed=1
 fi
-case "$(helm template haul "$CHART" "${REQUIRED[@]}" 2>&1)" in
+case "$(helm template haul "$CHART" "${REQUIRED[@]}" --set server.demoShoppers=true 2>&1)" in
   *HAUL_DEMO_*) say "no provider: no demo shoppers" "FAILED — a demo variable is rendered"; failed=1 ;;
   *) say "no provider: no demo shoppers" ok ;;
 esac

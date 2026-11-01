@@ -19,8 +19,9 @@ pixels, and running in public at **[haul.kotlin.website](https://haul.kotlin.web
    replaces), and the address follows without a reload — [`Parts.kt`](server/src/main/kotlin/io/github/youndie/haul/shell/Parts.kt).
 4. **Place an order and follow it** — an order is a [petich](https://github.com/youndie/petich) saga that reserves,
    authorises and undoes in reverse ([`OrderSaga.kt`](server/src/main/kotlin/io/github/youndie/haul/feature/order/saga/OrderSaga.kt)).
-   No account is needed: «Try as a demo shopper» makes a customer of your own in one press, with an address and Haul
-   Pay set, and forgets them after a day ([`DemoShoppers.kt`](server/src/main/kotlin/io/github/youndie/haul/feature/identity/domain/DemoShoppers.kt)).
+   Checkout needs a sign-in on the stand for now; «Try as a demo shopper», which makes a customer of your own in one
+   press and forgets them after a day, is built ([`DemoShoppers.kt`](server/src/main/kotlin/io/github/youndie/haul/feature/identity/domain/DemoShoppers.kt))
+   and not yet switched on there.
 
 Haul exists to put a whole Kotlin stack through a real product rather than a demo app: every screen is a tree
 the server sends, the browser draws it with Compose Multiplatform on WebAssembly, and an order is a saga that

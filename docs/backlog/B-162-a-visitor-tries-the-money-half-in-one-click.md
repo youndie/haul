@@ -45,8 +45,8 @@ does not let anyone look. The shopper in the review read the bare sign-in page o
   in research D5, «Decided in B-162».
 - **No stand change beyond the next release.** The chart hands the server the release's provider's management port
   (`http://<release>-shildik:9000`) and the bootstrap token from the provider's own Secret, and admits the server to
-  that port in the NetworkPolicy, when `shildik.enabled` and `server.demoShoppers` (default `true`). Nothing new for
-  the deploy to pass; `server.demoShoppers=false` turns it off. The cost, written in D5: the internet-facing server
+  that port in the NetworkPolicy, when `shildik.enabled` and `server.demoShoppers=true`. Nothing new for the deploy to
+  pass beyond that value; it is **off by default** (see «Switching it on»). The cost, written in D5: the internet-facing server
   now holds the realm's admin token.
 - **Where the control is.** Beside «Sign in» in the wide header it squeezed the search field until its placeholder
   was cut at 1280 (`WidthsTest`); it sits at the end of the category row instead, before «HAUL PLUS», whose words give
@@ -65,3 +65,15 @@ does not let anyone look. The shopper in the review read the bare sign-in page o
 - **Not here:** the README's «Run it» says nothing of the demo (B-165 is rewriting the README); reviews and questions
   written by a demo shopper are public until the sweep, as anybody's are.
 
+## Switching it on
+
+Merged off (`server.demoShoppers: false`, 2026-11-01): with it on, the server that faces the internet holds shildik's
+bootstrap token, which can do anything in the stand's realm — a change of the stand's exposure that is the owner's to
+make, not a chart default. The owner decides between:
+
+- turning it on as it is (`server.demoShoppers: true` in infra's values for haul);
+- first a scoped role in shildik that can only create, disable and sign in people (a shildik change), then on;
+- leaving it off and showing the saga through the live orders feed (B-164) alone.
+
+Also for the owner: demo shoppers' reviews and questions are public until the sweep, and shildik 0.4.1 cannot delete a
+person, so swept ones stay in the realm, disabled.

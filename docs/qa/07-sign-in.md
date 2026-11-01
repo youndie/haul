@@ -228,8 +228,8 @@ and only Maya and Sam can sign in; on a local stack, the e2e's shildik.
 
 - **Who:** a guest (no account)
 - **Width:** 1440, 1024, 390
-- **Preconditions:** two items in the guest's cart; the stand's demo on (`server.demoShoppers`, the default with the
-  release's own shildik).
+- **Preconditions:** two items in the guest's cart; the stand's demo on (`server.demoShoppers=true`, with the release's
+  own shildik; off by default).
 - **Steps:**
   1. Look at the header at 1440 and 1024; on a phone, open the header's menu.
   2. Open `/checkout` directly.
