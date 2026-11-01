@@ -3176,7 +3176,7 @@ comparison named, with the same pixel counts.
 | `keepsReachBelowLineTop` | the cropped text takes the pointer from its first line box down, its glyphs drawn through a layer | B-157 | pixel for pixel the same (B-157: 168 of 168) | **keep** — its reason is the selection (B-155), not the canvas |
 | `HaulType`'s even leading (`LineHeightStyle.Center`, `Trim.None`) | CSS's leading for every set line height | B-07 | not measured apart from `Text`'s boxes | **keep** — the boxes above assume it |
 | `browserLeading()` | the same leading, applied again | B-07 | the same pixels: every style that called it already had it | **removed** (twelve call sites) |
-| `CssColumn`, `CssBox`, `cssLines` (`ui/CssLayout.kt`) and the fractions in the account's and the order's layouts | block flow in fractional pixels, so a long phone column does not drift a pixel every few lines | B-18, B-19 | 23 goldens, every order page and four account pages, 0.29–5.99 % | **propose removal later**: about 100 lines plus the fraction bookkeeping in `AccountViews.kt` and `OrderViews.kt`, against re-recording 23 goldens — an owner's decision that these pages may sit a few pixels from where they are drawn now |
+| `CssColumn`, `CssBox`, `cssLines` (`CssLayout.kt`, deleted) and the fractions in the account's and the order's layouts | block flow in fractional pixels, so a long phone column does not drift a pixel every few lines | B-18, B-19 | 23 goldens — 18 of the order's (all but its error, loading and not-found states) and 5 of the account's — 0.29–5.99 % | **removed in B-177** (the owner's yes, 2026-11-01): both pages are Compose's columns, rows and padding in whole pixels, 350 lines out and 113 in; the 23 goldens re-recorded, the two phone account artboards it took past parity retired. The tiles' row and a phone history row keep a layout of their own — the tiles' fill is the press apart from its words (B-126), the row's right column is shared by two grid rows — in whole pixels |
 | `normal()` | Archivo on Chrome's `line-height: normal`, ascent and descent rounded apart (hand-measured 878 and 210 per 1,000) | B-15 | 42 goldens, 31 past the line, checkout on a phone 10.7 % | **keep** — 64 call sites; the forms are drawn on it |
 | `SpacedWords` | a row of words laid out as one paragraph with placeholder gaps, so ten words do not each round their width up | B-07, links B-37 | 141 goldens, 140 past the line (the header's category row is on every page) | **keep** — it also carries the row's links |
 | `InlineLine` | an inline run sits on its block's strut, as CSS sizes the line | B-07 | 14 goldens, the home's up to 9.7 % | **keep** — four call sites; the home is drawn on it |
@@ -3188,9 +3188,9 @@ comparison named, with the same pixel counts.
 | `OverlayHost` instead of `Popup`/`Dialog`, `linkedText` instead of `LinkAnnotation`, `MIRRORED_ROLE` and the state in a name | Compose 1.12's mirror for assistive technology | B-126, B-151 | — | **propose removal with Compose 1.13** (CMP-9368, the named `LinkAnnotation`, `aria-checked`) |
 | `Selectable`, the store's menus, `HaulTextField`, `pressesAgain`, `handOverWords`, the focus ring, `BlankPress`, `awaitTypedInput`, the tab title, the static frame, the preloaded fonts, `HaulIcons`' «↵» | a browser's habits (the cost list above) | B-76…B-167 | — | **keep** — none was for the canvas; recheck the menus on Compose 1.13 |
 
-Only `browserLeading()` went: every other workaround whose only reason was the canvas — the fractional block flow,
-the strut, the flex pair, the slack — is now what the goldens hold, and taking it out is a re-recording, which B-85
-leaves to a decision. The fractional block flow is the one whose removal would buy code back.
+B-175 took out `browserLeading()` alone, and B-177 the fractional block flow, the one whose removal bought code back.
+The workarounds whose only reason was the canvas and which remain — the strut, the flex pair, the slack — are now
+what the goldens hold, and taking one out is a re-recording, which B-85 leaves to a decision.
 
 ---
 

@@ -59,7 +59,8 @@ Feature: `feature-orders` — its scenarios are this item's acceptance where it 
   which is what `BalancedText` finds; a scoring breaker (least squared slack) chose a third break and was dropped.
   The page lays out on fractional line boxes (`CssColumn` in `OrderViews.kt`: the crumbs' 16.8 px, the lead's 23.8,
   the facts' 21.75 and 20.3, the pickup code's 64.8 summed unrounded and rounded only where a block is placed), which
-  took the phones from 5.55–7.22 % to this. Goldens recorded for `Order*` only.
+  took the phones from 5.55–7.22 % to this. Goldens recorded for `Order*` only. (B-177 laid the page out in whole
+  pixels again once the canvas was no longer the reference; `CssColumn` is gone.)
 
 - **Tests written**: `OrderRoutesTest` (the page placement lands on; another customer's order and a missing one
   answer alike, `401` without a token, Sam cannot reorder Maya's; a delivered line's review is the dialog and reorder
