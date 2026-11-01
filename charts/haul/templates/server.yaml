@@ -31,6 +31,10 @@ spec:
         app.kubernetes.io/name: haul-server
       annotations:
         checksum/secrets: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- if include "haul.demoShoppers" . }}
+        # The provider's bootstrap token is the demo shoppers' (B-162): a new one restarts the server too.
+        checksum/demo: {{ .Values.shildik.bootstrapToken | sha256sum }}
+        {{- end }}
     spec:
       {{- /*
       No service links: the kubelet would inject HAUL_PORT, HAUL_SERVICE_HOST, HAUL_POSTGRES_PORT… for
@@ -100,6 +104,29 @@ spec:
               value: {{ include "haul.realmIssuer" . | quote }}
             - name: HAUL_OIDC_CLIENT_ID
               value: {{ .Values.shildik.clientId | quote }}
+            {{- end }}
+            {{- if include "haul.demoShoppers" . }}
+            {{- /*
+            The demo shoppers (B-162): made in the realm through the provider's management port, inside the
+            namespace — never the public host, which has no such routes — with the bootstrap token from the provider's
+            own Secret, and signed in at the storefront's client, returning to its one page.
+            */}}
+            - name: HAUL_DEMO_MANAGEMENT_URL
+              value: "http://{{ .Release.Name }}-shildik:9000"
+            - name: HAUL_DEMO_MANAGEMENT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-shildik
+                  key: bootstrap-token
+            - name: HAUL_DEMO_REDIRECT_URI
+              value: {{ include "haul.redirectUri" . | quote }}
+            {{- with .Values.server.demoDailyLimit }}
+            {{- if not (regexMatch "^[1-9][0-9]*$" (toString .)) }}
+            {{- fail (printf "haul: server.demoDailyLimit=%v is not a positive number — the server would refuse to start on it" .) }}
+            {{- end }}
+            - name: HAUL_DEMO_DAILY_LIMIT
+              value: {{ . | toString | quote }}
+            {{- end }}
             {{- end }}
             - name: HAUL_COMMIT
               value: {{ .Values.server.version | quote }}
