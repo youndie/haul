@@ -87,6 +87,8 @@ check: gate report
 #	$(PY) scripts/no_todo_in_main.py
 gate: docs-gate
 	$(PY) scripts/qa-cases.py
+	$(PY) scripts/brief_freeze.py --brief docs/research/measurements/b-173/README.md
+	$(PY) scripts/brief_freeze.py --brief docs/research/measurements/b-173/README.md --control
 
 report: docs-report
 

@@ -19,3 +19,6 @@ gradlew text eol=lf
 *.ttf binary
 *.pbf binary
 *.pmtiles binary
+
+# B-173: the pre-registration is checked byte for byte (scripts/brief_freeze.py); a checkout must not rewrite it.
+docs/research/measurements/b-173/brief.md -text
