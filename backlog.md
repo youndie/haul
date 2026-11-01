@@ -46,14 +46,13 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (16)
+## Open (15)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-162](docs/backlog/B-162-a-visitor-tries-the-money-half-in-one-click.md) `[ ]` | feat: a visitor tries checkout, the live order and a return as a demo shopper, in one click | P1 | M | - |
 | [B-163](docs/backlog/B-163-under-the-hood-shows-the-tree.md) `[ ]` | feat: «Under the hood» shows the screen's kompot tree, what it cost and what updated | P1 | M | B-160 |
 | [B-164](docs/backlog/B-164-a-public-feed-of-live-orders.md) `[ ]` | feat: a public feed of live orders shows the saga's steps and its compensations | P1 | M | - |
-| [B-165](docs/backlog/B-165-readme-says-what-to-look-at.md) `[ ]` | docs: the README says what to look at in five minutes, and the repository points at the stand | P1 | S | B-160 |
 | [B-166](docs/backlog/B-166-sellers-and-brands-are-invented.md) `[ ]` | fix: sellers and brands in the sample data are invented, not real companies' | P2 | M | - |
 | [B-167](docs/backlog/B-167-keyboard-focus-is-visible.md) `[ ]` | fix: the control the keyboard is on is visibly marked | P2 | S/M | - |
 | [B-168](docs/backlog/B-168-arrival-is-quick-and-plays-once.md) `[ ]` | fix: the arrival is quick above the fold, does not replay on Back, and hover is for a mouse | P2 | S | - |
@@ -67,7 +66,7 @@ A stage is a field on the item, not a directory.
 | [B-175](docs/backlog/B-175-the-cost-of-compose-web.md) `[ ]` | docs: audit the pixel workarounds since B-85 and write down what Compose for Web cost | P3 | M | - |
 | [B-176](docs/backlog/B-176-a-second-client-draws-the-same-trees.md) `[ ]` | feat: a second client — desktop — draws the same server trees | P3 | L | - |
 
-## Closed (160)
+## Closed (161)
 
 **Skeleton**
 
@@ -273,6 +272,7 @@ A stage is a field on the item, not a directory.
 - [B-159](docs/backlog/B-159-the-orders-history-answers-in-time.md) `[x]` - fix: the orders' history answers in time, however many orders the customer has
 - [B-160](docs/backlog/B-160-the-stand-says-it-is-a-kotlin-demo.md) `[x]` - feat: the stand says it is a demo built with Kotlin, and links to its source
 - [B-161](docs/backlog/B-161-every-page-has-its-title-and-preview.md) `[x]` - feat: every page has its own title, a description and a link preview
+- [B-165](docs/backlog/B-165-readme-says-what-to-look-at.md) `[x]` - docs: the README says what to look at in five minutes, and the repository points at the stand
 
 <!-- END INDEX -->
 

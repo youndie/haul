@@ -6,11 +6,26 @@ pixels, and running in public at **[haul.kotlin.website](https://haul.kotlin.web
 
 ![Haul's home page: the autumn sale, categories and the deals of the day](docs/images/home.png)
 
+## What to look at in five minutes
+
+1. **Open [the stand](https://haul.kotlin.website).** The line above the page says it is a demo; «About this demo»
+   ([/about](https://haul.kotlin.website/about)) says what is real and what is not.
+2. **Read a page as the server sends it.** Every screen is a tree of components the server builds and the browser
+   draws — `curl https://haul.kotlin.website/ui/home` is the home page you just saw. Built in
+   [`HomeScreen.kt`](server/src/main/kotlin/io/github/youndie/haul/feature/catalog/screen/HomeScreen.kt), drawn by the
+   renderers in [`HaulRenderers.kt`](composeApp/src/commonMain/kotlin/io/github/youndie/haul/registry/HaulRenderers.kt).
+3. **Change a filter or the sort on a category, or press «+» on a card**, with the browser's network tab open: only
+   the parts that changed arrive (`/ui/parts/c/electronics?sort=price-asc` answers an `update` naming the nodes it
+   replaces), and the address follows without a reload — [`Parts.kt`](server/src/main/kotlin/io/github/youndie/haul/shell/Parts.kt).
+4. **Place an order and follow it** — an order is a [petich](https://github.com/youndie/petich) saga that reserves,
+   authorises and undoes in reverse ([`OrderSaga.kt`](server/src/main/kotlin/io/github/youndie/haul/feature/order/saga/OrderSaga.kt));
+   checkout needs a sign-in on the stand for now.
+
 Haul exists to put a whole Kotlin stack through a real product rather than a demo app: every screen is a tree
 the server sends, the browser draws it with Compose Multiplatform on WebAssembly, and an order is a saga that
 can be undone step by step. The sellers, couriers and the card processor are simulated inside the server, so the
-stand integrates with nothing and charges nobody — and synthetic shoppers walk it every ten minutes, so there is
-always an order in flight to look at.
+stand integrates with nothing and charges nobody — and synthetic shoppers walk it every ten minutes, so there are
+always orders moving through the saga.
 
 ## What it does
 
