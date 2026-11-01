@@ -51,7 +51,7 @@ A stage is a field on the item, not a directory.
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-167](docs/backlog/B-167-keyboard-focus-is-visible.md) `[ ]` | fix: the control the keyboard is on is visibly marked | P2 | S/M | - |
-| [B-168](docs/backlog/B-168-arrival-is-quick-and-plays-once.md) `[ ]` | fix: the arrival is quick above the fold, does not replay on Back, and hover is for a mouse | P2 | S | - |
+| [B-168](docs/backlog/B-168-arrival-is-quick-and-plays-once.md) `[~]` | fix: the arrival is quick above the fold, does not replay on Back, and hover is for a mouse | P2 | S | - |
 | [B-169](docs/backlog/B-169-on-a-phone-the-variant-comes-before-the-buy.md) `[ ]` | fix: on a phone the product's variant is chosen before its buy buttons | P2 | S | - |
 | [B-170](docs/backlog/B-170-the-header-keeps-its-content-across-pages.md) `[ ]` | fix: the header keeps its content while the next page loads | P2 | S | - |
 | [B-171](docs/backlog/B-171-search-finds-a-product-by-its-kind.md) `[ ]` | fix: search finds a product by the words of its kind, not only of its name | P2 | S | - |

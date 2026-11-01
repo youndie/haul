@@ -1,7 +1,7 @@
 ---
 id: B-168
 title: "fix: the arrival is quick above the fold, does not replay on Back, and hover is for a mouse"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-14-motion
