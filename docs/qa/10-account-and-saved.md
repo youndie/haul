@@ -180,3 +180,21 @@ Payment methods, Settings) are hidden in v1 (D6).
 - **Decided in:** D7, B-23
 - **Coverage:** `PointsTest` «Sam's order of 103 dollars earns 103 points when its shipment is delivered»;
   `PointsTest` «a return takes back the points its line earned and gives back the points it was paid with»
+
+### TC-ACC-10 — A long history comes a page at a time, and in time
+
+- **Who:** a synthetic shopper's customer with hundreds of orders (on the stand), or a local customer with more
+  than twenty
+- **Width:** 1440, 390
+- **Preconditions:** more than twenty orders.
+- **Steps:**
+  1. Open `/account/orders`.
+  2. Press the page number «2».
+  3. Open `/account/orders?page=9999`.
+- **Expected:**
+  - Step 1: within a second; twenty rows, those on their way first; chips counting every order; page numbers under
+    the rows.
+  - Step 2: the next twenty loaded in place (the address gains `?page=2`), none of the first page's.
+  - Step 3: the last page, not an error.
+- **Decided in:** B-159
+- **Coverage:** `AccountRoutesTest` «a history of thousands of orders answers in time a page at a time»
