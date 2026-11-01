@@ -119,7 +119,11 @@ internal object Seeder {
                 this[CampaignsTable.startsAt] = it.startsAt
                 this[CampaignsTable.endsAt] = it.endsAt
                 this[CampaignsTable.plusEarlyAccessAt] = it.plusEarlyAccessAt
-                this[CampaignsTable.link] = it.link
+            }
+            // A banner's address (V34) after the rows, only where a campaign has one: a catalogue without them seeds a
+            // database migrated to before V34, as the tests of the migrations before it seed theirs.
+            catalog.campaigns.filter { it.link != null }.forEach { campaign ->
+                CampaignsTable.update({ CampaignsTable.slug eq campaign.slug }) { it[link] = campaign.link }
             }
             SkusTable.batchInsert(catalog.skus) {
                 this[SkusTable.id] = it.id

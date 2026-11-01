@@ -85,9 +85,9 @@ internal object PlusOffer {
      * Haul Plus's banner beside the sale's hero (B-172), in the place of the free-delivery weekend's «Free delivery on
      * everything», a rule the cart never applied (delivery is free from $35, research D7): free delivery on every
      * order is what Plus does, so the banner says whose promise it is. To a guest and a non-member it is the offer —
-     * «Try 30 days free», the trial as the pill and the block present it ([trial], B-59's Plus clause); to a member,
-     * who is never offered the trial (research D6), it is the membership's mark with nothing to press, as the pill is
-     * (B-108).
+     * «Start a free month», the trial as the pill and the block present it ([trial], B-59's Plus clause), in words of
+     * its own since the block's «Try 30 days free» is on the same page; to a member, who is never offered the trial
+     * (research D6), it is the membership's mark with nothing to press, as the pill is (B-108).
      */
     fun banner(viewer: Viewer): PromoBanner {
         val member = viewer.customer?.plus == true
@@ -96,7 +96,7 @@ internal object PlusOffer {
             eyebrow = "With Haul Plus",
             title = "Free delivery on everything",
             subtitle = "Included in your membership".takeIf { member },
-            actionLabel = "Try 30 days free".takeUnless { member },
+            actionLabel = "Start a free month".takeUnless { member },
             tone = BANNER_TONE,
             accent = "everything",
             action = trial(viewer).takeUnless { member },

@@ -1052,7 +1052,7 @@ class DrawnActionsTest {
                         id = "banner-plus",
                         eyebrow = "With Haul Plus",
                         title = "Free delivery on everything",
-                        actionLabel = "Try 30 days free",
+                        actionLabel = "Start a free month",
                         tone = "#DFFF3A",
                         action = PresentAction(trial, "dialog"),
                     ),
