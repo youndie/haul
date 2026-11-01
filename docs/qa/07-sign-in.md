@@ -223,3 +223,58 @@ and only Maya and Sam can sign in; on a local stack, the e2e's shildik.
   `IdentityTest` «a store that does not answer where to sign in could not be reached, and nothing changes»;
   `SignInTapTest` «a sign-in the store did not answer is told as unreachable, and sent again goes on»;
   manual: the provider's window opening for a moment before the request fails is a real browser's
+
+### TC-SIGN-10 — A guest tries the store as a demo shopper in one press
+
+- **Who:** a guest (no account)
+- **Width:** 1440, 1024, 390
+- **Preconditions:** two items in the guest's cart; the stand's demo on (`server.demoShoppers`, the default with the
+  release's own shildik).
+- **Steps:**
+  1. Look at the header at 1440 and 1024; on a phone, open the header's menu.
+  2. Open `/checkout` directly.
+  3. Press «Try as a demo shopper» on the prompt.
+  4. Place the order as the checkout offers it; watch the order page; once delivered, return one of the two items.
+- **Expected:**
+  - Step 1: «Try as a demo shopper» at the end of the category row, before «HAUL PLUS», at both widths and whole; on
+    a phone, under «Sign in» in the menu. A customer's header has none.
+  - Step 2: «Checkout needs a sign‑in» with «Sign in to continue» and «Try as a demo shopper».
+  - Step 3: no provider's window opens; the checkout is drawn at the same address, the header greets «Demo», the
+    two items came along, the address is 148 Wythe Avenue, Apt 4F, and Haul Pay is chosen when the total is one it
+    is offered for (the card otherwise).
+  - Step 4: the order moves on its page without a reload, is delivered, and the return is refunded on the page.
+- **Decided in:** B-162
+- **Coverage:** `server:DemoShopperRoutesTest` «a guest's header offers the demo shopper, a customer's does not»;
+  `server:DemoShopperRoutesTest` «one press signs a visitor in as a customer of their own, ready to check out, and
+  nobody else sees it»;
+  `DemoShopperTest` «the wide header draws the demo pill and hands the press its action»;
+  `DemoShopperTest` «the prompt's demo shopper signs in in one press and the checkout is drawn»;
+  `IdentityTest` «a demo shopper is signed in with the server's tokens and gets the guest cart»;
+  `WidthsTest` «the header reads at every width»;
+  `WholePathTest` «a visitor tries the money half as a demo shopper, and a second one sees none of it»;
+  golden `HaulHeader_Guest_Demo`; golden `HaulHeader_Guest_Demo_1024`; golden `HaulHeader_Menu_Guest_Demo_Phone`;
+  manual: the live page moving on the stand's own pace
+
+### TC-SIGN-11 — Two visitors' demo shoppers never meet, and a refused one says why
+
+- **Who:** two guests, in two browser profiles
+- **Width:** 1440
+- **Preconditions:** the first guest has placed an order as a demo shopper (TC-SIGN-10) and copied its address.
+- **Steps:**
+  1. In the second profile, press «Try as a demo shopper», then open «Orders» and the first visitor's order address.
+  2. Locally, start the server with `HAUL_DEMO_DAILY_LIMIT=1` and press «Try as a demo shopper» in two profiles.
+- **Expected:**
+  - Step 1: the second visitor is «Demo» too, but another customer: «Orders» lists none of the first's, and the
+    first's order address is «This order isn’t here».
+  - Step 2: the second press says «Every demo shopper for today is taken — try again later» over the page, which
+    stays as it was; the visitor is still a guest.
+- **Decided in:** B-162
+- **Coverage:** `server:DemoShopperRoutesTest` «one press signs a visitor in as a customer of their own, ready to
+  check out, and nobody else sees it»;
+  `server:DemoShopperRoutesTest` «past the day's limit the demo shopper is unavailable»;
+  `server:DemoShopperRoutesTest` «a provider that refuses makes no demo shopper here either»;
+  `server:DemoShopperRoutesTest` «a server whose demo is off offers none and refuses one with unavailable»;
+  `DemoShopperTest` «a demo shopper the server refuses is said over the prompt, which stays»;
+  `DemoShopperTest` «a refused demo shopper is told with the server's reason, not as a closed popup»;
+  `IdentityTest` «a demo shopper the server refuses says why and leaves the guest as they were»;
+  `WholePathTest` «a visitor tries the money half as a demo shopper, and a second one sees none of it»

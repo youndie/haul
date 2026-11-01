@@ -127,3 +127,25 @@ host, its tracy and its logs.
 - **Coverage:** `SaleCalendarTest` «a running stand moves its sale at each midnight»;
   `SaleCalendarTest` «a stand seeded on another day takes the sale's code during its sale and refuses it after»;
   manual: a week of a real clock on the stand
+
+### TC-STAND-07 — Demo shoppers older than a day are gone, and so is their way in
+
+- **Who:** operator
+- **Width:** n/a
+- **Preconditions:** a demo shopper made on the stand more than a day and an hour ago, with an order, returned in
+  part; its tab still open (the tokens in its session storage); a demo shopper made within the day.
+- **Steps:**
+  1. Read the server's log for the hour.
+  2. In the old shopper's tab, reload any page.
+  3. In the new shopper's tab, open «Orders».
+- **Expected:**
+  - Step 1: «demo shoppers swept: N» once an hour with N ≥ 1, and no warning that one was not turned off.
+  - Step 2: the tab is a guest again, with an empty cart: the store refuses the token and shildik its renewal.
+  - Step 3: the new shopper's orders are as they left them.
+- **Decided in:** B-162
+- **Coverage:** `server:DemoShopperRoutesTest` «a demo shopper older than a day is swept with everything they left,
+  and their sign-in ends at both ends»;
+  `server:DemoShopperRoutesTest` «a demo shopper whose order is still being placed is left for the next sweep»;
+  `IdentityTest` «a token that cannot be renewed signs the customer out, back to the guest»;
+  script `scripts/chart-check.sh`;
+  manual: the stand's own day and its realm
