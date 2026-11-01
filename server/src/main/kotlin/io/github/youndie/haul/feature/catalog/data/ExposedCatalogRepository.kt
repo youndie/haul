@@ -9,6 +9,7 @@ import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.Deal
 import io.github.youndie.haul.feature.catalog.domain.Listed
 import io.github.youndie.haul.feature.catalog.domain.PriceList
+import io.github.youndie.haul.feature.catalog.domain.PricedProduct
 import io.github.youndie.haul.feature.catalog.domain.Product
 import io.github.youndie.haul.feature.catalog.domain.Seller
 import io.github.youndie.haul.feature.catalog.domain.Sku
@@ -128,6 +129,7 @@ internal class ExposedCatalogRepository(
                     it[CampaignsTable.startsAt],
                     it[CampaignsTable.endsAt],
                     it[CampaignsTable.plusEarlyAccessAt],
+                    it[CampaignsTable.link],
                 )
             }
         }
@@ -140,6 +142,40 @@ internal class ExposedCatalogRepository(
                 .orderBy(DealsTable.id)
                 .map(::deal)
                 .filter { it.liveAt(at) }
+        }
+
+    override suspend fun priced(prices: PriceList): List<PricedProduct> =
+        read {
+            val at = clock.now().toOffsetDateTime()
+            val deals = DealsTable.selectAll().map(::deal).groupBy { it.skuId }
+            SkusTable
+                .join(CampaignsTable, JoinType.LEFT, SkusTable.campaignSlug, CampaignsTable.slug)
+                .join(ProductsTable, JoinType.INNER, SkusTable.productId, ProductsTable.id)
+                .select(
+                    SkusTable.id,
+                    SkusTable.productId,
+                    SkusTable.position,
+                    SkusTable.priceCents,
+                    SkusTable.oldPriceCents,
+                    SkusTable.stock,
+                    SkusTable.campaignSlug,
+                    CampaignsTable.startsAt,
+                    CampaignsTable.endsAt,
+                    CampaignsTable.plusEarlyAccessAt,
+                    ProductsTable.categorySlug,
+                ).groupBy({ it[SkusTable.productId] to it[ProductsTable.categorySlug] }) { row ->
+                    val sku =
+                        Sku(
+                            id = row[SkusTable.id],
+                            productId = row[SkusTable.productId],
+                            position = row[SkusTable.position],
+                            options = emptyMap(),
+                            priceCents = row[SkusTable.priceCents],
+                            oldPriceCents = row[SkusTable.oldPriceCents],
+                            stock = row[SkusTable.stock],
+                        )
+                    CampaignPricing.priced(sku, window(row), deals[sku.id].orEmpty(), prices, at)
+                }.map { (product, skus) -> PricedProduct(product.first, product.second, skus.sortedBy { it.position }) }
         }
 
     private fun withSkus(

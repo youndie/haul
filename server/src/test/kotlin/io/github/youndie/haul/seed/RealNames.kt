@@ -101,9 +101,9 @@ internal object RealNames {
         ).sortedByDescending { it.first.length }
             .fold(text) { acc, (new, old) -> acc.replace(new, old) }
 
-    /** [catalog] as the seed made it before B-166 (V31's «before»). */
+    /** [catalog] as the seed made it before B-166 (V31's «before»), its campaigns as before B-172 (V34's). */
     fun old(catalog: SeedCatalog): SeedCatalog =
-        catalog.copy(
+        catalog.campaignsBeforeV34().copy(
             sellers = catalog.sellers.map { it.copy(id = old(it.id), name = old(it.name)) },
             products =
                 catalog.products.map {

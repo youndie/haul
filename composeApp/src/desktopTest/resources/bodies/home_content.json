@@ -29,9 +29,9 @@
    "hero": {
     "id": "campaign-autumn-mega-sale",
     "eyebrow": "Autumn mega sale · Oct 7 — 14",
-    "title": "Up to −70%",
+    "title": "Up to −49%",
     "accent": "Up to",
-    "subtitle": "1.2 million items marked down across 32 categories",
+    "subtitle": "832 items marked down across 32 categories",
     "actionLabel": "Shop the sale",
     "tone": "#2F2BFF",
     "image": "/images/art/h_autumn-mega-sale_2f2bff.e50edfe179.svg"
@@ -39,19 +39,19 @@
    "banners": [
     {
      "id": "banner-tech-week",
-     "eyebrow": "Tech week",
-     "title": "Laptops from $399",
+     "eyebrow": "Tech week · Computers",
+     "title": "From $399",
      "accent": "$399",
      "actionLabel": "Shop now",
      "tone": "#DFFF3A",
      "image": "/images/art/c_computers_dfff3a.893e4b94d2.svg"
     },
     {
-     "id": "banner-free-delivery-weekend",
-     "eyebrow": "This weekend",
+     "id": "banner-plus",
+     "eyebrow": "With Haul Plus",
      "title": "Free delivery on everything",
      "accent": "everything",
-     "subtitle": "600K items from local sellers",
+     "subtitle": "Included in your membership",
      "tone": "#FF3D2E"
     }
    ]
@@ -223,7 +223,6 @@
    "price": "$4.99 / month",
    "benefits": [
     "Free delivery on every order",
-    "Next-day delivery with no minimum",
     "Double points on every purchase",
     "Early access to sales"
    ]

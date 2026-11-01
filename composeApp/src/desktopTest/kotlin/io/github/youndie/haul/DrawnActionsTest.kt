@@ -410,23 +410,35 @@ class DrawnActionsTest {
             assertEquals(listOf("/", "/deals"), history.entries)
         }
 
-    /** B-59: each of home's banners opens the address it carries — the deals page — as «Shop the sale» does. */
+    /**
+     * B-59, B-172: a banner opens the address it carries, as «Shop the sale» does — Tech week's «From $399»
+     * (Computers) the computers from $399, cheapest first.
+     */
     @Test
-    fun `the tech week banner opens the deals page`() = bannerOpensTheDealsPage("Laptops from $399")
-
-    /** B-59: the second banner, the free-delivery weekend's, the same. */
-    @Test
-    fun `the free delivery banner opens the deals page`() = bannerOpensTheDealsPage("Free delivery on everything")
-
-    private fun bannerOpensTheDealsPage(title: String) =
+    fun `the tech week banner opens the computers it names`() =
         runDesktopComposeUiTest(WIDTH, 1_000) {
             answer("/ui/home", page(header, campaigns))
-            destinations("/deals")
+            destinations(COMPUTERS_FROM_399)
             storefront()
-            onNodeWithText(title).performClick()
+            onNodeWithText("From $399").performClick()
             onNodeWithText(NEXT).assertExists()
-            assertEquals(listOf("/", "/deals"), history.entries, title)
-            assertEquals(listOf("/ui/home", "/ui/deals"), requests, title)
+            assertEquals(listOf("/", COMPUTERS_FROM_399), history.entries)
+            assertEquals(listOf("/ui/home", "/ui$COMPUTERS_FROM_399"), requests)
+        }
+
+    /** B-172: Haul Plus's banner presents what it carries for a customer who is not a member: the trial's dialog. */
+    @Test
+    fun `the plus banner presents the trial's dialog`() =
+        runDesktopComposeUiTest(WIDTH, 1_000) {
+            answer("/ui/home", page(header, campaigns))
+            storefront()
+            onNodeWithTag(PLUS_START_TAG).assertDoesNotExist()
+            onNodeWithText("Free delivery on everything").performClick()
+            waitUntil(
+                timeoutMillis = 5_000,
+            ) { onAllNodes(hasTestTag(PLUS_START_TAG)).fetchSemanticsNodes().isNotEmpty() }
+            assertEquals(listOf("/"), history.entries, "the dialog opened a page")
+            assertEquals(listOf("/ui/home"), requests)
         }
 
     @Test
@@ -1009,15 +1021,21 @@ class DrawnActionsTest {
                 ),
             )
 
-        /** Home's campaign row as the server draws it at the canvas's «now» (B-59): each banner to the deals page. */
-        val campaigns =
+        /** Where Tech week's banner leads (B-172): the computers from $399, cheapest first. */
+        const val COMPUTERS_FROM_399 = "/c/computers?price_min=399&sort=price-asc"
+
+        /**
+         * Home's campaign row as the server draws it for Sam at the canvas's «now» (B-59, B-172): Tech week's banner to
+         * the computers it names, Haul Plus's to the trial's dialog.
+         */
+        val campaigns by lazy {
             CampaignRow(
                 "campaigns",
                 CampaignHero(
                     id = "campaign-autumn-mega-sale",
                     eyebrow = "Autumn mega sale · Oct 7 — 14",
-                    title = "Up to −70%",
-                    subtitle = "1.2 million items marked down across 32 categories",
+                    title = "Up to −49%",
+                    subtitle = "832 items marked down across 32 categories",
                     actionLabel = "Shop the sale",
                     tone = "#2F2BFF",
                     action = NavigateAction("/deals"),
@@ -1025,20 +1043,22 @@ class DrawnActionsTest {
                 listOf(
                     PromoBanner(
                         id = "banner-tech-week",
-                        eyebrow = "Tech week",
-                        title = "Laptops from $399",
+                        eyebrow = "Tech week · Computers",
+                        title = "From $399",
                         tone = "#E6E4FF",
-                        action = NavigateAction("/deals"),
+                        action = NavigateAction(COMPUTERS_FROM_399),
                     ),
                     PromoBanner(
-                        id = "banner-free-delivery-weekend",
-                        eyebrow = "600K items from local sellers",
+                        id = "banner-plus",
+                        eyebrow = "With Haul Plus",
                         title = "Free delivery on everything",
+                        actionLabel = "Start a free month",
                         tone = "#DFFF3A",
-                        action = NavigateAction("/deals"),
+                        action = PresentAction(trial, "dialog"),
                     ),
                 ),
             )
+        }
 
         val trial =
             PlusTrialDialog(
