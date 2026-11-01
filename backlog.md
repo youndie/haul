@@ -46,14 +46,13 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (2)
+## Open (1)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-181](docs/backlog/B-181-vector-pictures.md) `[~]` | feat: pictures drawn as vectors, sharp at any size, with dark versions | P2 | M | - |
 | [B-156](docs/backlog/B-156-walk-the-selection-on-a-phone.md) `[ ]` | chore: walk the selection and its toolbar on a phone | P3 | S | B-155 |
 
-## Closed (179)
+## Closed (180)
 
 **Skeleton**
 
@@ -278,6 +277,7 @@ A stage is a field on the item, not a directory.
 - [B-178](docs/backlog/B-178-desktop-sign-in.md) `[x]` - feat: the desktop client signs in through the system browser
 - [B-179](docs/backlog/B-179-a-blank-press-keeps-the-scroll.md) `[x]` - fix: a press on blank page space keeps the scroll where it is
 - [B-180](docs/backlog/B-180-a-dark-theme.md) `[x]` - feat: a dark theme for the whole store
+- [B-181](docs/backlog/B-181-vector-pictures.md) `[x]` - feat: pictures drawn as vectors, sharp at any size, with dark versions
 
 <!-- END INDEX -->
 
