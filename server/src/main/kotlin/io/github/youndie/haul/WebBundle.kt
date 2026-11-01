@@ -1,6 +1,7 @@
 package io.github.youndie.haul
 
 import io.ktor.http.CacheControl
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.decodeURLPart
@@ -19,7 +20,9 @@ import io.ktor.server.request.path
 import io.ktor.server.response.cacheControl
 import io.ktor.server.response.header
 import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
 import io.ktor.util.combineSafe
 import java.io.File
 
@@ -67,6 +70,23 @@ internal fun Route.webBundle(dir: File) {
         }
     }
 }
+
+/**
+ * `GET /robots.txt` (B-161): every crawler may fetch everything. A page's words are drawn on a canvas, so a crawler
+ * reads only what `index.html` says — its title, its description and its preview — and the trees under `/ui` are what a
+ * renderer that runs the page asks for: shutting them out would leave even that renderer a blank canvas. Without the
+ * file a crawler got the 404 the client draws, which some read as «nothing here is to be crawled» and others retry.
+ * Answered whether or not the server carries the bundle, from the route rather than the bundle's files, so a bundle
+ * built without it cannot take it away.
+ */
+internal fun Route.robots() {
+    get(ROBOTS) { call.respondText(ROBOTS_TXT, ContentType.Text.Plain) }
+}
+
+internal const val ROBOTS = "/robots.txt"
+
+/** Allows every path to every crawler: `Allow: /` says it outright, where an empty `Disallow:` says it by omission. */
+internal const val ROBOTS_TXT = "User-agent: *\nAllow: /\n"
 
 /** The bundle's page, which every storefront address answers. */
 private const val PAGE = "index.html"

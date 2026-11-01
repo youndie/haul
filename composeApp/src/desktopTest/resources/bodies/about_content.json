@@ -5,6 +5,7 @@
     {
       "type": "haul_header",
       "id": "header",
+      "tabTitle": "About this demo · Haul",
       "customerName": null,
       "deliverTo": "Brooklyn, NY 11211",
       "deliveryPromise": "Free delivery over $35",

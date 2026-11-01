@@ -47,6 +47,10 @@ internal data class Viewer(
  * channel and the override store find a node by it). Where a section already carries the page's name — the
  * cart's body `cart`, the account's `account`, the order's `order`, the grid of every category `categories`,
  * today's deals `deals` — the root is `<name>-page` (B-65, `UniqueIdsTest`).
+ *
+ * Every page names its browser tab ([title], B-161), on its header, because no node the pages already carry names
+ * every one of them: a product's name is in its details, a category's in its title, the home and the account's
+ * overview name none. Required, so a page added without one does not compile.
  */
 internal object Frame {
     fun page(
@@ -54,6 +58,7 @@ internal object Frame {
         viewer: Viewer,
         navigation: List<Link>,
         sections: List<KompotComponent>,
+        title: String,
         query: String? = null,
         footer: Boolean = false,
         scope: String? = null,
@@ -62,7 +67,7 @@ internal object Frame {
         ColumnComponent(
             id = id,
             children =
-                listOf(header(viewer, navigation, query, scope, categories)) + sections +
+                listOf(header(viewer, navigation, query, scope, categories, title)) + sections +
                     (if (footer) listOf(footer(viewer)) else emptyList()),
         )
 
@@ -72,7 +77,8 @@ internal object Frame {
      * picker offers every top-level category (B-72); a [scope] below the top level — a leaf's chip — is one more
      * choice, named with its top-level category («Party · Limited») and offered after it, so the picker reads the
      * scope the results are in (B-119; it read «All categories» there). [categories] are what names it; without
-     * them, or for a slug they do not have, the picker reads «All categories».
+     * them, or for a slug they do not have, the picker reads «All categories». [title] is the tab's title of the page
+     * the header tops ([page]); the header alone and an `update`'s name none.
      */
     fun header(
         viewer: Viewer,
@@ -80,6 +86,7 @@ internal object Frame {
         query: String?,
         scope: String? = null,
         categories: List<Category> = emptyList(),
+        title: String? = null,
     ): HaulHeader {
         val scopes = scopes(navigation, scope, categories)
         return HaulHeader(
@@ -100,9 +107,24 @@ internal object Frame {
             plus = plus(viewer),
             scopes = scopes,
             scope = scope?.takeIf { s -> scopes.any { it.category == s } },
+            tabTitle = title,
             demo = NavigateAction(DEMO_SHOPPER).takeIf { viewer.customerId == null && viewer.demo },
         )
     }
+
+    /** The tab's title of a page named [name] (B-161): «Deals · Haul». */
+    fun title(name: String): String = "$name · $STORE"
+
+    /** The tab's title of a search for [query]: «Search: running shoes · Haul». */
+    fun searchTitle(query: String): String = title("Search: $query")
+
+    /**
+     * The home's tab title, which says what the stand is (B-161) — the same words as the page's own `<title>`
+     * (`composeApp/src/wasmJsMain/resources/index.html`), which a link's preview and a page with no script read.
+     */
+    const val HOME_TITLE = "Haul — a demo store built end to end in Kotlin"
+
+    private const val STORE = "Haul"
 
     /**
      * The picker's choices on a page searched in [scope]: the top-level ones, and [scope] after its top-level

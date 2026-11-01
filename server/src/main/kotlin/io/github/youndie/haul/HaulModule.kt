@@ -238,6 +238,8 @@ internal fun Application.haulModule(
     web?.let { install(PageAtAnyQuery) { bundle = it } }
     routing {
         probes(commit = commit, ready = { databaseAnswers(pool) })
+        // What a crawler may fetch: everything (B-161).
+        robots()
         // Public: a guest, a customer or nobody. A token is optional, and one that does not verify is
         // refused rather than ignored — a shopper whose sign-in lapsed is told, not shown as a guest.
         authenticate(JWT_AUTH_OIDC, optional = true) {

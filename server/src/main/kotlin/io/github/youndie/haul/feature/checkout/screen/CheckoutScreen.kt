@@ -73,6 +73,7 @@ internal class CheckoutScreen(
                         current = step(state),
                         secureLabel = "Secure checkout",
                         home = NavigateAction("/"),
+                        tabTitle = Frame.title("Checkout"),
                     ),
                     CheckoutBody(
                         id = "checkout-body",
