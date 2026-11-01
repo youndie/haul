@@ -44,7 +44,7 @@ import io.github.youndie.kompot.KompotAction
 import kotlinx.coroutines.launch
 import kotlin.math.sqrt
 
-/** What a card's «+» is named, by the card's product: «Add Sony WH-1000XM6 to cart» (B-151). */
+/** What a card's «+» is named, by the card's product: «Add Sonora SH-718N to cart» (B-151). */
 public fun addToCart(title: String): String = "Add $title to cart"
 
 /** A card's «+»: its test tag, and its id in the browser's mirror. */

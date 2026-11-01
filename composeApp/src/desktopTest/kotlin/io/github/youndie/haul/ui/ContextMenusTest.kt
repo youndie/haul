@@ -268,6 +268,6 @@ class ContextMenusTest {
         const val FIELD = "field"
         const val CLIPBOARD = "AUTUMN10"
         const val WORDS = "Up to 40 hours, 3 min charge = 3 h"
-        const val PATH = "/c/electronics/audio/headphones?brand=Sony"
+        const val PATH = "/c/electronics/audio/headphones?brand=Sonora"
     }
 }

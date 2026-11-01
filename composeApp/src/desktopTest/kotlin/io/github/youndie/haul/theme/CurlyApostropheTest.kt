@@ -36,7 +36,7 @@ class CurlyApostropheTest {
             """
             val a = "You'll earn ${'$'}points"
             val b = "${'$'}{names.joined()}'s list"
-            val c = "You’ll earn" + "«Sony» '24" + "shoppers' words"
+            val c = "You’ll earn" + "«Sonora» '24" + "shoppers' words"
             @Suppress("ktlint:kapkan:wall-clock", "the store's clock")
             fun d() = require(ok) { "a plan's payments" }.also { check(it, "it's") }
             val e = IllegalStateException("the provider's page") ?: error("isn't") ?: log.warn("isn't")

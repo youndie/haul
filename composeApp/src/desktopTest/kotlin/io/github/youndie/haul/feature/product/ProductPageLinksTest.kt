@@ -136,7 +136,7 @@ class ProductPageLinksTest {
                             )
                         },
                 )
-            serve("/ui$PRODUCT?sku=p-sony-wh-1000xm6-1", NEXT_PAGE)
+            serve("/ui$PRODUCT?sku=p-sonora-sh-718n-1", NEXT_PAGE)
             storefront(linked)
             onNodeWithContentDescription("Midnight Black").performClick()
             onNodeWithText("Headphones only").performClick()
@@ -146,7 +146,7 @@ class ProductPageLinksTest {
 
             onNodeWithText("+ Travel case").performClick()
             onNodeWithText(NEXT).assertExists()
-            assertEquals(listOf(PRODUCT, "$PRODUCT?sku=p-sony-wh-1000xm6-1"), history.entries)
+            assertEquals(listOf(PRODUCT, "$PRODUCT?sku=p-sonora-sh-718n-1"), history.entries)
         }
 
     @Test
@@ -154,7 +154,7 @@ class ProductPageLinksTest {
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
             serve("/ui$BRAND", NEXT_PAGE)
             storefront(decode("product_description.json"))
-            onNodeWithText("SONY").performClick()
+            onNodeWithText("SONORA").performClick()
             onNodeWithText(NEXT).assertExists()
             assertEquals(listOf(PRODUCT, BRAND), history.entries)
         }
@@ -218,7 +218,7 @@ class ProductPageLinksTest {
             storefront(decode("product_description.json"))
             onNodeWithContentDescription(COPY_LINK).performClick()
             onNodeWithContentDescription(LINK_COPIED).assertExists()
-            assertEquals(listOf("/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0"), copied.toList())
+            assertEquals(listOf("/p/p-sonora-sh-718n?sku=p-sonora-sh-718n-0"), copied.toList())
             assertEquals(listOf("/ui$PRODUCT"), requests.toList(), "copying a link loaded a page")
         }
 
@@ -245,7 +245,7 @@ class ProductPageLinksTest {
             onNodeWithContentDescription(COPY_LINK).assertExists()
             onNodeWithTag(SHARE_FALLBACK_TAG).assertIsDisplayed()
             onNodeWithText(COPY_REFUSED).assertIsDisplayed()
-            onNodeWithText("$ORIGIN/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0").assertIsDisplayed()
+            onNodeWithText("$ORIGIN/p/p-sonora-sh-718n?sku=p-sonora-sh-718n-0").assertIsDisplayed()
             onNodeWithContentDescription(CLOSE_LINK).performClick()
             onNodeWithTag(SHARE_FALLBACK_TAG).assertDoesNotExist()
 
@@ -255,7 +255,7 @@ class ProductPageLinksTest {
             onNodeWithContentDescription(COPY_LINK).performClick()
             onNodeWithContentDescription(LINK_COPIED).assertExists()
             onNodeWithTag(SHARE_FALLBACK_TAG).assertDoesNotExist()
-            assertEquals(listOf("/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0"), copied.toList())
+            assertEquals(listOf("/p/p-sonora-sh-718n?sku=p-sonora-sh-718n-0"), copied.toList())
             assertEquals(listOf("/ui$PRODUCT"), requests.toList(), "a refused copy loaded a page")
         }
 
@@ -263,7 +263,7 @@ class ProductPageLinksTest {
     @Test
     fun `saved out of stock reads saved and takes the product off the list`() =
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
-            val unsave = SaveCommand("/api/v1/saved/p-sony-wh-1000xm6", save = false)
+            val unsave = SaveCommand("/api/v1/saved/p-sonora-sh-718n", save = false)
             storefront(details(decode("product_out_of_stock.json")) { it.copy(saved = true, heartCommand = unsave) })
             onNode(hasText("Saved") and hasAnyAncestor(hasTestTag(SAVE_TAG)), useUnmergedTree = true).assertExists()
             onNodeWithTag(SAVE_TAG).performScrollTo().performClick()
@@ -404,12 +404,12 @@ class ProductPageLinksTest {
         const val WIDTH = 1440
         const val HEIGHT = 820
         const val PARTS = "/ui/parts"
-        const val PRODUCT = "/p/p-sony-wh-1000xm6"
-        const val REVIEWS = "/p/p-sony-wh-1000xm6?tab=reviews"
-        const val SPECIFICATIONS = "/p/p-sony-wh-1000xm6?tab=specifications"
-        const val BRAND = "/c/electronics/audio/headphones?brand=Sony"
-        const val MORE_REVIEWS = "$PARTS/p/p-sony-wh-1000xm6?tab=reviews&shown=20"
-        const val MORE_QUESTIONS = "$PARTS/p/p-sony-wh-1000xm6?tab=questions&shown=20"
+        const val PRODUCT = "/p/p-sonora-sh-718n"
+        const val REVIEWS = "/p/p-sonora-sh-718n?tab=reviews"
+        const val SPECIFICATIONS = "/p/p-sonora-sh-718n?tab=specifications"
+        const val BRAND = "/c/electronics/audio/headphones?brand=Sonora"
+        const val MORE_REVIEWS = "$PARTS/p/p-sonora-sh-718n?tab=reviews&shown=20"
+        const val MORE_QUESTIONS = "$PARTS/p/p-sonora-sh-718n?tab=questions&shown=20"
         const val NEXT = "The next page"
         const val ORIGIN = "https://haul.test"
 

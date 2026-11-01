@@ -21,8 +21,8 @@ class AddressTest {
     @Test
     fun `category product and search addresses keep their path and query under ui`() {
         assertEquals(
-            "/ui/c/electronics/headphones?brand=Sony&page=2",
-            Address("/c/electronics/headphones?brand=Sony&page=2").screen,
+            "/ui/c/electronics/headphones?brand=Sonora&page=2",
+            Address("/c/electronics/headphones?brand=Sonora&page=2").screen,
         )
         assertEquals(PageKind.Catalog, Address("/c/headphones").kind)
         assertEquals("/ui/p/p-1?sku=s-1&tab=specifications", Address("/p/p-1?sku=s-1&tab=specifications").screen)
@@ -47,7 +47,7 @@ class AddressTest {
      */
     @Test
     fun `an address is the page the server serves at it`() {
-        assertEquals(PageKind.Catalog, Address("/c/electronics/audio/headphones?brand=Sony").kind)
+        assertEquals(PageKind.Catalog, Address("/c/electronics/audio/headphones?brand=Sonora").kind)
         assertEquals(PageKind.Other, Address("/p/p-1/reviews").kind)
         assertEquals(PageKind.Other, Address("/c/").kind)
         assertEquals(PageKind.Other, Address("/search/extra").kind)

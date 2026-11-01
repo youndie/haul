@@ -27,7 +27,7 @@ import kotlin.test.assertNull
 /**
  * «Bought this month» on the product page (B-52) through the route, over orders written into a database of
  * its own at the canvas's «now»: which orders count, the threshold, and the seed's base under the orders.
- * The Marshall headphones and the Bose pair have no base, so what the page says is the orders alone.
+ * The Mallard headphones and the Bellwave pair have no base, so what the page says is the orders alone.
  */
 class BoughtThisMonthTest {
     private val dataSource = seededFreshDatabase()
@@ -43,7 +43,7 @@ class BoughtThisMonthTest {
         quantity: Int,
     ) = OrderLine(sku, seller, sku, quantity, 10_000 * quantity, 10_000 * quantity)
 
-    private fun marshall(quantity: Int) = line(MARSHALL, SampleHeadphones.MARSHALL_STORE, quantity)
+    private fun mallard(quantity: Int) = line(MALLARD, SampleHeadphones.MALLARD_STORE, quantity)
 
     /** An order of [lines] placed at [placedAt], left where [status] says: still placing, placed or cancelled. */
     private fun order(
@@ -103,29 +103,29 @@ class BoughtThisMonthTest {
      */
     @Test
     fun `only placed orders of the product inside the last thirty days count`() {
-        order("HL-1", now.minusDays(1), OrderStatus.Placed, marshall(20), line(BOSE, SampleHeadphones.BOSE_STORE, 100))
-        order("HL-2", now.minusDays(10), OrderStatus.Placed, marshall(15))
-        order("HL-3", now.minusDays(29), OrderStatus.Placed, marshall(15))
+        order("HL-1", now.minusDays(1), OrderStatus.Placed, mallard(20), line(BELLWAVE, SampleHeadphones.BELLWAVE_STORE, 100))
+        order("HL-2", now.minusDays(10), OrderStatus.Placed, mallard(15))
+        order("HL-3", now.minusDays(29), OrderStatus.Placed, mallard(15))
         refunded("HL-3")
-        order("HL-4", now.minusDays(31), OrderStatus.Placed, marshall(100))
-        order("HL-5", now.minusDays(2), OrderStatus.Cancelled, marshall(100))
-        order("HL-6", now.minusHours(1), OrderStatus.Placing, marshall(100))
-        order("HL-7", now.plusHours(1), OrderStatus.Placed, marshall(100))
+        order("HL-4", now.minusDays(31), OrderStatus.Placed, mallard(100))
+        order("HL-5", now.minusDays(2), OrderStatus.Cancelled, mallard(100))
+        order("HL-6", now.minusHours(1), OrderStatus.Placing, mallard(100))
+        order("HL-7", now.plusHours(1), OrderStatus.Placed, mallard(100))
 
         haulTest(dataSource) {
-            assertEquals("50 bought this month", bought(MARSHALL_PRODUCT))
-            assertEquals("100 bought this month", bought(BOSE_PRODUCT), "the other product's line")
+            assertEquals("50 bought this month", bought(MALLARD_PRODUCT))
+            assertEquals("100 bought this month", bought(BELLWAVE_PRODUCT), "the other product's line")
         }
     }
 
     /** «Absent below 50»: a quiet product does not advertise its quietness; the fiftieth unit brings the line. */
     @Test
     fun `below fifty the page says nothing`() {
-        order("HL-1", now.minusDays(3), OrderStatus.Placed, marshall(49))
-        haulTest(dataSource) { assertNull(bought(MARSHALL_PRODUCT), "49 units were advertised") }
+        order("HL-1", now.minusDays(3), OrderStatus.Placed, mallard(49))
+        haulTest(dataSource) { assertNull(bought(MALLARD_PRODUCT), "49 units were advertised") }
 
-        order("HL-2", now.minusDays(3), OrderStatus.Placed, marshall(1))
-        haulTest(dataSource) { assertEquals("50 bought this month", bought(MARSHALL_PRODUCT)) }
+        order("HL-2", now.minusDays(3), OrderStatus.Placed, mallard(1))
+        haulTest(dataSource) { assertEquals("50 bought this month", bought(MALLARD_PRODUCT)) }
     }
 
     /**
@@ -141,10 +141,10 @@ class BoughtThisMonthTest {
     }
 
     private companion object {
-        const val MARSHALL_PRODUCT = "p-marshall-major-v"
-        const val MARSHALL = "$MARSHALL_PRODUCT-0"
-        const val BOSE_PRODUCT = "p-bose-qc-ultra"
-        const val BOSE = "$BOSE_PRODUCT-0"
+        const val MALLARD_PRODUCT = "p-mallard-mode-146"
+        const val MALLARD = "$MALLARD_PRODUCT-0"
+        const val BELLWAVE_PRODUCT = "p-bellwave-hush-ultra-165a"
+        const val BELLWAVE = "$BELLWAVE_PRODUCT-0"
         const val MUG = "${SampleCatalog.STONEWARE_MUG}-0"
     }
 }

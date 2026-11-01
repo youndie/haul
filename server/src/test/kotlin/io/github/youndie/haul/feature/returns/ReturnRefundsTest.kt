@@ -103,7 +103,7 @@ class ReturnRefundsTest {
     }
 
     /**
-     * An order's items are at the list price and its discount holds the sale too (feature-cart): Sony's
+     * An order's items are at the list price and its discount holds the sale too (feature-cart): Sonora's
      * headphones on sale at $349.00 from $399.00 give back $349.00, not $349.00 less a share of the $50.00 the
      * sale took off.
      */
@@ -133,7 +133,7 @@ class ReturnRefundsTest {
 
     /**
      * B-50: Maya's $512.00 paid with her 2,480 points shares them over the lines as the refunds are shared —
-     * Sony's $349.00 gives back 1,690 (its 1,690.47 rounded down), the duvet cover 673 and the mugs 116.25 rounded
+     * Sonora's $349.00 gives back 1,690 (its 1,690.47 rounded down), the duvet cover 673 and the mugs 116.25 rounded
      * up to 117, the point left over — so the shares are every point redeemed, and a set of lines gives back
      * the sum of its shares, which is what the dialog adds up for the same lines.
      */
@@ -179,7 +179,7 @@ class ReturnRefundsTest {
     }
 
     /**
-     * B-91, the QA pass's #HL-48303: Sony's headphones ×2 at $349.00 — a $698.00 line, its total as the order keeps
+     * B-91, the QA pass's #HL-48303: Sonora's headphones ×2 at $349.00 — a $698.00 line, its total as the order keeps
      * it — the duvet cover at $139.00 and the mugs at $24.00, $861.00 paid partly with 2,480 points. Each line gives
      * back what it cost, $698.00 for the two pairs and not the $770.97 the quantity counted twice gave, and any set
      * of lines gives back what that set cost, as money and points together, whichever lines are ticked.
@@ -187,10 +187,10 @@ class ReturnRefundsTest {
     @Test
     fun `a line of several gives back what it cost and any set of lines what the set cost`() {
         val bought = paidWithPoints(2_480, 69_800, 13_900, 2_400)
-        val sony = bought.placed.lines[0].copy(quantity = 2)
-        val order = bought.copy(placed = bought.placed.copy(lines = listOf(sony) + bought.placed.lines.drop(1)))
+        val sonora = bought.placed.lines[0].copy(quantity = 2)
+        val order = bought.copy(placed = bought.placed.copy(lines = listOf(sonora) + bought.placed.lines.drop(1)))
 
-        assertEquals(34_900, sony.unitCents, "the price of one pair")
+        assertEquals(34_900, sonora.unitCents, "the price of one pair")
         val refunds = ReturnRefunds.of(order)
         assertEquals(mapOf(0 to 69_800, 1 to 13_900, 2 to 2_400), refunds)
         val shares = ReturnRefunds.pointsBack(order)
@@ -205,7 +205,7 @@ class ReturnRefundsTest {
         assertEquals(
             69_800 - 2_010,
             refunds.getValue(0) - shares.getValue(0),
-            "Sony's two pairs: $677.90 and 2,010 points",
+            "Sonora's two pairs: $677.90 and 2,010 points",
         )
         assertEquals(
             order.placed.totalCents,

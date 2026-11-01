@@ -182,7 +182,7 @@ class IdentityRoutesTest {
                 listOf(
                     "/ui/home",
                     "/ui/c/electronics/audio/headphones",
-                    "/ui/p/${SampleCatalog.SONY_HEADPHONES}",
+                    "/ui/p/${SampleCatalog.SONORA_HEADPHONES}",
                     "/ui/search?q=mug",
                     // The header alone, which the client asks for over a page that came with no tree (B-105).
                     "/ui/header",

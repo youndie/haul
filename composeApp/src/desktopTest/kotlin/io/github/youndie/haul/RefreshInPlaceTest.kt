@@ -282,7 +282,7 @@ class RefreshInPlaceTest {
     private companion object {
         const val WIDTH = 1440
         const val HEIGHT = 1800
-        const val PRODUCT = "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0&tab="
+        const val PRODUCT = "/p/p-sonora-sh-718n?sku=p-sonora-sh-718n-0&tab="
         const val HELPFUL = "48 people found this helpful"
         const val VOTED = "49 people found this helpful"
         const val MUGS = "/c/mugs"

@@ -488,9 +488,9 @@
                         "drop": "Price dropped −$200"
                     },
                     {
-                        "id": "card-p-sony-wh-1000xm6",
-                        "productId": "p-sony-wh-1000xm6",
-                        "title": "Sony WH-1000XM6 Wireless Noise Cancelling Headphones",
+                        "id": "card-p-sonora-sh-718n",
+                        "productId": "p-sonora-sh-718n",
+                        "title": "Sonora SH-718N Wireless Noise Cancelling Headphones",
                         "price": "$349",
                         "oldPrice": "$449",
                         "badge": "−22%",
@@ -502,16 +502,16 @@
                         "saved": true,
                         "action": {
                             "type": "navigate",
-                            "deeplink": "/p/p-sony-wh-1000xm6"
+                            "deeplink": "/p/p-sonora-sh-718n"
                         },
                         "add": {
-                            "url": "/api/v1/cart/lines/p-sony-wh-1000xm6-0",
+                            "url": "/api/v1/cart/lines/p-sonora-sh-718n-0",
                             "change": {
                                 "quantity": 1
                             }
                         },
                         "heartCommand": {
-                            "url": "/api/v1/me/saved/p-sony-wh-1000xm6",
+                            "url": "/api/v1/me/saved/p-sonora-sh-718n",
                             "save": false
                         },
                         "drop": "Price dropped −$100"

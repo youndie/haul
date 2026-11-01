@@ -58,14 +58,14 @@ class PhotoFallbackTest {
     private val card =
         ProductCard(
             id = "card-1",
-            productId = "p-sony-wh-1000xm6",
-            title = "Sony WH-1000XM6",
+            productId = "p-sonora-sh-718n",
+            title = "Sonora SH-718N",
             price = "$349",
             rating = "4.8",
             reviews = "2,341",
             delivery = "Tomorrow",
             tone = "#E6E4FF",
-            image = "/images/products/p-sony-wh-1000xm6/1.png",
+            image = "/images/products/p-sonora-sh-718n/1.png",
         )
     private val requests = CopyOnWriteArrayList<String>()
     private val finished = CountDownLatch(1)
@@ -127,7 +127,7 @@ class PhotoFallbackTest {
             waitUntil(timeoutMillis = 5_000) { onAllNodesWithTagCount(PHOTO_TAG) == 1 }
             onNodeWithTag(PLACEHOLDER_TAG).assertDoesNotExist()
             // The server's path, resolved against the page's origin: Coil takes a bare path for a file.
-            assertEquals(listOf("http://haul.test/images/products/p-sony-wh-1000xm6/1.png"), requests)
+            assertEquals(listOf("http://haul.test/images/products/p-sonora-sh-718n/1.png"), requests)
         }
 
     @Test

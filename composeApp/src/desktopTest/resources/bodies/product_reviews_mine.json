@@ -40,20 +40,20 @@
      "label": "Headphones"
     },
     {
-     "label": "Sony WH-1000XM6"
+     "label": "Sonora SH-718N"
     }
    ]
   },
   {
    "type": "haul_product_details",
    "id": "details",
-   "productId": "p-sony-wh-1000xm6",
-   "skuId": "p-sony-wh-1000xm6-0",
+   "productId": "p-sonora-sh-718n",
+   "skuId": "p-sonora-sh-718n-0",
    "photoTone": "#E6E4FF",
    "photo": "/images/art/p_headphones_0_midnight-black_e6e4ff.686ea916f7.svg",
    "badge": "Bestseller",
-   "brand": "Sony",
-   "title": "WH-1000XM6 Wireless Noise Cancelling Headphones",
+   "brand": "Sonora",
+   "title": "SH-718N Wireless Noise Cancelling Headphones",
    "accent": "Headphones",
    "rating": "4.8",
    "reviews": "2,342 reviews",
@@ -65,14 +65,14 @@
      "options": [
       {
        "label": "Midnight Black",
-       "skuId": "p-sony-wh-1000xm6-0",
+       "skuId": "p-sonora-sh-718n-0",
        "selected": true,
        "available": true,
        "swatch": "#2A2A2E"
       },
       {
        "label": "Silver",
-       "skuId": "p-sony-wh-1000xm6-3",
+       "skuId": "p-sonora-sh-718n-3",
        "selected": false,
        "available": false,
        "swatch": "#D9D3C7"
@@ -85,19 +85,19 @@
      "options": [
       {
        "label": "Headphones only",
-       "skuId": "p-sony-wh-1000xm6-0",
+       "skuId": "p-sonora-sh-718n-0",
        "selected": true,
        "available": true
       },
       {
        "label": "+ Travel case",
-       "skuId": "p-sony-wh-1000xm6-1",
+       "skuId": "p-sonora-sh-718n-1",
        "selected": false,
        "available": true
       },
       {
        "label": "+ 2-year care",
-       "skuId": "p-sony-wh-1000xm6-2",
+       "skuId": "p-sonora-sh-718n-2",
        "selected": false,
        "available": true
       }
@@ -115,7 +115,7 @@
     },
     {
      "title": "Bluetooth",
-     "text": "5.4 · LDAC · multipoint"
+     "text": "5.4 · LC3 · multipoint"
     },
     {
      "title": "Weight",
@@ -128,8 +128,8 @@
    "haulPay": "or 4 payments of $87.25 with Haul Pay",
    "haulPayStrong": "4 payments of $87.25",
    "inStock": true,
-   "add": {"url": "/api/v1/cart/lines/p-sony-wh-1000xm6-0?answer=details", "change": {"quantity": 1}},
-   "buy": {"url": "/api/v1/cart/lines/p-sony-wh-1000xm6-0", "change": {"quantity": 1, "selected": true}, "next": {"type": "navigate", "deeplink": "/sign-in?next=%2Fcheckout"}},
+   "add": {"url": "/api/v1/cart/lines/p-sonora-sh-718n-0?answer=details", "change": {"quantity": 1}},
+   "buy": {"url": "/api/v1/cart/lines/p-sonora-sh-718n-0", "change": {"quantity": 1, "selected": true}, "next": {"type": "navigate", "deeplink": "/sign-in?next=%2Fcheckout"}},
    "delivery": [
     {
      "title": "Courier · Tomorrow, Oct 8",
@@ -148,23 +148,23 @@
    ],
    "cutoff": "Order within 3 h 42 min",
    "seller": {
-    "name": "Sony Official Store",
+    "name": "Sonora Audio",
     "initial": "S",
     "meta": "4.9 · 98% positive · 6 yrs on Haul"
    },
    "brandAction": {
     "type": "navigate",
-    "deeplink": "/c/electronics/audio/headphones?brand=Sony"
+    "deeplink": "/c/electronics/audio/headphones?brand=Sonora"
    },
    "ratingAction": {
     "type": "navigate",
-    "deeplink": "/p/p-sony-wh-1000xm6?tab=reviews"
+    "deeplink": "/p/p-sonora-sh-718n?tab=reviews"
    },
    "specificationsAction": {
     "type": "navigate",
-    "deeplink": "/p/p-sony-wh-1000xm6?tab=specifications"
+    "deeplink": "/p/p-sonora-sh-718n?tab=specifications"
    },
-   "share": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0"
+   "share": "/p/p-sonora-sh-718n?sku=p-sonora-sh-718n-0"
   },
   {
    "type": "haul_product_tabs",
@@ -176,7 +176,7 @@
      "selected": false,
      "action": {
       "type": "navigate",
-      "deeplink": "/p/p-sony-wh-1000xm6?tab=description"
+      "deeplink": "/p/p-sonora-sh-718n?tab=description"
      }
     },
     {
@@ -185,7 +185,7 @@
      "selected": false,
      "action": {
       "type": "navigate",
-      "deeplink": "/p/p-sony-wh-1000xm6?tab=specifications"
+      "deeplink": "/p/p-sonora-sh-718n?tab=specifications"
      },
      "compactTitle": "Specs"
     },
@@ -196,7 +196,7 @@
      "selected": true,
      "action": {
       "type": "navigate",
-      "deeplink": "/p/p-sony-wh-1000xm6?tab=reviews"
+      "deeplink": "/p/p-sonora-sh-718n?tab=reviews"
      }
     },
     {
@@ -206,7 +206,7 @@
      "selected": false,
      "action": {
       "type": "navigate",
-      "deeplink": "/p/p-sony-wh-1000xm6?tab=questions"
+      "deeplink": "/p/p-sonora-sh-718n?tab=questions"
      }
     }
    ]
@@ -222,7 +222,7 @@
      "percent": 84,
      "action": {
       "type": "load",
-      "url": "/ui/parts/p/p-sony-wh-1000xm6?tab=reviews&stars=5"
+      "url": "/ui/parts/p/p-sonora-sh-718n?tab=reviews&stars=5"
      }
     },
     {
@@ -230,7 +230,7 @@
      "percent": 12,
      "action": {
       "type": "load",
-      "url": "/ui/parts/p/p-sony-wh-1000xm6?tab=reviews&stars=4"
+      "url": "/ui/parts/p/p-sonora-sh-718n?tab=reviews&stars=4"
      }
     },
     {
@@ -238,7 +238,7 @@
      "percent": 2,
      "action": {
       "type": "load",
-      "url": "/ui/parts/p/p-sony-wh-1000xm6?tab=reviews&stars=3"
+      "url": "/ui/parts/p/p-sonora-sh-718n?tab=reviews&stars=3"
      }
     },
     {
@@ -246,7 +246,7 @@
      "percent": 1,
      "action": {
       "type": "load",
-      "url": "/ui/parts/p/p-sony-wh-1000xm6?tab=reviews&stars=2"
+      "url": "/ui/parts/p/p-sonora-sh-718n?tab=reviews&stars=2"
      }
     },
     {
@@ -254,7 +254,7 @@
      "percent": 1,
      "action": {
       "type": "load",
-      "url": "/ui/parts/p/p-sony-wh-1000xm6?tab=reviews&stars=1"
+      "url": "/ui/parts/p/p-sonora-sh-718n?tab=reviews&stars=1"
      }
     }
    ],
@@ -287,7 +287,7 @@
       "/images/art/p_headphones_2_plain_e6e4ff.094c24dda9.svg"
      ],
      "helpfulCommand": {
-      "url": "/api/v1/reviews/r-sony-daniel/helpful",
+      "url": "/api/v1/reviews/r-sonora-daniel/helpful",
       "vote": {
        "helpful": true
       }
@@ -303,7 +303,7 @@
      "text": "Clear, balanced sound and the app EQ is easy to use. The headband felt tight for the first few days, then loosened up. Calls sound good even outside.",
      "helpful": "49 people found this helpful",
      "helpfulCommand": {
-      "url": "/api/v1/reviews/r-sony-aisha/helpful",
+      "url": "/api/v1/reviews/r-sonora-aisha/helpful",
       "vote": {
        "helpful": false
       }
@@ -319,7 +319,7 @@
      "title": "Use it every day",
      "text": "My partner borrowed it and now wants one. That says enough.",
      "helpfulCommand": {
-      "url": "/api/v1/reviews/rf-p-sony-wh-1000xm6-5-1/helpful",
+      "url": "/api/v1/reviews/rf-p-sonora-sh-718n-5-1/helpful",
       "vote": {
        "helpful": true
       }
@@ -334,7 +334,7 @@
      "title": "Great quality",
      "text": "Great quality for the price. Setup took a couple of minutes and everything just worked.",
      "helpfulCommand": {
-      "url": "/api/v1/reviews/rf-p-sony-wh-1000xm6-5-2/helpful",
+      "url": "/api/v1/reviews/rf-p-sonora-sh-718n-5-2/helpful",
       "vote": {
        "helpful": true
       }
@@ -349,7 +349,7 @@
      "title": "Love it",
      "text": "Replaced an older one I had for years and this is better in every way I care about.",
      "helpfulCommand": {
-      "url": "/api/v1/reviews/rf-p-sony-wh-1000xm6-5-3/helpful",
+      "url": "/api/v1/reviews/rf-p-sonora-sh-718n-5-3/helpful",
       "vote": {
        "helpful": true
       }
@@ -365,7 +365,7 @@
      "text": "Arrived well packed and works exactly as described. Feels solid and looks better in person.",
      "helpful": "33 people found this helpful",
      "helpfulCommand": {
-      "url": "/api/v1/reviews/rf-p-sony-wh-1000xm6-5-4/helpful",
+      "url": "/api/v1/reviews/rf-p-sonora-sh-718n-5-4/helpful",
       "vote": {
        "helpful": true
       }
@@ -380,7 +380,7 @@
      "title": "Better than expected",
      "text": "Bought one as a gift, then a second for myself. No complaints at all.",
      "helpfulCommand": {
-      "url": "/api/v1/reviews/rf-p-sony-wh-1000xm6-5-5/helpful",
+      "url": "/api/v1/reviews/rf-p-sonora-sh-718n-5-5/helpful",
       "vote": {
        "helpful": true
       }
@@ -395,7 +395,7 @@
      "title": "Would buy again",
      "text": "Exactly as pictured, arrived a day early, and still feels new after a month.",
      "helpfulCommand": {
-      "url": "/api/v1/reviews/rf-p-sony-wh-1000xm6-5-6/helpful",
+      "url": "/api/v1/reviews/rf-p-sonora-sh-718n-5-6/helpful",
       "vote": {
        "helpful": true
       }
@@ -410,7 +410,7 @@
      "title": "Five stars, no notes",
      "text": "Used it every day for a few weeks now and it has not let me down once. Easy recommendation.",
      "helpfulCommand": {
-      "url": "/api/v1/reviews/rf-p-sony-wh-1000xm6-5-7/helpful",
+      "url": "/api/v1/reviews/rf-p-sonora-sh-718n-5-7/helpful",
       "vote": {
        "helpful": true
       }
@@ -420,7 +420,7 @@
    "moreLabel": "Show more reviews",
    "more": {
     "type": "load",
-    "url": "/ui/parts/p/p-sony-wh-1000xm6?tab=reviews&shown=20"
+    "url": "/ui/parts/p/p-sonora-sh-718n?tab=reviews&shown=20"
    }
   }
  ]

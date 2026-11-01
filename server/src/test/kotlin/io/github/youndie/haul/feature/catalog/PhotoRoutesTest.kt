@@ -69,7 +69,7 @@ import kotlin.time.Duration.Companion.hours
  * seed's illustration of its category, which the server draws and serves itself.
  */
 class PhotoRoutesTest {
-    private val sony = SampleCatalog.SONY_HEADPHONES
+    private val sonora = SampleCatalog.SONORA_HEADPHONES
     private val sampleIds = SampleCatalog.products.map { it.id }.toSet()
 
     /** A seeded database whose sample products have photos in a SeaweedFS bucket, as `main` seeds them. */
@@ -94,9 +94,9 @@ class PhotoRoutesTest {
     @Test
     fun `a product with a stored photo carries its address and one without carries its picture`() =
         haulTest(Photographed.dataSource, Photographed.store) {
-            val details = tree("/ui/p/$sony").only<ProductDetails>()
+            val details = tree("/ui/p/$sonora").only<ProductDetails>()
             val url = assertNotNull(details.photo, "the product page has no photo")
-            assertTrue(url.startsWith("/images/products/$sony/"), url)
+            assertTrue(url.startsWith("/images/products/$sonora/"), url)
 
             val deals =
                 tree("/ui/home")
@@ -104,7 +104,7 @@ class PhotoRoutesTest {
                     .filterIsInstance<ProductGrid>()
                     .single { it.id == "deals" }
                     .cards
-            assertEquals(url, deals.single { it.productId == sony }.image, "the card and the page disagree")
+            assertEquals(url, deals.single { it.productId == sonora }.image, "the card and the page disagree")
             val generated = deals.filter { it.productId !in sampleIds }
             // Positive control: the row does hold products without photos, so their pictures were looked for.
             assertTrue(generated.isNotEmpty(), "no generated product among the deals")
@@ -126,16 +126,16 @@ class PhotoRoutesTest {
             val maya = ShildikHarness.accessToken(ShildikHarness.person("Maya Kowalski", SampleCustomers.MAYA))
             var url: String? = null
             haulTest(database, Photographed.store, signIn = ShildikHarness.signIn) {
-                url = assertNotNull(tree("/ui/p/$sony").only<ProductDetails>().photo)
+                url = assertNotNull(tree("/ui/p/$sonora").only<ProductDetails>().photo)
                 val lines = tree(CartPaths.SCREEN, maya).all().filterIsInstance<CartLine>()
                 val line =
-                    assertNotNull(lines.firstOrNull { it.productId == sony }, "the cart: ${lines.map { it.productId }}")
+                    assertNotNull(lines.firstOrNull { it.productId == sonora }, "the cart: ${lines.map { it.productId }}")
                 assertEquals(url, line.image, "the cart line")
                 val items = tree(CheckoutPaths.SCREEN, maya).only<CheckoutSummary>().items
-                val item = assertNotNull(items.firstOrNull { it.action == productLink(sony) }, "checkout: $items")
+                val item = assertNotNull(items.firstOrNull { it.action == productLink(sonora) }, "checkout: $items")
                 assertEquals(url, item.image, "checkout's line")
                 // Each suggested product carries its own page's photo; the sample ones have one.
-                val panel = tree("/ui/search/suggest?q=sony") as SearchSuggestPanel
+                val panel = tree("/ui/search/suggest?q=sonora") as SearchSuggestPanel
                 panel.products.forEach {
                     assertEquals(tree("/ui/p/${it.productId}").only<ProductDetails>().photo, it.image, it.productId)
                 }
@@ -157,7 +157,7 @@ class PhotoRoutesTest {
                 val response = get(OrderPaths.SCREEN.replace("{id}", orderId)) { bearerAuth(maya) }
                 val body = liveTree(response.bodyAsText(), "order:$orderId").only<OrderBody>()
                 val items = body.shipments.flatMap { it.items }
-                val item = assertNotNull(items.firstOrNull { it.action == productLink(sony) }, "the order: $items")
+                val item = assertNotNull(items.firstOrNull { it.action == productLink(sonora) }, "the order: $items")
                 assertEquals(url, item.image, "the order's line")
                 val form = assertNotNull((body.summary.returnAction as? PresentAction)?.content as? ReturnForm)
                 val returned = form.lines.firstOrNull { it.title == item.title }
@@ -182,14 +182,14 @@ class PhotoRoutesTest {
     @Test
     fun `the photo address serves the stored bytes for good`() =
         haulTest(Photographed.dataSource, Photographed.store) {
-            val url = assertNotNull(tree("/ui/p/$sony").only<ProductDetails>().photo)
+            val url = assertNotNull(tree("/ui/p/$sonora").only<ProductDetails>().photo)
             val response = get(url)
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals(ContentType.Image.SVG, response.contentType()?.withoutParameters())
             assertEquals("public, max-age=31536000, immutable", response.headers[HttpHeaders.CacheControl])
             // A stored SVG is a document of the store's origin as a picture is: it may run and load nothing.
             assertEquals("default-src 'none'", response.headers["Content-Security-Policy"])
-            val product = SampleCatalog.products.single { it.id == sony }
+            val product = SampleCatalog.products.single { it.id == sonora }
             assertContentEquals(SeedPhotos.draw(product).encodeToByteArray(), response.bodyAsBytes())
         }
 
@@ -219,7 +219,7 @@ class PhotoRoutesTest {
         // Positive control: the pictures compared are not one picture either.
         val mug = stored.getValue(SampleCatalog.STONEWARE_MUG)
         val duvet = stored.getValue(SampleCatalog.DUVET_COVER)
-        assertEquals(3, setOf(stored.getValue(sony), mug, duvet).size, "the headphones, the mug and the duvet alike")
+        assertEquals(3, setOf(stored.getValue(sonora), mug, duvet).size, "the headphones, the mug and the duvet alike")
     }
 
     /**
@@ -231,11 +231,11 @@ class PhotoRoutesTest {
     fun `the review and question dialogs and a review's photos carry pictures`() {
         val maya = ShildikHarness.accessToken(ShildikHarness.person("Maya Kowalski", SampleCustomers.MAYA))
         haulTest(Photographed.dataSource, Photographed.store, signIn = ShildikHarness.signIn) {
-            val photo = assertNotNull(tree("/ui/p/$sony").only<ProductDetails>().photo)
-            val reviews = tree("/ui/p/$sony?tab=reviews", maya).only<ProductReviews>()
+            val photo = assertNotNull(tree("/ui/p/$sonora").only<ProductDetails>().photo)
+            val reviews = tree("/ui/p/$sonora?tab=reviews", maya).only<ProductReviews>()
             val review = assertNotNull((reviews.action as? PresentAction)?.content as? ReviewForm, "${reviews.action}")
             assertEquals(photo, review.product.image, "the review dialog's product")
-            val questions = tree("/ui/p/$sony?tab=questions", maya).only<ProductQuestions>()
+            val questions = tree("/ui/p/$sonora?tab=questions", maya).only<ProductQuestions>()
             val question = assertNotNull((questions.action as? PresentAction)?.content as? QuestionForm)
             assertEquals(photo, question.product.image, "the question dialog's product")
 
@@ -278,10 +278,10 @@ class PhotoRoutesTest {
     @Test
     fun `without object storage every product carries its picture`() =
         haulTest(Photographed.dataSource, photoStore = null) {
-            val photo = assertNotNull(tree("/ui/p/$sony").only<ProductDetails>().photo)
+            val photo = assertNotNull(tree("/ui/p/$sonora").only<ProductDetails>().photo)
             assertTrue(photo.startsWith("/images/art/p_headphones_"), photo)
             val cards: List<ProductCard> = tree("/ui/home").all().filterIsInstance<ProductGrid>().flatMap { it.cards }
-            assertTrue(cards.any { it.productId == sony }, "the sample product is not on the home page")
+            assertTrue(cards.any { it.productId == sonora }, "the sample product is not on the home page")
             cards.forEach {
                 assertTrue(
                     it.image.orEmpty().startsWith("/images/art/p_"),
@@ -327,7 +327,7 @@ class PhotoRoutesTest {
     @Test
     fun `a picture that is not the seed's is 404`() =
         haulTest(Photographed.dataSource, photoStore = null) {
-            val url = assertNotNull(tree("/ui/p/$sony").only<ProductDetails>().photo)
+            val url = assertNotNull(tree("/ui/p/$sonora").only<ProductDetails>().photo)
             assertEquals(HttpStatusCode.OK, get(url).status, "the control picture is not served")
             val stale = url.substringBeforeLast('.').substringBeforeLast('.') + ".0000000000.svg"
             assertEquals(HttpStatusCode.NotFound, get(stale).status)

@@ -10,15 +10,15 @@ import java.time.OffsetDateTime
  * Changing one here changes what the canvas is compared against, so a change starts in research §6.
  */
 internal object SampleCatalog {
-    const val SONY_STORE = "s-sony-official-store"
+    const val SONORA_STORE = "s-sonora-audio"
     const val BROOKLYN_HOME = "s-brooklyn-home-co"
-    const val SONY_HEADPHONES = "p-sony-wh-1000xm6"
+    const val SONORA_HEADPHONES = "p-sonora-sh-718n"
     const val DUVET_COVER = "p-linen-duvet-cover-set"
     const val STONEWARE_MUG = "p-stoneware-mug"
 
     val sellers: List<SeedSeller> =
         listOf(
-            SeedSeller(SONY_STORE, "Sony Official Store", BigDecimal("4.9"), 98, 6),
+            SeedSeller(SONORA_STORE, "Sonora Audio", BigDecimal("4.9"), 98, 6),
             SeedSeller(BROOKLYN_HOME, "Brooklyn Home Co.", BigDecimal("4.8"), 97, 3),
         ) + SampleHeadphones.sellers
 
@@ -45,17 +45,17 @@ internal object SampleCatalog {
     val products: List<SeedProduct> =
         listOf(
             SeedProduct(
-                id = SONY_HEADPHONES,
-                sellerId = SONY_STORE,
+                id = SONORA_HEADPHONES,
+                sellerId = SONORA_STORE,
                 categorySlug = "headphones",
-                title = "WH-1000XM6 Wireless Noise Cancelling Headphones",
-                brand = "Sony",
+                title = "SH-718N Wireless Noise Cancelling Headphones",
+                brand = "Sonora",
                 description = "Adaptive noise cancelling with twelve microphones, up to 40 hours on a charge.",
                 specifications =
                     CatalogSeed.specifications(
                         "Battery" to "Up to 40 hours, 3 min charge = 3 h",
                         "Noise cancelling" to "Adaptive, 12 microphones",
-                        "Connectivity" to "Bluetooth 5.4 · LDAC · multipoint",
+                        "Connectivity" to "Bluetooth 5.4 · LC3 · multipoint",
                         "Weight" to "250 g",
                     ),
                 rating = BigDecimal("4.8"),
@@ -73,7 +73,7 @@ internal object SampleCatalog {
                 boughtBase = 12_340,
                 // Cards, the cart and the order write the brand into the name; the product page writes it above
                 // the title (B-45). V25 gives a catalogue seeded before it the same name.
-                listingName = "Sony WH-1000XM6 Wireless Noise Cancelling Headphones",
+                listingName = "Sonora SH-718N Wireless Noise Cancelling Headphones",
             ),
             SeedProduct(
                 id = DUVET_COVER,
@@ -118,14 +118,14 @@ internal object SampleCatalog {
         ) + SampleHeadphones.products
 
     val skus: List<SeedSku> =
-        sonySkus() +
+        sonoraSkus() +
             listOf(
                 SeedSku("$DUVET_COVER-0", DUVET_COVER, 0, options("Oat", "3 pieces"), 13_900, 17_900, 40),
                 SeedSku("$STONEWARE_MUG-0", STONEWARE_MUG, 0, options("Sage", "Set of 2"), 2_400, null, 120),
             ) + SampleHeadphones.skus
 
     /** Midnight Black in three bundles, and Silver — out of stock in all three (`Product_OutOfStock`). */
-    private fun sonySkus(): List<SeedSku> {
+    private fun sonoraSkus(): List<SeedSku> {
         val bundles =
             listOf(
                 "Headphones only" to (34_900 to 44_900),
@@ -136,8 +136,8 @@ internal object SampleCatalog {
             bundles.mapIndexed { b, (bundle, prices) ->
                 val position = c * bundles.size + b
                 SeedSku(
-                    "$SONY_HEADPHONES-$position",
-                    SONY_HEADPHONES,
+                    "$SONORA_HEADPHONES-$position",
+                    SONORA_HEADPHONES,
                     position,
                     options(colour, bundle),
                     prices.first,
@@ -149,8 +149,8 @@ internal object SampleCatalog {
     }
 
     /** The headphones in Midnight Black, headphones only, are a deal of the day at their $349. */
-    val SONY_DEAL: SeedDeal =
-        SeedDeal("deal-1", "$SONY_HEADPHONES-0", 34_900, CatalogSeed.DEALS_START, CatalogSeed.DEALS_END)
+    val SONORA_DEAL: SeedDeal =
+        SeedDeal("deal-1", "$SONORA_HEADPHONES-0", 34_900, CatalogSeed.DEALS_START, CatalogSeed.DEALS_END)
 
     /**
      * The campaign on the home page's hero, open from Oct 7 and to Plus members from Oct 6; every

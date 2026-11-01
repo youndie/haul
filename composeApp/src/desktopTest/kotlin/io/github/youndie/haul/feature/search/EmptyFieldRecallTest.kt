@@ -91,13 +91,13 @@ class EmptyFieldRecallTest {
     fun `a customer pressing the empty field sees their recent searches and a row runs its search in the scope`() =
         runDesktopComposeUiTest(WIDTH, 1_000) {
             answer("/ui/home", page(header))
-            answer(RECALL_IN_SCOPE, recall(RECENT_URL, "mug", "duvet", "sony"))
+            answer(RECALL_IN_SCOPE, recall(RECENT_URL, "mug", "duvet", "sonora"))
             answer("/ui$DUVET", page(header, TextComponent(id = "next", text = NEXT)))
             storefront(Customer)
             onNodeWithTag(SEARCH_FIELD_TAG).performClick()
             waitForText("duvet")
             assertEquals(listOf("/ui/home", RECALL_IN_SCOPE), requests, "the press did not ask for the panel")
-            assertTrue(top("mug") < top("duvet") && top("duvet") < top("sony"), "not in the server's order")
+            assertTrue(top("mug") < top("duvet") && top("duvet") < top("sonora"), "not in the server's order")
             onNodeWithText("CLEAR").assertExists()
             onNodeWithText("TOP PRODUCTS").assertDoesNotExist()
 

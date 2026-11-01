@@ -29,7 +29,7 @@ import kotlin.time.Duration.Companion.hours
 /**
  * B-91, through the database: an order line keeps what the whole line cost — the price times the quantity, as
  * placement has written it since V10 and as every order on the stand holds it — and every reader takes it as that.
- * Maya buys Sony's headphones ×2 ($349.00 each), the duvet cover and the mugs, $861.00 paid partly with her 2,480
+ * Maya buys Sonora's headphones ×2 ($349.00 each), the duvet cover and the mugs, $861.00 paid partly with her 2,480
  * points; the order draws «2 × $349», shares its total between the shipments by the lines' totals, and returning
  * the two pairs gives back $698.00 — $677.90 to the card and 2,010 points — not the $770.97 and 2,220 points the
  * quantity counted twice gave.
@@ -68,8 +68,8 @@ class LineOfSeveralTest {
     fun `a new order of two pairs shows the price of one and its return gives back what the two cost`() =
         seededFreshDatabase().use { dataSource ->
             FulfilmentWorld(dataSource).use { world ->
-                val sony = world.ledger.cartLines(SampleCustomers.MAYA).first()
-                runBlocking { world.koin.get<CartCommands>().changeLine(MAYA, sony, LineChange(quantity = 2)) }
+                val sonora = world.ledger.cartLines(SampleCustomers.MAYA).first()
+                runBlocking { world.koin.get<CartCommands>().changeLine(MAYA, sonora, LineChange(quantity = 2)) }
                 val orderId = world.place(CheckoutChoice(slotId = "2025-10-08T15", usePoints = true))
 
                 val order = assertNotNull(world.order(orderId))
@@ -170,10 +170,10 @@ class LineOfSeveralTest {
     @Test
     fun `a saga stored before the rename reads its lines' totals`() {
         val stored =
-            """{"skuId":"sku","sellerId":"seller","title":"Sony","quantity":2,"priceCents":69800,"listCents":89800}"""
+            """{"skuId":"sku","sellerId":"seller","title":"Sonora","quantity":2,"priceCents":69800,"listCents":89800}"""
         val line = Json.decodeFromString(OrderPayload.Line.serializer(), stored)
 
-        assertEquals(OrderPayload.Line("sku", "seller", "Sony", 2, totalCents = 69_800, listTotalCents = 89_800), line)
+        assertEquals(OrderPayload.Line("sku", "seller", "Sonora", 2, totalCents = 69_800, listTotalCents = 89_800), line)
         assertEquals(stored, Json.encodeToString(OrderPayload.Line.serializer(), line))
     }
 

@@ -437,17 +437,17 @@
             "shipments": [
                 {
                     "id": "HL-48230-1",
-                    "seller": "Sony Official Store",
+                    "seller": "Sonora Audio",
                     "status": "In transit",
                     "eta": "Tomorrow, Oct 8 · 15:00 – 18:00",
                     "items": [
                         {
-                            "title": "Sony WH-1000XM6 Wireless Noise Cancelling Headphones",
+                            "title": "Sonora SH-718N Wireless Noise Cancelling Headphones",
                             "details": "Midnight Black · Headphones only · 1 × $349",
                             "tone": "#E6E4FF",
                             "action": {
                                 "type": "navigate",
-                                "deeplink": "/p/p-sony-wh-1000xm6"
+                                "deeplink": "/p/p-sonora-sh-718n"
                             },
                             "image": "/images/art/p_headphones_0_midnight-black_e6e4ff.686ea916f7.svg"
                         }

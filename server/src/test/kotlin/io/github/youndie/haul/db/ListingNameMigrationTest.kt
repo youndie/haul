@@ -8,7 +8,7 @@ import kotlin.test.assertTrue
 
 /**
  * V25 gives a catalogue seeded before it the listing names the seed gives the sample products (B-45), so a
- * stand that was already running writes «Sony WH-1000XM6 …» on its cards as a fresh one does. The names are
+ * stand that was already running writes «Sonora SH-718N …» on its cards as a fresh one does. The names are
  * written twice — in the migration's SQL and in `SampleCatalog` — and this is what holds them together: a
  * name changed in one place only fails here instead of making the running stand and a fresh seed disagree.
  */

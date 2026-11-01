@@ -60,7 +60,7 @@ class CheckoutQuoteTest {
                     false,
                 )
             val cart = CartCommands(carts, catalog, CANVAS_NOW)
-            cart.changeLine(owner, "${SampleCatalog.SONY_HEADPHONES}-0", LineChange(quantity = 1))
+            cart.changeLine(owner, "${SampleCatalog.SONORA_HEADPHONES}-0", LineChange(quantity = 1))
             cart.applyPromo(owner, "AUTUMN10")
 
             val applied = commands(CANVAS_NOW).quote(owner)

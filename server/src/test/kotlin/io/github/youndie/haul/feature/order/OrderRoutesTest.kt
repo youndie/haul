@@ -11,7 +11,7 @@ import io.github.youndie.haul.feature.identity.GUEST_HEADER
 import io.github.youndie.haul.feature.reviews.ReviewEntry
 import io.github.youndie.haul.feature.reviews.ReviewPaths
 import io.github.youndie.haul.haulWireJson
-import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_HEADPHONES
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.shell.Frame
 import io.github.youndie.haul.testing.FulfilmentWorld
@@ -230,7 +230,7 @@ class OrderRoutesTest {
     fun `a delivered line the customer has reviewed leads to their review`() =
         placed(moved = 10.days) { orderId, _ ->
             val posted =
-                post(ReviewPaths.reviews(SONY_HEADPHONES)) {
+                post(ReviewPaths.reviews(SONORA_HEADPHONES)) {
                     bearerAuth(maya)
                     contentType(ContentType.Application.Json)
                     setBody(
@@ -248,7 +248,7 @@ class OrderRoutesTest {
                     .flatMap { it.items }
                     .mapNotNull { it.review }
             assertEquals(
-                listOf(Link("Your review", NavigateAction("/p/$SONY_HEADPHONES?sku=$SONY_HEADPHONES-0&tab=reviews"))),
+                listOf(Link("Your review", NavigateAction("/p/$SONORA_HEADPHONES?sku=$SONORA_HEADPHONES-0&tab=reviews"))),
                 links.filter { it.label == "Your review" },
             )
             assertEquals(
@@ -268,11 +268,11 @@ class OrderRoutesTest {
         placed(
             moved = 10.days,
             cart = {
-                val sony = ledger.cartLines(SampleCustomers.MAYA).first()
-                koin.get<CartCommands>().changeLine(MAYA, sony, LineChange(quantity = 2))
+                val sonora = ledger.cartLines(SampleCustomers.MAYA).first()
+                koin.get<CartCommands>().changeLine(MAYA, sonora, LineChange(quantity = 2))
             },
         ) { orderId, database ->
-            val (sony, duvet, mug) = database.titles(orderId)
+            val (sonora, duvet, mug) = database.titles(orderId)
             val url = OrderPaths.reorder(orderId)
             MAYAS_SKUS.forEach { database.sql("UPDATE skus SET stock = 0 WHERE id = '$it'") }
 
@@ -280,7 +280,7 @@ class OrderRoutesTest {
             assertEquals(HttpStatusCode.OK, none.status, none.bodyAsText())
             assertEquals(
                 ShowMessageAction(
-                    "Nothing was added: $sony, $duvet and $mug aren’t available now.",
+                    "Nothing was added: $sonora, $duvet and $mug aren’t available now.",
                     MessageLevel.ERROR,
                 ),
                 haulWireJson.decodeKompotAction(none.bodyAsText()),
@@ -296,7 +296,7 @@ class OrderRoutesTest {
                     listOf(
                         NavigateAction(Frame.CART),
                         ShowMessageAction(
-                            "Added what was in stock — $mug isn’t available now; $sony: only 1 of 2 went in.",
+                            "Added what was in stock — $mug isn’t available now; $sonora: only 1 of 2 went in.",
                             MessageLevel.ERROR,
                         ),
                     ),

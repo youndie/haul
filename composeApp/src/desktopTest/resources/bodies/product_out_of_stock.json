@@ -40,20 +40,20 @@
      "label": "Headphones"
     },
     {
-     "label": "Sony WH-1000XM6"
+     "label": "Sonora SH-718N"
     }
    ]
   },
   {
    "type": "haul_product_details",
    "id": "details",
-   "productId": "p-sony-wh-1000xm6",
-   "skuId": "p-sony-wh-1000xm6-3",
+   "productId": "p-sonora-sh-718n",
+   "skuId": "p-sonora-sh-718n-3",
    "photoTone": "#E6E4FF",
    "photo": "/images/art/p_headphones_0_midnight-black_e6e4ff.686ea916f7.svg",
    "badge": "Bestseller",
-   "brand": "Sony",
-   "title": "WH-1000XM6 Wireless Noise Cancelling Headphones",
+   "brand": "Sonora",
+   "title": "SH-718N Wireless Noise Cancelling Headphones",
    "accent": "Headphones",
    "rating": "4.8",
    "reviews": "2,341 reviews",
@@ -65,14 +65,14 @@
      "options": [
       {
        "label": "Midnight Black",
-       "skuId": "p-sony-wh-1000xm6-0",
+       "skuId": "p-sonora-sh-718n-0",
        "selected": false,
        "available": true,
        "swatch": "#2A2A2E"
       },
       {
        "label": "Silver",
-       "skuId": "p-sony-wh-1000xm6-3",
+       "skuId": "p-sonora-sh-718n-3",
        "selected": true,
        "available": false,
        "swatch": "#D9D3C7"
@@ -85,19 +85,19 @@
      "options": [
       {
        "label": "Headphones only",
-       "skuId": "p-sony-wh-1000xm6-0",
+       "skuId": "p-sonora-sh-718n-0",
        "selected": true,
        "available": true
       },
       {
        "label": "+ Travel case",
-       "skuId": "p-sony-wh-1000xm6-1",
+       "skuId": "p-sonora-sh-718n-1",
        "selected": false,
        "available": true
       },
       {
        "label": "+ 2-year care",
-       "skuId": "p-sony-wh-1000xm6-2",
+       "skuId": "p-sonora-sh-718n-2",
        "selected": false,
        "available": true
       }
@@ -115,7 +115,7 @@
     },
     {
      "title": "Bluetooth",
-     "text": "5.4 · LDAC · multipoint"
+     "text": "5.4 · LC3 · multipoint"
     },
     {
      "title": "Weight",
@@ -142,7 +142,7 @@
     }
    ],
    "seller": {
-    "name": "Sony Official Store",
+    "name": "Sonora Audio",
     "initial": "S",
     "meta": "4.9 · 98% positive · 6 yrs on Haul"
    },
@@ -153,17 +153,17 @@
    },
    "brandAction": {
     "type": "navigate",
-    "deeplink": "/c/electronics/audio/headphones?brand=Sony"
+    "deeplink": "/c/electronics/audio/headphones?brand=Sonora"
    },
    "ratingAction": {
     "type": "navigate",
-    "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-3&tab=reviews"
+    "deeplink": "/p/p-sonora-sh-718n?sku=p-sonora-sh-718n-3&tab=reviews"
    },
    "specificationsAction": {
     "type": "navigate",
-    "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-3&tab=specifications"
+    "deeplink": "/p/p-sonora-sh-718n?sku=p-sonora-sh-718n-3&tab=specifications"
    },
-   "share": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-3"
+   "share": "/p/p-sonora-sh-718n?sku=p-sonora-sh-718n-3"
   },
   {
    "type": "haul_product_tabs",
@@ -199,7 +199,7 @@
    "id": "description",
    "title": "Silence, tuned to you",
    "accent": "to you",
-   "text": "Twelve microphones listen to the room and to how the headphones sit on your head, and adaptive noise cancelling adjusts many times a second. Engines, trains and open-plan offices drop away; voices come through when you turn on ambient mode.\n\nA full charge lasts up to 40 hours, and three minutes on the cable gives three more. Bluetooth 5.4 with LDAC keeps detail in high-resolution tracks, and multipoint holds a laptop and a phone at once.",
+   "text": "Twelve microphones listen to the room and to how the headphones sit on your head, and adaptive noise cancelling adjusts many times a second. Engines, trains and open-plan offices drop away; voices come through when you turn on ambient mode.\n\nA full charge lasts up to 40 hours, and three minutes on the cable gives three more. Bluetooth 5.4 with LC3 keeps detail in high-resolution tracks, and multipoint holds a laptop and a phone at once.",
    "facts": [
     {
      "title": "40 h",

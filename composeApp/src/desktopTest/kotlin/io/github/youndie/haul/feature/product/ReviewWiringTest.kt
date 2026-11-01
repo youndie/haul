@@ -373,11 +373,11 @@ class ReviewWiringTest {
     private companion object {
         const val WIDTH = 1440
         const val HEIGHT = 1800
-        const val REVIEWS_ADDRESS = "/p/p-sony-wh-1000xm6?tab=reviews"
-        const val QUESTIONS_ADDRESS = "/p/p-sony-wh-1000xm6?tab=questions"
-        const val REVIEWS_URL = "/api/v1/products/p-sony-wh-1000xm6/reviews"
-        const val QUESTIONS_URL = "/api/v1/products/p-sony-wh-1000xm6/questions"
-        const val HELPFUL_URL = "/api/v1/reviews/r-sony-aisha/helpful"
+        const val REVIEWS_ADDRESS = "/p/p-sonora-sh-718n?tab=reviews"
+        const val QUESTIONS_ADDRESS = "/p/p-sonora-sh-718n?tab=questions"
+        const val REVIEWS_URL = "/api/v1/products/p-sonora-sh-718n/reviews"
+        const val QUESTIONS_URL = "/api/v1/products/p-sonora-sh-718n/questions"
+        const val HELPFUL_URL = "/api/v1/reviews/r-sonora-aisha/helpful"
         val CLOSED = SequenceAction(listOf(CloseAction, RefreshAction))
         val GOOD =
             ReviewEntry(

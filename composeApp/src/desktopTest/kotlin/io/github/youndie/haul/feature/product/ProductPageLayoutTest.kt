@@ -135,7 +135,7 @@ class ProductPageLayoutTest {
             listOf(
                 Highlight("Battery", "Up to 40 hours, 3 min charge = 3 h"),
                 Highlight("Noise cancelling", "Adaptive, 12 microphones"),
-                Highlight("Connectivity", "Bluetooth 5.4 · LDAC · multipoint"),
+                Highlight("Connectivity", "Bluetooth 5.4 · LC3 · multipoint"),
                 Highlight("Weight", "250 g"),
             )
     }

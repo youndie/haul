@@ -420,15 +420,15 @@
             },
             "groups": [
                 {
-                    "id": "group-s-sony-official-store",
-                    "seller": "Sony Official Store",
+                    "id": "group-s-sonora-audio",
+                    "seller": "Sonora Audio",
                     "delivery": "Courier · Tomorrow",
                     "lines": [
                         {
-                            "id": "line-p-sony-wh-1000xm6-0",
-                            "skuId": "p-sony-wh-1000xm6-0",
-                            "productId": "p-sony-wh-1000xm6",
-                            "title": "Sony WH-1000XM6 Wireless Noise Cancelling Headphones",
+                            "id": "line-p-sonora-sh-718n-0",
+                            "skuId": "p-sonora-sh-718n-0",
+                            "productId": "p-sonora-sh-718n",
+                            "title": "Sonora SH-718N Wireless Noise Cancelling Headphones",
                             "options": "Midnight Black · Headphones only",
                             "tone": "#E6E4FF",
                             "image": "/images/art/p_headphones_0_midnight-black_e6e4ff.686ea916f7.svg",
@@ -438,10 +438,10 @@
                             "maxQuantity": 10,
                             "selected": true,
                             "selectable": true,
-                            "url": "/api/v1/cart/lines/p-sony-wh-1000xm6-0?existing=true",
+                            "url": "/api/v1/cart/lines/p-sonora-sh-718n-0?existing=true",
                             "action": {
                                 "type": "navigate",
-                                "deeplink": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0"
+                                "deeplink": "/p/p-sonora-sh-718n?sku=p-sonora-sh-718n-0"
                             },
                             "saveAction": {
                                 "type": "navigate",

@@ -103,7 +103,7 @@
        "low": 80,
        "high": 400,
        "top": 500,
-       "template": "/ui/parts/c/electronics/audio/headphones?brand=Bose&brand=Sony&feature=Noise%20cancelling&price_min={min}&price_max={max}"
+       "template": "/ui/parts/c/electronics/audio/headphones?brand=Bellwave&brand=Sonora&feature=Noise%20cancelling&price_min={min}&price_max={max}"
       }
      },
      {
@@ -113,32 +113,32 @@
       "moreLabel": "Show 48 more",
       "options": [
        {
-        "label": "Sony",
+        "label": "Sonora",
         "selected": true,
         "count": 1204
        },
        {
-        "label": "Bose",
+        "label": "Bellwave",
         "selected": true,
         "count": 611
        },
        {
-        "label": "JBL",
+        "label": "Juno",
         "selected": false,
         "count": 1980
        },
        {
-        "label": "Apple",
+        "label": "Aspen",
         "selected": false,
         "count": 842
        },
        {
-        "label": "Sennheiser",
+        "label": "Halvorsen",
         "selected": false,
         "count": 530
        },
        {
-        "label": "Marshall",
+        "label": "Mallard",
         "selected": true,
         "count": 204
        }
@@ -248,15 +248,15 @@
     "id": "applied",
     "chips": [
      {
-      "label": "Sony",
+      "label": "Sonora",
       "selected": true
      },
      {
-      "label": "Bose",
+      "label": "Bellwave",
       "selected": true
      },
      {
-      "label": "Marshall",
+      "label": "Mallard",
       "selected": true
      },
      {
@@ -281,7 +281,7 @@
     "id": "empty",
     "title": "No items match these filters",
     "accent": "filters",
-    "text": "Marshall and Pink together have no headphones. Remove a filter or clear them all.",
+    "text": "Mallard and Pink together have no headphones. Remove a filter or clear them all.",
     "actionLabel": "Clear all"
    }
   }

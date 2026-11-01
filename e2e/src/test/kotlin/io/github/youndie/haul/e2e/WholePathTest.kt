@@ -521,7 +521,7 @@ class WholePathTest {
         const val PASSWORD = "e2e-horse-battery-staple"
 
         /** The canvas's headphones, which the seed gives 2,341 reviews and 86 questions (the server's `SampleCatalog`). */
-        const val HEADPHONES = "/p/p-sony-wh-1000xm6"
+        const val HEADPHONES = "/p/p-sonora-sh-718n"
         val ADDRESS = AddressEntry(street = "1 Kent Avenue", city = "Brooklyn", zip = "11249")
         val ADDRESS_FIELDS = setOf("street", "city", "zip")
     }

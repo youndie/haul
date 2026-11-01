@@ -23,14 +23,14 @@ import kotlin.test.assertTrue
 
 /** feature-product's scenarios, on the hero headphones of the sample data. */
 class ProductRoutesTest {
-    private val sony = "p-sony-wh-1000xm6"
+    private val sonora = "p-sonora-sh-718n"
 
     /** With no `sku`, the cheapest SKU in stock, and the buy box the canvas draws for it. */
     @Test
     fun `the product page opens on the cheapest SKU in stock`() =
         haulTest {
-            val details = tree("/ui/p/$sony").only<ProductDetails>()
-            assertEquals("$sony-0", details.skuId)
+            val details = tree("/ui/p/$sonora").only<ProductDetails>()
+            assertEquals("$sonora-0", details.skuId)
             assertEquals("$349", details.price)
             assertEquals("$449", details.oldPrice)
             assertEquals("−22%", details.discount)
@@ -46,8 +46,8 @@ class ProductRoutesTest {
     @Test
     fun `a variant changes the price`() =
         haulTest {
-            val details = tree("/ui/p/$sony?sku=$sony-1").only<ProductDetails>()
-            assertEquals("$sony-1", details.skuId)
+            val details = tree("/ui/p/$sonora?sku=$sonora-1").only<ProductDetails>()
+            assertEquals("$sonora-1", details.skuId)
             assertEquals("$379", details.price)
             val bundle = details.variants.single { it.name == "Bundle" }
             assertEquals("+ Travel case", bundle.selectedLabel)
@@ -61,7 +61,7 @@ class ProductRoutesTest {
     @Test
     fun `an out of stock SKU is drawn out of stock`() =
         haulTest {
-            val details = tree("/ui/p/$sony?sku=$sony-3").only<ProductDetails>()
+            val details = tree("/ui/p/$sonora?sku=$sonora-3").only<ProductDetails>()
             assertFalse(details.inStock)
             assertEquals("Out of stock", details.stockNote)
             assertNull(details.cutoff)
@@ -79,7 +79,7 @@ class ProductRoutesTest {
     @Test
     fun `the description tab carries the headline the canvas draws`() =
         haulTest {
-            val description = tree("/ui/p/$sony?tab=description").only<ProductDescription>()
+            val description = tree("/ui/p/$sonora?tab=description").only<ProductDescription>()
             assertEquals("Silence, tuned to you", description.title)
             assertEquals("to you", description.accent)
 
@@ -99,7 +99,7 @@ class ProductRoutesTest {
     @Test
     fun `the headphones carry the bought line the canvas draws`() =
         haulTest {
-            val details = tree("/ui/p/$sony").only<ProductDetails>()
+            val details = tree("/ui/p/$sonora").only<ProductDetails>()
             val bodies = File(System.getProperty("haul.clientBodies") ?: error("haul.clientBodies is not set"))
             val drawn =
                 haulWireJson
@@ -118,11 +118,11 @@ class ProductRoutesTest {
     @Test
     fun `the brand, the rating and all specifications lead somewhere and share names the product`() =
         haulTest {
-            val details = tree("/ui/p/$sony?sku=$sony-1").only<ProductDetails>()
-            assertEquals(NavigateAction("/c/electronics/audio/headphones?brand=Sony"), details.brandAction)
-            assertEquals(NavigateAction("/p/$sony?sku=$sony-1&tab=reviews"), details.ratingAction)
-            assertEquals(NavigateAction("/p/$sony?sku=$sony-1&tab=specifications"), details.specificationsAction)
-            assertEquals("/p/$sony?sku=$sony-1", details.share)
+            val details = tree("/ui/p/$sonora?sku=$sonora-1").only<ProductDetails>()
+            assertEquals(NavigateAction("/c/electronics/audio/headphones?brand=Sonora"), details.brandAction)
+            assertEquals(NavigateAction("/p/$sonora?sku=$sonora-1&tab=reviews"), details.ratingAction)
+            assertEquals(NavigateAction("/p/$sonora?sku=$sonora-1&tab=specifications"), details.specificationsAction)
+            assertEquals("/p/$sonora?sku=$sonora-1", details.share)
             for (action in listOf(details.brandAction, details.ratingAction, details.specificationsAction)) {
                 tree("/ui" + (action as NavigateAction).deeplink)
             }
@@ -137,21 +137,21 @@ class ProductRoutesTest {
     @Test
     fun `the page's own links name no sku when its address names none`() =
         haulTest {
-            val page = tree("/ui/p/$sony?tab=reviews")
+            val page = tree("/ui/p/$sonora?tab=reviews")
             val details = page.only<ProductDetails>()
-            assertEquals(NavigateAction("/p/$sony?tab=reviews"), details.ratingAction)
-            assertEquals(NavigateAction("/p/$sony?tab=specifications"), details.specificationsAction)
+            assertEquals(NavigateAction("/p/$sonora?tab=reviews"), details.ratingAction)
+            assertEquals(NavigateAction("/p/$sonora?tab=specifications"), details.specificationsAction)
             assertEquals(
                 listOf(
                     "description",
                     "specifications",
                     "reviews",
                     "questions",
-                ).map { NavigateAction("/p/$sony?tab=$it") },
+                ).map { NavigateAction("/p/$sonora?tab=$it") },
                 page.only<ProductTabs>().tabs.map { it.action },
             )
             for (option in details.variants.flatMap { it.options }) {
-                assertEquals(NavigateAction("/p/$sony?sku=${option.skuId}&tab=reviews"), option.action, option.label)
+                assertEquals(NavigateAction("/p/$sonora?sku=${option.skuId}&tab=reviews"), option.action, option.label)
             }
         }
 
@@ -163,14 +163,14 @@ class ProductRoutesTest {
     fun `a variant picked on a tab keeps the tab`() =
         haulTest {
             for (tab in listOf("specifications", "reviews", "questions")) {
-                val details = tree("/ui/p/$sony?sku=$sony-0&tab=$tab").only<ProductDetails>()
+                val details = tree("/ui/p/$sonora?sku=$sonora-0&tab=$tab").only<ProductDetails>()
                 val options = details.variants.flatMap { it.options }
                 for (option in options) {
-                    assertEquals(NavigateAction("/p/$sony?sku=${option.skuId}&tab=$tab"), option.action, option.label)
+                    assertEquals(NavigateAction("/p/$sonora?sku=${option.skuId}&tab=$tab"), option.action, option.label)
                 }
                 val travel = options.single { it.label == "+ Travel case" }.action as NavigateAction
                 val opened = tree("/ui" + travel.deeplink)
-                assertEquals("$sony-1", opened.only<ProductDetails>().skuId)
+                assertEquals("$sonora-1", opened.only<ProductDetails>().skuId)
                 assertEquals(
                     tab,
                     opened
@@ -180,9 +180,9 @@ class ProductRoutesTest {
                         .key,
                 )
             }
-            val described = tree("/ui/p/$sony?sku=$sony-0").only<ProductDetails>()
+            val described = tree("/ui/p/$sonora?sku=$sonora-0").only<ProductDetails>()
             for (option in described.variants.flatMap { it.options }) {
-                assertEquals(NavigateAction("/p/$sony?sku=${option.skuId}"), option.action, option.label)
+                assertEquals(NavigateAction("/p/$sonora?sku=${option.skuId}"), option.action, option.label)
             }
         }
 

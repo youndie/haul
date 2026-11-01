@@ -12,7 +12,7 @@ import io.github.youndie.haul.feature.identity.GUEST_HEADER
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
-import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_HEADPHONES
 import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
 import io.github.youndie.haul.seed.SampleCheckout
 import io.github.youndie.haul.seed.SampleCustomers
@@ -72,7 +72,7 @@ import kotlin.test.assertTrue
  * that fills a window works over a database of its own, because windows are shared by every customer.
  */
 class CheckoutRoutesTest {
-    private val headphones = "$SONY_HEADPHONES-0"
+    private val headphones = "$SONORA_HEADPHONES-0"
     private val duvet = "$DUVET_COVER-0"
     private val mug = "$STONEWARE_MUG-0"
 
@@ -271,7 +271,7 @@ class CheckoutRoutesTest {
                 // B-79: each tile opens its product, the cart is a link away, and a quote that can be
                 // placed is on «Review» — the delivery filled in, a way to pay chosen.
                 assertEquals(
-                    setOf(SONY_HEADPHONES, DUVET_COVER, STONEWARE_MUG).map { NavigateAction("/p/$it") }.toSet(),
+                    setOf(SONORA_HEADPHONES, DUVET_COVER, STONEWARE_MUG).map { NavigateAction("/p/$it") }.toSet(),
                     summary.items.map { it.action }.toSet(),
                 )
                 assertEquals(Link("Back to cart", NavigateAction("/cart")), summary.back)
