@@ -221,7 +221,7 @@ private fun Menu(menu: List<AccountMenuItem>) {
                         } else {
                             Modifier
                         },
-                    ).follows(item.action)
+                    ).follows(item.action, RoundedCornerShape(14.dp))
                     .padding(horizontal = 16.dp, vertical = 13.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -259,7 +259,7 @@ private fun Tabs(menu: List<AccountMenuItem>) {
                                 .border(1.dp, HaulColors.outlineVariant, RoundedCornerShape(23.dp))
                                 .padding(1.dp)
                         },
-                    ).follows(item.action)
+                    ).follows(item.action, RoundedCornerShape(23.dp))
                     .padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -314,7 +314,7 @@ private fun Tiles(tiles: List<AccountTile>) {
             tiles.forEachIndexed { index, tile ->
                 TileContent(
                     tile,
-                    Modifier.fillMaxWidth().background(tile.fill(), TILE_SHAPE).follows(tile.action),
+                    Modifier.fillMaxWidth().background(tile.fill(), TILE_SHAPE).follows(tile.action, TILE_SHAPE),
                     boxes[index],
                 )
             }
@@ -326,7 +326,7 @@ private fun Tiles(tiles: List<AccountTile>) {
                     // The fill is the tile's whole height, so it is what is pressed; its content, drawn over
                     // it, takes no press and lets one through to it (but the trial's button). The words are not in
                     // the press, so it is named by the tile's label (B-126).
-                    Box(Modifier.background(tile.fill(), TILE_SHAPE).named(tile.label).follows(tile.action))
+                    Box(Modifier.background(tile.fill(), TILE_SHAPE).named(tile.label).follows(tile.action, TILE_SHAPE))
                     TileContent(tile, Modifier, boxes[index])
                 }
             },
@@ -557,7 +557,7 @@ private fun Card(order: ActiveOrder) {
     CssColumn(
         Modifier
             .fillMaxWidth()
-            .follows(order.details.action)
+            .follows(order.details.action, RoundedCornerShape(24.dp))
             .background(HaulColors.surfaceContainerLowest, RoundedCornerShape(24.dp))
             .padding(horizontal = if (compact) 20.dp else 32.dp),
         gap = 24.dp,
@@ -708,7 +708,7 @@ internal fun Chip(
                         .border(1.dp, HaulColors.outlineVariant, shape)
                         .padding(1.dp)
                 },
-            ).follows(filter.action)
+            ).follows(filter.action, shape)
             .padding(
                 start = horizontal,
                 end = horizontal,

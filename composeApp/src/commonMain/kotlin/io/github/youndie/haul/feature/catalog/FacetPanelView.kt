@@ -83,6 +83,7 @@ import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.awaitTypedInput
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.named
+import io.github.youndie.haul.ui.outset
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.rememberFieldRing
 import io.github.youndie.haul.ui.ringedBy
@@ -613,7 +614,8 @@ private fun Swatches(
                     .size(size)
                     .muted(option)
                     .named(option.label)
-                    .follows(option.action),
+                    // Outside the chosen ring, which is drawn as the keyboard's is (B-167).
+                    .follows(option.action, CircleShape.outset(4.dp)),
                 contentAlignment = Alignment.Center,
             ) {
                 if (option.selected) {
@@ -658,7 +660,7 @@ private fun Pills(options: List<FacetOption>) {
             Text(
                 option.label,
                 HaulType.text(14f, if (option.selected) 600 else 500),
-                box.muted(option).follows(option.action).padding(horizontal = 13.dp, vertical = 9.dp),
+                box.muted(option).follows(option.action, CircleShape).padding(horizontal = 13.dp, vertical = 9.dp),
                 softWrap = false,
             )
         }

@@ -420,7 +420,7 @@ internal fun DialogFrame(
                     .background(HaulColors.background, CircleShape)
                     .testTag(CLOSE_TAG)
                     .named(CLOSE)
-                    .pressable(onClose),
+                    .pressable(CircleShape, onClose),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(HaulIcons.close, 18.dp, HaulColors.onSurface)

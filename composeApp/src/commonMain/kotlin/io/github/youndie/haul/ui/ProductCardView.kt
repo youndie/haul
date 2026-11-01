@@ -67,7 +67,7 @@ public fun ProductCardView(
         modifier
             .onHover(hover) { translationY = -CARD_LIFT.toPx() * it }
             .hovers(hover)
-            .follows(card.action),
+            .follows(card.action, CARD_RING),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         PhotoTile(card, compact, hover, Modifier.padding(bottom = 4.dp))
@@ -110,7 +110,15 @@ public fun ProductCardView(
             val plus = rememberHover()
             Box(
                 Modifier
-                    .then(if (add == null) Modifier.swallowsPresses() else Modifier.hovers(plus).pressable(press))
+                    .then(
+                        if (add ==
+                            null
+                        ) {
+                            Modifier.swallowsPresses()
+                        } else {
+                            Modifier.hovers(plus).pressable(RoundedCornerShape(12.dp), press)
+                        },
+                    )
                     // Its own node, pressable or not: merged into the card's, a disabled «+» would read as the card.
                     // Named by the product, as six «Add to cart» in a row named nothing (B-151).
                     .testTag(CARD_ADD_TAG)
@@ -249,7 +257,7 @@ private fun PhotoTile(
             Modifier
                 .align(Alignment.TopEnd)
                 .padding(if (compact) 6.dp else 10.dp)
-                .pressable(rememberHeartPress(card.heartCommand, card.heartAction))
+                .pressable(CircleShape, rememberHeartPress(card.heartCommand, card.heartAction))
                 .semantics { contentDescription = if (card.saved) UNSAVE else SAVE }
                 .size(heart)
                 .background(HaulColors.surfaceContainerLowest, CircleShape),
@@ -337,3 +345,6 @@ internal fun toneColor(tone: String): Color =
         ?.toLongOrNull(16)
         ?.let { Color(0xFF000000 or it) }
         ?: Color(0xFFECE9E2)
+
+/** The keyboard's ring around a whole card (B-167): its photo's corners, the card's only drawn edge. */
+private val CARD_RING = RoundedCornerShape(18.dp)

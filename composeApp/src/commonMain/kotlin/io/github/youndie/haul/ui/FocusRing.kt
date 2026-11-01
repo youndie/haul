@@ -14,8 +14,12 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusEventModifierNode
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.addOutline
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -37,6 +41,9 @@ import androidx.compose.ui.node.DrawModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.node.currentValueOf
 import androidx.compose.ui.node.invalidateDraw
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.theme.HaulColors
 
@@ -179,6 +186,29 @@ internal fun Modifier.ringsAround(
 
 /** The field whose focus [ring] tells its frame. */
 internal fun Modifier.ringedBy(ring: FieldRing): Modifier = onFocusChanged { ring.focused = it.isFocused }
+
+/**
+ * [this] grown by [by] on every side — shrunk, when negative: the keyboard's ring around a swatch whose chosen state is
+ * drawn as the same kind of ring (`outset(4.dp)`, outside it), or inside a row a clipped list holds (`outset(-4.dp)`).
+ */
+internal fun Shape.outset(by: Dp): Shape = Outset(this, by)
+
+private data class Outset(
+    val base: Shape,
+    val by: Dp,
+) : Shape {
+    override fun createOutline(
+        size: Size,
+        layoutDirection: LayoutDirection,
+        density: Density,
+    ): Outline {
+        val grow = with(density) { by.toPx() }
+        val grown = Size((size.width + grow * 2).coerceAtLeast(0f), (size.height + grow * 2).coerceAtLeast(0f))
+        val path = Path().apply { addOutline(base.createOutline(grown, layoutDirection, density)) }
+        path.translate(Offset(-grow, -grow))
+        return Outline.Generic(path)
+    }
+}
 
 /** The ring itself, just outside what is drawn: the accent over a halo of the page's paper. */
 private fun DrawScope.drawFocusRing(shape: Shape) {

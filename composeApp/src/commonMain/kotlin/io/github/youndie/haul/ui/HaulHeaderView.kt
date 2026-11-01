@@ -335,7 +335,7 @@ private fun WideHeader(
             modifier = Modifier.width(132.dp).pressable(LocalLogoAction.current),
         )
         // «Catalog» opens every top-level category as a menu (`HaulHeader.catalog`).
-        LinkMenu(header.catalog) { press ->
+        LinkMenu(header.catalog, ring = RoundedCornerShape(16.dp)) { press ->
             Row(
                 press
                     .height(56.dp)
@@ -371,7 +371,7 @@ private fun WideHeader(
             }
             CartButton(
                 if (pending) 0 else header.cartCount,
-                Modifier.padding(start = 6.dp).follows(header.cart),
+                Modifier.padding(start = 6.dp).follows(header.cart, RoundedCornerShape(16.dp)),
                 height = 56.dp,
                 radius = 16.dp,
                 horizontal = 18.dp,
@@ -401,7 +401,7 @@ private fun WideHeader(
             HaulType.label(11f, 600, 0.06f),
             Modifier
                 .testTag(PLUS_PILL_TAG)
-                .follows(header.plus)
+                .follows(header.plus, CircleShape)
                 .background(
                     HaulColors.secondaryContainer,
                     CircleShape,
@@ -422,7 +422,7 @@ private fun DemoShopperPill(action: KompotAction) {
         HaulType.text(13f, 700).copy(color = HaulColors.onPrimary),
         Modifier
             .testTag(DEMO_SHOPPER_TAG)
-            .follows(action)
+            .follows(action, CircleShape)
             .background(HaulColors.primary, CircleShape)
             .padding(horizontal = 14.dp, vertical = 7.dp),
         softWrap = false,
@@ -514,7 +514,7 @@ private fun CompactHeader(
         }
         CartButton(
             if (pending) 0 else header.cartCount,
-            Modifier.padding(start = 4.dp).follows(header.cart),
+            Modifier.padding(start = 4.dp).follows(header.cart, RoundedCornerShape(14.dp)),
             height = 44.dp,
             radius = 14.dp,
             horizontal = 12.dp,
@@ -710,6 +710,7 @@ private fun SearchField(
                 .size(button)
                 .background(HaulColors.secondaryContainer, RoundedCornerShape(buttonRadius))
                 .pressable(
+                    RoundedCornerShape(buttonRadius),
                     input?.let {
                         {
                             // What was typed just before the press may not be in the field yet (B-76, B-83);

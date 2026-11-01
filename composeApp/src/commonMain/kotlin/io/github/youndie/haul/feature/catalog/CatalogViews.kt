@@ -432,7 +432,7 @@ private fun KindChip(
                 .border(1.dp, HaulColors.outlineVariant, CircleShape)
                 .padding(1.dp)
         }
-    Box(modifier.fillMaxHeight().then(box).follows(chip.action)) {
+    Box(modifier.fillMaxHeight().then(box).follows(chip.action, CircleShape)) {
         Text(
             chip.count?.let { "${chip.label} $it" } ?: chip.label,
             style,
@@ -528,7 +528,7 @@ private fun CompactApplied(
             Modifier
                 .height(FILTERS_HEIGHT)
                 .background(HaulColors.inverseSurface, RoundedCornerShape(12.dp))
-                .pressable(onOpenFilters),
+                .pressable(RoundedCornerShape(12.dp), onOpenFilters),
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -564,7 +564,7 @@ private fun AppliedChip(chip: Chip) {
     Row(
         Modifier
             .background(HaulColors.inverseSurface, CircleShape)
-            .follows(chip.action)
+            .follows(chip.action, CircleShape)
             .padding(start = 14.dp, end = 12.dp, top = 9.dp, bottom = 9.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -724,7 +724,7 @@ private fun PageNumber(
         }
     Box(
         Modifier
-            .pressable(onPress)
+            .pressable(RoundedCornerShape(12.dp), onPress)
             .defaultMinSize(minWidth = 44.dp)
             .height(44.dp)
             .then(if (fill != null) Modifier.background(fill, RoundedCornerShape(12.dp)) else Modifier)

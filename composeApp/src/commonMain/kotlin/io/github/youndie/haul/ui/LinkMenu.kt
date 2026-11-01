@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -64,6 +65,7 @@ internal fun LinkMenu(
     modifier: Modifier = Modifier,
     current: String? = null,
     alignEnd: Boolean = false,
+    ring: Shape = FOCUS_RING_DEFAULT,
     control: @Composable (Modifier) -> Unit,
 ) {
     val actions = LocalHaulActions.current
@@ -73,7 +75,7 @@ internal fun LinkMenu(
         } else {
             links.map { link -> MenuEntry(link.label, link.action?.let { { actions.handle(it) } }) }
         }
-    Menu(entries, modifier, current, alignEnd, control = control)
+    Menu(entries, modifier, current, alignEnd, ring = ring, control = control)
 }
 
 /** An entry of a [Menu]: what it reads, and what pressing it does — `null` draws it and does nothing. */
@@ -96,6 +98,7 @@ internal fun Menu(
     current: String? = null,
     alignEnd: Boolean = false,
     ask: (() -> Unit)? = null,
+    ring: Shape = FOCUS_RING_DEFAULT,
     control: @Composable (Modifier) -> Unit,
 ) {
     var open by remember { mutableStateOf(false) }
@@ -136,7 +139,8 @@ internal fun Menu(
         },
         propagateMinConstraints = true,
     ) {
-        control(Modifier.pressable(press))
+        // The keyboard's ring follows [ring], the control's own shape (B-167).
+        control(Modifier.pressable(ring, press))
         if (open && usable) {
             val gap = with(LocalDensity.current) { MENU_GAP.roundToPx() }
             val origin = LocalOverlays.current?.origin ?: Offset.Zero
