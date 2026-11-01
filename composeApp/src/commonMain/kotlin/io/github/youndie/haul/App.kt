@@ -25,12 +25,15 @@ import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulFonts
 import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.theme.rememberHaulFonts
+import io.github.youndie.haul.ui.KeyboardFocus
 import io.github.youndie.haul.ui.LinkCopier
+import io.github.youndie.haul.ui.LocalKeyboardFocus
 import io.github.youndie.haul.ui.LocalLinkCopier
 import io.github.youndie.haul.ui.LocalMotion
 import io.github.youndie.haul.ui.LocalPhotoLoader
 import io.github.youndie.haul.ui.Motion
 import io.github.youndie.haul.ui.PhotoLoader
+import io.github.youndie.haul.ui.watchesInput
 import io.github.youndie.kompot.realtime.KompotRealtimeSource
 import kotlin.time.Clock
 
@@ -51,7 +54,8 @@ import kotlin.time.Clock
  * [demoNote] remembers whether the visitor closed the demo strip the storefront draws above its pages (B-160): the
  * browser's `sessionStorage` there, memory by default. The strip is the root's alone: `Storefront` drawn on its own —
  * the shell's tests — and every golden have none. [title] is the browser tab's title,
- * which follows the page drawn (B-161). The strip's «Under the hood» opens a panel over the page — the screen's tree,
+ * which follows the page drawn (B-161). [keyboard] says whether the keyboard moved the focus, so that only then a
+ * control draws its ring (B-167): the browser's document tells it every key and press, the root what reaches it. The strip's «Under the hood» opens a panel over the page — the screen's tree,
  * the request that brought it and the updates it takes (B-163) — so [transport]'s requests and [cartCommands]'
  * answers are watched here; the root's alone, like the strip.
  */
@@ -72,9 +76,14 @@ public fun App(
     motion: Motion = Motion.Lively,
     title: BrowserTitle? = null,
     demoNote: DemoNoteMemory = MemoryDemoNoteMemory(),
+    keyboard: KeyboardFocus = remember { KeyboardFocus() },
 ) {
-    HaulThemeAtWidth(fonts ?: rememberHaulFonts(), Modifier.fillMaxSize().background(HaulColors.background)) {
+    HaulThemeAtWidth(
+        fonts ?: rememberHaulFonts(),
+        Modifier.fillMaxSize().background(HaulColors.background).watchesInput(keyboard),
+    ) {
         CompositionLocalProvider(
+            LocalKeyboardFocus provides keyboard,
             LocalPhotoLoader provides photos,
             LocalLinkCopier provides links,
             LocalMotion provides motion,

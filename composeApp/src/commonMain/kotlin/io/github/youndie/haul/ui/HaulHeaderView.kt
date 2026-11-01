@@ -274,7 +274,7 @@ private fun accountTap(
     if (onAccount == null) {
         Modifier
     } else {
-        Modifier.handOverWords().sinksWhenPressed().pressesAgain(onAccount).clickable(
+        Modifier.ringsWhenFocused().handOverWords().sinksWhenPressed().pressesAgain(onAccount).clickable(
             interactionSource = null,
             indication = null,
             onClickLabel = if (customerName == null) "Sign in" else "Account",
@@ -681,9 +681,12 @@ private fun SearchField(
 ) {
     val shape = RoundedCornerShape(radius)
     val field = LocalSearchField.current
+    // The box rings while the field in it has the focus (B-167); its button and its picker ring on their own.
+    val ring = rememberFieldRing()
     Row(
         modifier
             .then(if (field != null) Modifier.onGloballyPositioned { field.bounds = it.boundsInRoot() } else Modifier)
+            .ringsAround(ring, shape)
             .height(height)
             .background(HaulColors.surfaceContainerLowest, shape)
             .border(2.dp, HaulColors.onSurface, shape)
@@ -694,7 +697,7 @@ private fun SearchField(
     ) {
         val input = LocalSearchInput.current
         if (input != null) {
-            EditableQuery(header, input, field, textSize, Modifier.weight(1f))
+            EditableQuery(header, input, field, textSize, Modifier.weight(1f).ringedBy(ring))
         } else {
             DrawnQuery(header, field, textSize, Modifier.weight(1f))
         }

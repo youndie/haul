@@ -70,6 +70,9 @@ import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.pointerPress
 import io.github.youndie.haul.ui.popsIn
 import io.github.youndie.haul.ui.pressable
+import io.github.youndie.haul.ui.rememberFieldRing
+import io.github.youndie.haul.ui.ringedBy
+import io.github.youndie.haul.ui.ringsAround
 import io.github.youndie.kompot.KompotAction
 import kotlinx.coroutines.launch
 
@@ -444,9 +447,11 @@ private fun LineField(
     var focused by remember { mutableStateOf(false) }
     val border = borderOf(error, focused)
     val shape = RoundedCornerShape(14.dp)
+    val ring = rememberFieldRing()
     Box(
         Modifier
             .fillMaxWidth()
+            .ringsAround(ring, shape)
             .height(52.dp)
             .background(HaulColors.surfaceContainerLowest, shape)
             .border(border.first, border.second, shape)
@@ -460,6 +465,7 @@ private fun LineField(
                 .fillMaxWidth()
                 .testTag(tag)
                 .named(name)
+                .ringedBy(ring)
                 .onFocusChanged { focused = it.isFocused },
             textStyle = normal(16f),
             singleLine = true,
@@ -488,6 +494,7 @@ private fun AreaField(
     var focused by remember { mutableStateOf(false) }
     val border = borderOf(error, focused)
     val shape = RoundedCornerShape(14.dp)
+    val ring = rememberFieldRing()
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         HaulTextField(
             value,
@@ -495,6 +502,8 @@ private fun AreaField(
             Modifier
                 .fillMaxWidth()
                 .heightIn(min = minHeight)
+                .ringsAround(ring, shape)
+                .ringedBy(ring)
                 .border(border.first, border.second, shape)
                 .testTag(tag)
                 .named(name)

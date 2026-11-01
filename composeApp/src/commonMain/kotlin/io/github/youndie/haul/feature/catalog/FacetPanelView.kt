@@ -72,6 +72,7 @@ import io.github.youndie.haul.ui.Facet
 import io.github.youndie.haul.ui.FacetOption
 import io.github.youndie.haul.ui.FacetPanel
 import io.github.youndie.haul.ui.FacetRange
+import io.github.youndie.haul.ui.FieldRing
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.HaulTextField
@@ -83,6 +84,9 @@ import io.github.youndie.haul.ui.awaitTypedInput
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.pressable
+import io.github.youndie.haul.ui.rememberFieldRing
+import io.github.youndie.haul.ui.ringedBy
+import io.github.youndie.haul.ui.ringsAround
 import io.github.youndie.haul.ui.toneColor
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -408,7 +412,7 @@ private fun PriceField(
     value: String,
     modifier: Modifier,
 ) {
-    PriceBox(prefix, modifier) { Text(value, HaulType.text(15f, 600), softWrap = false) }
+    PriceBox(prefix, rememberFieldRing(), modifier) { Text(value, HaulType.text(15f, 600), softWrap = false) }
 }
 
 /**
@@ -434,8 +438,10 @@ private fun PriceInput(
     // The whole box is the field's (B-133): a press on «from» or «to», left of the digits, focuses the field as a
     // press on the digits does; before, it focused nothing and the keys typed after it were lost.
     val field = remember { FocusRequester() }
+    val ring = rememberFieldRing()
     PriceBox(
         prefix,
+        ring,
         modifier
             .onGloballyPositioned { box[0] = it }
             .pointerInput(field) { detectTapGestures { field.requestFocus() } },
@@ -446,6 +452,7 @@ private fun PriceInput(
             Modifier
                 .weight(1f)
                 .focusRequester(field)
+                .ringedBy(ring)
                 .testTag(tag)
                 .named(name)
                 .onFocusChanged {
@@ -482,12 +489,14 @@ private fun PriceInput(
 @Composable
 private fun PriceBox(
     prefix: String,
+    ring: FieldRing,
     modifier: Modifier,
     value: @Composable RowScope.() -> Unit,
 ) {
     val shape = RoundedCornerShape(12.dp)
     Row(
         modifier
+            .ringsAround(ring, shape)
             .height(48.dp)
             .background(HaulColors.surfaceContainerLowest, shape)
             .border(1.dp, HaulColors.outlineVariant, shape)

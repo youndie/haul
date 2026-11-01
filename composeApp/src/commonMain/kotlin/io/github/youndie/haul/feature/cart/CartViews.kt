@@ -57,6 +57,9 @@ import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.inert
 import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.pressable
+import io.github.youndie.haul.ui.rememberFieldRing
+import io.github.youndie.haul.ui.ringedBy
+import io.github.youndie.haul.ui.ringsAround
 import io.github.youndie.haul.ui.toggles
 import io.github.youndie.kompot.standard.NavigateAction
 import kotlinx.coroutines.launch
@@ -656,6 +659,7 @@ private fun PromoFieldView(
     val scope = rememberCoroutineScope()
     val refused = field.error != null
     val shape = RoundedCornerShape(14.dp)
+    val ring = rememberFieldRing()
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             // A refused field's border is inside its 52 px (`box-sizing: border-box`); an empty one's 1 px
@@ -663,6 +667,7 @@ private fun PromoFieldView(
             Box(
                 Modifier
                     .weight(1f)
+                    .ringsAround(ring, shape)
                     .height(if (refused) 52.dp else 54.dp)
                     .border(
                         if (refused) 2.dp else 1.dp,
@@ -677,7 +682,11 @@ private fun PromoFieldView(
                 HaulTextField(
                     typed,
                     { typed = it },
-                    Modifier.fillMaxWidth().testTag(PROMO_INPUT_TAG).named(field.placeholder),
+                    Modifier
+                        .fillMaxWidth()
+                        .testTag(PROMO_INPUT_TAG)
+                        .named(field.placeholder)
+                        .ringedBy(ring),
                     // The field's own line, centred in the box: CSS's `line-height: 1` sits the code a pixel
                     // higher than a 15 px line box does here.
                     textStyle = HaulType.label(15f, 600, 0f).copy(lineHeight = TextUnit.Unspecified),
