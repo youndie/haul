@@ -1,7 +1,7 @@
 ---
 id: B-166
 title: "fix: sellers and brands in the sample data are invented, not real companies'"
-status: open
+status: wip
 priority: P2
 size: M
 stage: stage-15-showcase
