@@ -10,15 +10,33 @@ import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.click
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performMouseInput
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
+import io.github.youndie.haul.shell.HaulResponse
+import io.github.youndie.haul.shell.HaulTransport
+import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.ui.LocalMotion
 import io.github.youndie.haul.ui.Motion
+import io.github.youndie.haul.ui.ProductCard
+import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.RollingText
+import io.github.youndie.kompot.KompotComponent
+import io.github.youndie.kompot.standard.ButtonComponent
+import io.github.youndie.kompot.standard.ColumnComponent
+import io.github.youndie.kompot.standard.NavigateAction
+import io.github.youndie.kompot.standard.TextComponent
+import kotlinx.serialization.PolymorphicSerializer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 /**
  * B-158: the storefront moves, and the screenshots do not. Every golden is a page at rest, drawn still; what moves on
@@ -88,6 +106,134 @@ class MotionTest {
         assertTrue(!still.contentEquals(arriving), "nothing moved: the lively home arrived already drawn")
     }
 
+    /**
+     * B-168: the first window arrives quickly — the cascade over it took about 1.4 s before its last block settled
+     * (620 ms reveals, 70 ms apart, up to 260 ms down the window). Counted on the held clock, frame by frame, from
+     * the frame the home's tree is first drawn to the first frame that is the still home.
+     */
+    @Test
+    fun `the last block above the fold settles within 600 ms of the page arriving`() {
+        val still = capture(Motion.Still)
+        var settled = -1L
+        capture(Motion.Lively, frozen = true) {
+            mainClock.advanceTimeByFrame()
+            val arrived = mainClock.currentTime
+            while (mainClock.currentTime - arrived < LOOK_MS) {
+                mainClock.advanceTimeByFrame()
+                if (drawn().contentEquals(still)) {
+                    settled = mainClock.currentTime - arrived
+                    break
+                }
+            }
+        }
+        println("B-168: the lively home's first window settled $settled ms after it arrived")
+        assertTrue(settled in 0..SETTLED_WITHIN_MS, "the first window settled $settled ms after it arrived")
+    }
+
+    /** The storefront at `/`, [motion], with a transport that answers the home and a product page. */
+    private fun ComposeUiTest.storefront(
+        motion: Motion,
+        history: FakeHistory,
+    ) {
+        val transport =
+            HaulTransport { path ->
+                val tree = if (path == "/ui/home") goingHome else productPage
+                HaulResponse(200, haulWireJson.encodeToString(PolymorphicSerializer(KompotComponent::class), tree))
+            }
+        setContent {
+            CompositionLocalProvider(LocalMotion provides motion) {
+                Fixture(compact = false) { Storefront(transport, history, signIn = {}, clock = canvasClock) }
+            }
+        }
+    }
+
+    /**
+     * What the storefront draws a few frames after the home arrives, [motion]: the first time it is drawn, or [back]
+     * to it from a product page opened from it.
+     */
+    private fun arriving(
+        motion: Motion,
+        back: Boolean,
+    ): IntArray {
+        var pixels = IntArray(0)
+        runDesktopComposeUiTest(WIDTH, HEIGHT) {
+            val history = FakeHistory()
+            mainClock.autoAdvance = back
+            storefront(motion, history)
+            if (back) {
+                mainClock.advanceTimeBy(SETTLE_MS)
+                waitForIdle()
+                onNodeWithText(GO).performClick()
+                mainClock.advanceTimeBy(SETTLE_MS)
+                waitForIdle()
+                onNodeWithText(PRODUCT_TEXT).assertExists()
+                mainClock.autoAdvance = false
+                history.back()
+            }
+            repeat(ARRIVAL_FRAMES) { mainClock.advanceTimeByFrame() }
+            onNodeWithText(GO).assertExists()
+            onNodeWithText(PRODUCT_TEXT).assertDoesNotExist()
+            pixels = drawn()
+        }
+        return pixels
+    }
+
+    /** B-168: going back to a page brings it at rest, where it played its arrival again. */
+    @Test
+    fun `back to a page shows it at rest at once`() {
+        val still = arriving(Motion.Still, back = true)
+        val lively = arriving(Motion.Lively, back = true)
+        val differ = still.indices.count { still[it] != lively[it] }
+        assertEquals(0, differ, "pixels the home back from a product page drew still arriving")
+    }
+
+    /** The control for the test above: the first time it is drawn, the same home is arriving those frames in. */
+    @Test
+    fun `the first time a page is drawn it is arriving`() {
+        val still = arriving(Motion.Still, back = false)
+        val lively = arriving(Motion.Lively, back = false)
+        assertTrue(!still.contentEquals(lively), "the home drawn for the first time arrived already at rest")
+    }
+
+    /** A card in a row, [motion], settled after [input]. */
+    private fun card(
+        motion: Motion,
+        input: ComposeUiTest.() -> Unit,
+    ): IntArray {
+        var pixels = IntArray(0)
+        runDesktopComposeUiTest(CARD_WIDTH, CARD_HEIGHT) {
+            setContent {
+                CompositionLocalProvider(LocalMotion provides motion) {
+                    Fixture(compact = false) { Render(cardRow) }
+                }
+            }
+            mainClock.advanceTimeBy(SETTLE_MS)
+            waitForIdle()
+            input()
+            mainClock.advanceTimeBy(SETTLE_MS)
+            waitForIdle()
+            pixels = drawn()
+        }
+        return pixels
+    }
+
+    /** B-168: a finger has no hover — a tap left the card lifted as if the mouse were over it. */
+    @Test
+    fun `a touch press leaves no hover lift`() {
+        val still = card(Motion.Still) {}
+        val tapped = card(Motion.Lively) { onNodeWithText(CARD_TITLE).performTouchInput { click() } }
+        val differ = still.indices.count { still[it] != tapped[it] }
+        assertEquals(0, differ, "pixels a card tapped and released drew off its place at rest")
+    }
+
+    /** The control for the test above: the mouse over the same card lifts it. */
+    @Test
+    fun `a mouse over a card lifts it`() {
+        val still = card(Motion.Still) {}
+        val hovered = card(Motion.Lively) { onNodeWithText(CARD_TITLE).performMouseInput { moveTo(center) } }
+        assertTrue(!still.contentEquals(hovered), "the mouse over the card left it where it rests")
+    }
+
     /** A countdown's pill drawn [motion] with [text], the clock held: [frames] runs once it is first drawn. */
     private fun ticking(
         motion: Motion,
@@ -146,6 +292,53 @@ class MotionTest {
     }
 
     private companion object {
+        const val GO = "Open the product"
+        const val PRODUCT_TEXT = "The product page"
+        const val CARD_TITLE = "Sonora SH-718N Wireless Noise Cancelling Headphones"
+
+        /** The home, with a way to a product page above it. */
+        val goingHome: KompotComponent =
+            (decode("home_content.json") as ColumnComponent).let { home ->
+                home.copy(
+                    children =
+                        listOf(
+                            ButtonComponent(id = "go", text = GO, action = NavigateAction("/p/p-1")),
+                        ) + home.children,
+                )
+            }
+        val productPage: KompotComponent =
+            ColumnComponent(id = "page", children = listOf(TextComponent(id = "next", text = PRODUCT_TEXT)))
+
+        val cardRow: KompotComponent =
+            ProductGrid(
+                id = "grid",
+                cards =
+                    listOf(
+                        ProductCard(
+                            id = "card-p-1",
+                            productId = "p-1",
+                            title = CARD_TITLE,
+                            price = "$349",
+                            rating = "4.8",
+                            reviews = "2,341",
+                            delivery = "Tomorrow",
+                            tone = "#E6E4FF",
+                        ),
+                    ),
+                columns = 6,
+            )
+
+        val canvasClock =
+            object : Clock {
+                override fun now(): Instant = CANVAS_NOW
+            }
+
+        /** How long the settle test looks before it gives up: past the 1.4 s the cascade took before B-168. */
+        const val LOOK_MS = 2_400L
+        const val SETTLED_WITHIN_MS = 600L
+        const val ARRIVAL_FRAMES = 4
+        const val CARD_WIDTH = 1_440
+        const val CARD_HEIGHT = 520
         const val WIDTH = 1_440
         const val HEIGHT = 1_600
         const val FEW_FRAMES_MS = 80L
