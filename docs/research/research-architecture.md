@@ -2727,13 +2727,42 @@ number about petich, tracy or metrik can be taken on them. Mitigation: synthetic
 since B-31 and on the stand since v0.3.0 (`shoppers.enabled` in the stand's values).
 
 **Open question 1. Search quality on PostgreSQL full text with `pg_trgm`.** *Settled for the seed in
-B-09; open beyond it.* Search matches a product when its `to_tsvector('english', listing name, brand,
-kind)` — the listing name being the title when the product has none (B-45) — matches every typed word as
-a prefix (`running:* & sh:*`), or its lower-cased title or listing name contains the query (`LIKE`, under
-trigram indexes); query suggestions are category, brand and kind names that start with the query, then
-those with a word that does, then the ones `similarity()` finds (a misspelling — «heaphones» is offered
-«headphones»). The indexes are in `V3__search.sql` and `V25__listing_name.sql`
+B-09; open beyond it.* Search matches a product when every typed word, each a prefix (`running:* & sh:*`), is in
+its full-text document, or its lower-cased title or listing name contains the query (`LIKE`, under trigram
+indexes); query suggestions are category, brand and kind names that start with the query, then those with a word
+that does, then the ones `similarity()` finds (a misspelling — «heaphones» is offered «headphones»)
 (`server/src/main/kotlin/io/github/youndie/haul/feature/search/data/PostgresSearchRepository.kt`).
+
+**Decided in B-171: a product is found by what it is as well as by its name, and its name comes first.** A
+shopper's «wireless headphones» found three products — the ones whose name holds both words — and not the
+catalogue's «Sonora SH-C388N Wireless Noise Cancelling», whose name does not say «headphones», nor six more
+wireless headphones whose names lack one of the two words: the document was the name, the brand and the kind
+only. The rule since:
+
+| Document | What is in it | Weight |
+|---|---|---|
+| the name | the listing name (the title when there is none, B-45) and the brand | `A` (1.0) |
+| what it is | the kind («Over-ear»), the features («Wireless», «Noise cancelling»), the leaf category's name («Headphones») and its parent's («Audio») | `B` (0.4) |
+
+- Every typed word is required, in either document — «wireless headphones» does not find the headphones that are
+  not wireless, and «wireless xqzt» finds nothing.
+- The order: first every product whose name holds every word, or whose title or listing name contains the query
+  as typed; then the rest; inside each, `ts_rank` over both documents, then the most reviewed, then the id. The
+  first key is not `ts_rank`'s weights restated: `ts_rank` adds a term for each pair of the words near each other,
+  whatever their weight, so a product whose features repeat «wireless headphones» four times outranked every name
+  match by `ts_rank` alone (`SearchByKindTest`).
+- Not in either document: the description, the specifications (a «Model» value is an id, «P-000-00»), the
+  top-level category («Electronics» would be every thirty-second product) and the seller.
+- The suggest panel's products, categories and «All N results» are this matching, so they changed with it; the
+  query suggestions (`terms`) did not — they already offered category and kind names.
+- The documents join the categories, so they are no expression an index can hold: the full-text indexes of
+  `V3__search.sql` and `V25__listing_name.sql` serve no statement since. The planner used neither at 1,920
+  products before (below) either; at a marketplace's size the next step is a stored, weighted `tsvector` column
+  the seed and the catalogue's writes keep.
+
+On the seed: «wireless headphones» found 3 and finds 12, the three whose name holds both words first; «headphones»
+found the 8 named so and finds all 15 in the category; «audio» found nothing and finds the 30 under Audio; «xqzt»
+finds nothing, as before.
 
 Measured with `scripts/suggest-latency.sh` on 2026-10-08: the server from `installDist` on the JVM
 (JDK 25.0.4, no AOT cache, CIO) and PostgreSQL 18.6 (`postgres:18-alpine`, default configuration) in
@@ -2754,6 +2783,26 @@ that, PostgreSQL spends about 7.4 ms on the matching statement and 4.7 ms on the
 size**, before and after an explicit `ANALYZE`: it scans 1,920 rows and computes the `tsvector` per
 row. So the number says the seed is served comfortably, and nothing about the indexes; at marketplace
 scale the next step is a stored `tsvector` column and a prepared statement, measured the same way.
+
+Measured again in B-171 on 2026-11-01, the same way on the same machine (JDK 25, PostgreSQL 18.6, 1,920 products;
+load average 4–10 from other workloads, more than in October), before and after the change, interleaved, 1,200
+requests a run:
+
+| Run | statement | cold first request | p50 | p90 | p99 | max |
+|---|---|---|---|---|---|---|
+| before 1 | name, brand, kind | 110.2 ms | 18.98 ms | 23.37 ms | 29.10 ms | 47.88 ms |
+| after 1 | B-171 | 99.5 ms | 17.40 ms | 20.72 ms | 25.16 ms | 34.06 ms |
+| before 2 | name, brand, kind | 118.8 ms | 16.00 ms | 18.89 ms | 22.50 ms | 30.65 ms |
+| after 2 | B-171 | 148.9 ms | 14.80 ms | 17.74 ms | 20.99 ms | 25.48 ms |
+| before 3 | name, brand, kind | 145.3 ms | 15.37 ms | 25.54 ms | 39.47 ms | 249.97 ms |
+| after (`scripts/suggest-latency.sh` as committed) | B-171 | 95.1 ms | 15.61 ms | 20.97 ms | 26.95 ms | 32.17 ms |
+
+The query list is B-09's with «sonora» where it had «sony» (B-166 renamed the brand). The suggestion's latency did
+not move beyond the machine's noise: p50 14.8–17.4 ms after against B-09's 17.6–18.0 ms and this morning's
+15.4–19.0 ms before; p99 21.0–27.0 ms after against B-09's 24.4–25.4 ms and 22.5–39.5 ms before. Inside it, the
+matching statement costs PostgreSQL more — 7.6–12.8 ms against 5.4–7.2 ms for the old one on the same database
+(«running sh», `EXPLAIN ANALYZE`), for the join and the second `tsvector` per row; the planner still scans every
+product.
 
 ---
 
