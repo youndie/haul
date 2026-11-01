@@ -1,5 +1,6 @@
 package io.github.youndie.haul.seed
 
+import io.github.youndie.haul.PictureVersions
 import io.github.youndie.haul.feature.catalog.data.ProductsTable
 import io.github.youndie.haul.feature.catalog.domain.PhotoStore
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
@@ -21,7 +22,8 @@ import java.security.MessageDigest
  * photography, and real product photos are the owner's question (B-30 findings). Each is the product's own
  * picture ([SeedArt], B-78) — its category's object in its first SKU's colour over its tile tone — stored as SVG, so
  * a store with object storage shows the headphones as headphones and the mug as a mug (B-149; before it, one tinted
- * box stood for every one of them), sharp at every size the page draws it.
+ * box stood for every one of them), sharp at every size the page draws it. Each is stored with its dark version
+ * beside it (B-181, [PictureVersions]), so a dark page shows the sample products' photos drawn for it.
  *
  * Only the sample products of research §6 get one, the ones every artboard shows; the generated two
  * thousand keep their pictures, which is the fallback showing itself on the same page.
@@ -45,7 +47,8 @@ internal object SeedPhotos {
         skus: List<SeedSku> = SampleCatalog.skus,
     ): Int {
         val photos = products.associate { it.id to draw(it, skus) }
-        val keys = photos.mapValues { (id, svg) -> keyFor(id, svg) }
+        val darks = products.associate { it.id to draw(it, skus, dark = true) }
+        val keys = photos.mapValues { (id, svg) -> keyFor(id, svg, darks.getValue(id)) }
         val held =
             withContext(Dispatchers.IO) {
                 transaction(database) {
@@ -63,6 +66,8 @@ internal object SeedPhotos {
         todo.forEach { product ->
             val key = keys.getValue(product.id)
             val was = held[product.id]
+            // The dark version first: once the row names the key, a dark page asks for it.
+            store.put(PictureVersions.dark(key)!!, darks.getValue(product.id).encodeToByteArray(), SVG)
             store.put(key, photos.getValue(product.id).encodeToByteArray(), SVG)
             withContext(Dispatchers.IO) {
                 transaction(database) {
@@ -78,10 +83,11 @@ internal object SeedPhotos {
         return todo.size
     }
 
-    /** [product]'s photo: its picture in its first SKU's colour, as SVG. */
+    /** [product]'s photo: its picture in its first SKU's colour, as SVG — for the dark page when [dark]. */
     fun draw(
         product: SeedProduct,
         skus: List<SeedSku> = SampleCatalog.skus,
+        dark: Boolean = false,
     ): String {
         val colour =
             skus
@@ -91,18 +97,22 @@ internal object SeedPhotos {
                 ?.get(COLOUR)
                 ?.jsonPrimitive
                 ?.content
-        return SeedArt.productSvg(product.id, product.categorySlug, colour, product.tone)
+        return SeedArt.productSvg(product.id, product.categorySlug, colour, product.tone, dark)
     }
 
-    /** `products/<id>/<hash>.svg`: the content's hash in the key, so the photo route may cache for good. */
+    /**
+     * `products/<id>/<hash>.svg`: the hash of the photo and of its [dark] version in the key, so the photo route may
+     * cache both for good.
+     */
     fun keyFor(
         productId: String,
         svg: String,
+        dark: String,
     ): String {
         val hash =
             MessageDigest
                 .getInstance("SHA-256")
-                .digest(svg.encodeToByteArray())
+                .digest((svg + dark).encodeToByteArray())
                 .joinToString("") { "%02x".format(it) }
                 .take(KEY_HASH_CHARS)
         return "${ProductPhotos.PREFIX}$productId/$hash.svg"

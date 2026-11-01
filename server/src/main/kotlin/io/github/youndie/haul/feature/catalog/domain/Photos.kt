@@ -1,5 +1,7 @@
 package io.github.youndie.haul.feature.catalog.domain
 
+import io.github.youndie.haul.PictureVersions
+
 /** An object read back from the photo store: its bytes and the media type it was stored with. */
 internal class StoredPhoto(
     val bytes: ByteArray,
@@ -99,14 +101,15 @@ internal class ProductPhotos(
 
     /**
      * What is under [key]: a stored photo, or a picture when [key] is under [ART]; `null` when there is no store,
-     * the key is neither, or nothing is there.
+     * the key is neither, or nothing is there. A stored SVG's dark version ([PictureVersions], B-181) is the one
+     * stored beside it — the seed stores one for each sample product — or, when there is none, the SVG itself, so a
+     * dark page asking for it never loses the photo.
      */
-    suspend fun read(key: String): StoredPhoto? =
-        if (key.startsWith(ART)) {
-            art.svg(key.removePrefix(ART))?.let { StoredPhoto(it.encodeToByteArray(), SVG) }
-        } else {
-            store?.takeIf { servable(key) }?.get(key)
-        }
+    suspend fun read(key: String): StoredPhoto? {
+        if (key.startsWith(ART)) return art.svg(key.removePrefix(ART))?.let { StoredPhoto(it.encodeToByteArray(), SVG) }
+        val photos = store?.takeIf { servable(key) } ?: return null
+        return photos.get(key) ?: PictureVersions.light(key)?.let { photos.get(it) }
+    }
 
     companion object {
         /** The route the photos are served under. */

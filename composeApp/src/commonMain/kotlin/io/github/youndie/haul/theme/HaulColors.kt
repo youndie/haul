@@ -224,6 +224,8 @@ public class HaulColorScheme(
                         "E9F0D2" to Color(0xFF2E3223),
                         "E0EEF7" to Color(0xFF212C33),
                         "ECE9E2" to Color(0xFF2D2B27),
+                        // Not a canvas tile tone: the light page's raised surface, a review photo's tone (B-181).
+                        "E9E6E0" to Color(0xFF2A2824),
                     ),
                 stone = Color(0xFF2D2B27),
             )

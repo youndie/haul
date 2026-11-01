@@ -463,7 +463,7 @@
                                             "name": "Merino Wool Crewneck Sweater, Unisex",
                                             "detail": "Moss · M",
                                             "tone": "#FFE5DD",
-                                            "image": "/images/art/p_fashion_0_plain_ffe5dd.742448d5d2.svg"
+                                            "image": "/images/art/p_fashion_0_plain_ffe5dd.d88ea8cc6a.svg"
                                         },
                                         "ratingLabel": "Your rating",
                                         "titleLabel": "Title",
@@ -479,7 +479,7 @@
                                     "kind": "dialog"
                                 }
                             },
-                            "image": "/images/art/p_fashion_0_plain_ffe5dd.742448d5d2.svg"
+                            "image": "/images/art/p_fashion_0_plain_ffe5dd.d88ea8cc6a.svg"
                         }
                     ]
                 },
@@ -509,7 +509,7 @@
                                             "name": "Vitamin C Brightening Serum, 30 ml",
                                             "detail": "30 ml",
                                             "tone": "#F1E4F5",
-                                            "image": "/images/art/p_beauty_2_plain_f1e4f5.b177bd64fd.svg"
+                                            "image": "/images/art/p_beauty_2_plain_f1e4f5.62cd094b59.svg"
                                         },
                                         "ratingLabel": "Your rating",
                                         "titleLabel": "Title",
@@ -525,7 +525,7 @@
                                     "kind": "dialog"
                                 }
                             },
-                            "image": "/images/art/p_beauty_2_plain_f1e4f5.b177bd64fd.svg"
+                            "image": "/images/art/p_beauty_2_plain_f1e4f5.62cd094b59.svg"
                         }
                     ]
                 }
@@ -579,7 +579,7 @@
                                 "tone": "#FFE5DD",
                                 "refundCents": 8000,
                                 "pointsBack": 1926,
-                                "image": "/images/art/p_fashion_0_plain_ffe5dd.742448d5d2.svg"
+                                "image": "/images/art/p_fashion_0_plain_ffe5dd.d88ea8cc6a.svg"
                             },
                             {
                                 "position": 1,
@@ -588,7 +588,7 @@
                                 "tone": "#F1E4F5",
                                 "refundCents": 2300,
                                 "pointsBack": 554,
-                                "image": "/images/art/p_beauty_2_plain_f1e4f5.b177bd64fd.svg"
+                                "image": "/images/art/p_beauty_2_plain_f1e4f5.62cd094b59.svg"
                             }
                         ],
                         "reasonLabel": "Reason",

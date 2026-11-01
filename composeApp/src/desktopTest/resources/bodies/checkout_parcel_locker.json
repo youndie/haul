@@ -106,7 +106,7 @@
                         "quantity": 1,
                         "price": "$349",
                         "tone": "#E6E4FF",
-                        "image": "/images/art/p_headphones_0_midnight-black_e6e4ff.686ea916f7.svg",
+                        "image": "/images/art/p_headphones_0_midnight-black_e6e4ff.23af4464b0.svg",
                         "action": {
                             "type": "navigate",
                             "deeplink": "/p/p-sonora-sh-718n"
@@ -118,7 +118,7 @@
                         "quantity": 1,
                         "price": "$139",
                         "tone": "#F1EBDD",
-                        "image": "/images/art/p_duvet-covers_1_oat_f1ebdd.db3f2260fb.svg",
+                        "image": "/images/art/p_duvet-covers_1_oat_f1ebdd.efd3c6df91.svg",
                         "action": {
                             "type": "navigate",
                             "deeplink": "/p/p-linen-duvet-cover-set"
@@ -130,7 +130,7 @@
                         "quantity": 1,
                         "price": "$24",
                         "tone": "#E3F5D8",
-                        "image": "/images/art/p_mugs_2_sage_e3f5d8.a3edfaabce.svg",
+                        "image": "/images/art/p_mugs_2_sage_e3f5d8.29e1dd5167.svg",
                         "action": {
                             "type": "navigate",
                             "deeplink": "/p/p-stoneware-mug"

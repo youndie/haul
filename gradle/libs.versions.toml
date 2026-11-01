@@ -92,8 +92,6 @@ katcher-client = { module = "io.github.youndie.katcher:client", version.ref = "k
 # browser's fetch engine in the bundle, a mock engine in the tests; Ktor's versions come from its BOM.
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-networkKtor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
-# The seed's pictures (B-78) are SVG: Coil's decoder over Skia's SVG renderer, which skiko's wasm already carries.
-coil-svg = { module = "io.coil-kt.coil3:coil-svg", version.ref = "coil" }
 ktor-client-core = { module = "io.ktor:ktor-client-core" }
 ktor-client-js = { module = "io.ktor:ktor-client-js" }
 # The desktop app's engine (B-176): Ktor's own, on coroutines, so the desktop needs no HTTP library beside Ktor.

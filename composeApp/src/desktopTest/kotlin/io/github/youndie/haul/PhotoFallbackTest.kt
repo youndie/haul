@@ -15,10 +15,12 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
+import coil3.BitmapImage
 import coil3.EventListener
 import coil3.request.ErrorResult
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
+import io.github.youndie.haul.theme.HaulColorScheme
 import io.github.youndie.haul.ui.LocalPhotoLoader
 import io.github.youndie.haul.ui.PHOTO_TAG
 import io.github.youndie.haul.ui.PLACEHOLDER_TAG
@@ -97,10 +99,13 @@ class PhotoFallbackTest {
     private fun ComposeUiTest.drawCard(
         shown: ProductCard,
         photos: PhotoLoader,
+        scheme: HaulColorScheme = HaulColorScheme.Light,
     ) = setContent {
-        Fixture(compact = false) {
-            CompositionLocalProvider(LocalPhotoLoader provides photos) {
-                Box(Modifier.width(236.dp)) { ProductCardView(shown) }
+        CompositionLocalProvider(LocalFixtureScheme provides scheme) {
+            Fixture(compact = false) {
+                CompositionLocalProvider(LocalPhotoLoader provides photos) {
+                    Box(Modifier.width(236.dp)) { ProductCardView(shown) }
+                }
             }
         }
     }
@@ -146,47 +151,26 @@ class PhotoFallbackTest {
         }
 
     /**
-     * B-149: a picture is SVG, rasterised once at the size it is asked for. Asked for with no size, it was decoded at
-     * its own (this one's 24 px, the seed's 240) and drawn scaled up — the product page's picture was soft at 768 px.
-     * It is decoded at its box's size, again once the box outgrows that, and never for a smaller one.
+     * B-149: a raster photo is decoded at the size it is asked for. Asked for with no size, it was decoded at its own
+     * and drawn scaled up — soft in a large box. It is decoded at its box's size, again once the box outgrows that,
+     * and never for a smaller one.
      */
     @Test
-    fun `a picture whose box grows is decoded again at its new size`() =
+    fun `a raster photo whose box grows is decoded again at its new size`() =
         runComposeUiTest {
             val widths = CopyOnWriteArrayList<Int>()
-            val photos =
-                coilPhotoLoader(
-                    HttpClient(
-                        MockEngine {
-                            respond(
-                                SVG,
-                                HttpStatusCode.OK,
-                                headersOf(HttpHeaders.ContentType, "image/svg+xml"),
-                            )
-                        },
-                    ),
-                    origin = "http://haul.test",
-                    events =
-                        object : EventListener() {
-                            override fun onSuccess(
-                                request: ImageRequest,
-                                result: SuccessResult,
-                            ) {
-                                widths += result.image.width
-                            }
-                        },
-                )
+            val photos = recording(widths, png(), "image/png")
             var side by mutableStateOf(60.dp)
             var density = 1f
             setContent {
                 density = LocalDensity.current.density
-                Box(Modifier.size(side)) { photos.Photo("/images/art/p.svg", Modifier.fillMaxSize()) {} }
+                Box(Modifier.size(side)) { photos.Photo("/images/products/p/1.png", Modifier.fillMaxSize()) {} }
             }
-            waitUntil("the picture decoded", timeoutMillis = 10_000) { widths.isNotEmpty() }
+            waitUntil("the photo decoded", timeoutMillis = 10_000) { widths.isNotEmpty() }
             assertTrue(widths.single() >= 60 * density, "decoded at ${widths.single()} px for a 60 dp box")
 
             side = 300.dp
-            waitUntil("the picture decoded again", timeoutMillis = 10_000) { widths.size == 2 }
+            waitUntil("the photo decoded again", timeoutMillis = 10_000) { widths.size == 2 }
             assertTrue(widths.last() >= 300 * density, "decoded at ${widths.last()} px for a 300 dp box")
             onNodeWithTag(PHOTO_TAG).assertExists()
 
@@ -194,6 +178,105 @@ class PhotoFallbackTest {
             waitForIdle()
             assertEquals(2, widths.size, "a smaller box asked again: $widths")
         }
+
+    /**
+     * B-181: a picture is SVG and is drawn as a vector — recorded once, not rasterised — so it is decoded once, at
+     * its own size, and a box that grows asks for nothing: the same recording is replayed at the new size.
+     */
+    @Test
+    fun `a picture is decoded once as a vector, whatever its box's size`() =
+        runComposeUiTest {
+            val widths = CopyOnWriteArrayList<Int>()
+            val bitmaps = CopyOnWriteArrayList<Boolean>()
+            val photos = recording(widths, SVG, "image/svg+xml", bitmaps)
+            var side by mutableStateOf(60.dp)
+            setContent {
+                Box(Modifier.size(side)) { photos.Photo("/images/art/p.svg", Modifier.fillMaxSize()) {} }
+            }
+            waitUntil("the picture decoded", timeoutMillis = 10_000) { widths.isNotEmpty() }
+            assertEquals(listOf(24), widths, "decoded at its own size")
+            assertEquals(listOf(false), bitmaps, "decoded to a bitmap")
+            onNodeWithTag(PHOTO_TAG).assertExists()
+
+            side = 300.dp
+            waitForIdle()
+            assertEquals(listOf(24), widths, "a larger box asked again")
+        }
+
+    /**
+     * B-181: on a dark page a picture is asked for at its dark version's address, which the server serves beside it;
+     * a photo with no dark version — a raster upload — is asked for as it is, and drawn matted inside its tile.
+     */
+    @Test
+    fun `on a dark page a picture is its dark version and a raster photo is matted`() =
+        runComposeUiTest {
+            val picture = "/images/art/p_headphones_1_silver_e6e4ff.0123456789.svg"
+            drawCard(
+                card.copy(image = picture),
+                loader { respond(SVG, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "image/svg+xml")) },
+                HaulColorScheme.Dark,
+            )
+            awaitLoad()
+            waitUntil(timeoutMillis = 5_000) { onAllNodesWithTagCount(PHOTO_TAG) == 1 }
+            assertEquals(listOf("http://haul.test${PictureVersions.dark(picture)}"), requests)
+            val tile = onNodeWithTag(PHOTO_TAG).fetchSemanticsNode().boundsInRoot
+            assertEquals(236f, tile.width / density.density, 1f, "the picture fills its tile")
+        }
+
+    @Test
+    fun `on a dark page a raster photo is asked for as it is and drawn inside its tile`() =
+        runComposeUiTest {
+            drawCard(
+                card,
+                loader { respond(png(), HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "image/png")) },
+                HaulColorScheme.Dark,
+            )
+            awaitLoad()
+            waitUntil(timeoutMillis = 5_000) { onAllNodesWithTagCount(PHOTO_TAG) == 1 }
+            assertEquals(listOf("http://haul.test${card.image}"), requests)
+            val photo = onNodeWithTag(PHOTO_TAG).fetchSemanticsNode().boundsInRoot
+            // Matted: 88 % of the 236 dp tile, centred in it. Positive control: on the light page it fills the tile.
+            assertEquals(236f * 0.88f, photo.width / density.density, 1f, "the photo's width")
+            assertEquals(236f * 0.06f, photo.left / density.density, 1f, "the mat's width")
+        }
+
+    @Test
+    fun `on a light page a raster photo fills its tile`() =
+        runComposeUiTest {
+            drawCard(card, loader { respond(png(), HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "image/png")) })
+            awaitLoad()
+            waitUntil(timeoutMillis = 5_000) { onAllNodesWithTagCount(PHOTO_TAG) == 1 }
+            assertEquals(236f, onNodeWithTag(PHOTO_TAG).fetchSemanticsNode().boundsInRoot.width / density.density, 1f)
+        }
+
+    /** A loader whose every answer is [body] as [type], recording each decoded image's width and kind. */
+    private fun recording(
+        widths: MutableList<Int>,
+        body: Any,
+        type: String,
+        bitmaps: MutableList<Boolean> = CopyOnWriteArrayList(),
+    ): PhotoLoader =
+        coilPhotoLoader(
+            HttpClient(
+                MockEngine {
+                    when (body) {
+                        is ByteArray -> respond(body, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, type))
+                        else -> respond(body.toString(), HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, type))
+                    }
+                },
+            ),
+            origin = "http://haul.test",
+            events =
+                object : EventListener() {
+                    override fun onSuccess(
+                        request: ImageRequest,
+                        result: SuccessResult,
+                    ) {
+                        widths += result.image.width
+                        bitmaps += result.image is BitmapImage
+                    }
+                },
+        )
 
     @Test
     fun `a photo that failed to load leaves the placeholder tile`() =

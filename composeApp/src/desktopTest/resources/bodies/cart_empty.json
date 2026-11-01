@@ -439,7 +439,7 @@
                     "reviews": "940",
                     "delivery": "Tomorrow",
                     "tone": "#ECE9E2",
-                    "image": "/images/art/p_computers_0_plain_ece9e2.9d0a8fa658.svg",
+                    "image": "/images/art/p_computers_0_plain_ece9e2.8bb1f9064c.svg",
                     "action": {
                         "type": "navigate",
                         "deeplink": "/p/p-pick-7"
@@ -464,7 +464,7 @@
                     "reviews": "611",
                     "delivery": "Thu, Oct 9",
                     "tone": "#F1EBDD",
-                    "image": "/images/art/p_mugs_1_plain_f1ebdd.b301d07a3b.svg",
+                    "image": "/images/art/p_mugs_1_plain_f1ebdd.b1bd0b42ea.svg",
                     "action": {
                         "type": "navigate",
                         "deeplink": "/p/p-pick-8"
@@ -491,7 +491,7 @@
                     "reviews": "1,388",
                     "delivery": "Thu, Oct 9",
                     "tone": "#FFE5DD",
-                    "image": "/images/art/p_duvet-covers_2_plain_ffe5dd.c87348d63a.svg",
+                    "image": "/images/art/p_duvet-covers_2_plain_ffe5dd.c374ec70ff.svg",
                     "action": {
                         "type": "navigate",
                         "deeplink": "/p/p-pick-9"
@@ -516,7 +516,7 @@
                     "reviews": "2,702",
                     "delivery": "Tomorrow",
                     "tone": "#FFF1C9",
-                    "image": "/images/art/p_kids-toys_0_plain_fff1c9.1a499ea52c.svg",
+                    "image": "/images/art/p_kids-toys_0_plain_fff1c9.a6ae1cb1b8.svg",
                     "action": {
                         "type": "navigate",
                         "deeplink": "/p/p-pick-10"
@@ -541,7 +541,7 @@
                     "reviews": "5,410",
                     "delivery": "Tomorrow",
                     "tone": "#E6E4FF",
-                    "image": "/images/art/p_watches_1_plain_e6e4ff.b3e364bdd7.svg",
+                    "image": "/images/art/p_watches_1_plain_e6e4ff.0be18d1e29.svg",
                     "action": {
                         "type": "navigate",
                         "deeplink": "/p/p-pick-11"
@@ -566,7 +566,7 @@
                     "reviews": "3,019",
                     "delivery": "Fri, Oct 10",
                     "tone": "#E3F5D8",
-                    "image": "/images/art/p_yoga-mats_2_plain_e3f5d8.ae575f359e.svg",
+                    "image": "/images/art/p_yoga-mats_2_plain_e3f5d8.936b1054e3.svg",
                     "action": {
                         "type": "navigate",
                         "deeplink": "/p/p-pick-12"
