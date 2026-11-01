@@ -32,6 +32,10 @@ pixels, and running in public at **[haul.kotlin.website](https://haul.kotlin.web
    Checkout needs a sign-in on the stand for now; «Try as a demo shopper», which makes a customer of your own in one
    press and forgets them after a day, is built ([`DemoShoppers.kt`](server/src/main/kotlin/io/github/youndie/haul/feature/identity/domain/DemoShoppers.kt))
    and not yet switched on there.
+7. **Read what it costs on [The stack in numbers](https://haul.kotlin.website/numbers)** (from «About this demo»):
+   the start with and without the image's AOT cache, latency and CPU per request under the synthetic shoppers, memory
+   inside the chart's limit — measured, with the questions and their lines frozen before the first run and the raw
+   runs in [`docs/research/measurements/b-173/`](docs/research/measurements/b-173/README.md).
 
 Haul exists to put a whole Kotlin stack through a real product rather than a demo app: every screen is a tree
 the server sends, the browser draws it with Compose Multiplatform on WebAssembly, and an order is a saga that

@@ -46,16 +46,15 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (4)
+## Open (3)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-173](docs/backlog/B-173-the-stack-in-numbers.md) `[ ]` | feat: «The stack in numbers» — start-up with and without the AOT cache, latency, memory, measured | P2 | M | - |
 | [B-156](docs/backlog/B-156-walk-the-selection-on-a-phone.md) `[ ]` | chore: walk the selection and its toolbar on a phone | P3 | S | B-155 |
 | [B-174](docs/backlog/B-174-two-replicas.md) `[ ]` | feat: the server runs as two replicas — an external bus, one leader for the simulators | P3 | L | - |
 | [B-176](docs/backlog/B-176-a-second-client-draws-the-same-trees.md) `[ ]` | feat: a second client — desktop — draws the same server trees | P3 | L | - |
 
-## Closed (172)
+## Closed (173)
 
 **Skeleton**
 
@@ -272,6 +271,7 @@ A stage is a field on the item, not a directory.
 - [B-170](docs/backlog/B-170-the-header-keeps-its-content-across-pages.md) `[x]` - fix: the header keeps its content while the next page loads
 - [B-171](docs/backlog/B-171-search-finds-a-product-by-its-kind.md) `[x]` - fix: search finds a product by the words of its kind, not only of its name
 - [B-172](docs/backlog/B-172-the-stores-promises-agree.md) `[x]` - fix: the store's promises agree with its rules and with each other
+- [B-173](docs/backlog/B-173-the-stack-in-numbers.md) `[x]` - feat: «The stack in numbers» — start-up with and without the AOT cache, latency, memory, measured
 - [B-175](docs/backlog/B-175-the-cost-of-compose-web.md) `[x]` - docs: audit the pixel workarounds since B-85 and write down what Compose for Web cost
 
 <!-- END INDEX -->

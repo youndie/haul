@@ -1,0 +1,502 @@
+{
+  "rq": {
+    "rq1a": {
+      "verdict": "green",
+      "aot_median_ms": 1006,
+      "no_aot_median_ms": 1713,
+      "aot_mean_ms": 1033,
+      "no_aot_mean_ms": 1742,
+      "saved_ms": 710,
+      "saved_half_ms": 109,
+      "saved_share": 0.407,
+      "saved_share_half": 0.062,
+      "ruler_ms": 78,
+      "ruler_half_ms": 74,
+      "ruler_share": 0.042,
+      "distinguishable": true,
+      "k1": false,
+      "healthz_aot_median_ms": 996,
+      "healthz_aot_n": 10,
+      "healthz_no_aot_median_ms": 1698,
+      "healthz_no_aot_n": 10
+    },
+    "rq1b": {
+      "verdict": "green",
+      "aot_median_ms": 1133,
+      "no_aot_median_ms": 1929,
+      "aot_mean_ms": 1144,
+      "no_aot_mean_ms": 1956,
+      "saved_ms": 811,
+      "saved_half_ms": 112,
+      "saved_share": 0.415,
+      "saved_share_half": 0.057,
+      "ruler_ms": 79,
+      "ruler_half_ms": 69,
+      "ruler_share": 0.035,
+      "distinguishable": true,
+      "k1": false
+    }
+  },
+  "measured": "2026-11-01",
+  "commit": "647b8b74f5311b165cfe9dfe83d26b2e99c041b9",
+  "image": "sha256:e2e5512c80300869f62f3b6599424d1e4b3f9953b93f988dd878e2196945e2e7",
+  "startup": {
+    "rounds": 11,
+    "void": 0,
+    "busy": 0,
+    "lever_on": true,
+    "lever_off": true,
+    "control_ms": 960,
+    "control_half_ms": 52,
+    "control_ok": true,
+    "docker_run_ms": 160
+  },
+  "load": {
+    "1": {
+      "rate": 200,
+      "rounds": 6,
+      "busy": 0,
+      "void": 0,
+      "rq2": {
+        "verdict": "red",
+        "rate": 200,
+        "rounds": 6,
+        "seconds": 61,
+        "requests": 66716,
+        "offered": 72004,
+        "delivered": 66716,
+        "delivered_share": 0.9266,
+        "non_2xx": 0,
+        "walks_finished": 208,
+        "walks_failed": 89,
+        "routes": {
+          "home": {
+            "n": 13345,
+            "p50_ms": 23.9,
+            "p99_ms": 4840.0,
+            "server_p50_ms": 22.9,
+            "server_p99_ms": 1260.0,
+            "round_p50_ms": [
+              17.9,
+              18.2,
+              24.9,
+              18.5,
+              3740.0,
+              3390.0
+            ],
+            "round_p99_ms": [
+              38.3,
+              43.8,
+              61.1,
+              184.0,
+              5170.0,
+              5200.0
+            ],
+            "non_2xx": 0
+          },
+          "category": {
+            "n": 13343,
+            "p50_ms": 11.6,
+            "p99_ms": 4440.0,
+            "server_p50_ms": 10.0,
+            "server_p99_ms": 825.0,
+            "round_p50_ms": [
+              8.05,
+              8.3,
+              11.2,
+              8.53,
+              3420.0,
+              3190.0
+            ],
+            "round_p99_ms": [
+              21.4,
+              24.0,
+              29.4,
+              88.6,
+              4760.0,
+              4750.0
+            ],
+            "non_2xx": 0
+          },
+          "product": {
+            "n": 13343,
+            "p50_ms": 11.0,
+            "p99_ms": 5170.0,
+            "server_p50_ms": 9.4,
+            "server_p99_ms": 1470.0,
+            "round_p50_ms": [
+              6.86,
+              7.63,
+              11.2,
+              7.91,
+              4140.0,
+              3850.0
+            ],
+            "round_p99_ms": [
+              20.7,
+              26.3,
+              34.9,
+              101.0,
+              5330.0,
+              5340.0
+            ],
+            "non_2xx": 0
+          },
+          "suggest": {
+            "n": 13343,
+            "p50_ms": 24.8,
+            "p99_ms": 4540.0,
+            "server_p50_ms": 23.5,
+            "server_p99_ms": 953.0,
+            "round_p50_ms": [
+              19.3,
+              20.3,
+              25.2,
+              20.5,
+              3540.0,
+              3230.0
+            ],
+            "round_p99_ms": [
+              34.8,
+              42.8,
+              55.8,
+              140.0,
+              4800.0,
+              4910.0
+            ],
+            "non_2xx": 0
+          },
+          "live": {
+            "n": 13342,
+            "p50_ms": 8.5,
+            "p99_ms": 4380.0,
+            "server_p50_ms": 6.8,
+            "server_p99_ms": 666.0,
+            "round_p50_ms": [
+              6.11,
+              6.53,
+              8.78,
+              6.43,
+              3360.0,
+              3130.0
+            ],
+            "round_p99_ms": [
+              19.6,
+              24.3,
+              33.1,
+              87.1,
+              4590.0,
+              4580.0
+            ],
+            "non_2xx": 0
+          }
+        },
+        "control_healthz_p50_ms": 1.58,
+        "control_server_timing": 0,
+        "round_loadavg": [
+          5.61,
+          6.9,
+          13.85,
+          5.09,
+          12.36,
+          11.18
+        ],
+        "round_contamination_cores": [
+          0.373,
+          0.392,
+          0.484,
+          0.426,
+          0.304,
+          0.334
+        ],
+        "round_delivered_share": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          0.7607,
+          0.7987
+        ],
+        "round_walks_finished": [
+          55,
+          54,
+          54,
+          45,
+          0,
+          0
+        ],
+        "round_walks_failed": [
+          0,
+          0,
+          0,
+          13,
+          38,
+          38
+        ],
+        "walking_every_pair": false
+      },
+      "rq3": {
+        "verdict": "grey",
+        "server_usec": 4391,
+        "server_half_usec": 2070,
+        "round_server_usec": [
+          2911,
+          3032,
+          3478,
+          3100,
+          7225,
+          6601
+        ],
+        "round_pg_usec": [
+          4170,
+          4386,
+          5092,
+          4687,
+          11422,
+          10662
+        ],
+        "pg_usec": 6736,
+        "control_healthz_usec": 997,
+        "shoppers_only_server_cores": 0.056
+      },
+      "rq4": {
+        "verdict": "grey",
+        "limit_mib": 768,
+        "peak_mib": 668,
+        "peak_share": 0.87,
+        "anon_max_mib": 655,
+        "vmrss_max_mib": 688,
+        "threads_max": 93,
+        "oom_kill": 0,
+        "exited": false,
+        "control_ran": false,
+        "control_died": false,
+        "control_killed_mib": null,
+        "control_lived_mib": null
+      }
+    },
+    "2": {
+      "rate": 100,
+      "rounds": 6,
+      "busy": 0,
+      "void": 0,
+      "rq2": {
+        "verdict": "grey",
+        "rate": 100,
+        "rounds": 6,
+        "seconds": 60,
+        "requests": 36004,
+        "offered": 36004,
+        "delivered": 36004,
+        "delivered_share": 1.0,
+        "non_2xx": 0,
+        "walks_finished": 132,
+        "walks_failed": 211,
+        "routes": {
+          "home": {
+            "n": 7204,
+            "p50_ms": 18.7,
+            "p99_ms": 94.4,
+            "server_p50_ms": 17.6,
+            "server_p99_ms": 91.3,
+            "round_p50_ms": [
+              20.5,
+              22.6,
+              19.1,
+              17.4,
+              17.8,
+              16.4
+            ],
+            "round_p99_ms": [
+              45.8,
+              144.0,
+              180.0,
+              31.6,
+              30.8,
+              28.2
+            ],
+            "non_2xx": 0
+          },
+          "category": {
+            "n": 7200,
+            "p50_ms": 7.31,
+            "p99_ms": 53.4,
+            "server_p50_ms": 5.9,
+            "server_p99_ms": 48.4,
+            "round_p50_ms": [
+              8.35,
+              9.8,
+              7.47,
+              6.32,
+              6.47,
+              6.64
+            ],
+            "round_p99_ms": [
+              24.8,
+              82.2,
+              106.0,
+              18.2,
+              17.8,
+              15.4
+            ],
+            "non_2xx": 0
+          },
+          "product": {
+            "n": 7200,
+            "p50_ms": 7.7,
+            "p99_ms": 62.9,
+            "server_p50_ms": 6.6,
+            "server_p99_ms": 57.2,
+            "round_p50_ms": [
+              9.21,
+              10.4,
+              7.38,
+              7.13,
+              7.36,
+              6.4
+            ],
+            "round_p99_ms": [
+              28.3,
+              102.0,
+              151.0,
+              17.7,
+              14.6,
+              14.6
+            ],
+            "non_2xx": 0
+          },
+          "suggest": {
+            "n": 7200,
+            "p50_ms": 18.3,
+            "p99_ms": 97.3,
+            "server_p50_ms": 17.4,
+            "server_p99_ms": 91.4,
+            "round_p50_ms": [
+              21.5,
+              22.7,
+              18.1,
+              16.6,
+              17.0,
+              16.9
+            ],
+            "round_p99_ms": [
+              43.0,
+              129.0,
+              190.0,
+              28.4,
+              27.9,
+              27.9
+            ],
+            "non_2xx": 0
+          },
+          "live": {
+            "n": 7200,
+            "p50_ms": 7.14,
+            "p99_ms": 55.7,
+            "server_p50_ms": 5.4,
+            "server_p99_ms": 47.1,
+            "round_p50_ms": [
+              9.02,
+              10.0,
+              6.83,
+              6.38,
+              6.55,
+              6.22
+            ],
+            "round_p99_ms": [
+              26.4,
+              82.8,
+              101.0,
+              13.9,
+              12.7,
+              14.7
+            ],
+            "non_2xx": 0
+          }
+        },
+        "control_healthz_p50_ms": 1.12,
+        "control_server_timing": 0,
+        "round_loadavg": [
+          6.5,
+          13.22,
+          4.89,
+          1.3,
+          0.75,
+          0.65
+        ],
+        "round_contamination_cores": [
+          0.253,
+          0.267,
+          0.285,
+          0.223,
+          0.212,
+          0.193
+        ],
+        "round_delivered_share": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "round_walks_finished": [
+          53,
+          52,
+          27,
+          0,
+          0,
+          0
+        ],
+        "round_walks_failed": [
+          0,
+          0,
+          31,
+          60,
+          60,
+          60
+        ],
+        "walking_every_pair": false
+      },
+      "rq3": {
+        "verdict": "green",
+        "server_usec": 3391,
+        "server_half_usec": 615,
+        "round_server_usec": [
+          3760,
+          4400,
+          3221,
+          3050,
+          3109,
+          2808
+        ],
+        "round_pg_usec": [
+          4997,
+          5901,
+          4670,
+          4002,
+          4009,
+          3767
+        ],
+        "pg_usec": 4558,
+        "control_healthz_usec": 689,
+        "shoppers_only_server_cores": 0.068
+      },
+      "rq4": {
+        "verdict": "grey",
+        "limit_mib": 768,
+        "peak_mib": 685,
+        "peak_share": 0.892,
+        "anon_max_mib": 650,
+        "vmrss_max_mib": 686,
+        "threads_max": 83,
+        "oom_kill": 0,
+        "exited": false,
+        "control_ran": true,
+        "control_died": true,
+        "control_killed_mib": 128,
+        "control_lived_mib": 192
+      }
+    }
+  }
+}

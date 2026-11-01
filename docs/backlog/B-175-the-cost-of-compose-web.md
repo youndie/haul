@@ -26,7 +26,7 @@ fix.
 
 - **Done as research §3, «The cost of Compose for Web 1.12» and «The client's workarounds for the canvas (B-175)»**;
   the README's «More» links the first. The cost list takes its first-load numbers from B-28, B-34, B-80, B-149 and
-  B-150: B-173 («The stack in numbers») had not merged and measures the server.
+  B-150: B-173 («The stack in numbers»), merged while this item ran, measures the server and not the first load.
 - **Measured, not argued.** On the WSL box, in a copy of the tree outside the mutagen replica, each canvas-only
   workaround was taken out by a patch and every golden recorded with `viddikRecord --force`, then compared pixel by
   pixel (a throwaway `PngDiff`, counting pixels that differ by more than 2 on a channel, as viddik 0.7.0 does) with

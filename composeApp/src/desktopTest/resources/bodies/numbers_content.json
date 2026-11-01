@@ -1,0 +1,215 @@
+{
+  "type": "column",
+  "id": "numbers-page",
+  "children": [
+    {
+      "type": "haul_header",
+      "id": "header",
+      "tabTitle": "The stack in numbers · Haul",
+      "customerName": null,
+      "deliverTo": "Brooklyn, NY 11211",
+      "deliveryPromise": "Free delivery over $35",
+      "cartCount": 0,
+      "searchPlaceholder": "Search products",
+      "categories": [
+        "Electronics",
+        "Home & Kitchen",
+        "Fashion",
+        "Beauty",
+        "Kids & Toys",
+        "Sports",
+        "Grocery",
+        "Auto",
+        "Books",
+        "Pets"
+      ]
+    },
+    {
+      "type": "haul_about",
+      "id": "numbers",
+      "eyebrow": "The stack in numbers",
+      "title": "What this server costs, measured",
+      "accent": "measured",
+      "lead": "Every number on this page was measured on 2026-11-01, on the image built from commit 647b8b7, on one shared Linux machine: the server held to two cores and the chart’s 768 MiB, PostgreSQL, the load and the synthetic shoppers on cores of their own. Nothing here is estimated; how to measure it again is at the end.",
+      "sections": [
+        {
+          "title": "Start-up",
+          "points": [
+            {
+              "name": "With the AOT cache",
+              "text": "Ready to serve 1,006 ms after docker run, the median of 11 starts; the first home page at 1,133 ms."
+            },
+            {
+              "name": "Without it",
+              "text": "1,713 ms to ready and 1,929 ms to the first home page: the same image, its cache switched off."
+            },
+            {
+              "name": "What the cache buys",
+              "text": "710 ms (± 109 ms) to ready — 41 % of the start without it — and 811 ms (± 112 ms) to the first home page."
+            },
+            {
+              "name": "Docker’s own share",
+              "text": "160 ms of each start is docker run itself."
+            },
+            {
+              "name": "Verdict",
+              "text": "Green: distinguishable, past the lines set before the first run, and every start with the cache used it."
+            }
+          ]
+        },
+        {
+          "title": "Latency under load",
+          "points": [
+            {
+              "name": "The load",
+              "text": "100 anonymous requests a second for 6 rounds of 60 s, the five routes below in turn, beside the synthetic shoppers walking the whole path."
+            },
+            {
+              "name": "The home page",
+              "text": "18.7 ms at the median, 94.4 ms at p99."
+            },
+            {
+              "name": "A category",
+              "text": "7.3 ms at the median, 53.4 ms at p99."
+            },
+            {
+              "name": "A product",
+              "text": "7.7 ms at the median, 62.9 ms at p99."
+            },
+            {
+              "name": "Search suggestions",
+              "text": "18.3 ms at the median, 97.3 ms at p99."
+            },
+            {
+              "name": "Live orders",
+              "text": "7.1 ms at the median, 55.7 ms at p99."
+            },
+            {
+              "name": "At twice the rate",
+              "text": "200 a second, the same morning, while other work loaded the machine: the first four rounds held p99 under 184 ms, then the server fell behind — 93 % of the requests answered, p99 up to 5,170 ms."
+            },
+            {
+              "name": "Verdict",
+              "text": "Grey at 100 a second: every route inside its lines, but from the fourth round on the shoppers’ checkouts failed — the store’s delivery windows were full — so the load beside the requests was no longer theirs; red at 200, on the loaded machine."
+            }
+          ]
+        },
+        {
+          "title": "CPU per request",
+          "points": [
+            {
+              "name": "The server",
+              "text": "3.4 ms of CPU per request of that mix (± 0.6), over what the shoppers alone cost; 4.4 ms (± 2.1) in the run at 200 a second."
+            },
+            {
+              "name": "PostgreSQL",
+              "text": "4.6 ms more per request, in the database’s own container."
+            },
+            {
+              "name": "Verdict",
+              "text": "Green at 100 a second; grey at 200, its interval wider."
+            }
+          ]
+        },
+        {
+          "title": "Memory",
+          "points": [
+            {
+              "name": "At its peak",
+              "text": "685 MiB of the 768 MiB limit (89 %), as the container counts it, with the JVM’s heap sized from the limit; its resident set, shared files included, at most 686 MiB."
+            },
+            {
+              "name": "Under a smaller limit",
+              "text": "Killed — the JVM out of heap — under 128 MiB with the same load; it lived under 192 MiB."
+            },
+            {
+              "name": "Verdict",
+              "text": "Grey: never killed and never restarted, but past the headroom set before the first run."
+            }
+          ]
+        },
+        {
+          "title": "How it was measured",
+          "points": [
+            {
+              "name": "Pre-registered",
+              "text": "The questions, the lines a verdict is read against and the rules that stop a run were frozen before the first number; a check fails if a byte of them moves."
+            },
+            {
+              "name": "Interleaved",
+              "text": "The start-up arms took turns in every round and the first round was thrown away; a second arm with the cache is the ruler, and a start delayed by one second the control the harness must see."
+            },
+            {
+              "name": "Open-loop",
+              "text": "k6 offered requests at a fixed rate whatever the server answered, from cores the server did not have; CPU and memory are the container’s own counters, not the machine’s."
+            },
+            {
+              "name": "Again",
+              "text": "scripts/measure-stack.py — startup, then load — on Linux with Docker and k6; summarise turns the raw runs into this page’s data, and the check holds the page to them."
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "label": "Read the method and the raw runs",
+          "action": {
+            "type": "open_url",
+            "url": "https://github.com/youndie/haul/tree/main/docs/research/measurements/b-173"
+          }
+        },
+        {
+          "label": "About this demo",
+          "action": {
+            "type": "navigate",
+            "deeplink": "/about"
+          }
+        }
+      ]
+    },
+    {
+      "type": "haul_footer",
+      "id": "footer",
+      "columns": [
+        {
+          "title": "Shop",
+          "links": [
+            "Deals",
+            "Haul Plus"
+          ],
+          "linked": [
+            {
+              "label": "Deals",
+              "action": {
+                "type": "navigate",
+                "deeplink": "/deals"
+              }
+            },
+            {
+              "label": "Haul Plus",
+              "action": {
+                "type": "navigate",
+                "deeplink": "/sign-in"
+              }
+            }
+          ]
+        },
+        {
+          "title": "Help",
+          "links": [
+            "Track an order"
+          ],
+          "linked": [
+            {
+              "label": "Track an order",
+              "action": {
+                "type": "navigate",
+                "deeplink": "/sign-in?next=%2Faccount%2Forders"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

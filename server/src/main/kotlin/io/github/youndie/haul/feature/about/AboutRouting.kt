@@ -1,6 +1,7 @@
 package io.github.youndie.haul.feature.about
 
 import io.github.youndie.haul.feature.about.screen.AboutScreen
+import io.github.youndie.haul.feature.about.screen.NumbersScreen
 import io.github.youndie.haul.feature.catalog.domain.CatalogRepository
 import io.github.youndie.haul.feature.catalog.screen.navigation
 import io.github.youndie.haul.haulWireJson
@@ -13,7 +14,8 @@ import org.koin.ktor.ext.inject
 /**
  * What the stand says about itself (B-160), in the public tier: the demo strip, which the storefront asks for once
  * its first page has drawn, and the About page, whose address (`/about`) the server serves the page at as it does
- * every storefront address (`StorefrontPage.About`, B-36).
+ * every storefront address (`StorefrontPage.About`, B-36); and «The stack in numbers» (B-173, `/numbers`), what the
+ * server was measured to cost, which the About page leads to.
  */
 internal fun Route.aboutRouting() {
     val viewers by inject<Viewers>()
@@ -25,6 +27,13 @@ internal fun Route.aboutRouting() {
         call.respondKompotComponent(
             haulWireJson,
             AboutScreen.page(viewers.of(call), navigation(categories.categories())),
+        )
+    }
+
+    get("/ui/numbers") {
+        call.respondKompotComponent(
+            haulWireJson,
+            NumbersScreen.page(viewers.of(call), navigation(categories.categories())),
         )
     }
 }

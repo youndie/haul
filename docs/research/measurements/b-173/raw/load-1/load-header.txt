@@ -1,0 +1,9 @@
+# B-173 load, 2026-11-01T11:44:56+0100
+host: Linux DESKTOP-85OS64M 6.6.87.2-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Thu Jun  5 18:30:46 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux
+nproc (host): 20
+image: haul/server:b173 sha256:e2e5512c80300869f62f3b6599424d1e4b3f9953b93f988dd878e2196945e2e7
+commit: 647b8b74f5311b165cfe9dfe83d26b2e99c041b9
+docker: 29.1.3
+k6: k6 v1.4.1-release (commit/8cc106e574, go1.25.4, linux/amd64)
+stand: server cpuset 16-17 memory 768m JAVA_OPTS '-XX:MaxRAMPercentage=60.0 -XX:+ExitOnOutOfMemoryError -Xlog:aot'; postgres 14-15; shildik 12-13; shoppers 8-11; driver and k6 4-7
+loadavg: 0.56 2.51 3.48
