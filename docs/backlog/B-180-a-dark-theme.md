@@ -1,7 +1,7 @@
 ---
 id: B-180
 title: "feat: a dark theme for the whole store"
-status: open
+status: wip
 priority: P2
 size: L
 stage: stage-15-showcase
