@@ -8,7 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
-import io.github.youndie.haul.theme.HaulType.browserLeading
 import io.github.youndie.haul.theme.LocalHaulCompact
 
 /**
@@ -41,7 +40,7 @@ public fun EmptyStateView(
                     .text(
                         if (compact) 16f else 18f,
                         lineHeight = 1.5f,
-                    ).browserLeading()
+                    )
                     .copy(color = HaulColors.onSurfaceVariant),
                 Modifier.widthIn(max = 560.dp),
             )

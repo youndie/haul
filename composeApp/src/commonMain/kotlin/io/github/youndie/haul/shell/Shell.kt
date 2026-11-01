@@ -52,7 +52,6 @@ import io.github.youndie.haul.feature.product.detailsTop
 import io.github.youndie.haul.feature.product.photoWeight
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
-import io.github.youndie.haul.theme.HaulType.browserLeading
 import io.github.youndie.haul.theme.LocalHaulCompact
 import io.github.youndie.haul.theme.LocalHaulMedium
 import io.github.youndie.haul.ui.BalancedText
@@ -346,7 +345,7 @@ private fun ErrorPage(
                     .text(
                         if (compact) 16f else 18f,
                         lineHeight = 1.5f,
-                    ).browserLeading()
+                    )
                     .copy(color = HaulColors.onSurfaceVariant),
                 Modifier.widthIn(max = 560.dp),
             )
