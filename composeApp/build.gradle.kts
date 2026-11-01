@@ -1,8 +1,11 @@
+import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+
 // The storefront: renders the trees the server sends, owns navigation, Loading and Error, the
 // browser sign-in and the guest id (haul-web in the documentation).
 //
-// wasmJs ships; `jvm("desktop")` exists so the same renderers can be photographed against the
-// canvas — viddik takes screenshots of JVM targets — and is never shipped.
+// wasmJs ships in the browser. `jvm("desktop")` photographs the same renderers for the goldens —
+// viddik takes screenshots of JVM targets — and is the second client (B-176): a desktop app that
+// browses a server's trees in a window, packaged below, never published.
 plugins {
     alias(wip.plugins.kotlinMultiplatform)
     alias(wip.plugins.composeMultiplatform)
@@ -53,6 +56,13 @@ kotlin {
             // The browser's fetch, for the photos' and the storefront's Ktor client.
             implementation(libs.ktor.client.js)
         }
+        getByName("desktopMain").dependencies {
+            // The window, on the operating system the build runs on: jpackage cannot cross-build, so each
+            // package is made on its own system (B-176).
+            implementation(compose.desktop.currentOs)
+            // The desktop app's requests — the trees, the commands, the photos, the stream — over Ktor's own engine.
+            implementation(libs.ktor.client.cio)
+        }
         commonTest.dependencies {
             implementation(kotlin("test"))
         }
@@ -93,6 +103,44 @@ ktlint {
 
 viddik {
     verifyOnCheck = true
+}
+
+// The desktop app (B-176): `run` opens it against the stand, `-Pserver=<origin>` (or `HAUL_SERVER`) against another
+// server; `packageDistributionForCurrentOS` builds the installer of the system it runs on. Nothing is published.
+compose.desktop {
+    application {
+        mainClass = "io.github.youndie.haul.DesktopMainKt"
+        providers.gradleProperty("server").orNull?.let { args("--server=$it") }
+        nativeDistributions {
+            // One format per system: jpackage builds only its host's, and two installers for one system is a
+            // choice nobody asked for.
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            packageName = "Haul"
+            description = "The Haul storefront, drawn from the server's trees"
+            vendor = "youndie"
+            // Fixed, and at least 1: macOS refuses an app version whose first number is 0, and nothing here is
+            // released, so no installed copy has to be upgraded from it.
+            packageVersion = "1.0.0"
+            // jlink keeps only what is named; Compose adds the AWT and Swing it needs itself. The session's guest
+            // is kept in `java.util.prefs`, and Ktor's coroutines debug probes look for `sun.misc`.
+            modules("java.prefs", "jdk.unsupported")
+            linux {
+                // `.deb` refuses to build without one.
+                debMaintainer = "youndie@users.noreply.github.com"
+                menuGroup = "Office"
+                appCategory = "Office"
+            }
+            macOS {
+                bundleID = "io.github.youndie.haul"
+            }
+            windows {
+                // The identity an `.msi` upgrades along; never changed once set.
+                upgradeUuid = "6b0f3c55-3a39-4d0e-9a51-2f6f1c1e7b26"
+                menuGroup = "Haul"
+                perUserInstall = true
+            }
+        }
+    }
 }
 
 // `check` would compile only the desktop half; the bundle is what ships, so it is compiled too.
