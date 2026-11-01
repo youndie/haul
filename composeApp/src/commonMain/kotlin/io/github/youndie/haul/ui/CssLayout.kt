@@ -13,7 +13,9 @@ import kotlin.math.roundToInt
 
 // CSS's block flow, for pages whose long phone column drifts when each line box is rounded to a pixel on
 // its own (B-18's order page, B-19's account): heights are summed as the browser sums them, unrounded,
-// and rounded only where a block is placed.
+// and rounded only where a block is placed. Since B-85 the canvas is no longer the reference, but the goldens are
+// drawn on these fractions: in whole pixels 23 of the order's and the account's move past `viddikVerify`, by 0.3–6 %
+// (research, «The client's workarounds for the canvas», B-175).
 
 /** A text's height in CSS: its lines, counted off its measured [height], times the [line] in dp, unrounded. */
 internal fun Density.lines(

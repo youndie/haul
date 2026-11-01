@@ -61,7 +61,6 @@ import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.feature.catalog.ResultCount
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
-import io.github.youndie.haul.theme.HaulType.browserLeading
 import io.github.youndie.haul.theme.LocalHaulCompact
 import io.github.youndie.haul.ui.BalancedText
 import io.github.youndie.haul.ui.CategorySuggestion
@@ -507,7 +506,7 @@ private fun TopProduct(
     ) {
         LineTile(product.image, product.tone, 14.dp, Modifier.size(tile))
         Column {
-            Text(product.title, HaulType.text(14f, lineHeight = 1.3f).browserLeading())
+            Text(product.title, HaulType.text(14f, lineHeight = 1.3f))
             Text(
                 product.price,
                 HaulType.display(20f, 800, letterSpacing = -0.01f),

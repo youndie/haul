@@ -51,7 +51,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
-import io.github.youndie.haul.theme.HaulType.browserLeading
 import io.github.youndie.haul.theme.LocalHaulCompact
 import io.github.youndie.haul.ui.AppliedFilters
 import io.github.youndie.haul.ui.BaselineWrapRow
@@ -121,7 +120,6 @@ internal fun crumbsStyle(): TextStyle =
     HaulType
         .label(12f, 500, 0.04f)
         .copy(color = HaulColors.outline, lineHeight = (12f * 1.4f).sp)
-        .browserLeading()
 
 /** The space between the header and the crumbs. */
 internal fun crumbsTop(compact: Boolean): Dp = if (compact) 20.dp else 28.dp

@@ -22,7 +22,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
-import io.github.youndie.haul.theme.HaulType.browserLeading
 import io.github.youndie.haul.theme.LocalHaulCompact
 
 /**
@@ -110,8 +109,7 @@ private fun LinkColumn(
             .text(
                 if (compact) 14f else 15f,
                 lineHeight = 2f,
-            ).browserLeading()
-            .copy(color = HaulColors.inverseOnSurface)
+            ).copy(color = HaulColors.inverseOnSurface)
     Column(modifier.heightIn(min = columnHeight(compact))) {
         ColumnTitle(column.title, compact)
         column.links.forEach { word ->

@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.shell.LocalScreenRefresh
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
-import io.github.youndie.haul.theme.HaulType.browserLeading
 import io.github.youndie.haul.theme.LocalHaulCompact
 import io.github.youndie.haul.theme.LocalHaulMedium
 import io.github.youndie.haul.ui.CampaignHero
@@ -188,7 +187,7 @@ private fun Hero(
                 @Composable {
                     Text(
                         hero.subtitle,
-                        HaulType.text(if (compact) 14f else 15f, lineHeight = 1.4f).browserLeading().copy(
+                        HaulType.text(if (compact) 14f else 15f, lineHeight = 1.4f).copy(
                             color = HaulColors.onPrimary,
                         ),
                         Modifier.widthIn(max = if (compact) 260.dp else 230.dp),
@@ -311,7 +310,7 @@ private fun Banner(
                     Text(
                         subtitle,
                         if (compact) {
-                            HaulType.text(13f, 600, lineHeight = 1.3f).browserLeading()
+                            HaulType.text(13f, 600, lineHeight = 1.3f)
                         } else {
                             HaulType.text(15f, 600)
                         },
@@ -498,7 +497,7 @@ private fun Tile(
                 },
             ) { Box(Modifier.fillMaxSize().background(toneColor(tile.tone)).hatching()) }
         }
-        Text(tile.name, HaulType.text(if (compact) 12f else 16f, 600, lineHeight = 1.25f).browserLeading())
+        Text(tile.name, HaulType.text(if (compact) 12f else 16f, 600, lineHeight = 1.25f))
     }
 }
 
