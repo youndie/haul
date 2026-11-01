@@ -19,7 +19,7 @@ import io.github.youndie.haul.feature.returns.ReturnEntry
 import io.github.youndie.haul.feature.returns.domain.RequestReturn
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
-import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_HEADPHONES
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.testing.FulfilmentWorld
 import io.github.youndie.haul.testing.MAYA
@@ -192,7 +192,7 @@ class PointsTest {
 
     /**
      * A return settles the points as the money (feature-checkout: «come back pro rata as points on a return»):
-     * Maya pays her $512 cart with her 2,480 points, it is delivered and earns 974, and she returns Sony's $349
+     * Maya pays her $512 cart with her 2,480 points, it is delivered and earns 974, and she returns Sonora's $349
      * headphones. When the refund is made the 697 points that line earned are taken back, the 1,690 points of the
      * line's share of what she paid in points come back, and only the rest — $332.10 — is refunded to the card.
      */
@@ -245,7 +245,7 @@ class PointsTest {
             FulfilmentWorld(dataSource).use { world ->
                 runBlocking {
                     val cart = world.koin.get<CartCommands>()
-                    cart.changeLine(MAYA, "$SONY_HEADPHONES-0", LineChange(selected = false))
+                    cart.changeLine(MAYA, "$SONORA_HEADPHONES-0", LineChange(selected = false))
                     cart.changeLine(MAYA, "$DUVET_COVER-0", LineChange(selected = false))
                 }
                 val order = assertNotNull(world.order(world.place())).placed

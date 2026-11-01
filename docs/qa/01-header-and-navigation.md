@@ -356,7 +356,7 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
   5. As Maya: open the account, «Orders», «Saved», an order and checkout; sign out and open `/sign-in`.
 - **Expected:**
   - Step 1: «Haul — a demo store built end to end in Kotlin» throughout — the page's own title, then the home's.
-  - Step 2: the product's listing name and «· Haul» («Sony WH-1000XM6 Wireless Noise Cancelling Headphones · Haul»),
+  - Step 2: the product's listing name and «· Haul» («Sonora SH-718N Wireless Noise Cancelling Headphones · Haul»),
     then the category's name («Headphones · Haul»), then «Search: running shoes · Haul»; «Haul» alone only for the
     moment the next page's placeholder is drawn.
   - Step 3: each page's title again as it reappears, the home's last; Forward the category's.

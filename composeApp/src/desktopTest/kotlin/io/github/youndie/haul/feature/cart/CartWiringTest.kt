@@ -584,7 +584,7 @@ class CartWiringTest {
         const val CHECKOUT = "checkout_content.json"
         const val LINES = "/api/v1/cart/lines"
         const val PROMO = "/api/v1/cart/promo"
-        const val HEADPHONES = "p-sony-wh-1000xm6-0"
+        const val HEADPHONES = "p-sonora-sh-718n-0"
         const val DUVET = "p-linen-duvet-cover-set-0"
         const val MUG = "p-stoneware-mug-0"
     }

@@ -99,7 +99,7 @@ class NamedPressesTest {
         val expected =
             listOf("wide", "phone").flatMap { width ->
                 listOf(
-                    "/cart $width: Button On «Select Sony WH-1000XM6 Wireless Noise Cancelling Headphones, ticked»",
+                    "/cart $width: Button On «Select Sonora SH-718N Wireless Noise Cancelling Headphones, ticked»",
                     "/cart $width: Button Off «Select Linen Duvet Cover Set, Queen, not ticked»",
                     "/cart $width: Button On «Select Stoneware Mug, 12 oz, ticked»",
                     "/cart $width: Button Indeterminate «Select all, partly ticked»",
@@ -109,7 +109,7 @@ class NamedPressesTest {
         assertEquals(expected.sorted(), said.sorted())
     }
 
-    /** Each card's «+» names the product of its card: «Add Sony WH-1000XM6 to cart», not six «Add to cart» in a row. */
+    /** Each card's «+» names the product of its card: «Add Sonora SH-718N to cart», not six «Add to cart» in a row. */
     @Test
     fun `each card's plus names its product`() {
         val unnamed =
@@ -404,9 +404,9 @@ class NamedPressesTest {
                 "/" to "home_guest.json",
                 "/c/electronics" to "catalog_content.json",
                 "/search?q=headphones" to "search_results.json",
-                "/p/p-sony-wh-1000xm6" to "product_description.json",
-                "/p/p-sony-wh-1000xm6?tab=reviews" to "product_reviews.json",
-                "/p/p-sony-wh-1000xm6?tab=questions" to "product_questions.json",
+                "/p/p-sonora-sh-718n" to "product_description.json",
+                "/p/p-sonora-sh-718n?tab=reviews" to "product_reviews.json",
+                "/p/p-sonora-sh-718n?tab=questions" to "product_questions.json",
                 "/cart" to "cart_content.json",
                 "/cart" to "cart_guest.json",
                 "/checkout" to "checkout_content.json",
@@ -427,14 +427,14 @@ class NamedPressesTest {
             listOf(
                 Dialog(
                     "review",
-                    "/p/p-sony-wh-1000xm6?tab=reviews",
+                    "/p/p-sonora-sh-718n?tab=reviews",
                     "product_reviews.json",
                     "Write a review",
                     CLOSE_TAG,
                 ),
                 Dialog(
                     "question",
-                    "/p/p-sony-wh-1000xm6?tab=questions",
+                    "/p/p-sonora-sh-718n?tab=questions",
                     "product_questions.json",
                     "Ask a question",
                     CLOSE_TAG,
@@ -444,7 +444,7 @@ class NamedPressesTest {
                 // B-86: a review's photos, opened by a photo — named by its content description, it has no words.
                 Dialog(
                     "review photos",
-                    "/p/p-sony-wh-1000xm6?tab=reviews",
+                    "/p/p-sonora-sh-718n?tab=reviews",
                     "product_reviews.json",
                     "Open photo 1 of 2 by Daniel R.",
                     PHOTO_CLOSE_TAG,

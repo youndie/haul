@@ -12,7 +12,7 @@ import io.github.youndie.haul.feature.identity.data.ExposedCustomers
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog
 import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
-import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_HEADPHONES
 import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.seed.SeedArt
@@ -55,7 +55,7 @@ class CustomerCartTest {
         runBlocking {
             val id = customers.signedIn("c-${UUID.randomUUID()}", "Test Customer", CatalogSeed.NOW).id
             val owner = CartOwner.Customer(id, plus)
-            listOf(SampleCatalog.SONY_HEADPHONES, SampleCatalog.DUVET_COVER, SampleCatalog.STONEWARE_MUG).forEach {
+            listOf(SampleCatalog.SONORA_HEADPHONES, SampleCatalog.DUVET_COVER, SampleCatalog.STONEWARE_MUG).forEach {
                 commands.changeLine(owner, "$it-0", LineChange(quantity = 1))
                 if (!selected) commands.changeLine(owner, "$it-0", LineChange(selected = false))
             }
@@ -80,7 +80,7 @@ class CustomerCartTest {
             assertEquals("$512", summary.total)
             assertEquals("You’ll earn 1,024 points on this order", summary.points)
             assertEquals(
-                listOf("$SONY_HEADPHONES-0", "$DUVET_COVER-0", "$STONEWARE_MUG-0"),
+                listOf("$SONORA_HEADPHONES-0", "$DUVET_COVER-0", "$STONEWARE_MUG-0"),
                 tree.all().filterIsInstance<CartLine>().map { it.skuId },
             )
         }

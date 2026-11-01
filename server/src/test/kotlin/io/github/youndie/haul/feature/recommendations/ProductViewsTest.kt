@@ -9,7 +9,7 @@ import io.github.youndie.haul.feature.recommendations.domain.ProductView
 import io.github.youndie.haul.feature.recommendations.domain.ProductViews
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
-import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_HEADPHONES
 import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
 import io.github.youndie.haul.testing.CANVAS_NOW
 import io.github.youndie.haul.testing.seededFreshDatabase
@@ -53,11 +53,11 @@ class ProductViewsTest {
     fun `a product viewed again is one view moved to the newest`() =
         runBlocking {
             customer("c-ann")
-            views.record("c-ann", SONY_HEADPHONES, now)
+            views.record("c-ann", SONORA_HEADPHONES, now)
             views.record("c-ann", DUVET_COVER, now.plusSeconds(1))
-            views.record("c-ann", SONY_HEADPHONES, now.plusSeconds(2))
+            views.record("c-ann", SONORA_HEADPHONES, now.plusSeconds(2))
             assertEquals(
-                listOf(ProductView(SONY_HEADPHONES, "headphones"), ProductView(DUVET_COVER, "duvet-covers")),
+                listOf(ProductView(SONORA_HEADPHONES, "headphones"), ProductView(DUVET_COVER, "duvet-covers")),
                 views.recent("c-ann"),
             )
         }
@@ -118,10 +118,10 @@ class ProductViewsTest {
         runBlocking {
             customer("c-fi")
             customer("c-gu")
-            order("HL-00001", "c-fi", "placed", "$SONY_HEADPHONES-0")
+            order("HL-00001", "c-fi", "placed", "$SONORA_HEADPHONES-0")
             order("HL-00002", "c-fi", "cancelled", "$DUVET_COVER-0")
             order("HL-00003", "c-gu", "placed", "$STONEWARE_MUG-0")
-            assertEquals(setOf(SONY_HEADPHONES), sources.bought("c-fi"))
+            assertEquals(setOf(SONORA_HEADPHONES), sources.bought("c-fi"))
             assertEquals(setOf(STONEWARE_MUG), sources.bought("c-gu"))
         }
 

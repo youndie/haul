@@ -134,7 +134,7 @@ host, its tracy and its logs.
 - **Width:** n/a
 - **Preconditions:** the release on the stand.
 - **Steps:**
-  1. `curl -s https://haul.kotlin.website/p/p-sony-wh-1000xm6 | grep -E '<title>|<meta (name|property)="(description|og:|twitter:)'`.
+  1. `curl -s https://haul.kotlin.website/p/p-sonora-sh-718n | grep -E '<title>|<meta (name|property)="(description|og:|twitter:)'`.
   2. Paste `https://haul.kotlin.website/` into an Open Graph validator (or a chat that unfurls links).
   3. `curl -si https://haul.kotlin.website/robots.txt`.
 - **Expected:**

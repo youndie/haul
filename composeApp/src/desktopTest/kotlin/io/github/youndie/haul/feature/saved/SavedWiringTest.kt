@@ -93,7 +93,7 @@ class SavedWiringTest {
             onAllNodesWithContentDescription(UNSAVE)[1].performClick()
             waitForIdle()
             assertEquals(
-                listOf<CartCommand>(CartCommand.Heart("/api/v1/me/saved/p-sony-wh-1000xm6", save = false)),
+                listOf<CartCommand>(CartCommand.Heart("/api/v1/me/saved/p-sonora-sh-718n", save = false)),
                 sent.toList(),
             )
             assertEquals(listOf<KompotAction>(RefreshAction), followed.toList())
@@ -107,10 +107,10 @@ class SavedWiringTest {
     fun `a refused heart says why and one with no answer offers Retry`() =
         runDesktopComposeUiTest(WIDTH, 2_000) {
             draw(decode("saved_content.json"))
-            failure = { CartRefused(404, ErrorCode.ProductNotFound, "No product «p-sony-wh-1000xm6»") }
+            failure = { CartRefused(404, ErrorCode.ProductNotFound, "No product «p-sonora-sh-718n»") }
             onAllNodesWithContentDescription(UNSAVE)[1].performClick()
             waitUntil(timeoutMillis = 5_000) { followed.size == 1 }
-            assertEquals(listOf(told("No product «p-sony-wh-1000xm6»")), followed.toList())
+            assertEquals(listOf(told("No product «p-sonora-sh-718n»")), followed.toList())
 
             failure = { IOException("connection refused") }
             onAllNodesWithContentDescription(UNSAVE)[1].performClick()
@@ -121,7 +121,7 @@ class SavedWiringTest {
             waitUntil(timeoutMillis = 5_000) { followed.size == 3 }
             assertEquals(RefreshAction, followed.last())
             assertEquals(
-                List(3) { CartCommand.Heart("/api/v1/me/saved/p-sony-wh-1000xm6", save = false) },
+                List(3) { CartCommand.Heart("/api/v1/me/saved/p-sonora-sh-718n", save = false) },
                 sent.toList(),
             )
         }

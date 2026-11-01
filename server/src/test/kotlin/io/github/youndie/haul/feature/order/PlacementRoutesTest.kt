@@ -20,7 +20,7 @@ import io.github.youndie.haul.feature.order.domain.OrderStatus
 import io.github.youndie.haul.feature.order.domain.ShipmentStatus
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.SampleCatalog.BROOKLYN_HOME
-import io.github.youndie.haul.seed.SampleCatalog.SONY_STORE
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_STORE
 import io.github.youndie.haul.seed.SampleCheckout
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.testing.Ledger
@@ -142,7 +142,7 @@ class PlacementRoutesTest {
             assertEquals(51_200, order.placed.totalCents)
             assertEquals(wednesday3pm, order.placed.slotId)
             assertEquals(MAYAS_SKUS, order.placed.lines.map { it.skuId })
-            assertEquals(listOf(SONY_STORE, BROOKLYN_HOME), order.shipments.map { it.sellerId })
+            assertEquals(listOf(SONORA_STORE, BROOKLYN_HOME), order.shipments.map { it.sellerId })
             assertEquals(listOf(ShipmentStatus.PLACED, ShipmentStatus.PLACED), order.shipments.map { it.status })
             assertEquals(stockBefore.mapValues { it.value - 1 }, ledger.stock(), "one unit of each line reserved")
             assertEquals(1, ledger.taken(wednesday3pm), "the window's place was not taken")

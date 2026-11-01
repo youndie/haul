@@ -117,7 +117,7 @@ class TabTitleTest {
 
     private companion object {
         const val HOME = "Haul — a demo store built end to end in Kotlin"
-        const val PRODUCT = "Sony WH-1000XM6 Wireless Noise Cancelling Headphones · Haul"
+        const val PRODUCT = "Sonora SH-718N Wireless Noise Cancelling Headphones · Haul"
         const val CATEGORY = "Headphones · Haul"
         const val STORE = "Haul"
         const val PRODUCT_PATH = "/p/p-1"

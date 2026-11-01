@@ -230,7 +230,7 @@ internal fun Modifier.named(name: String): Modifier = semantics { contentDescrip
 
 /**
  * A box to tick or a switch — its [kind], [Role.Checkbox] or [Role.Switch] — named for what it does and whether it
- * is on: «Select Sony WH-1000XM6, ticked», «Use 2,480 points (−$24.80), off», with [note] after it (B-151). Its
+ * is on: «Select Sonora SH-718N, ticked», «Use 2,480 points (−$24.80), off», with [note] after it (B-151). Its
  * [state] is in semantics; its role there is a button's ([MIRRORED_ROLE]). [onPress] turns it; without one it is
  * drawn and does nothing.
  */

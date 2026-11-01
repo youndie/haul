@@ -35,7 +35,7 @@ import kotlin.test.assertTrue
  * catalog changes under the cart here, so each test has a database of its own.
  */
 class ChangedLinesTest {
-    private val headphones = "${SampleCatalog.SONY_HEADPHONES}-0"
+    private val headphones = "${SampleCatalog.SONORA_HEADPHONES}-0"
     private val mug = "${SampleCatalog.STONEWARE_MUG}-0"
     private val db = seededFreshDatabase()
 

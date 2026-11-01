@@ -48,8 +48,8 @@ class TabTitlesTest {
                 "/ui/home" to "Haul — a demo store built end to end in Kotlin",
                 "/ui/c" to "Catalog · Haul",
                 "/ui/c/electronics/audio/headphones" to "Headphones · Haul",
-                "/ui/p/${SampleCatalog.SONY_HEADPHONES}" to
-                    "Sony WH-1000XM6 Wireless Noise Cancelling Headphones · Haul",
+                "/ui/p/${SampleCatalog.SONORA_HEADPHONES}" to
+                    "Sonora SH-718N Wireless Noise Cancelling Headphones · Haul",
                 "/ui/search?q=running%20shoes" to "Search: running shoes · Haul",
                 "/ui/search?q=zzqxv" to "Search: zzqxv · Haul",
                 "/ui/deals" to "Deals · Haul",

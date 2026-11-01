@@ -23,7 +23,7 @@ import io.github.youndie.haul.feature.payment.domain.AuthorisationOutcome
 import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog.BROOKLYN_HOME
-import io.github.youndie.haul.seed.SampleCatalog.SONY_STORE
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_STORE
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.testing.CANVAS_NOW
 import io.github.youndie.haul.testing.Ledger
@@ -73,8 +73,8 @@ class OrderSagaTest {
             listOf(
                 OrderPayload.Line(
                     MAYAS_SKUS[0],
-                    SONY_STORE,
-                    "Sony WH-1000XM6",
+                    SONORA_STORE,
+                    "Sonora SH-718N",
                     headphones,
                     34_900 * headphones,
                     44_900,

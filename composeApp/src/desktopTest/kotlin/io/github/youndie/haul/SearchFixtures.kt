@@ -76,7 +76,7 @@ internal fun SearchRecentWide() = Fixture(compact = false) { Recent() }
 @Composable
 internal fun SearchRecentPhone() = Fixture(compact = true) { Recent() }
 
-/** The home page with the empty field pressed by Maya after `mug`, `sony`, `duvet`, `mug`. */
+/** The home page with the empty field pressed by Maya after `mug`, `sonora`, `duvet`, `mug`. */
 @Composable
 private fun Recent() {
     val panel =
@@ -88,7 +88,7 @@ private fun Recent() {
                 categories = emptyList(),
                 products = emptyList(),
                 allResultsLabel = "",
-                recent = listOf("mug", "duvet", "sony").map { Link(it, NavigateAction("/search?q=$it")) },
+                recent = listOf("mug", "duvet", "sonora").map { Link(it, NavigateAction("/search?q=$it")) },
                 clearUrl = "/api/v1/me/recent-searches",
             )
         }

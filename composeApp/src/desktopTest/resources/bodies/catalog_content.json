@@ -103,7 +103,7 @@
        "low": 80,
        "high": 400,
        "top": 500,
-       "template": "/ui/parts/c/electronics/audio/headphones?brand=Bose&brand=Sony&feature=Noise%20cancelling&price_min={min}&price_max={max}"
+       "template": "/ui/parts/c/electronics/audio/headphones?brand=Bellwave&brand=Sonora&feature=Noise%20cancelling&price_min={min}&price_max={max}"
       }
      },
      {
@@ -113,32 +113,32 @@
       "moreLabel": "Show 48 more",
       "options": [
        {
-        "label": "Sony",
+        "label": "Sonora",
         "selected": true,
         "count": 1204
        },
        {
-        "label": "Bose",
+        "label": "Bellwave",
         "selected": true,
         "count": 611
        },
        {
-        "label": "JBL",
+        "label": "Juno",
         "selected": false,
         "count": 1980
        },
        {
-        "label": "Apple",
+        "label": "Aspen",
         "selected": false,
         "count": 842
        },
        {
-        "label": "Sennheiser",
+        "label": "Halvorsen",
         "selected": false,
         "count": 530
        },
        {
-        "label": "Marshall",
+        "label": "Mallard",
         "selected": false,
         "count": 204
        }
@@ -248,11 +248,11 @@
     "id": "applied",
     "chips": [
      {
-      "label": "Sony",
+      "label": "Sonora",
       "selected": true
      },
      {
-      "label": "Bose",
+      "label": "Bellwave",
       "selected": true
      },
      {
@@ -280,7 +280,7 @@
       "badge": "−22%",
       "price": "$349",
       "oldPrice": "$449",
-      "title": "Sony WH-1000XM6 Wireless Noise Cancelling Headphones",
+      "title": "Sonora SH-718N Wireless Noise Cancelling Headphones",
       "rating": "4.8",
       "reviews": "2,341",
       "delivery": "Tomorrow",
@@ -293,7 +293,7 @@
       "badge": "−12%",
       "price": "$379",
       "oldPrice": "$429",
-      "title": "Bose QuietComfort Ultra Headphones",
+      "title": "Bellwave Hush Ultra 165A Headphones",
       "rating": "4.7",
       "reviews": "4,108",
       "delivery": "Tomorrow",
@@ -306,7 +306,7 @@
       "badge": "−34%",
       "price": "$98",
       "oldPrice": "$149",
-      "title": "Sony WH-CH720N Wireless Noise Cancelling",
+      "title": "Sonora SH-C388N Wireless Noise Cancelling",
       "rating": "4.5",
       "reviews": "6,920",
       "delivery": "Tomorrow",
@@ -319,7 +319,7 @@
       "badge": "−14%",
       "price": "$299",
       "oldPrice": "$349",
-      "title": "Bose QuietComfort Headphones, Sandstone",
+      "title": "Bellwave Hush H597C Headphones, Sandstone",
       "rating": "4.7",
       "reviews": "1,877",
       "delivery": "Thu, Oct 9",
@@ -332,7 +332,7 @@
       "badge": "−26%",
       "price": "$148",
       "oldPrice": "$199",
-      "title": "Sony ULT Wear Wireless Bass Headphones",
+      "title": "Sonora Pulse 208T Wireless Bass Headphones",
       "rating": "4.6",
       "reviews": "1,066",
       "delivery": "Tomorrow",
@@ -345,7 +345,7 @@
       "badge": "−18%",
       "price": "$229",
       "oldPrice": "$279",
-      "title": "Bose QuietComfort Earbuds II",
+      "title": "Bellwave Hush Buds 938A",
       "rating": "4.6",
       "reviews": "3,540",
       "delivery": "Tomorrow",
@@ -358,7 +358,7 @@
       "badge": "−17%",
       "price": "$248",
       "oldPrice": "$299",
-      "title": "Sony WF-1000XM5 Noise Cancelling Earbuds",
+      "title": "Sonora SE-188 Noise Cancelling Earbuds",
       "rating": "4.7",
       "reviews": "2,903",
       "delivery": "Tomorrow",
@@ -369,7 +369,7 @@
       "productId": "p-8", "add": {"url": "/api/v1/cart/lines/p-8-0?answer=card", "change": {"quantity": 1}},
       "image": "/images/art/p_headphones_0_plain_fff1c9.4f452e2de1.svg",
       "price": "$129",
-      "title": "Bose SoundLink Around-Ear Wireless II",
+      "title": "Bellwave Roam 580P Around-Ear Wireless",
       "rating": "4.5",
       "reviews": "812",
       "delivery": "Fri, Oct 10",
@@ -380,7 +380,7 @@
       "productId": "p-9", "add": {"url": "/api/v1/cart/lines/p-9-0?answer=card", "change": {"quantity": 1}},
       "image": "/images/art/p_headphones_1_plain_ece9e2.dc3acedf92.svg",
       "price": "$99",
-      "title": "Sony MDR-7506 Professional Studio Headphones",
+      "title": "Sonora Monitor 630R Professional Studio Headphones",
       "rating": "4.8",
       "reviews": "9,215",
       "delivery": "Tomorrow",
@@ -393,7 +393,7 @@
       "badge": "−29%",
       "price": "$199",
       "oldPrice": "$279",
-      "title": "Bose QuietComfort 45, Refurbished",
+      "title": "Bellwave Hush 120K, Refurbished",
       "rating": "4.4",
       "reviews": "640",
       "delivery": "Thu, Oct 9",
@@ -406,7 +406,7 @@
       "badge": "−24%",
       "price": "$228",
       "oldPrice": "$299",
-      "title": "Sony INZONE H9 Wireless Gaming Headset",
+      "title": "Sonora Arena 519 Wireless Gaming Headset",
       "rating": "4.6",
       "reviews": "1,321",
       "delivery": "Tomorrow",
@@ -419,7 +419,7 @@
       "badge": "−49%",
       "price": "$128",
       "oldPrice": "$249",
-      "title": "Sony WH-XB910N Extra Bass Noise Cancelling",
+      "title": "Sonora SH-X527B Extra Bass Noise Cancelling",
       "rating": "4.5",
       "reviews": "2,450",
       "delivery": "Tomorrow",

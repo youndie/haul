@@ -96,8 +96,8 @@ class PartsRoutesTest {
     fun `a category no longer there opens its address`() =
         haulTest {
             assertEquals(
-                NavigateAction("/c/no-such-thing?brand=Sony"),
-                answer("${Parts.PREFIX}/c/no-such-thing?brand=Sony"),
+                NavigateAction("/c/no-such-thing?brand=Sonora"),
+                answer("${Parts.PREFIX}/c/no-such-thing?brand=Sonora"),
             )
             assertEquals(
                 NavigateAction("/search?q=everyday&category=gone"),

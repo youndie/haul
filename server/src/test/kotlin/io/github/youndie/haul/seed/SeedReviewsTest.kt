@@ -2,7 +2,7 @@ package io.github.youndie.haul.seed
 
 import io.github.youndie.haul.db.Databases
 import io.github.youndie.haul.feature.reviews.domain.Ratings
-import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_HEADPHONES
 import io.github.youndie.haul.testing.PostgresHarness
 import java.math.BigDecimal
 import javax.sql.DataSource
@@ -24,8 +24,11 @@ class SeedReviewsTest {
             assertTrue(Seeder.seedIfEmpty(Databases.connect(dataSource), CatalogSeed.generate(CatalogSeed.CANVAS_DAY)))
 
             assertEquals(emptyList(), dataSource.miscounted(), "products whose counts are not their rows")
-            assertEquals(2_341 to 86, dataSource.counts(SONY_HEADPHONES))
-            assertEquals(mapOf(5 to 1_966, 4 to 281, 3 to 47, 2 to 24, 1 to 23), dataSource.histogram(SONY_HEADPHONES))
+            assertEquals(2_341 to 86, dataSource.counts(SONORA_HEADPHONES))
+            assertEquals(
+                mapOf(5 to 1_966, 4 to 281, 3 to 47, 2 to 24, 1 to 23),
+                dataSource.histogram(SONORA_HEADPHONES),
+            )
             // The seed's counts are the ones stored: what the cards and the sorts read.
             val seeded =
                 CatalogSeed.generate(CatalogSeed.CANVAS_DAY).products.associate {
@@ -51,12 +54,12 @@ class SeedReviewsTest {
                 "DELETE FROM reviews WHERE id LIKE 'rf-%'",
                 "DELETE FROM questions WHERE id LIKE 'qf-%'",
                 "DELETE FROM rating_counts",
-                "INSERT INTO rating_counts VALUES ('$SONY_HEADPHONES', 5, 1827), ('$SONY_HEADPHONES', 4, 328)",
+                "INSERT INTO rating_counts VALUES ('$SONORA_HEADPHONES', 5, 1827), ('$SONORA_HEADPHONES', 4, 328)",
                 "UPDATE products SET reviews_count = 9000, questions_count = 150 WHERE id = '$generated'",
-                "UPDATE products SET reviews_count = 2342 WHERE id = '$SONY_HEADPHONES'",
+                "UPDATE products SET reviews_count = 2342 WHERE id = '$SONORA_HEADPHONES'",
                 """
                 INSERT INTO reviews (id, product_id, customer_id, author, rating, title, body, verified, helpful, tone, created_at)
-                VALUES ('r-mayas', '$SONY_HEADPHONES', '${SampleCustomers.MAYA}', 'Maya K.', 5, 'Quiet', 'Quiet on every flight I take.',
+                VALUES ('r-mayas', '$SONORA_HEADPHONES', '${SampleCustomers.MAYA}', 'Maya K.', 5, 'Quiet', 'Quiet on every flight I take.',
                     false, 0, '#E6E4FF', '2025-10-07T12:00:00-04:00')
                 """.trimIndent(),
             )
@@ -66,8 +69,11 @@ class SeedReviewsTest {
                 "the catalog was there",
             )
             assertEquals(emptyList(), dataSource.miscounted())
-            assertEquals(2_342 to 86, dataSource.counts(SONY_HEADPHONES), "the seed's 2,341 and Maya's")
-            assertEquals(mapOf(5 to 1_967, 4 to 281, 3 to 47, 2 to 24, 1 to 23), dataSource.histogram(SONY_HEADPHONES))
+            assertEquals(2_342 to 86, dataSource.counts(SONORA_HEADPHONES), "the seed's 2,341 and Maya's")
+            assertEquals(
+                mapOf(5 to 1_967, 4 to 281, 3 to 47, 2 to 24, 1 to 23),
+                dataSource.histogram(SONORA_HEADPHONES),
+            )
             val seeded = CatalogSeed.generate(CatalogSeed.CANVAS_DAY).products.single { it.id == generated }
             assertEquals(seeded.reviewsCount to seeded.questionsCount, dataSource.counts(generated))
 
@@ -89,8 +95,8 @@ class SeedReviewsTest {
                 Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY), generatedReviews = false),
             )
             assertEquals(0 to 0, dataSource.generated(), "the tests' seed wrote the generated rows")
-            val headphones = CatalogSeed.generate(CatalogSeed.CANVAS_DAY).products.single { it.id == SONY_HEADPHONES }
-            assertEquals(headphones.reviewsCount to headphones.questionsCount, dataSource.counts(SONY_HEADPHONES))
+            val headphones = CatalogSeed.generate(CatalogSeed.CANVAS_DAY).products.single { it.id == SONORA_HEADPHONES }
+            assertEquals(headphones.reviewsCount to headphones.questionsCount, dataSource.counts(SONORA_HEADPHONES))
 
             assertFalse(
                 Seeder.seedIfEmpty(database, CatalogSeed.generate(CatalogSeed.CANVAS_DAY)),
@@ -121,7 +127,7 @@ class SeedReviewsTest {
                     .products
                     .first { it.id.matches(Regex("p-\\d{3}-\\d{2}")) }
                     .id
-            val rf = "rf-$SONY_HEADPHONES"
+            val rf = "rf-$SONORA_HEADPHONES"
             // As the stand was: the canvas's bars (1,825 generated fives, 327 fours, 94 threes, 47 twos, 46 ones),
             // its dates, a vote on a review the new bars do not have, the drawn rating of a generated product.
             dataSource.run(
@@ -138,12 +144,15 @@ class SeedReviewsTest {
                 "INSERT INTO helpful_votes VALUES ('$rf-3-90', '${SampleCustomers.MAYA}', '2025-10-06T12:00:00Z')",
                 "DELETE FROM rating_counts",
                 "INSERT INTO rating_counts SELECT product_id, rating, count(*) FROM reviews GROUP BY 1, 2",
-                "UPDATE products SET rating = 4.8 WHERE id = '$SONY_HEADPHONES'",
+                "UPDATE products SET rating = 4.8 WHERE id = '$SONORA_HEADPHONES'",
                 "UPDATE products SET rating = 1.0 WHERE id = '$generated'",
             )
-            assertEquals(mapOf(5 to 1_826, 4 to 328, 3 to 94, 2 to 47, 1 to 46), dataSource.histogram(SONY_HEADPHONES))
             assertEquals(
-                listOf(SONY_HEADPHONES, generated).sorted(),
+                mapOf(5 to 1_826, 4 to 328, 3 to 94, 2 to 47, 1 to 46),
+                dataSource.histogram(SONORA_HEADPHONES),
+            )
+            assertEquals(
+                listOf(SONORA_HEADPHONES, generated).sorted(),
                 dataSource.miscounted(),
                 "the stand's ratings, before",
             )
@@ -173,7 +182,7 @@ class SeedReviewsTest {
                 histogram.values.sum() != product.reviewsCount || Ratings.average(histogram) != product.rating
             }
         assertEquals(emptyList(), disagreeing.map { it.id }, "products whose rating or count is not their histogram's")
-        assertEquals(BigDecimal("4.8"), catalog.products.single { it.id == SONY_HEADPHONES }.rating)
+        assertEquals(BigDecimal("4.8"), catalog.products.single { it.id == SONORA_HEADPHONES }.rating)
     }
 
     @Test

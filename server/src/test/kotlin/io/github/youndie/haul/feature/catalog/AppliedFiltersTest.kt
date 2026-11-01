@@ -33,11 +33,11 @@ class AppliedFiltersTest {
         haulTest {
             val applied =
                 tree(
-                    "/ui$HEADPHONES?brand=Sony&price_min=80&feature=Noise%20cancelling&colour=Black" +
+                    "/ui$HEADPHONES?brand=Sonora&price_min=80&feature=Noise%20cancelling&colour=Black" +
                         "&delivery=tomorrow&rating=4.5",
                 ).only<AppliedFilters>()
             assertEquals(
-                listOf("Sony", "From $80", "Noise cancelling", "Black", "Delivery: Tomorrow", "Rating: 4.5 and up"),
+                listOf("Sonora", "From $80", "Noise cancelling", "Black", "Delivery: Tomorrow", "Rating: 4.5 and up"),
                 applied.chips.map { it.label },
             )
             assertEquals(applied.chips.size, applied.filterCount)
@@ -46,14 +46,14 @@ class AppliedFiltersTest {
             val delivery = applied.chips.single { it.label == "Delivery: Tomorrow" }.action
             assertEquals(
                 LoadAction(
-                    "/ui/parts$HEADPHONES?brand=Sony&feature=Noise%20cancelling&colour=Black&price_min=80&rating=4.5",
+                    "/ui/parts$HEADPHONES?brand=Sonora&feature=Noise%20cancelling&colour=Black&price_min=80&rating=4.5",
                 ),
                 delivery,
             )
             val rating = applied.chips.single { it.label == "Rating: 4.5 and up" }.action
             assertEquals(
                 LoadAction(
-                    "/ui/parts$HEADPHONES?brand=Sony&feature=Noise%20cancelling&colour=Black&price_min=80" +
+                    "/ui/parts$HEADPHONES?brand=Sonora&feature=Noise%20cancelling&colour=Black&price_min=80" +
                         "&delivery=tomorrow",
                 ),
                 rating,
@@ -70,11 +70,11 @@ class AppliedFiltersTest {
                 val applied = tree("/ui$address").only<AppliedFilters>()
                 assertEquals(0 to null, applied.filterCount to applied.clearAction, address)
             }
-            val applied = tree("/ui$HEADPHONES?brand=Sony&kind=Over-ear&sort=rating").only<AppliedFilters>()
+            val applied = tree("/ui$HEADPHONES?brand=Sonora&kind=Over-ear&sort=rating").only<AppliedFilters>()
             assertEquals(LoadAction("/ui/parts$HEADPHONES?kind=Over-ear&sort=rating"), applied.clearAction)
 
             // The empty state's «Clear all» is the same press; with nothing applied there is nothing to offer.
-            val empty = tree("/ui$HEADPHONES?kind=Over-ear&brand=Sony&price_max=1").only<EmptyState>()
+            val empty = tree("/ui$HEADPHONES?kind=Over-ear&brand=Sonora&price_max=1").only<EmptyState>()
             assertEquals(
                 "Clear all" to LoadAction("/ui/parts$HEADPHONES?kind=Over-ear"),
                 empty.actionLabel to empty.action,
@@ -153,7 +153,7 @@ class AppliedFiltersTest {
             listOf(
                 HEADPHONES,
                 "$HEADPHONES?kind=Over-ear&rating=4.5&sort=rating",
-                "$HEADPHONES?brand=Sony&delivery=tomorrow&expand=brand",
+                "$HEADPHONES?brand=Sonora&delivery=tomorrow&expand=brand",
                 "/c/electronics",
                 "/c/electronics?rating=4.0&sort=price-asc&page=2",
             ).forEach { assertNoPressReloads(it) }

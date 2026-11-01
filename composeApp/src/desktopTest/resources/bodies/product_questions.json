@@ -40,20 +40,20 @@
      "label": "Headphones"
     },
     {
-     "label": "Sony WH-1000XM6"
+     "label": "Sonora SH-718N"
     }
    ]
   },
   {
    "type": "haul_product_details",
    "id": "details",
-   "productId": "p-sony-wh-1000xm6",
-   "skuId": "p-sony-wh-1000xm6-0",
+   "productId": "p-sonora-sh-718n",
+   "skuId": "p-sonora-sh-718n-0",
    "photoTone": "#E6E4FF",
    "photo": "/images/art/p_headphones_0_midnight-black_e6e4ff.686ea916f7.svg",
    "badge": "Bestseller",
-   "brand": "Sony",
-   "title": "WH-1000XM6 Wireless Noise Cancelling Headphones",
+   "brand": "Sonora",
+   "title": "SH-718N Wireless Noise Cancelling Headphones",
    "accent": "Headphones",
    "rating": "4.8",
    "reviews": "2,341 reviews",
@@ -65,14 +65,14 @@
      "options": [
       {
        "label": "Midnight Black",
-       "skuId": "p-sony-wh-1000xm6-0",
+       "skuId": "p-sonora-sh-718n-0",
        "selected": true,
        "available": true,
        "swatch": "#2A2A2E"
       },
       {
        "label": "Silver",
-       "skuId": "p-sony-wh-1000xm6-3",
+       "skuId": "p-sonora-sh-718n-3",
        "selected": false,
        "available": false,
        "swatch": "#D9D3C7"
@@ -85,19 +85,19 @@
      "options": [
       {
        "label": "Headphones only",
-       "skuId": "p-sony-wh-1000xm6-0",
+       "skuId": "p-sonora-sh-718n-0",
        "selected": true,
        "available": true
       },
       {
        "label": "+ Travel case",
-       "skuId": "p-sony-wh-1000xm6-1",
+       "skuId": "p-sonora-sh-718n-1",
        "selected": false,
        "available": true
       },
       {
        "label": "+ 2-year care",
-       "skuId": "p-sony-wh-1000xm6-2",
+       "skuId": "p-sonora-sh-718n-2",
        "selected": false,
        "available": true
       }
@@ -115,7 +115,7 @@
     },
     {
      "title": "Bluetooth",
-     "text": "5.4 · LDAC · multipoint"
+     "text": "5.4 · LC3 · multipoint"
     },
     {
      "title": "Weight",
@@ -128,8 +128,8 @@
    "haulPay": "or 4 payments of $87.25 with Haul Pay",
    "haulPayStrong": "4 payments of $87.25",
    "inStock": true,
-   "add": {"url": "/api/v1/cart/lines/p-sony-wh-1000xm6-0?answer=details", "change": {"quantity": 1}},
-   "buy": {"url": "/api/v1/cart/lines/p-sony-wh-1000xm6-0", "change": {"selected": true, "alone": true}, "next": {"type": "navigate", "deeplink": "/sign-in?next=%2Fcheckout"}},
+   "add": {"url": "/api/v1/cart/lines/p-sonora-sh-718n-0?answer=details", "change": {"quantity": 1}},
+   "buy": {"url": "/api/v1/cart/lines/p-sonora-sh-718n-0", "change": {"selected": true, "alone": true}, "next": {"type": "navigate", "deeplink": "/sign-in?next=%2Fcheckout"}},
    "delivery": [
     {
      "title": "Courier · Tomorrow, Oct 8",
@@ -148,23 +148,23 @@
    ],
    "cutoff": "Order within 3 h 42 min",
    "seller": {
-    "name": "Sony Official Store",
+    "name": "Sonora Audio",
     "initial": "S",
     "meta": "4.9 · 98% positive · 6 yrs on Haul"
    },
    "brandAction": {
     "type": "navigate",
-    "deeplink": "/c/electronics/audio/headphones?brand=Sony"
+    "deeplink": "/c/electronics/audio/headphones?brand=Sonora"
    },
    "ratingAction": {
     "type": "navigate",
-    "deeplink": "/p/p-sony-wh-1000xm6?tab=reviews"
+    "deeplink": "/p/p-sonora-sh-718n?tab=reviews"
    },
    "specificationsAction": {
     "type": "navigate",
-    "deeplink": "/p/p-sony-wh-1000xm6?tab=specifications"
+    "deeplink": "/p/p-sonora-sh-718n?tab=specifications"
    },
-   "share": "/p/p-sony-wh-1000xm6?sku=p-sony-wh-1000xm6-0"
+   "share": "/p/p-sonora-sh-718n?sku=p-sonora-sh-718n-0"
   },
   {
    "type": "haul_product_tabs",
@@ -176,7 +176,7 @@
      "selected": false,
      "action": {
       "type": "navigate",
-      "deeplink": "/p/p-sony-wh-1000xm6?tab=description"
+      "deeplink": "/p/p-sonora-sh-718n?tab=description"
      }
     },
     {
@@ -185,7 +185,7 @@
      "selected": false,
      "action": {
       "type": "navigate",
-      "deeplink": "/p/p-sony-wh-1000xm6?tab=specifications"
+      "deeplink": "/p/p-sonora-sh-718n?tab=specifications"
      },
      "compactTitle": "Specs"
     },
@@ -196,7 +196,7 @@
      "selected": false,
      "action": {
       "type": "navigate",
-      "deeplink": "/p/p-sony-wh-1000xm6?tab=reviews"
+      "deeplink": "/p/p-sonora-sh-718n?tab=reviews"
      }
     },
     {
@@ -206,7 +206,7 @@
      "selected": true,
      "action": {
       "type": "navigate",
-      "deeplink": "/p/p-sony-wh-1000xm6?tab=questions"
+      "deeplink": "/p/p-sonora-sh-718n?tab=questions"
      }
     }
    ]
@@ -216,68 +216,68 @@
    "id": "questions",
    "count": "86",
    "caption": "questions",
-   "text": "Answers come from Sony Official Store.",
+   "text": "Answers come from Sonora Audio.",
    "actionLabel": "Ask a question",
    "questions": [
     {
      "question": "Can I use them with a cable on a plane?",
      "asked": "Asked Sep 29",
      "answer": "Yes. The 3.5 mm audio cable is in the box, and noise cancelling keeps working when wired.",
-     "answeredBy": "Sony Official Store · Sep 30"
+     "answeredBy": "Sonora Audio · Sep 30"
     },
     {
      "question": "Do they connect to a laptop and a phone at the same time?",
      "asked": "Asked Sep 14",
      "answer": "Yes. Multipoint keeps two devices paired and switches to the phone when a call comes in.",
-     "answeredBy": "Sony Official Store · Sep 15"
+     "answeredBy": "Sonora Audio · Sep 15"
     },
     {
      "question": "Is it suitable as a gift?",
      "asked": "Asked Sep 4",
      "answer": "Yes. It arrives in its retail box, so it is ready to wrap.",
-     "answeredBy": "Sony Official Store · Sep 5"
+     "answeredBy": "Sonora Audio · Sep 5"
     },
     {
      "question": "Does it ship in its own box?",
      "asked": "Asked Aug 29",
      "answer": "It ships in a plain outer carton with the retail box inside.",
-     "answeredBy": "Sony Official Store · Aug 30"
+     "answeredBy": "Sonora Audio · Aug 30"
     },
     {
      "question": "Is the price the same in store?",
      "asked": "Asked Aug 23",
      "answer": "We sell online only; the price on this page is the price.",
-     "answeredBy": "Sony Official Store · Aug 24"
+     "answeredBy": "Sonora Audio · Aug 24"
     },
     {
      "question": "How long does it usually last?",
      "asked": "Asked Aug 17",
      "answer": "With normal use, years. The warranty covers the first one.",
-     "answeredBy": "Sony Official Store · Aug 18"
+     "answeredBy": "Sonora Audio · Aug 18"
     },
     {
      "question": "Is there a manual in the box?",
      "asked": "Asked Aug 11",
      "answer": "Yes, a printed quick-start guide is included.",
-     "answeredBy": "Sony Official Store · Aug 12"
+     "answeredBy": "Sonora Audio · Aug 12"
     },
     {
      "question": "Can I buy more than one?",
      "asked": "Asked Aug 5",
      "answer": "Yes, as many as the page shows in stock.",
-     "answeredBy": "Sony Official Store · Aug 6"
+     "answeredBy": "Sonora Audio · Aug 6"
     },
     {
      "question": "Is it the same as the one in the photos?",
      "asked": "Asked Jul 30",
      "answer": "Yes, the photos are of this exact product.",
-     "answeredBy": "Sony Official Store · Jul 31"
+     "answeredBy": "Sonora Audio · Jul 31"
     },
     {
      "question": "Does it need assembly?",
      "asked": "Asked Jul 24",
      "answer": "No, it is ready to use out of the box.",
-     "answeredBy": "Sony Official Store · Jul 25"
+     "answeredBy": "Sonora Audio · Jul 25"
     }
    ],
    "action": {
@@ -287,7 +287,7 @@
      "id": "question-form",
      "title": "Ask a question",
      "product": {
-      "name": "Sony WH-1000XM6 Wireless Noise Cancelling Headphones",
+      "name": "Sonora SH-718N Wireless Noise Cancelling Headphones",
       "detail": "Midnight Black · Headphones only",
       "tone": "#E6E4FF",
       "image": "/images/art/p_headphones_0_midnight-black_e6e4ff.686ea916f7.svg"
@@ -297,7 +297,7 @@
      "note": "Your question appears on this page for other shoppers, marked «Not answered yet». Sellers can’t answer new questions on Haul yet.",
      "submitLabel": "Send",
      "cancelLabel": "Cancel",
-     "url": "/api/v1/products/p-sony-wh-1000xm6/questions",
+     "url": "/api/v1/products/p-sonora-sh-718n/questions",
      "close": {
       "type": "close"
      }
@@ -307,7 +307,7 @@
    "moreLabel": "Show more questions",
    "more": {
     "type": "load",
-    "url": "/ui/parts/p/p-sony-wh-1000xm6?tab=questions&shown=20"
+    "url": "/ui/parts/p/p-sonora-sh-718n?tab=questions&shown=20"
    }
   }
  ]

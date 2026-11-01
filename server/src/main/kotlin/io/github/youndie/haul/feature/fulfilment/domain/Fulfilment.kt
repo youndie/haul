@@ -16,7 +16,7 @@ import kotlin.time.Duration.Companion.seconds
  * How long each step of a shipment takes in the simulated world (feature-orders): `placed → packed →
  * in_transit → delivered` for a courier, `… → in_transit → ready_for_pickup → picked_up` for a point or a
  * locker. Leaving for the road waits for the seller's dispatch days as well — the most of the shipment's
- * products' (`products.dispatch_days`) — so of Maya's two shipments Sony's ships a day before Brooklyn
+ * products' (`products.dispatch_days`) — so of Maya's two shipments Sonora's ships a day before Brooklyn
  * Home Co.'s, as the canvas promises them (research §6).
  *
  * A return goes the other way (B-21): the courier collects it [returnPickup] after it is asked for, and it

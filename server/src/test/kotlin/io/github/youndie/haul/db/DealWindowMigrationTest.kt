@@ -36,7 +36,7 @@ class DealWindowMigrationTest {
                     )
                     statement.execute(
                         "INSERT INTO deals (id, sku_id, price_cents, ends_at) " +
-                            "VALUES ('${SampleCatalog.SONY_DEAL.id}', 'p-0', 34900, '${CatalogSeed.DEALS_END}')",
+                            "VALUES ('${SampleCatalog.SONORA_DEAL.id}', 'p-0', 34900, '${CatalogSeed.DEALS_END}')",
                     )
                 }
                 connection.commit()
@@ -56,7 +56,7 @@ class DealWindowMigrationTest {
                 }
             assertEquals(CatalogSeed.DEALS_END.toInstant(), window.second.toInstant(), "V27 moved the deal's end")
             assertEquals(
-                SampleCatalog.SONY_DEAL.startsAt.toInstant(),
+                SampleCatalog.SONORA_DEAL.startsAt.toInstant(),
                 window.first.toInstant(),
                 "V27 and the seed open the canvas's deals at different instants",
             )

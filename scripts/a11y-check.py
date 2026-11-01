@@ -93,12 +93,12 @@ POPUPS = [
 
 # The pages read for unnamed buttons, beside the popups' own; the signed-in ones only with --login.
 PAGES = [
-    ("/", False), ("/c/electronics", False), ("/search?q=mug", False), ("/p/p-sony-wh-1000xm6", False),
+    ("/", False), ("/c/electronics", False), ("/search?q=mug", False), ("/p/p-sonora-sh-718n", False),
     ("/cart", False), ("/account", True), ("/account/orders", True), ("/account/saved", True), ("/checkout", True),
 ]
 
 # The product whose reviews tab the review dialog is opened from (a signed-in shopper who has not reviewed it).
-REVIEWED = "/p/p-sony-wh-1000xm6?tab=reviews"
+REVIEWED = "/p/p-sonora-sh-718n?tab=reviews"
 
 # The header's cart button (its test tag) and the word its name must have.
 CART = ("cart-button", "Cart")

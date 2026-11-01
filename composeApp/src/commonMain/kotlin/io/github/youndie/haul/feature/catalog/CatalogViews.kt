@@ -89,7 +89,7 @@ import kotlin.math.roundToInt
 public fun BreadcrumbsView(breadcrumbs: Breadcrumbs) {
     val compact = LocalHaulCompact.current
     val gutter = gutter()
-    // A phone shortens a deep path to its last two crumbs («… / Headphones / Sony WH-1000XM6»,
+    // A phone shortens a deep path to its last two crumbs («… / Headphones / Sonora SH-718N»,
     // Product_Description_Phone); a category's four still fit.
     val crumbs = breadcrumbs.crumbs
     val shown = if (compact && crumbs.size > COMPACT_CRUMBS) crumbs.takeLast(2) else crumbs

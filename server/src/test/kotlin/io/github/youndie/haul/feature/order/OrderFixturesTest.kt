@@ -110,10 +110,10 @@ class OrderFixturesTest {
 
                     // The canvas's own products, written as the catalog would hold them, so «Write a review» on a
                     // delivered line is the same dialog the route draws for a product it sells.
-                    val sony =
+                    val sonora =
                         checkNotNull(
                             world.koin.get<CatalogRepository>().product(
-                                SampleCatalog.SONY_HEADPHONES,
+                                SampleCatalog.SONORA_HEADPHONES,
                                 PriceList.Public,
                             ),
                         )
@@ -131,7 +131,7 @@ class OrderFixturesTest {
                         val productId = sku.removeSuffix("-0")
                         val item =
                             Listed(
-                                sony.product.copy(
+                                sonora.product.copy(
                                     id = productId,
                                     brand = brand,
                                     title = title,
@@ -140,7 +140,7 @@ class OrderFixturesTest {
                                     dispatchDays = 0,
                                     categorySlug = category,
                                 ),
-                                listOf(sony.skus.first().copy(id = sku, productId = productId, options = options)),
+                                listOf(sonora.skus.first().copy(id = sku, productId = productId, options = options)),
                             )
                         val shown = options.entries.sortedBy { it.key != "colour" }.joinToString(" · ") { it.value }
                         return mapOf(

@@ -92,12 +92,12 @@ class RecentSearchesRoutesTest {
         val tick = AtomicLong()
         val clock = StoreClock { CatalogSeed.NOW.toZonedDateTime().plusSeconds(tick.incrementAndGet()) }
         haulTest(signIn = ShildikHarness.signIn, clock = clock) {
-            listOf("mug", "sony", "duvet", "mug").forEach {
+            listOf("mug", "sonora", "duvet", "mug").forEach {
                 assertEquals(HttpStatusCode.OK, get("/ui/search?q=$it") { bearerAuth(token) }.status, it)
             }
 
             val panel = suggest(token, "")
-            assertEquals(listOf("mug", "duvet", "sony"), panel.recent.map { it.label })
+            assertEquals(listOf("mug", "duvet", "sonora"), panel.recent.map { it.label })
             assertEquals(NavigateAction("/search?q=duvet"), panel.recent[1].action)
             assertEquals("/api/v1/me/recent-searches", panel.clearUrl)
             assertEquals("", panel.query)
@@ -111,7 +111,7 @@ class RecentSearchesRoutesTest {
                 listOf(
                     "/search?q=mug&category=home-kitchen",
                     "/search?q=duvet&category=home-kitchen",
-                    "/search?q=sony&category=home-kitchen",
+                    "/search?q=sonora&category=home-kitchen",
                 ),
                 scoped.recent.map { (it.action as NavigateAction).deeplink },
                 "a recent row left the picker's scope",

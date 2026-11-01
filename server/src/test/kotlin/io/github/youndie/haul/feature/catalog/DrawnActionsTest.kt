@@ -196,20 +196,20 @@ class DrawnActionsTest {
     @Test
     fun `the sort offers every order and keeps the filters`() =
         haulTest {
-            val applied = tree("/ui/c/electronics/audio/headphones?brand=Sony&page=2").only<AppliedFilters>()
+            val applied = tree("/ui/c/electronics/audio/headphones?brand=Sonora&page=2").only<AppliedFilters>()
             assertEquals(
                 listOf("Popular", "Price: low to high", "Price: high to low", "Rating", "Newest"),
                 applied.sorts.map { it.label },
             )
             val cheapest = applied.sorts.single { it.label == "Price: low to high" }
             assertEquals(
-                LoadAction("/ui/parts/c/electronics/audio/headphones?brand=Sony&sort=price-asc"),
+                LoadAction("/ui/parts/c/electronics/audio/headphones?brand=Sonora&sort=price-asc"),
                 cheapest.action,
             )
             val sorted = follow(cheapest.action)
             assertEquals("Price: low to high", sorted.only<AppliedFilters>().sortLabel)
             val prices = sorted.only<ProductGrid>().cards.map(::dollars)
-            assertTrue(prices.size > 1, "too few Sony headphones to see an order")
+            assertTrue(prices.size > 1, "too few Sonora headphones to see an order")
             assertEquals(prices.sorted(), prices)
         }
 
@@ -219,7 +219,7 @@ class DrawnActionsTest {
         haulTest {
             val applied =
                 tree(
-                    "/ui/c/electronics/audio/headphones?brand=Sony&colour=Black&kind=Over-ear&sort=rating",
+                    "/ui/c/electronics/audio/headphones?brand=Sonora&colour=Black&kind=Over-ear&sort=rating",
                 ).only<AppliedFilters>()
             assertEquals(
                 LoadAction("/ui/parts/c/electronics/audio/headphones?kind=Over-ear&sort=rating"),
@@ -248,7 +248,7 @@ class DrawnActionsTest {
     @Test
     fun `the price range applies with a load and its chip removes it`() =
         haulTest {
-            val page = tree("/ui/c/electronics/audio/headphones?brand=Sony&sort=price-asc&page=2")
+            val page = tree("/ui/c/electronics/audio/headphones?brand=Sonora&sort=price-asc&page=2")
             val range =
                 assertNotNull(
                     page
@@ -259,7 +259,7 @@ class DrawnActionsTest {
                 )
             assertEquals(null to null, range.low to range.high)
             assertEquals(
-                "/ui/parts/c/electronics/audio/headphones?brand=Sony&price_min={min}&price_max={max}&sort=price-asc",
+                "/ui/parts/c/electronics/audio/headphones?brand=Sonora&price_min={min}&price_max={max}&sort=price-asc",
                 range.template,
             )
             // The track ends past the category's dearest product, whatever the other filters are.
@@ -275,13 +275,13 @@ class DrawnActionsTest {
             val both = range.applying(80, 400)
             assertEquals(
                 LoadAction(
-                    "/ui/parts/c/electronics/audio/headphones?brand=Sony&price_min=80&price_max=400&sort=price-asc",
+                    "/ui/parts/c/electronics/audio/headphones?brand=Sonora&price_min=80&price_max=400&sort=price-asc",
                 ),
                 both,
             )
             val ranged = follow(both)
             val prices = ranged.only<ProductGrid>().cards.map(::dollars)
-            assertTrue(prices.isNotEmpty(), "no Sony headphones between $80 and $400 — nothing to see filtered")
+            assertTrue(prices.isNotEmpty(), "no Sonora headphones between $80 and $400 — nothing to see filtered")
             assertTrue(prices.all { it in 80.0..400.99 }, "outside $80 – $400: $prices")
             assertEquals(prices.sorted(), prices, "the sort was lost on the way")
             val applied = ranged.only<AppliedFilters>()
@@ -299,7 +299,7 @@ class DrawnActionsTest {
 
             // One bound: the other is left out of the address, and the chip names the one set.
             assertEquals(
-                LoadAction("/ui/parts/c/electronics/audio/headphones?brand=Sony&price_min=150&sort=price-asc"),
+                LoadAction("/ui/parts/c/electronics/audio/headphones?brand=Sonora&price_min=150&sort=price-asc"),
                 range.applying(150, null),
             )
             assertEquals(listOf("From $150"), follow(range.applying(150, null)).only<AppliedFilters>().priceChips())

@@ -1,5 +1,6 @@
 package io.github.youndie.haul.db
 
+import io.github.youndie.haul.seed.RealNames
 import io.github.youndie.haul.seed.SampleCatalog
 import io.github.youndie.haul.testing.PostgresHarness
 import kotlin.test.Test
@@ -27,7 +28,9 @@ class BoughtBaseMigrationTest {
                     statement.execute(
                         "INSERT INTO sellers (id, name, rating, positive_percent, years_on_haul) VALUES ('s', 'S', 4.5, 90, 1)",
                     )
-                    (samples + OTHER).forEach { id ->
+                    (samples + OTHER).forEach { new ->
+                        // Under the id the seed gave it then: V31 renames it after (B-166).
+                        val id = RealNames.old(new)
                         statement.execute(
                             "INSERT INTO products ($PRODUCT_COLUMNS) " +
                                 "VALUES ('$id', 's', 'c', '$id', 'b', 'd', '[]', 4.5, 0, 0, '#FFFFFF', 'l', now(), '$id')",

@@ -2,7 +2,7 @@ package io.github.youndie.haul.seed
 
 import io.github.youndie.haul.feature.membership.domain.PlusMembership
 import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
-import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_HEADPHONES
 import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -49,7 +49,7 @@ internal object SampleCustomers {
             SeedCart(
                 id = "cart-$MAYA",
                 customerId = MAYA,
-                skuIds = listOf("$SONY_HEADPHONES-0", "$DUVET_COVER-0", "$STONEWARE_MUG-0"),
+                skuIds = listOf("$SONORA_HEADPHONES-0", "$DUVET_COVER-0", "$STONEWARE_MUG-0"),
             ),
         )
 }

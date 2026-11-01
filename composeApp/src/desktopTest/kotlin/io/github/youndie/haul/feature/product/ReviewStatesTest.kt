@@ -117,7 +117,7 @@ class ReviewStatesTest {
 
     private companion object {
         const val REVIEWED = "You reviewed this on Oct 7"
-        val PRODUCT = FormProduct("Sony WH-1000XM6 Wireless Noise Cancelling Headphones", "Midnight Black", "#E6E4FF")
+        val PRODUCT = FormProduct("Sonora SH-718N Wireless Noise Cancelling Headphones", "Midnight Black", "#E6E4FF")
         val REVIEW_FORM =
             ReviewForm(
                 id = "review-form",
