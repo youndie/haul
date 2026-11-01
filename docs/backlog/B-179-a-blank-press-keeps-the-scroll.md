@@ -1,7 +1,7 @@
 ---
 id: B-179
 title: "fix: a press on blank page space keeps the scroll where it is"
-status: open
+status: wip
 priority: P1
 size: S
 stage: stage-15-showcase

@@ -50,7 +50,7 @@ A stage is a field on the item, not a directory.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-179](docs/backlog/B-179-a-blank-press-keeps-the-scroll.md) `[ ]` | fix: a press on blank page space keeps the scroll where it is | P1 | S | - |
+| [B-179](docs/backlog/B-179-a-blank-press-keeps-the-scroll.md) `[~]` | fix: a press on blank page space keeps the scroll where it is | P1 | S | - |
 | [B-180](docs/backlog/B-180-a-dark-theme.md) `[ ]` | feat: a dark theme for the whole store | P2 | L | - |
 | [B-181](docs/backlog/B-181-vector-pictures.md) `[ ]` | feat: pictures drawn as vectors, sharp at any size, with dark versions | P2 | M | - |
 | [B-156](docs/backlog/B-156-walk-the-selection-on-a-phone.md) `[ ]` | chore: walk the selection and its toolbar on a phone | P3 | S | B-155 |
