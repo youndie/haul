@@ -4,18 +4,21 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.input.pointer.PointerButtons
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.test.ComposeUiTest
+import androidx.compose.ui.test.DesktopComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.InternalTestApi
 import androidx.compose.ui.test.captureToImage
-import androidx.compose.ui.test.click
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performMouseInput
-import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
@@ -198,7 +201,7 @@ class MotionTest {
     /** A card in a row, [motion], settled after [input]. */
     private fun card(
         motion: Motion,
-        input: ComposeUiTest.() -> Unit,
+        input: DesktopComposeUiTest.() -> Unit,
     ): IntArray {
         var pixels = IntArray(0)
         runDesktopComposeUiTest(CARD_WIDTH, CARD_HEIGHT) {
@@ -217,20 +220,47 @@ class MotionTest {
         return pixels
     }
 
-    /** B-168: a finger has no hover — a tap left the card lifted as if the mouse were over it. */
+    /**
+     * A [type] pointer over the card going through [events], told to the scene as the browser's are: a pointer arrives
+     * (`pointerenter`) before it presses, a finger included. The test's own touch injection presses without arriving.
+     */
+    @OptIn(InternalTestApi::class, InternalComposeUiApi::class)
+    private fun DesktopComposeUiTest.pointer(
+        type: PointerType,
+        events: List<PointerEventType>,
+    ) {
+        val at = onNodeWithText(CARD_TITLE).fetchSemanticsNode().boundsInRoot.center
+        events.forEach { event ->
+            val buttons = PointerButtons(isPrimaryPressed = event == PointerEventType.Press)
+            runOnUiThread { scene.sendPointerEvent(event, at, type = type, buttons = buttons) }
+            mainClock.advanceTimeByFrame()
+        }
+    }
+
+    /**
+     * B-168: a finger has no hover — on a phone a tap left the card lifted as if the mouse were over it, since the
+     * finger arrived over the card and, gone, never left it.
+     */
     @Test
     fun `a touch press leaves no hover lift`() {
         val still = card(Motion.Still) {}
-        val tapped = card(Motion.Lively) { onNodeWithText(CARD_TITLE).performTouchInput { click() } }
+        val tapped =
+            card(Motion.Lively) {
+                pointer(
+                    PointerType.Touch,
+                    listOf(PointerEventType.Enter, PointerEventType.Press, PointerEventType.Release),
+                )
+            }
         val differ = still.indices.count { still[it] != tapped[it] }
         assertEquals(0, differ, "pixels a card tapped and released drew off its place at rest")
     }
 
-    /** The control for the test above: the mouse over the same card lifts it. */
+    /** The control for the test above: the mouse arriving over the same card lifts it. */
     @Test
     fun `a mouse over a card lifts it`() {
         val still = card(Motion.Still) {}
-        val hovered = card(Motion.Lively) { onNodeWithText(CARD_TITLE).performMouseInput { moveTo(center) } }
+        val hovered =
+            card(Motion.Lively) { pointer(PointerType.Mouse, listOf(PointerEventType.Enter, PointerEventType.Move)) }
         assertTrue(!still.contentEquals(hovered), "the mouse over the card left it where it rests")
     }
 
