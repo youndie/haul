@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -56,11 +57,23 @@ public val LocalHaulActions: ProvidableCompositionLocal<KompotActionHandler?> = 
  */
 public val LocalPageScroll: ProvidableCompositionLocal<ScrollState?> = staticCompositionLocalOf { null }
 
-/** Pressing this follows [action]; no action, or nobody to follow it, leaves the element as it was. */
+/**
+ * Pressing this follows [action]; no action, or nobody to follow it, leaves the element as it was. Reached by the
+ * keyboard, it rings in [ring] ([pressable]).
+ */
 @Composable
-internal fun Modifier.follows(action: KompotAction?): Modifier {
+internal fun Modifier.follows(
+    action: KompotAction?,
+    ring: Shape = FOCUS_RING_DEFAULT,
+): Modifier {
     val handler = LocalHaulActions.current
-    return if (action == null || handler == null) this else pressable { handler.handle(action) }.offersLink(action)
+    return if (action == null ||
+        handler == null
+    ) {
+        this
+    } else {
+        pressable(ring) { handler.handle(action) }.offersLink(action)
+    }
 }
 
 /**
@@ -85,13 +98,16 @@ public val LocalTabsInView: ProvidableCompositionLocal<TabsInView?> = staticComp
 
 /** [follows], asking for the tab row [action] leads to as it does (B-121). */
 @Composable
-internal fun Modifier.followsToTabs(action: KompotAction?): Modifier {
+internal fun Modifier.followsToTabs(
+    action: KompotAction?,
+    ring: Shape = FOCUS_RING_DEFAULT,
+): Modifier {
     val handler = LocalHaulActions.current
     val tabs = LocalTabsInView.current
     return if (action == null || handler == null) {
         this
     } else {
-        pressable {
+        pressable(ring) {
             tabs?.ask()
             handler.handle(action)
         }.offersLink(action)
@@ -99,12 +115,23 @@ internal fun Modifier.followsToTabs(action: KompotAction?): Modifier {
 }
 
 /** Pressing this runs [onPress], the client's own (Retry, the logo); `null` is not pressable. */
-internal fun Modifier.pressable(onPress: (() -> Unit)?): Modifier =
+internal fun Modifier.pressable(onPress: (() -> Unit)?): Modifier = pressable(FOCUS_RING_DEFAULT, onPress)
+
+/**
+ * [pressable], its ring the keyboard's focus draws ([ringsWhenFocused], B-167) following [ring] — the control's own
+ * shape: a pill's, a card's, a circle's. Enter and Space press it, as Compose's `clickable` has them.
+ */
+internal fun Modifier.pressable(
+    ring: Shape,
+    onPress: (() -> Unit)?,
+): Modifier =
     if (onPress == null) {
         this
     } else {
-        // No ripple: the canvas draws none. A press sinks the control instead, on a lively page (B-158).
-        handOverWords()
+        // No ripple: the canvas draws none. A press sinks the control instead, on a lively page (B-158), and the
+        // keyboard's focus rings it (B-167).
+        ringsWhenFocused(ring)
+            .handOverWords()
             .sinksWhenPressed()
             .pressesAgain(onPress)
             .clickable(interactionSource = null, indication = null, role = Role.Button, onClick = onPress)
@@ -240,6 +267,7 @@ internal fun Modifier.toggles(
     kind: Role,
     onPress: (() -> Unit)?,
     note: String? = null,
+    ring: Shape = FOCUS_RING_DEFAULT,
 ): Modifier {
     val said = listOfNotNull("$what, ${stateWord(state, kind)}", note?.takeIf { it.isNotBlank() }).joinToString(". ")
     val press =
@@ -249,7 +277,7 @@ internal fun Modifier.toggles(
                 toggleableState = state
             }
         } else {
-            Modifier.handOverWords().sinksWhenPressed().pressesAgain(onPress).triStateToggleable(
+            Modifier.ringsWhenFocused(ring).handOverWords().sinksWhenPressed().pressesAgain(onPress).triStateToggleable(
                 state,
                 interactionSource = null,
                 indication = null,

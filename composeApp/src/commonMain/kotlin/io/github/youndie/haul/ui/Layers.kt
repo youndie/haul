@@ -94,7 +94,27 @@ internal fun OverlayHost(content: @Composable () -> Unit) {
     val overlays = remember { Overlays() }
     // The newest sheet or dialog: everything drawn before it is under it.
     val modal = overlays.shown.indexOfLast { it.modal }
-    Box(Modifier.fillMaxSize().onGloballyPositioned { overlays.origin = it.positionInRoot() }) {
+    // Whether the keyboard moved the focus (B-167): the root's, else the storefront's own — the shell's tests.
+    val outer = LocalKeyboardFocus.current
+    val keyboard = outer ?: remember { KeyboardFocus() }
+    Box(
+        Modifier
+            .fillMaxSize()
+            .then(if (outer == null) Modifier.watchesInput(keyboard) else Modifier)
+            .onGloballyPositioned { overlays.origin = it.positionInRoot() },
+    ) {
+        CompositionLocalProvider(LocalKeyboardFocus provides keyboard) { Layered(overlays, modal, content) }
+    }
+}
+
+/** [OverlayHost]'s layers: the page, what opened over it, the notices over all of it. */
+@Composable
+private fun Layered(
+    overlays: Overlays,
+    modal: Int,
+    content: @Composable () -> Unit,
+) {
+    Box(Modifier.fillMaxSize()) {
         Box(Modifier.fillMaxSize().hiddenUnder(modal >= 0)) {
             CompositionLocalProvider(LocalOverlays provides overlays) { content() }
         }

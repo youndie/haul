@@ -101,7 +101,7 @@ public fun HeaderMenuSheet(
                     .size(44.dp)
                     .background(HaulColors.background, CircleShape)
                     .semantics { contentDescription = CLOSE_MENU }
-                    .pressable(onClose),
+                    .pressable(CircleShape, onClose),
                 contentAlignment = Alignment.Center,
             ) { Icon(HaulIcons.close, 18.dp, HaulColors.onSurface) }
         }

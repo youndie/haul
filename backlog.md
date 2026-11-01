@@ -46,17 +46,16 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (5)
+## Open (4)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-167](docs/backlog/B-167-keyboard-focus-is-visible.md) `[ ]` | fix: the control the keyboard is on is visibly marked | P2 | S/M | - |
 | [B-156](docs/backlog/B-156-walk-the-selection-on-a-phone.md) `[ ]` | chore: walk the selection and its toolbar on a phone | P3 | S | B-155 |
 | [B-174](docs/backlog/B-174-two-replicas.md) `[ ]` | feat: the server runs as two replicas — an external bus, one leader for the simulators | P3 | L | - |
 | [B-175](docs/backlog/B-175-the-cost-of-compose-web.md) `[ ]` | docs: audit the pixel workarounds since B-85 and write down what Compose for Web cost | P3 | M | - |
 | [B-176](docs/backlog/B-176-a-second-client-draws-the-same-trees.md) `[ ]` | feat: a second client — desktop — draws the same server trees | P3 | L | - |
 
-## Closed (171)
+## Closed (172)
 
 **Skeleton**
 
@@ -268,6 +267,7 @@ A stage is a field on the item, not a directory.
 - [B-164](docs/backlog/B-164-a-public-feed-of-live-orders.md) `[x]` - feat: a public feed of live orders shows the saga's steps and its compensations
 - [B-165](docs/backlog/B-165-readme-says-what-to-look-at.md) `[x]` - docs: the README says what to look at in five minutes, and the repository points at the stand
 - [B-166](docs/backlog/B-166-sellers-and-brands-are-invented.md) `[x]` - fix: sellers and brands in the sample data are invented, not real companies'
+- [B-167](docs/backlog/B-167-keyboard-focus-is-visible.md) `[x]` - fix: the control the keyboard is on is visibly marked
 - [B-169](docs/backlog/B-169-on-a-phone-the-variant-comes-before-the-buy.md) `[x]` - fix: on a phone the product's variant is chosen before its buy buttons
 - [B-170](docs/backlog/B-170-the-header-keeps-its-content-across-pages.md) `[x]` - fix: the header keeps its content while the next page loads
 - [B-171](docs/backlog/B-171-search-finds-a-product-by-its-kind.md) `[x]` - fix: search finds a product by the words of its kind, not only of its name

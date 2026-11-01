@@ -11,13 +11,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
@@ -27,6 +31,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
@@ -109,7 +115,7 @@ public fun DemoNoteView(
                     .semantics {
                         contentDescription = note.close
                         role = Role.Button
-                    }.pressable(onClose),
+                    }.pressable(CircleShape, onClose),
                 contentAlignment = Alignment.Center,
             ) { Icon(HaulIcons.close, 12.dp, HaulColors.onSurfaceVariant) }
         }
@@ -135,9 +141,9 @@ private fun HoodToggle(
     Box(
         modifier
             .testTag(HOOD_TOGGLE_TAG)
-            .toggles(label, state, Role.Switch, onPress)
+            .toggles(label, state, Role.Switch, onPress, ring = HoodPill)
             .drawBehind {
-                val reach = 3.dp.toPx()
+                val reach = HOOD_REACH.toPx()
                 val corner = CornerRadius(size.height / 2 + reach)
                 val topLeft = Offset(0f, -reach)
                 val pill = Size(size.width, size.height + 2 * reach)
@@ -154,6 +160,26 @@ private fun HoodToggle(
         )
     }
 }
+
+/**
+ * The pill [HoodToggle] draws, for the keyboard's ring around it (B-167): it reaches [HOOD_REACH] above and below the
+ * box, round at its ends.
+ */
+private object HoodPill : Shape {
+    override fun createOutline(
+        size: Size,
+        layoutDirection: LayoutDirection,
+        density: Density,
+    ): Outline {
+        val reach = with(density) { HOOD_REACH.toPx() }
+        return Outline.Rounded(
+            RoundRect(0f, -reach, size.width, size.height + reach, CornerRadius(size.height / 2 + reach)),
+        )
+    }
+}
+
+/** How far the «Under the hood» pill reaches above and below its words, into the strip's padding. */
+private val HOOD_REACH = 3.dp
 
 /** The strip's links, a dot apart. */
 @Composable

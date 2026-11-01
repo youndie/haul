@@ -134,7 +134,7 @@ private fun Head(
                 .background(HaulColors.inverseControl, CircleShape)
                 .testTag(PLUS_CLOSE_TAG)
                 .named(CLOSE)
-                .pressable(onClose),
+                .pressable(CircleShape, onClose),
             contentAlignment = Alignment.Center,
         ) {
             Icon(HaulIcons.close, 18.dp, HaulColors.onPrimary)
