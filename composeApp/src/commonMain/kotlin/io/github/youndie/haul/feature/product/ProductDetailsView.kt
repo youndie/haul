@@ -73,6 +73,7 @@ import io.github.youndie.haul.ui.followsToTabs
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.hatching
 import io.github.youndie.haul.ui.named
+import io.github.youndie.haul.ui.outset
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.rememberHeartPress
 import io.github.youndie.haul.ui.reveal
@@ -212,7 +213,7 @@ private fun Photo(
             // The heart is the Saved list's (B-20): the customer's command, a guest's way to sign in.
             Box(
                 Modifier
-                    .pressable(rememberHeartPress(details.heartCommand, details.heartAction))
+                    .pressable(CircleShape, rememberHeartPress(details.heartCommand, details.heartAction))
                     .semantics { contentDescription = if (details.saved) UNSAVE else SAVE }
                     .size(44.dp)
                     .background(HaulColors.surfaceContainerLowest, CircleShape),
@@ -276,6 +277,7 @@ private fun Share(
     Box(
         Modifier
             .pressable(
+                CircleShape,
                 copier?.let {
                     {
                         it.copy(path) { done ->
@@ -314,7 +316,7 @@ internal fun ShareFallback(
         }
         Box(
             Modifier
-                .pressable(close)
+                .pressable(CircleShape, close)
                 .semantics { contentDescription = CLOSE_LINK }
                 .size(28.dp),
             contentAlignment = Alignment.Center,
@@ -428,7 +430,11 @@ private fun Variants(
                     // The selected ring is CSS's box-shadow: 2 px of Paper, then 2 px of Cobalt, outside.
                     // A swatch shows no words: its option's name is what it reads as (B-126).
                     Box(
-                        Modifier.size(64.dp).named(option.label).follows(option.pressAction()),
+                        // Outside the chosen ring, which is drawn as the keyboard's is (B-167).
+                        Modifier
+                            .size(64.dp)
+                            .named(option.label)
+                            .follows(option.pressAction(), RoundedCornerShape(14.dp).outset(4.dp)),
                         contentAlignment = Alignment.Center,
                     ) {
                         if (option.selected) {
@@ -480,7 +486,7 @@ private fun Variants(
                     Text(
                         option.label,
                         HaulType.text(15f, 500),
-                        box.follows(option.pressAction()).padding(horizontal = 16.dp, vertical = 12.dp),
+                        box.follows(option.pressAction(), shape).padding(horizontal = 16.dp, vertical = 12.dp),
                         softWrap = false,
                     )
                 }

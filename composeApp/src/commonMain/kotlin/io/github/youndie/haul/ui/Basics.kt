@@ -173,7 +173,7 @@ internal fun HaulButton(
     val hover = if (enabled && onClick != null) rememberHover() else rememberStillHover()
     Row(
         modifier
-            .then(if (enabled) Modifier.hovers(hover).pressable(onClick) else Modifier.inert())
+            .then(if (enabled) Modifier.hovers(hover).pressable(shape, onClick) else Modifier.inert())
             .height(height)
             .then(if (drawnFill != null) Modifier.background(drawnFill, shape) else Modifier)
             .glowsOnHover(hover, drawnContent, shape)

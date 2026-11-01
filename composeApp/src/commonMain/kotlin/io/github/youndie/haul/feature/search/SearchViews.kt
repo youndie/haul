@@ -479,7 +479,7 @@ private fun TopProducts(
         Row(
             Modifier
                 .fillMaxWidth()
-                .follows(panel.allResultsAction)
+                .follows(panel.allResultsAction, RoundedCornerShape(14.dp))
                 .height(52.dp)
                 .background(HaulColors.inverseSurface, RoundedCornerShape(14.dp)),
             horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),

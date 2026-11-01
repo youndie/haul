@@ -19,6 +19,7 @@ import io.github.youndie.haul.shell.BrowserDemoNoteMemory
 import io.github.youndie.haul.shell.STATIC_FRAME_ID
 import io.github.youndie.haul.shell.WindowHistory
 import io.github.youndie.haul.shell.WindowTitle
+import io.github.youndie.haul.shell.browserKeyboardFocus
 import io.github.youndie.haul.shell.clipboardLinks
 import io.github.youndie.haul.shell.ktorCommands
 import io.github.youndie.haul.shell.ktorRealtime
@@ -81,6 +82,8 @@ public fun main() {
     val motion = Motion.preferring(window.matchMedia("(prefers-reduced-motion: reduce)").matches)
     // The demo strip closed stays closed for the tab's session (B-160).
     val demoNote = BrowserDemoNoteMemory()
+    // The ring around the control the keyboard is on, only when the keyboard put it there (B-167).
+    val keyboard = browserKeyboardFocus()
     var frame = document.getElementById(STATIC_FRAME_ID)
     MainScope().launch {
         val fonts = loadHaulFonts()
@@ -107,6 +110,7 @@ public fun main() {
                     motion = motion,
                     title = WindowTitle,
                     demoNote = demoNote,
+                    keyboard = keyboard,
                 )
             }
         }

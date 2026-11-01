@@ -86,6 +86,9 @@ import io.github.youndie.haul.ui.inert
 import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.pressable
+import io.github.youndie.haul.ui.rememberFieldRing
+import io.github.youndie.haul.ui.ringedBy
+import io.github.youndie.haul.ui.ringsAround
 import io.github.youndie.haul.ui.toggles
 import kotlinx.coroutines.launch
 
@@ -567,6 +570,7 @@ private fun FieldCell(
             else -> 1.dp to HaulColors.outlineVariant
         }
     val shape = RoundedCornerShape(14.dp)
+    val ring = rememberFieldRing()
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             field.label.uppercase(),
@@ -576,6 +580,7 @@ private fun FieldCell(
         Box(
             Modifier
                 .fillMaxWidth()
+                .ringsAround(ring, shape)
                 .height(52.dp)
                 .background(HaulColors.surfaceContainerLowest, shape)
                 .border(border.first, border.second, shape)
@@ -592,6 +597,7 @@ private fun FieldCell(
                     .fillMaxWidth()
                     .testTag(fieldTag(field.name))
                     .named(field.label)
+                    .ringedBy(ring)
                     .onFocusChanged {
                         hasFocus = it.isFocused
                         onFocus(it.isFocused)

@@ -114,8 +114,9 @@ private fun Hero(
     Box(
         modifier
             .hovers(hover)
+            // Before the clip, so that the keyboard's ring is drawn outside it (B-167).
+            .follows(hero.action, shape)
             .clip(shape)
-            .follows(hero.action)
             .background(toneColor(hero.tone)),
     ) {
         // The campaign's picture (B-78) where the canvas keeps its place, under the words; the hatching while it
@@ -242,8 +243,9 @@ private fun Banner(
         modifier
             .onHover(hover) { translationY = -BANNER_LIFT.toPx() * it }
             .hovers(hover)
+            // Before the clip, so that the keyboard's ring is drawn outside it (B-167).
+            .follows(banner.action, shape)
             .clip(shape)
-            .follows(banner.action)
             .background(toneColor(banner.tone)),
     ) {
         // The campaign's picture (B-78) in the tile the canvas keeps for it, the hatching while it loads.

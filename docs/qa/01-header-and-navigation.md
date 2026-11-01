@@ -423,3 +423,33 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
   repository»; `server:TreeTimingTest` «every answer under ui names the server's time and nothing else does»; golden
   `Hood_Panel`; golden `Hood_Panel_Phone`; manual: the browser's network panel beside the numbers, GitHub's tabs, the
   system's reduced motion
+
+### TC-HDR-18 — The control the keyboard is on is ringed; a press of the pointer rings nothing
+
+- **Who:** guest
+- **Width:** 1440, 390
+- **Preconditions:** a guest's cart with one line; the demo strip of TC-HDR-14 not closed.
+- **Steps:**
+  1. On the home page, press Tab repeatedly, from the top, and once on a card press Enter.
+  2. On the product page, press Tab through the header to the variants; press Space on one.
+  3. On the cart, press Tab to the promo field, type a letter, and press Tab on.
+  4. Press «Select all» with the mouse, then press Tab.
+  5. Press the line's photo with the mouse; on the product page it opens, press Tab twice.
+- **Expected:**
+  - Step 1: the first Tab shows nothing (the page's words take a stop, B-167's findings); each next Tab rings one
+    control in the accent, around its own shape — the strip's links, «Under the hood», its «×», the logo, «Catalog»,
+    the search box, «All categories», the search button, the slots, the category row, «HAUL PLUS», the hero and the
+    banners, the cards and their «+» — in reading order, one ring at a time. Enter on a card opens its product.
+  - Step 2: the ring follows each chip's or swatch's shape; a chosen swatch's ring is outside the ring that marks it
+    chosen. Space chooses the variant.
+  - Step 3: the search box and the promo box ring around their frames while the field has the focus. After a field,
+    one Tab moves nothing (B-167's findings), the next goes on.
+  - Step 4: «Select all» turns and shows no ring; the Tab rings the next control.
+  - Step 5: the second Tab rings the strip's first link.
+- **Decided in:** B-167
+- **Coverage:** `FocusRingTest` «Tab rings the control it reaches, Enter and Space press it, Shift+Tab goes back»; `FocusRingTest` «a mouse
+  press rings nothing and the next key brings the ring back»; `FocusRingTest` «a field's frame rings whenever the
+  field has the focus»; `FocusRingTest` «a card does not ring while its plus has the focus»; `FocusRingTest` «Tab walks
+  the cart in reading order and rings each control»; `FocusRingTest` «every control Tab reaches on the main screens is
+  ringed»; manual: the browser's own keys and pointer — the document's capture listener, the Tab Chromium spends on
+  the page after a field — which the desktop tests do not have

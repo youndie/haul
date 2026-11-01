@@ -173,7 +173,7 @@ private fun RoundButton(
             .size(44.dp)
             .background(HaulColors.background, CircleShape)
             .named(name)
-            .then(if (onPress == null) Modifier.inert() else Modifier.pressable(onPress)),
+            .then(if (onPress == null) Modifier.inert() else Modifier.pressable(CircleShape, onPress)),
         contentAlignment = Alignment.Center,
     ) {
         Icon(icon, 18.dp, if (onPress == null) HaulColors.outlineControl else HaulColors.onSurface)

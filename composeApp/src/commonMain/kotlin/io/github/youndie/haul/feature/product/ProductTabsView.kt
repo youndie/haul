@@ -605,7 +605,7 @@ private fun HelpfulPill(review: Review) {
         Modifier
             .testTag(HELPFUL_TAG)
             .semantics { selected = voted }
-            .pressable(helpfulPress(review))
+            .pressable(CircleShape, helpfulPress(review))
             .then(
                 if (voted) {
                     Modifier.background(HaulColors.inverseSurface, CircleShape)
