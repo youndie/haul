@@ -286,3 +286,59 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
   `composeApp:MotionTest` «a browser that prefers reduced motion gets a still page»;
   manual: hover, presses and openings — what they look like in motion
 
+
+### TC-HDR-14 — Every page says the stand is a demo, until the visitor closes the line
+
+- **Who:** guest
+- **Width:** 1440, 390
+- **Preconditions:** a fresh tab (the strip closed in another tab is not closed here) on the home page.
+- **Steps:**
+  1. Watch the home page arrive and read the line above the header.
+  2. Press «Source on GitHub».
+  3. Back in the store's tab, open a category, a product and `/sign-in`.
+  4. Press the line's «×»; open another page; reload the tab.
+  5. Open the store in a new tab.
+- **Expected:**
+  - Step 1: once the page has drawn, one quiet line above the header's dark strip reads «A demo store built with
+    Kotlin: Ktor, kompot, Compose Multiplatform in the browser.», then «About this demo» · «Source on GitHub», and a
+    «×» at its end; one line at 1440, the words wrapping over two lines and the links under them at 390. The page
+    under it arrives as before — the line comes after it, never before.
+  - Step 2: `https://github.com/youndie/haul` opens in a tab of its own; the store's tab stays on its page.
+  - Step 3: the line is above every page, the sign-in page too.
+  - Step 4: the line goes at once and stays gone on the next page and after the reload.
+  - Step 5: the new tab shows the line again.
+- **Decided in:** B-160
+- **Coverage:** `composeApp:DemoStripTest` «the strip is asked for once the first page has drawn and says the stand is
+  a Kotlin demo»; `composeApp:DemoStripTest` «about this demo opens the about page and source on github opens the
+  repository apart»; `composeApp:DemoStripTest` «the close hides the strip on every page for the rest of the
+  session»; `composeApp:DemoStripTest` «a strip that did not arrive is asked for again after the next page»;
+  `server:AboutRoutesTest` «the demo strip says the stand is a Kotlin demo and leads to the about page and the
+  repository»; golden `Demo_Strip`; golden `Demo_Strip_Phone`; manual: the browser's new tab and its
+  `sessionStorage` across a reload and a second tab
+
+### TC-HDR-15 — «About this demo» says what the stack is, what is real and what is not
+
+- **Who:** guest
+- **Width:** 1440, 390
+- **Preconditions:** the strip of TC-HDR-14 not closed.
+- **Steps:**
+  1. Press «About this demo» in the line above the header.
+  2. Read the page.
+  3. Press «Source on GitHub», then «Read the README».
+  4. Reload `/about`; open `/about` in a new tab by its address.
+  5. Look at the footer.
+- **Expected:**
+  - Step 1: `/about`, under the store's header, with the footer.
+  - Step 2: «A demo store, built with Kotlin end to end», then «What it is built with» (Ktor on the JVM and its
+    zavarnik AOT cache, kompot, Compose Multiplatform in the browser, petich, shildik, the synthetic shoppers, tracy),
+    «What is real» (the saga and its compensations; the sellers, couriers and payments, simulated; the observability)
+    and «What is not» (no money moves, no parcel ships, the products, reviews and sellers invented).
+  - Step 3: the repository, then its README, each in a tab of its own; the store's tab stays on `/about`.
+  - Step 4: the page each time, not a «page isn’t here».
+  - Step 5: the footer is as on the home page — «Deals», «Haul Plus», «Track an order»; no «About» in it, on purpose.
+- **Decided in:** B-160
+- **Coverage:** `server:AboutRoutesTest` «the about page is the frame around the stack what is real and what is not»;
+  `server:WebBundleTest` «a storefront address answers the page, not cached blindly and varying on the encoding»;
+  `composeApp:DemoStripTest` «the about page's links open the repository and its readme apart»;
+  `composeApp:AddressTest` «an address is the page the server serves at it»; golden `About_Content`; golden `About_Content_Phone`;
+  manual: the browser's new tab
