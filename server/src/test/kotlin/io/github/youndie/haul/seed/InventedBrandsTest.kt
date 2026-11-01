@@ -53,11 +53,12 @@ class InventedBrandsTest {
         }
 
     @Test
-    fun `the server's code and the client's bodies and fixtures name no real brand`() {
+    fun `the code and the client's bodies and fixtures name no real brand`() {
         val bodies = File(System.getProperty("haul.clientBodies") ?: error("haul.clientBodies is not set"))
         val roots =
             listOf(
                 File("src/main/kotlin"),
+                File("../shared/src/commonMain/kotlin"),
                 bodies,
                 // The client's fixtures beside the bodies (composeApp/src/desktopTest/{resources/bodies,kotlin}), and
                 // the client's own code.

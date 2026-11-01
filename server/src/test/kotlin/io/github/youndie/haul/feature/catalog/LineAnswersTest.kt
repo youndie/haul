@@ -13,6 +13,7 @@ import io.github.youndie.haul.testing.haulTest
 import io.github.youndie.haul.testing.json
 import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.seededFreshDatabase
+import io.github.youndie.haul.testing.untitled
 import io.github.youndie.haul.testing.update
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.Link
@@ -91,7 +92,7 @@ class LineAnswersTest {
         assertEquals(listOf("header", node), update.updates.map { it.componentId }, command.url)
         assertNull(update.deeplink, "a line change moved the page to ${update.deeplink}")
         assertEquals(
-            page(path, guest).json(),
+            page(path, guest).untitled().json(),
             before.after(update),
             "$path after «${command.url}» is not the page there now",
         )

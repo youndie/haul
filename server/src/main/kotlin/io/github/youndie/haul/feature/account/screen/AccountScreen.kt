@@ -112,7 +112,18 @@ internal class AccountScreen(
         page: AccountPage,
         view: AccountView,
         viewer: Viewer,
-    ): KompotComponent = Frame.page("account-page", viewer, navigation(catalog.categories()), listOf(body(page, view)))
+    ): KompotComponent =
+        Frame.page("account-page", viewer, navigation(catalog.categories()), listOf(body(page, view)), title(page))
+
+    /** The tab's title of each of the account's pages (B-161). */
+    private fun title(page: AccountPage): String =
+        Frame.title(
+            when (page) {
+                AccountPage.Overview -> "Your account"
+                is AccountPage.Orders -> "Your orders"
+                is AccountPage.Saved -> "Saved"
+            },
+        )
 
     /**
      * What the account of [customer] draws, given their orders as tracking reads them, newest first: each

@@ -5,7 +5,24 @@
     <!-- Every URL below is relative; `base` keeps them resolving from the root on a deep link. -->
     <base href="/">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>Haul</title>
+    <!-- What a shared link and a search result show (B-161): the page's words are drawn on a canvas, so these are all a
+         crawler reads. The title is the home's (Frame.HOME_TITLE); once the store runs, each page titles the tab. -->
+    <title>Haul — a demo store built end to end in Kotlin</title>
+    <meta name="description" content="A demo storefront built end to end in Kotlin: a Ktor server, server-driven UI with kompot, and Compose Multiplatform for the web. Browse, buy, track and return.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Haul">
+    <meta property="og:url" content="https://haul.kotlin.website/">
+    <meta property="og:title" content="Haul — a demo store built end to end in Kotlin">
+    <meta property="og:description" content="A demo storefront built end to end in Kotlin: a Ktor server, server-driven UI with kompot, and Compose Multiplatform for the web. Browse, buy, track and return.">
+    <meta property="og:image" content="https://haul.kotlin.website/preview.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Haul's home page: the header, the autumn sale and two promotions">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Haul — a demo store built end to end in Kotlin">
+    <meta name="twitter:description" content="A demo storefront built end to end in Kotlin: a Ktor server, server-driven UI with kompot, and Compose Multiplatform for the web. Browse, buy, track and return.">
+    <meta name="twitter:image" content="https://haul.kotlin.website/preview.png">
     <!-- The tab's icon, the logo's «H» and its dot (B-152): from the store's own origin, so the browser does not
          ask for /favicon.ico, which nothing serves. It is not waited for: the frame paints before it arrives. -->
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
