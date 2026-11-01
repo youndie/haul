@@ -1,7 +1,7 @@
 ---
 id: B-171
 title: "fix: search finds a product by the words of its kind, not only of its name"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-15-showcase
