@@ -31,6 +31,9 @@ internal object AboutScreen {
     /** The repository, where «Source on GitHub» goes. */
     const val REPOSITORY = "https://github.com/youndie/haul"
 
+    /** «Live orders» (B-164): every order's saga as it runs, which the strip and the page lead to. */
+    const val LIVE_ORDERS = "/live"
+
     /** The repository's README, as GitHub shows it under the files. */
     const val README = "$REPOSITORY#readme"
 
@@ -41,6 +44,7 @@ internal object AboutScreen {
             links =
                 listOf(
                     Link("About this demo", NavigateAction(ADDRESS)),
+                    Link("Live orders", NavigateAction(LIVE_ORDERS)),
                     Link("Source on GitHub", OpenUrlAction(REPOSITORY)),
                 ),
             close = "Close the demo note",
@@ -66,6 +70,7 @@ internal object AboutScreen {
             links =
                 listOf(
                     Link("Source on GitHub", OpenUrlAction(REPOSITORY)),
+                    Link("Watch the live orders", NavigateAction(LIVE_ORDERS)),
                     Link("Read the README", OpenUrlAction(README)),
                 ),
         )

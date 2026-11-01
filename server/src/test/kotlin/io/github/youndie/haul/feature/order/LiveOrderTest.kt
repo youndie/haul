@@ -15,6 +15,7 @@ import io.github.youndie.haul.feature.payment.domain.PaymentProcessor
 import io.github.youndie.haul.haulModule
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.SampleCustomers
+import io.github.youndie.haul.shell.UPDATES
 import io.github.youndie.haul.testing.CANVAS_NOW
 import io.github.youndie.haul.testing.FulfilmentWorld
 import io.github.youndie.haul.testing.Ledger
@@ -311,7 +312,7 @@ class LiveOrderTest {
         token: String?,
     ): HttpRequest =
         HttpRequest
-            .newBuilder(URI("$origin${OrderPaths.UPDATES}?topic=${URLEncoder.encode(topic, Charsets.UTF_8)}"))
+            .newBuilder(URI("$origin$UPDATES?topic=${URLEncoder.encode(topic, Charsets.UTF_8)}"))
             .apply { token?.let { header("Authorization", "Bearer $it") } }
             .timeout(java.time.Duration.ofSeconds(10))
             .GET()

@@ -300,7 +300,8 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
   5. Open the store in a new tab.
 - **Expected:**
   - Step 1: once the page has drawn, one quiet line above the header's dark strip reads «A demo store built with
-    Kotlin: Ktor, kompot, Compose Multiplatform in the browser.», then «About this demo» · «Source on GitHub», and a
+    Kotlin: Ktor, kompot, Compose Multiplatform in the browser.», then «About this demo» · «Live orders» (B-164) ·
+    «Source on GitHub», and a
     «×» at its end; one line at 1440, the words wrapping over two lines and the links under them at 390. The page
     under it arrives as before — the line comes after it, never before.
   - Step 2: `https://github.com/youndie/haul` opens in a tab of its own; the store's tab stays on its page.
@@ -324,7 +325,7 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
 - **Steps:**
   1. Press «About this demo» in the line above the header.
   2. Read the page.
-  3. Press «Source on GitHub», then «Read the README».
+  3. Press «Source on GitHub», then «Read the README»; then «Watch the live orders» (B-164).
   4. Reload `/about`; open `/about` in a new tab by its address.
   5. Look at the footer.
 - **Expected:**
@@ -333,7 +334,8 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
     zavarnik AOT cache, kompot, Compose Multiplatform in the browser, petich, shildik, the synthetic shoppers, tracy),
     «What is real» (the saga and its compensations; the sellers, couriers and payments, simulated; the observability)
     and «What is not» (no money moves, no parcel ships, the products, reviews and sellers invented).
-  - Step 3: the repository, then its README, each in a tab of its own; the store's tab stays on `/about`.
+  - Step 3: the repository, then its README, each in a tab of its own; the store's tab stays on `/about`. «Watch the
+    live orders» opens `/live` in the store's own tab (TC-ORD-13).
   - Step 4: the page each time, not a «page isn’t here».
   - Step 5: the footer is as on the home page — «Deals», «Haul Plus», «Track an order»; no «About» in it, on purpose.
 - **Decided in:** B-160

@@ -71,6 +71,12 @@ public enum class StorefrontPage {
      * a server tree in the frame, reached from the demo strip and by its address.
      */
     About,
+
+    /**
+     * `/live`, «Live orders» (B-164): the last orders placed on the stand as the saga and the simulated world move
+     * them, anonymised — a server tree in the frame, reached from the About page and the demo strip.
+     */
+    Live,
     ;
 
     public companion object {
@@ -123,6 +129,10 @@ public enum class StorefrontPage {
 
                 "about" -> {
                     About.takeIf { rest == 0 }
+                }
+
+                "live" -> {
+                    Live.takeIf { rest == 0 }
                 }
 
                 else -> {

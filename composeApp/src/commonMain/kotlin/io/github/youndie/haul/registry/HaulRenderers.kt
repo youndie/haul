@@ -35,6 +35,7 @@ import io.github.youndie.haul.feature.home.CategoryGridView
 import io.github.youndie.haul.feature.home.PlusBlockView
 import io.github.youndie.haul.feature.home.PlusTrialDialogPresented
 import io.github.youndie.haul.feature.home.SectionHeaderView
+import io.github.youndie.haul.feature.live.LiveOrdersBodyView
 import io.github.youndie.haul.feature.order.OrderBodyView
 import io.github.youndie.haul.feature.order.ReturnDialog
 import io.github.youndie.haul.feature.product.ProductDescriptionView
@@ -67,6 +68,7 @@ import io.github.youndie.haul.ui.HaulFooterView
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HaulHeaderView
 import io.github.youndie.haul.ui.HaulPagination
+import io.github.youndie.haul.ui.LiveOrdersBody
 import io.github.youndie.haul.ui.LocalCardNodes
 import io.github.youndie.haul.ui.OrderBody
 import io.github.youndie.haul.ui.PageTitle
@@ -253,6 +255,19 @@ public class DemoNoteRenderer : KompotComponentRenderer<DemoNote> {
         formController: FormController,
     ) {
         DemoNoteView(component, onClose = null)
+    }
+}
+
+/** «Live orders» (`/live`, B-164): every order's saga as it runs, its body sent again whenever an order moves. */
+@KompotComponentMarker
+public class LiveOrdersBodyRenderer : KompotComponentRenderer<LiveOrdersBody> {
+    @Composable
+    override fun Render(
+        component: LiveOrdersBody,
+        actionHandler: KompotActionHandler,
+        formController: FormController,
+    ) {
+        LiveOrdersBodyView(component)
     }
 }
 

@@ -33,6 +33,9 @@ import io.github.youndie.haul.feature.identity.domain.IdentityError
 import io.github.youndie.haul.feature.identity.identityModule
 import io.github.youndie.haul.feature.identity.identityRouting
 import io.github.youndie.haul.feature.identity.installSignIn
+import io.github.youndie.haul.feature.live.LiveFeed
+import io.github.youndie.haul.feature.live.liveModule
+import io.github.youndie.haul.feature.live.liveRouting
 import io.github.youndie.haul.feature.membership.domain.MembershipError
 import io.github.youndie.haul.feature.membership.membershipModule
 import io.github.youndie.haul.feature.membership.membershipRouting
@@ -183,6 +186,7 @@ internal fun Application.haulModule(
             returnsModule,
             membershipModule,
             recommendationsModule,
+            liveModule,
         )
     }
     // Carries on what a process that died left mid-saga, from the first moment this one serves; it
@@ -190,6 +194,8 @@ internal fun Application.haulModule(
     get<SuspendedPetichSweeper>().start(this + sweeperPatience())
     // The order's live page (B-29): listening to the moves before anything can make one.
     get<LiveOrders>().start(this)
+    // «Live orders» (B-164): the same moves, drawn for everybody, over the broadcaster the line above started.
+    get<LiveFeed>().start(this)
     // The simulated world after placement, in the same scope: shipments move and are charged as they ship,
     // returns are refunded, and Haul Pay's payments are taken as they come due.
     fulfilment.interval?.let { FulfilmentRunner(get(), get(), get(), it).start(this) }
@@ -197,7 +203,7 @@ internal fun Application.haulModule(
     saleLook?.let { SaleRedater(database, clock).start(this, it) }
     // Demo shoppers older than a day forgotten, with everything they did (B-162).
     demoSweep?.let { get<DemoOffer>().startSweeping(this, it) }
-    // Server-sent events, the live order page's stream (B-29).
+    // Server-sent events, the live pages' stream (B-29, B-164).
     install(SSE)
     install(StatusPages) {
         // A bearer token that did not verify, or none where the customer tier needs one: the
@@ -248,6 +254,8 @@ internal fun Application.haulModule(
             identityRouting(signIn)
             cartRouting()
             aboutRouting()
+            // «Live orders» and the stream every live page listens on, the order's page's included (B-164).
+            liveRouting()
         }
         // Customer: a verified shildik token, or `401 unauthenticated`.
         authenticate(JWT_AUTH_OIDC) {

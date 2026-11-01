@@ -22,6 +22,11 @@ pixels, and running in public at **[haul.kotlin.website](https://haul.kotlin.web
    Checkout needs a sign-in on the stand for now; «Try as a demo shopper», which makes a customer of your own in one
    press and forgets them after a day, is built ([`DemoShoppers.kt`](server/src/main/kotlin/io/github/youndie/haul/feature/identity/domain/DemoShoppers.kt))
    and not yet switched on there.
+5. **Watch every order's saga on [Live orders](https://haul.kotlin.website/live).** The synthetic shoppers' orders and
+   anybody's, the last twenty, each step lighting up as it happens without a reload — and one walk in ten declined,
+   its failed step red and the steps before it undone in reverse. Open a row for its trail. The page listens on the
+   same server-sent stream the order page does ([`LiveFeed.kt`](server/src/main/kotlin/io/github/youndie/haul/feature/live/LiveFeed.kt)),
+   and names no customer.
 
 Haul exists to put a whole Kotlin stack through a real product rather than a demo app: every screen is a tree
 the server sends, the browser draws it with Compose Multiplatform on WebAssembly, and an order is a saga that

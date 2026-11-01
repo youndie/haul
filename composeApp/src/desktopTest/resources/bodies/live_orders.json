@@ -1,0 +1,729 @@
+{
+  "type": "column",
+  "id": "live-page",
+  "children": [
+    {
+      "type": "haul_header",
+      "id": "header",
+      "tabTitle": "Live orders · Haul",
+      "customerName": null,
+      "deliverTo": "Brooklyn, NY 11211",
+      "deliveryPromise": "Free delivery over $35",
+      "cartCount": 0,
+      "searchPlaceholder": "Search products",
+      "categories": [
+        "Electronics",
+        "Home & Kitchen",
+        "Fashion",
+        "Beauty",
+        "Kids & Toys",
+        "Sports",
+        "Grocery",
+        "Auto",
+        "Books",
+        "Pets"
+      ]
+    },
+    {
+      "type": "haul_live_orders",
+      "id": "live-orders",
+      "eyebrow": "Live orders",
+      "title": "Every order here is a saga",
+      "accent": "a saga",
+      "lead": "The last 20 orders placed on this stand — the synthetic shoppers’ and anybody’s — as they happen. Each is a petich saga: the stock, a delivery window, the points and the card are taken in turn, and when a step fails, the ones before it are given back in reverse. Then the simulated sellers pack and ship each part, the card is charged as it leaves, and a return is refunded once it is back. One shopper in ten pays with a card that is always declined, so the undoing is here too.",
+      "links": [
+        {
+          "label": "Read the saga: OrderSaga.kt",
+          "action": {
+            "type": "open_url",
+            "url": "https://github.com/youndie/haul/blob/main/server/src/main/kotlin/io/github/youndie/haul/feature/order/saga/OrderSaga.kt"
+          }
+        }
+      ],
+      "orders": [
+        {
+          "id": "HL-48311",
+          "number": "#HL-48311",
+          "placed": "Oct 7, 19:47",
+          "sellers": "Northline Knitwear · Homeworks",
+          "summary": "3 items · $214.50",
+          "status": "Placed",
+          "lanes": [
+            {
+              "title": "The saga",
+              "steps": [
+                {
+                  "label": "Reserve stock",
+                  "state": "done",
+                  "word": "done"
+                },
+                {
+                  "label": "Hold the window",
+                  "state": "done",
+                  "word": "done"
+                },
+                {
+                  "label": "Take the points",
+                  "state": "skipped",
+                  "word": "no points"
+                },
+                {
+                  "label": "Open the order",
+                  "state": "done",
+                  "word": "done"
+                },
+                {
+                  "label": "Authorise the card",
+                  "state": "done",
+                  "word": "done"
+                },
+                {
+                  "label": "Confirm",
+                  "state": "done",
+                  "word": "done"
+                }
+              ]
+            },
+            {
+              "title": "Northline Knitwear",
+              "steps": [
+                {
+                  "label": "Packed",
+                  "state": "pending",
+                  "word": "not yet"
+                },
+                {
+                  "label": "On its way",
+                  "state": "pending",
+                  "word": "not yet"
+                },
+                {
+                  "label": "Delivered",
+                  "state": "pending",
+                  "word": "not yet"
+                }
+              ]
+            },
+            {
+              "title": "Homeworks",
+              "steps": [
+                {
+                  "label": "Packed",
+                  "state": "pending",
+                  "word": "not yet"
+                },
+                {
+                  "label": "On its way",
+                  "state": "pending",
+                  "word": "not yet"
+                },
+                {
+                  "label": "Delivered",
+                  "state": "pending",
+                  "word": "not yet"
+                }
+              ]
+            }
+          ],
+          "trail": [
+            {
+              "at": "Oct 7, 19:47:23",
+              "text": "Stock reserved for every line",
+              "member": "reserve-stock",
+              "state": "done"
+            },
+            {
+              "at": "Oct 7, 19:47:23",
+              "text": "A place in the courier’s window held",
+              "member": "reserve-slot",
+              "state": "done"
+            },
+            {
+              "at": "Oct 7, 19:47:23",
+              "text": "No points to take",
+              "member": "redeem-points",
+              "state": "skipped"
+            },
+            {
+              "at": "Oct 7, 19:47:23",
+              "text": "The order opened, a shipment per seller",
+              "member": "open-order",
+              "state": "done"
+            },
+            {
+              "at": "Oct 7, 19:47:23",
+              "text": "$214.50 held on the card",
+              "member": "authorise-payment",
+              "state": "done"
+            },
+            {
+              "at": "Oct 7, 19:47:23",
+              "text": "Confirmed: the order is placed",
+              "member": "confirm",
+              "state": "done"
+            }
+          ]
+        },
+        {
+          "id": "HL-48310",
+          "number": "#HL-48310",
+          "placed": "Oct 7, 19:41",
+          "sellers": "FlowFit Studio",
+          "summary": "1 item · $89",
+          "status": "Cancelled: card declined",
+          "undone": true,
+          "lanes": [
+            {
+              "title": "The saga",
+              "steps": [
+                {
+                  "label": "Reserve stock",
+                  "state": "undone",
+                  "word": "undone"
+                },
+                {
+                  "label": "Hold the window",
+                  "state": "undone",
+                  "word": "undone"
+                },
+                {
+                  "label": "Take the points",
+                  "state": "undone",
+                  "word": "undone"
+                },
+                {
+                  "label": "Open the order",
+                  "state": "undone",
+                  "word": "undone"
+                },
+                {
+                  "label": "Authorise the card",
+                  "state": "failed",
+                  "word": "refused: card declined"
+                },
+                {
+                  "label": "Confirm",
+                  "state": "pending",
+                  "word": "not reached"
+                }
+              ]
+            }
+          ],
+          "trail": [
+            {
+              "at": "Oct 7, 19:41:02",
+              "text": "Stock reserved for every line",
+              "member": "reserve-stock",
+              "state": "done"
+            },
+            {
+              "at": "Oct 7, 19:41:02",
+              "text": "A place in the courier’s window held",
+              "member": "reserve-slot",
+              "state": "done"
+            },
+            {
+              "at": "Oct 7, 19:41:02",
+              "text": "Points taken off the balance",
+              "member": "redeem-points",
+              "state": "done"
+            },
+            {
+              "at": "Oct 7, 19:41:02",
+              "text": "The order opened, a shipment per seller",
+              "member": "open-order",
+              "state": "done"
+            },
+            {
+              "at": "Oct 7, 19:41:02",
+              "text": "The card was declined: the saga turns back",
+              "member": "authorise-payment",
+              "state": "failed"
+            },
+            {
+              "at": "Oct 7, 19:41:02",
+              "text": "Undone: the order cancelled, its shipments with it",
+              "member": "open-order",
+              "state": "undone"
+            },
+            {
+              "at": "Oct 7, 19:41:02",
+              "text": "Undone: the points given back",
+              "member": "redeem-points",
+              "state": "undone"
+            },
+            {
+              "at": "Oct 7, 19:41:02",
+              "text": "Undone: the window released",
+              "member": "reserve-slot",
+              "state": "undone"
+            },
+            {
+              "at": "Oct 7, 19:41:02",
+              "text": "Undone: the stock released",
+              "member": "reserve-stock",
+              "state": "undone"
+            }
+          ]
+        },
+        {
+          "id": "HL-48309",
+          "number": "#HL-48309",
+          "placed": "Oct 7, 11:12",
+          "sellers": "FlowFit Studio",
+          "summary": "1 item · $64",
+          "status": "In transit",
+          "lanes": [
+            {
+              "title": "The saga",
+              "steps": [
+                {
+                  "label": "Reserve stock",
+                  "state": "done",
+                  "word": "done"
+                },
+                {
+                  "label": "Hold the window",
+                  "state": "skipped",
+                  "word": "no window"
+                },
+                {
+                  "label": "Take the points",
+                  "state": "skipped",
+                  "word": "no points"
+                },
+                {
+                  "label": "Open the order",
+                  "state": "done",
+                  "word": "done"
+                },
+                {
+                  "label": "Authorise the card",
+                  "state": "done",
+                  "word": "done"
+                },
+                {
+                  "label": "Confirm",
+                  "state": "done",
+                  "word": "done"
+                }
+              ]
+            },
+            {
+              "title": "FlowFit Studio",
+              "steps": [
+                {
+                  "label": "Packed",
+                  "state": "done",
+                  "word": "done",
+                  "at": "Oct 7, 15:12"
+                },
+                {
+                  "label": "On its way",
+                  "state": "done",
+                  "word": "charged $64",
+                  "at": "Oct 7, 19:12"
+                },
+                {
+                  "label": "Ready",
+                  "state": "pending",
+                  "word": "not yet"
+                },
+                {
+                  "label": "Collected",
+                  "state": "pending",
+                  "word": "not yet"
+                }
+              ]
+            }
+          ],
+          "trail": [
+            {
+              "at": "Oct 7, 11:12:40",
+              "text": "Stock reserved for every line",
+              "member": "reserve-stock",
+              "state": "done"
+            },
+            {
+              "at": "Oct 7, 11:12:40",
+              "text": "No window to hold: it is collected",
+              "member": "reserve-slot",
+              "state": "skipped"
+            },
+            {
+              "at": "Oct 7, 11:12:40",
+              "text": "No points to take",
+              "member": "redeem-points",
+              "state": "skipped"
+            },
+            {
+              "at": "Oct 7, 11:12:40",
+              "text": "The order opened, a shipment per seller",
+              "member": "open-order",
+              "state": "done"
+            },
+            {
+              "at": "Oct 7, 11:12:40",
+              "text": "$64 held on the card",
+              "member": "authorise-payment",
+              "state": "done"
+            },
+            {
+              "at": "Oct 7, 11:12:40",
+              "text": "Confirmed: the order is placed",
+              "member": "confirm",
+              "state": "done"
+            },
+            {
+              "at": "Oct 7, 15:12:45",
+              "text": "FlowFit Studio: packed",
+              "state": "done"
+            },
+            {
+              "at": "Oct 7, 19:12:45",
+              "text": "FlowFit Studio: on its way",
+              "state": "done"
+            },
+            {
+              "at": "Oct 7, 19:12:45",
+              "text": "FlowFit Studio: its share charged as it left, $64",
+              "state": "done"
+            }
+          ]
+        },
+        {
+          "id": "HL-48308",
+          "number": "#HL-48308",
+          "placed": "Oct 6, 10:03",
+          "sellers": "Homeworks",
+          "summary": "2 items · $157.25",
+          "status": "Delivered",
+          "lanes": [
+            {
+              "title": "The saga",
+              "steps": [
+                {
+                  "label": "Reserve stock",
+                  "state": "done",
+                  "word": "done"
+                },
+                {
+                  "label": "Hold the window",
+                  "state": "done",
+                  "word": "done"
+                },
+                {
+                  "label": "Take the points",
+                  "state": "skipped",
+                  "word": "no points"
+                },
+                {
+                  "label": "Open the order",
+                  "state": "done",
+                  "word": "done"
+                },
+                {
+                  "label": "Authorise the card",
+                  "state": "skipped",
+                  "word": "pays on delivery"
+                },
+                {
+                  "label": "Confirm",
+                  "state": "done",
+                  "word": "done"
+                }
+              ]
+            },
+            {
+              "title": "Homeworks",
+              "steps": [
+                {
+                  "label": "Packed",
+                  "state": "done",
+                  "word": "done",
+                  "at": "Oct 6, 14:03"
+                },
+                {
+                  "label": "On its way",
+                  "state": "done",
+                  "word": "done",
+                  "at": "Oct 7, 10:03"
+                },
+                {
+                  "label": "Delivered",
+                  "state": "done",
+                  "word": "done",
+                  "at": "Oct 7, 17:30"
+                }
+              ]
+            }
+          ],
+          "trail": [
+            {
+              "at": "Oct 6, 10:03:11",
+              "text": "Stock reserved for every line",
+              "member": "reserve-stock",
+              "state": "done"
+            },
+            {
+              "at": "Oct 6, 10:03:11",
+              "text": "A place in the courier’s window held",
+              "member": "reserve-slot",
+              "state": "done"
+            },
+            {
+              "at": "Oct 6, 10:03:11",
+              "text": "No points to take",
+              "member": "redeem-points",
+              "state": "skipped"
+            },
+            {
+              "at": "Oct 6, 10:03:11",
+              "text": "The order opened, a shipment per seller",
+              "member": "open-order",
+              "state": "done"
+            },
+            {
+              "at": "Oct 6, 10:03:11",
+              "text": "Nothing to hold: it is paid on delivery",
+              "member": "authorise-payment",
+              "state": "skipped"
+            },
+            {
+              "at": "Oct 6, 10:03:11",
+              "text": "Confirmed: the order is placed",
+              "member": "confirm",
+              "state": "done"
+            },
+            {
+              "at": "Oct 6, 14:03:20",
+              "text": "Homeworks: packed",
+              "state": "done"
+            },
+            {
+              "at": "Oct 7, 10:03:20",
+              "text": "Homeworks: on its way",
+              "state": "done"
+            },
+            {
+              "at": "Oct 7, 17:30:00",
+              "text": "Homeworks: delivered",
+              "state": "done"
+            }
+          ]
+        },
+        {
+          "id": "HL-48307",
+          "number": "#HL-48307",
+          "placed": "Oct 2, 12:20",
+          "sellers": "Clear Skin Lab",
+          "summary": "1 item · $42",
+          "status": "Returned",
+          "lanes": [
+            {
+              "title": "The saga",
+              "steps": [
+                {
+                  "label": "Reserve stock",
+                  "state": "done",
+                  "word": "done"
+                },
+                {
+                  "label": "Hold the window",
+                  "state": "done",
+                  "word": "done"
+                },
+                {
+                  "label": "Take the points",
+                  "state": "skipped",
+                  "word": "no points"
+                },
+                {
+                  "label": "Open the order",
+                  "state": "done",
+                  "word": "done"
+                },
+                {
+                  "label": "Authorise the card",
+                  "state": "done",
+                  "word": "done"
+                },
+                {
+                  "label": "Confirm",
+                  "state": "done",
+                  "word": "done"
+                }
+              ]
+            },
+            {
+              "title": "Clear Skin Lab",
+              "steps": [
+                {
+                  "label": "Packed",
+                  "state": "done",
+                  "word": "done",
+                  "at": "Oct 2, 16:20"
+                },
+                {
+                  "label": "On its way",
+                  "state": "done",
+                  "word": "charged $42",
+                  "at": "Oct 3, 12:20"
+                },
+                {
+                  "label": "Delivered",
+                  "state": "done",
+                  "word": "done",
+                  "at": "Oct 4, 15:05"
+                }
+              ]
+            },
+            {
+              "title": "The return",
+              "steps": [
+                {
+                  "label": "Asked for",
+                  "state": "done",
+                  "word": "done",
+                  "at": "Oct 5, 09:00"
+                },
+                {
+                  "label": "Picked up",
+                  "state": "done",
+                  "word": "done",
+                  "at": "Oct 6, 09:00"
+                },
+                {
+                  "label": "Refunded",
+                  "state": "done",
+                  "word": "$42 back",
+                  "at": "Oct 7, 09:00"
+                }
+              ]
+            }
+          ],
+          "trail": [
+            {
+              "at": "Oct 2, 12:20:05",
+              "text": "Stock reserved for every line",
+              "member": "reserve-stock",
+              "state": "done"
+            },
+            {
+              "at": "Oct 2, 12:20:05",
+              "text": "A place in the courier’s window held",
+              "member": "reserve-slot",
+              "state": "done"
+            },
+            {
+              "at": "Oct 2, 12:20:05",
+              "text": "No points to take",
+              "member": "redeem-points",
+              "state": "skipped"
+            },
+            {
+              "at": "Oct 2, 12:20:05",
+              "text": "The order opened, a shipment per seller",
+              "member": "open-order",
+              "state": "done"
+            },
+            {
+              "at": "Oct 2, 12:20:05",
+              "text": "$42 held on the card",
+              "member": "authorise-payment",
+              "state": "done"
+            },
+            {
+              "at": "Oct 2, 12:20:05",
+              "text": "Confirmed: the order is placed",
+              "member": "confirm",
+              "state": "done"
+            },
+            {
+              "at": "Oct 2, 16:20:10",
+              "text": "Clear Skin Lab: packed",
+              "state": "done"
+            },
+            {
+              "at": "Oct 3, 12:20:10",
+              "text": "Clear Skin Lab: on its way",
+              "state": "done"
+            },
+            {
+              "at": "Oct 3, 12:20:10",
+              "text": "Clear Skin Lab: its share charged as it left, $42",
+              "state": "done"
+            },
+            {
+              "at": "Oct 4, 15:05:00",
+              "text": "Clear Skin Lab: delivered",
+              "state": "done"
+            },
+            {
+              "at": "Oct 5, 09:00:00",
+              "text": "A return asked for: $42 to give back",
+              "state": "done"
+            },
+            {
+              "at": "Oct 6, 09:00:00",
+              "text": "The return picked up by the courier",
+              "state": "done"
+            },
+            {
+              "at": "Oct 7, 09:00:00",
+              "text": "Refunded $42; the units back in stock",
+              "state": "done"
+            }
+          ]
+        }
+      ],
+      "open": "Show the trail",
+      "close": "Hide the trail",
+      "note": "No names, addresses, windows or pickup codes: an order is its number, its sellers, what it cost and what happened to it. The page is drawn again whenever an order moves, over the same stream an order’s own page is live on."
+    },
+    {
+      "type": "haul_footer",
+      "id": "footer",
+      "columns": [
+        {
+          "title": "Shop",
+          "links": [
+            "Deals",
+            "Haul Plus"
+          ],
+          "linked": [
+            {
+              "label": "Deals",
+              "action": {
+                "type": "navigate",
+                "deeplink": "/deals"
+              }
+            },
+            {
+              "label": "Haul Plus",
+              "action": {
+                "type": "navigate",
+                "deeplink": "/sign-in"
+              }
+            }
+          ]
+        },
+        {
+          "title": "Help",
+          "links": [
+            "Track an order"
+          ],
+          "linked": [
+            {
+              "label": "Track an order",
+              "action": {
+                "type": "navigate",
+                "deeplink": "/sign-in?next=%2Faccount%2Forders"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
