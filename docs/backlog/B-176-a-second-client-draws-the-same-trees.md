@@ -1,7 +1,7 @@
 ---
 id: B-176
 title: "feat: a second client — desktop — draws the same server trees"
-status: open
+status: wip
 priority: P3
 size: L
 stage: stage-15-showcase
