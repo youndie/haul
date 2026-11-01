@@ -53,7 +53,10 @@ class AboutRoutesTest {
                 (page as ColumnComponent).children.map { it.id },
                 "the header, the body and the footer, as every page with a footer is framed",
             )
-            assertEquals(tree("/ui/header"), page.only<HaulHeader>(), "the header is every page's")
+            // The header alone names no page (B-161); on a page it carries the page's tab title, and is otherwise the same.
+            val header = page.only<HaulHeader>()
+            assertEquals("About this demo · Haul", header.tabTitle)
+            assertEquals(tree("/ui/header"), header.copy(tabTitle = null), "the header is every page's")
             assertEquals(tree("/ui/home").only<HaulFooter>(), page.only<HaulFooter>(), "the footer is left as it is")
             val about = page.only<AboutBody>()
             assertEquals(
