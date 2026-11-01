@@ -1,0 +1,164 @@
+{
+  "type": "column",
+  "id": "about-page",
+  "children": [
+    {
+      "type": "haul_header",
+      "id": "header",
+      "customerName": null,
+      "deliverTo": "Brooklyn, NY 11211",
+      "deliveryPromise": "Free delivery over $35",
+      "cartCount": 0,
+      "searchPlaceholder": "Search products",
+      "categories": [
+        "Electronics",
+        "Home & Kitchen",
+        "Fashion",
+        "Beauty",
+        "Kids & Toys",
+        "Sports",
+        "Grocery",
+        "Auto",
+        "Books",
+        "Pets"
+      ]
+    },
+    {
+      "type": "haul_about",
+      "id": "about",
+      "eyebrow": "About this demo",
+      "title": "A demo store, built with Kotlin end to end",
+      "accent": "Kotlin end to end",
+      "lead": "Haul is an open showcase: a marketplace whose every page, command and order runs on one Kotlin stack, from the database to the pixels. Browse it, fill a cart, sign in, place an order and return it — nothing done here costs anything or reaches anybody.",
+      "sections": [
+        {
+          "title": "What it is built with",
+          "points": [
+            {
+              "name": "Ktor on the JVM",
+              "text": "The server: every page, every command and the order’s saga, over PostgreSQL. It starts from an AOT cache zavarnik trains when the image is built."
+            },
+            {
+              "name": "kompot",
+              "text": "Every page is a tree of components the server builds and sends, and the browser draws. A filter, a stepper or a tab answers with only the parts that changed."
+            },
+            {
+              "name": "Compose Multiplatform in the browser",
+              "text": "The storefront is Compose on Kotlin/Wasm; the same code draws the screenshot tests on the JVM."
+            },
+            {
+              "name": "petich",
+              "text": "An order is a saga: stock, a delivery slot, points and the card are reserved in turn, and given back in reverse when a step fails."
+            },
+            {
+              "name": "shildik",
+              "text": "Sign-in is an OpenID Connect provider of the project’s own, deployed beside the store — the sign-in page on another address is it."
+            },
+            {
+              "name": "Synthetic shoppers",
+              "text": "Scripted shoppers walk the store every ten minutes — browse, buy, receive, return — so an order is always on its way."
+            },
+            {
+              "name": "tracy",
+              "text": "Logs and traces of every request, each order’s saga one list in them; route metrics in metrik, crash reports in katcher."
+            }
+          ]
+        },
+        {
+          "title": "What is real",
+          "points": [
+            {
+              "name": "The saga and its compensations",
+              "text": "Placing an order reserves and authorises step by step; a declined card gives back everything taken before it, and a return is refunded."
+            },
+            {
+              "name": "The sellers, couriers and payments",
+              "text": "Simulated inside the server, on a clock: shipments are packed, sent and delivered, a card is charged as its shipment leaves, and the four payments come due."
+            },
+            {
+              "name": "The observability",
+              "text": "What the stand logs, traces and reports is what happened on it, the synthetic shoppers’ walks included."
+            }
+          ]
+        },
+        {
+          "title": "What is not",
+          "points": [
+            {
+              "name": "Money",
+              "text": "No money moves: the cards are the simulator’s, and nobody is charged."
+            },
+            {
+              "name": "Parcels",
+              "text": "No parcel ships: a delivery is the simulator moving it along."
+            },
+            {
+              "name": "Products, reviews and sellers",
+              "text": "Invented for the demo: the catalogue, its pictures, the reviews and the sellers are sample data. No brand sells here."
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "label": "Source on GitHub",
+          "action": {
+            "type": "open_url",
+            "url": "https://github.com/youndie/haul"
+          }
+        },
+        {
+          "label": "Read the README",
+          "action": {
+            "type": "open_url",
+            "url": "https://github.com/youndie/haul#readme"
+          }
+        }
+      ]
+    },
+    {
+      "type": "haul_footer",
+      "id": "footer",
+      "columns": [
+        {
+          "title": "Shop",
+          "links": [
+            "Deals",
+            "Haul Plus"
+          ],
+          "linked": [
+            {
+              "label": "Deals",
+              "action": {
+                "type": "navigate",
+                "deeplink": "/deals"
+              }
+            },
+            {
+              "label": "Haul Plus",
+              "action": {
+                "type": "navigate",
+                "deeplink": "/sign-in"
+              }
+            }
+          ]
+        },
+        {
+          "title": "Help",
+          "links": [
+            "Track an order"
+          ],
+          "linked": [
+            {
+              "label": "Track an order",
+              "action": {
+                "type": "navigate",
+                "deeplink": "/sign-in?next=%2Faccount%2Forders"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

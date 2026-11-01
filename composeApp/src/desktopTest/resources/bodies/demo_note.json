@@ -1,0 +1,22 @@
+{
+  "type": "haul_demo_note",
+  "id": "demo-note",
+  "text": "A demo store built with Kotlin: Ktor, kompot, Compose Multiplatform in the browser.",
+  "links": [
+    {
+      "label": "About this demo",
+      "action": {
+        "type": "navigate",
+        "deeplink": "/about"
+      }
+    },
+    {
+      "label": "Source on GitHub",
+      "action": {
+        "type": "open_url",
+        "url": "https://github.com/youndie/haul"
+      }
+    }
+  ],
+  "close": "Close the demo note"
+}

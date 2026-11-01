@@ -38,6 +38,9 @@ public enum class PageKind {
 
     /** `/sign-in`: the client's own page, with no tree behind it (B-66). */
     SignIn,
+
+    /** `/about`: «About this demo», what the stand is and is built with (B-160). */
+    About,
     Other,
     ;
 
@@ -70,6 +73,7 @@ public data class Address(
             StorefrontPage.SignIn -> PageKind.SignIn
             StorefrontPage.Categories -> PageKind.Categories
             StorefrontPage.Deals -> PageKind.Deals
+            StorefrontPage.About -> PageKind.About
             null -> PageKind.Other
         }
 

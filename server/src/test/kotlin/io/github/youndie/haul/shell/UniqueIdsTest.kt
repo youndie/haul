@@ -300,6 +300,7 @@ class UniqueIdsTest {
                 "/ui/search?q=zzqxv",
                 "/ui/deals",
                 "/ui/deals?page=2",
+                "/ui/about",
                 "/ui/p/${SampleCatalog.SONY_HEADPHONES}",
                 "/ui/p/${SampleCatalog.SONY_HEADPHONES}?sku=${SampleCatalog.SONY_HEADPHONES}-1&tab=reviews",
                 "/ui/p/${SampleCatalog.SONY_HEADPHONES}?tab=specifications",

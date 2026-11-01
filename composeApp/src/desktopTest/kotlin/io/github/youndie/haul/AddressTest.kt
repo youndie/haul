@@ -67,6 +67,10 @@ class AddressTest {
         assertEquals(PageKind.Deals, Address("/deals").kind)
         assertEquals(PageKind.Deals, Address("/deals?page=2").kind)
         assertEquals(PageKind.Other, Address("/deals/today").kind)
+        // «About this demo» (B-160): a server tree at an address a reload opens.
+        assertEquals("/ui/about", Address("/about").screen)
+        assertEquals(PageKind.About, Address("/about").kind)
+        assertEquals(PageKind.Other, Address("/about/stack").kind)
         // The catalog's root (B-49), every top-level category: a page, with placeholders of its own (B-108).
         assertEquals("/ui/c", Address("/c").screen)
         assertEquals(PageKind.Categories, Address("/c").kind)

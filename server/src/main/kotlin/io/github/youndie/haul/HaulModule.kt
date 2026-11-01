@@ -2,6 +2,7 @@ package io.github.youndie.haul
 
 import io.github.youndie.haul.db.Databases
 import io.github.youndie.haul.db.FailFastDataSource
+import io.github.youndie.haul.feature.about.aboutRouting
 import io.github.youndie.haul.feature.account.accountModule
 import io.github.youndie.haul.feature.account.accountRouting
 import io.github.youndie.haul.feature.cart.cartModule
@@ -220,6 +221,7 @@ internal fun Application.haulModule(
             searchRouting()
             identityRouting(signIn)
             cartRouting()
+            aboutRouting()
         }
         // Customer: a verified shildik token, or `401 unauthenticated`.
         authenticate(JWT_AUTH_OIDC) {
