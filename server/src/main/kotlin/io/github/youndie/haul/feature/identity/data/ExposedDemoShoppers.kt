@@ -10,7 +10,9 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.less
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
 import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.sql.Connection
@@ -24,7 +26,8 @@ import java.time.OffsetDateTime
 internal class ExposedDemoShoppers(
     private val database: Database,
 ) : DemoShopperRepository {
-    private suspend fun <T> tx(block: () -> T): T = withContext(Dispatchers.IO) { transaction(database) { block() } }
+    private suspend fun <T> tx(block: JdbcTransaction.() -> T): T =
+        withContext(Dispatchers.IO) { transaction(database) { block() } }
 
     override suspend fun madeSince(at: OffsetDateTime): Int =
         tx {

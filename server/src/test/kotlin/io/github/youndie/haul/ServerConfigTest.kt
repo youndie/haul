@@ -205,11 +205,11 @@ class ServerConfigTest {
 
     @Test
     fun `the three demo variables with sign-in turn the demo on, at the default daily limit`() {
-        val demo = assertNotNull(config(*signIn, *demo).demoShoppers)
+        val made = assertNotNull(config(*signIn, *demo).demoShoppers)
 
-        assertEquals("http://haul-shildik:9000", demo.management)
-        assertEquals("https://haul.example/signed-in.html", demo.redirectUri)
-        assertEquals(500, demo.dailyLimit)
+        assertEquals("http://haul-shildik:9000", made.management)
+        assertEquals("https://haul.example/signed-in.html", made.redirectUri)
+        assertEquals(500, made.dailyLimit)
         assertEquals(20, assertNotNull(config(*signIn, *demo, "HAUL_DEMO_DAILY_LIMIT" to "20").demoShoppers).dailyLimit)
     }
 

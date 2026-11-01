@@ -24,6 +24,7 @@ import io.github.youndie.haul.testing.assertError
 import io.github.youndie.haul.testing.assertRefresh
 import io.github.youndie.haul.testing.guest
 import io.github.youndie.haul.testing.haulTest
+import io.github.youndie.haul.testing.json
 import io.github.youndie.haul.testing.only
 import io.github.youndie.haul.testing.putLine
 import io.github.youndie.haul.testing.seededFreshDatabase
@@ -138,7 +139,9 @@ class DemoShopperRoutesTest {
 
     private fun later(by: Duration): StoreClock = StoreClock { CANVAS_NOW.now().plus(by.toJavaDuration()) }
 
-    private fun <T> DataSource.sql(block: Connection.() -> T): T = connection.use { it.block() }
+    /** [block] over a connection of the pool's, committed: the pool hands them out outside autocommit. */
+    private fun <T> DataSource.sql(block: Connection.() -> T): T =
+        connection.use { connection -> connection.block().also { if (!connection.autoCommit) connection.commit() } }
 
     private fun DataSource.count(
         sql: String,
@@ -209,7 +212,7 @@ class DemoShopperRoutesTest {
             val checkout = tree(CheckoutPaths.SCREEN, first.accessToken)
             val payment = checkout.only<PaymentMethods>().options.single { it.selected }
             assertEquals("haul_pay", payment.id)
-            assertTrue("148 Wythe Avenue" in haulWireJson.encodeToString(KompotComponent.serializer(), checkout))
+            assertTrue("148 Wythe Avenue" in checkout.json().toString(), "the checkout is not to the demo address")
             val order = place(first.accessToken)
             assertEquals(200, get("/ui/account/orders/$order") { bearerAuth(first.accessToken) }.status.value)
 
@@ -255,7 +258,7 @@ class DemoShopperRoutesTest {
                             ),
                         ),
                     )
-                }.also { assertEquals(HttpStatusCode.OK, it.status, it.bodyAsText()) }
+                }.also { assertEquals(HttpStatusCode.Created, it.status, it.bodyAsText()) }
                 sub =
                     database.sql {
                         createStatement().use { s ->
