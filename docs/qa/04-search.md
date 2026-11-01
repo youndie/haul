@@ -252,3 +252,25 @@ long search is walked in [catalog and filters](03-catalog-and-filters.md) (TC-CA
 - **Coverage:** `SuggestPanelClosingTest` «one character asks for no suggestions and the second one does»;
   `SuggestPanelClosingTest` «Escape closes the panel and leaves the field to type in»;
   `SuggestPanelClosingTest` «a press outside the panel closes it and reaches what it pressed»
+
+### TC-SRCH-13 — A product is found by what it is, after the products named so
+
+- **Who:** guest
+- **Width:** 1440
+- **Preconditions:** none.
+- **Steps:**
+  1. Search `wireless headphones`.
+  2. Search `headphones`.
+  3. Search `audio`.
+- **Expected:**
+  - Step 1: «12 results», every one a wireless pair from Headphones: first the three whose name says both words
+    (Mallard Mode 146, Sonora Pulse 208T, Sonora SH-718N), then the rest — «Sonora SH-C388N Wireless Noise
+    Cancelling» among them, its name saying no «headphones»; nothing that is not wireless.
+  - Step 2: all 15 of Headphones, the eight named «headphones» first.
+  - Step 3: the 30 products under Audio, headphones and speakers, though no product is named «audio».
+- **Decided in:** B-171
+- **Coverage:** `SearchByKindTest` «wireless headphones finds the catalogue's wireless headphones first»;
+  `SearchByKindTest` «a name match outranks a category match»;
+  `SearchByKindTest` «a product saying its kind over and over still comes after a name match»;
+  `SearchByKindTest` «a word only a category holds finds that category's products»;
+  `SearchByKindTest` «a query that matches nothing still finds nothing»

@@ -72,8 +72,10 @@ awk '{ split($1, a, ""); len = length($1); b = (len <= 4) ? "2-4" : "5+"; print 
 
 # The two statements behind one suggestion, as PostgreSQL plans and times them on this seed — as the
 # measured run found the tables, and again after an explicit ANALYZE.
-DOC="to_tsvector('english', p.title || ' ' || p.brand || ' ' || coalesce(p.kind, ''))"
-MATCHING="SELECT p.id, p.category_slug FROM products p WHERE $DOC @@ to_tsquery('english', 'running:* & sh:*') OR lower(p.title) LIKE '%running sh%' ORDER BY ts_rank($DOC, to_tsquery('english', 'running:* & sh:*')) DESC, p.reviews_count DESC, p.id"
+# The matching statement is PostgresSearchRepository's MATCHING (B-171) with the query's values written in.
+NAME="to_tsvector('english', coalesce(p.listing_name, p.title) || ' ' || p.brand)"
+KIND="to_tsvector('english', coalesce(p.kind, '') || ' ' || p.features::text || ' ' || c.name || ' ' || coalesce(parent.name, ''))"
+MATCHING="SELECT m.id, m.category_slug FROM (SELECT p.id, p.category_slug, p.reviews_count, $NAME AS name_doc, $KIND AS kind_doc, lower(p.title) LIKE '%running sh%' OR coalesce(lower(p.listing_name) LIKE '%running sh%', false) AS spelt FROM products p JOIN categories c ON c.slug = p.category_slug LEFT JOIN categories parent ON parent.slug = c.parent_slug) m CROSS JOIN LATERAL (SELECT setweight(m.name_doc, 'A') || setweight(m.kind_doc, 'B') AS document) d CROSS JOIN to_tsquery('english', 'running:* & sh:*') q WHERE d.document @@ q OR m.spelt ORDER BY (m.name_doc @@ q OR m.spelt) DESC, ts_rank(d.document, q) DESC, m.reviews_count DESC, m.id"
 TERMS="WITH terms(term, n) AS (SELECT lower(c.name), count(p.id) FROM categories c JOIN products p ON p.category_slug = c.slug GROUP BY lower(c.name) UNION ALL SELECT lower(p.brand), count(*) FROM products p GROUP BY lower(p.brand) UNION ALL SELECT lower(p.kind), count(*) FROM products p WHERE p.kind IS NOT NULL GROUP BY lower(p.kind)) SELECT term FROM terms GROUP BY term HAVING term LIKE 'running sh%' OR term LIKE '% running sh%' OR similarity(term, 'running sh') > 0.3 ORDER BY term LIKE 'running sh%' DESC, sum(n) DESC, similarity(term, 'running sh') DESC, term LIMIT 5"
 psql() { docker exec "$PG" psql -U haul -d haul -c "$1"; }
 { psql "EXPLAIN (ANALYZE, BUFFERS) $MATCHING"; psql "EXPLAIN (ANALYZE, BUFFERS) $TERMS"; } > "$OUT/explain-as-run.txt"
