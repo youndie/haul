@@ -2583,6 +2583,23 @@ drawn outside the storefront are still; the storefront is lively unless the brow
 page at rest is the still page to the pixel (`MotionTest`), so the goldens go on describing what a shopper sees once
 the page has settled.
 
+#### Decided in B-168: the arrival is quick, plays once, and hover is a mouse's
+
+A designer's review of B-158 (2026-11-01): the cascade over the first window took about 1.3 s before its last block
+settled, which read as slowness rather than life; going back to a page played it again; a phone's tap left a card
+lifted. A block now rises in 280 ms, its neighbours 35 ms apart (up to the sixth), and the cascade down the window
+spreads over 100 ms, so the home's first window is the still page 544 ms after its tree is drawn (1,264 ms before;
+`MotionTest`, counted on the held clock at 1440 × 1600). A page come back to — back, forward, or a link to an address
+already drawn in this session — arrives at rest: the storefront remembers the addresses whose trees it drew, by the
+whole address, query included, in memory only, so a reload starts over (`SeenPages`, `LocalArrivesAtRest`). The
+whole page arrives at rest, below the fold too, since a page come back to is one already seen; a new address an update
+records (a filter) is a page not seen before, and its new cards rise in as in B-158. Photos are decoded anew on every
+visit, so on a page come back to they are drawn as they arrive, without B-158's fade. Hover follows a mouse pointer
+alone: a touch neither starts a hover nor keeps one the mouse left, and a pressed control still sinks under a finger.
+Compose 1.12's web input already drops a finger's enter and exit, so a finger alone never started a hover there; the
+phone's lifted card was not reproduced in Chromium's touch emulation (B-168's findings). Under `Motion.Still` nothing
+of this applies, and a lively page at rest is still the still page to the pixel.
+
 ### D10. Documentation in English
 
 As the sibling reference projects; this repository is read from outside.

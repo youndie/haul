@@ -52,6 +52,7 @@ import io.github.youndie.haul.ui.BlankPress
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HeaderMenuState
 import io.github.youndie.haul.ui.LinkCopier
+import io.github.youndie.haul.ui.LocalArrivesAtRest
 import io.github.youndie.haul.ui.LocalAskForHeader
 import io.github.youndie.haul.ui.LocalBlankPress
 import io.github.youndie.haul.ui.LocalHaulActions
@@ -71,6 +72,7 @@ import io.github.youndie.haul.ui.PlusTrialDialog
 import io.github.youndie.haul.ui.SearchFieldState
 import io.github.youndie.haul.ui.SearchInput
 import io.github.youndie.haul.ui.SearchSuggestPanel
+import io.github.youndie.haul.ui.SeenPages
 import io.github.youndie.haul.ui.Selectable
 import io.github.youndie.haul.ui.SheetOverPage
 import io.github.youndie.haul.ui.TabsInView
@@ -215,6 +217,8 @@ public fun Storefront(
     title: BrowserTitle? = null,
 ) {
     val navigator = remember(history) { Navigator(history) }
+    // The addresses drawn in this session (B-168): a page come back to arrives at rest.
+    val seen = remember { SeenPages() }
     val tab = remember(title) { TabTitle(title) }
     DisposableEffect(navigator) {
         val stop = history.listen(navigator::arrived)
@@ -423,6 +427,9 @@ public fun Storefront(
             ) {
                 val address = navigator.address
                 val visit = navigator.visits
+                // Back or forward to a page, or a link to one already drawn in this session, brings it at rest (B-168).
+                // Read once per visit and per address an update records, before the tree drawn marks it seen.
+                val atRest = remember(address.value, visit) { address.value in seen }
                 // A screen is a path (B-62): `/c/mugs?brand=Ostra` loads behind the drawn `/c/mugs`, which keeps
                 // its scroll and whatever its nodes hold open; another path is another screen, drawn from its
                 // placeholder at the top. [signedOut] counts the pages a lapsed sign-in took down: a customer's
@@ -480,7 +487,10 @@ public fun Storefront(
                     var headerHeight by remember { mutableIntStateOf(0) }
                     val measured = remember { { height: Int -> headerHeight = height } }
                     Box(Modifier.fillMaxSize()) {
-                        CompositionLocalProvider(LocalHeaderMeasured provides measured) {
+                        CompositionLocalProvider(
+                            LocalHeaderMeasured provides measured,
+                            LocalArrivesAtRest provides atRest,
+                        ) {
                             KompotScreenLoader(
                                 key = visit to loads,
                                 screenKey = screen,
@@ -559,6 +569,7 @@ public fun Storefront(
                                     }
                                 },
                             ) { tree ->
+                                SideEffect { seen.drawn(address.value) }
                                 Scrolled(scroll) {
                                     Shown(
                                         tree,

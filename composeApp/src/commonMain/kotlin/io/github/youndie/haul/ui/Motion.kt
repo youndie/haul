@@ -8,7 +8,7 @@ import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.withInfiniteAnimationFrameMillis
-import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.HoverInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.runtime.Composable
@@ -17,6 +17,7 @@ import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -109,7 +110,8 @@ internal val Arrive = CubicBezierEasing(0.16f, 1f, 0.3f, 1f)
 /**
  * Drawn faded and lower until it first comes into the window, then risen into its place: on a page that arrives, top
  * to bottom; further down, as the page is scrolled to it. [order] staggers neighbours that come into view together —
- * the cards of a row, left to right.
+ * the cards of a row, left to right. On a page that arrives at rest ([LocalArrivesAtRest]) it is drawn in its place
+ * at once.
  */
 @Composable
 internal fun Modifier.reveal(
@@ -117,16 +119,18 @@ internal fun Modifier.reveal(
     rise: Dp = 28.dp,
 ): Modifier {
     if (!lively()) return this
-    val shown = remember { Animatable(0f) }
+    // Read once, when the block is first drawn: a block already shown stays shown whatever the page does next.
+    val atRest = LocalArrivesAtRest.current
+    val shown = remember { Animatable(if (atRest) 1f else 0f) }
     val window = LocalWindowInfo.current.containerSize.height
     // The page's scroll moves the page's layer, not the nodes on it, so a node is not told it moved: where it is
     // comes from where it was first placed and how far the page has scrolled since.
     val scroll = LocalPageScroll.current
     // Its top in the window when first placed, and the page's scroll then.
     val placed = remember { FloatArray(2) }
-    var seen by remember { mutableStateOf(false) }
+    var seen by remember { mutableStateOf(atRest) }
     LaunchedEffect(seen) {
-        if (!seen) return@LaunchedEffect
+        if (!seen || shown.value >= 1f) return@LaunchedEffect
         val (top, from) = placed
         val arriving = window <= 0 || top < window
         if (!arriving && scroll != null) snapshotFlow { scroll.value }.first { top - (it - from) < window }
@@ -149,6 +153,27 @@ internal fun Modifier.reveal(
         val at = shown.value
         alpha = at
         translationY = (1f - at) * rise.toPx()
+    }
+}
+
+/**
+ * Whether the page being drawn arrives at rest: one come back to — back or forward, or an address already drawn in
+ * this session (B-168). Its blocks are drawn in their places at once; `false` for a page drawn for the first time.
+ */
+internal val LocalArrivesAtRest: ProvidableCompositionLocal<Boolean> = compositionLocalOf { false }
+
+/**
+ * The addresses whose pages were drawn in this session — in memory only, so a reload starts over: an address in it
+ * arrives at rest (B-168). Keyed by the whole address, its query included: a search or a filter not seen before is
+ * a page not seen before.
+ */
+internal class SeenPages {
+    private val seen = HashSet<String>()
+
+    operator fun contains(address: String): Boolean = address in seen
+
+    fun drawn(address: String) {
+        seen += address
     }
 }
 
@@ -271,8 +296,87 @@ internal fun rememberHover(): Hover {
 @Composable
 internal fun rememberStillHover(): Hover = StillHover
 
-/** The pointer over this is [hover]'s. */
-internal fun Modifier.hovers(hover: Hover): Modifier = hover.source?.let { hoverable(it) } ?: this
+/**
+ * The mouse over this is [hover]'s. A mouse only (B-168): a finger has no hover, so nothing a finger does lifts what
+ * it touches or keeps it lifted — a touch press takes off a hover the mouse left; the press itself still sinks.
+ */
+internal fun Modifier.hovers(hover: Hover): Modifier = hover.source?.let { this then MouseHoverElement(it) } ?: this
+
+private data class MouseHoverElement(
+    val source: MutableInteractionSource,
+) : ModifierNodeElement<MouseHoverNode>() {
+    override fun create(): MouseHoverNode = MouseHoverNode(source)
+
+    override fun update(node: MouseHoverNode) = node.follow(source)
+}
+
+/** Foundation's `hoverable`, told to [source] for a mouse pointer alone. */
+private class MouseHoverNode(
+    private var source: MutableInteractionSource,
+) : Modifier.Node(),
+    PointerInputModifierNode {
+    private var entered: HoverInteraction.Enter? = null
+
+    fun follow(next: MutableInteractionSource) {
+        if (next == source) return
+        leave()
+        source = next
+    }
+
+    override fun onPointerEvent(
+        pointerEvent: PointerEvent,
+        pass: PointerEventPass,
+        bounds: IntSize,
+    ) {
+        if (pass != PointerEventPass.Main) return
+        val mouse = pointerEvent.changes.any { it.type == PointerType.Mouse }
+        when (pointerEvent.type) {
+            PointerEventType.Enter -> {
+                if (mouse) enter() else leave()
+            }
+
+            // A mouse that came in while the node was being placed is told by its first move over it.
+            PointerEventType.Move -> {
+                if (!mouse) {
+                    leave()
+                } else if (pointerEvent.over(bounds)) {
+                    enter()
+                }
+            }
+
+            PointerEventType.Press -> {
+                if (!mouse) leave()
+            }
+
+            PointerEventType.Exit -> {
+                leave()
+            }
+        }
+    }
+
+    override fun onCancelPointerInput() = leave()
+
+    override fun onDetach() = leave()
+
+    private fun PointerEvent.over(bounds: IntSize): Boolean =
+        changes.any { change ->
+            val at = change.position
+            at.x >= 0f && at.y >= 0f && at.x < bounds.width && at.y < bounds.height
+        }
+
+    private fun enter() {
+        if (entered != null) return
+        val enter = HoverInteraction.Enter()
+        entered = enter
+        source.tryEmit(enter)
+    }
+
+    private fun leave() {
+        val enter = entered ?: return
+        entered = null
+        source.tryEmit(HoverInteraction.Exit(enter))
+    }
+}
 
 /** Drawn as [block] says at [hover]'s progress — moved, scaled, turned; still, as it is. */
 internal fun Modifier.onHover(
@@ -567,10 +671,12 @@ internal fun Modifier.burstsOn(
     }
 }
 
-private const val REVEAL_MS = 620
-private const val STAGGER_MS = 70L
-private const val MAX_ORDER = 8
-private const val SPREAD_MS = 260f
+// The first window settles within 600 ms of the page arriving (B-168): the last block starts by
+// MAX_ORDER × STAGGER_MS + SPREAD_MS and takes REVEAL_MS.
+private const val REVEAL_MS = 280
+private const val STAGGER_MS = 35L
+private const val MAX_ORDER = 5
+private const val SPREAD_MS = 100f
 private const val WIGGLE_MS = 380
 private const val ROLL_MS = 320
 private const val BURST_MS = 560
