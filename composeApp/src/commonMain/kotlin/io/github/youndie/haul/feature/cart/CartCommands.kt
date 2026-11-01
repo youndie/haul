@@ -140,6 +140,9 @@ private val STORED_PROMO = setOf(ErrorCode.PromoNotFound, ErrorCode.PromoExpired
  */
 internal val CartCommand.idempotent: Boolean get() = request().first != HttpMethod.Post
 
+/** The method [this] is sent with — `PUT`, `DELETE`, `POST` — as «Under the hood» lists it (B-163). */
+internal val CartCommand.method: String get() = request().first.value
+
 /** The server refused a command: its status and, when the body said, its [code] and [reason]. */
 public class CartRefused(
     public val status: Int,

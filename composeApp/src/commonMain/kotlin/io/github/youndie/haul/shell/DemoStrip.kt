@@ -1,5 +1,7 @@
 package io.github.youndie.haul.shell
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -23,7 +25,8 @@ import io.github.youndie.haul.ui.DemoNoteView
 // of its own (`GET /ui/demo`), asked for once the first page has drawn, so the first load waits for nothing more; it
 // is drawn above whatever page is shown, the shell's own pages included. Closed, it stays closed for the session.
 // Only the storefront's root draws it ([DemoStripped], `App`): a view drawn on its own — a golden, a fixture, the
-// shell's tests of `Storefront` — has none.
+// shell's tests of `Storefront` — has none. Its «Under the hood» toggle opens the panel over the page (B-163,
+// `UnderTheHood.kt`).
 
 /** Where the demo strip's copy is: a tree of its own, apart from any page. */
 public const val DEMO_NOTE_TREE: String = "/ui/demo"
@@ -93,15 +96,31 @@ public class DemoStrip(
 /** The demo strip of the storefront being drawn; `null` — a view drawn on its own, a golden — draws none. */
 public val LocalDemoStrip: ProvidableCompositionLocal<DemoStrip?> = staticCompositionLocalOf { null }
 
-/** [content] — the storefront — with the demo strip above its pages, its copy from [transport], its closing in [memory]. */
+/**
+ * [content] — the storefront — with the demo strip above its pages, its copy from [transport], its closing in [memory].
+ * With a [hood], the strip has the «Under the hood» toggle (B-163), and its panel is drawn over the storefront while
+ * open; closing the strip closes the panel too.
+ */
 @Composable
 public fun DemoStripped(
     transport: HaulTransport,
     memory: DemoNoteMemory,
+    hood: UnderTheHood? = null,
     content: @Composable () -> Unit,
 ) {
     val strip = remember(transport, memory) { DemoStrip(transport, memory) }
-    CompositionLocalProvider(LocalDemoStrip provides strip, content = content)
+    CompositionLocalProvider(LocalDemoStrip provides strip, LocalUnderTheHood provides hood) {
+        if (hood == null) {
+            content()
+        } else {
+            Box(Modifier.fillMaxSize()) {
+                content()
+                HoodFlashes(hood)
+                val label = strip.note?.hood
+                if (hood.open && label != null && !strip.closed) UnderTheHoodPanel(hood, label)
+            }
+        }
+    }
 }
 
 /**
@@ -121,7 +140,17 @@ internal fun DemoStripAbove(drawn: Boolean) {
     val note = strip.note
     if (note == null || strip.closed) return
     DisposableEffect(strip) { onDispose { strip.height = 0 } }
-    DemoNoteView(note, onClose = strip::close, Modifier.onSizeChanged { strip.height = it.height })
+    val hood = LocalUnderTheHood.current
+    DemoNoteView(
+        note,
+        onClose = {
+            hood?.close()
+            strip.close()
+        },
+        Modifier.onSizeChanged { strip.height = it.height },
+        onHood = hood?.let { it::toggle },
+        hoodOpen = hood?.open == true,
+    )
 }
 
 /** The demo strip at [DEMO_NOTE_TREE], or `null` when it did not arrive or is not one: the page goes on without it. */
