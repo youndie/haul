@@ -2200,7 +2200,8 @@ from what names it, and the photo route serves it under `/images/art/<name>.svg`
   again and serves it only while the hash matches, so a name always means the same bytes, and a name from before a
   change of the drawings is a 404 — the client keeps its tile — instead of another picture.
 - **The client draws them with Coil's SVG decoder** (`coil-svg`, over the Skia SVG renderer skiko's wasm already
-  carries) in the same loader as the photos, over the same tiles; the tiles lost their captions («CAMPAIGN IMAGE»,
+  carries; since B-181 a decoder of the store's own over the same renderer, «Decided in B-181») in the same loader as
+  the photos, over the same tiles; the tiles lost their captions («CAMPAIGN IMAGE»,
   «TECH», «HEADPHONES», «PRODUCT PHOTO»), which only described the missing picture, and with them the wire's `label`
   fields (`ProductCard`, `CategoryTile`, `CampaignHero`, `PromoBanner` — `image` there now — `CartLine`, `SummaryItem`,
   `ProductSuggestion`, `ProductDetails.photoLabel`). SVG rather than a PNG the server rasterises: measured in D9
@@ -2228,7 +2229,49 @@ run found three gaps in B-78's pictures:
   the size of the box the picture is drawn in, in pixels, and again — keeping the picture on screen until the
   sharper one is in — whenever the box outgrows it (a window widened); never for a smaller one. The pictures are
   still asked for after the first frame; their bytes do not change, only the size they are rasterised at, and
-  neither the first frame nor the pictures' frame moved (D9, «Measured in B-149»).
+  neither the first frame nor the pictures' frame moved (D9, «Measured in B-149»). B-181 found the box rounded up to
+  64 px still left them soft, and draws them as vectors (below); a raster photo keeps this rule.
+
+**Decided in B-181: the pictures drawn as vectors, and a dark version of each served beside it.** The owner
+(2026-11-01): «the pictures are good but soft — with vectors it will be excellent — plus versions for the dark theme».
+
+- **Why they were soft** (measured, D9 «Measured in B-181»). Coil rasterised a picture once at its box's size rounded
+  up to 64 px (B-149) and the page drew that bitmap scaled to the box with a bilinear filter: a 497 px product picture
+  from a 512 px bitmap, a 236 px card from 256 — a 3–8 % downscale on every edge, at 1× and at 2× alike — scaled up
+  again 6 % under a hovered card's lean and 4 % in a photo's arrival (B-158, both graphics layers, which scale the
+  pixels they recorded), and kept at the larger size after a zoom out. The page's density was not the cause: Compose's
+  canvas on the web is at `devicePixelRatio` and the boxes were asked for in device pixels.
+- **How they are drawn now** (`composeApp/…/ui/VectorPicture.kt`). An SVG is parsed once by Skia's SVG renderer and
+  recorded as a Skia picture (`VectorPictureDecoder`, a Coil decoder of the store's own; `coil-svg` is gone). At draw
+  time the picture is rasterised at exactly the device pixels it covers, read off the canvas's transform, and drawn one
+  pixel per pixel, placed on whole pixels; that raster is kept (three sizes a picture) while the size holds and made
+  again when it changes — a zoom, a window widened, a lean. Replaying the vectors on every frame was as sharp but
+  dropped half the frames of a scrolled grid at 2× in software GL, so the kept raster is what the page draws; a
+  transform that turns the picture (Tech week's banner tilts under the pointer) draws the vectors themselves. The hover
+  growth of a card's, a category tile's, the hero's and a banner's picture (B-158) is drawn in the draw phase now
+  (`growsOnHover`, the banner's corners with `clipDrawn`), and a photo's arrival too, so the picture is rasterised at
+  the grown size instead of a layer's pixels being scaled. A raster photo is decoded at its box's size as before.
+- **The dark versions are drawn by the server, served beside the light ones.** The rule is the contract's
+  (`shared/…/PictureVersions.kt`): an SVG's dark version is its address with `.dark.svg` for `.svg`. A tree names the
+  light address only — no field of the wire changed — and the client asks for the dark one on a dark page
+  (`PhotoOrPlaceholder`), so the address Coil caches by names the scheme. `SeedArt` draws every picture twice: the dark
+  one is the same art over its tone's dark counterpart — the very colour the client's dark scheme draws its tile in
+  («Decided in B-180»; `DarkArtTest` holds the server's table to the client's through the fixtures) — with the dark
+  page's Paper where the light one has Ink's hatching and marks or the white shape behind the object (stronger behind
+  a dark object), and deeper shadows; the object keeps its colour, as a swatch does. A picture over a tone the dark
+  page keeps as sent — the hero's Cobalt, the computers' Acid tile — is the same in both. A name's hash covers both
+  drawings, so neither changes under a name cached for a year; the route checks the light name's hash and draws the
+  dark one. The sample products' stored photos are stored with their dark versions beside them (`SeedPhotos`, the key's
+  hash over both); a stored SVG with none of its own answers its dark address with itself. Rather than a rule the
+  client applies to the light SVG (its ground removed, light fills recoloured): the server is what knows which colour
+  is the tone, which the hatching and which the product, and drawing it there keeps the client from parsing the art.
+- **A photo with no dark version** — a seller's raster upload, a stored PNG — is matted on the dark page: drawn at
+  88 % of its tile, centred, its corners rounded, at 90 % opacity over the tile, which the dark page draws dark
+  (golden `ProductCard_Photo_Dark`). The cache key is its address, the same in both schemes: only the matting differs.
+- **A tone the dark scheme lacked.** A review photo's tone `#E9E6E0` (the light page's raised surface, not a canvas
+  tone) had no dark counterpart, so it would have stayed light on the dark page; it is drawn as the dark page's raised
+  surface, `#2A2824`, by both tables. `HaulColorSchemeTest`'s scan of the server's tones reads names with «tone» and
+  missed it (`photos = listOf(…)`).
 
 ### D9. No server rendering, no SEO
 
@@ -2699,6 +2742,54 @@ after Fast 4G 5273 5213 5175 5147 5235 5182 | 6427 6286 6246 6253 6291 6252.
 overlap on both profiles. Rasterising at the box's size — up to ≈768 px on the product page instead of 240 — costs
 nothing measurable on Home, whose sixteen pictures are drawn at card and tile sizes.
 
+#### Measured in B-181
+
+**What changed.** The pictures are drawn as vectors kept as a raster of the device pixels they cover, the hover growth
+is drawn in the draw phase, and a dark page draws each picture's dark version (D8, «Decided in B-181»). Two questions:
+are they sharp, and does the grid scroll as it did.
+
+**How.** On 2026-11-01, two images on the shared Linux build machine (1-minute load average 2.6–5.5): **before**,
+`origin/main` at `33284238` (`haul/server:b181-before`), and **after**, this branch (`haul/server:b181`), each beside a
+seeded PostgreSQL without object storage, so every picture is `/images/art/…`. Chrome for Testing 152.0.7977.75
+headless (`--use-angle=swiftshader`: software GL), driven over CDP by a throwaway script on `measure-first-load.py`'s
+`Cdp` (not committed), 1440 × 900 at a device pixel ratio of 1, 1.5 and 2.
+
+**Sharpness.** The product page's picture (the headphones, 497 × 497 CSS px) cropped to its middle, compared with the
+same SVG as Chrome itself rasterises it at that size and ratio (an `<img>` of the inline SVG): the edges' energy (the
+mean squared Sobel gradient) as a share of Chrome's, and the mean absolute difference in grey levels.
+
+| Ratio | Before | After | After, vectors replayed per frame |
+|---|---:|---:|---:|
+| 1× | 0.876 (0.55) | 0.995 (0.24) | 1.000 (0.00) |
+| 1.5× | 0.900 (0.58) | 0.997 (0.55) | 0.997 (0.54) |
+| 2× | 0.899 (0.79) | 1.043 (0.77) | 1.044 (0.76) |
+| 2×, then 1× on the open page | 0.970 (0.80) | 1.013 (0.79) | 1.013 (0.78) |
+
+Before, the picture had 88–90 % of the edges Chrome draws at every ratio: the 512 px bitmap drawn into 497 px. After,
+the same as Chrome's (above 1 at 2× is a fraction of a pixel's offset between the two crops, the difference in grey is
+the same as before). A card in the grid (236 px, its middle) has 13 % more edge energy at rest at 1× (26,448 →
+29,881) and 15 % more hovered (27,417 → 31,441), 10 % and 11 % at 2×. The screenshots, and crops of them side by side
+magnified, are in the pull request.
+
+**Scrolling.** A category of 60 cards (`/c/electronics`) scrolled by the wheel, 40 notches of 100 px one every 50 ms
+down and 40 up; every animation frame's interval and the time its callbacks took on the main thread (Compose's
+drawing included). Two passes, before and after interleaved, two rounds each — four runs per arm and ratio.
+
+| Arm | Ratio | Main thread, ms per run | Frames over 20 ms | Over 33 ms |
+|---|---|---|---|---|
+| before | 1× | 699 750 751 790 | 1 1 1 1 of ≈440 | 0 0 0 1 |
+| after | 1× | 728 732 745 779 | 0 0 1 1 | 0 0 0 0 |
+| before | 2× | 1,052 1,088 1,140 1,150 | 4 4 3 7 of ≈430 | 1 0 1 3 |
+| after | 2× | 1,002 1,026 1,084 1,113 | 2 1 2 2 | 0 0 0 0 |
+| vectors per frame | 1× | 990 994 1,009 1,021 | 5 7 6 3 | 2 2 2 2 |
+| vectors per frame | 2× | 1,176 1,275 1,324 1,345 | 199 199 205 196 of ≈380 | 34 36 55 38 |
+
+The first build of this branch replayed the recorded vectors on every frame: sharp, but at 2× half the frames of the
+scroll took over 20 ms — the software GL rasterising every picture's paths again each frame. Keeping a raster per size
+(after) scrolls as before did, within the machine's spread. Software GL is the worst case; a browser with a GPU was
+not measured. The app's `.wasm` is 6,133,773 bytes raw against 6,129,839 (+3.9 KB, `coil-svg` out, the decoder in);
+skiko's is the same file.
+
 #### Decided in B-154: words select, and the right button opens the store's menu
 
 A canvas page loses what a browser gives any page for free: no word on it could be selected, and the right button did
@@ -2855,7 +2946,8 @@ counterpart that is not kept.
 |---|---|---|---|---|---|---|---|---|---|
 | Dark | `#1D1B39` | `#302D24` | `#39221B` | `#2E2331` | `#39311B` | `#283321` | `#2E3223` | `#212C33` | `#2D2B27` |
 
-The seed's pictures over the tiles (SVG, `SeedArt`) carry their own light grounds and are B-181's.
+The seed's pictures over the tiles (SVG, `SeedArt`) carry their own grounds; since B-181 each has a dark version over
+its tile's dark tone, and a review photo's `#E9E6E0` is drawn as `#2A2824` («Decided in B-181», D8).
 
 **Which scheme.** The system's — the browser's `prefers-color-scheme`, followed while the page is open
 (`browserPrefersDark`), the desktop's through Compose's `isSystemInDarkTheme()`, which skiko reads on macOS and

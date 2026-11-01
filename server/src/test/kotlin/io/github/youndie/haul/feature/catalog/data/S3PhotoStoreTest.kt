@@ -25,7 +25,7 @@ class S3PhotoStoreTest {
             val store = SeaweedHarness.store()
             val product = SampleCatalog.products.first()
             val svg = SeedPhotos.draw(product).encodeToByteArray()
-            val key = SeedPhotos.keyFor(product.id, svg.decodeToString())
+            val key = SeedPhotos.keyFor(product.id, svg.decodeToString(), SeedPhotos.draw(product, dark = true))
 
             store.put(key, svg, "image/svg+xml")
             val read = assertNotNull(store.get(key), "the stored photo is not there")

@@ -50,7 +50,7 @@
    "productId": "p-sonora-sh-718n",
    "skuId": "p-sonora-sh-718n-0",
    "photoTone": "#E6E4FF",
-   "photo": "/images/art/p_headphones_0_midnight-black_e6e4ff.686ea916f7.svg",
+   "photo": "/images/art/p_headphones_0_midnight-black_e6e4ff.23af4464b0.svg",
    "badge": "Bestseller",
    "brand": "Sonora",
    "title": "SH-718N Wireless Noise Cancelling Headphones",
@@ -273,8 +273,8 @@
       "#E6E4FF"
      ],
      "images": [
-      "/images/art/p_headphones_1_plain_e9e6e0.8f71f088d7.svg",
-      "/images/art/p_headphones_2_plain_e6e4ff.094c24dda9.svg"
+      "/images/art/p_headphones_1_plain_e9e6e0.a6cfa35bc1.svg",
+      "/images/art/p_headphones_2_plain_e6e4ff.8679395c9f.svg"
      ],
      "helpfulCommand": {
       "url": "/api/v1/reviews/r-sonora-daniel/helpful",
@@ -431,7 +431,7 @@
       "name": "Sonora SH-718N Wireless Noise Cancelling Headphones",
       "detail": "Midnight Black · Headphones only",
       "tone": "#E6E4FF",
-      "image": "/images/art/p_headphones_0_midnight-black_e6e4ff.686ea916f7.svg"
+      "image": "/images/art/p_headphones_0_midnight-black_e6e4ff.23af4464b0.svg"
      },
      "ratingLabel": "Your rating",
      "titleLabel": "Title",

@@ -1,5 +1,6 @@
 package io.github.youndie.haul.feature.catalog
 
+import io.github.youndie.haul.PictureVersions
 import io.github.youndie.haul.db.Databases
 import io.github.youndie.haul.feature.account.AccountPaths
 import io.github.youndie.haul.feature.cart.CartPaths
@@ -194,6 +195,30 @@ class PhotoRoutesTest {
             assertEquals("default-src 'none'", response.headers["Content-Security-Policy"])
             val product = SampleCatalog.products.single { it.id == sonora }
             assertContentEquals(SeedPhotos.draw(product).encodeToByteArray(), response.bodyAsBytes())
+            // B-181: its dark version beside it, as stored, served the same way.
+            val dark = get(assertNotNull(PictureVersions.dark(url), url))
+            assertEquals(HttpStatusCode.OK, dark.status)
+            assertEquals(ContentType.Image.SVG, dark.contentType()?.withoutParameters())
+            assertEquals("public, max-age=31536000, immutable", dark.headers[HttpHeaders.CacheControl])
+            assertEquals("default-src 'none'", dark.headers["Content-Security-Policy"])
+            assertContentEquals(SeedPhotos.draw(product, dark = true).encodeToByteArray(), dark.bodyAsBytes())
+        }
+
+    /**
+     * B-181: a dark page asks for every SVG's dark version. A stored SVG with none of its own — one the seed did not
+     * draw — is answered with itself rather than a 404 that would leave the tile; a photo that is not an SVG has no
+     * dark address, and a dark address under nothing stored is still a 404.
+     */
+    @Test
+    fun `a stored SVG with no dark version of its own answers its dark address with itself`() =
+        haulTest(Photographed.dataSource, Photographed.store) {
+            val key = "products/somebody/upload-1.svg"
+            val svg = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"/>"""
+            Photographed.store.put(key, svg.encodeToByteArray(), "image/svg+xml")
+            val dark = assertNotNull(PictureVersions.dark("/images/$key"))
+            assertEquals(svg, get(dark).bodyAsText())
+            assertEquals(null, PictureVersions.dark("/images/products/somebody/upload-2.png"))
+            assertEquals(HttpStatusCode.NotFound, get("/images/products/nobody/0000000000000000.dark.svg").status)
         }
 
     /**
@@ -323,6 +348,12 @@ class PhotoRoutesTest {
                 assertEquals("default-src 'none'", response.headers["Content-Security-Policy"])
                 val name = url.substringAfterLast('/')
                 assertEquals(SeedArt.svg(name), response.bodyAsText(), url)
+                // B-181: and its dark version beside it, drawn and served the same way.
+                val dark = get(assertNotNull(PictureVersions.dark(url), url))
+                assertEquals(HttpStatusCode.OK, dark.status, url)
+                assertEquals("public, max-age=31536000, immutable", dark.headers[HttpHeaders.CacheControl])
+                assertEquals("default-src 'none'", dark.headers["Content-Security-Policy"])
+                assertEquals(SeedArt.svg(PictureVersions.dark(name)!!), dark.bodyAsText(), url)
             }
         }
 
@@ -334,6 +365,11 @@ class PhotoRoutesTest {
             assertEquals(HttpStatusCode.OK, get(url).status, "the control picture is not served")
             val stale = url.substringBeforeLast('.').substringBeforeLast('.') + ".0000000000.svg"
             assertEquals(HttpStatusCode.NotFound, get(stale).status)
+            assertEquals(
+                HttpStatusCode.NotFound,
+                get(PictureVersions.dark(stale)!!).status,
+                "a stale name's dark version",
+            )
             assertEquals(HttpStatusCode.NotFound, get("/images/art/p_nothing_0_plain_e6e4ff.0000000000.svg").status)
             assertEquals(HttpStatusCode.NotFound, get("/images/art/../products/nobody/0000000000000000.png").status)
         }

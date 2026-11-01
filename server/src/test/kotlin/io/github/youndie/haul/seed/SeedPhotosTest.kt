@@ -1,5 +1,6 @@
 package io.github.youndie.haul.seed
 
+import io.github.youndie.haul.PictureVersions
 import io.github.youndie.haul.db.Databases
 import io.github.youndie.haul.feature.catalog.data.ProductsTable
 import io.github.youndie.haul.feature.catalog.domain.PhotoStore
@@ -19,7 +20,8 @@ import kotlin.test.assertTrue
 
 /**
  * The sample products' stored photos are their own pictures (B-149), and a store seeded before that — with B-30's
- * one tinted box per product — gets them on its next start, while a photo that is not the seed's stays.
+ * one tinted box per product — gets them on its next start, while a photo that is not the seed's stays. Each is
+ * stored with its dark version beside it (B-181).
  */
 class SeedPhotosTest {
     private val sonora = SampleCatalog.SONORA_HEADPHONES
@@ -46,14 +48,21 @@ class SeedPhotosTest {
             assertEquals(today(sonora), keys[sonora])
             assertTrue(store.objects.keys.all { it.endsWith(".svg") }, "${store.objects.keys}")
             assertEquals(SeedPhotos.draw(SampleCatalog.products.single { it.id == mug }), store.text(today(mug)))
+            // Beside each, its dark version: the same picture over the tone's dark counterpart.
+            val dark = store.text(PictureVersions.dark(today(mug))!!)
+            assertEquals(SeedPhotos.draw(SampleCatalog.products.single { it.id == mug }, dark = true), dark)
+            assertTrue(dark != store.text(today(mug)), "the dark version is the light one")
+            assertEquals(2 * (SampleCatalog.products.size - 1), store.objects.size, "${store.objects.keys}")
 
             // Again, as on every start: nothing left to store.
             assertEquals(0, runBlocking { SeedPhotos.attach(database, store) })
         }
 
     /** Today's key of the sample product [id]'s photo. */
-    private fun today(id: String): String =
-        SeedPhotos.keyFor(id, SeedPhotos.draw(SampleCatalog.products.single { it.id == id }))
+    private fun today(id: String): String {
+        val product = SampleCatalog.products.single { it.id == id }
+        return SeedPhotos.keyFor(id, SeedPhotos.draw(product), SeedPhotos.draw(product, dark = true))
+    }
 
     private fun setKey(
         database: Database,

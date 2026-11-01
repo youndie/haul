@@ -13,7 +13,6 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import io.github.youndie.haul.registry.haulJson
 import io.github.youndie.haul.registry.haulRegistry
@@ -24,14 +23,14 @@ import io.github.youndie.haul.ui.LocalHaulNow
 import io.github.youndie.haul.ui.LocalPhotoLoader
 import io.github.youndie.haul.ui.PHOTO_TAG
 import io.github.youndie.haul.ui.PhotoLoader
+import io.github.youndie.haul.ui.VectorPicturePainter
+import io.github.youndie.haul.ui.vectorPicture
 import io.github.youndie.kompot.KompotActionHandler
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.KompotScreen
 import io.github.youndie.kompot.form.FormController
 import io.github.youndie.kompot.form.FormSchema
 import kotlinx.serialization.PolymorphicSerializer
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.decodeToSvgPainter
 import kotlin.time.Instant
 
 // What every screenshot fixture is drawn in: the theme with the fixture fonts, the canvas's Paper, the
@@ -96,18 +95,16 @@ internal fun read(name: String): String =
     }.use { it.readBytes().decodeToString() }
 
 /**
- * The seed's pictures (B-78), drawn at once from `resources/art` — the server's own SVGs, which ArtFixturesTest
- * holds there — through Skia's SVG renderer, as the app's Coil decoder draws them. Any other image (a stored
- * photo) is not loaded, and its placeholder tile is drawn.
+ * The seed's pictures (B-78), drawn at once from `resources/art` — the server's own SVGs and their dark versions
+ * (B-181), which ArtFixturesTest holds there — as the app draws them: recorded once and replayed as vectors
+ * ([vectorPicture]). Any other image (a stored photo) is not loaded, and its placeholder tile is drawn.
  */
-@OptIn(ExperimentalResourceApi::class)
 internal val ArtLoader =
     PhotoLoader { url, modifier, placeholder ->
         val name = url.removePrefix(ART_PREFIX).takeIf { url.startsWith(ART_PREFIX) }
-        val density = LocalDensity.current
         val painter =
-            remember(name, density) {
-                name?.let { art(it) }?.decodeToSvgPainter(density)
+            remember(name) {
+                name?.let { checkNotNull(vectorPicture(art(it))) { "$it is no picture" } }?.let(::VectorPicturePainter)
             }
         if (painter == null) {
             Box(modifier) { placeholder() }

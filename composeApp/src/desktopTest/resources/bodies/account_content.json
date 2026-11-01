@@ -476,9 +476,9 @@
                             "#E3F5D8"
                         ],
                         "images": [
-                            "/images/art/p_headphones_0_midnight-black_e6e4ff.686ea916f7.svg",
-                            "/images/art/p_duvet-covers_1_oat_f1ebdd.db3f2260fb.svg",
-                            "/images/art/p_mugs_2_sage_e3f5d8.a3edfaabce.svg"
+                            "/images/art/p_headphones_0_midnight-black_e6e4ff.23af4464b0.svg",
+                            "/images/art/p_duvet-covers_1_oat_f1ebdd.efd3c6df91.svg",
+                            "/images/art/p_mugs_2_sage_e3f5d8.29e1dd5167.svg"
                         ],
                         "steps": {
                             "labels": [
@@ -536,8 +536,8 @@
                             "#F1E4F5"
                         ],
                         "images": [
-                            "/images/art/p_fashion_0_plain_ffe5dd.742448d5d2.svg",
-                            "/images/art/p_beauty_2_plain_f1e4f5.b177bd64fd.svg"
+                            "/images/art/p_fashion_0_plain_ffe5dd.d88ea8cc6a.svg",
+                            "/images/art/p_beauty_2_plain_f1e4f5.62cd094b59.svg"
                         ],
                         "total": "$103.00",
                         "status": "Delivered",
@@ -557,7 +557,7 @@
                             "#E0EEF7"
                         ],
                         "images": [
-                            "/images/art/p_appliances_1_plain_e0eef7.1ef654b872.svg"
+                            "/images/art/p_appliances_1_plain_e0eef7.3e3439d84b.svg"
                         ],
                         "total": "$299.00",
                         "status": "Delivered",
@@ -579,9 +579,9 @@
                             "#E6E4FF"
                         ],
                         "images": [
-                            "/images/art/p_kids-toys_2_plain_fff1c9.2ed502d95e.svg",
-                            "/images/art/p_grocery_1_plain_e3f5d8.9434990337.svg",
-                            "/images/art/p_computers_2_plain_e6e4ff.8069ae5316.svg"
+                            "/images/art/p_kids-toys_2_plain_fff1c9.151e05fd41.svg",
+                            "/images/art/p_grocery_1_plain_e3f5d8.0f55c9f7a6.svg",
+                            "/images/art/p_computers_2_plain_e6e4ff.aa9dbbcebc.svg"
                         ],
                         "total": "$87.50",
                         "status": "Returned",
@@ -600,7 +600,7 @@
                             "#ECE9E2"
                         ],
                         "images": [
-                            "/images/art/p_duvet-covers_0_plain_ece9e2.44319da244.svg"
+                            "/images/art/p_duvet-covers_0_plain_ece9e2.b4c80cf53e.svg"
                         ],
                         "total": "$42.00",
                         "status": "Delivered",

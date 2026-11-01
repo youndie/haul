@@ -44,8 +44,6 @@ kotlin {
             implementation(project.dependencies.platform("io.ktor:ktor-bom:${wip.versions.ktor.get()}"))
             implementation(libs.coil.compose)
             implementation(libs.coil.networkKtor)
-            // The seed's pictures are SVG (B-78), drawn by Skia's own SVG renderer through Coil.
-            implementation(libs.coil.svg)
             // The screens' trees and the suggest panel come over the same client (B-35).
             implementation(libs.ktor.client.core)
         }

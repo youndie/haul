@@ -16,8 +16,8 @@ import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.viddik.annotations.ViddikScreenshot
 
 // The dark scheme's goldens (B-180): the very fixtures of the light goldens, drawn in the dark scheme ([Dark]), named
-// `<state>_Dark` beside them. Not every golden twice — a set that between them draws every role and every place a
-// role was split for the dark: the bands (the strip, the footer, the Plus block and dialog, a message), the inverse
+// `<state>_Dark` beside them, with the dark versions of the pictures they show (B-181). Not every golden twice — a set
+// that between them draws every role and every place a role was split for the dark: the bands (the strip, the footer, the Plus block and dialog, a message), the inverse
 // fills (the cart button, chosen chips and days, the pager) and their accent, the words on Acid, the tile tones and
 // the words on them, the fixed Cobalt (the campaign, the membership tile), the skeletons, a dialog's scrim and card,
 // the autocomplete's scrim and shadow, the swatches, the demo strip and «Under the hood», /numbers and /live. Their
@@ -124,3 +124,8 @@ private fun FooterWithSwitch(chosen: ThemeMode) {
         Box(Modifier.fillMaxWidth()) { HaulFooterView(footer) }
     }
 }
+
+// B-181: a seller's raster photo has no dark version; on the dark page it is matted inside its dark tile.
+@ViddikScreenshot(name = "Photo_Dark", group = "ProductCard", width = 236, height = 400)
+@Composable
+internal fun ProductCardPhotoDark() = Dark { ProductCardPhoto() }

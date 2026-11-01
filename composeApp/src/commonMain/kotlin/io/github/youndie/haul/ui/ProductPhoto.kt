@@ -17,8 +17,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
@@ -37,13 +43,16 @@ import coil3.network.ktor3.KtorNetworkFetcherFactory
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.serviceLoaderEnabled
-import coil3.svg.SvgDecoder
+import coil3.size.Size
+import io.github.youndie.haul.PictureVersions
+import io.github.youndie.haul.theme.HaulColors
 import io.ktor.client.HttpClient
 
 // Product photos (B-30, research D8) and the seed's pictures (B-78). The server sends a photo's address — or,
 // without a stored photo, the address of the product's picture — on a card, the product page and every line;
 // the client draws it over the placeholder tile, and the tile stays whenever the image is absent, still
-// loading or failed to load — an image is decoration, never a hole in the page.
+// loading or failed to load — an image is decoration, never a hole in the page. An SVG is drawn as a vector
+// (`VectorPicture.kt`, B-181), and on a dark page as its dark version, which the server serves beside it.
 
 /** Draws a product photo, or [placeholder] until — and unless — the photo is on screen. */
 public fun interface PhotoLoader {
@@ -72,7 +81,15 @@ public const val PHOTO_TAG: String = "product-photo"
  */
 public const val PLACEHOLDER_TAG: String = "photo-placeholder"
 
-/** [url]'s photo in [modifier]'s box over [placeholder], or the placeholder alone when there is no photo. */
+/**
+ * [url]'s photo in [modifier]'s box over [placeholder], or the placeholder alone when there is no photo.
+ *
+ * On a dark page (B-181) an SVG is asked for at its dark version's address ([PictureVersions]) — the seed's pictures
+ * drawn over their tones' dark counterparts — so the address the loader caches by names the scheme. A photo with no
+ * dark version — a seller's raster upload — is matted instead: drawn a little inside its tile, which the dark page
+ * draws dark, with rounded corners and a little of the tile showing through, so a bright photograph sits in the page
+ * rather than glaring out of it.
+ */
 @Composable
 internal fun PhotoOrPlaceholder(
     url: String?,
@@ -80,12 +97,41 @@ internal fun PhotoOrPlaceholder(
     placeholder: @Composable () -> Unit,
 ) {
     val tagged = @Composable { Box(Modifier.fillMaxSize().testTag(PLACEHOLDER_TAG)) { placeholder() } }
-    if (url == null) {
-        Box(modifier) { tagged() }
-    } else {
-        LocalPhotoLoader.current.Photo(url, modifier, tagged)
+    val loader = LocalPhotoLoader.current
+    when {
+        url == null -> {
+            Box(modifier) { tagged() }
+        }
+
+        !HaulColors.scheme.isDark -> {
+            loader.Photo(url, modifier, tagged)
+        }
+
+        else -> {
+            val dark = PictureVersions.dark(url)
+            if (dark != null) {
+                loader.Photo(dark, modifier, tagged)
+            } else {
+                Box(modifier, contentAlignment = Alignment.Center) {
+                    Box(Modifier.matchParentSize()) { placeholder() }
+                    loader.Photo(
+                        url,
+                        Modifier
+                            .fillMaxSize(MATTED)
+                            .clip(RoundedCornerShape(MAT_CORNER_PERCENT))
+                            .graphicsLayer { alpha = MATTED_ALPHA },
+                        tagged,
+                    )
+                }
+            }
+        }
     }
 }
+
+/** How much of its tile a matted photo covers, how round its corners are, and how much of the tile shows through. */
+private const val MATTED = 0.88f
+private const val MAT_CORNER_PERCENT = 6
+private const val MATTED_ALPHA = 0.9f
 
 /**
  * A product's tile in a line — a cart line, checkout's «Your order», an order's line, the suggest panel's «Top
@@ -123,11 +169,11 @@ public fun coilPhotoLoader(
             // Off, or Coil also registers the network fetcher it finds on the classpath — over a default
             // `HttpClient()` of its own, ahead of this one — and [http] is never asked.
             .serviceLoaderEnabled(false)
-            // The seed's pictures are SVG (B-78): Skia's SVG renderer, which skiko's wasm already carries, draws
-            // them at the size the tile asks for — the box's, in pixels (B-149, below).
+            // The seed's pictures are SVG (B-78): Skia's SVG renderer, which skiko's wasm already carries, parses each
+            // once and records it, and the page replays it as vectors at whatever size it is drawn (B-181).
             .components {
                 add(KtorNetworkFetcherFactory(httpClient = { http }))
-                add(SvgDecoder.Factory())
+                add(VectorPictureDecoder.Factory())
             }
             // The browser's HTTP cache keeps the photos — the server marks them immutable — so a disk cache
             // of Coil's would only repeat it; on the desktop target, where the tests run, one kept an
@@ -148,10 +194,25 @@ private class CoilPhotoLoader(
         modifier: Modifier,
         placeholder: @Composable () -> Unit,
     ) = key(url) {
-        // Decoded at the size it is drawn, and again whenever its box outgrows that (B-149): a picture is SVG,
-        // rasterised once at the size asked for, and a request that names no size is decoded at the picture's own
-        // (240 px) — scaled up to the product page's 768 px, it was soft. Never asked for smaller: a larger bitmap
-        // drawn smaller stays sharp. Asked for once the box has a size.
+        // An SVG is a vector (B-181): one decode serves every size, so it is asked for at once, at its own size.
+        if (url.endsWith(SVG)) {
+            Box(modifier) { Sized(resolve(url), null, placeholder) }
+        } else {
+            Raster(url, modifier, placeholder)
+        }
+    }
+
+    /**
+     * A raster photo, decoded at the size it is drawn and again whenever its box outgrows that (B-149): a request
+     * that names no size is decoded at the photo's own, which a large box scaled up. Never asked for smaller: a
+     * larger bitmap drawn smaller stays sharp. Asked for once the box has a size.
+     */
+    @Composable
+    private fun Raster(
+        url: String,
+        modifier: Modifier,
+        placeholder: @Composable () -> Unit,
+    ) {
         var decodeAt by remember { mutableStateOf<IntSize?>(null) }
         Box(modifier.onSizeChanged { box -> decodeAt = outgrown(decodeAt, box) }) {
             val size = decodeAt
@@ -163,7 +224,7 @@ private class CoilPhotoLoader(
     @Composable
     private fun BoxScope.Sized(
         url: String,
-        size: IntSize,
+        size: IntSize?,
         placeholder: @Composable () -> Unit,
     ) {
         val context = LocalPlatformContext.current
@@ -172,7 +233,7 @@ private class CoilPhotoLoader(
                 ImageRequest
                     .Builder(context)
                     .data(url)
-                    .size(size.width, size.height)
+                    .size(size?.let { Size(it.width, it.height) } ?: Size.ORIGINAL)
                     // Asked again at a larger size, the picture already on screen stays until the sharper one is in.
                     .useExistingImageAsPlaceholder(true)
                     .build()
@@ -219,11 +280,18 @@ private class CoilPhotoLoader(
             modifier =
                 Modifier
                     .matchParentSize()
-                    .graphicsLayer {
+                    // Drawn faded and nearer in the draw phase, not as a layer: a layer would keep the picture's pixels
+                    // at rest and scale them, and the arrived picture would sit in that layer for good (B-181).
+                    .drawWithContent {
                         val at = shown.value
-                        alpha = at
-                        scaleX = 1f + PHOTO_SETTLE * (1f - at)
-                        scaleY = 1f + PHOTO_SETTLE * (1f - at)
+                        if (at >= 1f) {
+                            drawContent()
+                        } else {
+                            val fade = Paint().apply { alpha = at }
+                            drawContext.canvas.saveLayer(Rect(Offset.Zero, size), fade)
+                            scale(1f + PHOTO_SETTLE * (1f - at)) { this@drawWithContent.drawContent() }
+                            drawContext.canvas.restore()
+                        }
                     }.then(if (arrived) Modifier.testTag(PHOTO_TAG) else Modifier),
             contentScale = ContentScale.Crop,
         )
@@ -250,3 +318,5 @@ private fun outgrown(
 }
 
 private const val DECODE_STEP = 64
+
+private const val SVG = ".svg"

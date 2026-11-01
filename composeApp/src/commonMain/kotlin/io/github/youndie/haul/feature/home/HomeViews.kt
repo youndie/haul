@@ -50,10 +50,12 @@ import io.github.youndie.haul.ui.SectionHeader
 import io.github.youndie.haul.ui.ShrinkFirstRow
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.accented
+import io.github.youndie.haul.ui.clipDrawn
 import io.github.youndie.haul.ui.countdown
 import io.github.youndie.haul.ui.countdownEnded
 import io.github.youndie.haul.ui.following
 import io.github.youndie.haul.ui.follows
+import io.github.youndie.haul.ui.growsOnHover
 import io.github.youndie.haul.ui.gutter
 import io.github.youndie.haul.ui.hatching
 import io.github.youndie.haul.ui.hovers
@@ -126,11 +128,7 @@ private fun Hero(
                 .align(Alignment.TopEnd)
                 .fillMaxHeight()
                 .fillMaxWidth(if (compact) 0.42f else 0.4f)
-                .onHover(hover) {
-                    scaleX = 1f + HERO_DRIFT * it
-                    scaleY = 1f + HERO_DRIFT * it
-                    transformOrigin = TransformOrigin(1f, 0.5f)
-                },
+                .growsOnHover(hover, HERO_DRIFT, TransformOrigin(1f, 0.5f)),
         ) { Box(Modifier.fillMaxSize().hatching(HaulColors.bandHatch, period = 14f)) }
         Column(
             Modifier
@@ -257,11 +255,8 @@ private fun Banner(
                     .align(Alignment.TopEnd)
                     .padding(top = 20.dp, end = 20.dp)
                     .size(150.dp)
-                    .onHover(hover) {
-                        rotationZ = -BANNER_TILT * it
-                        scaleX = 1f + PHOTO_GROWTH * it
-                        scaleY = 1f + PHOTO_GROWTH * it
-                    }.clip(RoundedCornerShape(18.dp)),
+                    .growsOnHover(hover, PHOTO_GROWTH, degrees = -BANNER_TILT)
+                    .clipDrawn(RoundedCornerShape(18.dp)),
             ) { Box(Modifier.fillMaxSize().hatching(HaulColors.bannerHatch)) }
         }
         val ink = HaulColors.onTone(banner.tone)
@@ -488,10 +483,7 @@ private fun Tile(
         ) {
             PhotoOrPlaceholder(
                 tile.image,
-                Modifier.matchParentSize().onHover(hover) {
-                    scaleX = 1f + PHOTO_GROWTH * 2 * it
-                    scaleY = 1f + PHOTO_GROWTH * 2 * it
-                },
+                Modifier.matchParentSize().growsOnHover(hover, PHOTO_GROWTH * 2),
             ) { Box(Modifier.fillMaxSize().background(toneColor(tile.tone)).hatching()) }
         }
         Text(tile.name, HaulType.text(if (compact) 12f else 16f, 600, lineHeight = 1.25f))

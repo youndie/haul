@@ -1,5 +1,6 @@
 package io.github.youndie.haul.seed
 
+import io.github.youndie.haul.PictureVersions
 import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.Product
 import java.io.ByteArrayInputStream
@@ -71,7 +72,33 @@ class SeedArtTest {
                 ByteArrayInputStream(svg.encodeToByteArray()),
             )
             assertTrue(svg.length < MAX_BYTES, "$name is ${svg.length} bytes")
+            // B-181: and its dark version beside it, the same art over the tone's dark counterpart.
+            val dark = assertNotNull(SeedArt.svg(PictureVersions.dark(name)!!), "$name's dark version")
+            DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+                ByteArrayInputStream(dark.encodeToByteArray()),
+            )
+            assertNotEquals(svg, dark, name)
+            assertTrue("fill=\"#1D1B39\"" in dark, "$name's dark version is not drawn over E6E4FF's counterpart")
         }
+    }
+
+    @Test
+    fun `a picture over a tone the dark page keeps as sent is the same in both schemes`() {
+        val acid = SeedArt.category(category("computers", "#DFFF3A"))
+        assertEquals(SeedArt.svg(acid), SeedArt.svg(PictureVersions.dark(acid)!!))
+        // Positive control: a canvas tone's picture differs.
+        val lilac = SeedArt.category(category("computers", "#E6E4FF"))
+        assertNotEquals(SeedArt.svg(lilac), SeedArt.svg(PictureVersions.dark(lilac)!!))
+    }
+
+    @Test
+    fun `a name is the hash of both drawings, and a dark version's names its light one`() {
+        val name = SeedArt.product(product("p-1", "mugs"), "Sage")
+        val dark = PictureVersions.dark(name)!!
+        assertEquals(name, SeedArt.current(name))
+        assertEquals(dark, SeedArt.current(dark))
+        val (key, hash) = name.removeSuffix(".svg").split('.')
+        assertNull(SeedArt.svg(PictureVersions.dark("$key.${hash.reversed()}.svg")!!), "a changed hash's dark version")
     }
 
     @Test

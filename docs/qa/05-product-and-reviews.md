@@ -366,7 +366,9 @@ search for `sonora`).
   2. Find a product with no photo, in the same places.
   3. On the server without storage, open the headphones' page and pick the other colour.
   4. Block `/images/` in DevTools and reload.
-  5. At 800, open the headphones' page; widen the window to 1440 and narrow it back.
+  5. At 800, open the headphones' page; widen the window to 1440 and narrow it back; zoom the browser to 150 % and
+     back to 100 %; hover a card on the category page.
+  6. Switch the store to «Dark» in the footer and walk steps 1 and 2 again.
 - **Expected:**
   - Step 1: the same photo in each place, served from the store's own origin (`/images/products/<key>`, SVG) — the
     product's own kind: the headphones a pair of headphones, the mug a mug, the duvet bedding, not one tinted box for
@@ -376,8 +378,11 @@ search for `sonora`).
   - Step 3: every product carries its picture; the page's picture changes colour with the SKU.
   - Step 4: the striped placeholder tile, with no caption, and nothing broken — the tile stays while a photo or a
     picture is absent, loading or failed.
-  - Step 5: the picture is sharp at every width — its edges as crisp at ≈768 px as on a card (B-149).
-- **Decided in:** B-30, B-108, B-78, B-149
+  - Step 5: the picture is sharp at every width, zoom and density — its edges one pixel wide, as crisp at ≈768 px as
+    on a card (B-149), and still crisp after the zoom and while a hovered card's picture leans nearer (B-181).
+  - Step 6: every picture is its dark version — the same drawing over its tile's dark tone, served beside the light one
+    (`….dark.svg`); a stored photo that is no SVG sits matted inside its dark tile (B-181).
+- **Decided in:** B-30, B-108, B-78, B-149, B-181
 - **Coverage:** `PhotoRoutesTest` «a product with a stored photo carries its address and one without carries its picture»;
   `PhotoRoutesTest` «the cart, checkout, an order and the suggest panel carry the photo the card carries»;
   `PhotoRoutesTest` «without object storage every product carries its picture»;
@@ -391,7 +396,13 @@ search for `sonora`).
   `PhotoRoutesTest` «the review and question dialogs and a review's photos carry pictures»;
   `LinePhotosTest` «the review and question dialogs draw their product's picture»;
   `LinePhotosTest` «the account's order cards and history rows draw their pictures»;
-  `PhotoFallbackTest` «a picture whose box grows is decoded again at its new size»
+  `PhotoFallbackTest` «a raster photo whose box grows is decoded again at its new size»;
+  `PhotoFallbackTest` «a picture is decoded once as a vector, whatever its box's size»;
+  `PhotoFallbackTest` «on a dark page a picture is its dark version and a raster photo is matted»;
+  `PhotoFallbackTest` «on a dark page a raster photo is asked for as it is and drawn inside its tile»;
+  `PhotoRoutesTest` «a stored SVG with no dark version of its own answers its dark address with itself»;
+  `DarkArtTest` «every picture has a dark version over its tile's dark colour»; golden `ProductCard_Photo_Dark`;
+  golden `Product_Description_Dark`
 
 ### TC-PDP-18 — A bar of the histogram lists the reviews of its stars
 

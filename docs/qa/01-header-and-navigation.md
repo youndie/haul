@@ -508,13 +508,13 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
     words; a chosen chip, day, tab, the cart button and the pager's page Paper with dark words; Acid badges with
     dark words; the campaign and the membership tile Cobalt with white words; the placeholders, the dialogs' scrim
     and card, the autocomplete's shadow, the focus ring and selected words drawn for the dark page. The pictures
-    over the tiles are still the light ones (B-181).
+    over the tiles are their dark versions, each over its tile's dark tone (B-181).
   - Step 3: the page turns light and back at once, without a reload.
   - Step 4: the page turns light at once and stays light after the reload and in the new tab, whatever the
     system's setting; the footer's «Light» is marked in Acid with a dot.
   - Step 5: the page follows the system's setting again, the next reload too.
   - Step 6: the frame before the bundle is already dark.
-- **Decided in:** B-180
+- **Decided in:** B-180, B-181
 - **Coverage:** `DesktopStoreTest` «the footer's switch draws the page in the scheme chosen and keeps the choice»;
   `ThemeChoiceTest` «a choice overrides the system's setting, and is kept for the next visit»; `StaticFrameTest` «the
   page marks the kept choice before the frame»; `StaticFrameTest` «the frame is drawn in the light and the dark
@@ -522,5 +522,5 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
   `HaulColorSchemeTest` «every pair of words and ground reads in the dark at least as in the light, or at 7 to 1»;
   golden `HaulFooter_Theme`; golden `HaulFooter_Theme_Dark`; golden `HaulFooter_Theme_Phone_Dark`; golden
   `Home_Content_Dark`; golden `Catalog_Content_Dark`; golden `Product_ReviewDialog_Phone_Dark`; golden
-  `Checkout_PointsApplied_Dark`; manual: the browser's own first paint, `localStorage` and the system's setting
-  changing under an open page
+  `Checkout_PointsApplied_Dark`; `DarkArtTest` «every picture has a dark version over its tile's dark colour»;
+  manual: the browser's own first paint, `localStorage` and the system's setting changing under an open page

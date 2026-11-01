@@ -276,7 +276,7 @@
      {
       "id": "card-1",
       "productId": "p-1", "add": {"url": "/api/v1/cart/lines/p-1-0?answer=card", "change": {"quantity": 1}},
-      "image": "/images/art/p_headphones_2_plain_e6e4ff.094c24dda9.svg",
+      "image": "/images/art/p_headphones_2_plain_e6e4ff.8679395c9f.svg",
       "badge": "−22%",
       "price": "$349",
       "oldPrice": "$449",
@@ -289,7 +289,7 @@
      {
       "id": "card-2",
       "productId": "p-2", "add": {"url": "/api/v1/cart/lines/p-2-0?answer=card", "change": {"quantity": 1}},
-      "image": "/images/art/p_headphones_0_plain_ece9e2.6625d765c1.svg",
+      "image": "/images/art/p_headphones_0_plain_ece9e2.844a899bdd.svg",
       "badge": "−12%",
       "price": "$379",
       "oldPrice": "$429",
@@ -302,7 +302,7 @@
      {
       "id": "card-3",
       "productId": "p-3", "add": {"url": "/api/v1/cart/lines/p-3-0?answer=card", "change": {"quantity": 1}},
-      "image": "/images/art/p_headphones_1_plain_e0eef7.cef5c39036.svg",
+      "image": "/images/art/p_headphones_1_plain_e0eef7.102f73c9c4.svg",
       "badge": "−34%",
       "price": "$98",
       "oldPrice": "$149",
@@ -315,7 +315,7 @@
      {
       "id": "card-4",
       "productId": "p-4", "add": {"url": "/api/v1/cart/lines/p-4-0?answer=card", "change": {"quantity": 1}},
-      "image": "/images/art/p_headphones_2_plain_f1ebdd.5ed4f5918e.svg",
+      "image": "/images/art/p_headphones_2_plain_f1ebdd.713007e2bf.svg",
       "badge": "−14%",
       "price": "$299",
       "oldPrice": "$349",
@@ -328,7 +328,7 @@
      {
       "id": "card-5",
       "productId": "p-5", "add": {"url": "/api/v1/cart/lines/p-5-0?answer=card", "change": {"quantity": 1}},
-      "image": "/images/art/p_headphones_0_plain_e3f5d8.2582b44975.svg",
+      "image": "/images/art/p_headphones_0_plain_e3f5d8.e2d6e839f8.svg",
       "badge": "−26%",
       "price": "$148",
       "oldPrice": "$199",
@@ -341,7 +341,7 @@
      {
       "id": "card-6",
       "productId": "p-6", "add": {"url": "/api/v1/cart/lines/p-6-0?answer=card", "change": {"quantity": 1}},
-      "image": "/images/art/p_headphones_1_plain_f1e4f5.01dca6e8e0.svg",
+      "image": "/images/art/p_headphones_1_plain_f1e4f5.3b70f4a1a6.svg",
       "badge": "−18%",
       "price": "$229",
       "oldPrice": "$279",
@@ -354,7 +354,7 @@
      {
       "id": "card-7",
       "productId": "p-7", "add": {"url": "/api/v1/cart/lines/p-7-0?answer=card", "change": {"quantity": 1}},
-      "image": "/images/art/p_headphones_2_plain_ffe5dd.381d561602.svg",
+      "image": "/images/art/p_headphones_2_plain_ffe5dd.0e82112cc0.svg",
       "badge": "−17%",
       "price": "$248",
       "oldPrice": "$299",
@@ -367,7 +367,7 @@
      {
       "id": "card-8",
       "productId": "p-8", "add": {"url": "/api/v1/cart/lines/p-8-0?answer=card", "change": {"quantity": 1}},
-      "image": "/images/art/p_headphones_0_plain_fff1c9.4f452e2de1.svg",
+      "image": "/images/art/p_headphones_0_plain_fff1c9.c493fc5486.svg",
       "price": "$129",
       "title": "Bellwave Roam 580P Around-Ear Wireless",
       "rating": "4.5",
@@ -378,7 +378,7 @@
      {
       "id": "card-9",
       "productId": "p-9", "add": {"url": "/api/v1/cart/lines/p-9-0?answer=card", "change": {"quantity": 1}},
-      "image": "/images/art/p_headphones_1_plain_ece9e2.dc3acedf92.svg",
+      "image": "/images/art/p_headphones_1_plain_ece9e2.df06c26359.svg",
       "price": "$99",
       "title": "Sonora Monitor 630R Professional Studio Headphones",
       "rating": "4.8",
@@ -389,7 +389,7 @@
      {
       "id": "card-10",
       "productId": "p-10", "add": {"url": "/api/v1/cart/lines/p-10-0?answer=card", "change": {"quantity": 1}},
-      "image": "/images/art/p_headphones_2_plain_e0eef7.63a6f83943.svg",
+      "image": "/images/art/p_headphones_2_plain_e0eef7.e039ac8bf6.svg",
       "badge": "−29%",
       "price": "$199",
       "oldPrice": "$279",
@@ -402,7 +402,7 @@
      {
       "id": "card-11",
       "productId": "p-11", "add": {"url": "/api/v1/cart/lines/p-11-0?answer=card", "change": {"quantity": 1}},
-      "image": "/images/art/p_headphones_0_plain_e6e4ff.686ea916f7.svg",
+      "image": "/images/art/p_headphones_0_plain_e6e4ff.23af4464b0.svg",
       "badge": "−24%",
       "price": "$228",
       "oldPrice": "$299",
@@ -415,7 +415,7 @@
      {
       "id": "card-12",
       "productId": "p-12", "add": {"url": "/api/v1/cart/lines/p-12-0?answer=card", "change": {"quantity": 1}},
-      "image": "/images/art/p_headphones_1_plain_e3f5d8.77508203db.svg",
+      "image": "/images/art/p_headphones_1_plain_e3f5d8.899fb53399.svg",
       "badge": "−49%",
       "price": "$128",
       "oldPrice": "$249",

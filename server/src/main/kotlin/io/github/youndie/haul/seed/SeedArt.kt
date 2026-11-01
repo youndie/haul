@@ -1,5 +1,6 @@
 package io.github.youndie.haul.seed
 
+import io.github.youndie.haul.PictureVersions
 import io.github.youndie.haul.feature.catalog.domain.Campaign
 import io.github.youndie.haul.feature.catalog.domain.Category
 import io.github.youndie.haul.feature.catalog.domain.Illustrations
@@ -23,10 +24,16 @@ import java.util.concurrent.ConcurrentHashMap
  *   tone — the two places the canvas keeps for a picture (`Home_Content`'s «CAMPAIGN IMAGE» and «LAPTOP»). Free
  *   delivery weekend's banner has no picture place on the canvas, and draws none.
  *
- * A picture's name is what it is drawn from plus its content's hash: `p_headphones_1_silver_e6e4ff.3f1c9a0e5b.svg`.
- * The route draws a name again and serves it only when the hash still matches, so a name always means the same
- * bytes and may be cached for good, and a name from before a change of the drawings answers 404 — the client's
- * tile stays — instead of another picture.
+ * Every picture is drawn twice (B-181): for the light page, and for the dark one — served beside it under the name's
+ * dark version ([PictureVersions]), `p_headphones_1_silver_e6e4ff.3f1c9a0e5b.dark.svg`. The dark one is the same
+ * art over the tone's dark counterpart, the one the client's dark scheme draws the tile in («Decided in B-180»): the
+ * light shape behind the object, the hatching and the marks in the dark page's Paper, the shadows deeper. A picture
+ * over a tone the dark page keeps as sent — the hero's Cobalt, a category's Acid — is the same in both.
+ *
+ * A picture's name is what it is drawn from plus a hash of both its drawings:
+ * `p_headphones_1_silver_e6e4ff.3f1c9a0e5b.svg`. The route draws a name again and serves it only when the hash still
+ * matches, so a name — and its dark version — always means the same bytes and may be cached for good, and a name from
+ * before a change of either drawing answers 404 — the client's tile stays — instead of another picture.
  */
 internal object SeedArt : Illustrations {
     private const val SQUARE = 240
@@ -87,16 +94,17 @@ internal object SeedArt : Illustrations {
         )
 
     /**
-     * The product [id] of [categorySlug] in [colour] over [tone], drawn: the picture [product] names, as SVG. The seed
-     * stores it as a sample product's photo when there is object storage (B-149), so the sample products are drawn
-     * as their own kind there too.
+     * The product [id] of [categorySlug] in [colour] over [tone], drawn for the dark page when [dark]: the picture
+     * [product] names, as SVG. The seed stores it as a sample product's photo when there is object storage (B-149),
+     * so the sample products are drawn as their own kind there too — in both schemes (B-181).
      */
     fun productSvg(
         id: String,
         categorySlug: String,
         colour: String?,
         tone: String,
-    ): String = productPicture(id, categorySlug, colour, tone).draw()
+        dark: Boolean = false,
+    ): String = productPicture(id, categorySlug, colour, tone).draw(dark)
 
     private fun productPicture(
         id: String,
@@ -121,13 +129,20 @@ internal object SeedArt : Illustrations {
         BANNERS[campaign.slug]?.let { name(Picture.Tile(it, toneOf(campaign.tone))) }
 
     override fun svg(name: String): String? {
-        val picture = Picture.parse(name.substringBefore('.')) ?: return null
-        val drawn = picture.draw()
-        return drawn.takeIf { name == nameOf(picture, it) }
+        val light = PictureVersions.light(name)
+        val picture = Picture.parse((light ?: name).substringBefore('.')) ?: return null
+        return picture.takeIf { (light ?: name) == nameOf(it) }?.draw(dark = light != null)
     }
 
-    /** The name the picture [name] was drawn from goes by today — [name] itself unless its drawing changed. */
-    fun current(name: String): String? = Picture.parse(name.substringBefore('.'))?.let { nameOf(it, it.draw()) }
+    /**
+     * The name the picture [name] was drawn from goes by today — [name] itself unless its drawing changed; the dark
+     * version's name for a dark version's.
+     */
+    fun current(name: String): String? {
+        val light = PictureVersions.light(name)
+        val now = Picture.parse((light ?: name).substringBefore('.'))?.let(::nameOf) ?: return null
+        return if (light == null) now else PictureVersions.dark(now)
+    }
 
     /** The object [slug]'s products are drawn with: its own, its nearest ancestor's, or the parcel. */
     fun motifOf(slug: String): Motif =
@@ -139,12 +154,11 @@ internal object SeedArt : Illustrations {
      * [picture]'s name, kept once worked out. Only the names the screens hand out are kept — they come from the
      * catalogue's rows, a bounded set — never one a request asks for, which could be any tone of sixteen million.
      */
-    private fun name(picture: Picture): String = names.getOrPut(picture) { nameOf(picture, picture.draw()) }
+    private fun name(picture: Picture): String = names.getOrPut(picture) { nameOf(picture) }
 
-    private fun nameOf(
-        picture: Picture,
-        drawn: String,
-    ): String = "${picture.key}.${hash(drawn)}.svg"
+    /** [picture]'s name: its key and the hash of both its drawings, so neither changes under the name. */
+    private fun nameOf(picture: Picture): String =
+        "${picture.key}.${hash(picture.draw(false) + picture.draw(true))}.svg"
 
     private fun hash(svg: String): String =
         MessageDigest
@@ -168,7 +182,8 @@ internal object SeedArt : Illustrations {
     private sealed interface Picture {
         val key: String
 
-        fun draw(): String
+        /** The picture as SVG, for the dark page when [dark]. */
+        fun draw(dark: Boolean): String
 
         data class ProductPicture(
             val motif: String,
@@ -178,7 +193,8 @@ internal object SeedArt : Illustrations {
         ) : Picture {
             override val key = "p_${motif}_${variant}_${colour}_$tone"
 
-            override fun draw(): String = square(SeedMotifs.bySlug.getValue(motif), variant, SWATCHES[colour], tone)
+            override fun draw(dark: Boolean): String =
+                square(SeedMotifs.bySlug.getValue(motif), variant, SWATCHES[colour], Ground.of(tone, dark))
         }
 
         data class Tile(
@@ -187,7 +203,8 @@ internal object SeedArt : Illustrations {
         ) : Picture {
             override val key = "c_${motif}_$tone"
 
-            override fun draw(): String = square(SeedMotifs.bySlug.getValue(motif), 0, null, tone)
+            override fun draw(dark: Boolean): String =
+                square(SeedMotifs.bySlug.getValue(motif), 0, null, Ground.of(tone, dark))
         }
 
         data class Hero(
@@ -196,7 +213,7 @@ internal object SeedArt : Illustrations {
         ) : Picture {
             override val key = "h_${campaign}_$tone"
 
-            override fun draw(): String = autumn(tone)
+            override fun draw(dark: Boolean): String = autumn(tone)
         }
 
         companion object {
@@ -232,50 +249,116 @@ internal object SeedArt : Illustrations {
     }
 
     /**
-     * A square picture: the tone with the canvas's hatching, a light shape behind the object — a disc, an arch, or
-     * a band the object leans over, by [variant] — the object's shadow, and the object.
+     * A square picture: the [ground] with the canvas's hatching, a light shape behind the object — a disc, an arch,
+     * or a band the object leans over, by [variant] — the object's shadow, and the object.
      */
     @Suppress("MagicNumber")
     private fun square(
         motif: Motif,
         variant: Int,
         colour: String?,
-        tone: String,
+        ground: Ground,
     ): String {
         val svg = Svg(SQUARE, SQUARE)
         val body = colour ?: motif.plain
         val paint = paint(motif, body)
-        // The light shape behind the object is white, or — behind a white object, which it would swallow — the tone
-        // a shade darker.
-        val pale = luminance(body) > PALE
-        val back = if (pale) mix("#$tone", Paint.INK, 0.07) else Paint.WHITE
-        val backOpacity = if (pale) 1.0 else 0.55
-        svg.rect(0, 0, SQUARE, SQUARE, "#$tone")
-        svg.hatching(Paint.INK, 0.05, 12)
+        val (back, backOpacity) = ground.back(body)
+        svg.rect(0, 0, SQUARE, SQUARE, ground.tone)
+        svg.hatching(ground.mark, ground.hatching, 12)
         when (variant) {
             0 -> {
                 svg.circle(120, 112, 80, back, opacity = backOpacity)
-                svg.ellipse(120, 204, 68, 8, Paint.INK, opacity = 0.08)
+                svg.ellipse(120, 204, 68, 8, ground.shadow, opacity = ground.shadowOpacity)
                 svg.group(30, 22, scale = 1.8) { motif.draw(this, paint) }
             }
 
             1 -> {
                 svg.path("M56,216 L56,100 A64,64 0 0 1 184,100 L184,216 Z", back, opacity = backOpacity)
                 svg.circle(198, 58, 7, paint.accent)
-                svg.circle(40, 74, 4, Paint.INK, opacity = 0.35)
-                svg.group(202, 176, degrees = 24) { rect(-6, -6, 12, 12, Paint.INK, opacity = 0.12) }
-                svg.ellipse(120, 204, 58, 7, Paint.INK, opacity = 0.08)
+                svg.circle(40, 74, 4, ground.mark, opacity = 0.35)
+                svg.group(202, 176, degrees = 24) { rect(-6, -6, 12, 12, ground.mark, opacity = 0.12) }
+                svg.ellipse(120, 204, 58, 7, ground.shadow, opacity = ground.shadowOpacity)
                 svg.group(42, 44, scale = 1.56) { motif.draw(this, paint) }
             }
 
             else -> {
                 svg.path("M0,176 L240,104 L240,240 L0,240 Z", back, opacity = backOpacity)
-                svg.ellipse(124, 206, 64, 8, Paint.INK, opacity = 0.08)
+                svg.ellipse(124, 206, 64, 8, ground.shadow, opacity = ground.shadowOpacity)
                 svg.group(120, 116, degrees = -8) { group(-84, -90, scale = 1.68) { motif.draw(this, paint) } }
             }
         }
         return svg.toString()
     }
+
+    /**
+     * What a square picture's ground is drawn in: the [tone], the hatching and the small marks in [mark], the
+     * object's shadow, and the light shape behind the object ([back]). On the light page it is the canvas's —
+     * the tone as sent, Ink's hatching, a white shape. On the dark page (B-181) it is the tone's dark counterpart,
+     * the one the client's dark scheme draws the tile in, with the dark page's Paper where the light page has Ink or
+     * white, and deeper shadows; a tone the dark page keeps as sent keeps the light page's ground with it.
+     */
+    private class Ground(
+        val tone: String,
+        val dark: Boolean,
+    ) {
+        val mark = if (dark) PAPER else Paint.INK
+        val hatching = if (dark) DARK_HATCHING else LIGHT_HATCHING
+        val shadow = if (dark) SHADOW else Paint.INK
+        val shadowOpacity = if (dark) DARK_SHADOW else LIGHT_SHADOW
+
+        /**
+         * The light shape behind an object of [body] colour, and its opacity. On the light page white, or — behind a
+         * white object, which it would swallow — the tone a shade darker. On the dark page the Paper, stronger behind a
+         * dark object, which the dark tone would swallow.
+         */
+        fun back(body: String): Pair<String, Double> =
+            when {
+                dark -> PAPER to if (luminance(body) < DARK) DARK_BACK_UNDER_DARK else DARK_BACK
+                luminance(body) > PALE -> mix(tone, Paint.INK, 0.07) to 1.0
+                else -> Paint.WHITE to 0.55
+            }
+
+        companion object {
+            /** [tone] (`rrggbb`) as the page of the scheme draws its tile: its dark counterpart when [dark] and it has one. */
+            fun of(
+                tone: String,
+                dark: Boolean,
+            ): Ground {
+                val counterpart = DARK_TONES[tone].takeIf { dark }
+                return Ground(counterpart ?: "#$tone", counterpart != null)
+            }
+        }
+    }
+
+    /**
+     * The canvas's tile tones and the colour the client's dark scheme draws each in («Decided in B-180»,
+     * `HaulColorScheme.Dark`): the dark pictures' grounds, so a picture is its tile on the dark page as on the light
+     * one. `ArtFixturesTest` and the client's `DarkArtTest` hold the two tables together. `e9e6e0` is the light page's
+     * raised surface, a review photo's tone, drawn as the dark page's.
+     */
+    private val DARK_TONES =
+        mapOf(
+            "e6e4ff" to "#1D1B39",
+            "f1ebdd" to "#302D24",
+            "ffe5dd" to "#39221B",
+            "f1e4f5" to "#2E2331",
+            "fff1c9" to "#39311B",
+            "e3f5d8" to "#283321",
+            "e9f0d2" to "#2E3223",
+            "e0eef7" to "#212C33",
+            "ece9e2" to "#2D2B27",
+            "e9e6e0" to "#2A2824",
+        )
+
+    /** The dark page's Paper: its hatching, its marks and the light shape behind an object. */
+    private const val PAPER = "#F5F3EE"
+    private const val SHADOW = "#000000"
+    private const val LIGHT_HATCHING = 0.05
+    private const val DARK_HATCHING = 0.06
+    private const val LIGHT_SHADOW = 0.08
+    private const val DARK_SHADOW = 0.32
+    private const val DARK_BACK = 0.08
+    private const val DARK_BACK_UNDER_DARK = 0.16
 
     /**
      * The Autumn mega sale's hero: leaves falling across its Cobalt, under the hero's hatching. The hero writes its
