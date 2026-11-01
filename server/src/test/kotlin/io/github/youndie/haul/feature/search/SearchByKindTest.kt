@@ -8,11 +8,13 @@ import io.github.youndie.haul.seed.SeedProduct
 import io.github.youndie.haul.testing.SeededDatabase
 import io.github.youndie.haul.testing.haulTest
 import io.github.youndie.haul.testing.only
+import io.github.youndie.haul.testing.seededFreshDatabase
 import io.github.youndie.haul.testing.tree
 import io.github.youndie.haul.ui.PageTitle
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.SearchSuggestPanel
 import kotlinx.coroutines.runBlocking
+import javax.sql.DataSource
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -26,12 +28,10 @@ import kotlin.test.assertTrue
 class SearchByKindTest {
     private val catalog = CatalogSeed.generate(CatalogSeed.CANVAS_DAY)
 
-    private fun matching(query: String): List<String> =
-        runBlocking {
-            PostgresSearchRepository(
-                SeededDatabase.dataSource,
-            ).matching(Query.of(query))
-        }.map { it.productId }
+    private fun matching(
+        query: String,
+        database: DataSource = SeededDatabase.dataSource,
+    ): List<String> = runBlocking { PostgresSearchRepository(database).matching(Query.of(query)) }.map { it.productId }
 
     private fun SeedProduct.name(): String = "${listingName ?: title} $brand".lowercase()
 
@@ -76,6 +76,37 @@ class SearchByKindTest {
             val found = matching("headphones")
             assertEquals(headphones.map { it.id }.toSet(), found.toSet())
             assertEquals(named.map { it.id }.toSet(), found.take(named.size).toSet())
+        }
+
+    /**
+     * The order is by where the words are before it is by `ts_rank`: a product that says «wireless headphones» over
+     * and over in its features ranks above every name match by `ts_rank` alone — each pair of the words near each
+     * other adds to the rank, whatever their weight — and still comes after every product whose name holds the query.
+     */
+    @Test
+    fun `a product saying its kind over and over still comes after a name match`() =
+        seededFreshDatabase().use { database ->
+            database.connection.use { connection ->
+                connection
+                    .prepareStatement("UPDATE products SET features = ?::jsonb WHERE id = 'p-sonora-sh-c388n'")
+                    .use {
+                        it.setString(1, List(4) { "\"Wireless headphones\"" }.joinToString(", ", "[", "]"))
+                        check(it.executeUpdate() == 1)
+                    }
+                connection.commit()
+            }
+            val named =
+                catalog.products
+                    .filter { "wireless" in it.name() && "headphones" in it.name() }
+                    .map { it.id }
+                    .toSet()
+            val found = matching("wireless headphones", database)
+            assertEquals(named, found.take(named.size).toSet(), "found ${found.take(named.size + 1)}")
+            assertEquals(
+                "p-sonora-sh-c388n",
+                found[named.size],
+                "the stuffed features no longer rank first among the rest",
+            )
         }
 
     /** «Audio» is no product's name: it finds the products under Audio, headphones and speakers, and nothing else. */
