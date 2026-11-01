@@ -14,11 +14,12 @@
     {
       "artboard": "Account_Content_Phone.dc.html",
       "frame": null,
-      "reference": "Account_Content_Phone.png",
+      "reference": "retired/Account_Content_Phone.png",
       "width": 390,
       "height": 2255,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-177: the page laid out in whole pixels instead of the browser's fractional line boxes moves the phone's long column a pixel or two at a time, past the tolerance"
     },
     {
       "artboard": "Account_Error.dc.html",
@@ -106,11 +107,12 @@
     {
       "artboard": "Account_Orders_Phone.dc.html",
       "frame": null,
-      "reference": "Account_Orders_Phone.png",
+      "reference": "retired/Account_Orders_Phone.png",
       "width": 390,
       "height": 1332,
       "page": null,
-      "warnings": []
+      "warnings": [],
+      "retired": "B-177: the page laid out in whole pixels instead of the browser's fractional line boxes moves the phone's long column a pixel or two at a time, past the tolerance"
     },
     {
       "artboard": "Cart_Content.dc.html",
