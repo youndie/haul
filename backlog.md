@@ -46,16 +46,15 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (4)
+## Open (3)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-179](docs/backlog/B-179-a-blank-press-keeps-the-scroll.md) `[ ]` | fix: a press on blank page space keeps the scroll where it is | P1 | S | - |
-| [B-180](docs/backlog/B-180-a-dark-theme.md) `[~]` | feat: a dark theme for the whole store | P2 | L | - |
 | [B-181](docs/backlog/B-181-vector-pictures.md) `[ ]` | feat: pictures drawn as vectors, sharp at any size, with dark versions | P2 | M | - |
 | [B-156](docs/backlog/B-156-walk-the-selection-on-a-phone.md) `[ ]` | chore: walk the selection and its toolbar on a phone | P3 | S | B-155 |
 
-## Closed (177)
+## Closed (178)
 
 **Skeleton**
 
@@ -278,6 +277,7 @@ A stage is a field on the item, not a directory.
 - [B-176](docs/backlog/B-176-a-second-client-draws-the-same-trees.md) `[x]` - feat: a second client — desktop — draws the same server trees
 - [B-177](docs/backlog/B-177-order-and-account-in-whole-pixels.md) `[x]` - refactor: lay the order and account pages out in whole pixels
 - [B-178](docs/backlog/B-178-desktop-sign-in.md) `[x]` - feat: the desktop client signs in through the system browser
+- [B-180](docs/backlog/B-180-a-dark-theme.md) `[x]` - feat: a dark theme for the whole store
 
 <!-- END INDEX -->
 
