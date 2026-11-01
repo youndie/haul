@@ -20,6 +20,9 @@ import kotlinx.coroutines.launch
  * would not renew leaves the customer's header as a sign-out does. What the shopper is changes too without a
  * sign-in or a sign-out — a Plus trial started makes a member — and the server says so with a `refresh` of the
  * page, which a page with no tree follows by asking for its header again ([redrawn], B-146).
+ *
+ * The header kept is the one the page drew last, an `update` included (B-170): «Add to cart» answers the header's
+ * count in place, and the next page's placeholder draws that count, not the one the tree arrived with.
  */
 internal class ShellHeaders {
     private var last by mutableStateOf<Drawn?>(null)
@@ -29,6 +32,9 @@ internal class ShellHeaders {
         header: HaulHeader,
         signedIn: Boolean,
     ) {
+        // Drawn again with nothing changed — a recomposition of the header — is not news: the page under it would
+        // only be drawn again for it.
+        if (last?.let { it.current && it.header == header && it.signedIn == signedIn } == true) return
         last = Drawn(header, signedIn)
     }
 
@@ -41,6 +47,13 @@ internal class ShellHeaders {
     fun redrawn() {
         last = last?.let { Drawn(it.header, it.signedIn, current = false) }
     }
+
+    /**
+     * Whether the header for the shopper ([signedIn] or not) looking now is one the server drew — current or kept
+     * through a `refresh` ([redrawn]) — rather than the client's own: a page's placeholder draws it as it is, who is
+     * looking and the cart's count included, and only the client's own as a placeholder (B-170).
+     */
+    fun serverDrew(signedIn: Boolean): Boolean = last?.signedIn == signedIn
 
     /** Whether the server has drawn a header for the shopper ([signedIn] or not) looking now, and it is current. */
     fun knows(signedIn: Boolean): Boolean = last?.let { it.current && it.signedIn == signedIn } == true

@@ -610,7 +610,8 @@ the search worked, and landing straight on a 404 or the prompt gave the same dea
 - **Once a tree has been drawn, its header is the one**, its links the server's: the shell keeps the last
   tree's header and draws every page of its own under it (`LocalShellHeader`, `shell/Shell.kt`) — a
   placeholder or an error as a placeholder (who is looking not shown, no cart count), a page that is not
-  there as it is. The pixels are the artboards' as before; no golden changed.
+  there as it is. The pixels are the artboards' as before; no golden changed. **Since B-170 a placeholder or an
+  error draws it as it is too** (below).
 - **Before any tree, the shell's header carries the addresses the server's `Frame` fixes for a guest**:
   «Deals» `/deals`, the cart `/cart`, «Orders» and «Saved» the sign-in returning to them (a customer
   arriving at `/sign-in` is sent straight on, B-66), the account and «HAUL PLUS» the sign-in. Which address
@@ -642,7 +643,7 @@ for it:
   tree — not there, refused, an error, the sign-in prompt — and no header has been drawn for who is looking
   (`AskForHeader`, `shell/ShellHeaders.kt`): once per visit and load, and an answer that does not arrive leaves
   the header the client has. Placeholders and error pages still draw it as a placeholder (B-67), so their pixels
-  are unchanged. The sign-in page asks for none while it loads: it is a way through, and a customer is sent on
+  are unchanged — until B-170, below. The sign-in page asks for none while it loads: it is a way through, and a customer is sent on
   at once. So the sign-in page landed on cold draws the client's own header, whose ten category words each lead
   to the catalog's root (B-133). **Since B-138 a press asks instead** (owner, 2026-10-12): the phone header's
   menu button or the search picker asks for the header alone (`askForHeaderOnPress`, `LocalAskForHeader`), once
@@ -674,6 +675,25 @@ for it:
   a `200` for a refusal); the client keeping the last header across reloads in the browser's storage (a count
   and a name that may be stale, and the categories still a guess on a first visit); reading the customer's name
   out of the access token (the client never reads the token, and the count would still be unknown).
+
+**Decided in B-170, a page on its way keeps the header as it was drawn.** The designer and the shopper (2026-11-01)
+saw the header go back to its placeholders on every visit to another path — the account slot a grey bar, «Cart» with
+no count (and, by the code, the demo shopper's pill hidden) — and back again when the tree arrived: B-67 kept the last tree's header for
+a placeholder but drew it `pending`. The walk in headless Chromium against a seeded local stack showed it on every
+step, home → a category → a product → back, at 1440 and 390 (the item's findings).
+
+- **A placeholder or an error page draws the header the server drew for who is looking as it is**
+  (`PendingHeader`, `LocalShellHeaderDrawn`, `shell/Shell.kt`; `ShellHeaders.serverDrew`): the name or «Sign in»,
+  the count, the demo pill. `pending` is the client's own header's alone — the first page on its way, a sign-in or
+  a sign-out before the server has drawn for the new shopper, a page with no tree whose header alone did not arrive
+  (B-105's exception) — so the goldens, drawn with the client's own, are unchanged.
+- **The header kept is the one the renderer drew** (`LocalHeaderDrawn`, `HaulHeaderRenderer`), not the tree's as it
+  arrived: «Add to cart» answers the count with an `update` (B-63), and a header taken from the arriving tree would
+  have drawn the old count over the next placeholder and the new one a moment later — the blink this item removes,
+  in a number. Rejected: keeping the previous page drawn under the line until the next arrives (B-62 decided that
+  another path starts from its placeholder at the top, and TC-ERR-01 holds that the previous page's content is
+  never shown); drawing the header outside the page (each tree brings its own header, checkout's included, and
+  the page's scroll carries it).
 
 **Decided in B-62, a screen is a path** (owner's call). `/c/mugs?brand=Ostra` and `/c/mugs` are one
 screen, `/c/mugs` and `/p/…` two. A new address of the same path — a facet, a sort, a page of results, a

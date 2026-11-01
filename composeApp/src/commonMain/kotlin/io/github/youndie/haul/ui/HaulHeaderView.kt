@@ -201,6 +201,13 @@ public val LocalLogoAction: ProvidableCompositionLocal<(() -> Unit)?> = staticCo
  */
 public val LocalHeaderMeasured: ProvidableCompositionLocal<((height: Int) -> Unit)?> = staticCompositionLocalOf { null }
 
+/**
+ * Told every header a page's tree draws, as it is drawn — the tree's, or what an `update` put in its place (a cart
+ * command's count, B-63): the shell keeps the last one over the next page's placeholder (B-170). None outside the
+ * storefront.
+ */
+public val LocalHeaderDrawn: ProvidableCompositionLocal<((HaulHeader) -> Unit)?> = staticCompositionLocalOf { null }
+
 /** [this], reporting its height to [LocalHeaderMeasured] when the shell asks for it. */
 @Composable
 internal fun Modifier.headerMeasured(): Modifier {
