@@ -1,7 +1,7 @@
 ---
 id: B-170
 title: "fix: the header keeps its content while the next page loads"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-15-showcase
