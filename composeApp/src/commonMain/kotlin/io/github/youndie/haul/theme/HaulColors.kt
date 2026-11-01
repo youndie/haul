@@ -194,7 +194,7 @@ public class HaulColorScheme(
                 inverseSurface = Color(0xFFF2EFE8),
                 inverseOnSurface = Color(0xFF0F0F0F),
                 inverseOnSurfaceVariant = Color(0xFF4A4741),
-                inverseAccent = Color(0xFF2F2BFF),
+                inverseAccent = Color(0xFF2420E0),
                 band = Color(0xFF2B2925),
                 onBand = Color(0xFFF5F3EE),
                 onBandVariant = Color(0xFFC3BEB4),

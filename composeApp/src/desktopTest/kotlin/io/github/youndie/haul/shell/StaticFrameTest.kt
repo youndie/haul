@@ -1,6 +1,11 @@
 package io.github.youndie.haul.shell
 
+import androidx.compose.ui.graphics.toArgb
 import io.github.youndie.haul.StorefrontPage
+import io.github.youndie.haul.theme.HaulColorScheme
+import io.github.youndie.haul.theme.THEME_ATTRIBUTE
+import io.github.youndie.haul.theme.THEME_KEY
+import io.github.youndie.haul.theme.ThemeMode
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -101,6 +106,58 @@ class StaticFrameTest {
             "#haul-frame .co { display: none; }",
         ).forEach { assertTrue(it in page, "index.html lacks «$it»") }
     }
+
+    /**
+     * B-180: a dark system saw a white page while the bundle loaded. The frame is drawn in the schemes' roles — the
+     * light one, the dark one where the browser asks for it and nothing was chosen, the dark one where the shopper
+     * chose it — and each value is the scheme's own, so the frame and the first picture Compose draws are one colour.
+     */
+    @Test
+    fun `the frame is drawn in the light and the dark scheme's roles`() {
+        val blocks = Regex("""(:root[^{]*)\{([^}]*)\}""").findAll(page).map { it.groupValues[1].trim() to it.groupValues[2] }
+        val light = blocks.single { it.first == ":root" }.second
+        val darkWhenAsked = blocks.single { it.first == """:root:not([$THEME_ATTRIBUTE="light"])""" }.second
+        val darkWhenChosen = blocks.single { it.first == """:root[$THEME_ATTRIBUTE="dark"]""" }.second
+        assertEquals(roles(HaulColorScheme.Light), values(light))
+        assertEquals(roles(HaulColorScheme.Dark), values(darkWhenAsked))
+        assertEquals(roles(HaulColorScheme.Dark), values(darkWhenChosen))
+        assertTrue("@media (prefers-color-scheme: dark)" in page, "the dark roles do not follow the browser's scheme")
+        val rest = page.substringAfter(":root[$THEME_ATTRIBUTE=\"dark\"]").substringAfter("}")
+        val written = Regex("""#[0-9A-Fa-f]{3,8}\b""").findAll(rest).toList()
+        assertEquals(emptyList(), written.map { it.value }, "a colour the frame writes outside the roles")
+    }
+
+    /**
+     * B-180: the shopper's choice is marked on the page's root before the frame is parsed — read from the key the store
+     * keeps it under, as one of the two schemes the styles name — so a reload in the chosen scheme paints in it.
+     */
+    @Test
+    fun `the page marks the kept choice before the frame`() {
+        val mark =
+            """<script>try { var t = localStorage.getItem("$THEME_KEY"); if (t === "${ThemeMode.Light.key}" || """ +
+                """t === "${ThemeMode.Dark.key}") document.documentElement.setAttribute("$THEME_ATTRIBUTE", t); } """ +
+                """catch (e) {}</script>"""
+        val at = page.indexOf(mark)
+        assertTrue(at >= 0, "index.html does not mark the kept theme")
+        assertTrue(at < page.indexOf("id=\"$STATIC_FRAME_ID\""), "the mark comes after the frame")
+    }
+
+    /** The roles a frame's block names, each as the scheme has it. */
+    private fun roles(scheme: HaulColorScheme): Map<String, String> =
+        mapOf(
+            "background" to scheme.background,
+            "lowest" to scheme.surfaceContainerLowest,
+            "high" to scheme.surfaceContainerHigh,
+            "ink" to scheme.onSurface,
+            "rule" to scheme.outlineVariant,
+            "control" to scheme.outlineControl,
+            "primary" to scheme.primary,
+            "inverse" to scheme.inverseSurface,
+            "band" to scheme.band,
+        ).mapValues { (_, colour) -> "#%06X".format(colour.toArgb() and 0xFFFFFF) }
+
+    private fun values(block: String): Map<String, String> =
+        Regex("""--([a-z]+):\s*(#[0-9A-Fa-f]{6})""").findAll(block).associate { it.groupValues[1] to it.groupValues[2].uppercase() }
 
     /**
      * Within a first TCP window (ten segments, about 14 KB) even uncompressed: the frame arrives in the page's

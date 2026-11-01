@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -16,6 +17,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import io.github.youndie.haul.registry.haulJson
 import io.github.youndie.haul.registry.haulRegistry
+import io.github.youndie.haul.theme.HaulColorScheme
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.haul.ui.LocalHaulNow
@@ -39,13 +41,25 @@ import kotlin.time.Instant
 /** The canvas's «now» (`canvas.json`, `now`). */
 internal val CANVAS_NOW: Instant = Instant.parse("2025-10-07T19:47:23-04:00")
 
+/**
+ * The scheme a fixture is drawn in: the canvas's light one, unless a dark golden asks for the dark one around the very
+ * fixture its light golden draws ([Dark], B-180).
+ */
+internal val LocalFixtureScheme = staticCompositionLocalOf { HaulColorScheme.Light }
+
+/** [fixture] — one of the light goldens' fixtures — drawn in the dark scheme (B-180, `DarkFixtures.kt`). */
+@Composable
+internal fun Dark(fixture: @Composable () -> Unit) {
+    CompositionLocalProvider(LocalFixtureScheme provides HaulColorScheme.Dark, content = fixture)
+}
+
 @Composable
 internal fun Fixture(
     compact: Boolean,
     medium: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    HaulTheme(FixtureFonts.fonts, compact, medium) {
+    HaulTheme(FixtureFonts.fonts, compact, medium, LocalFixtureScheme.current) {
         CompositionLocalProvider(LocalHaulNow provides CANVAS_NOW, LocalPhotoLoader provides ArtLoader) {
             Box(
                 Modifier.fillMaxSize().background(HaulColors.background),

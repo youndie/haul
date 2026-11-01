@@ -47,6 +47,7 @@ import io.github.youndie.haul.read
 import io.github.youndie.haul.shell.HaulResponse
 import io.github.youndie.haul.shell.HaulTransport
 import io.github.youndie.haul.shell.Storefront
+import io.github.youndie.haul.theme.HaulColorScheme
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulTheme
 import io.github.youndie.kompot.standard.RefreshAction
@@ -150,7 +151,7 @@ class FocusRingTest {
             ).any { at ->
                 val x = at.x.toInt()
                 val y = at.y.toInt()
-                x in 0 until pixels.width && y in 0 until pixels.height && pixels[x, y].near(HaulColors.primary)
+                x in 0 until pixels.width && y in 0 until pixels.height && pixels[x, y].near(HaulColorScheme.Light.primary)
             }
         }
     }
@@ -327,7 +328,7 @@ class FocusRingTest {
         var drawn = 0
         for (x in xs) {
             for (y in ys) {
-                if (ringed[x, y].near(HaulColors.primary) && !plain[x, y].near(HaulColors.primary)) drawn += 1
+                if (ringed[x, y].near(HaulColorScheme.Light.primary) && !plain[x, y].near(HaulColorScheme.Light.primary)) drawn += 1
             }
         }
         return drawn >= RING_PIXELS
