@@ -58,3 +58,11 @@ Tab moves through the store's controls, but none of them shows it has focus: eve
   accent; the Tab after it rang the line's box. The line's photo pressed opened its product; there the first Tab
   rang nothing (the selection's stop), the second the strip's first link. Enter at a card's ring opened its product
   (`/` → `/p/p-002-08`).
+- **A race in B-170's kept header, found by this pull request's CI.** `LapsedHeaderTest` timed out waiting for the
+  guest's header in 2 of 3 CI runs. The header renderer told the shell its header from a `SideEffect`, so on every
+  recomposition, and the shell files what it is told under whoever is looking at that moment: Maya's header drawn
+  again after her sign-in lapsed was filed as the guest's (logged: `name=Maya count=3 signedIn=false` in each failing
+  run, never in a passing one), so the guest's header was never asked for. Main had it as well — 4 of 20 runs of the
+  test in one JVM on the WSL box, this branch 7 of 20. The renderer now tells the shell once per header it draws
+  (`DisposableEffect` keyed on the header, `registry/HaulRenderers.kt`); an `update` draws a new header and is told as
+  before. 0 of 50 since, `KeptHeaderTest` green.
