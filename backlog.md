@@ -52,7 +52,7 @@ A stage is a field on the item, not a directory.
 |---|---|---|---|---|
 | [B-177](docs/backlog/B-177-order-and-account-in-whole-pixels.md) `[ ]` | refactor: lay the order and account pages out in whole pixels | P2 | M | - |
 | [B-156](docs/backlog/B-156-walk-the-selection-on-a-phone.md) `[ ]` | chore: walk the selection and its toolbar on a phone | P3 | S | B-155 |
-| [B-178](docs/backlog/B-178-desktop-sign-in.md) `[ ]` | feat: the desktop client signs in through the system browser | P3 | M | - |
+| [B-178](docs/backlog/B-178-desktop-sign-in.md) `[~]` | feat: the desktop client signs in through the system browser | P3 | M | - |
 
 ## Closed (175)
 

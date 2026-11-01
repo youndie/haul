@@ -1,7 +1,7 @@
 ---
 id: B-178
 title: "feat: the desktop client signs in through the system browser"
-status: open
+status: wip
 priority: P3
 size: M
 stage: stage-15-showcase
