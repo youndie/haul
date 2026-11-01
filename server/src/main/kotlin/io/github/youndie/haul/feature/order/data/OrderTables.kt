@@ -47,7 +47,7 @@ internal object OrdersTable : Table("orders") {
 
     init {
         index("orders_customer_id", false, customerId)
-        // V32: the public feed of live orders reads the newest first (B-164).
+        // V33: the public feed of live orders reads the newest first (B-164).
         index("orders_placed_at", false, placedAt, id)
     }
 }

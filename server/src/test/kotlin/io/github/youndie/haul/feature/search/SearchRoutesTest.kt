@@ -4,7 +4,7 @@ import io.github.youndie.haul.ErrorBody
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.CatalogSeed
-import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_HEADPHONES
 import io.github.youndie.haul.testing.all
 import io.github.youndie.haul.testing.answer
 import io.github.youndie.haul.testing.haulTest
@@ -71,7 +71,7 @@ class SearchRoutesTest {
 
     /**
      * Full text, not a substring: the words in any order, across the title and the brand, the last one
-     * still being typed. «headphones son» is in no title as written; the Sony headphones match because
+     * still being typed. «headphones son» is in no title as written; the Sonora headphones match because
      * `headphones` is in the title, `son` is the start of the brand, and every word is a prefix.
      */
     @Test
@@ -79,8 +79,8 @@ class SearchRoutesTest {
         haulTest {
             val panel = tree("/ui/search/suggest?q=headphones%20son") as SearchSuggestPanel
             assertTrue(
-                panel.products.any { it.productId == "p-sony-wh-1000xm6" },
-                "the Sony headphones are not among ${panel.products.map { it.title }}",
+                panel.products.any { it.productId == "p-sonora-sh-718n" },
+                "the Sonora headphones are not among ${panel.products.map { it.title }}",
             )
         }
 
@@ -88,14 +88,21 @@ class SearchRoutesTest {
     @Test
     fun `the panel keeps to its limits and counts every result`() =
         haulTest {
-            val panel = tree("/ui/search/suggest?q=sony") as SearchSuggestPanel
+            val panel = tree("/ui/search/suggest?q=sonora") as SearchSuggestPanel
             assertTrue(panel.suggestions.size <= 5)
             assertTrue(panel.categories.size <= 3)
-            assertEquals(3, panel.products.size, "sony matches more than three products")
+            assertEquals(3, panel.products.size, "sonora matches more than three products")
             // A guest has no recent searches (feature-search); sign-in arrives with B-12.
             assertTrue(panel.recent.isEmpty())
-            val sony = catalog.products.count { it.brand == "Sony" || it.title.contains("sony", ignoreCase = true) }
-            assertEquals("All $sony results", panel.allResultsLabel)
+            val sonora =
+                catalog.products.count {
+                    it.brand == "Sonora" ||
+                        it.title.contains(
+                            "sonora",
+                            ignoreCase = true,
+                        )
+                }
+            assertEquals("All $sonora results", panel.allResultsLabel)
         }
 
     /** Scenario «Too short», on both routes. */
@@ -318,15 +325,15 @@ class SearchRoutesTest {
     /**
      * Search reads what the cards write (B-45): the full text is over the listing name, so words only the
      * listing name holds find the product typed in any order and unfinished. The document over the title
-     * found nothing here, and a shopper who types what a card says («Sony …») is answered by the brand alone.
+     * found nothing here, and a shopper who types what a card says («Sonora …») is answered by the brand alone.
      */
     @Test
     fun `words only the listing name holds find the product in any order`() =
-        withListingName("Sony Zephyrine Quietude Headphones") { database ->
+        withListingName("Sonora Zephyrine Quietude Headphones") { database ->
             haulTest(database) {
                 val panel = tree("/ui/search/suggest?q=quietude%20zephyr") as SearchSuggestPanel
                 assertTrue(
-                    panel.products.any { it.productId == SONY_HEADPHONES },
+                    panel.products.any { it.productId == SONORA_HEADPHONES },
                     "the listing name's words found ${panel.products.map { it.title }}",
                 )
             }
@@ -338,11 +345,11 @@ class SearchRoutesTest {
      */
     @Test
     fun `a piece of the listing name finds the product`() =
-        withListingName("Sony Zephyrine Quietude Headphones") { database ->
+        withListingName("Sonora Zephyrine Quietude Headphones") { database ->
             haulTest(database) {
                 val panel = tree("/ui/search/suggest?q=phyrine%20qui") as SearchSuggestPanel
                 assertTrue(
-                    panel.products.any { it.productId == SONY_HEADPHONES },
+                    panel.products.any { it.productId == SONORA_HEADPHONES },
                     "a piece of the listing name found ${panel.products.map { it.title }}",
                 )
             }
@@ -356,7 +363,7 @@ class SearchRoutesTest {
         database.connection.use { connection ->
             connection.prepareStatement("UPDATE products SET listing_name = ? WHERE id = ?").use {
                 it.setString(1, listingName)
-                it.setString(2, SONY_HEADPHONES)
+                it.setString(2, SONORA_HEADPHONES)
                 check(it.executeUpdate() == 1)
             }
             connection.commit()

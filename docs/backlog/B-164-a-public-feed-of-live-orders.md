@@ -48,7 +48,7 @@ convincing thing the stand does, and it is invisible.
   a page per order would be a second order page with the customer's rules to keep apart, plus a second channel.
 - **Anonymised by construction:** `ExposedFeed` selects no customer, address, window, pickup point or code;
   `LiveRoutesTest` reads every such value the orders hold off the database and finds none in the body.
-- **Load.** Five statements whatever the store holds, through a new index `orders_placed_at (placed_at, id)` (V32);
+- **Load.** Five statements whatever the store holds, through a new index `orders_placed_at (placed_at, id)` (V33);
   held by counting statements over 2,001 orders (≤ 10 for the whole page, header included) and a loose 2 s. The live
   channel reuses the order page's transport — the same broadcaster and `GET /ui/updates`, topic `live:orders` — and
   draws the body once for every listener, at most once a second, never for nobody; a connecting listener gets the last
@@ -56,8 +56,7 @@ convincing thing the stand does, and it is invisible.
   (`LiveFeedTest`).
 - **`GET /ui/updates` moved from the customer tier to the public one**, the topic deciding the tier: an order's topic
   is still `401` without a sign-in and `404` for another's (`LiveOrderTest`, `LiveUpdatesTest`).
-- **The migration is V32**: V31 is taken by B-166's branch (and by B-162's). Whichever of them lands second
-  renumbers; Flyway refuses a lower version applied after a higher one on the stand.
+- **The migration is V33**: B-166 took V31 and B-162 V32 while this branch was open, and merged first.
 - **Not drawn:** Haul Pay's four payments (the plan is the order's, not a shipment's) and the points an order earns
   or a return takes back; the clear-cart announcement. The `failed` cancellation's member, above.
 - **Two goldens drift on main, not here**, as B-160 found: a forced recording changes `Search_Results` and

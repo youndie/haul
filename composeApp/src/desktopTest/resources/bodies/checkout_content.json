@@ -285,7 +285,7 @@
                 "title": "Your order",
                 "items": [
                     {
-                        "title": "Sony WH-1000XM6 Wireless Noise Cancelling Headphones",
+                        "title": "Sonora SH-718N Wireless Noise Cancelling Headphones",
                         "options": "Midnight Black · Headphones only",
                         "quantity": 1,
                         "price": "$349",
@@ -293,7 +293,7 @@
                         "image": "/images/art/p_headphones_0_midnight-black_e6e4ff.686ea916f7.svg",
                         "action": {
                             "type": "navigate",
-                            "deeplink": "/p/p-sony-wh-1000xm6"
+                            "deeplink": "/p/p-sonora-sh-718n"
                         }
                     },
                     {
@@ -343,7 +343,7 @@
                 "placingLabel": "Placing order…",
                 "placeEnabled": true,
                 "placeUrl": "/api/v1/orders",
-                "quote": "7bb3ef377d025c0546130a22f068f3a1",
+                "quote": "ec11391f01ad890b2b875897ef2d2e2a",
                 "back": {
                     "label": "Back to cart",
                     "action": {

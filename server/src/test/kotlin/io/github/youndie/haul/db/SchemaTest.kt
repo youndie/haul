@@ -4,6 +4,7 @@ import io.github.youndie.haul.feature.cart.data.cartTables
 import io.github.youndie.haul.feature.catalog.data.catalogTables
 import io.github.youndie.haul.feature.checkout.data.checkoutTables
 import io.github.youndie.haul.feature.fulfilment.data.fulfilmentTables
+import io.github.youndie.haul.feature.identity.data.DemoShoppersTable
 import io.github.youndie.haul.feature.membership.data.membershipTables
 import io.github.youndie.haul.feature.order.data.orderTables
 import io.github.youndie.haul.feature.payment.data.paymentTables
@@ -65,6 +66,18 @@ class SchemaTest {
             }
         assertEquals(emptyList(), required, "still required:\n" + required.joinToString("\n"))
         assertEquals(1, searchTables.size)
+    }
+
+    /** V31's demo shoppers (B-162) against their Exposed declaration. */
+    @Test
+    fun `the migrated schema needs no further DDL for the demo shoppers' table`() {
+        val required =
+            PostgresHarness.freshDatabase().use {
+                transaction(Databases.connect(it)) {
+                    MigrationUtils.statementsRequiredForDatabaseMigration(DemoShoppersTable)
+                }
+            }
+        assertEquals(emptyList(), required, "still required:\n" + required.joinToString("\n"))
     }
 
     /** V4's guests, promo codes, carts and lines, and V8's customers, against their Exposed declarations. */

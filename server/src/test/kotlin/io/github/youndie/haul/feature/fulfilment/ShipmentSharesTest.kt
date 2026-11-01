@@ -54,7 +54,7 @@ class ShipmentSharesTest {
             ShipmentShares.of(
                 order(
                     51_200,
-                    "sony" to 34_900,
+                    "sonora" to 34_900,
                     "home" to 16_300,
                 ),
             ),
@@ -63,11 +63,11 @@ class ShipmentSharesTest {
 
     /**
      * B-91: a line of two at $349.00 is a $698.00 line as the order keeps it, and is shared as $698.00 — not as the
-     * $1,396.00 the quantity counted twice made it, which took $748.77 of an $836.20 total for Sony instead of $677.89.
+     * $1,396.00 the quantity counted twice made it, which took $748.77 of an $836.20 total for Sonora instead of $677.89.
      */
     @Test
     fun `a line of several is shared by its total`() {
-        val placed = order(83_620, "sony" to 69_800, "home" to 16_300)
+        val placed = order(83_620, "sonora" to 69_800, "home" to 16_300)
         val order =
             placed.copy(
                 placed =

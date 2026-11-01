@@ -33,18 +33,18 @@ import kotlin.time.toJavaDuration
  * holds: every pass is the test's own call at a moment it names, so a step that comes due early or late is
  * a failure here and never a slow machine.
  *
- * Maya's cart is two shipments (research §6): Sony's headphones (`HL-48302-1`, dispatched the same day) and
+ * Maya's cart is two shipments (research §6): Sonora's headphones (`HL-48302-1`, dispatched the same day) and
  * Brooklyn Home Co.'s duvet cover and mugs (`HL-48302-2`, one dispatch day).
  */
 class ShipmentLifecycleTest {
-    private val sony = "HL-48302-1"
+    private val sonora = "HL-48302-1"
     private val brooklyn = "HL-48302-2"
 
     private fun at(offset: Duration): Instant = TestClock.START.plus(offset.toJavaDuration())
 
     /**
      * The store's pace, step by step: a shipment moves at the moment its step comes due and not a
-     * millisecond before; Sony leaves a day before Brooklyn Home Co.; the order is as far as its least
+     * millisecond before; Sonora leaves a day before Brooklyn Home Co.; the order is as far as its least
      * advanced shipment; a courier shipment never gets a pickup code.
      */
     @Test
@@ -55,19 +55,19 @@ class ShipmentLifecycleTest {
 
                 fun expect(
                     offset: Duration,
-                    sonyStatus: String,
+                    sonoraStatus: String,
                     brooklynStatus: String,
                     progress: OrderProgress,
                 ) {
                     world.advance(offset)
                     assertEquals(
-                        mapOf(sony to sonyStatus, brooklyn to brooklynStatus),
+                        mapOf(sonora to sonoraStatus, brooklyn to brooklynStatus),
                         world.statuses(order),
                         "at $offset",
                     )
                     assertEquals(progress, world.track(order)?.progress, "at $offset")
                     assertEquals(
-                        mapOf(sony to null, brooklyn to null),
+                        mapOf(sonora to null, brooklyn to null),
                         world.storedCodes(order),
                         "a courier has no code",
                     )
@@ -90,7 +90,7 @@ class ShipmentLifecycleTest {
                         IN_TRANSIT to at(24.hours),
                         DELIVERED to at(48.hours),
                     ),
-                    history[sony],
+                    history[sonora],
                 )
                 assertEquals(at(48.hours), history[brooklyn]?.get(IN_TRANSIT), "a dispatch day later")
                 assertEquals(0, world.advance(30.days), "a delivered order is not moved again")
@@ -144,7 +144,7 @@ class ShipmentLifecycleTest {
 
                 assertEquals(6, world.advance(10.days), "three steps for each of the two shipments")
 
-                assertEquals(mapOf(sony to DELIVERED, brooklyn to DELIVERED), world.statuses(order))
+                assertEquals(mapOf(sonora to DELIVERED, brooklyn to DELIVERED), world.statuses(order))
                 val history = assertNotNull(world.track(order)).shipments.associate { it.id to it.history }
                 assertEquals(
                     mapOf(
@@ -172,13 +172,13 @@ class ShipmentLifecycleTest {
                 assertNull(world.track(order)?.shipments?.firstNotNullOfOrNull { it.pickupCode }, "no code on the road")
 
                 world.advance(48.hours)
-                assertEquals(mapOf(sony to READY_FOR_PICKUP, brooklyn to IN_TRANSIT), world.statuses(order))
+                assertEquals(mapOf(sonora to READY_FOR_PICKUP, brooklyn to IN_TRANSIT), world.statuses(order))
                 val tracked = assertNotNull(world.track(order))
                 assertEquals(OrderProgress.InTransit, tracked.progress, "the least advanced shipment wins")
-                val waiting = tracked.shipments.first { it.id == sony }
+                val waiting = tracked.shipments.first { it.id == sonora }
                 val sagaId = assertNotNull(world.order(order)).placed.sagaId
                 val code = assertNotNull(waiting.pickupCode)
-                assertEquals(PickupCodes.of(sagaId, sony), code)
+                assertEquals(PickupCodes.of(sagaId, sonora), code)
                 assertTrue(code.matches(Regex("[0-9]{4}")), "four digits: $code")
                 assertEquals(at(48.hours + FulfilmentPace.HELD_FOR), waiting.heldUntil)
                 assertNull(tracked.shipments.first { it.id == brooklyn }.pickupCode)
@@ -188,10 +188,14 @@ class ShipmentLifecycleTest {
                 world.advance(72.hours)
                 assertEquals(OrderProgress.ReadyForPickup, world.track(order)?.progress)
                 world.advance(96.hours)
-                val collected = assertNotNull(world.track(order)).shipments.first { it.id == sony }
+                val collected = assertNotNull(world.track(order)).shipments.first { it.id == sonora }
                 assertEquals(PICKED_UP, collected.status)
                 assertNull(collected.pickupCode, "a collected shipment shows no code")
-                assertEquals(PickupCodes.of(sagaId, sony), world.storedCodes(order)[sony], "the code stays on the row")
+                assertEquals(
+                    PickupCodes.of(sagaId, sonora),
+                    world.storedCodes(order)[sonora],
+                    "the code stays on the row",
+                )
                 world.advance(120.hours)
                 assertEquals(OrderProgress.PickedUp, world.track(order)?.progress)
             }
@@ -206,7 +210,7 @@ class ShipmentLifecycleTest {
                 world.advance(Duration.ZERO)
                 world.advance(72.hours)
 
-                assertEquals(mapOf(sony to READY_FOR_PICKUP, brooklyn to READY_FOR_PICKUP), world.statuses(order))
+                assertEquals(mapOf(sonora to READY_FOR_PICKUP, brooklyn to READY_FOR_PICKUP), world.statuses(order))
                 assertTrue(world.storedCodes(order).values.all { it != null })
             }
         }

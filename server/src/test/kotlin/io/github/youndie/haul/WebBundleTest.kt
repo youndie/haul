@@ -208,10 +208,10 @@ class WebBundleTest {
     @Test
     fun `another form of a category address arrives at the page at its one address`() =
         withBundle {
-            val response = get("/c/headphones?brand=Sony") { header(HttpHeaders.AcceptEncoding, BROWSER) }
+            val response = get("/c/headphones?brand=Sonora") { header(HttpHeaders.AcceptEncoding, BROWSER) }
 
             assertEquals(HttpStatusCode.OK, response.status)
-            assertEquals("/c/electronics/audio/headphones?brand=Sony", response.request.url.fullPath)
+            assertEquals("/c/electronics/audio/headphones?brand=Sonora", response.request.url.fullPath)
             assertContentEquals(PAGE_BR, response.bodyAsBytes())
         }
 
@@ -320,7 +320,7 @@ class WebBundleTest {
             listOf(
                 "/c",
                 "/c/electronics",
-                "/c/electronics/audio/headphones?brand=Sony&feature=Noise%20cancelling",
+                "/c/electronics/audio/headphones?brand=Sonora&feature=Noise%20cancelling",
                 "/p/p-001-05",
                 "/p/p-001-05?sku=s-1&tab=specifications",
                 "/search?q=running%20shoes",
@@ -345,7 +345,7 @@ class WebBundleTest {
                 "/c/electronics?brand=%E0%A4%A",
                 "/search?q=%zz",
                 "/c/electronics?%zz",
-                "/p/p-sony-wh-1000xm6?sku=%zz",
+                "/p/p-sonora-sh-718n?sku=%zz",
             )
 
         val NOT_STOREFRONT =

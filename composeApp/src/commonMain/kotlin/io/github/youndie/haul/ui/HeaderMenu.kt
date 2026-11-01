@@ -68,7 +68,7 @@ public const val HEADER_MENU_TAG: String = "header-menu"
 
 /**
  * The phone header's menu (B-73): what the 1440 header reaches and a 390 one has no room for — the account
- * («Sign in» for a guest), «Orders», «Saved», «Deals», «HAUL PLUS», a customer's «Sign out» (B-66), and
+ * («Sign in» for a guest, and «Try as a demo shopper» while the server offers one, B-162), «Orders», «Saved», «Deals», «HAUL PLUS», a customer's «Sign out» (B-66), and
  * under «Catalog» every top-level category (`HaulHeader.catalog`), not only the ten of the category row.
  * No artboard draws it; it is the filter sheet's frame (Catalog_FiltersSheet_Phone) — title row, «×», a scrolling body — drawn from the
  * theme's tokens. Each entry follows what the header carries for it; [onAccount] is the account slot's
@@ -114,6 +114,8 @@ public fun HeaderMenuSheet(
                 then(onAccount),
                 weight = 700,
             )
+            // A guest's second way in on a phone (B-162): the demo shopper, while the server offers one.
+            if (guest && header.demo != null) MenuRow(null, DEMO_SHOPPER_NAME, then(following(header.demo)))
             MenuRow(HaulIcons.box, "Orders", then(following(header.orders)))
             MenuRow(HaulIcons.heart, "Saved", then(following(header.saved)))
             MenuRow(HaulIcons.bolt, "Deals", then(following(header.deals)), weight = 800, tint = HaulColors.error)

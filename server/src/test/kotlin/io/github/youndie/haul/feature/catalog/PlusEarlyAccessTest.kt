@@ -92,14 +92,14 @@ class PlusEarlyAccessTest {
 
     /** The headphones' buy box: the price and the struck-through one. */
     private suspend fun HttpClient.productPrice(token: String?): Pair<String, String?> =
-        page("/ui/p/$SONY", token).only<ProductDetails>().let { it.price to it.oldPrice }
+        page("/ui/p/$SONORA", token).only<ProductDetails>().let { it.price to it.oldPrice }
 
     /** The headphones' card in their category. */
     private suspend fun HttpClient.card(token: String?): ProductCard =
-        page("/ui/c/electronics/audio/headphones?brand=Sony", token)
+        page("/ui/c/electronics/audio/headphones?brand=Sonora", token)
             .all()
             .filterIsInstance<ProductCard>()
-            .single { it.productId == SONY }
+            .single { it.productId == SONORA }
 
     private suspend fun HttpClient.putLine(
         token: String,
@@ -167,7 +167,7 @@ class PlusEarlyAccessTest {
             assertEquals(listOf("$449", null, null), card(null).let { listOf(it.price, it.oldPrice, it.badge) })
             assertEquals(listOf("$449", null, null), card(sam).let { listOf(it.price, it.oldPrice, it.badge) })
 
-            val answer = get("/ui/p/$SONY") { bearerAuth(maya) }
+            val answer = get("/ui/p/$SONORA") { bearerAuth(maya) }
             val cacheControl = answer.headers[HttpHeaders.CacheControl].orEmpty()
             assertFalse("public" in cacheControl, "a member's page may be kept for others: «$cacheControl»")
         }
@@ -197,9 +197,9 @@ class PlusEarlyAccessTest {
     @Test
     fun `a non-member is charged the regular price on the early-access day`() =
         store { _, database ->
-            putLine(sam, SONY_SKU)
+            putLine(sam, SONORA_SKU)
             putLine(sam, MUG_SKU)
-            assertEquals("$449", cartLine(sam, SONY_SKU).price)
+            assertEquals("$449", cartLine(sam, SONORA_SKU).price)
             assertEquals("$473", cartTotal(sam))
             pickUp(sam)
             val summary = checkout(sam)
@@ -219,7 +219,7 @@ class PlusEarlyAccessTest {
     @Test
     fun `a trial started mid-checkout redraws the quote at the member price`() =
         store { _, database ->
-            putLine(sam, SONY_SKU)
+            putLine(sam, SONORA_SKU)
             putLine(sam, MUG_SKU)
             pickUp(sam)
             val stale = checkout(sam)
@@ -227,12 +227,12 @@ class PlusEarlyAccessTest {
 
             assertEquals(HttpStatusCode.Created, post(MembershipPaths.TRIAL) { bearerAuth(sam) }.status)
 
-            val changed = cartLine(sam, SONY_SKU)
+            val changed = cartLine(sam, SONORA_SKU)
             assertEquals("$349", changed.price)
             assertEquals("Price changed: now $349", changed.change)
             place(sam, "sam-stale", stale).assertError(HttpStatusCode.Conflict, ErrorCode.CartChanged)
 
-            post(CartPaths.acknowledge(SONY_SKU)) { bearerAuth(sam) }.assertRefresh()
+            post(CartPaths.acknowledge(SONORA_SKU)) { bearerAuth(sam) }.assertRefresh()
             val fresh = checkout(sam)
             assertEquals("$373", fresh.total)
             val response = place(sam, "sam-member", fresh)
@@ -249,7 +249,7 @@ class PlusEarlyAccessTest {
     @Test
     fun `from the start a non-member gets the sale price through to the order`() =
         store { clock, database ->
-            putLine(sam, SONY_SKU)
+            putLine(sam, SONORA_SKU)
             putLine(sam, MUG_SKU)
             pickUp(sam)
             assertEquals("$449" to null, productPrice(null))
@@ -257,9 +257,9 @@ class PlusEarlyAccessTest {
             clock.at = AUTUMN_SALE_START
             assertEquals("$349" to "$449", productPrice(null))
             assertEquals("$349" to "$449", productPrice(sam))
-            assertEquals("Price changed: now $349", cartLine(sam, SONY_SKU).change)
-            post(CartPaths.acknowledge(SONY_SKU)) { bearerAuth(sam) }.assertRefresh()
-            assertNull(cartLine(sam, SONY_SKU).change)
+            assertEquals("Price changed: now $349", cartLine(sam, SONORA_SKU).change)
+            post(CartPaths.acknowledge(SONORA_SKU)) { bearerAuth(sam) }.assertRefresh()
+            assertNull(cartLine(sam, SONORA_SKU).change)
             assertEquals("$373", cartTotal(sam))
             val summary = checkout(sam)
             assertEquals("$373", summary.total)
@@ -271,8 +271,8 @@ class PlusEarlyAccessTest {
         }
 
     private companion object {
-        const val SONY = SampleCatalog.SONY_HEADPHONES
-        const val SONY_SKU = "${SampleCatalog.SONY_HEADPHONES}-0"
+        const val SONORA = SampleCatalog.SONORA_HEADPHONES
+        const val SONORA_SKU = "${SampleCatalog.SONORA_HEADPHONES}-0"
         const val MUG_SKU = "${SampleCatalog.STONEWARE_MUG}-0"
 
         /** Noon on Monday, Oct 6, 2025: the sale is open to Plus members since midnight, to everybody at the next. */

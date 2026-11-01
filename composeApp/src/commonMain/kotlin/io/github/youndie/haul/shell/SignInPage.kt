@@ -12,9 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import io.github.youndie.haul.feature.identity.SessionControls
 import io.github.youndie.haul.feature.identity.SignInActions
+import io.github.youndie.haul.feature.identity.SignInUnavailable
 import io.github.youndie.haul.feature.identity.SignInUnreachable
+import io.github.youndie.haul.ui.DEMO_SHOPPER_NAME
 import io.github.youndie.haul.ui.HaulHeader
+import io.github.youndie.kompot.standard.MessageLevel
 import io.github.youndie.kompot.standard.NavigateAction
+import io.github.youndie.kompot.standard.ShowMessageAction
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -75,8 +79,15 @@ internal class Signing(
             unreachable = { again -> unreachable { scope.launch { again() } } },
             signOut = { session?.signOut() },
             signedOut = { if (address.kind.isCustomers) navigator.open("/") else redraw() },
+            demo = { session?.tryAsDemoShopper() ?: throw SignInUnavailable() },
+            refused = ::demoRefused,
             open = open,
         )
+
+    /** The server's word for why no demo shopper was made (B-162), over the page, which stays as it was. */
+    private fun demoRefused(reason: String?) {
+        messages.show(ShowMessageAction(reason ?: DEMO_REFUSED, MessageLevel.ERROR)) { }
+    }
 
     /** «Couldn’t reach the store» over the page, its «Retry» [again] — the press that got no answer (B-147). */
     fun unreachable(again: () -> Unit) {
@@ -101,6 +112,12 @@ internal class Signing(
         navigator.open(page)
     }
 }
+
+/** «Try as a demo shopper» (B-162): the sign-in page's and the prompt's second way in, and the phone menu's row. */
+public const val DEMO_SHOPPER_LABEL: String = DEMO_SHOPPER_NAME
+
+/** What a refused demo shopper says when the server said nothing. */
+internal const val DEMO_REFUSED: String = "The demo shopper isn’t available just now. Try again in a moment."
 
 /** Where the sign-in page is: what it draws, and what its presses do. */
 private enum class SignInState { Asking, Blocked, Returning, Failed }
@@ -160,6 +177,7 @@ internal fun SignInPage(
             signing.actions(address, redraw = { navigator.redirect(next) }, cancelled = {}, open = navigator::redirect)
         }
     val popup = { scope.launch { actions.handle(NavigateAction(address.value)) } }
+    val demo = { deeplink: String -> scope.launch { actions.handle(NavigateAction(deeplink)) } }
 
     fun here() {
         scope.launch {
@@ -186,6 +204,9 @@ internal fun SignInPage(
                     text = "Your orders, your Saved list and checkout. Whatever is in your cart comes with you.",
                     actionLabel = SIGN_IN_PAGE_LABEL,
                     onAction = { popup() },
+                    // No account? A customer of the visitor's own, in one press (B-162), returning where this page would.
+                    secondaryLabel = header.demo?.let { DEMO_SHOPPER_LABEL },
+                    onSecondary = { demo(SignInActions.demoReturningTo(next)) },
                 )
             }
 

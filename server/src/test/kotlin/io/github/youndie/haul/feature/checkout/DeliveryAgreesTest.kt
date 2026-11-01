@@ -29,7 +29,7 @@ import io.github.youndie.haul.feature.reviews.screen.ReviewTabs
 import io.github.youndie.haul.feature.saved.data.ExposedSavedItems
 import io.github.youndie.haul.seed.CatalogSeed
 import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
-import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_HEADPHONES
 import io.github.youndie.haul.seed.SampleCatalog.STONEWARE_MUG
 import io.github.youndie.haul.seed.SeedArt
 import io.github.youndie.haul.shell.Viewer
@@ -160,7 +160,7 @@ class DeliveryAgreesTest {
     @Test
     fun `a cart of two sellers is offered windows from the earlier one's day, as the canvas draws Maya's`() =
         runBlocking {
-            val owner = canvas.cartOf(SONY_HEADPHONES, DUVET_COVER)
+            val owner = canvas.cartOf(SONORA_HEADPHONES, DUVET_COVER)
             assertEquals(
                 listOf("Courier · Tomorrow", "Courier · Thu, Oct 9"),
                 canvas.cartScreen
@@ -169,7 +169,7 @@ class DeliveryAgreesTest {
                     .filterIsInstance<CartGroup>()
                     .map { it.delivery },
             )
-            assertEquals("Courier · Tomorrow", canvas.details(SONY_HEADPHONES).delivery[0].title)
+            assertEquals("Courier · Tomorrow", canvas.details(SONORA_HEADPHONES).delivery[0].title)
             val methods = canvas.checkout.build(owner).only<DeliveryMethods>()
             assertEquals("Tomorrow, Oct 8", methods.detail(DeliveryMethod.Courier))
             assertEquals("Thu, Oct 9 · 240 m away", methods.detail(DeliveryMethod.PickupPoint))
@@ -178,8 +178,8 @@ class DeliveryAgreesTest {
     @Test
     fun `after the cut-off checkout moves with the product page`() =
         runBlocking {
-            val owner = afterCutoff.cartOf(SONY_HEADPHONES)
-            assertEquals("Courier · Thu, Oct 9", afterCutoff.details(SONY_HEADPHONES).delivery[0].title)
+            val owner = afterCutoff.cartOf(SONORA_HEADPHONES)
+            assertEquals("Courier · Thu, Oct 9", afterCutoff.details(SONORA_HEADPHONES).delivery[0].title)
             assertEquals(
                 "Courier · Thu, Oct 9",
                 afterCutoff.cartScreen
@@ -215,7 +215,7 @@ class DeliveryAgreesTest {
             assertEquals(
                 listOf("Free", "Free"),
                 canvas
-                    .details(SONY_HEADPHONES)
+                    .details(SONORA_HEADPHONES)
                     .delivery
                     .take(2)
                     .map { it.price },
@@ -265,15 +265,15 @@ class DeliveryAgreesTest {
             // After the cut-off the courier line names the place instead of the time left.
             assertEquals(
                 "To Austin, TX 78701",
-                afterCutoff.details(SONY_HEADPHONES, viewer).delivery[0].detail,
+                afterCutoff.details(SONORA_HEADPHONES, viewer).delivery[0].detail,
             )
             assertEquals(
                 "To Brooklyn, NY 11211",
-                afterCutoff.details(SONY_HEADPHONES).delivery[0].detail,
+                afterCutoff.details(SONORA_HEADPHONES).delivery[0].detail,
                 "a guest is told the store's default place",
             )
         }
 
     private suspend fun ProductScreen.header(viewer: Viewer): HaulHeader =
-        build(SONY_HEADPHONES, null, ProductTab.Description, viewer).only()
+        build(SONORA_HEADPHONES, null, ProductTab.Description, viewer).only()
 }

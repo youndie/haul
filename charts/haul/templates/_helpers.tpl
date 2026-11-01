@@ -86,3 +86,11 @@ and some of their walks decline: then the server has no key, and the test card i
 {{- printf "haul-test-card-0002:%s" (include "haul.require" (dict "name" "shildik.masterKeys" "because" "the test card's key is derived from it" "value" .Values.shildik.masterKeys)) | sha256sum -}}
 {{- end -}}
 {{- end }}
+
+{{/*
+Whether the server makes demo shoppers (B-162): `server.demoShoppers` with the release's own provider, whose
+management port and bootstrap token it uses. "true" or empty.
+*/}}
+{{- define "haul.demoShoppers" -}}
+{{- if and .Values.shildik.enabled .Values.server.demoShoppers -}}true{{- end -}}
+{{- end }}

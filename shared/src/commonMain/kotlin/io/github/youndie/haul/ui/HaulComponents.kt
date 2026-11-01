@@ -40,10 +40,13 @@ import kotlinx.serialization.Serializable
  * is in, `null` for all of them or off the search page. The strip says where the store delivers and for how much, and
  * nothing else: «Sell on HAUL», «Help» and the language had no page behind them and are gone (B-72).
  *
- * [tabTitle] is the browser tab's title for the page this header tops (B-161): «Sony WH-1000XM6 Wireless Noise
+ * [tabTitle] is the browser tab's title for the page this header tops (B-161): «Sonora SH-718N Wireless Noise
  * Cancelling Headphones · Haul», «Deals · Haul» — the server's copy, which the client puts in `document.title` and
  * never composes. `null` on a header that tops no page: the header alone (`/ui/header`, B-105) and the header an
  * `update` redraws (B-63), which the client never reads it from.
+ *
+ * [demo] is «Try as a demo shopper» for a guest (B-162): a customer of the visitor's own, made in one press, with the
+ * guest cart merged into it as any sign-in merges it. `null` for a customer, and on a server whose demo is off.
  */
 @Serializable
 @SerialName("haul_header")
@@ -67,6 +70,7 @@ public data class HaulHeader(
     val scopes: List<SearchScope> = emptyList(),
     val scope: String? = null,
     val tabTitle: String? = null,
+    val demo: @Polymorphic KompotAction? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 

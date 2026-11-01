@@ -31,11 +31,11 @@ import kotlin.time.Duration.Companion.hours
  * and each shipment's share is captured out of it when that shipment leaves for the road — not at
  * placement, not when it is packed, and never twice.
  *
- * Maya's order is $512.00 (research §6): Sony's headphones, $349.00, ship a day before Brooklyn Home Co.'s
+ * Maya's order is $512.00 (research §6): Sonora's headphones, $349.00, ship a day before Brooklyn Home Co.'s
  * duvet cover and mugs, $139.00 + $24.00.
  */
 class ChargedWhenShippedTest {
-    private val sony = "HL-48302-1"
+    private val sonora = "HL-48302-1"
     private val brooklyn = "HL-48302-2"
 
     /**
@@ -54,20 +54,20 @@ class ChargedWhenShippedTest {
 
                 world.advance(Duration.ZERO)
                 world.advance(4.hours)
-                assertEquals(mapOf(sony to PACKED, brooklyn to PACKED), world.statuses(order))
+                assertEquals(mapOf(sonora to PACKED, brooklyn to PACKED), world.statuses(order))
                 assertEquals(emptyMap(), world.captures(order), "nothing is charged when it is packed")
 
                 world.advance(24.hours)
-                assertEquals(mapOf(sony to IN_TRANSIT, brooklyn to PACKED), world.statuses(order))
+                assertEquals(mapOf(sonora to IN_TRANSIT, brooklyn to PACKED), world.statuses(order))
                 assertEquals(
-                    mapOf(sony to 34_900),
+                    mapOf(sonora to 34_900),
                     world.captures(order),
-                    "exactly Sony's share, and Brooklyn's still held",
+                    "exactly Sonora's share, and Brooklyn's still held",
                 )
                 assertEquals(listOf(Triple(order, 51_200, "authorised")), ledger.authorisations())
 
                 world.advance(48.hours)
-                assertEquals(mapOf(sony to 34_900, brooklyn to 16_300), world.captures(order))
+                assertEquals(mapOf(sonora to 34_900, brooklyn to 16_300), world.captures(order))
                 assertEquals(51_200, world.captures(order).values.sum(), "the parts add up to the total")
                 val tracked = assertNotNull(world.track(order)).shipments
                 assertEquals(listOf(34_900, 16_300), tracked.map { it.capturedCents })
@@ -75,7 +75,7 @@ class ChargedWhenShippedTest {
 
                 world.advance(72.hours)
                 assertEquals(
-                    mapOf(sony to 34_900, brooklyn to 16_300),
+                    mapOf(sonora to 34_900, brooklyn to 16_300),
                     world.captures(order),
                     "delivery charges nothing",
                 )
@@ -123,15 +123,19 @@ class ChargedWhenShippedTest {
                         FulfilmentPace.STORE,
                     )
                 assertFailsWith<IllegalStateException> { runBlocking { first.advance() } }
-                assertEquals(mapOf(sony to PACKED, brooklyn to PACKED), world.statuses(order), "the move never landed")
-                assertEquals(mapOf(sony to 34_900), world.captures(order), "the capture did")
+                assertEquals(
+                    mapOf(sonora to PACKED, brooklyn to PACKED),
+                    world.statuses(order),
+                    "the move never landed",
+                )
+                assertEquals(mapOf(sonora to 34_900), world.captures(order), "the capture did")
 
-                assertEquals(1, world.advance(24.hours), "the next process moves Sony")
-                assertEquals(mapOf(sony to IN_TRANSIT, brooklyn to PACKED), world.statuses(order))
-                assertEquals(mapOf(sony to 34_900), world.captures(order), "and charges nothing more")
+                assertEquals(1, world.advance(24.hours), "the next process moves Sonora")
+                assertEquals(mapOf(sonora to IN_TRANSIT, brooklyn to PACKED), world.statuses(order))
+                assertEquals(mapOf(sonora to 34_900), world.captures(order), "and charges nothing more")
 
                 world.advance(72.hours)
-                assertEquals(mapOf(sony to DELIVERED, brooklyn to DELIVERED), world.statuses(order))
+                assertEquals(mapOf(sonora to DELIVERED, brooklyn to DELIVERED), world.statuses(order))
                 assertEquals(51_200, world.captures(order).values.sum())
             }
         }
@@ -167,28 +171,28 @@ class ChargedWhenShippedTest {
                     )
 
                 world.clock.at(30.hours)
-                assertEquals(0, runBlocking { held.advance() }, "Sony was due at 24 hours")
+                assertEquals(0, runBlocking { held.advance() }, "Sonora was due at 24 hours")
                 assertEquals(
-                    mapOf(sony to PACKED, brooklyn to PACKED),
+                    mapOf(sonora to PACKED, brooklyn to PACKED),
                     world.statuses(order),
-                    "Sony does not ship unpaid",
+                    "Sonora does not ship unpaid",
                 )
                 assertEquals(emptyMap(), world.captures(order))
 
                 world.advance(30.hours)
-                assertEquals(mapOf(sony to IN_TRANSIT, brooklyn to PACKED), world.statuses(order), "paid, it ships")
+                assertEquals(mapOf(sonora to IN_TRANSIT, brooklyn to PACKED), world.statuses(order), "paid, it ships")
 
                 world.clock.at(50.hours)
                 assertEquals(
                     1,
                     runBlocking { held.advance() },
-                    "Sony's delivery needs no capture; Brooklyn's road does",
+                    "Sonora's delivery needs no capture; Brooklyn's road does",
                 )
-                assertEquals(mapOf(sony to DELIVERED, brooklyn to PACKED), world.statuses(order))
-                assertEquals(mapOf(sony to 34_900), world.captures(order))
+                assertEquals(mapOf(sonora to DELIVERED, brooklyn to PACKED), world.statuses(order))
+                assertEquals(mapOf(sonora to 34_900), world.captures(order))
 
                 world.advance(50.hours)
-                assertEquals(mapOf(sony to DELIVERED, brooklyn to IN_TRANSIT), world.statuses(order))
+                assertEquals(mapOf(sonora to DELIVERED, brooklyn to IN_TRANSIT), world.statuses(order))
                 assertEquals(51_200, world.captures(order).values.sum())
             }
         }
@@ -211,8 +215,8 @@ class ChargedWhenShippedTest {
                     }
 
                 assertEquals(6, moves.sum(), "three steps for each shipment, made once between the two: $moves")
-                assertEquals(mapOf(sony to DELIVERED, brooklyn to DELIVERED), world.statuses(order))
-                assertEquals(mapOf(sony to 34_900, brooklyn to 16_300), world.captures(order))
+                assertEquals(mapOf(sonora to DELIVERED, brooklyn to DELIVERED), world.statuses(order))
+                assertEquals(mapOf(sonora to 34_900, brooklyn to 16_300), world.captures(order))
                 assertEquals(8, world.historyRows(), "four steps of history for each shipment")
             }
         }
@@ -226,7 +230,7 @@ class ChargedWhenShippedTest {
                 world.advance(Duration.ZERO)
                 world.advance(72.hours)
 
-                assertEquals(mapOf(sony to DELIVERED, brooklyn to DELIVERED), world.statuses(order))
+                assertEquals(mapOf(sonora to DELIVERED, brooklyn to DELIVERED), world.statuses(order))
                 assertEquals(emptyMap(), world.captures(order))
                 assertEquals(emptyList(), Ledger(dataSource).authorisations())
             }

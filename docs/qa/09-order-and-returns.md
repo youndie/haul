@@ -15,7 +15,7 @@ later (B-27). A local stack runs at `HAUL_FULFILMENT_SPEED`.
   2. Leave the page for another and come back.
 - **Expected:**
   - Step 1: «Placed», then packed, in transit, delivered, drawn as each happens; one shipment per seller, each with
-    its own day (Sony a day before Brooklyn Home Co.); the progress is the least advanced shipment's. The card is
+    its own day (Sonora a day before Brooklyn Home Co.); the progress is the least advanced shipment's. The card is
     charged per shipment as it goes on the road («Your card is charged when the order ships»).
   - Step 2: the page drawn as it now is; leaving it closes its update stream without an error in the server's log
     (TC-STAND-05).

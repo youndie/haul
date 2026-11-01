@@ -58,8 +58,8 @@ internal object SampleOrders {
     }
 
     /**
-     * #HL-48230: Maya's three things again on Haul Pay (B-24), placed on Sunday the 5th, Sony's on the road since
-     * Monday the 6th and Brooklyn Home Co.'s still being packed: the plan started when Sony shipped, its first
+     * #HL-48230: Maya's three things again on Haul Pay (B-24), placed on Sunday the 5th, Sonora's on the road since
+     * Monday the 6th and Brooklyn Home Co.'s still being packed: the plan started when Sonora shipped, its first
      * $128.00 paid then, three more two weeks apart. No artboard draws it; the fixture is the schedule's.
      */
     fun haulPay(mayas: NewOrder): TrackedOrder {

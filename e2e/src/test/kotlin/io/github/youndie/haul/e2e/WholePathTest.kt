@@ -7,6 +7,7 @@ import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.checkout.DeliveryMethod
 import io.github.youndie.haul.feature.checkout.IDEMPOTENCY_KEY_HEADER
 import io.github.youndie.haul.feature.checkout.PlaceOrderRequest
+import io.github.youndie.haul.feature.identity.DemoShopperTokens
 import io.github.youndie.haul.feature.identity.GuestDto
 import io.github.youndie.haul.feature.identity.SignInSettings
 import io.github.youndie.haul.feature.returns.ReturnEntry
@@ -443,6 +444,135 @@ class WholePathTest {
         }
     }
 
+    /**
+     * B-162: a visitor with no account and no way to make one presses «Try as a demo shopper» — the guest header's own
+     * action — and is a customer of their own, the guest cart merged in, the checkout ready with an address and Haul
+     * Pay; they place, watch the order move down its page's channel, return part of it and see the refund. A second
+     * visitor's demo shopper is another customer, who can neither open that order nor find it in their history.
+     */
+    @Test
+    fun `a visitor tries the money half as a demo shopper, and a second one sees none of it`() {
+        step("a guest arrives and is offered the demo shopper") {
+            shop.arrive()
+            assertEquals(NavigateAction(DEMO_SHOPPER), header().demo, "the guest's header offers no demo shopper")
+        }
+
+        step("two items go into the guest's cart") {
+            val cards =
+                shop
+                    .page("/")
+                    .all(ProductGrid.serializer())
+                    .flatMap { it.cards }
+                    .filter { it.add != null }
+            check(cards.size >= 2) { "the home page offers fewer than two cards to add" }
+            cards.take(2).forEach { card ->
+                val add = assertNotNull(card.add)
+                shop.send("PUT", add.url, haulWireJson.encodeToString(LineChange.serializer(), add.change)).action()
+            }
+            assertEquals(2, cartLines().size)
+        }
+
+        val demo =
+            step("one press makes a demo shopper of the visitor's own and takes the cart along") {
+                val tokens = demoShopper(shop)
+                assertEquals(RefreshAction, shop.send("POST", MERGE).action())
+                shop.guest = null
+                assertEquals("Demo", header().customerName, "the header does not greet the demo shopper")
+                assertEquals(null, header().demo, "a customer is offered a demo shopper")
+                assertEquals(2, cartLines().size, "the guest's lines did not come along")
+                tokens
+            }
+
+        val placed =
+            step("the checkout is ready at once: an address and Haul Pay where it is offered") {
+                val address =
+                    cartTree()
+                        .one(CartBody.serializer())
+                        .summary.checkoutAction
+                        .deeplink("«Checkout»")
+                val body = shop.page(address).one(CheckoutBody.serializer())
+                assertEquals(
+                    DEMO_STREET,
+                    body.address
+                        ?.form
+                        ?.single { it.name == "street" }
+                        ?.value,
+                    "the demo shopper has no address",
+                )
+                val chosen = body.payment.options.single { it.selected }
+                if (body.payment.options.any { it.id == HAUL_PAY }) assertEquals(HAUL_PAY, chosen.id)
+                val summary = body.summary
+                assertTrue(summary.placeEnabled, "a demo shopper's checkout cannot be placed: ${summary.placeHint}")
+                val request =
+                    haulWireJson.encodeToString(
+                        PlaceOrderRequest.serializer(),
+                        PlaceOrderRequest(summary.quote),
+                    )
+                val order =
+                    shop
+                        .send(
+                            "POST",
+                            assertNotNull(summary.placeUrl),
+                            request,
+                            mapOf(IDEMPOTENCY_KEY_HEADER to UUID.randomUUID().toString()),
+                        ).action(202)
+                Placed(order.deeplink("placement's answer"), cents(summary.total))
+            }
+
+        val live =
+            step("the order's page listens for its moves") {
+                shop.listen(assertNotNull(shop.page(placed.address).realtimeTopic, "the order's page names no channel"))
+            }
+
+        val form =
+            step("the fast clock delivers the order") {
+                val delivered = awaitOrder(placed.address, 2.minutes, "delivered") { it.summary.returnAction != null }
+                val present =
+                    delivered.summary.returnAction as? PresentAction ?: error("«Return items» presents nothing")
+                present.content as? ReturnForm ?: error("«Return items» presents ${present.content}")
+            }
+
+        step("return one of the two lines, and the refund is pushed to the order's page") {
+            val line = form.lines.first()
+            val entry = ReturnEntry(lines = listOf(line.position), reason = form.reasons.first().id)
+            shop.send("POST", form.url, haulWireJson.encodeToString(ReturnEntry.serializer(), entry)).action(201)
+            live.use {
+                val pushed =
+                    it.await(OrderBody.serializer(), 2.minutes) { order ->
+                        order.summary.rows.any { row -> row.label == "Refunded" }
+                    }
+                assertEquals(
+                    "−" + exactDollars(line.refundCents),
+                    pushed.summary.rows
+                        .single { it.label == "Refunded" }
+                        .value,
+                )
+            }
+        }
+
+        step("a second visitor's demo shopper sees none of it") {
+            val other = Storefront(ComposedStack.origin).apply { arrive() }
+            val tokens = demoShopper(other)
+            assertTrue(tokens.access != demo.access, "two visitors were handed one demo shopper")
+            assertEquals(404, other.send("GET", "/ui" + placed.address).status, "another visitor opened the order")
+            val history = other.send("GET", "/ui/account/orders")
+            check(history.status == 200) { "${history.request} answered ${history.status}" }
+            assertTrue(
+                placed.address.substringAfterLast('/') !in history.body,
+                "another visitor's history lists the order",
+            )
+        }
+    }
+
+    /** «Try as a demo shopper» as the storefront sends it: `201`, the tokens kept as a sign-in's. */
+    private fun demoShopper(store: Storefront): Tokens {
+        val answer = store.send("POST", DEMO_SHOPPERS)
+        check(answer.status == 201) { "${answer.request} answered ${answer.status}: ${answer.body.take(300)}" }
+        val tokens = haulWireJson.decodeFromString(DemoShopperTokens.serializer(), answer.body)
+        store.token = tokens.accessToken
+        return Tokens(tokens.accessToken, tokens.refreshToken)
+    }
+
     private data class Placed(
         val address: String,
         val totalCents: Int,
@@ -518,10 +648,21 @@ class WholePathTest {
         const val GUESTS = "/api/v1/guests"
         const val SIGN_IN_SETTINGS = "/api/v1/sign-in"
 
+        /** Where a demo shopper is made (B-162), another entry point, and the word a guest's header offers it under. */
+        const val DEMO_SHOPPERS = "/api/v1/demo-shoppers"
+        const val DEMO_SHOPPER = "/demo-shopper"
+
+        /** The merge every sign-in ends with, as `GET /api/v1/sign-in` names it. */
+        const val MERGE = "/api/v1/me/cart/merge"
+
+        /** Where a demo shopper's address is (the server's `DemoShoppers.ADDRESS`), and Haul Pay's id. */
+        const val DEMO_STREET = "148 Wythe Avenue"
+        const val HAUL_PAY = "haul_pay"
+
         const val PASSWORD = "e2e-horse-battery-staple"
 
         /** The canvas's headphones, which the seed gives 2,341 reviews and 86 questions (the server's `SampleCatalog`). */
-        const val HEADPHONES = "/p/p-sony-wh-1000xm6"
+        const val HEADPHONES = "/p/p-sonora-sh-718n"
         val ADDRESS = AddressEntry(street = "1 Kent Avenue", city = "Brooklyn", zip = "11249")
         val ADDRESS_FIELDS = setOf("street", "city", "zip")
     }

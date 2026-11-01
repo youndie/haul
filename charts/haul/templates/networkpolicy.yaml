@@ -31,7 +31,7 @@ spec:
 ---
 # The provider: its public port from anywhere (Traefik lives in another namespace, and the server reads
 # the realm's keys through the public host), its management port — the admin API, behind nothing but a
-# bearer token — only from the bootstrap hook.
+# bearer token — only from the bootstrap hook, and from the server while it makes demo shoppers (B-162).
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -52,6 +52,12 @@ spec:
             matchLabels:
               app.kubernetes.io/instance: {{ .Release.Name }}
               app.kubernetes.io/name: shildik-bootstrap
+        {{- if include "haul.demoShoppers" . }}
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: {{ .Release.Name }}
+              app.kubernetes.io/name: haul-server
+        {{- end }}
       ports:
         - protocol: TCP
           port: 9000

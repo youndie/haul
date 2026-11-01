@@ -52,9 +52,9 @@ private const val ONE_RETURN = "One return per order: what you kept can’t be s
 
 /**
  * Returns over HTTP (feature-orders, endpoint-orders `POST /api/v1/me/orders/{id}/returns`, B-21), against
- * shildik and a seeded PostgreSQL of each test's own. Maya's order — Sony's headphones $349.00, Brooklyn Home
+ * shildik and a seeded PostgreSQL of each test's own. Maya's order — Sonora's headphones $349.00, Brooklyn Home
  * Co.'s duvet cover $139.00 and mugs $24.00, $512.00 and 1,024 points — is placed and moved by the production
- * graph on a clock the test holds: Sony is delivered 48 hours in (Oct 9, by the store's days), Brooklyn Home
+ * graph on a clock the test holds: Sonora is delivered 48 hours in (Oct 9, by the store's days), Brooklyn Home
  * Co. 72 hours in (Oct 10). The route is asked on that same clock, as the simulator's stamps are compared
  * with it; between requests the world's returns simulator moves the return along.
  */
@@ -126,7 +126,7 @@ class ReturnRoutesTest {
     }
 
     /**
-     * Scenario «Late return» (feature-orders): Sony's headphones were delivered on Oct 9, and Maya asks to
+     * Scenario «Late return» (feature-orders): Sonora's headphones were delivered on Oct 9, and Maya asks to
      * return them 31 days later — the server answers `422 return_window_closed`, says the day the window
      * closed, and nothing is written.
      */
@@ -144,7 +144,7 @@ class ReturnRoutesTest {
 
     /**
      * The 30 days are the store's days, the last one whole, and each line's run from its own shipment: on
-     * Nov 9 Sony's window (Oct 9 + 30) is shut while Brooklyn Home Co.'s, delivered a day later, still takes
+     * Nov 9 Sonora's window (Oct 9 + 30) is shut while Brooklyn Home Co.'s, delivered a day later, still takes
      * its lines.
      */
     @Test
@@ -159,7 +159,7 @@ class ReturnRoutesTest {
         }
 
     /**
-     * Maya returns Sony's headphones: the order reads «Return requested» with the headphones in a card of
+     * Maya returns Sonora's headphones: the order reads «Return requested» with the headphones in a card of
      * their own and the rest where it was; nothing is refunded when the courier collects them, and $349.00 —
      * no more — goes back to the card a day later, when the seller has them. The page then reads «Return
      * refunded», what was paid net of it, and the 698 points the line earned taken back (B-23 holds no

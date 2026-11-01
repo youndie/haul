@@ -548,7 +548,7 @@ class CheckoutWiringTest {
                 items.map { it.action } + NavigateAction("/cart"),
                 followed.toList(),
             )
-            assertEquals(NavigateAction("/p/p-sony-wh-1000xm6"), followed.first())
+            assertEquals(NavigateAction("/p/p-sonora-sh-718n"), followed.first())
         }
 
     /** While the order is on its way the summary's links do nothing: the page leaves only for the order. */

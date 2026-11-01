@@ -111,6 +111,15 @@ public class Identity(
         here.leave(settings() ?: throw SignInUnavailable(), next)
     }
 
+    /**
+     * Signs in as a demo shopper the server makes for this browser (B-162), and merges the guest cart as any sign-in
+     * does. Throws [SignInUnavailable] on a server with sign-in off, and what [IdentityApi.demoShopper] throws.
+     */
+    override suspend fun tryAsDemoShopper() {
+        val settings = settings() ?: throw SignInUnavailable()
+        keep(settings, api.demoShopper())
+    }
+
     override val returnedFromSignIn: Boolean get() = here?.returned == true
 
     override fun forgetUnansweredSignIn(): Boolean = here?.forgetUnanswered() == true

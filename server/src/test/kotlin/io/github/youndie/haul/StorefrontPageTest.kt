@@ -16,7 +16,7 @@ class StorefrontPageTest {
         assertEquals(StorefrontPage.Categories, StorefrontPage.of("/c"))
         assertEquals(StorefrontPage.Catalog, StorefrontPage.of("/c/headphones"))
         assertEquals(StorefrontPage.Catalog, StorefrontPage.of("/c/electronics/audio/headphones"))
-        assertEquals(StorefrontPage.Product, StorefrontPage.of("/p/p-sony-wh-1000xm6"))
+        assertEquals(StorefrontPage.Product, StorefrontPage.of("/p/p-sonora-sh-718n"))
         assertEquals(StorefrontPage.Search, StorefrontPage.of("/search"))
         assertEquals(StorefrontPage.Cart, StorefrontPage.of("/cart"))
         assertEquals(StorefrontPage.Deals, StorefrontPage.of("/deals"))

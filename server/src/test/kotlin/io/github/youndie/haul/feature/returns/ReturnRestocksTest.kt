@@ -35,7 +35,7 @@ import kotlin.time.Duration.Companion.hours
 class ReturnRestocksTest {
     private val asked = 72.hours
 
-    private val sony = MAYAS_SKUS[0]
+    private val sonora = MAYAS_SKUS[0]
 
     /** Maya's order placed and delivered, and the stock before it was placed; the lines at [positions] asked back at [asked]. */
     private fun FulfilmentWorld.returned(positions: List<Int>): Pair<String, Map<String, Int>> {
@@ -68,12 +68,12 @@ class ReturnRestocksTest {
 
                 world.advanceReturns(asked + 2.days)
                 assertEquals(REFUNDED, world.status(order))
-                assertEquals(before + (MAYAS_SKUS - sony).associateWith { sold.getValue(it) }, world.ledger.stock())
+                assertEquals(before + (MAYAS_SKUS - sonora).associateWith { sold.getValue(it) }, world.ledger.stock())
 
                 world.advanceReturns(asked + 10.days)
                 assertEquals(
-                    before.getValue(sony),
-                    world.ledger.stock().getValue(sony),
+                    before.getValue(sonora),
+                    world.ledger.stock().getValue(sonora),
                     "a refunded return restocks no more",
                 )
             }
@@ -124,11 +124,11 @@ class ReturnRestocksTest {
                 val first = simulator(world, dying)
                 assertFailsWith<IllegalStateException> { runBlocking { first.advance() } }
                 assertEquals(PICKED_UP, world.status(order), "the move never landed")
-                assertEquals(before.getValue(sony), world.ledger.stock().getValue(sony), "the restock did")
+                assertEquals(before.getValue(sonora), world.ledger.stock().getValue(sonora), "the restock did")
 
                 assertEquals(1, world.advanceReturns(asked + 2.days))
                 assertEquals(REFUNDED, world.status(order))
-                assertEquals(before.getValue(sony), world.ledger.stock().getValue(sony), "and added nothing more")
+                assertEquals(before.getValue(sonora), world.ledger.stock().getValue(sonora), "and added nothing more")
             }
         }
 
@@ -163,7 +163,7 @@ class ReturnRestocksTest {
 
                 assertEquals(1, moves.sum(), "the return moved once between the two: $moves")
                 assertEquals(REFUNDED, world.status(order))
-                assertEquals(before.getValue(sony), world.ledger.stock().getValue(sony))
+                assertEquals(before.getValue(sonora), world.ledger.stock().getValue(sonora))
             }
         }
 

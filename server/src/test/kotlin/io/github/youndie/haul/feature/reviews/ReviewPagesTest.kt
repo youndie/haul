@@ -7,7 +7,7 @@ import io.github.youndie.haul.feature.reviews.domain.Ratings
 import io.github.youndie.haul.feature.reviews.domain.StoredQuestion
 import io.github.youndie.haul.feature.reviews.domain.StoredReview
 import io.github.youndie.haul.seed.CatalogSeed
-import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_HEADPHONES
 import io.github.youndie.haul.shell.Parts
 import io.github.youndie.haul.testing.after
 import io.github.youndie.haul.testing.answer
@@ -63,16 +63,16 @@ class ReviewPagesTest {
     @Test
     fun `the headphones' tabs offer more on the seed itself`() =
         haulTest {
-            val reviews = tree("/ui/p/$SONY_HEADPHONES?tab=reviews").only<ProductReviews>()
+            val reviews = tree("/ui/p/$SONORA_HEADPHONES?tab=reviews").only<ProductReviews>()
             assertEquals(10, reviews.reviews.size)
             assertEquals("Show more reviews", reviews.moreLabel)
-            val questions = tree("/ui/p/$SONY_HEADPHONES?tab=questions").only<ProductQuestions>()
+            val questions = tree("/ui/p/$SONORA_HEADPHONES?tab=questions").only<ProductQuestions>()
             assertEquals(10, questions.questions.size)
             assertEquals("Show more questions", questions.moreLabel)
             // The most a tab lists is 500 of the 2,341: still more.
             assertEquals(
                 500,
-                tree("/ui/p/$SONY_HEADPHONES?tab=reviews&shown=500").only<ProductReviews>().reviews.size,
+                tree("/ui/p/$SONORA_HEADPHONES?tab=reviews&shown=500").only<ProductReviews>().reviews.size,
             )
         }
 
@@ -143,7 +143,7 @@ class ReviewPagesTest {
     @Test
     fun `a bar lists the reviews of its stars in place and pressed again or all lists every review`() =
         haulTest {
-            val page = tree("/ui/p/$SONY_HEADPHONES?tab=reviews")
+            val page = tree("/ui/p/$SONORA_HEADPHONES?tab=reviews")
             val every = page.only<ProductReviews>()
             assertEquals(listOf(5, 4, 3, 2, 1), every.histogram.map { it.stars })
             every.histogram.forEach { bar ->
@@ -205,9 +205,9 @@ class ReviewPagesTest {
     fun `the stars listed are one to five`() =
         haulTest {
             for (stars in listOf("0", "6", "four")) {
-                get("/ui/p/$SONY_HEADPHONES?tab=reviews&stars=$stars")
+                get("/ui/p/$SONORA_HEADPHONES?tab=reviews&stars=$stars")
                     .assertError(HttpStatusCode.BadRequest, ErrorCode.ValidationFailed)
-                get("${Parts.PREFIX}/p/$SONY_HEADPHONES?tab=reviews&stars=$stars")
+                get("${Parts.PREFIX}/p/$SONORA_HEADPHONES?tab=reviews&stars=$stars")
                     .assertError(HttpStatusCode.BadRequest, ErrorCode.ValidationFailed)
             }
         }
@@ -311,6 +311,6 @@ class ReviewPagesTest {
     }
 
     private companion object {
-        const val TAB = "${Parts.PREFIX}/p/$SONY_HEADPHONES?tab=reviews"
+        const val TAB = "${Parts.PREFIX}/p/$SONORA_HEADPHONES?tab=reviews"
     }
 }

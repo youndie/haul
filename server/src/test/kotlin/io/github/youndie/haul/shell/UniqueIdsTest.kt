@@ -301,9 +301,9 @@ class UniqueIdsTest {
                 "/ui/deals",
                 "/ui/deals?page=2",
                 "/ui/about",
-                "/ui/p/${SampleCatalog.SONY_HEADPHONES}",
-                "/ui/p/${SampleCatalog.SONY_HEADPHONES}?sku=${SampleCatalog.SONY_HEADPHONES}-1&tab=reviews",
-                "/ui/p/${SampleCatalog.SONY_HEADPHONES}?tab=specifications",
+                "/ui/p/${SampleCatalog.SONORA_HEADPHONES}",
+                "/ui/p/${SampleCatalog.SONORA_HEADPHONES}?sku=${SampleCatalog.SONORA_HEADPHONES}-1&tab=reviews",
+                "/ui/p/${SampleCatalog.SONORA_HEADPHONES}?tab=specifications",
                 "/ui/p/${SampleCatalog.STONEWARE_MUG}?tab=questions",
                 CartPaths.SCREEN,
             )

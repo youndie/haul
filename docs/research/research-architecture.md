@@ -457,7 +457,7 @@ could open showed it — only tracy did.
   customer, address, window, pickup point or code — not the orders' repository, which reads all of them.
   `LiveRoutesTest` reads every such value the orders hold off the database and finds none in the body.
 - **Cheap whoever looks.** Five statements whatever the store holds — the last 20 by the index `orders_placed_at`
-  (V32), then their items, shipments with their sellers and history, captures by the shipments' ids, returns — held
+  (V33), then their items, shipments with their sellers and history, captures by the shipments' ids, returns — held
   by counting statements over two thousand copied orders (B-159's lesson). The live channel is the order page's
   transport (B-29): the page's tree names `live:orders`, the same `GET /ui/updates` streams it, the same broadcaster
   delivers it. A move draws the body once for every listener, at most once a second (`LiveFeed.PAUSE`), nothing when
@@ -997,7 +997,7 @@ and on the stand.
   compared across processes, which is the saga clock's reason for being, and the store's «now» is not it.
 - **The pace is a decision** (`FulfilmentPace.STORE`): packed 4 h after the seller sees the order, on the
   road 20 h later plus a day per dispatch day (the most of the shipment's products'), delivered or ready
-  to collect a day after that, collected two days later — inside the five days a point holds it. So Sony
+  to collect a day after that, collected two days later — inside the five days a point holds it. So Sonora
   ships a day before Brooklyn Home Co., as the canvas promises. `HAUL_FULFILMENT_SPEED` runs the same
   schedule that many times quicker (default 1; 1440 is a day a minute), polled every tenth of the
   shortest step, between 1 s and 1 min. The pace does not follow the window the shopper chose.
@@ -1208,6 +1208,55 @@ the account need a shildik token; signing in merges the guest cart.
   provider is not asked to end anything: walked against shildik 0.4.1 (the e2e's image), a sign-in after a
   sign-out asks for the password again — the provider kept no session of its own to sign in from. Its
   `end_session_endpoint` is not used.
+
+**Decided in B-162, the demo shopper.** A visitor of the stand had no way into the money half: checkout, the saga,
+the live order and returns all need a customer (above), and the realm is closed — nobody can make an account.
+
+- **«Try as a demo shopper» makes a customer of the visitor's own, in one press.** `POST /api/v1/demo-shoppers`
+  (public tier, `201` with `DemoShopperTokens`, `Cache-Control: no-store`) imports a person into the realm under
+  `demo-` and a random UUID, sets a password of 32 random bytes made on the server — used once, never stored, logged
+  or sent anywhere but to the provider — and signs them in exactly as the popup does: code flow with PKCE at the
+  storefront's public client, the provider's form posted from the issuer's origin, the code exchanged
+  (`ShildikDemoAccounts`). The tokens are therefore the storefront's own kind — `azp` the storefront, a refresh token
+  for `offline_access` — and every route, the merge, the renewal in the browser and the live page take them as any
+  sign-in's. The browser keeps them and merges the guest cart as after any sign-in (`Identity.tryAsDemoShopper`); no
+  popup opens. The customer is made with them, named «Demo Shopper», with the sample address (148 Wythe Avenue,
+  Apt 4F) and Haul Pay chosen — the quote falls back to the card on a total Haul Pay is not offered for. D5's rule
+  stands: money still needs a customer; the demo only makes one quickly.
+- **Where it shows** (`HaulHeader.demo`, the client's word `/demo-shopper`, never a page): at the end of a guest's
+  category row, before «HAUL PLUS», at every desktop width — beside «Sign in» it squeezed the search field until its
+  placeholder was cut at 1280, and on the row whose words give way it keeps its whole name; under «Sign in» in the
+  phone's menu; as the second button of the sign-in page and of a customer's page refused to a guest (B-44), whose
+  press returns where the page would. A refusal (`503`) is said over the page with the server's words.
+- **How the customer is made — compared.** (a) shildik as it is (0.4.1, the stand's): no token exchange, no
+  impersonation, `client_credentials` only for services, but its management API imports a person under a given id,
+  sets a password and turns a person off (`enabled: false`, after which shildik refuses their sign-in and the renewal
+  of any token they hold); with the browser's own code flow that is enough. (b) A change in shildik — a grant or an
+  admin route that issues a person's tokens — would spare scraping its sign-in form, but needs a release and a new
+  version on the stand. (c) A token haul issues itself, verified beside shildik's, would be a second issuer on every
+  customer route and a renewal path of its own in the browser. **(a) was taken:** it needs nothing new on the
+  cluster — the server reaches the release's provider at `http://<release>-shildik:9000` with the bootstrap token from
+  the provider's own Secret, and the NetworkPolicy admits the server to that port (`server.demoShoppers`, **off by
+  default** — handing the realm's admin token to the server that faces the internet is the owner's decision, not a
+  default; on, it needs the release's provider). Its costs: the internet-facing server holds the realm's admin token, which can
+  do everything in the realm, not only make people (the realm holds only the stand's sample people and the
+  storefront's client); the walk reads shildik's sign-in page as the e2e and the server's suite read it, so a page
+  that changes its form breaks it — the server's suite runs it against the provider's image; and shildik 0.4.1 cannot
+  delete a person, so a swept one stays in the realm, turned off. A scoped admin role or a delete route in shildik
+  would remove the first and the last; neither is needed for the demo.
+- **Swept after a day.** Every hour (`DemoOffer.SWEEP_EVERY`) the demo shoppers made more than a day ago
+  (`demo_shoppers`, V32) are turned off at the provider first — one the provider does not turn off waits for the next
+  sweep, since forgotten here first its token would still renew there — and then forgotten in one transaction
+  (`ExposedDemoShoppers.forget`): what their orders reserved goes back on the shelf, less what a return already put
+  back, and their windows' places back to the windows; their payments, saga rows and idempotency keys go; their
+  reviews, questions and «Helpful» votes go with the counts, the histogram and the average they moved; then the
+  customer, whose cascades take the orders, the cart, the Saved list and the rest. One whose order is still being
+  placed is left for the next sweep. A token whose `sub` is a demo shopper's with no customer behind it is refused
+  (`Callers`) rather than made a new, empty customer.
+- **Bounded.** At most `HAUL_DEMO_DAILY_LIMIT` (500 by default) are made in any day; past it `503 unavailable`,
+  «Every demo shopper for today is taken — try again later». The three `HAUL_DEMO_*` are set together or not at all,
+  and a demo without sign-in refuses the start.
+- Rejected, as the item did: one shared demo account with a published password, and a guest checkout.
 
 **Decided in B-14, checkout and the quote.**
 
@@ -1434,7 +1483,7 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   (`Viewer.saved`). The header's «Saved» and the account menu's go to the list.
 - **Maya's 48 and 6 are seeded rows** (`seed/SampleSaved.kt`): the canvas's Saved pages draw products the seed does
   not sell, so her list is the headphones saved at their old $449 (−$100) and the duvet cover set at its old $179
-  (−$40), the Bose and the Sony studio headphones at their price, and generated products picked by a fixed stride —
+  (−$40), the Bellwave and the Sonora studio headphones at their price, and generated products picked by a fixed stride —
   four discounted ones saved at their old price. The fixtures keep the canvas's cards (`SavedFixturesTest` holds the
   rest of each body to the server's tree, and each card to the shape of a server card).
 
@@ -1584,7 +1633,7 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   the lower of the two. The catalog repository reads a SKU's deals with its campaign, so the deal card, every other
   card of the product, the product page, search, the Saved list's drops, the cart, the quote and placement read one
   price. The deal card is the deal's SKU as the catalog prices it; the five generated deals are drawn as before — 70 %
-  of the SKU's price under that price — and now charged so; the Sony deal is the sale's own $349 under $449.
+  of the SKU's price under that price — and now charged so; the Sonora deal is the sale's own $349 under $449.
 - **An ended deal is gone**: `CatalogRepository.deals()` returns the deals live on the store's clock, so its card
   leaves the home page, the deals page and the empty cart's picks, and its SKU sells at its campaign or regular price
   again; a line put into a cart at the deal's price is then a changed price (B-11's rule).
@@ -2591,7 +2640,7 @@ second Retry in the tree beside the page's. The cost: while the notice is up it 
 
 **Decided in B-151, a box or a switch says its state in its name, and a sheet or a dialog hides the page under it.**
 The 1.12 mirror carries a role and a name and no state (B-131), so the cart's line boxes, «Select all» and
-checkout's points switch are named for what they do and whether they are on — «Select Sony WH-1000XM6, ticked»,
+checkout's points switch are named for what they do and whether they are on — «Select Sonora SH-718N, ticked»,
 «Select all, partly ticked», «Use 2,480 points (−$24.80), off. 100 points = $1 · all or nothing» (`Modifier.toggles`,
 `ui/Links.kt`) — and carry the state in semantics as well. Their role there stays a button's: the mirror makes a
 `Role.Checkbox` a `role="checkbox"` with no `aria-checked`, and Chromium reads that as not checked (measured: a
@@ -2764,14 +2813,26 @@ for the database. The canvas's «Search 2.4 million products» is not drawn at a
 | `Address` | 148 Wythe Avenue, Apt 4F, Brooklyn, NY 11211 |
 | `PaymentMethod` | Card ···· 4821, expires 08/28 (approves); test card ···· 0002 (declines) |
 | `PickupPoint` | 214 Bedford Ave, 240 m, open until 21:00; 96 N 6th St, 650 m, open until 22:00; 315 Grand St, 900 m, open until 20:00; lockers «Wythe & N 7th», 180 m, and «Bedford Ave station», 700 m, 24/7 |
-| `Seller` | Sony Official Store — 4.9, 98 %, 6 yrs; Brooklyn Home Co. — 4.8, 97 %, 3 yrs |
-| `Product` | Sony WH-1000XM6 — listed as «Sony WH-1000XM6 Wireless Noise Cancelling Headphones» on cards, in the cart and on the order, «WH-1000XM6 Wireless Noise Cancelling Headphones» under the brand on its page (B-45); $349, was $449, −22 %, 4.8, 2,341 reviews, 86 questions; Midnight Black, Silver (out of stock); bundles Headphones only / + Travel case / + 2-year care; description headline «Silence, tuned to you», accent «to you»; «12K bought this month» from a seeded base of 12,340 (B-52) |
+| `Seller` | Sonora Audio — 4.9, 98 %, 6 yrs; Brooklyn Home Co. — 4.8, 97 %, 3 yrs |
+| `Product` | Sonora SH-718N — listed as «Sonora SH-718N Wireless Noise Cancelling Headphones» on cards, in the cart and on the order, «SH-718N Wireless Noise Cancelling Headphones» under the brand on its page (B-45); $349, was $449, −22 %, 4.8, 2,341 reviews, 86 questions; Midnight Black, Silver (out of stock); bundles Headphones only / + Travel case / + 2-year care; description headline «Silence, tuned to you», accent «to you»; «12K bought this month» from a seeded base of 12,340 (B-52) |
 | `Cart` (Maya) | the headphones $349, Linen Duvet Cover Set Queen Oat $139 (was $179), Stoneware Mug 12 oz Sage set of 2 $24; Items $652.00, Discount −$140.00, Delivery Free, Total $512, 1,024 points; with points −$24.80 → $487.20 |
 | `PromoCode` | `AUTUMN10` — 10 % off items up to $50, 2025-10-07…14; `SUMMER5` — expired 2025-08-31 |
 | `Order` | #HL-48211 (Oct 5, $512.00, in transit); #HL-47960 (Oct 3, $58.00, ready for pickup, code 4821, held until Oct 10); #HL-46102 (Sep 24, $103.00), #HL-45277 (Sep 11, $299.00), #HL-42860 (Aug 12, $42.00) delivered; #HL-44019 (Aug 30, $87.50) returned; #HL-48302 placed from the checkout fixture; #HL-48303 cancelled, card ···· 0002; Sam's #HL-45890 (Sep 18, $103.00) delivered. None is seeded: the fixture tests write them (`server/src/test/kotlin/io/github/youndie/haul/testing/SampleOrders.kt`) |
 
 The canvas's *canvas/canvas.json* and the artboards hold the rest of the copy (product lists,
 campaigns, reviews); the fixtures take it from there, not from this table.
+
+**The brands and sellers are invented** (B-166). The canvas sold real companies' headphones under their names —
+Sony, Bose and Marshall, from «Sony Official Store», «Bose Store» and «Marshall Store» — beside invented reviews and
+prices, and its brand facet listed JBL, Apple and Sennheiser; the store now sells Sonora, Bellwave and Mallard
+headphones from Sonora Audio, Bellwave Store and Mallard Store, with invented model numbers («Sonora SH-718N»), the
+codec LC3 for LDAC, and Juno, Aspen and Halvorsen in the facet. Prices, categories, pictures and reviews stayed: each
+renamed product id keeps its old id's `String.hashCode()` modulo 2,991, which is what the seed's picture variant
+(3) and generated reviews' copy (997) are chosen by, and sorts where the old one did among every other id — the model
+numbers are what make both hold. V31 renames a catalogue seeded before; `InventedBrandsTest` looks for the removed
+names in every seeded row, the server's code and the client's bodies and fixtures. The canvas and its references
+keep the old names (they are historical, §1.6); the migrations before V31 and the backlog's done items, which record
+what was, do too.
 
 The headphones' histogram on Product_Reviews (78 / 14 / 4 / 2 / 2 % of 2,341) averages 4.6, not the 4.8
 every artboard writes. The seed kept both as drawn until B-86, which made the rating the histogram's average: the

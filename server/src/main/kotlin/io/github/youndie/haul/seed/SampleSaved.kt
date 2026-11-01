@@ -1,7 +1,7 @@
 package io.github.youndie.haul.seed
 
 import io.github.youndie.haul.seed.SampleCatalog.DUVET_COVER
-import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
+import io.github.youndie.haul.seed.SampleCatalog.SONORA_HEADPHONES
 
 /**
  * Maya's Saved list (B-20): research §6's 48 saved products, 6 of them cheaper than on the day she saved
@@ -9,7 +9,7 @@ import io.github.youndie.haul.seed.SampleCatalog.SONY_HEADPHONES
  *
  * The canvas's Saved pages draw products the seed does not sell (the robot vacuum, the keyboard, …), so
  * the list is made of what it does: the headphones, saved at their old $449 (now $349, −$100, as on
- * `Saved_PriceDrops`), and the duvet cover set at its old $179 (now $139, −$40); the Bose and the Sony
+ * `Saved_PriceDrops`), and the duvet cover set at its old $179 (now $139, −$40); the Bellwave and the Sonora
  * studio headphones the canvas shows at their price; and generated products picked by a fixed stride —
  * four discounted ones saved at their old price, the rest at their price. Newest first, six hours apart
  * before the canvas's «now»; the order puts a drop first and the headphones second, as `Saved_Content`.
@@ -41,11 +41,11 @@ internal object SampleSaved {
         val newestFirst =
             buildList {
                 add(drops[0])
-                add(SONY_HEADPHONES to SONY_OLD_CENTS)
+                add(SONORA_HEADPHONES to SONORA_OLD_CENTS)
                 addAll(kept.subList(0, 5))
-                add(BOSE_QC_ULTRA to shown(BOSE_QC_ULTRA).priceCents)
+                add(BELLWAVE_HUSH_ULTRA to shown(BELLWAVE_HUSH_ULTRA).priceCents)
                 addAll(kept.subList(5, 8))
-                add(SONY_STUDIO to shown(SONY_STUDIO).priceCents)
+                add(SONORA_STUDIO to shown(SONORA_STUDIO).priceCents)
                 add(DUVET_COVER to DUVET_OLD_CENTS)
                 addAll(drops.drop(1))
                 addAll(kept.drop(8))
@@ -66,13 +66,13 @@ internal object SampleSaved {
     private const val SAVED = 48
     private const val GENERATED_DROPS = 4
 
-    /** The four products the list names: the headphones, the duvet cover set, the Bose and the studio pair. */
+    /** The four products the list names: the headphones, the duvet cover set, the Bellwave and the studio pair. */
     private const val NAMED = 4
     private const val STRIDE = 17
     private const val HOURS_APART = 6L
-    private const val SONY_OLD_CENTS = 44_900
+    private const val SONORA_OLD_CENTS = 44_900
     private const val DUVET_OLD_CENTS = 17_900
-    private const val BOSE_QC_ULTRA = "p-bose-qc-ultra"
-    private const val SONY_STUDIO = "p-sony-mdr-7506"
+    private const val BELLWAVE_HUSH_ULTRA = "p-bellwave-hush-ultra-165a"
+    private const val SONORA_STUDIO = "p-sonora-monitor-630r"
     private val GENERATED = Regex("p-\\d{3}-\\d{2}")
 }

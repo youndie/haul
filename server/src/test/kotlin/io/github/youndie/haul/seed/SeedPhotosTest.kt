@@ -22,7 +22,7 @@ import kotlin.test.assertTrue
  * one tinted box per product — gets them on its next start, while a photo that is not the seed's stays.
  */
 class SeedPhotosTest {
-    private val sony = SampleCatalog.SONY_HEADPHONES
+    private val sonora = SampleCatalog.SONORA_HEADPHONES
     private val mug = SampleCatalog.STONEWARE_MUG
     private val duvet = SampleCatalog.DUVET_COVER
 
@@ -43,7 +43,7 @@ class SeedPhotosTest {
             val keys = keys(database)
             assertEquals(today(mug), keys[mug], "the tinted box stayed")
             assertEquals(owners, keys[duvet], "the owner's photo was replaced")
-            assertEquals(today(sony), keys[sony])
+            assertEquals(today(sonora), keys[sonora])
             assertTrue(store.objects.keys.all { it.endsWith(".svg") }, "${store.objects.keys}")
             assertEquals(SeedPhotos.draw(SampleCatalog.products.single { it.id == mug }), store.text(today(mug)))
 

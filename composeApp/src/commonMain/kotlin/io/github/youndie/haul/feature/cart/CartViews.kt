@@ -349,7 +349,7 @@ private fun PhoneLine(
 
 /**
  * The line's box: pressing it ticks or unticks the line, while the line can be selected. Named for what it does
- * and whether it is ticked — «Select Sony WH-1000XM6, ticked» (B-151): the line's photo is named by the title alone.
+ * and whether it is ticked — «Select Sonora SH-718N, ticked» (B-151): the line's photo is named by the title alone.
  */
 @Composable
 private fun LineBox(
@@ -372,7 +372,7 @@ private fun LineBox(
     )
 }
 
-/** What a line's box does, by the line's title: «Select Sony WH-1000XM6». */
+/** What a line's box does, by the line's title: «Select Sonora SH-718N». */
 internal fun selectLine(title: String): String = "Select $title"
 
 /** The product's tile in its tone; pressing it opens the product. */

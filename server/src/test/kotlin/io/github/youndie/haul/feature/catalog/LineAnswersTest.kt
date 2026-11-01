@@ -184,7 +184,7 @@ class LineAnswersTest {
     fun `add to cart answers the header and the buy box and says so`() =
         haulTest {
             val guest = guest()
-            val path = "/ui/p/${SampleCatalog.SONY_HEADPHONES}?sku=${SampleCatalog.SONY_HEADPHONES}-1&tab=reviews"
+            val path = "/ui/p/${SampleCatalog.SONORA_HEADPHONES}?sku=${SampleCatalog.SONORA_HEADPHONES}-1&tab=reviews"
             val details = page(path, guest).only<ProductDetails>()
             assertNull(details.inCart, "the buy box says the line is in a cart that holds none of it")
             val answer = assertIs<SequenceAction>(answerOn(path, guest, assertNotNull(details.add), "details"))
@@ -195,7 +195,7 @@ class LineAnswersTest {
             // B-104: the buy box redrawn on the reviews keeps its variants on the reviews.
             for (option in after.variants.flatMap { it.options }) {
                 assertEquals(
-                    NavigateAction("/p/${SampleCatalog.SONY_HEADPHONES}?sku=${option.skuId}&tab=reviews"),
+                    NavigateAction("/p/${SampleCatalog.SONORA_HEADPHONES}?sku=${option.skuId}&tab=reviews"),
                     option.action,
                 )
             }
@@ -208,17 +208,21 @@ class LineAnswersTest {
     @Test
     fun `the buy box redrawn names the sku as the page's address does`() =
         haulTest {
-            val sony = SampleCatalog.SONY_HEADPHONES
+            val sonora = SampleCatalog.SONORA_HEADPHONES
             // Each page's address, and the SKU its links name: none, or the one named.
-            val pages = listOf("/ui/p/$sony?tab=reviews" to "", "/ui/p/$sony?sku=$sony-1&tab=reviews" to "sku=$sony-1&")
+            val pages =
+                listOf(
+                    "/ui/p/$sonora?tab=reviews" to "",
+                    "/ui/p/$sonora?sku=$sonora-1&tab=reviews" to "sku=$sonora-1&",
+                )
             for ((path, sku) in pages) {
                 val guest = guest()
                 val details = page(path, guest).only<ProductDetails>()
                 val answer = assertIs<SequenceAction>(answerOn(path, guest, assertNotNull(details.add), "details"))
                 val after = assertNotNull(answer.update()).updates.last().component as ProductDetails
                 assertEquals(details.ratingAction, after.ratingAction, path)
-                assertEquals(NavigateAction("/p/$sony?${sku}tab=reviews"), after.ratingAction, path)
-                assertEquals(NavigateAction("/p/$sony?${sku}tab=specifications"), after.specificationsAction, path)
+                assertEquals(NavigateAction("/p/$sonora?${sku}tab=reviews"), after.ratingAction, path)
+                assertEquals(NavigateAction("/p/$sonora?${sku}tab=specifications"), after.specificationsAction, path)
             }
         }
 

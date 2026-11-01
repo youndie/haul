@@ -72,7 +72,7 @@ internal object CatalogSeed {
 
         val deals =
             (
-                listOf(SampleCatalog.SONY_DEAL) +
+                listOf(SampleCatalog.SONORA_DEAL) +
                     DEAL_PICKS.mapIndexed { i, pick ->
                         val sku = skus.first { it.productId == products[pick].id }
                         SeedDeal("deal-${i + 2}", sku.id, sku.priceCents * DEAL_PERCENT / 100, DEALS_START, DEALS_END)

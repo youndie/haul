@@ -151,11 +151,11 @@ class StorefrontTest {
     @Test
     fun `a deep address loads its own screen route`() =
         runDesktopComposeUiTest(CANVAS_WIDTH, 1_000) {
-            history.entries[0] = "/c/headphones?brand=Sony"
-            answer("/ui/c/headphones?brand=Sony", ok(product))
+            history.entries[0] = "/c/headphones?brand=Sonora"
+            answer("/ui/c/headphones?brand=Sonora", ok(product))
             storefront()
             onNodeWithText(PRODUCT_TEXT).assertExists()
-            assertEquals(listOf("/ui/c/headphones?brand=Sony"), requests)
+            assertEquals(listOf("/ui/c/headphones?brand=Sonora"), requests)
         }
 
     @Test
@@ -536,7 +536,7 @@ class StorefrontTest {
     private companion object {
         /** The canvas's desktop width: the header's field, and the suggest panel under it, are drawn for it. */
         const val CANVAS_WIDTH = 1440
-        const val CARD_TITLE = "Sony WH-1000XM6"
+        const val CARD_TITLE = "Sonora SH-718N"
         const val PRODUCT_TEXT = "The next page"
         const val AGAIN = "The results again"
 

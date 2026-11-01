@@ -49,11 +49,11 @@ import kotlin.time.Duration.Companion.milliseconds
  * authorises the total as for a card; the plan starts when the first shipment ships, takes its first payment
  * then and each next one two weeks later on the simulator's clock — instead of each shipment's share.
  *
- * Maya's cart is $512.00 (research §6): Sony's headphones ship at 24 hours (Oct 8), Brooklyn Home Co.'s duvet
+ * Maya's cart is $512.00 (research §6): Sonora's headphones ship at 24 hours (Oct 8), Brooklyn Home Co.'s duvet
  * cover and mugs at 48; four payments of $128.00 on Oct 8, Oct 22, Nov 5 and Nov 19.
  */
 class HaulPayPlanTest {
-    private val sony = "HL-48302-1"
+    private val sonora = "HL-48302-1"
     private val brooklyn = "HL-48302-2"
     private val first = 24.hours
     private val twoWeeks = 14.days
@@ -77,7 +77,7 @@ class HaulPayPlanTest {
 
     /**
      * B-24's first half: «an instalment order shows its schedule». Before anything ships the page shows the four
-     * payments counted from the first shipment, with the amounts the checkout promised; once Sony ships, the
+     * payments counted from the first shipment, with the amounts the checkout promised; once Sonora ships, the
      * days, the first payment paid and the rest upcoming — and the fact under the total says how far it is.
      */
     @Test
@@ -148,15 +148,15 @@ class HaulPayPlanTest {
                 assertEquals(emptyMap(), world.captures(order), "nothing is charged before the first shipment ships")
 
                 world.advance(first)
-                assertEquals(mapOf(sony to IN_TRANSIT, brooklyn to PACKED), world.statuses(order))
+                assertEquals(mapOf(sonora to IN_TRANSIT, brooklyn to PACKED), world.statuses(order))
                 assertEquals(
                     mapOf(key(order, 1) to 12_800),
                     world.captures(order),
-                    "the first payment, not Sony's share",
+                    "the first payment, not Sonora's share",
                 )
 
                 world.advance(first * 2)
-                assertEquals(mapOf(sony to DELIVERED, brooklyn to IN_TRANSIT), world.statuses(order))
+                assertEquals(mapOf(sonora to DELIVERED, brooklyn to IN_TRANSIT), world.statuses(order))
                 assertEquals(mapOf(key(order, 1) to 12_800), world.captures(order), "Brooklyn ships without a charge")
 
                 assertEquals(0, world.advancePlans(first + twoWeeks - 1.milliseconds))
@@ -395,14 +395,14 @@ class HaulPayPlanTest {
                     )
                 world.clock.at(first * 2 - 1.hours)
                 assertEquals(0, runBlocking { held.advance() })
-                assertEquals(mapOf(sony to PACKED, brooklyn to PACKED), world.statuses(order), "nothing ships unpaid")
+                assertEquals(mapOf(sonora to PACKED, brooklyn to PACKED), world.statuses(order), "nothing ships unpaid")
                 assertEquals(Triple(SCHEDULED, 12_800, 1), world.ledger.instalments(order)[1])
 
                 world.advance(first * 2)
                 assertEquals(
-                    mapOf(sony to DELIVERED, brooklyn to IN_TRANSIT),
+                    mapOf(sonora to DELIVERED, brooklyn to IN_TRANSIT),
                     world.statuses(order),
-                    "paid on the retry, both ship — Sony stamped on the road when it was due, as a held card capture is",
+                    "paid on the retry, both ship — Sonora stamped on the road when it was due, as a held card capture is",
                 )
                 assertEquals(mapOf(key(order, 1) to 12_800), world.captures(order))
                 val plan = assertNotNull(world.track(order)?.plan)
@@ -442,7 +442,7 @@ class HaulPayPlanTest {
 
     /**
      * A return takes its refund off what the plan still owes, the last payment first, and gives nothing back
-     * through the processor while that covers it: Sony's $349.00 returned after the first payment covers the
+     * through the processor while that covers it: Sonora's $349.00 returned after the first payment covers the
      * fourth and the third and takes $93.00 off the second — Maya pays $163.00 in all, what she kept.
      */
     @Test
@@ -452,7 +452,7 @@ class HaulPayPlanTest {
                 val order = world.placeOnHaulPay()
                 world.advance(Duration.ZERO)
                 world.advance(first * 3)
-                world.returnSony(order)
+                world.returnSonora(order)
                 world.advanceReturns(first * 5)
 
                 assertEquals(emptyMap(), world.ledger.refunds(order), "nothing paid needs giving back")
@@ -496,7 +496,7 @@ class HaulPayPlanTest {
 
     /**
      * A return bigger than what is still owed covers the rest of the plan and gives the difference back out of
-     * what was paid: Sony returned after three payments covers the fourth, $128.00, and refunds $221.00.
+     * what was paid: Sonora returned after three payments covers the fourth, $128.00, and refunds $221.00.
      */
     @Test
     fun `a return bigger than what is owed refunds the rest of it`() =
@@ -507,7 +507,7 @@ class HaulPayPlanTest {
                 world.advance(first * 3)
                 world.advancePlans(first + twoWeeks * 2)
                 world.clock.at(first + twoWeeks * 2 + 1.hours)
-                world.returnSony(order)
+                world.returnSonora(order)
                 world.advanceReturns(first + twoWeeks * 2 + 3.days)
 
                 assertEquals(mapOf("refund:$order" to 22_100), world.ledger.refunds(order))
@@ -525,7 +525,7 @@ class HaulPayPlanTest {
         }
 
     /**
-     * B-50 on Haul Pay: Maya's plan paid partly with her 2,480 points — four payments of $121.80 — offers Sony's
+     * B-50 on Haul Pay: Maya's plan paid partly with her 2,480 points — four payments of $121.80 — offers Sonora's
      * headphones back as «Refund $332.10 to your Haul Pay plan» and «+ 1,690 points back». Returned after three
      * payments, the $332.10 is what the plan and the processor give back together: the fourth payment, $121.80,
      * covered, and $210.30 refunded. The dialog says the one amount, not the split, because what the plan still
@@ -543,13 +543,13 @@ class HaulPayPlanTest {
                     assertNotNull((world.summary(order).returnAction as? PresentAction)?.content as? ReturnForm)
                 assertEquals("Refund {amount} to your Haul Pay plan", form.refund)
                 assertEquals("+ {points} points back", form.pointsBack)
-                val sony = form.lines.single { it.position == 0 }
-                val money = sony.refundCents - sony.pointsBack
+                val sonora = form.lines.single { it.position == 0 }
+                val money = sonora.refundCents - sonora.pointsBack
                 assertEquals(33_210, money)
 
                 world.advancePlans(first + twoWeeks * 2)
                 world.clock.at(first + twoWeeks * 2 + 1.hours)
-                world.returnSony(order)
+                world.returnSonora(order)
                 // B-55: the page names the plan and the dialog's one amount, the points beside it.
                 assertEquals(
                     "A courier picks it up for free. $332.10 goes back to your Haul Pay plan once the seller has it" +
@@ -601,8 +601,8 @@ class HaulPayPlanTest {
             }
         }
 
-    /** Sony's headphones, Maya's first line, asked back now. */
-    private fun FulfilmentWorld.returnSony(order: String) {
+    /** Sonora's headphones, Maya's first line, asked back now. */
+    private fun FulfilmentWorld.returnSonora(order: String) {
         runBlocking {
             koin.get<RequestReturn>().request(SampleCustomers.MAYA, order, ReturnEntry(listOf(0), "doesnt_fit"))
         }

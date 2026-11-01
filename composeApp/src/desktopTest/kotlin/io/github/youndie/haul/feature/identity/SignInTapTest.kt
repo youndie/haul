@@ -74,7 +74,7 @@ class SignInTapTest {
 
             assertTrue(actions.handle(NavigateAction("/sign-in")))
             assertFalse(actions.handle(RefreshAction))
-            assertFalse(actions.handle(NavigateAction("/p/p-sony-wh-1000xm6")))
+            assertFalse(actions.handle(NavigateAction("/p/p-sonora-sh-718n")))
 
             assertEquals(1, signIns)
             assertEquals(1, redraws)

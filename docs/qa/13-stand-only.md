@@ -134,7 +134,7 @@ host, its tracy and its logs.
 - **Width:** n/a
 - **Preconditions:** the release on the stand.
 - **Steps:**
-  1. `curl -s https://haul.kotlin.website/p/p-sony-wh-1000xm6 | grep -E '<title>|<meta (name|property)="(description|og:|twitter:)'`.
+  1. `curl -s https://haul.kotlin.website/p/p-sonora-sh-718n | grep -E '<title>|<meta (name|property)="(description|og:|twitter:)'`.
   2. Paste `https://haul.kotlin.website/` into an Open Graph validator (or a chat that unfurls links).
   3. `curl -si https://haul.kotlin.website/robots.txt`.
 - **Expected:**
@@ -151,7 +151,29 @@ host, its tracy and its logs.
   `PagePreviewTest` «robots txt lets every crawler fetch everything»; script `scripts/image-check.sh`;
   manual: how a validator or a chat draws the card is theirs, and only the public stand can be fetched by them
 
-### TC-STAND-08 — The synthetic shoppers' orders move on «Live orders» without a reload
+### TC-STAND-08 — Demo shoppers older than a day are gone, and so is their way in
+
+- **Who:** operator
+- **Width:** n/a
+- **Preconditions:** a demo shopper made on the stand more than a day and an hour ago, with an order, returned in
+  part; its tab still open (the tokens in its session storage); a demo shopper made within the day.
+- **Steps:**
+  1. Read the server's log for the hour.
+  2. In the old shopper's tab, reload any page.
+  3. In the new shopper's tab, open «Orders».
+- **Expected:**
+  - Step 1: «demo shoppers swept: N» once an hour with N ≥ 1, and no warning that one was not turned off.
+  - Step 2: the tab is a guest again, with an empty cart: the store refuses the token and shildik its renewal.
+  - Step 3: the new shopper's orders are as they left them.
+- **Decided in:** B-162
+- **Coverage:** `server:DemoShopperRoutesTest` «a demo shopper older than a day is swept with everything they left,
+  and their sign-in ends at both ends»;
+  `server:DemoShopperRoutesTest` «a demo shopper whose order is still being placed is left for the next sweep»;
+  `IdentityTest` «a token that cannot be renewed signs the customer out, back to the guest»;
+  script `scripts/chart-check.sh`;
+  manual: the stand's own day and its realm
+
+### TC-STAND-09 — The synthetic shoppers' orders move on «Live orders» without a reload
 
 - **Who:** guest
 - **Width:** 1440

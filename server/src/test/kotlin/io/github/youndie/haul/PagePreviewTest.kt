@@ -93,7 +93,7 @@ class PagePreviewTest {
     @Test
     fun `a storefront address carries the same preview`() =
         served {
-            assertEquals(metas(get("/").bodyAsText()), metas(get("/p/p-sony-wh-1000xm6").bodyAsText()))
+            assertEquals(metas(get("/").bodyAsText()), metas(get("/p/p-sonora-sh-718n").bodyAsText()))
         }
 
     private companion object {

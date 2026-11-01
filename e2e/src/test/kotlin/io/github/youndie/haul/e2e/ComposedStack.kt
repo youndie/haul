@@ -22,8 +22,9 @@ import kotlin.time.TimeSource
  * The stack the whole path runs against, started from the test: PostgreSQL, shildik with a realm, and
  * the server's own image — the one `scripts/image-build.sh` builds, named by `haul.e2e.image` — with
  * the configuration a stand gives it (`ServerConfig`): the database, the seed, the realm, the
- * fulfilment clock run [FULFILMENT_SPEED] times the store's pace, and the key the shoppers' declining walks
- * choose the test card with ([TEST_CARD_KEY]).
+ * fulfilment clock run [FULFILMENT_SPEED] times the store's pace, the key the shoppers' declining walks
+ * choose the test card with ([TEST_CARD_KEY]), and the realm's management port the demo shoppers are made through
+ * (B-162).
  *
  * **Why the server shares the host's network.** The issuer is a URL both sides must reach by the same
  * name: shildik writes it into every token as `iss`, the server reads the keys from the discovery that
@@ -124,6 +125,11 @@ internal object ComposedStack {
             withEnv("HAUL_ENVIRONMENT", "e2e")
             withEnv("HAUL_COMMIT", "e2e")
             withEnv("HAUL_TEST_CARD_KEY", TEST_CARD_KEY)
+            // Demo shoppers made in the realm through its management port (B-162), as a stand's server reaches its
+            // release's shildik: on the host's network the port Docker mapped is on 127.0.0.1.
+            withEnv("HAUL_DEMO_MANAGEMENT_URL", "http://127.0.0.1:${shildik.getMappedPort(9000)}")
+            withEnv("HAUL_DEMO_MANAGEMENT_TOKEN", BOOTSTRAP)
+            withEnv("HAUL_DEMO_REDIRECT_URI", REDIRECT)
             // On the host's network there is no mapped port to wait on; readiness is polled below.
             start()
         }

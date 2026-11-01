@@ -12,7 +12,7 @@ import io.ktor.http.encodeURLParameter
 import io.ktor.http.parseQueryString
 
 // The browser's address is the storefront's navigation state. The addresses are the deeplinks the
-// server's `NavigateAction`s carry («/», «/c/electronics/audio/headphones?brand=Sony», «/p/p-sony-wh-1000xm6»,
+// server's `NavigateAction`s carry («/», «/c/electronics/audio/headphones?brand=Sonora», «/p/p-sonora-sh-718n»,
 // «/search?q=running%20shoes»); each screen's tree lives at the same address under `/ui`, so the client
 // maps one to the other and builds no other URL. A category has one address, the whole path (B-68): the
 // server names no other form and redirects one typed or kept from before, so the paths the shell compares

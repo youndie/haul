@@ -65,6 +65,11 @@ internal fun SignInPrompt(
             onAction = {
                 scope.launch { actions.handle(NavigateAction(SignInActions.returningTo(address.value))) }
             },
+            // No account? A customer of the visitor's own, in one press, and this page again (B-162).
+            secondaryLabel = header.demo?.let { DEMO_SHOPPER_LABEL },
+            onSecondary = {
+                scope.launch { actions.handle(NavigateAction(SignInActions.demoReturningTo(address.value))) }
+            },
         )
     }
 }

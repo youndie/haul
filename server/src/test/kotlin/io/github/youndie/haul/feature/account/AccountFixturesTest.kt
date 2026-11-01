@@ -76,7 +76,7 @@ class AccountFixturesTest {
 
                     // The canvas's products drawn as the catalog would draw them, as the order page's fixtures do.
                     val catalog = world.koin.get<CatalogRepository>()
-                    val sony = checkNotNull(catalog.product(SampleCatalog.SONY_HEADPHONES, PriceList.Public))
+                    val sonora = checkNotNull(catalog.product(SampleCatalog.SONORA_HEADPHONES, PriceList.Public))
                     val photos = ProductPhotos(null, SeedArt)
 
                     /** The picture of the canvas's [sku] in [tone]: its category's object, in its colour. */
@@ -86,9 +86,9 @@ class AccountFixturesTest {
                     ): String {
                         val (category, colour) = checkNotNull(SampleOrders.ART[sku]) { "$sku: no picture" }
                         val productId = sku.removeSuffix("-0")
-                        val product = sony.product.copy(id = productId, tone = tone, categorySlug = category)
+                        val product = sonora.product.copy(id = productId, tone = tone, categorySlug = category)
                         val options = colour?.let { mapOf("colour" to it) }.orEmpty()
-                        val shown = sony.skus.first().copy(id = sku, productId = productId, options = options)
+                        val shown = sonora.skus.first().copy(id = sku, productId = productId, options = options)
                         return photos.url(product, shown)
                     }
 

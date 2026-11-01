@@ -630,7 +630,7 @@ private const val GAP = "gap"
  * no wider than the width when [softWrap] is off — the campaign's «70%», cut at the card's edge at 1024 — or
  * lines none of whose words is wider than it — Compose breaks a word that does not fit its line between two
  * letters («WH-1000XM / 6» at 1280), where CSS would let it overflow, and neither reads. A word runs from space
- * to space: the line breaker keeps «WH-1000XM6» whole (no break between a hyphen and a figure), so the room
+ * to space: the line breaker keeps «SH-718N» whole (no break between a hyphen and a figure), so the room
  * after a hyphen ([widestWord]'s) is not counted on. [style] is
  * the style at a size, built in the fonts given, so that a display face's optical size follows the size; never
  * below [min]. [textModifier] is the text's own, at the size drawn.

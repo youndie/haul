@@ -22,8 +22,13 @@ import io.github.youndie.haul.feature.checkout.domain.TestCardAccess
 import io.github.youndie.haul.feature.fulfilment.FulfilmentRunner
 import io.github.youndie.haul.feature.fulfilment.FulfilmentSettings
 import io.github.youndie.haul.feature.fulfilment.fulfilmentModule
+import io.github.youndie.haul.feature.identity.DemoOffer
+import io.github.youndie.haul.feature.identity.DemoShopperConfig
 import io.github.youndie.haul.feature.identity.SignInConfig
 import io.github.youndie.haul.feature.identity.customerIdentityRouting
+import io.github.youndie.haul.feature.identity.data.ExposedDemoShoppers
+import io.github.youndie.haul.feature.identity.data.ShildikDemoAccounts
+import io.github.youndie.haul.feature.identity.domain.DemoShoppers
 import io.github.youndie.haul.feature.identity.domain.IdentityError
 import io.github.youndie.haul.feature.identity.identityModule
 import io.github.youndie.haul.feature.identity.identityRouting
@@ -132,7 +137,10 @@ internal fun Application.haulModule(
     fulfilment: FulfilmentSettings = FulfilmentSettings.MANUAL,
     saleLook: Duration? = null,
     testCard: TestCardAccess = TestCardAccess.NONE,
+    demo: DemoShopperConfig? = null,
+    demoSweep: Duration? = null,
 ) {
+    require(demo == null || signIn != null) { "a demo shopper needs sign-in: the realm they are made in" }
     val observers = installObservability(observability)
     installSignIn(signIn)
     val pool: DataSource = FailFastDataSource(dataSource)
@@ -149,6 +157,20 @@ internal fun Application.haulModule(
                 single { ProductPhotos(photoStore, SeedArt) }
                 single { observers.trail }
                 single { testCard }
+                single {
+                    DemoOffer(
+                        demo?.let { config ->
+                            DemoShoppers(
+                                ShildikDemoAccounts(checkNotNull(signIn), config),
+                                ExposedDemoShoppers(get()),
+                                get(),
+                                get(),
+                                get(),
+                                config.dailyLimit,
+                            )
+                        },
+                    )
+                }
             },
             catalogModule,
             searchModule,
@@ -179,6 +201,8 @@ internal fun Application.haulModule(
     fulfilment.interval?.let { FulfilmentRunner(get(), get(), get(), it).start(this) }
     // The sample sale moved to the new day at each store midnight, so a stand that runs for days keeps its deals.
     saleLook?.let { SaleRedater(database, clock).start(this, it) }
+    // Demo shoppers older than a day forgotten, with everything they did (B-162).
+    demoSweep?.let { get<DemoOffer>().startSweeping(this, it) }
     // Server-sent events, the live pages' stream (B-29, B-164).
     install(SSE)
     install(StatusPages) {

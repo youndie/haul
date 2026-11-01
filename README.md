@@ -18,8 +18,10 @@ pixels, and running in public at **[haul.kotlin.website](https://haul.kotlin.web
    the parts that changed arrive (`/ui/parts/c/electronics?sort=price-asc` answers an `update` naming the nodes it
    replaces), and the address follows without a reload — [`Parts.kt`](server/src/main/kotlin/io/github/youndie/haul/shell/Parts.kt).
 4. **Place an order and follow it** — an order is a [petich](https://github.com/youndie/petich) saga that reserves,
-   authorises and undoes in reverse ([`OrderSaga.kt`](server/src/main/kotlin/io/github/youndie/haul/feature/order/saga/OrderSaga.kt));
-   checkout needs a sign-in on the stand for now.
+   authorises and undoes in reverse ([`OrderSaga.kt`](server/src/main/kotlin/io/github/youndie/haul/feature/order/saga/OrderSaga.kt)).
+   Checkout needs a sign-in on the stand for now; «Try as a demo shopper», which makes a customer of your own in one
+   press and forgets them after a day, is built ([`DemoShoppers.kt`](server/src/main/kotlin/io/github/youndie/haul/feature/identity/domain/DemoShoppers.kt))
+   and not yet switched on there.
 5. **Watch every order's saga on [Live orders](https://haul.kotlin.website/live).** The synthetic shoppers' orders and
    anybody's, the last twenty, each step lighting up as it happens without a reload — and one walk in ten declined,
    its failed step red and the steps before it undone in reverse. Open a row for its trail. The page listens on the
@@ -97,7 +99,7 @@ JDK 25 toolchain itself). The server's tests need Docker: PostgreSQL runs in Tes
   [`scripts/measure-first-load.py`](scripts/measure-first-load.py); the method and every run are in the research.
 - **Checks on every pull request**: about 540 server tests against a real PostgreSQL, about 490 client tests,
   168 screenshot goldens, the image with its AOT cache, the chart, and the whole buy-receive-return path over HTTP.
-- **Releases are walked**: a catalogue of 134 QA cases ([`docs/qa`](docs/qa/README.md)), and each run's result is
+- **Releases are walked**: a catalogue of 146 QA cases ([`docs/qa`](docs/qa/README.md)), and each run's result is
   in [`docs/qa/runs`](docs/qa/runs).
 
 ## What it is not

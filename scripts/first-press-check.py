@@ -58,7 +58,7 @@ _spec.loader.exec_module(_m)
 chromium, launch = _m.chromium, _m.launch
 
 # The SKU a promo load puts in its cart: the seed's first product (server/.../seed).
-CART_SKU = "p-sony-wh-1000xm6-0"
+CART_SKU = "p-sonora-sh-718n-0"
 
 FIELDS = {
     "search": {"path": "/", "tag": "search-field"},
