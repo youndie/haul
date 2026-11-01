@@ -300,8 +300,9 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
   5. Open the store in a new tab.
 - **Expected:**
   - Step 1: once the page has drawn, one quiet line above the header's dark strip reads «A demo store built with
-    Kotlin: Ktor, kompot, Compose Multiplatform in the browser.», then «About this demo» · «Source on GitHub», and a
-    «×» at its end; one line at 1440, the words wrapping over two lines and the links under them at 390. The page
+    Kotlin: Ktor, kompot, Compose Multiplatform in the browser.», then «About this demo» · «Source on GitHub», the
+    «Under the hood» pill (TC-HDR-17), and a «×» at its end; one line at 1440, the words wrapping over two lines, the
+    links under them and the pill under the links at 390. The page
     under it arrives as before — the line comes after it, never before.
   - Step 2: `https://github.com/youndie/haul` opens in a tab of its own; the store's tab stays on its page.
   - Step 3: the line is above every page, the sign-in page too.
@@ -313,7 +314,8 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
   repository apart»; `composeApp:DemoStripTest` «the close hides the strip on every page for the rest of the
   session»; `composeApp:DemoStripTest` «a strip that did not arrive is asked for again after the next page»;
   `server:AboutRoutesTest` «the demo strip says the stand is a Kotlin demo and leads to the about page and the
-  repository»; golden `Demo_Strip`; golden `Demo_Strip_Phone`; manual: the browser's new tab and its
+  repository»; golden `Demo_Strip`; golden `Demo_Strip_Phone`; golden `Demo_Strip_Hood`; golden
+  `Demo_Strip_Hood_Phone`; manual: the browser's new tab and its
   `sessionStorage` across a reload and a second tab
 
 ### TC-HDR-15 — «About this demo» says what the stack is, what is real and what is not
@@ -369,3 +371,41 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
   `composeApp:TabTitleTest` «a page with no tree is the store's and the sign-in page is sign-in's»;
   `TabTitlesTest` «every page a guest opens names its tab»; `TabTitlesTest` «the header alone names no page»;
   manual: the browser's own tab and history list, and the customer's pages, whose titles only their fixtures hold
+
+### TC-HDR-17 — «Under the hood» shows the page's tree, its request and what an update replaced
+
+- **Who:** guest
+- **Width:** 1440, 390
+- **Preconditions:** the strip of TC-HDR-14 not closed; the browser's network panel open.
+- **Steps:**
+  1. On the home page, press «Under the hood» in the line above the header.
+  2. Read «Request»; press the outline's `haul_header`; press «view» beside it, then «server».
+  3. Open a product, then the cart, the panel open throughout.
+  4. On a category, press a brand in the facets and change the sort; on the home page, press «+» on a deal's card.
+  5. Press «Under the hood» again, or the panel's «×»; then, with it closed, press «+» on another card.
+  6. Turn on the system's reduced motion, reload, open the panel and press «+» on a card.
+- **Expected:**
+  - Step 1: a panel from the right, 440 px wide, at 1440 — from the bottom across the width at 390 — titled «Under the
+    hood»; the pill turns ink. The page beside it still scrolls and answers its presses.
+  - Step 2: `GET /ui/home`, then «200 · … kB · server … ms · total … ms» — the size and the server's time as the network
+    panel shows the response's and its `Server-Timing`; the header opens to its fields (`deliverTo`, `cartCount`, …,
+    values cut short with «…»); «view» opens `HaulHeaderView.kt` and «server» `Frame.kt` on GitHub, each in a tab of
+    its own. A type built in several places — `haul_section_header` — has «view» alone; `column` has neither.
+  - Step 3: each page's own tree and request (`GET /ui/p/…`, `GET /ui/cart`), the outline starting at its root.
+  - Step 4: each press's parts outlined in blue on the page for about a second — the results and the title for a
+    facet, the header and the card for «+» — and listed newest first under «Updates»: `GET /ui/parts/c/…` or
+    `PUT /api/v1/cart/lines/…`, then «replaced …» with the ids; the outline shows the card as it is now.
+  - Step 5: the panel goes, the pill is outlined again, and the page is as it was before the panel opened; the
+    press with it closed changes the page and flashes nothing; opened again, «Updates» is empty.
+  - Step 6: nothing flashes; the update is listed all the same.
+- **Decided in:** B-163
+- **Coverage:** `composeApp:UnderTheHoodTest` «the toggle in the strip opens the panel and the toggle or its close
+  closes it»; `composeApp:UnderTheHoodTest` «the panel shows the screen's tree and the request that brought it»;
+  `composeApp:UnderTheHoodTest` «an update while the panel is open is listed and the nodes it replaced flash»;
+  `composeApp:UnderTheHoodTest` «on a still page an update is listed and nothing flashes»;
+  `composeApp:UnderTheHoodTest` «closed nothing is listed and nothing flashes»; `composeApp:UnderTheHoodTest` «closing
+  the panel leaves the page pixel for pixel as it was»; `composeApp:FlashedRegistryTest` «a page drawn in the flash's
+  boxes is the page drawn without them»; `composeApp:HoodSourcesTest` «every link of the outline is a file of the
+  repository»; `server:TreeTimingTest` «every answer under ui names the server's time and nothing else does»; golden
+  `Hood_Panel`; golden `Hood_Panel_Phone`; manual: the browser's network panel beside the numbers, GitHub's tabs, the
+  system's reduced motion

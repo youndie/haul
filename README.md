@@ -14,10 +14,15 @@ pixels, and running in public at **[haul.kotlin.website](https://haul.kotlin.web
    draws — `curl https://haul.kotlin.website/ui/home` is the home page you just saw. Built in
    [`HomeScreen.kt`](server/src/main/kotlin/io/github/youndie/haul/feature/catalog/screen/HomeScreen.kt), drawn by the
    renderers in [`HaulRenderers.kt`](composeApp/src/commonMain/kotlin/io/github/youndie/haul/registry/HaulRenderers.kt).
-3. **Change a filter or the sort on a category, or press «+» on a card**, with the browser's network tab open: only
+3. **Open «Under the hood»** in that line. The panel beside the page outlines the tree the page is drawn from —
+   each component by type and id, opening to its fields, linked to the view that draws it and the server file that
+   builds it — and names the request that brought it: its size, the server's time (`Server-Timing`) and the
+   browser's. Press a filter or «+» on a card while it is open: the parts the update replaces flash on the page and
+   the update is listed with its request ([`UnderTheHood.kt`](composeApp/src/commonMain/kotlin/io/github/youndie/haul/shell/UnderTheHood.kt)).
+4. **Change a filter or the sort on a category, or press «+» on a card**, with the browser's network tab open: only
    the parts that changed arrive (`/ui/parts/c/electronics?sort=price-asc` answers an `update` naming the nodes it
    replaces), and the address follows without a reload — [`Parts.kt`](server/src/main/kotlin/io/github/youndie/haul/shell/Parts.kt).
-4. **Place an order and follow it** — an order is a [petich](https://github.com/youndie/petich) saga that reserves,
+5. **Place an order and follow it** — an order is a [petich](https://github.com/youndie/petich) saga that reserves,
    authorises and undoes in reverse ([`OrderSaga.kt`](server/src/main/kotlin/io/github/youndie/haul/feature/order/saga/OrderSaga.kt)).
    Checkout needs a sign-in on the stand for now; «Try as a demo shopper», which makes a customer of your own in one
    press and forgets them after a day, is built ([`DemoShoppers.kt`](server/src/main/kotlin/io/github/youndie/haul/feature/identity/domain/DemoShoppers.kt))

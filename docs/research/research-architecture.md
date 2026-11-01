@@ -432,6 +432,49 @@ Four reviews of the stand found nothing on it said it was a demo or what it was 
 - **The footer is left as it is.** A word there would move every footer golden; the strip leads to the About page
   from every page. Rejected: a banner over the hero, a modal on arrival.
 
+**Decided in B-163, «Under the hood» shows the tree, what it cost and what updated** (owner, 2026-11-01: «show the
+machinery» led the product and the designer reviews). Every page is a tree the server sends, and nothing on a page said
+so.
+
+- **A toggle in the demo strip opens a panel over the page**: a sheet from the right, 440 px wide, at 1440; from the
+  bottom across the width, 62 % of the height, on a phone. The toggle's name is the server's (`DemoNote.hood`, «Under
+  the hood»), as the strip's other words are; the panel is the client's and asks the server for nothing — it reads the
+  tree the page drew and the requests the page made (`shell/UnderTheHood.kt`, `UnderTheHoodPanel.kt`). Its own
+  headings («Request», «Updates», «Tree») and lead are the client's words, as the shell's error pages are. The page
+  under it goes on answering its presses — that is the point: a filter or a card's «+» pressed beside it.
+- **The tree is an outline read from the wire's JSON** (`HoodOutline`): a node is an object with an `id` — its `type`
+  where the wire writes one, the field it is in («cards[]») for a component of a one-type list, which the wire sends
+  without its type — opened to its fields, each value cut to 48 characters; the root is open. It is the page as it is
+  drawn: an update's nodes replace theirs in it, by kompot's rule (a later update around a node drops the earlier one
+  inside). Encoded only while the panel is open. A Haul type links to its view in `composeApp` and to the one server
+  file that builds it (`HoodSources`, held to the repository by `HoodSourcesTest`); a type built in several files names
+  no builder, and kompot's own types (`column`, `text`) neither — a guessed link is left out.
+- **The request is the transport's record**: path, status, the body's UTF-8 size, the server's time from
+  `Server-Timing` and the time the browser waited, sign-in's headers and the body included. Every answer under `/ui/`
+  carries `Server-Timing: app;dur=<ms>` — from the call reaching the application to its answer handed over, the tree
+  built and encoded (`server/.../shell/TreeTiming.kt`); `/api/` and the page do not. Same origin, so no
+  `Timing-Allow-Origin`.
+- **The transport always keeps the last 20 requests' numbers, never a body** (`KEPT`). Kept only while open, the panel
+  opened over a page already drawn — the way it is used — could not say what brought it. What is held while closed is
+  that ring, and a reference to the tree drawn with the nodes updates replaced since it arrived; no update is listed,
+  nothing flashes, nothing is encoded, the panel is not composed.
+- **An update is listed and flashed only while the panel is open**: the request it answered (a `load`'s `GET` with the
+  transport's numbers, or a cart command's method, URL and time) and the ids it replaced, newest first, twenty at most.
+  Each node the update replaced is outlined in the store's blue with a 10 % wash, held a quarter second and faded over
+  0.9 s — under `Motion.Lively` only; under `Motion.Still` nothing flashes and the update is listed all the same. To know
+  where a node is drawn, the storefront's registry draws every node inside one box that passes its constraints through
+  (`flashedBy`), as kompot's column already draws each child; the box draws nothing unless its node flashes, and
+  `FlashedRegistryTest` holds nine pages at 1440 and 390 pixel-identical with and without it. Only the storefront's root
+  has the hood: `Storefront` drawn on its own and every golden draw as before.
+- **Closing the panel leaves the page pixel-identical** (`UnderTheHoodTest`); closing the strip closes the panel, and the
+  toggle goes with the strip for the session.
+- **What it does not show.** The order page's live moves (B-29) replace nodes through kompot's realtime provider, not
+  the screen's actions, and are drawn without a flash or a line; the checkout's and the dialogs' commands answer
+  `refresh`, which is a tree, not an update. At 1440 the panel covers the header's right end — the cart's count among
+  it; the header an update replaces flashes along its whole width, so the flash shows left of the panel.
+- Rejected: a separate developer page (nobody finds it); the raw JSON (an outline reads, a dump is a scroll); keeping
+  every tree the session saw (a cost for every visitor, for a panel few open).
+
 **Decided in B-124, the empty field is recall.** A customer pressing the empty search field — or emptying it while
 in it — is offered their recent searches at once: the last ten, newest first, «Clear», each row in the picker's
 scope; a guest's empty field asks nothing. Until then the press drew a caret, and the recent list showed only once
