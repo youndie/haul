@@ -147,7 +147,17 @@ class TwoReplicasTest {
             }
 
             // The walks through the front: every one delivered and refunded, but for one a cut it could not send again.
-            val failed = people.filter { outcomes[it.login]?.isFailure != false }
+            // A sign-in the provider refused is shildik's and no replica's (the form goes to it, not to the front): seen
+            // in two runs of five, one walk of nine, with the person made and their password set (B-174's findings). Such a
+            // walk reached no replica's checkout; it is said, and it must have placed nothing (below).
+            val refused =
+                people.filter { person ->
+                    val failure = outcomes[person.login]?.exceptionOrNull()
+                    failure is WalkFailed && failure.step.startsWith("sign in") &&
+                        "in answered 401" in failure.message.orEmpty()
+                }
+            refused.forEach { println("B-174 kill: ${it.login}'s sign-in was refused by the provider, not a replica") }
+            val failed = people.filter { it !in refused && outcomes[it.login]?.isFailure != false }
             val unsendable = cut.count { !it.resendable && it.upstream == leader.origin }
             assertTrue(
                 failed.size <= unsendable,
@@ -175,7 +185,8 @@ class TwoReplicasTest {
             val everybody = people.map { it.id } + alone.id
             val orders = ordersOf(everybody)
             val placedBy = everybody.associateWith { id -> orders.count { it.second == id } }
-            val walked = people.filter { it !in failed }.map { it.id } + alone.id
+            val walked = people.filter { it !in failed && it !in refused }.map { it.id } + alone.id
+            assertEquals(0, refused.sumOf { placedBy.getValue(it.id) }, "a walk refused at sign-in placed an order")
             assertEquals(walked.associateWith { 1 }, placedBy.filterKeys { it in walked }, "orders per person")
             assertTrue(placedBy.values.all { it <= 1 }, "a person with two orders: $placedBy")
             for ((order, _) in orders) {

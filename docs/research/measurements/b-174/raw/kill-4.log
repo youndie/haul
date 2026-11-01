@@ -1,0 +1,71 @@
+> Task :e2e:testClasses UP-TO-DATE
+
+> Task :e2e:test
+
+TwoReplicasTest > a replica killed in the middle of sagas loses no order and doubles none() STANDARD_ERROR
+    SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+    SLF4J: Defaulting to no-operation (NOP) logger implementation
+    SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+
+TwoReplicasTest > a replica killed in the middle of sagas loses no order and doubles none() STANDARD_OUT
+    B-174 kill: 0.01s the delivery windows locked; the leader is a
+    B-174 kill: 1.08s the lone placement waits inside its saga on a
+    B-174 kill: 3.14s killing a: 6 of its sessions and 2 of b's wait inside a saga; 8 sagas unfinished; the front has 5 placements on a
+    B-174 kill: 3.56s a killed, the delivery windows unlocked
+    B-174 kill: 4.94s b holds the election's lock, 1.68s after the kill
+    B-174 kill: 12.48s b leads, 9.22s after the kill
+    B-174 kill: 18.25s every walk ended; the front cut 6: [Cut(request=POST /api/v1/orders, upstream=http://127.0.0.1:52620, resendable=true), Cut(request=POST /api/v1/orders, upstream=http://127.0.0.1:52620, resendable=true), Cut(request=POST /api/v1/orders, upstream=http://127.0.0.1:52620, resendable=true), Cut(request=PUT /api/v1/me/checkout, upstream=http://127.0.0.1:52620, resendable=true), Cut(request=POST /api/v1/orders, upstream=http://127.0.0.1:52620, resendable=true), Cut(request=POST /api/v1/orders, upstream=http://127.0.0.1:52620, resendable=true)]
+    B-174 kill: replica-2dd45fed-6dc3-4704-8cc0-565f958eda2d@example.test placed HL-48309, refunded after 15.387464270s
+    B-174 kill: replica-59485ac2-d030-465c-b64a-ac67f2f82de7@example.test placed HL-48303, refunded after 16.684438700s
+    B-174 kill: replica-60ed78c2-e527-4b66-ac66-73a0b1cccf16@example.test stopped: step «check out by courier and place the order»: HTTP/1.1 header parser received no bytes
+    B-174 kill: replica-8b85f908-096c-487a-aa33-4613fe937312@example.test placed HL-48304, refunded after 16.931276359s
+    B-174 kill: replica-96e9e322-eade-4a92-96c0-8f2a259eeca9@example.test placed HL-48306, refunded after 16.138974805s
+    B-174 kill: replica-bb272878-7762-452e-be3a-7bfe3c57892c@example.test placed HL-48308, refunded after 15.687663666s
+    B-174 kill: replica-c5c5e640-8860-4fd7-b1eb-5041b17ca512@example.test placed HL-48310, refunded after 15.358050865s
+    B-174 kill: replica-f1bcc484-4e3b-447b-86d5-2d17ba5e92a1@example.test placed HL-48305, refunded after 16.438628500s
+    B-174 kill: replica-fec7c83b-524c-4446-8257-9955a065d0cb@example.test placed HL-48307, refunded after 15.928853372s
+    B-174 kill: 73.02s the lone order HL-48302 is placed, carried on by b's sweeper
+    B-174 kill: 73.07s the sagas: {COMPLETED=9}
+    B-174 kill: 74.89s a replaced, ready
+
+TwoReplicasTest > a replica killed in the middle of sagas loses no order and doubles none() PASSED
+
+TwoReplicasTest > a move made on one replica reaches a page listening on the other() STANDARD_OUT
+    B-174 bus: b placed HL-48311, a's page drew it: «Placed»
+
+TwoReplicasTest > a move made on one replica reaches a page listening on the other() PASSED
+
+Gradle Test Executor 1 STANDARD_ERROR
+    Exception in thread "live live:orders" java.io.UncheckedIOException: java.io.IOException: closed
+    	at java.base/java.io.BufferedReader$1.hasNext(BufferedReader.java:578)
+    	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:132)
+    	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1939)
+    	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:803)
+    	at io.github.youndie.haul.e2e.LiveStream._init_$lambda$0(Storefront.kt:187)
+    	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+    Caused by: java.io.IOException: closed
+    	at java.net.http/jdk.internal.net.http.ResponseSubscribers$HttpResponseInputStream.current(ResponseSubscribers.java:375)
+    	at java.net.http/jdk.internal.net.http.ResponseSubscribers$HttpResponseInputStream.read(ResponseSubscribers.java:419)
+    	at java.base/sun.nio.cs.StreamDecoder.readBytes(StreamDecoder.java:279)
+    	at java.base/sun.nio.cs.StreamDecoder.implRead(StreamDecoder.java:322)
+    	at java.base/sun.nio.cs.StreamDecoder.read(StreamDecoder.java:186)
+    	at java.base/java.io.InputStreamReader.read(InputStreamReader.java:183)
+    	at java.base/java.io.BufferedReader.fill(BufferedReader.java:166)
+    	at java.base/java.io.BufferedReader.readLine(BufferedReader.java:333)
+    	at java.base/java.io.BufferedReader.readLine(BufferedReader.java:400)
+    	at java.base/java.io.BufferedReader$1.hasNext(BufferedReader.java:575)
+    	... 5 more
+test: filtered to *TwoReplicasTest — not checked for unrun tests
+
+[Incubating] Problems report is available at: file:///home/youndie/haul-wt/b-174/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.8.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 50s
+9 actionable tasks: 3 executed, 6 up-to-date
+Configuration cache entry stored.
+rc=0

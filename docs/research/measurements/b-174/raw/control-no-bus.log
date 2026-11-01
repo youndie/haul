@@ -1,0 +1,359 @@
+> Task :e2e:testClasses UP-TO-DATE
+
+> Task :e2e:test
+
+TwoReplicasTest > a replica killed in the middle of sagas loses no order and doubles none() STANDARD_ERROR
+    SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+    SLF4J: Defaulting to no-operation (NOP) logger implementation
+    SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+
+TwoReplicasTest > a replica killed in the middle of sagas loses no order and doubles none() STANDARD_OUT
+    B-174 kill: 0.01s the delivery windows locked; the leader is a
+    B-174 kill: 1.74s the lone placement waits inside its saga on a
+    B-174 kill: 3.91s killing a: 2 of its sessions and 3 of b's wait inside a saga; 5 sagas unfinished; the front has 1 placements on a
+    B-174 kill: 4.42s a killed, the delivery windows unlocked
+    B-174 kill: 4.69s b holds the election's lock, 0.57s after the kill
+    B-174 kill: 12.14s b leads, 8.03s after the kill
+    B-174 kill: 18.01s every walk ended; the front cut 1: [Cut(request=POST /api/v1/orders, upstream=http://127.0.0.1:52574, resendable=true)]
+    B-174 kill: replica-1435de2d-9885-4182-aca7-7a6ecb1d3615@example.test placed HL-48307, refunded after 14.435934662s
+    B-174 kill: replica-3336b447-2bfa-4df7-a0d6-70ce7daa6b0b@example.test placed HL-48308, refunded after 14.698817981s
+    B-174 kill: replica-42b75f59-2c05-4218-b989-0cb18de0f2d3@example.test stopped: step «check out by courier and place the order»: HTTP/1.1 header parser received no bytes
+    B-174 kill: replica-5dda73d1-eef5-41c2-afbf-c26b274b5783@example.test placed HL-48305, refunded after 15.458115556s
+    B-174 kill: replica-6da025bf-3866-41c1-a1a4-c26102a2af41@example.test placed HL-48309, refunded after 13.928520119s
+    B-174 kill: replica-6e0eae43-6329-404e-9b0c-f85b7035e1c2@example.test placed HL-48303, refunded after 15.683733324s
+    B-174 kill: replica-7369eaf4-98c6-4ba4-a7ad-fed2aa20044d@example.test placed HL-48304, refunded after 15.704162757s
+    B-174 kill: replica-a6ce8107-1fe3-4aa1-84c5-0a15b8a8f1cc@example.test placed HL-48306, refunded after 15.042597816s
+    B-174 kill: replica-b1ec6d06-67b9-4a7c-8c59-e52fd42aa7dd@example.test stopped: step «sign in as replica-b1ec6d06-67b9-4a7c-8c59-e52fd42aa7dd@example.test and take the cart along»: signing replica-b1ec6d06-67b9-4a7c-8c59-e52fd42aa7dd@example.test in answered 401 to «»
+    B-174 kill: 19.39s a replaced, ready
+
+TwoReplicasTest > a replica killed in the middle of sagas loses no order and doubles none() FAILED
+    org.opentest4j.AssertionFailedError: walks stopped: [Failure(io.github.youndie.haul.e2e.shoppers.WalkFailed: step «sign in as replica-b1ec6d06-67b9-4a7c-8c59-e52fd42aa7dd@example.test and take the cart along»: signing replica-b1ec6d06-67b9-4a7c-8c59-e52fd42aa7dd@example.test in answered 401 to «»)]
+    --- replica a:
+    13:27:19.926 INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "14 - order address"
+    13:27:19.938 INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "15 - helpful votes"
+    13:27:19.955 INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "17 - returns"
+    13:27:19.984 INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "18 - saved"
+    13:27:20.005 INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "19 - plus and points"
+    13:27:20.046 INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "20 - product views"
+    13:27:20.076 INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "21 - haul pay plans"
+    13:27:20.106 INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "23 - bought this month"
+    13:27:20.126 INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "25 - listing name"
+    13:27:20.149 INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "26 - sku campaigns"
+    13:27:20.164 INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "27 - deal windows"
+    13:27:20.183 INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "28 - stock restocks"
+    13:27:20.201 INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "29 - campaign names"
+    13:27:20.213 INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "30 - leaf names in descriptions"
+    13:27:20.236 INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "31 - invented brands"
+    13:27:20.360 INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "32 - demo shoppers"
+    13:27:20.376 INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "33 - orders placed at"
+    13:27:20.387 INFO  o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "34 - campaign promises"
+    13:27:20.399 INFO  o.f.core.internal.command.DbMigrate - Successfully applied 29 migrations to schema "public", now at version v34 (execution time 00:00.568s)
+    13:27:20.409 INFO  io.github.youndie.haul.Application - migrations applied: 29
+    13:27:20.409 INFO  io.github.youndie.haul.Application - no object storage: seed pictures only
+    13:27:22.966 INFO  io.github.youndie.haul.Application - catalog seeded, its sale from 2026-11-01
+    13:27:22.967 INFO  io.github.youndie.haul.Application - demo shoppers made in the realm, at most 500 a day
+    13:27:23.026 INFO  io.github.youndie.haul.Application - replica a: moves shared through the database, the simulated world on the elected leader
+    13:27:23.067 INFO  io.ktor.server.Application - Autoreload is disabled because the development mode is off.
+    13:27:23.069 WARN  i.g.youndie.haul.ops.Observability - tracy is off (HAUL_TRACY_ENDPOINT/HAUL_TRACY_KEY): no trace, no shipped log
+    13:27:23.069 WARN  i.g.youndie.haul.ops.Observability - metrik is off (HAUL_METRIK_ENDPOINT/HAUL_METRIK_KEY): nothing counts the routes
+    13:27:23.069 WARN  i.g.youndie.haul.ops.Observability - katcher is off (HAUL_KATCHER_ENDPOINT/HAUL_KATCHER_KEY): a 500 is a log line and nothing else
+    13:27:23.233 INFO  io.ktor.server.Application - Application started in 0.203 seconds.
+    13:27:23.244 INFO  io.github.youndie.haul.ops.leader - a leads: the simulated world, the saga's sweeper and the sweeps run here (epoch 1)
+    13:27:23.246 INFO  io.ktor.server.Application - Responding at http://0.0.0.0:52574
+    13:27:25.610 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:25.769 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:25.870 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:25.919 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:26.018 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:26.063 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:26.111 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:26.153 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:26.194 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:26.259 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:26.301 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:26.357 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:27.208 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:27.245 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:27.806 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:27.892 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:27.898 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:27.973 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.005 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.028 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.080 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.140 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.181 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.202 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.209 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.240 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.264 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.264 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.277 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.284 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.349 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.370 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.399 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.411 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.430 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.445 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.460 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.463 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.486 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.492 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.512 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.527 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.554 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.582 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.641 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.659 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.674 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:28.687 INFO  io.ktor.server.Application - authorized: haul-web
+
+    --- replica b:
+    13:27:38.935 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:38.935 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:38.935 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:38.935 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:38.935 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.344 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.375 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.392 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.456 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.456 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.456 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.456 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.456 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.461 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.478 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.478 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.478 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.480 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.480 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.480 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.492 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.492 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.492 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.492 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.492 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.492 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:39.915 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:40.020 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:40.021 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:40.020 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:40.020 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:40.020 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:40.024 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:40.435 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:40.564 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:40.564 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:40.567 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:40.570 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:40.570 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:40.570 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:40.956 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:41.088 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:41.088 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:41.093 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:41.093 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:41.093 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:41.098 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:41.477 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:41.628 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:41.634 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:41.637 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:41.637 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:41.637 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:41.639 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:41.997 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.156 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.156 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.157 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.157 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.158 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.161 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.193 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.194 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.197 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.258 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.258 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.260 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.530 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.553 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.592 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.690 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.695 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.695 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.710 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.712 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.717 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.747 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.749 INFO  io.ktor.server.Application - authorized: haul-web
+    13:27:42.756 INFO  io.ktor.server.Application - authorized: haul-web
+        at app//org.junit.jupiter.api.AssertionUtils.fail(AssertionUtils.java:38)
+        at app//org.junit.jupiter.api.Assertions.fail(Assertions.java:138)
+        at app//kotlin.test.junit5.JUnit5Asserter.fail(JUnitSupport.kt:56)
+        at app//kotlin.test.Asserter.assertTrue(Assertions.kt:1545)
+        at app//kotlin.test.junit5.JUnit5Asserter.assertTrue(JUnitSupport.kt:30)
+        at app//kotlin.test.Asserter.assertTrue(Assertions.kt:1555)
+        at app//kotlin.test.junit5.JUnit5Asserter.assertTrue(JUnitSupport.kt:30)
+        at app//kotlin.test.AssertionsKt__AssertionsKt.assertTrue(Assertions.kt:44)
+        at app//kotlin.test.AssertionsKt.assertTrue(Unknown Source)
+        at app//io.github.youndie.haul.e2e.TwoReplicasTest.a replica killed in the middle of sagas loses no order and doubles none(TwoReplicasTest.kt:152)
+
+TwoReplicasTest > a move made on one replica reaches a page listening on the other() STANDARD_ERROR
+    Exception in thread "live live:orders" java.io.UncheckedIOException: java.io.IOException: closed
+    	at java.base/java.io.BufferedReader$1.hasNext(BufferedReader.java:578)
+    	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:132)
+    	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1939)
+    	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:803)
+    	at io.github.youndie.haul.e2e.LiveStream._init_$lambda$0(Storefront.kt:187)
+    	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+    Caused by: java.io.IOException: closed
+    	at java.net.http/jdk.internal.net.http.ResponseSubscribers$HttpResponseInputStream.current(ResponseSubscribers.java:375)
+    	at java.net.http/jdk.internal.net.http.ResponseSubscribers$HttpResponseInputStream.read(ResponseSubscribers.java:419)
+    	at java.base/sun.nio.cs.StreamDecoder.readBytes(StreamDecoder.java:279)
+    	at java.base/sun.nio.cs.StreamDecoder.implRead(StreamDecoder.java:322)
+    	at java.base/sun.nio.cs.StreamDecoder.read(StreamDecoder.java:186)
+    	at java.base/java.io.InputStreamReader.read(InputStreamReader.java:183)
+    	at java.base/java.io.BufferedReader.fill(BufferedReader.java:166)
+    	at java.base/java.io.BufferedReader.readLine(BufferedReader.java:333)
+    	at java.base/java.io.BufferedReader.readLine(BufferedReader.java:400)
+    	at java.base/java.io.BufferedReader$1.hasNext(BufferedReader.java:575)
+    	... 5 more
+    Caused by: java.io.IOException: chunked transfer encoding, state: READING_LENGTH
+    	at java.net.http/jdk.internal.net.http.common.Utils.wrapWithExtraDetail(Utils.java:459)
+    	at java.net.http/jdk.internal.net.http.Http1Response$BodyReader.onReadError(Http1Response.java:677)
+
+TwoReplicasTest > a move made on one replica reaches a page listening on the other() FAILED
+    java.lang.IllegalStateException: no frame of live:orders for which it holds within 30s; it carried []
+        at io.github.youndie.haul.e2e.LiveStream.await-8Mi8wO0(Storefront.kt:208)
+        at io.github.youndie.haul.e2e.TwoReplicasTest.a move made on one replica reaches a page listening on the other(TwoReplicasTest.kt:45)
+
+TwoReplicasTest STANDARD_ERROR
+    	at java.net.http/jdk.internal.net.http.Http1AsyncReceiver.checkForErrors(Http1AsyncReceiver.java:304)
+    	at java.net.http/jdk.internal.net.http.Http1AsyncReceiver.flush(Http1AsyncReceiver.java:270)
+    	at java.net.http/jdk.internal.net.http.common.SequentialScheduler$LockingRestartableTask.run(SequentialScheduler.java:182)
+    	at java.net.http/jdk.internal.net.http.common.SequentialScheduler$CompleteRestartableTask.run(SequentialScheduler.java:149)
+    	at java.net.http/jdk.internal.net.http.common.SequentialScheduler$SchedulableTask.run(SequentialScheduler.java:207)
+    	at java.net.http/jdk.internal.net.http.HttpClientImpl$DelegatingExecutor.execute(HttpClientImpl.java:168)
+    	at java.net.http/jdk.internal.net.http.common.SequentialScheduler.runOrSchedule(SequentialScheduler.java:282)
+    	at java.net.http/jdk.internal.net.http.common.SequentialScheduler.runOrSchedule(SequentialScheduler.java:251)
+    	at java.net.http/jdk.internal.net.http.Http1AsyncReceiver.onReadError(Http1AsyncReceiver.java:518)
+    	at java.net.http/jdk.internal.net.http.Http1AsyncReceiver.lambda$handlePendingDelegate$1(Http1AsyncReceiver.java:382)
+    	at java.net.http/jdk.internal.net.http.Http1AsyncReceiver$Http1AsyncDelegateSubscription.cancel(Http1AsyncReceiver.java:163)
+    	at java.net.http/jdk.internal.net.http.common.HttpBodySubscriberWrapper$SubscriptionWrapper.cancel(HttpBodySubscriberWrapper.java:92)
+    	at java.net.http/jdk.internal.net.http.ResponseSubscribers$HttpResponseInputStream.close(ResponseSubscribers.java:564)
+    	at java.net.http/jdk.internal.net.http.common.Utils.close(Utils.java:812)
+    	at java.net.http/jdk.internal.net.http.ResponseSubscribers.lambda$createLineStream$1(ResponseSubscribers.java:586)
+    	at java.base/java.util.stream.AbstractPipeline.close(AbstractPipeline.java:355)
+    	at io.github.youndie.haul.e2e.LiveStream.close(Storefront.kt:215)
+    	at kotlin.jdk7.AutoCloseableKt.closeFinally(AutoCloseableJVM.kt:46)
+    	at io.github.youndie.haul.e2e.TwoReplicasTest.a move made on one replica reaches a page listening on the other(TwoReplicasTest.kt:40)
+    	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+    	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+    	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:728)
+    	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+    	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+    	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+    	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+    	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+    	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+    	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+    	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+    	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+    	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+    	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+    	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+    	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+    	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:218)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+    	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:214)
+    	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:139)
+    	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:151)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+    	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+
+Gradle Test Executor 1 STANDARD_ERROR
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+    	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+    	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+    	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+    	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+    	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+    	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+    	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+    	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+    	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+    	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+    	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+    	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+    	at org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestDefinitionProcessor$CollectThenExecuteTestDefinitionConsumer.processAllTestDefinitions(JUnitPlatformTestDefinitionProcessor.java:206)
+    	at org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestDefinitionProcessor$CollectThenExecuteTestDefinitionConsumer.access$000(JUnitPlatformTestDefinitionProcessor.java:123)
+    	at org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestDefinitionProcessor.stop(JUnitPlatformTestDefinitionProcessor.java:117)
+    	at org.gradle.api.internal.tasks.testing.SuiteTestDefinitionProcessor.stop(SuiteTestDefinitionProcessor.java:63)
+    	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+    	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+    	at org.gradle.internal.dispatch.MethodInvocation.invokeOn(MethodInvocation.java:77)
+    	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:28)
+    	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:19)
+    	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+    	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:88)
+    	at jdk.proxy1/jdk.proxy1.$Proxy4.stop(Unknown Source)
+    	at org.gradle.api.internal.tasks.testing.worker.TestWorker$3.run(TestWorker.java:195)
+    	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:126)
+    	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:103)
+    	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:63)
+    	at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
+    	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:122)
+    	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:72)
+    	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
+
+2 tests completed, 2 failed
+
+> Task :e2e:test FAILED
+
+[Incubating] Problems report is available at: file:///home/youndie/haul-wt/b-174/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':e2e:test'.
+> There were failing tests. See the report at: file:///home/youndie/haul-wt/b-174/e2e/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.8.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 1m 21s
+9 actionable tasks: 2 executed, 7 up-to-date
+Configuration cache entry stored.
