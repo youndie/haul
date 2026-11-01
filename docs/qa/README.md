@@ -13,7 +13,7 @@ of the design canvas is never an expected result — the canvas is a historical 
 
 | File | Area | What it walks |
 |---|---|---|
-| [01-header-and-navigation.md](01-header-and-navigation.md) | `TC-HDR` | the header at 1440, 1024 and on a phone, its menus, the footer, back and forward |
+| [01-header-and-navigation.md](01-header-and-navigation.md) | `TC-HDR` | the header at 1440, 1024 and on a phone, its menus, the footer and its theme switch, back and forward |
 | [02-home.md](02-home.md) | `TC-HOME` | the hero, banners, deals of the day and their countdown, the popular row, «Picked for you», the Plus block |
 | [03-catalog-and-filters.md](03-catalog-and-filters.md) | `TC-CAT` | the catalog's root, a category's one address, kinds and subcategories, facets, the price range, chips, «Clear all», the sort, pages and «Show N more», the filter sheet, the deals page, a card's «+» |
 | [04-search.md](04-search.md) | `TC-SRCH` | the suggest panel, the scope picker, relevance, finding a product by what it is, a query too short, no results, recent searches |
@@ -26,7 +26,7 @@ of the design canvas is never an expected result — the canvas is a historical 
 | [11-errors-and-loading.md](11-errors-and-loading.md) | `TC-ERR` | placeholders, the first load, the kept page's notice, refused pages, unreachable against our side, pages not there, a command that fails, requests off the origin |
 | [12-widths.md](12-widths.md) | `TC-WID` | 375, 800, 1024 and 1280, the widths no artboard draws |
 | [13-stand-only.md](13-stand-only.md) | `TC-STAND` | the deploy, the synthetic shoppers, the saga in tracy — what only a running stand has |
-| [14-desktop.md](14-desktop.md) | `TC-DESK` | the desktop app: the same pages and a guest's cart in a window, its back and forward, the guest and a sign-in kept between runs, sign-in through the system's browser and its renewal |
+| [14-desktop.md](14-desktop.md) | `TC-DESK` | the desktop app: the same pages and a guest's cart in a window, its back and forward, the guest and a sign-in kept between runs, sign-in through the system's browser and its renewal, the theme |
 
 ## A case
 

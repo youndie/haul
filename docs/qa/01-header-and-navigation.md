@@ -479,3 +479,41 @@ between pages. The header over a page with no tree (a placeholder, an error, a p
   «the about page leads to the numbers»; `server:TabTitlesTest` «every page a guest opens names its tab»;
   `composeApp:AddressTest` «an address is the page the server serves at it»; golden `Numbers_Content`; golden
   `Numbers_Content_Phone`; manual: the README read beside the page, GitHub's tab
+
+### TC-HDR-20 — The store follows the system's dark setting, and the footer's «Theme» overrides it for the browser
+
+- **Who:** guest
+- **Width:** 1440, 390
+- **Preconditions:** a fresh browser profile; the system (or DevTools' Rendering → «Emulate CSS media feature
+  prefers-color-scheme») set to dark.
+- **Steps:**
+  1. Open the home page with the network throttled to «Slow 4G»; watch it load.
+  2. Walk the home page, a category, a product (open «Write a review»), the cart, checkout, an order, the account,
+     `/live`, `/numbers`, «Under the hood»; at 390 open the header's menu and the filter sheet.
+  3. Switch the system's setting to light, then back to dark, with the page open.
+  4. In the footer's «Theme» press «Light»; reload; open the store in a new tab.
+  5. Press «System» in the footer.
+  6. With «Dark» chosen and the system light, reload with the network throttled.
+- **Expected:**
+  - Step 1: no white flash: the frame before the bundle — the header's shape and the line under it — is dark, and
+    the first page Compose draws is the same dark.
+  - Step 2: every page dark, every word readable: the strip, the footer and the Plus block a charcoal band with Acid
+    words; a chosen chip, day, tab, the cart button and the pager's page Paper with dark words; Acid badges with
+    dark words; the campaign and the membership tile Cobalt with white words; the placeholders, the dialogs' scrim
+    and card, the autocomplete's shadow, the focus ring and selected words drawn for the dark page. The pictures
+    over the tiles are still the light ones (B-181).
+  - Step 3: the page turns light and back at once, without a reload.
+  - Step 4: the page turns light at once and stays light after the reload and in the new tab, whatever the
+    system's setting; the footer's «Light» is marked in Acid with a dot.
+  - Step 5: the page follows the system's setting again, the next reload too.
+  - Step 6: the frame before the bundle is already dark.
+- **Decided in:** B-180
+- **Coverage:** `DesktopStoreTest` «the footer's switch draws the page in the scheme chosen and keeps the choice»;
+  `ThemeChoiceTest` «a choice overrides the system's setting, and is kept for the next visit»; `StaticFrameTest` «the
+  page marks the kept choice before the frame»; `StaticFrameTest` «the frame is drawn in the light and the dark
+  scheme's roles»; `HardCodedColourTest` «no colour is written outside the theme but the ones the allow-list keeps»;
+  `HaulColorSchemeTest` «every pair of words and ground reads in the dark at least as in the light, or at 7 to 1»;
+  golden `HaulFooter_Theme`; golden `HaulFooter_Theme_Dark`; golden `HaulFooter_Theme_Phone_Dark`; golden
+  `Home_Content_Dark`; golden `Catalog_Content_Dark`; golden `Product_ReviewDialog_Phone_Dark`; golden
+  `Checkout_PointsApplied_Dark`; manual: the browser's own first paint, `localStorage` and the system's setting
+  changing under an open page
