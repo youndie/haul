@@ -2835,8 +2835,34 @@ stage copies only the application. Measured on the build that closed B-03: the t
 ready in 2,029 ms with the seed included, 3,851 of 3,852 application classes came from the cache,
 and the final image started against a separate PostgreSQL with `-XX:AOTMode=on` (which refuses to
 start on a rejected cache) serving all 43 of the server's own classes from it —
-`scripts/image-check.sh`, which CI runs. Not measured: the start-up time against a run without the
-cache; that is a number for when there is a hot path worth timing.
+`scripts/image-check.sh`, which CI runs. The start-up time against a run without the cache was not measured
+then; it is since, in B-173 (below).
+
+**Measured in B-173 (2026-11-01): what the image costs — start-up with and without its cache, latency, CPU and
+memory under the synthetic shoppers.** Pre-registered before the first number, its questions, lines and kill criteria
+frozen byte for byte (`docs/research/measurements/b-173/brief.md`, checked by `scripts/brief_freeze.py` in `make
+check`); the record, the pins, what changed after the window and the results with every raw file are in
+[measurements/b-173/README.md](measurements/b-173/README.md); the harness is `scripts/measure-stack.py`. On the shared
+build box, the image built from `647b8b74`: the server pinned to two cores with the chart's 768 MiB and JVM options,
+PostgreSQL, shildik, the shoppers and k6 (open-loop, constant arrival) on cores of their own.
+
+| Question | Verdict | Measured |
+|---|---|---|
+| The cache shortens the time from `docker run` to `/readyz` 200 | **green** | 1,006 ms against 1,713 ms (medians of 11 interleaved rounds); −710 ms ± 109 ms, 41 % ± 6 %; ruler 4.2 %; the one-second control read 960 ms ± 52 ms; every cache run logged `Using AOT-linked classes: true`, no no-cache run an `[aot` line |
+| … to the first `/ui/home` 200 | **green** | 1,133 ms against 1,929 ms; −811 ms ± 112 ms, 41 % ± 6 % |
+| p50/p99 of home, a category, a product, suggest and `/ui/live` beside the shoppers, campaign 1 (200 rps) | **red** | four pairs inside the lines (every round's p99 ≤ 184 ms), then two that fell behind while other sessions loaded the box (load average 11–12): 93 % answered, pooled p99 4.4–5.2 s |
+| … campaign 2 (100 rps) | **grey** | p50 7.1–18.7 ms, p99 53–97 ms, every round's p99 ≤ 190 ms, all answered — but from its fifth pair the shoppers' walks no longer finished: their ~450 orders had filled every delivery window |
+| Server CPU per request of that mix | **green** (campaign 2), grey (campaign 1) | 3.4 ms ± 0.6 ms, PostgreSQL 4.6 ms beside; campaign 1 4.4 ms ± 2.1 ms |
+| Memory inside the chart's 768 MiB | **grey** | `memory.peak` 685 MiB (89 %; the line was 80 %), never killed or restarted; the same image under 128 MiB died of `OutOfMemoryError`, under 192 MiB it lived |
+
+What it says for the decisions here. **D1's price is smaller than it looked**: the cache wins back 0.7 s of a 1.7 s
+start, and a restart is ready in about a second on two cores. **The chart's limit is mostly heap by choice**: the JVM
+sizes its heap at 60 % of the limit and grows into it, so 89 % at the peak says where `MaxRAMPercentage` put it, not
+what the server needs — the same image lived two minutes of the same load under 192 MiB; a lower percentage, measured the same way,
+is what would say how much headroom there is. **The load line is not settled**: the two campaigns disagree at
+different rates, and the collapse of campaign 1 is not attributed — the box's load and the shoppers' failing
+checkouts arrived together. The page «The stack in numbers» (`/numbers`, from About) shows these numbers from the
+data file the measurement's reader writes (`server/src/main/resources/numbers/stack-numbers.json`), never typed in.
 
 **Risk 5. The stand measures nothing.** The sibling reference services run without traffic, so no
 number about petich, tracy or metrik can be taken on them. Mitigation: synthetic shoppers (B-31), in the chart

@@ -719,8 +719,10 @@ def load_campaign(raw: Path) -> dict:
     k4_cpu = not ctrl_cpu < cpu["mean"]
     worst_p50 = max(v["p50_ms"] for v in per_route.values())
     worst_p99 = max(v["p99_ms"] for v in per_route.values())
+    # «The shoppers' walks shown completing during the rounds»: in every counted pair, not only somewhere in the block.
+    walking = all(int(a["walks_finished"]) + int(b["walks_finished"]) > 0 for a, b in pairs)
     rq2_green = (worst_p50 <= 50 and worst_p99 <= 250 and not round_p99_over and non2xx <= 0.001 * requests
-                 and delivered >= 0.99 * offered and walks > 0)
+                 and delivered >= 0.99 * offered and walking)
     rq2_red = worst_p99 > 1000 or non2xx > 0.01 * requests or delivered < 0.95 * offered
     too_many_void = load_void * 3 > 2 * len(pairs)
     capped = load_busy * 3 > 2 * len(pairs)
@@ -734,7 +736,9 @@ def load_campaign(raw: Path) -> dict:
         "round_loadavg": [float(b["loadavg"].split()[0]) for _, b in pairs],
         "round_contamination_cores": [float(b["contamination_cores"]) for _, b in pairs],
         "round_delivered_share": [round(int(b["iterations"]) / (int(b["iterations"]) + int(b["dropped"])), 4) for _, b in pairs],
+        "round_walks_finished": [int(a["walks_finished"]) + int(b["walks_finished"]) for a, b in pairs],
         "round_walks_failed": [int(a["walks_failed"]) + int(b["walks_failed"]) for a, b in pairs],
+        "walking_every_pair": walking,
     }
     out["rq3"] = {
         "verdict": "not measured" if (k4_cpu or too_many_void) else (
@@ -752,6 +756,8 @@ def load_campaign(raw: Path) -> dict:
     survival_file = raw / "load-survival.txt"
     survival = survival_file.read_text() if survival_file.exists() else ""
     died = bool(re.search(r"died_after_s=\d|state\(running oomkilled exitcode\)=false", survival))
+    killed_at = [int(m.group(1)) for m in re.finditer(r"limit (\d+)m: .*state\(running oomkilled exitcode\)=false", survival)]
+    lived_at = [int(m.group(1)) for m in re.finditer(r"limit (\d+)m: .*state\(running oomkilled exitcode\)=true", survival)]
     limit = 768
     rq4_red = oom > 0 or exited or peak > 0.95 * limit
     rq4_green = peak <= 0.80 * limit and not rq4_red and died
@@ -762,6 +768,7 @@ def load_campaign(raw: Path) -> dict:
         "vmrss_max_mib": round(max(float(r["vmrss_mib"]) for r in block)),
         "threads_max": max(int(r["threads"]) for r in block), "oom_kill": oom, "exited": exited,
         "control_ran": bool(survival), "control_died": died,
+        "control_killed_mib": killed_at[0] if killed_at else None, "control_lived_mib": lived_at[0] if lived_at else None,
     }
     return out
 

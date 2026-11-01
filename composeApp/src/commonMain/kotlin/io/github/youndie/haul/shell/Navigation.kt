@@ -39,7 +39,7 @@ public enum class PageKind {
     /** `/sign-in`: the client's own page, with no tree behind it (B-66). */
     SignIn,
 
-    /** `/about`: «About this demo», what the stand is and is built with (B-160). */
+    /** `/about`: «About this demo», what the stand is and is built with (B-160); and `/numbers`, its numbers (B-173). */
     About,
 
     /** `/live`: «Live orders», every order's saga as it runs (B-164). */
@@ -65,19 +65,34 @@ public data class Address(
     val kind: PageKind =
         when (StorefrontPage.of(path)) {
             StorefrontPage.Home -> PageKind.Home
+
             StorefrontPage.Catalog -> PageKind.Catalog
+
             StorefrontPage.Product -> PageKind.Product
+
             StorefrontPage.Search -> PageKind.Search
+
             StorefrontPage.Cart -> PageKind.Cart
+
             StorefrontPage.Checkout -> PageKind.Checkout
+
             StorefrontPage.Account, StorefrontPage.Orders -> PageKind.Account
+
             StorefrontPage.Saved -> PageKind.Saved
+
             StorefrontPage.Order -> PageKind.Order
+
             StorefrontPage.SignIn -> PageKind.SignIn
+
             StorefrontPage.Categories -> PageKind.Categories
+
             StorefrontPage.Deals -> PageKind.Deals
-            StorefrontPage.About -> PageKind.About
+
+            // «The stack in numbers» (B-173) is drawn as the About page is: the same body in the same frame.
+            StorefrontPage.About, StorefrontPage.Numbers -> PageKind.About
+
             StorefrontPage.Live -> PageKind.Live
+
             null -> PageKind.Other
         }
 

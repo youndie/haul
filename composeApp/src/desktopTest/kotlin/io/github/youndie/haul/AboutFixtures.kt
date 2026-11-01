@@ -26,6 +26,17 @@ internal fun AboutContentWide() = Fixture(compact = false) { Page { Body("about_
 @Composable
 internal fun AboutContentPhone() = Fixture(compact = true) { Page { Body("about_content.json") } }
 
+// «The stack in numbers» (B-173): the About page's body drawing what the server was measured to cost, from the
+// server's body (`numbers_content.json`, held to the server by `NumbersRoutesTest`).
+
+@ViddikScreenshot(name = "Content", group = "Numbers", width = 1440, height = 3180)
+@Composable
+internal fun NumbersContentWide() = Fixture(compact = false) { Page { Body("numbers_content.json") } }
+
+@ViddikScreenshot(name = "Content_Phone", group = "Numbers", width = 390, height = 4600)
+@Composable
+internal fun NumbersContentPhone() = Fixture(compact = true) { Page { Body("numbers_content.json") } }
+
 /** The strip with its close control, over the header of the page it sits above. */
 @Composable
 private fun StripOverHeader() {

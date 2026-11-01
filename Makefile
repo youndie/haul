@@ -89,6 +89,7 @@ gate: docs-gate
 	$(PY) scripts/qa-cases.py
 	$(PY) scripts/brief_freeze.py --brief docs/research/measurements/b-173/README.md
 	$(PY) scripts/brief_freeze.py --brief docs/research/measurements/b-173/README.md --control
+	$(PY) scripts/measure-stack.py summarise --raw docs/research/measurements/b-173/raw --data server/src/main/resources/numbers/stack-numbers.json --check
 
 report: docs-report
 
