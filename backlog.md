@@ -38,6 +38,7 @@ A stage is a field on the item, not a directory.
 | `stage-12-qa-run` | QA run | what the catalogue's runs (`docs/qa/runs/`) found failing, from the first, v0.4.0, on |
 | `stage-13-web-habits` | Web habits | what a browser's page does and the canvas did not: words that select and copy, the right button's menu (B-154) |
 | `stage-14-motion` | Motion | the page moves where the canvas is still — arrival, hover, press, opening, loading — and rests exactly as the canvas draws it (B-158) |
+| `stage-15-showcase` | Showcase | the stand shows the stack it is built on: it says it is a demo, a visitor reaches the money half, the machinery is visible, the numbers are measured (B-159…B-176) |
 
 ## Marks
 
@@ -45,11 +46,29 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (1)
+## Open (19)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
+| [B-159](docs/backlog/B-159-the-orders-history-answers-in-time.md) `[ ]` | fix: the orders' history answers in time, however many orders the customer has | P0 | S | - |
+| [B-160](docs/backlog/B-160-the-stand-says-it-is-a-kotlin-demo.md) `[ ]` | feat: the stand says it is a demo built with Kotlin, and links to its source | P1 | S | - |
+| [B-161](docs/backlog/B-161-every-page-has-its-title-and-preview.md) `[ ]` | feat: every page has its own title, a description and a link preview | P1 | S | - |
+| [B-162](docs/backlog/B-162-a-visitor-tries-the-money-half-in-one-click.md) `[ ]` | feat: a visitor tries checkout, the live order and a return as a demo shopper, in one click | P1 | M | - |
+| [B-163](docs/backlog/B-163-under-the-hood-shows-the-tree.md) `[ ]` | feat: «Under the hood» shows the screen's kompot tree, what it cost and what updated | P1 | M | B-160 |
+| [B-164](docs/backlog/B-164-a-public-feed-of-live-orders.md) `[ ]` | feat: a public feed of live orders shows the saga's steps and its compensations | P1 | M | - |
+| [B-165](docs/backlog/B-165-readme-says-what-to-look-at.md) `[ ]` | docs: the README says what to look at in five minutes, and the repository points at the stand | P1 | S | B-160 |
+| [B-166](docs/backlog/B-166-sellers-and-brands-are-invented.md) `[ ]` | fix: sellers and brands in the sample data are invented, not real companies' | P2 | M | - |
+| [B-167](docs/backlog/B-167-keyboard-focus-is-visible.md) `[ ]` | fix: the control the keyboard is on is visibly marked | P2 | S/M | - |
+| [B-168](docs/backlog/B-168-arrival-is-quick-and-plays-once.md) `[ ]` | fix: the arrival is quick above the fold, does not replay on Back, and hover is for a mouse | P2 | S | - |
+| [B-169](docs/backlog/B-169-on-a-phone-the-variant-comes-before-the-buy.md) `[ ]` | fix: on a phone the product's variant is chosen before its buy buttons | P2 | S | - |
+| [B-170](docs/backlog/B-170-the-header-keeps-its-content-across-pages.md) `[ ]` | fix: the header keeps its content while the next page loads | P2 | S | - |
+| [B-171](docs/backlog/B-171-search-finds-a-product-by-its-kind.md) `[ ]` | fix: search finds a product by the words of its kind, not only of its name | P2 | S | - |
+| [B-172](docs/backlog/B-172-the-stores-promises-agree.md) `[ ]` | fix: the store's promises agree with its rules and with each other | P2 | S | - |
+| [B-173](docs/backlog/B-173-the-stack-in-numbers.md) `[ ]` | feat: «The stack in numbers» — start-up with and without the AOT cache, latency, memory, measured | P2 | M | - |
 | [B-156](docs/backlog/B-156-walk-the-selection-on-a-phone.md) `[ ]` | chore: walk the selection and its toolbar on a phone | P3 | S | B-155 |
+| [B-174](docs/backlog/B-174-two-replicas.md) `[ ]` | feat: the server runs as two replicas — an external bus, one leader for the simulators | P3 | L | - |
+| [B-175](docs/backlog/B-175-the-cost-of-compose-web.md) `[ ]` | docs: audit the pixel workarounds since B-85 and write down what Compose for Web cost | P3 | M | - |
+| [B-176](docs/backlog/B-176-a-second-client-draws-the-same-trees.md) `[ ]` | feat: a second client — desktop — draws the same server trees | P3 | L | - |
 
 ## Closed (157)
 
@@ -255,6 +274,11 @@ A stage is a field on the item, not a directory.
 <!-- END INDEX -->
 
 ## Decisions worth not re-litigating
+
+**A new item says what a developer will see or understand from it** (owner, 2026-11-01, after four reviews of
+the stand). Haul is a showcase of the stack; 93 of the first 158 items were storefront polish, which a visitor
+does not come for. An item that answers neither «what does a developer see» nor «what breaks the demo's path» is
+not taken. The second client (B-176) is wanted, at low priority.
 
 **The code is the reference; the canvas is a historical one** (owner, 2026-10-13, B-85; it replaces «a client
 item is accepted against the canvas»). A client item is accepted by its goldens (`viddikVerify`) and its
