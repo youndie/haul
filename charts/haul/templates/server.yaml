@@ -6,10 +6,20 @@ metadata:
     {{- include "haul.labels" . | nindent 4 }}
     app.kubernetes.io/name: haul-server
 spec:
-  {{- if ne (int .Values.server.replicas) 1 }}
-  {{- fail (printf "haul: server.replicas is %v and must be 1 — the order page's live updates go through a bus held in the process (B-29), so a page connected to one pod never hears a move made on another and stays quietly stale. More replicas come with a bus every replica shares" .Values.server.replicas) }}
+  {{- $replicas := int .Values.server.replicas }}
+  {{- if lt $replicas 1 }}
+  {{- fail (printf "haul: server.replicas is %v and must be at least 1 — nothing would serve the store" .Values.server.replicas) }}
   {{- end }}
-  replicas: 1
+  {{- /*
+  Every replica holds its pool, the leader election's two connections and the bus's one (B-174), and a rollout runs
+  one more pod beside them: past PostgreSQL's 100 connections, less the three it keeps for a superuser, the pod that
+  starts last is refused its pool.
+  */}}
+  {{- $connections := mul (add $replicas 1) (add (int .Values.server.dbPoolSize) 3) }}
+  {{- if gt (int $connections) 97 }}
+  {{- fail (printf "haul: server.replicas=%v with server.dbPoolSize=%v needs %v connections during a rollout, and PostgreSQL serves 97 — fewer replicas or a smaller pool" .Values.server.replicas .Values.server.dbPoolSize $connections) }}
+  {{- end }}
+  replicas: {{ $replicas }}
   {{- /*
   Rolled, one extra pod at a time and never one fewer: the old pod serves until the new one is ready,
   and Traefik follows readiness. The price is that a migration must leave the running version working

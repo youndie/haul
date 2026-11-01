@@ -16,11 +16,13 @@ server:
   # green deploy keeps the previous binary. It is also what `/version` says and every agent's release.
   version: ""
   imagePullSecrets: []
-  # **One, and more is refused at render.** The order page's live updates (B-29) go through a bus held
-  # in the process: a move reaches the pages connected to the pod that made it, and a second replica's
-  # pages would only catch up when they reconnect — a live page that is quietly not live. The
-  # fulfilment simulator alone would be safe on two (a move is a conditional update under a row lock,
-  # B-17). Raise this together with a bus every replica shares, not before.
+  # How many servers serve the store (B-174). Any of them serves every route and every live page: a move
+  # made on one reaches the pages connected to the others through PostgreSQL's LISTEN/NOTIFY, and the
+  # simulated world, the saga's sweeper and the sweeps run on the one replica elected leader by an
+  # advisory lock, moving to another within about ten seconds of the leader's death. One by default: two
+  # is what survives a killed pod with no order lost (`e2e/…/TwoReplicasTest.kt`), and turning it on for a
+  # stand is the deploy's choice. Each replica holds `dbPoolSize` + 3 connections; a count the database
+  # cannot serve during a rollout is refused at render.
   replicas: 1
   # Seed the catalog on the first start, when the database is empty. Off by default, as in the server:
   # a production database is not a demo. A seeded start also moves an ended sample sale to the store's

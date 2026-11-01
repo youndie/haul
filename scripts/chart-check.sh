@@ -62,6 +62,14 @@ renders "the stand's shape with the shoppers" "${SHOPPERS[@]}"
 renders "the shoppers as both demo people, their own tag" "${SHOPPERS[@]}" --set 'shoppers.people={sam,maya}' \
   --set shoppers.version=v9
 
+# B-174: one replica by default, and the stand's shape with two — the count the chart is checked against both ways.
+renders "the stand's shape, two replicas" "${STAND[@]}" --set server.replicas=2
+replicas_of() { helm template haul "$CHART" "$@" -s templates/server.yaml 2>&1 | grep -E '^  replicas: '; }
+[ "$(replicas_of "${STAND[@]}")" = "  replicas: 1" ] && [ "$(replicas_of "${STAND[@]}" --set server.replicas=2)" = "  replicas: 2" ] \
+  && say "the server's replicas: 1 by default, 2 when asked" ok \
+  || { say "the server's replicas: 1 by default, 2 when asked" FAILED; failed=1; }
+renders "the stand's shape with the shoppers, two replicas" "${SHOPPERS[@]}" --set server.replicas=2
+
 STAND_RENDER=$(helm template haul "$CHART" "${STAND[@]}" 2>&1)
 says "the server's issuer is the realm's" 'value: "https://haul-id.example/realms/haul"'
 says "the server's client" 'value: "haul-web"'
@@ -165,7 +173,9 @@ refuses "a key without its endpoint" "observability.katcher.endpoint is empty" "
   --set observability.katcher.key=ci
 refuses "the stand without an agent's key" "observability.tracy.key is empty" "${STAND[@]}" \
   --set observability.tracy.key=
-refuses "a second replica" "server.replicas is 2 and must be 1" "${REQUIRED[@]}" --set server.replicas=2
+refuses "no replica at all" "server.replicas is 0 and must be at least 1" "${REQUIRED[@]}" --set server.replicas=0
+refuses "more replicas than the database serves" "needs 104 connections during a rollout" "${REQUIRED[@]}" \
+  --set server.replicas=7
 refuses "a speed that is not a number" "server.fulfilmentSpeed=fast is not a positive number" "${REQUIRED[@]}" \
   --set server.fulfilmentSpeed=fast
 refuses "a speed of zero" "server.fulfilmentSpeed=0 is not a positive number" "${REQUIRED[@]}" \
