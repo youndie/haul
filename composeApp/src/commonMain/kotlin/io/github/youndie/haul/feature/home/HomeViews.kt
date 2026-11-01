@@ -283,12 +283,13 @@ private fun Banner(
                 accented(banner.title, banner.accent),
                 if (!compact && image != null) Modifier.widthIn(max = 240.dp) else Modifier,
                 style =
-                    HaulType.display(
-                        size,
-                        800,
-                        letterSpacing = if (compact) -0.01f else -0.02f,
-                        lineHeight = 0.95f,
-                    ).copy(color = ink),
+                    HaulType
+                        .display(
+                            size,
+                            800,
+                            letterSpacing = if (compact) -0.01f else -0.02f,
+                            lineHeight = 0.95f,
+                        ).copy(color = ink),
             )
             val action = banner.actionLabel
             val subtitle = banner.subtitle

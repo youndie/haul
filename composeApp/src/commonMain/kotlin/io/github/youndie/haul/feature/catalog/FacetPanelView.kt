@@ -81,6 +81,7 @@ import io.github.youndie.haul.ui.LocalBlankPress
 import io.github.youndie.haul.ui.LocalHaulActions
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.awaitTypedInput
+import io.github.youndie.haul.ui.edgeless
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.outset
@@ -88,7 +89,6 @@ import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.rememberFieldRing
 import io.github.youndie.haul.ui.ringedBy
 import io.github.youndie.haul.ui.ringsAround
-import io.github.youndie.haul.ui.edgeless
 import io.github.youndie.haul.ui.swatchColor
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch

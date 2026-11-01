@@ -23,8 +23,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,6 +69,7 @@ import io.github.youndie.haul.ui.UNSAVE
 import io.github.youndie.haul.ui.VariantGroup
 import io.github.youndie.haul.ui.VariantOption
 import io.github.youndie.haul.ui.accented
+import io.github.youndie.haul.ui.edgeless
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.followsToTabs
 import io.github.youndie.haul.ui.gutter
@@ -78,7 +79,6 @@ import io.github.youndie.haul.ui.outset
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.rememberHeartPress
 import io.github.youndie.haul.ui.reveal
-import io.github.youndie.haul.ui.edgeless
 import io.github.youndie.haul.ui.swatchColor
 import io.github.youndie.haul.ui.toneColor
 import io.github.youndie.kompot.KompotAction

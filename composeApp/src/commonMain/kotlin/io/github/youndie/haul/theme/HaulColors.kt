@@ -246,80 +246,117 @@ public fun hexColor(hex: String): Color? =
  */
 public object HaulColors {
     public val scheme: HaulColorScheme
-        @Composable @ReadOnlyComposable get() = LocalHaulColorScheme.current
+        @Composable @ReadOnlyComposable
+        get() = LocalHaulColorScheme.current
 
     public val primary: Color
-        @Composable @ReadOnlyComposable get() = scheme.primary
+        @Composable @ReadOnlyComposable
+        get() = scheme.primary
     public val onPrimary: Color
-        @Composable @ReadOnlyComposable get() = scheme.onPrimary
+        @Composable @ReadOnlyComposable
+        get() = scheme.onPrimary
     public val primaryFixed: Color
-        @Composable @ReadOnlyComposable get() = scheme.primaryFixed
+        @Composable @ReadOnlyComposable
+        get() = scheme.primaryFixed
     public val onPrimaryFixed: Color
-        @Composable @ReadOnlyComposable get() = scheme.onPrimaryFixed
+        @Composable @ReadOnlyComposable
+        get() = scheme.onPrimaryFixed
     public val secondaryContainer: Color
-        @Composable @ReadOnlyComposable get() = scheme.secondaryContainer
+        @Composable @ReadOnlyComposable
+        get() = scheme.secondaryContainer
     public val onSecondaryContainer: Color
-        @Composable @ReadOnlyComposable get() = scheme.onSecondaryContainer
+        @Composable @ReadOnlyComposable
+        get() = scheme.onSecondaryContainer
     public val tertiaryContainer: Color
-        @Composable @ReadOnlyComposable get() = scheme.tertiaryContainer
+        @Composable @ReadOnlyComposable
+        get() = scheme.tertiaryContainer
     public val error: Color
-        @Composable @ReadOnlyComposable get() = scheme.error
+        @Composable @ReadOnlyComposable
+        get() = scheme.error
     public val errorContainer: Color
-        @Composable @ReadOnlyComposable get() = scheme.errorContainer
+        @Composable @ReadOnlyComposable
+        get() = scheme.errorContainer
     public val background: Color
-        @Composable @ReadOnlyComposable get() = scheme.background
+        @Composable @ReadOnlyComposable
+        get() = scheme.background
     public val surfaceContainerLowest: Color
-        @Composable @ReadOnlyComposable get() = scheme.surfaceContainerLowest
+        @Composable @ReadOnlyComposable
+        get() = scheme.surfaceContainerLowest
     public val surfaceContainerHigh: Color
-        @Composable @ReadOnlyComposable get() = scheme.surfaceContainerHigh
+        @Composable @ReadOnlyComposable
+        get() = scheme.surfaceContainerHigh
     public val surfaceContainerHighest: Color
-        @Composable @ReadOnlyComposable get() = scheme.surfaceContainerHighest
+        @Composable @ReadOnlyComposable
+        get() = scheme.surfaceContainerHighest
     public val onSurface: Color
-        @Composable @ReadOnlyComposable get() = scheme.onSurface
+        @Composable @ReadOnlyComposable
+        get() = scheme.onSurface
     public val onSurfaceVariant: Color
-        @Composable @ReadOnlyComposable get() = scheme.onSurfaceVariant
+        @Composable @ReadOnlyComposable
+        get() = scheme.onSurfaceVariant
     public val outline: Color
-        @Composable @ReadOnlyComposable get() = scheme.outline
+        @Composable @ReadOnlyComposable
+        get() = scheme.outline
     public val outlineMuted: Color
-        @Composable @ReadOnlyComposable get() = scheme.outlineMuted
+        @Composable @ReadOnlyComposable
+        get() = scheme.outlineMuted
     public val outlineVariant: Color
-        @Composable @ReadOnlyComposable get() = scheme.outlineVariant
+        @Composable @ReadOnlyComposable
+        get() = scheme.outlineVariant
     public val outlineControl: Color
-        @Composable @ReadOnlyComposable get() = scheme.outlineControl
+        @Composable @ReadOnlyComposable
+        get() = scheme.outlineControl
     public val inverseSurface: Color
-        @Composable @ReadOnlyComposable get() = scheme.inverseSurface
+        @Composable @ReadOnlyComposable
+        get() = scheme.inverseSurface
     public val inverseOnSurface: Color
-        @Composable @ReadOnlyComposable get() = scheme.inverseOnSurface
+        @Composable @ReadOnlyComposable
+        get() = scheme.inverseOnSurface
     public val inverseOnSurfaceVariant: Color
-        @Composable @ReadOnlyComposable get() = scheme.inverseOnSurfaceVariant
+        @Composable @ReadOnlyComposable
+        get() = scheme.inverseOnSurfaceVariant
     public val inverseAccent: Color
-        @Composable @ReadOnlyComposable get() = scheme.inverseAccent
+        @Composable @ReadOnlyComposable
+        get() = scheme.inverseAccent
     public val band: Color
-        @Composable @ReadOnlyComposable get() = scheme.band
+        @Composable @ReadOnlyComposable
+        get() = scheme.band
     public val onBand: Color
-        @Composable @ReadOnlyComposable get() = scheme.onBand
+        @Composable @ReadOnlyComposable
+        get() = scheme.onBand
     public val onBandVariant: Color
-        @Composable @ReadOnlyComposable get() = scheme.onBandVariant
+        @Composable @ReadOnlyComposable
+        get() = scheme.onBandVariant
     public val onBandStrong: Color
-        @Composable @ReadOnlyComposable get() = scheme.onBandStrong
+        @Composable @ReadOnlyComposable
+        get() = scheme.onBandStrong
     public val bandControl: Color
-        @Composable @ReadOnlyComposable get() = scheme.bandControl
+        @Composable @ReadOnlyComposable
+        get() = scheme.bandControl
     public val bandHatch: Color
-        @Composable @ReadOnlyComposable get() = scheme.bandHatch
+        @Composable @ReadOnlyComposable
+        get() = scheme.bandHatch
     public val scrim: Color
-        @Composable @ReadOnlyComposable get() = scheme.scrim
+        @Composable @ReadOnlyComposable
+        get() = scheme.scrim
     public val shadow: Color
-        @Composable @ReadOnlyComposable get() = scheme.shadow
+        @Composable @ReadOnlyComposable
+        get() = scheme.shadow
     public val dialogShadow: Color
-        @Composable @ReadOnlyComposable get() = scheme.dialogShadow
+        @Composable @ReadOnlyComposable
+        get() = scheme.dialogShadow
     public val tileHatch: Color
-        @Composable @ReadOnlyComposable get() = scheme.tileHatch
+        @Composable @ReadOnlyComposable
+        get() = scheme.tileHatch
     public val bannerHatch: Color
-        @Composable @ReadOnlyComposable get() = scheme.bannerHatch
+        @Composable @ReadOnlyComposable
+        get() = scheme.bannerHatch
     public val shimmer: Color
-        @Composable @ReadOnlyComposable get() = scheme.shimmer
+        @Composable @ReadOnlyComposable
+        get() = scheme.shimmer
     public val knob: Color
-        @Composable @ReadOnlyComposable get() = scheme.knob
+        @Composable @ReadOnlyComposable
+        get() = scheme.knob
 
     /** The tile a tree's tone is drawn in ([HaulColorScheme.tone]). */
     @Composable

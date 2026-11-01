@@ -10,8 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.selection.DisableSelection
@@ -22,9 +22,9 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.state.ToggleableState
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.theme.HaulColors
@@ -187,7 +187,14 @@ private fun ThemeColumn(
                 if (chosen) Box(Modifier.size(7.dp).background(HaulColors.secondaryContainer, CircleShape))
                 Text(
                     mode.label,
-                    if (chosen) style.copy(color = HaulColors.secondaryContainer, fontWeight = FontWeight(700)) else style,
+                    if (chosen) {
+                        style.copy(
+                            color = HaulColors.secondaryContainer,
+                            fontWeight = FontWeight(700),
+                        )
+                    } else {
+                        style
+                    },
                     softWrap = false,
                 )
             }

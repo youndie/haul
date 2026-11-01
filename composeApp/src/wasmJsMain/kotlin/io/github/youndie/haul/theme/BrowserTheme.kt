@@ -40,7 +40,13 @@ public class BrowserThemeMemory : ThemeMemory {
     /** The page's root says which scheme was chosen, as `index.html`'s script marks it on a load. */
     private fun mark(mode: ThemeMode) {
         val root = document.documentElement ?: return
-        if (mode == ThemeMode.System) root.removeAttribute(THEME_ATTRIBUTE) else root.setAttribute(THEME_ATTRIBUTE, mode.key)
+        if (mode ==
+            ThemeMode.System
+        ) {
+            root.removeAttribute(THEME_ATTRIBUTE)
+        } else {
+            root.setAttribute(THEME_ATTRIBUTE, mode.key)
+        }
     }
 }
 

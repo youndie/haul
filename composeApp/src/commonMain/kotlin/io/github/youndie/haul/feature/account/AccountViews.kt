@@ -362,9 +362,18 @@ private fun TileContent(
     val compact = LocalHaulCompact.current
     val (ink, label) =
         when (tile.kind) {
-            AccountTileKind.Points -> HaulColors.onSecondaryContainer to HaulColors.onSecondaryContainer
-            AccountTileKind.Plus, AccountTileKind.PlusOffer -> HaulColors.onPrimaryFixed to HaulColors.secondaryContainer
-            AccountTileKind.PriceDrops -> HaulColors.onSurface to HaulColors.outline
+            AccountTileKind.Points -> {
+                HaulColors.onSecondaryContainer to HaulColors.onSecondaryContainer
+            }
+
+            AccountTileKind.Plus, AccountTileKind.PlusOffer -> {
+                HaulColors.onPrimaryFixed to
+                    HaulColors.secondaryContainer
+            }
+
+            AccountTileKind.PriceDrops -> {
+                HaulColors.onSurface to HaulColors.outline
+            }
         }
     val offer = tile.kind == AccountTileKind.PlusOffer
     val size =

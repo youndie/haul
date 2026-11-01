@@ -157,7 +157,14 @@ internal fun HaulButton(
     radius: Dp,
     horizontal: Dp = 28.dp,
     fill: Color? = null,
-    content: Color = if (fill == HaulColors.secondaryContainer) HaulColors.onSecondaryContainer else HaulColors.onSurface,
+    content: Color =
+        if (fill ==
+            HaulColors.secondaryContainer
+        ) {
+            HaulColors.onSecondaryContainer
+        } else {
+            HaulColors.onSurface
+        },
     border: Color? = null,
     textSize: Float = 17f,
     icon: ImageVector? = null,

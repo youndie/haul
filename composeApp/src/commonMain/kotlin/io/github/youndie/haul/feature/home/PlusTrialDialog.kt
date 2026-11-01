@@ -78,7 +78,12 @@ public fun PlusTrialDialogView(
             .then(if (compact) Modifier.fillMaxWidth() else Modifier.width(640.dp))
             .dropShadow(
                 shape,
-                Shadow(radius = 100.dp, spread = (-20).dp, offset = DpOffset(0.dp, 40.dp), color = HaulColors.dialogShadow),
+                Shadow(
+                    radius = 100.dp,
+                    spread = (-20).dp,
+                    offset = DpOffset(0.dp, 40.dp),
+                    color = HaulColors.dialogShadow,
+                ),
             ).clip(shape)
             .background(HaulColors.surfaceContainerLowest),
     ) {

@@ -403,7 +403,12 @@ internal fun DialogFrame(
             .then(if (compact) Modifier.fillMaxWidth() else Modifier.width(680.dp))
             .dropShadow(
                 shape,
-                Shadow(radius = 100.dp, spread = (-20).dp, offset = DpOffset(0.dp, 40.dp), color = HaulColors.dialogShadow),
+                Shadow(
+                    radius = 100.dp,
+                    spread = (-20).dp,
+                    offset = DpOffset(0.dp, 40.dp),
+                    color = HaulColors.dialogShadow,
+                ),
             ).background(HaulColors.surfaceContainerLowest, shape)
             .padding(if (compact) 24.dp else 40.dp),
         verticalArrangement = Arrangement.spacedBy(22.dp),
