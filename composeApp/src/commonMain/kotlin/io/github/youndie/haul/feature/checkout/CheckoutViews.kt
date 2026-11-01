@@ -58,7 +58,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
-import io.github.youndie.haul.theme.HaulType.browserLeading
 import io.github.youndie.haul.theme.LocalHaulCompact
 import io.github.youndie.haul.theme.LocalHaulMedium
 import io.github.youndie.haul.ui.CheckoutAddress
@@ -969,7 +968,7 @@ private fun Summary(
             )
         }
         summary.note?.let {
-            Text(it, HaulType.text(13f, lineHeight = 1.5f).browserLeading().copy(color = HaulColors.outline))
+            Text(it, HaulType.text(13f, lineHeight = 1.5f).copy(color = HaulColors.outline))
         }
     }
 }

@@ -3026,6 +3026,91 @@ matching statement costs PostgreSQL more — 7.6–12.8 ms against 5.4–7.2 ms 
 («running sh», `EXPLAIN ANALYZE`), for the join and the second `tsvector` per row; the planner still scans every
 product.
 
+### The cost of Compose for Web 1.12
+
+Written for a developer deciding whether to draw a web storefront with Compose Multiplatform 1.12 (Kotlin/Wasm,
+skiko on a `<canvas>`), from what Haul had to build, item by item, between 2026-10-08 and 2026-11-01. An HTML page
+gets everything in the first column from the browser; a canvas page gets none of it, and Compose 1.12 gives back
+part. Line counts are of the tree at B-175: main code first, then the tests that hold it; «about» where the code is
+part of a larger file.
+
+| What a browser gives a page | What Compose 1.12 does on the web | What Haul built | Code |
+|---|---|---|---|
+| **Selecting words and copying them** | `SelectionContainer` selects by drag and double press; ⌘C/Ctrl+C waits for a browser `copy` event that never comes, so nothing is copied (B-154) | every page and sheet a `Selectable` with its own copy shortcut through `navigator.clipboard` (`ui/ContextMenus.kt`, `shell/ClipboardLinks.kt`); the selection's double-press counter took a control's second press, so a control reads it back first (`pressesAgain`); a text set tighter than its face took the pointer over the control above it, so it is drawn through a layer that reaches below its first line box only (`keepsReachBelowLineTop`, B-157); the pictures drawn as words left out (`DisableSelection`, two places) | about 720 lines (`ContextMenus.kt` 351, `HaulTextField.kt` 167, `ClipboardLinks.kt` 83, about 80 in `Links.kt`, 40 in `Basics.kt`); `ContextMenusTest` 273 and about 90 in `DrawnActionsTest`. Three pull requests, about 1,230 lines added (B-154, B-155, B-157) |
+| **The right button's menu**: Copy and Select all over words, «Open in new tab» and «Copy link» over a link, Cut/Copy/Paste in a field | the old skiko text menu: its look and entries internal, and on the web its presses do nothing (B-154) | the page reads the right button before Compose and opens the store's own menu at the pointer (`PointMenu`); a link offers its address (`offersLink`, every `follows`); the six fields are a field of the store's that keeps its own selection for the menu to read (`HaulTextField`, B-155) | in the row above |
+| **The hand over a link or a button** | `pointerHoverIcon` works, but a selectable text asks for the text cursor over itself, and a control drawn as words showed it over most of it | `handOverWords` on every control (B-157) | 7 lines, 3 call sites; not in a test — Compose keeps the pointer icon behind an internal service — walked in the browser |
+| **Keyboard focus that shows, and Tab in reading order** | a `clickable` is in the Tab order, Tab moves in composition order, Enter and Space press; nothing is drawn where the focus is | a ring as `:focus-visible` draws it, decided by the page's last input, with the document telling the page every key and press before Compose (`ui/FocusRing.kt`, `shell/BrowserKeyboardFocus.kt`, B-167); an open sheet takes the focus back when a control in it stops being one (B-144) | 261 lines, taken by `pressable`, `follows`, `toggles`, the menus and the fields; `FocusRingTest` 413, `SheetOverPageTest` 148 |
+| **A field lets go of the focus when the page is clicked elsewhere** | a Compose field keeps it through a press nothing takes, so a price bound typed and left stayed unapplied | `BlankPress` (B-118) | 93 lines |
+| **What was typed is in the field when the button is pressed** | keystrokes reach the focused field at the next animation frame, a press at once: «Apply» read the promo field without its last keys, and in a background tab without any (B-76) | every press that reads a field waits two frames first (`ui/TypedInput.kt`, B-76, B-83) | 17 lines, 9 call sites |
+| **The tab's title** | `ComposeViewport` sets no `document.title` | the server writes each page's title on its header, the client puts it in `document.title` (`shell/TabTitle.kt`, `shell/WindowTitle.kt`, B-161) | 74 lines and a required field on the server's `Frame.page`; `TabTitleTest` 153, `SignInTitleTest` 69 |
+| **Back, forward and an address per page** | Compose UI keeps no browser history (Haul uses no navigation library) | the address is the navigation state: `pushState`, `replaceState`, `popstate` (`shell/WindowHistory.kt`, `shell/Navigation.kt`, B-35) | 46 + 248 lines |
+| **A link preview and a page a search engine reads** | the words are pixels; the document holds a canvas | one fixed preview for every address (Open Graph and Twitter tags in `index.html`, a 240 KB `preview.png`), `GET /robots.txt`; per-page HTML for crawlers rejected (D9, B-161) | a few dozen lines of `index.html` and a route |
+| **A tree for assistive technology** | a mirror of the semantics in a shadow root; in 1.12 it follows only the newest layer and keeps a closed `Popup`'s or `Dialog`'s nodes until a reload ([CMP-9368](https://youtrack.jetbrains.com/issue/CMP-9368)), names a `LinkAnnotation` nothing, and writes no state (B-126, B-131) | everything over the page drawn in the storefront's own layer (`ui/Layers.kt`, B-126, B-145, B-151), links in a sentence as named presses (`linkedText`), a box's state in its name (`toggles`, B-151) | `Layers.kt` 250, about 150 in `Basics.kt` and `Links.kt`; `NamedPressesTest` 461, `scripts/a11y-check.py` 602 |
+| **Text in the page's fonts, nothing fetched from elsewhere** | a code point no bundled face has is sent to a downloader that fetches a Noto face from `fonts.gstatic.com`, with no switch (B-128) | every literal the client, the contract and the server write is laid out over the four faces in a test; the one glyph none had is a path (`HaulIcons`, «↵») | `BundledGlyphsTest` 78, `SourceStrings` 173, `scripts/origin-check.py` 139 |
+| **A first paint in one round trip** | nothing until the runtime has arrived and compiled: skiko's `.wasm` alone is 2,561 KiB brotli, two thirds of the bytes (B-28) | the bundle compressed at image build (B-34), the header's shape drawn in HTML until Compose's first frame (B-80), the fonts preloaded so the first frame is in the store's faces (B-150) | `index.html` 127 lines, `Main.kt` 119, `PreloadedFonts.kt` 37, `WebBundle.kt` 171; `StaticFrameTest` 125, the measurement 1,211 lines of scripts |
+
+**First load, in numbers** (B-28, B-34, B-80, B-149, B-150; «Measured in» under D9 has the method). The home page moves
+4,377 KiB on the wire: skiko 2,561 KiB, the app's `.wasm` 1,271 KiB (Compose's runtime about 418 of it, B-28), the
+fonts 432. The store's first frame, in its faces: 0.6–1.0 s on loopback, 5.2–5.4 s on DevTools' Fast 4G, 26.4 s on
+Slow 4G. Before that, from 0.3 s on Fast 4G and 0.7 s on Slow 4G, the static frame — what any HTML page would show
+in its first round trip. Uncompressed, the same bundle's first frame was 11.8 s and 62.2 s (B-34). What Haul's own
+screens add to the bytes is about a tenth; the runtime is at least three quarters. «The stack in numbers» (B-173)
+measures the server; nothing here is from it.
+
+**What is still missing.**
+
+- *The page's selection is a Tab stop of its own*: the first Tab from nothing focuses the whole page and shows
+  nothing (B-167). It holds the focus for ⌘C after a mouse selection, so it stays focusable.
+- *After a field, one Tab is the browser's*: the browser's focus goes from Compose's hidden input to `<body>`, and
+  the next Tab moves nothing on the page (B-167).
+- *Find in page, the browser's translation, reader mode*: the words are drawn, and the document has none of them
+  but the names in the assistive-technology mirror. Not walked here; it follows from the canvas.
+- *⌘-click, Ctrl-click and the middle button on a link* open nothing apart — no code reads them; the right button's
+  «Open in new tab» does — and a link shows no address in the status bar when hovered. Not walked.
+- *A state for assistive technology*: a ticked box says «ticked» in its name; 1.13's mirror writes `aria-checked`
+  (B-151). A field is a `textbox` named by its description alone (B-131).
+- *Phones*: the long press, which selects, and Compose's own touch toolbar were not walked (B-156).
+- *Text a shopper types* outside the faces' Latin (or the mono face's Greek and Cyrillic) still fetches a face from
+  Google (B-128).
+- *Search engines and per-page previews*: none (D9).
+- *A selection's highlight* covers the face's whole line, above the line box too (B-157).
+
+Three of the workarounds above end with Compose 1.13 (CMP-9368, the named `LinkAnnotation`, `aria-checked`), which
+the stack holds back until Kotlin 2.5.20 (B-126). The rest are Haul's for as long as a page is a canvas.
+
+### The client's workarounds for the canvas (B-175)
+
+Before B-85 the canvas was the acceptance criterion, and a good part of the client was written to match an HTML
+artboard to the pixel; since B-85 the goldens are the reference. B-175 listed every such workaround and asked of
+each whether its reason still holds. **How it was measured**: on the WSL build box, in a copy of the tree outside the
+mutagen replica, each workaround was taken out by a patch and every golden recorded with `viddikRecord --force`;
+each recording was compared pixel by pixel with the tree's own recording, which matched the committed goldens
+181 of 181 (the tree before B-173 added two). `viddikVerify` refuses a golden where more than 0.05 % of the pixels differ by more than 2 on a channel
+(viddik 0.7.0's defaults, and the count below is that one); run on the first patch, it refused the two goldens the
+comparison named, with the same pixel counts.
+
+| Workaround | What it does | Since | Without it | Verdict |
+|---|---|---|---|---|
+| `Text`'s line boxes (`ui/Basics.kt`) | reports CSS's line boxes as the text's size where a style sets a line height below the face's, and places the first box where CSS does | B-07, B-08 | 173 goldens move, up to 48.6 % | **keep** — it is the store's typography: every page is laid out on it |
+| `keepsReachBelowLineTop` | the cropped text takes the pointer from its first line box down, its glyphs drawn through a layer | B-157 | pixel for pixel the same (B-157: 168 of 168) | **keep** — its reason is the selection (B-155), not the canvas |
+| `HaulType`'s even leading (`LineHeightStyle.Center`, `Trim.None`) | CSS's leading for every set line height | B-07 | not measured apart from `Text`'s boxes | **keep** — the boxes above assume it |
+| `browserLeading()` | the same leading, applied again | B-07 | the same pixels: every style that called it already had it | **removed** (twelve call sites) |
+| `CssColumn`, `CssBox`, `cssLines` (`ui/CssLayout.kt`) and the fractions in the account's and the order's layouts | block flow in fractional pixels, so a long phone column does not drift a pixel every few lines | B-18, B-19 | 23 goldens, every order page and four account pages, 0.29–5.99 % | **propose removal later**: about 100 lines plus the fraction bookkeeping in `AccountViews.kt` and `OrderViews.kt`, against re-recording 23 goldens — an owner's decision that these pages may sit a few pixels from where they are drawn now |
+| `normal()` | Archivo on Chrome's `line-height: normal`, ascent and descent rounded apart (hand-measured 878 and 210 per 1,000) | B-15 | 42 goldens, 31 past the line, checkout on a phone 10.7 % | **keep** — 64 call sites; the forms are drawn on it |
+| `SpacedWords` | a row of words laid out as one paragraph with placeholder gaps, so ten words do not each round their width up | B-07, links B-37 | 141 goldens, 140 past the line (the header's category row is on every page) | **keep** — it also carries the row's links |
+| `InlineLine` | an inline run sits on its block's strut, as CSS sizes the line | B-07 | 14 goldens, the home's up to 9.7 % | **keep** — four call sites; the home is drawn on it |
+| `FlexPair` | two `flex: 1` items, the second wider by its frame | B-07 | 2 goldens (the phone catalog), 0.44 % and 1.43 % | **keep** — 30 lines; two equal halves would be a look to decide, not a cleanup |
+| `subPixelSlack` (`feature/saved/SavedViews.kt`) | a title measured a pixel wider, as the browser's fractional box allows | B-20 | 1 golden (`Saved_Empty`), 0.22 %: «Tap the heart on any product» breaks onto two lines | **keep** — the one-line title is the page's |
+| `ShrinkFirstRow`, `BaselineWrapRow`, `BalancedText`, `ClampedText`, `FittedText`, `FittingWords` | CSS's flex shrink, baseline wrap, `text-wrap: balance`, `-webkit-line-clamp`; a size and a word count that fit the width | B-07, B-10, B-82 | not measured | **keep** — behaviour at widths no artboard drew, not parity |
+| `legibleFigures` | figures at an optical size whose hairline is a pixel | B-106 | not measured | **keep** — legibility, not parity |
+| `FixtureFonts`' fractional glyph positions (test code) | the screenshots place glyphs at fractional positions, as the browser does, under viddik's pinned rasterisation | B-07 | not measured; every golden is drawn with it | **keep** — the goldens' fidelity to the browser |
+| `OverlayHost` instead of `Popup`/`Dialog`, `linkedText` instead of `LinkAnnotation`, `MIRRORED_ROLE` and the state in a name | Compose 1.12's mirror for assistive technology | B-126, B-151 | — | **propose removal with Compose 1.13** (CMP-9368, the named `LinkAnnotation`, `aria-checked`) |
+| `Selectable`, the store's menus, `HaulTextField`, `pressesAgain`, `handOverWords`, the focus ring, `BlankPress`, `awaitTypedInput`, the tab title, the static frame, the preloaded fonts, `HaulIcons`' «↵» | a browser's habits (the cost list above) | B-76…B-167 | — | **keep** — none was for the canvas; recheck the menus on Compose 1.13 |
+
+Only `browserLeading()` went: every other workaround whose only reason was the canvas — the fractional block flow,
+the strut, the flex pair, the slack — is now what the goldens hold, and taking it out is a re-recording, which B-85
+leaves to a decision. The fractional block flow is the one whose removal would buy code back.
+
 ---
 
 ## 4. What happens next

@@ -160,9 +160,6 @@ public object HaulType {
         }
     }
 
-    /** CSS's leading: the space a line height adds (or takes) split evenly above and below, nothing trimmed. */
-    public fun TextStyle.browserLeading(): TextStyle = copy(lineHeightStyle = BROWSER_LEADING)
-
     private val BROWSER_LEADING = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None)
 
     /** JetBrains Mono — labels, counts, delivery days; uppercase is the caller's, as on the canvas. */

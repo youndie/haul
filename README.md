@@ -107,7 +107,7 @@ JDK 25 toolchain itself). The server's tests need Docker: PostgreSQL runs in Tes
   moves about 4.4 MB in all; a static frame stands in while it loads. Measured with
   [`scripts/measure-first-load.py`](scripts/measure-first-load.py); the method and every run are in the research.
 - **Checks on every pull request**: about 540 server tests against a real PostgreSQL, about 490 client tests,
-  168 screenshot goldens, the image with its AOT cache, the chart, and the whole buy-receive-return path over HTTP.
+  about 180 screenshot goldens, the image with its AOT cache, the chart, and the whole buy-receive-return path over HTTP.
 - **Releases are walked**: a catalogue of 146 QA cases ([`docs/qa`](docs/qa/README.md)), and each run's result is
   in [`docs/qa/runs`](docs/qa/runs).
 
@@ -122,6 +122,8 @@ box is ticked — the name says it instead.
 
 - [`docs/research/research-architecture.md`](docs/research/research-architecture.md) — why it is built this way,
   what was decided and measured.
+- [The cost of Compose for Web 1.12](docs/research/research-architecture.md#the-cost-of-compose-for-web-112) — what a
+  page drawn on a canvas had to rebuild of what a browser gives for free, and what is still missing.
 - [`backlog.md`](backlog.md) — every item, open and done, and the decisions.
 - [`docs/qa/`](docs/qa/README.md) — the test-case catalogue and the runs.
 
