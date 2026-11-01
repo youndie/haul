@@ -297,8 +297,8 @@ internal fun rememberHover(): Hover {
 internal fun rememberStillHover(): Hover = StillHover
 
 /**
- * The mouse over this is [hover]'s. A mouse only (B-168): a finger has no hover, and a tap that entered as one left a
- * card lifted until something else was touched. A touch press takes a hover off; the press itself still sinks.
+ * The mouse over this is [hover]'s. A mouse only (B-168): a finger has no hover, so nothing a finger does lifts what
+ * it touches or keeps it lifted — a touch press takes off a hover the mouse left; the press itself still sinks.
  */
 internal fun Modifier.hovers(hover: Hover): Modifier = hover.source?.let { this then MouseHoverElement(it) } ?: this
 
@@ -331,15 +331,38 @@ private class MouseHoverNode(
         if (pass != PointerEventPass.Main) return
         val mouse = pointerEvent.changes.any { it.type == PointerType.Mouse }
         when (pointerEvent.type) {
-            PointerEventType.Enter, PointerEventType.Move -> if (mouse) enter() else leave()
-            PointerEventType.Press -> if (!mouse) leave()
-            PointerEventType.Exit -> leave()
+            PointerEventType.Enter -> {
+                if (mouse) enter() else leave()
+            }
+
+            // A mouse that came in while the node was being placed is told by its first move over it.
+            PointerEventType.Move -> {
+                if (!mouse) {
+                    leave()
+                } else if (pointerEvent.over(bounds)) {
+                    enter()
+                }
+            }
+
+            PointerEventType.Press -> {
+                if (!mouse) leave()
+            }
+
+            PointerEventType.Exit -> {
+                leave()
+            }
         }
     }
 
     override fun onCancelPointerInput() = leave()
 
     override fun onDetach() = leave()
+
+    private fun PointerEvent.over(bounds: IntSize): Boolean =
+        changes.any { change ->
+            val at = change.position
+            at.x >= 0f && at.y >= 0f && at.x < bounds.width && at.y < bounds.height
+        }
 
     private fun enter() {
         if (entered != null) return

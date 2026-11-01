@@ -221,16 +221,13 @@ class MotionTest {
     }
 
     /**
-     * A [type] pointer over the card going through [events], told to the scene as the browser's are: a pointer arrives
-     * (`pointerenter`) before it presses, a finger included. The test's own touch injection presses without arriving.
+     * [events] over the card's middle, each a pointer of its type, told to the scene as the browser's input is: a
+     * frame after each. The test's own touch injection only presses and releases.
      */
     @OptIn(InternalTestApi::class, InternalComposeUiApi::class)
-    private fun DesktopComposeUiTest.pointer(
-        type: PointerType,
-        events: List<PointerEventType>,
-    ) {
+    private fun DesktopComposeUiTest.pointer(vararg events: Pair<PointerType, PointerEventType>) {
         val at = onNodeWithText(CARD_TITLE).fetchSemanticsNode().boundsInRoot.center
-        events.forEach { event ->
+        events.forEach { (type, event) ->
             val buttons = PointerButtons(isPrimaryPressed = event == PointerEventType.Press)
             runOnUiThread { scene.sendPointerEvent(event, at, type = type, buttons = buttons) }
             mainClock.advanceTimeByFrame()
@@ -238,21 +235,34 @@ class MotionTest {
     }
 
     /**
-     * B-168: a finger has no hover — on a phone a tap left the card lifted as if the mouse were over it, since the
-     * finger arrived over the card and, gone, never left it.
+     * B-168: hover is a mouse's. A finger tapping a card — arriving first, as a browser may report it, or under a mouse
+     * pointer resting on the card, as on a touch-screen laptop — leaves it at rest, not lifted as if hovered; the
+     * press itself sinks and springs back.
      */
     @Test
     fun `a touch press leaves no hover lift`() {
         val still = card(Motion.Still) {}
-        val tapped =
+        val fingerOnly =
             card(Motion.Lively) {
                 pointer(
-                    PointerType.Touch,
-                    listOf(PointerEventType.Enter, PointerEventType.Press, PointerEventType.Release),
+                    PointerType.Touch to PointerEventType.Enter,
+                    PointerType.Touch to PointerEventType.Press,
+                    PointerType.Touch to PointerEventType.Release,
                 )
             }
-        val differ = still.indices.count { still[it] != tapped[it] }
-        assertEquals(0, differ, "pixels a card tapped and released drew off its place at rest")
+        val fingerUnderMouse =
+            card(Motion.Lively) {
+                pointer(
+                    PointerType.Mouse to PointerEventType.Enter,
+                    PointerType.Touch to PointerEventType.Press,
+                    PointerType.Touch to PointerEventType.Release,
+                )
+            }
+        val taps = listOf("a finger alone" to fingerOnly, "a finger under the mouse" to fingerUnderMouse)
+        taps.forEach { (how, tapped) ->
+            val differ = still.indices.count { still[it] != tapped[it] }
+            assertEquals(0, differ, "pixels a card tapped by $how and released drew off its place at rest")
+        }
     }
 
     /** The control for the test above: the mouse arriving over the same card lifts it. */
@@ -260,7 +270,9 @@ class MotionTest {
     fun `a mouse over a card lifts it`() {
         val still = card(Motion.Still) {}
         val hovered =
-            card(Motion.Lively) { pointer(PointerType.Mouse, listOf(PointerEventType.Enter, PointerEventType.Move)) }
+            card(Motion.Lively) {
+                pointer(PointerType.Mouse to PointerEventType.Enter, PointerType.Mouse to PointerEventType.Move)
+            }
         assertTrue(!still.contentEquals(hovered), "the mouse over the card left it where it rests")
     }
 
