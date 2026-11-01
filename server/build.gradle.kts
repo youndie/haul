@@ -104,6 +104,11 @@ tasks.test {
     val art = layout.projectDirectory.dir("../composeApp/src/desktopTest/resources/art")
     inputs.dir(art).withPropertyName("clientArt").withPathSensitivity(PathSensitivity.RELATIVE)
     systemProperty("haul.clientArt", art.asFile.absolutePath)
+    // The page the bundle ships and the files beside it (B-161): PagePreviewTest serves them as the stand does and
+    // reads the preview a shared link shows.
+    val page = layout.projectDirectory.dir("../composeApp/src/wasmJsMain/resources")
+    inputs.dir(page).withPropertyName("clientPage").withPathSensitivity(PathSensitivity.RELATIVE)
+    systemProperty("haul.clientPage", page.asFile.absolutePath)
     // The outage tests' timeline in the build's own log (B-140): how long the runner takes to stop and start
     // PostgreSQL decides whether a five second outage still fits inside the saga member's phase, and a hosted
     // runner's numbers are otherwise lost with the test reports the workflow does not keep.
@@ -134,6 +139,7 @@ zavarnik {
         workload {
             get("http://127.0.0.1:8080/readyz")
             get("http://127.0.0.1:8080/version")
+            get("http://127.0.0.1:8080/robots.txt")
             get("http://127.0.0.1:8080/")
             // The page at a storefront address (B-36), as a reloaded product link asks for it.
             get("http://127.0.0.1:8080/p/p-sony-wh-1000xm6")
