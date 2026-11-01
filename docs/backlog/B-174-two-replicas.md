@@ -1,7 +1,7 @@
 ---
 id: B-174
 title: "feat: the server runs as two replicas — an external bus, one leader for the simulators"
-status: open
+status: wip
 priority: P3
 size: L
 stage: stage-15-showcase
