@@ -118,6 +118,8 @@ box is ticked — the name says it instead.
 
 - [`docs/research/research-architecture.md`](docs/research/research-architecture.md) — why it is built this way,
   what was decided and measured.
+- [The cost of Compose for Web 1.12](docs/research/research-architecture.md#the-cost-of-compose-for-web-112) — what a
+  page drawn on a canvas had to rebuild of what a browser gives for free, and what is still missing.
 - [`backlog.md`](backlog.md) — every item, open and done, and the decisions.
 - [`docs/qa/`](docs/qa/README.md) — the test-case catalogue and the runs.
 
