@@ -1208,8 +1208,11 @@ is the deploy's call).
 - **Shown** (`e2e/…/TwoReplicasTest.kt`; the composed stack runs two replicas behind a front that takes turns, so
   every e2e walks both): a page on the follower hears an order the leader placed and moved; and the leader killed
   (SIGKILL) while placements wait inside `reserve-slot` on both replicas — the test holds the delivery windows' table
-  lock — loses no order and doubles none. The measured run is in
-  [measurements/b-174](measurements/b-174/README.md).
+  lock — loses no order and doubles none. Four runs on the build box: 2–6 of the leader's sessions inside a saga at
+  the kill, 8 sagas unfinished; every cut placement sent again under its key answered its one order; the survivor took
+  the lock 0.3–1.9 s after the kill and led 7.8–9.5 s after it; the placement nobody sent again was carried on by its
+  sweeper 68–70 s after; every saga `COMPLETED`, one order a person, each captured its total
+  ([measurements/b-174](measurements/b-174/README.md)). The control without the bus: the follower's page heard nothing.
 
 ### D5. Sign-in through shildik; guests can browse and fill a cart
 
