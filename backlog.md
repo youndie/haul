@@ -46,11 +46,10 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (19)
+## Open (18)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-159](docs/backlog/B-159-the-orders-history-answers-in-time.md) `[ ]` | fix: the orders' history answers in time, however many orders the customer has | P0 | S | - |
 | [B-160](docs/backlog/B-160-the-stand-says-it-is-a-kotlin-demo.md) `[ ]` | feat: the stand says it is a demo built with Kotlin, and links to its source | P1 | S | - |
 | [B-161](docs/backlog/B-161-every-page-has-its-title-and-preview.md) `[ ]` | feat: every page has its own title, a description and a link preview | P1 | S | - |
 | [B-162](docs/backlog/B-162-a-visitor-tries-the-money-half-in-one-click.md) `[ ]` | feat: a visitor tries checkout, the live order and a return as a demo shopper, in one click | P1 | M | - |
@@ -70,7 +69,7 @@ A stage is a field on the item, not a directory.
 | [B-175](docs/backlog/B-175-the-cost-of-compose-web.md) `[ ]` | docs: audit the pixel workarounds since B-85 and write down what Compose for Web cost | P3 | M | - |
 | [B-176](docs/backlog/B-176-a-second-client-draws-the-same-trees.md) `[ ]` | feat: a second client — desktop — draws the same server trees | P3 | L | - |
 
-## Closed (157)
+## Closed (158)
 
 **Skeleton**
 
@@ -270,6 +269,10 @@ A stage is a field on the item, not a directory.
 **Motion**
 
 - [B-158](docs/backlog/B-158-the-storefront-moves.md) `[x]` - feat: the storefront moves — reveals, hovers, presses, pops, a shimmer and rolling figures
+
+**Showcase**
+
+- [B-159](docs/backlog/B-159-the-orders-history-answers-in-time.md) `[x]` - fix: the orders' history answers in time, however many orders the customer has
 
 <!-- END INDEX -->
 

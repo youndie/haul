@@ -13,12 +13,14 @@ import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
 import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.catalog.domain.money
 import io.github.youndie.haul.feature.catalog.screen.navigation
+import io.github.youndie.haul.feature.catalog.screen.pageNumbers
 import io.github.youndie.haul.feature.fulfilment.domain.OrderProgress
 import io.github.youndie.haul.feature.fulfilment.domain.OrderTracking
 import io.github.youndie.haul.feature.fulfilment.domain.TrackedOrder
 import io.github.youndie.haul.feature.identity.domain.Customer
 import io.github.youndie.haul.feature.membership.screen.PlusOffer
 import io.github.youndie.haul.feature.order.OrderPaths
+import io.github.youndie.haul.feature.order.domain.Order
 import io.github.youndie.haul.feature.order.domain.OrderRepository
 import io.github.youndie.haul.feature.order.screen.OrderCard
 import io.github.youndie.haul.feature.order.screen.OrderScreen
@@ -39,6 +41,7 @@ import io.github.youndie.haul.ui.AccountTileKind
 import io.github.youndie.haul.ui.ActiveOrder
 import io.github.youndie.haul.ui.ActiveOrders
 import io.github.youndie.haul.ui.EmptyState
+import io.github.youndie.haul.ui.HaulPagination
 import io.github.youndie.haul.ui.HistoryFilter
 import io.github.youndie.haul.ui.HistoryRow
 import io.github.youndie.haul.ui.HistoryStatusKind
@@ -75,13 +78,34 @@ internal class AccountScreen(
         page: AccountPage,
         viewer: Viewer,
     ): KompotComponent {
-        val tracked = orders.orders(customer.id).map { tracking.of(it) }
+        // Every order counts — the chips, the menu, «All orders» — but only those the page draws are tracked: tracking
+        // reads each order's shipments' history and its payments, a few queries an order, and a customer with
+        // thousands of orders took seconds to draw a page of twenty (B-159). An order's state is its own, but for a
+        // partly refunded return, which only tracking tells from a whole one and which no count separates.
+        val placed = orders.orders(customer.id)
+        val summaries = placed.map(::summary)
+        val drawn = AccountPageBuilder.drawn(page, summaries)
+        val tracked = placed.filter { it.id in drawn }.map { tracking.of(it) }
+        val view = view(customer, tracked)
+        val full = view.orders.associateBy { it.id }
         val list =
             (page as? AccountPage.Saved)?.let {
                 savedScreen.list(customer.id, PriceList.of(customer.plus), it.filter, it.page, viewer)
             }
-        return page(page, view(customer, tracked).copy(list = list), viewer)
+        return page(page, view.copy(orders = summaries.map { full[it.id] ?: it }, list = list), viewer)
     }
+
+    /** [order] as the account counts it and does not draw it: its state, untracked, with no tiles and no card. */
+    private fun summary(order: Order): AccountOrder =
+        AccountOrder(
+            id = order.id,
+            state = OrderState.of(OrderProgress.of(order)),
+            placedAt = order.placed.placedAt,
+            totalCents = order.placed.totalCents,
+            tones = emptyList(),
+            images = emptyList(),
+            card = null,
+        )
 
     /** The page of [view], under the frame [viewer] is looking at. */
     suspend fun page(
@@ -170,6 +194,7 @@ internal sealed interface AccountPage {
 
     data class Orders(
         val filter: HistoryFilterKey = HistoryFilterKey.All,
+        val page: Int = 1,
     ) : AccountPage
 
     data class Saved(
@@ -306,7 +331,7 @@ private class AccountPageBuilder(
                     profile = profile(),
                     menu = menu(page),
                     title = "Orders",
-                    history = history(page.filter),
+                    history = history(page),
                 )
             }
 
@@ -465,10 +490,12 @@ private class AccountPageBuilder(
     }
 
     /**
-     * The orders' page: every order, those on their way first, then newest first (`Account_Orders`), under
-     * the chips with their counts; a customer who never ordered sees the empty state and no chips.
+     * The orders' page: every order, those on their way first, then newest first (`Account_Orders`), [HISTORY_PAGE]
+     * to a page under the chips with their counts, and the page numbers under them when there are more (B-159); a
+     * customer who never ordered sees the empty state and no chips.
      */
-    private fun history(filter: HistoryFilterKey): OrderHistory {
+    private fun history(page: AccountPage.Orders): OrderHistory {
+        val filter = page.filter
         if (view.orders.isEmpty()) {
             return OrderHistory(
                 empty =
@@ -483,7 +510,7 @@ private class AccountPageBuilder(
                     ),
             )
         }
-        val rows = view.orders.sortedBy { !it.state.active }.filter { filter.matches(it.state) }
+        val (rows, current, pages) = shown(page, view.orders)
         return OrderHistory(
             filters =
                 HistoryFilterKey.entries.map { key ->
@@ -498,6 +525,27 @@ private class AccountPageBuilder(
                 },
             rows = rows.map(::row),
             none = "No ${filter.label.lowercase()} orders.".takeIf { rows.isEmpty() },
+            pagination = if (pages > 1) pagination(filter, current, pages) else null,
+        )
+    }
+
+    /** The page numbers, each loading its page of the history under the same filter in place, as a chip does. */
+    private fun pagination(
+        filter: HistoryFilterKey,
+        current: Int,
+        pages: Int,
+    ): HaulPagination {
+        val numbers = pageNumbers(current, pages)
+        return HaulPagination(
+            id = "pagination",
+            current = current,
+            pages = numbers,
+            links =
+                numbers.mapNotNull { label ->
+                    label.toIntOrNull()?.takeIf { it != current }?.let {
+                        Link(label, Parts.load(AccountPaths.orders(filter, it)))
+                    }
+                },
         )
     }
 
@@ -536,7 +584,51 @@ private class AccountPageBuilder(
             .take(2)
             .joinToString("") { it.first().uppercase() }
 
-    private companion object {
+    companion object {
+        /**
+         * The orders [page] draws, of all of [orders] newest first: the overview's active cards and its recent
+         * history, or the history's page — what [AccountScreen.build] tracks.
+         */
+        fun drawn(
+            page: AccountPage,
+            orders: List<AccountOrder>,
+        ): Set<String> =
+            when (page) {
+                AccountPage.Overview -> {
+                    orders
+                        .filter { it.state.active }
+                        .take(ACTIVE_SHOWN)
+                        .map { it.id }
+                        .toSet() +
+                        orders.filterNot { it.state.active }.take(RECENT_SHOWN).map { it.id }
+                }
+
+                is AccountPage.Orders -> {
+                    shown(page, orders).rows.map { it.id }.toSet()
+                }
+
+                is AccountPage.Saved -> {
+                    emptySet()
+                }
+            }
+
+        /** The rows of the history's [page] under its filter, the page itself once kept in range, and how many there are. */
+        private fun shown(
+            page: AccountPage.Orders,
+            orders: List<AccountOrder>,
+        ): Shown {
+            val matching = orders.sortedBy { !it.state.active }.filter { page.filter.matches(it.state) }
+            val pages = maxOf(1, (matching.size + HISTORY_PAGE - 1) / HISTORY_PAGE)
+            val current = page.page.coerceIn(1, pages)
+            return Shown(matching.drop((current - 1) * HISTORY_PAGE).take(HISTORY_PAGE), current, pages)
+        }
+
+        private data class Shown(
+            val rows: List<AccountOrder>,
+            val current: Int,
+            val pages: Int,
+        )
+
         val STORE = DeliveryCalendar.STORE
         val MONTH_DAY: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM d", Locale.US)
         val MONTH_YEAR: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM yyyy", Locale.US)
@@ -547,5 +639,8 @@ private class AccountPageBuilder(
         /** Feature-account: «the overview shows up to 3 active orders … and the last 4 of the history». */
         const val ACTIVE_SHOWN = 3
         const val RECENT_SHOWN = 4
+
+        /** How many orders the history draws to a page (B-159). */
+        const val HISTORY_PAGE = 20
     }
 }
