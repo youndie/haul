@@ -19,6 +19,7 @@ import io.github.youndie.haul.testing.guest
 import io.github.youndie.haul.testing.haulTest
 import io.github.youndie.haul.testing.json
 import io.github.youndie.haul.testing.seededFreshDatabase
+import io.github.youndie.haul.testing.untitled
 import io.github.youndie.haul.testing.update
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.ProductGrid
@@ -182,7 +183,8 @@ class RecommendationsRoutesTest {
                 ShowMessageAction("Added to your cart", actionLabel = "View cart", action = NavigateAction("/cart")),
                 sequence.actions.last(),
             )
-            assertEquals(page("/ui/home") { bearerAuth(token) }.json(), before.after(update))
+            // The tab's title is the page's, which an update leaves as it was (B-161).
+            assertEquals(page("/ui/home") { bearerAuth(token) }.untitled().json(), before.after(update))
         }
     }
 }

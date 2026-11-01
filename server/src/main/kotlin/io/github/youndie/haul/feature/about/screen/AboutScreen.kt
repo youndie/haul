@@ -49,7 +49,8 @@ internal object AboutScreen {
     fun page(
         viewer: Viewer,
         navigation: List<Link>,
-    ): KompotComponent = Frame.page("about-page", viewer, navigation, listOf(body()), footer = true)
+    ): KompotComponent =
+        Frame.page("about-page", viewer, navigation, listOf(body()), Frame.title("About this demo"), footer = true)
 
     fun body(): AboutBody =
         AboutBody(

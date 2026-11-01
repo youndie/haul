@@ -5,6 +5,7 @@
         {
             "type": "haul_checkout_header",
             "id": "checkout-header",
+            "tabTitle": "Checkout · Haul",
             "steps": [
                 "Delivery",
                 "Payment",

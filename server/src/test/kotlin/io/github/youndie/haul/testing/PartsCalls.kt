@@ -1,11 +1,13 @@
 package io.github.youndie.haul.testing
 
 import io.github.youndie.haul.haulWireJson
+import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.KompotComponent
 import io.github.youndie.kompot.commands.UpdateAction
 import io.github.youndie.kompot.decodeKompotAction
 import io.github.youndie.kompot.encodeKompotComponent
+import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.SequenceAction
 import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequestBuilder
@@ -20,6 +22,8 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 
 // B-63's checks of an `update`: what the client draws after one is the tree it had with each node the
 // update names replaced by id (kompot SPEC §16.4), and that has to be the page the update's address opens.
@@ -34,6 +38,18 @@ internal fun KompotAction.update(): UpdateAction? =
         is SequenceAction -> actions.filterIsInstance<UpdateAction>().singleOrNull()
         else -> null
     }
+
+/**
+ * The page with its header's tab title left out (B-161), to hold against the page after a line change's `update`.
+ * The title names the page, which the press does not change; the update's header cannot know which page it tops, so
+ * it names none, and the client keeps the tab as the page's tree named it — it never reads a title from an update.
+ */
+internal fun KompotComponent.untitled(): KompotComponent {
+    val column = assertIs<ColumnComponent>(this)
+    val header = column.children.filterIsInstance<HaulHeader>().single()
+    assertNotNull(header.tabTitle, "the page names no tab: the comparison would leave nothing out")
+    return column.copy(children = column.children.map { if (it === header) header.copy(tabTitle = null) else it })
+}
 
 /** The tree as it travels: JSON, where a node is found by its `id` at any depth. */
 internal fun KompotComponent.json(): JsonElement = Json.parseToJsonElement(haulWireJson.encodeKompotComponent(this))

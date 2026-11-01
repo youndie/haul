@@ -127,3 +127,26 @@ host, its tracy and its logs.
 - **Coverage:** `SaleCalendarTest` «a running stand moves its sale at each midnight»;
   `SaleCalendarTest` «a stand seeded on another day takes the sale's code during its sale and refuses it after»;
   manual: a week of a real clock on the stand
+
+### TC-STAND-07 — A link to the stand previews as the demo, and crawlers are let in
+
+- **Who:** operator
+- **Width:** n/a
+- **Preconditions:** the release on the stand.
+- **Steps:**
+  1. `curl -s https://haul.kotlin.website/p/p-sony-wh-1000xm6 | grep -E '<title>|<meta (name|property)="(description|og:|twitter:)'`.
+  2. Paste `https://haul.kotlin.website/` into an Open Graph validator (or a chat that unfurls links).
+  3. `curl -si https://haul.kotlin.website/robots.txt`.
+- **Expected:**
+  - Step 1: the title «Haul — a demo store built end to end in Kotlin», a description that names Kotlin, Ktor, kompot
+    and Compose Multiplatform, `og:type` `website`, `og:url` the stand's root, `og:image`
+    `https://haul.kotlin.website/preview.png` at 1200 × 630, and a `summary_large_image` Twitter card — the same at
+    every storefront address.
+  - Step 2: the card shows the title, the description and the home page's top: the header, the sale and two banners.
+  - Step 3: `200`, `text/plain`, `User-agent: *` and `Allow: /`.
+- **Decided in:** B-161
+- **Coverage:** `PagePreviewTest` «the page says what the demo is, under the home's title»;
+  `PagePreviewTest` «the preview's picture is a file the store serves, at the size it announces»;
+  `PagePreviewTest` «a storefront address carries the same preview»;
+  `PagePreviewTest` «robots txt lets every crawler fetch everything»; script `scripts/image-check.sh`;
+  manual: how a validator or a chat draws the card is theirs, and only the public stand can be fetched by them

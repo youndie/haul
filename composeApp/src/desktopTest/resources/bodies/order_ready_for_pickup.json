@@ -5,6 +5,7 @@
         {
             "type": "haul_header",
             "id": "header",
+            "tabTitle": "Order #HL-47960 · Haul",
             "deliverTo": "Brooklyn, NY 11211",
             "deliveryPromise": "Free delivery over $35",
             "customerName": "Maya",

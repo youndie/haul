@@ -65,7 +65,7 @@ internal class CartScreen(
         val units = lines.sumOf { it.stored.quantity }
         val frame = viewer.copy(cartCount = units)
         if (lines.isEmpty()) {
-            return Frame.page("cart-page", frame, navigation(categories), empty(frame, owner, categories))
+            return Frame.page("cart-page", frame, navigation(categories), empty(frame, owner, categories), TITLE)
         }
 
         val plus = (owner as? CartOwner.Customer)?.plus ?: false
@@ -93,7 +93,7 @@ internal class CartScreen(
                         plus = plus,
                     ),
             )
-        return Frame.page("cart-page", frame, navigation(categories), listOf(title(items(units)), body))
+        return Frame.page("cart-page", frame, navigation(categories), listOf(title(items(units)), body), TITLE)
     }
 
     private suspend fun groups(
@@ -255,6 +255,9 @@ internal class CartScreen(
 
     companion object {
         private const val PICKS = 6
+
+        /** The cart's tab, empty or not (B-161). */
+        private val TITLE = Frame.title("Cart")
 
         /**
          * The empty cart's sale line (Cart_Empty), drawn from the sale itself (B-107): «Today’s deals end at
