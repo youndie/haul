@@ -100,14 +100,14 @@ internal fun HeaderMenuPhone() = Fixture(compact = true) { HeaderMenuSheet(menuH
 internal fun HeaderMenuGuestPhone() = Fixture(compact = true) { HeaderMenuSheet(menuHeader(null)) }
 
 /**
- * B-162: a guest on a store that offers the demo shopper — «Demo shopper» beside «Sign in». No artboard draws it, so it
- * has no parity reference.
+ * B-162: a guest on a store that offers the demo shopper — «Try as a demo shopper» at the end of the category row. No
+ * artboard draws it, so it has no parity reference.
  */
 @ViddikScreenshot(name = "Guest_Demo", group = "HaulHeader", width = 1440, height = 186)
 @Composable
 internal fun HeaderGuestDemo() = Fixture(compact = false) { Render(demoHeader()) }
 
-/** B-162: the same at 1024, the narrowest desktop width, where the row has the least room for it. */
+/** B-162: the same at 1024, the narrowest desktop width, where the category row gives it the most words. */
 @ViddikScreenshot(name = "Guest_Demo_1024", group = "HaulHeader", width = 1024, height = 262)
 @Composable
 internal fun HeaderGuestDemo1024() = Fixture(compact = false, medium = true) { Render(demoHeader()) }

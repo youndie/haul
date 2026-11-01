@@ -25,7 +25,7 @@ import io.github.youndie.haul.shell.SIGN_IN_PROMPT_TAG
 import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.shell.ktorTransport
 import io.github.youndie.haul.theme.HaulTheme
-import io.github.youndie.haul.ui.DEMO_SHOPPER_PILL
+import io.github.youndie.haul.ui.DEMO_SHOPPER_NAME
 import io.github.youndie.haul.ui.DEMO_SHOPPER_TAG
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.kompot.KompotAction
@@ -68,7 +68,7 @@ class DemoShopperTest {
         ).copy(demo = NavigateAction("/demo-shopper"))
 
     @Test
-    fun `the wide header draws the demo pill beside Sign in and hands the press its action`() =
+    fun `the wide header draws the demo pill and hands the press its action`() =
         runComposeUiTest {
             val handled = mutableListOf<KompotAction>()
             setContent {
@@ -82,7 +82,7 @@ class DemoShopperTest {
                 }
             }
 
-            onNodeWithText(DEMO_SHOPPER_PILL).assertExists()
+            onNodeWithText(DEMO_SHOPPER_NAME).assertExists()
             onNodeWithTag(DEMO_SHOPPER_TAG).performClick()
 
             assertEquals(listOf<KompotAction>(NavigateAction("/demo-shopper")), handled)
@@ -115,10 +115,10 @@ class DemoShopperTest {
             val server = Server()
             val identity = Identity(IdentityApi(server.http), server.provider, MemorySessionStore())
             storefront(server, identity)
-            waitUntil(timeoutMillis = 5_000) { exists(hasText(DEMO_SHOPPER_LABEL)) }
+            waitUntil(timeoutMillis = 5_000) { exists(promptsDemo) }
             onNodeWithTag(SIGN_IN_PROMPT_TAG).assertExists()
 
-            onNode(hasText(DEMO_SHOPPER_LABEL)).performClick()
+            onNode(promptsDemo).performClick()
             waitUntil(timeoutMillis = 5_000) { exists(hasTestTag(PLACE_TAG)) }
 
             assertEquals(1, server.requests.count { it == "POST ${IdentityApi.DEMO_SHOPPERS}" })
@@ -137,9 +137,9 @@ class DemoShopperTest {
             val server = Server(refuses = true)
             val identity = Identity(IdentityApi(server.http), server.provider, MemorySessionStore())
             storefront(server, identity)
-            waitUntil(timeoutMillis = 5_000) { exists(hasText(DEMO_SHOPPER_LABEL)) }
+            waitUntil(timeoutMillis = 5_000) { exists(promptsDemo) }
 
-            onNode(hasText(DEMO_SHOPPER_LABEL)).performClick()
+            onNode(promptsDemo).performClick()
             waitUntil(timeoutMillis = 5_000) { exists(hasText(FULL)) }
 
             onNodeWithTag(SIGN_IN_PROMPT_TAG).assertExists()
@@ -202,6 +202,9 @@ class DemoShopperTest {
             }
         }
     }
+
+    /** The prompt's own «Try as a demo shopper», not the header's pill of the same words above it. */
+    private val promptsDemo = hasText(DEMO_SHOPPER_LABEL) and !hasTestTag(DEMO_SHOPPER_TAG)
 
     private fun ComposeUiTest.exists(matcher: androidx.compose.ui.test.SemanticsMatcher): Boolean =
         onAllNodes(matcher).fetchSemanticsNodes().isNotEmpty()
