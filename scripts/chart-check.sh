@@ -74,7 +74,16 @@ STAND_RENDER=$(helm template haul "$CHART" "${STAND[@]}" 2>&1)
 says "the server's issuer is the realm's" 'value: "https://haul-id.example/realms/haul"'
 says "the server's client" 'value: "haul-web"'
 says "the provider's issuer is its host" 'value: "https://haul-id.example"'
-says "the client returns to the storefront" 'value: "https://haul.example/signed-in.html"'
+# B-178: the same client returns to the desktop app too — a loopback address without a port, which shildik 0.5.0
+# matches on any — and the realm's hook registers both, or the browser's page alone when the desktop's is empty.
+says "the provider is the release that matches a loopback port" 'image: "ghcr.io/youndie/shildik-sqlite:0.5.0"'
+says "the client returns to the browser's page and the desktop app" \
+  "$(printf 'name: SHILDIK_REDIRECT_URIS\n              value: "[\\"https://haul.example/signed-in.html\\",\\"http://127.0.0.1/signed-in\\"]"')"
+case "$(helm template haul "$CHART" "${STAND[@]}" --set shildik.desktopRedirectUri= -s templates/shildik.yaml 2>&1)" in
+  *'value: "[\"https://haul.example/signed-in.html\"]"'*) say "no desktop address: the browser's page alone" ok ;;
+  *) say "no desktop address: the browser's page alone" FAILED; failed=1 ;;
+esac
+renders "the stand's shape, the desktop on IPv6 loopback" "${STAND[@]}" --set 'shildik.desktopRedirectUri=http://[::1]/signed-in'
 says "the speed reaches the server" 'value: "288"'
 says "the realm is made by a hook" 'helm.sh/hook: post-install,post-upgrade'
 says "the provider has its own host" 'Host(`haul-id.example`)'
@@ -93,6 +102,7 @@ says_demo() { # name, expected text — in the stand's render with the demo on
   esac
 }
 says_demo "the server makes demo shoppers through the management port" 'value: "http://haul-shildik:9000"'
+says_demo "a demo shopper's sign-in returns to the storefront's page" "$(printf 'name: HAUL_DEMO_REDIRECT_URI\n              value: "https://haul.example/signed-in.html"')"
 says_demo "the demo's token is the provider's bootstrap token" "$(printf 'name: HAUL_DEMO_MANAGEMENT_TOKEN\n              valueFrom:\n                secretKeyRef:\n                  name: haul-shildik\n                  key: bootstrap-token')"
 says_demo "the management port admits the server" "$(printf 'app.kubernetes.io/name: shildik-bootstrap\n        - podSelector:\n            matchLabels:\n              app.kubernetes.io/instance: haul\n              app.kubernetes.io/name: haul-server')"
 server_admitted() { helm template haul "$CHART" "${STAND[@]}" "$@" -s templates/networkpolicy.yaml 2>&1 | grep -c 'name: haul-server'; }
@@ -186,6 +196,10 @@ refuses "the provider without its bootstrap token" "shildik.bootstrapToken is re
 refuses "the provider without its host" "shildik.hostname is required" "${STAND[@]}" --set shildik.hostname=
 refuses "the provider without the storefront's host" "registers https://<hostname>/signed-in.html" "${STAND[@]}" \
   --set hostname= --set traefik.enabled=false
+refuses "a desktop address with a port" "shildik.desktopRedirectUri=http://127.0.0.1:8935/signed-in is not a loopback" \
+  "${STAND[@]}" --set shildik.desktopRedirectUri=http://127.0.0.1:8935/signed-in
+refuses "a desktop address on a name, not a loopback address" "shildik.desktopRedirectUri=http://localhost/signed-in" \
+  "${STAND[@]}" --set shildik.desktopRedirectUri=http://localhost/signed-in
 
 refuses "shoppers without the provider" "shoppers.enabled needs shildik.enabled" "${REQUIRED[@]}" \
   --set shoppers.enabled=true
@@ -205,6 +219,8 @@ if command -v python3 >/dev/null; then
   if python3 -c 'import ast,sys; ast.parse(open(sys.argv[1]).read())' "$CHART/files/shildik-bootstrap.py"; then
     say "the bootstrap script parses" ok
   else say "the bootstrap script parses" FAILED; failed=1; fi
+  # B-178: the stand's upgrade re-creates the client once, with both addresses, and the next changes nothing.
+  python3 -I scripts/bootstrap-check.py || failed=1
 fi
 
 exit $failed

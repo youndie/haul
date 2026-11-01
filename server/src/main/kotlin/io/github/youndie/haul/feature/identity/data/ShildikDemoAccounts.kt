@@ -37,7 +37,7 @@ import java.util.Base64
  *   storefront's own kind: `azp` the storefront, a refresh token for `offline_access`, renewed by the browser at the
  *   provider as any other sign-in's;
  * - turning one off re-imports the person with `enabled: false` and no ways in, after which shildik refuses their
- *   sign-in and the renewal of any token they hold. shildik 0.4.1 has no way to delete a person.
+ *   sign-in and the renewal of any token they hold. shildik has no way to delete a person (neither 0.4.1 nor 0.5.0).
  *
  * **Nothing secret is in a message**: a refusal names the step and the status, never the password, the code, a
  * token or the management bearer.

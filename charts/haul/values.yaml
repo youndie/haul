@@ -7,7 +7,8 @@
 
 # The public host the IngressRoute matches. Required while `traefik.enabled`: an empty one renders
 # Host(``), a rule that matches nothing while looking like a working ingress. Also required while
-# `shildik.enabled`, which registers `https://<hostname>/signed-in.html` as the storefront's return page.
+# `shildik.enabled`, which registers `https://<hostname>/signed-in.html` as the storefront's return page
+# (beside the desktop app's loopback address, `shildik.desktopRedirectUri`).
 hostname: ""
 
 server:
@@ -82,8 +83,9 @@ postgres:
 shildik:
   enabled: false
   image: ghcr.io/youndie/shildik-sqlite
-  # The provider's release — the one the server's suite and the e2e sign in against.
-  version: "0.4.1"
+  # The provider's release — the one the server's suite, the desktop's sign-in test and the e2e sign in
+  # against. 0.5.0 is the first to match a loopback return address on any port (`desktopRedirectUri`).
+  version: "0.5.0"
   # The provider's public host. Required while enabled: the browser opens its page and exchanges the
   # code with it, and the server reads the realm's keys from it.
   hostname: ""
@@ -92,9 +94,16 @@ shildik:
   # pods reach instead.
   issuer: ""
   realm: haul
-  # The storefront's public client (PKCE, no secret); its one return page is
-  # `https://<hostname>/signed-in.html`.
+  # The storefront's public client (PKCE, no secret); it returns to `https://<hostname>/signed-in.html`
+  # and, with `desktopRedirectUri`, to the desktop app.
   clientId: haul-web
+  # The desktop app's return address (B-178): a listener the app opens on a loopback port it picks at each
+  # sign-in, so it is registered without a port — shildik matches `http://127.0.0.1/<path>` or
+  # `http://[::1]/<path>` on any port for a public client (RFC 8252 §7.3). The same client as the browser's,
+  # not one of its own: the server accepts one client's tokens (`azp`), and a demo shopper's, issued to it,
+  # is renewed by the desktop at it (research D5, «Decided in B-178»). Empty: the desktop cannot sign in,
+  # and the browser is unchanged. A change re-creates the client once, at the next upgrade (the hook).
+  desktopRedirectUri: "http://127.0.0.1/signed-in"
   # Required while enabled, passed with --set-literal, never written here:
   #   masterKeys      SHILDIK_MASTER_KEYS — encrypts the realm's signing keys in the database;
   #                   comma-separated, the first encrypts. Lose it and every key is unreadable.

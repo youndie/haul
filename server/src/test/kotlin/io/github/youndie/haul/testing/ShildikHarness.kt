@@ -36,7 +36,7 @@ import java.util.UUID
  */
 internal object ShildikHarness {
     /** The provider's image, by its release tag: the version the stand's realm would run. */
-    private const val IMAGE = "ghcr.io/youndie/shildik-sqlite:0.4.1"
+    private const val IMAGE = "ghcr.io/youndie/shildik-sqlite:0.5.0"
     private const val BOOTSTRAP = "bootstrap"
     private const val REALM = "haul"
     const val CLIENT = "haul-web"

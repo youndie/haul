@@ -74,6 +74,23 @@ https://{{ include "haul.require" (dict "name" "hostname" "because" "the storefr
 {{- end }}
 
 {{/*
+Every return address of the storefront's public client, as JSON: the browser's page and, unless
+`shildik.desktopRedirectUri` is empty, the desktop app's loopback address (B-178). The loopback one is
+refused unless it is what shildik matches on any port — `http`, `127.0.0.1` or `[::1]`, no port, a path:
+with a port it would match that port alone, and the app picks a free one at every sign-in.
+*/}}
+{{- define "haul.redirectUris" -}}
+{{- $uris := list (include "haul.redirectUri" .) }}
+{{- with .Values.shildik.desktopRedirectUri }}
+{{- if not (regexMatch "^http://(127\\.0\\.0\\.1|\\[::1\\])/[^?#]*$" .) }}
+{{- fail (printf "haul: shildik.desktopRedirectUri=%s is not a loopback address without a port (http://127.0.0.1/<path> or http://[::1]/<path>), which shildik matches on any port" .) }}
+{{- end }}
+{{- $uris = append $uris . }}
+{{- end }}
+{{- $uris | toJson }}
+{{- end }}
+
+{{/*
 The key that opens the test card ···· 0002 — the one the payment simulator always declines — to the synthetic
 shoppers (B-89; the server's `HAUL_TEST_CARD_KEY`). Derived from the provider's master keys, a secret the release
 already holds and keeps across upgrades, so it is stable, is never written in a values file, and is nothing new

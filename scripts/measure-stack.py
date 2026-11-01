@@ -49,7 +49,7 @@ ORIGIN = f"http://127.0.0.1:{PORT}"
 ISSUER_ORIGIN = f"http://127.0.0.1:{SHILDIK_PORT}"
 REALM, CLIENT, REDIRECT = "haul", "haul-web", "http://127.0.0.1/signed-in.html"
 SERVER, PG, SHILDIK = "b173-server", "b173-pg", "b173-shildik"
-SHILDIK_IMAGE = "ghcr.io/youndie/shildik-sqlite:0.4.1"
+SHILDIK_IMAGE = "ghcr.io/youndie/shildik-sqlite:0.5.0"
 BOOTSTRAP = "b173-bootstrap"
 
 FOREIGN = re.compile(r"GradleDaemon|GradleWorkerMain|KotlinCompileDaemon|Runner\.Worker|gradle-wrapper\.jar|org\.gradle\.launcher|konan\.home|\.kexe")

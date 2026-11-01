@@ -35,8 +35,9 @@ katcher = "0.8.51"
 # built against Kotlin 2.4.10, so the 2.4.20 compiler reads its klibs. Released 2026-09-18.
 coil = "3.6.3"
 # Sign-in (B-12): the server checks shildik's tokens with shildik's own validator (research §1.4,
-# consequence 5). The newest build of its 0.4.1 line; the image the tests sign in against is 0.4.1.
-shildik = "0.4.1.23"
+# consequence 5). The build of its 0.5.0 release (B-178, publish run 24); the image the tests sign in
+# against is 0.5.0, the chart's `shildik.version`.
+shildik = "0.5.0.24"
 # The browser's half of the sign-in: kalinjul's kotlin-multiplatform-oidc, the client shildik's app
 # contour was accepted against (shildik docs/api/protocol-oidc-app.md, 0.18.4). A new version is a new
 # acceptance run there, not a dependency refresh here.
