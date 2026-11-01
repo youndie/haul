@@ -66,7 +66,7 @@ internal class ShildikDemoAccounts(
             val password = random(PASSWORD_BYTES)
             admin("importing the person", "POST", "/admin/tenants/$realm/users", person(id, name, enabled = true))
             admin(
-                "setting the person's password",
+                "setting the password",
                 "PUT",
                 "/admin/tenants/$realm/users/$id/password",
                 buildJsonObject { put("password", password) },
@@ -141,7 +141,7 @@ internal class ShildikDemoAccounts(
                 it.substringBefore('=') to
                     it.substringAfter('=', "")
             }
-        if (query["state"] != state) throw DemoAccountFailure("the sign-in's state did not come back")
+        if (query["state"] != state) throw DemoAccountFailure("the state of the sign-in did not come back")
         val code = query["code"] ?: throw DemoAccountFailure("no code came back from the sign-in")
         val tokens =
             send(
@@ -235,7 +235,7 @@ internal class ShildikDemoAccounts(
     private fun json(text: String): JsonObject = Json.parseToJsonElement(text).jsonObject
 
     private fun JsonObject.text(name: String): String =
-        this[name]?.jsonPrimitive?.content ?: throw DemoAccountFailure("no $name in the provider's answer")
+        this[name]?.jsonPrimitive?.content ?: throw DemoAccountFailure("no $name in the answer of the provider")
 
     private companion object {
         /** 32 random bytes: far past shildik's twelve characters, and never typed by anyone. */
