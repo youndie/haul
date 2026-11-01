@@ -147,8 +147,8 @@ internal object CatalogSeed {
         }
 
     /**
-     * Every markdown of the seed is the Autumn mega sale's — its hero says so, «1.2 million items marked
-     * down» — so a SKU whose old price is above its price is that campaign's (B-53): a Plus member sees it
+     * Every markdown of the seed is the Autumn mega sale's — its hero says so, «832 items marked down»
+     * (counted, B-172) — so a SKU whose old price is above its price is that campaign's (B-53): a Plus member sees it
      * from the sale's early-access start, everybody else from its start. Applied after generation, so the
      * random stream and every other row stay as they were.
      */

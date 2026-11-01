@@ -115,6 +115,7 @@ internal object CampaignsTable : Table("campaigns") {
     val startsAt = timestampWithTimeZone("starts_at")
     val endsAt = timestampWithTimeZone("ends_at")
     val plusEarlyAccessAt = timestampWithTimeZone("plus_early_access_at").nullable()
+    val link = text("link").nullable()
     override val primaryKey = PrimaryKey(slug)
 }
 

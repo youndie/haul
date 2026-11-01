@@ -410,7 +410,7 @@
             "type": "haul_empty_state",
             "id": "empty",
             "title": "Your cart is empty",
-            "text": "Today’s deals end at midnight — up to −70% in the Autumn mega sale.",
+            "text": "Today’s deals end at midnight — up to −49% in the Autumn mega sale.",
             "actionLabel": "See today’s deals",
             "action": {
                 "type": "navigate",
