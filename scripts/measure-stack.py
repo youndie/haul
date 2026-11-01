@@ -52,7 +52,7 @@ SERVER, PG, SHILDIK = "b173-server", "b173-pg", "b173-shildik"
 SHILDIK_IMAGE = "ghcr.io/youndie/shildik-sqlite:0.4.1"
 BOOTSTRAP = "b173-bootstrap"
 
-FOREIGN = re.compile(r"GradleDaemon|GradleWorkerMain|KotlinCompileDaemon|Runner\.Worker|gradle-wrapper\.jar|org\.gradle\.launcher")
+FOREIGN = re.compile(r"GradleDaemon|GradleWorkerMain|KotlinCompileDaemon|Runner\.Worker|gradle-wrapper\.jar|org\.gradle\.launcher|konan\.home|\.kexe")
 CLOCK_LIMIT = 0.050  # K6
 BUSY_LIMIT = 0.5  # K7, cores
 TICK = os.sysconf("SC_CLK_TCK")
@@ -348,7 +348,7 @@ def startup(out: Path, rounds: int) -> None:
               "readyz_ms", "home_ms", "aot_lines", "aot_opened", "aot_linked", "aot_errors", "running",
               "clock_drift_ms", "void"]
     with (out / "startup.csv").open("w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=fields)
+        w = csv.DictWriter(f, fieldnames=fields, lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
     # The [aot] lines and the server's own lines, without the class-by-class noise: what the lever reading read.
@@ -501,7 +501,8 @@ def load(out: Path) -> None:
                                          "-e", f"ORIGIN={ORIGIN}", "-e", f"RATE={rate}", "-e", "SECONDS=120",
                                          "-e", f"ROUND=survival-{limit}", "-e", "ROUTES=mix",
                                          "-e", f"SUMMARY={out / f'k6-survival-{limit}.json'}",
-                                         str(ROOT / "scripts/measure-stack.k6.js")], capture_output=True)
+                                         str(ROOT / "scripts/measure-stack.k6.js")],
+                                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 while proc.poll() is None:
                     if sh("docker", "inspect", "-f", "{{.State.Running}}", name, check=False) != "true":
                         died_at = time.monotonic() - t0
@@ -528,17 +529,45 @@ def load(out: Path) -> None:
             shoppers.kill()
         fields = list(rounds[0].keys()) if rounds else []
         with (out / "load-rounds.csv").open("w", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=fields)
+            w = csv.DictWriter(f, fieldnames=fields, lineterminator="\n")
             w.writeheader()
             w.writerows(rounds)
-        # One line per request of every k6 run, in the order they ran: the deliverable the percentiles come from.
+        # One line per request of every k6 run, in the order they ran, kept on the box; and their histogram, which
+        # is what the repository keeps and the percentiles are read from.
         with (out / "load-requests.csv").open("w") as f:
             f.write("round,route,status,client_ms,server_ms\n")
             for row in rounds:
                 if row["rate"]:
                     for r in requests_of(out, row["label"]):
                         f.write(",".join(r) + "\n")
-        rm(SERVER, PG, SHILDIK)
+        histogram(out / "load-requests.csv", out / "load-latency.csv")
+        rm(SERVER, PG, SHILDIK, "b173-survival-192m", "b173-survival-128m")
+
+
+def bucket(ms: float) -> str:
+    """[ms] to three significant figures (12.3, 184, 3740): a percentile read from it is off by under 0.5 %."""
+    if ms <= 0:
+        return "0"
+    digits = 2 - math.floor(math.log10(ms))
+    return f"{round(ms, digits):.{max(0, digits)}f}"
+
+
+def histogram(requests: Path, latency: Path) -> None:
+    """The per-request lines as counts: round, route, status, which time (client or server), the bucket, how many."""
+    counts: dict[tuple, int] = {}
+    order: list[tuple] = []
+    for r in csv.DictReader(requests.open()):
+        for kind, field in (("client", "client_ms"), ("server", "server_ms")):
+            if r[field]:
+                key = (r["round"], r["route"], r["status"], kind, bucket(float(r[field])))
+                if key not in counts:
+                    order.append(key)
+                    counts[key] = 0
+                counts[key] += 1
+    with latency.open("w") as f:
+        f.write("round,route,status,kind,ms,count\n")
+        for key in sorted(order, key=lambda k: (k[0], k[1], k[2], k[3], float(k[4]))):
+            f.write(",".join(key) + f",{counts[key]}\n")
 
 
 # -- summarise --------------------------------------------------------------------------------------------------
@@ -567,13 +596,13 @@ def pct(values: list[float], q: float) -> float:
 
 def summarise(raw: Path) -> dict:
     data: dict = {"rq": {}}
-    head = (raw / "startup-header.txt").read_text()
+    head = (raw / "startup" / "startup-header.txt").read_text()
     data["measured"] = re.search(r"# B-173 startup, (\S+)", head).group(1)[:10]
     data["commit"] = re.search(r"commit: (\S+)", head).group(1)
     data["image"] = re.search(r"image: \S+ (\S+)", head).group(1)
 
     # RQ1
-    rows = list(csv.DictReader((raw / "startup.csv").open()))
+    rows = list(csv.DictReader((raw / "startup" / "startup.csv").open()))
     counted = [r for r in rows if int(r["round"]) > 1]
     rounds = sorted({int(r["round"]) for r in counted})
 
@@ -612,30 +641,59 @@ def summarise(raw: Path) -> dict:
             "ruler_ms": round(ruler["mean"]), "ruler_half_ms": round(ruler["half"]), "ruler_share": round(ruler_share, 3),
             "distinguishable": distinguishable, "k1": k1,
         }
-    data["rq"]["rq1a"]["healthz_aot_median_ms"] = round(statistics.median(arm("aot", "healthz_ms")))
-    data["rq"]["rq1a"]["healthz_no_aot_median_ms"] = round(statistics.median(arm("no-aot", "healthz_ms")))
+    # `/healthz` is read before `/readyz` in each poll, so a server that came up between the two has no time of its
+    # own for it: reported over the runs that have one, with their count; it decides nothing.
+    for name, key in (("aot", "healthz_aot"), ("no-aot", "healthz_no_aot")):
+        times = [float(r["healthz_ms"]) for r in counted if r["arm"] == name and r["healthz_ms"]]
+        data["rq"]["rq1a"][f"{key}_median_ms"] = round(statistics.median(times))
+        data["rq"]["rq1a"][f"{key}_n"] = len(times)
     data["startup"] = startup_out
 
-    # RQ2-RQ4
+    # RQ2-RQ4, per campaign of the load block (raw/load-<n>/)
+    data["load"] = {d.name.removeprefix("load-"): load_campaign(d) for d in sorted(raw.glob("load-*")) if d.is_dir()}
+    return data
+
+
+def weighted_pct(pairs: list[tuple[float, int]], q: float) -> float:
+    """The nearest-rank percentile of a histogram: (value, count) pairs."""
+    pairs = sorted(pairs)
+    total = sum(c for _, c in pairs)
+    rank, seen = max(1, math.ceil(q * total)), 0
+    for value, count in pairs:
+        seen += count
+        if seen >= rank:
+            return value
+    return pairs[-1][0]
+
+
+def load_campaign(raw: Path) -> dict:
+    """RQ2-RQ4 of one load block, by the brief's rules, from its rounds, its latency histogram and its controls."""
     load_rows = list(csv.DictReader((raw / "load-rounds.csv").open()))
     rate = int(re.search(r"R = (\d+)", (raw / "load-rate.txt").read_text()).group(1))
     pairs = [(next(r for r in load_rows if r["label"] == f"p{p}-shoppers"), next(r for r in load_rows if r["label"] == f"p{p}-gets"))
              for p in range(2, 8)]
-    gets_labels = {b["label"] for _, b in pairs}
-    reqs = [r for r in csv.DictReader((raw / "load-requests.csv").open()) if r["round"] in gets_labels]
+    labels = sorted(b["label"] for _, b in pairs)
+    hist = list(csv.DictReader((raw / "load-latency.csv").open()))
+
+    def series(route: str, kind: str, rounds: list[str]) -> list[tuple[float, int]]:
+        return [(float(h["ms"]), int(h["count"])) for h in hist if h["route"] == route and h["kind"] == kind and h["round"] in rounds]
+
     routes = ["home", "category", "product", "suggest", "live"]
     per_route, round_p99_over = {}, False
     for route in routes:
-        mine = [r for r in reqs if r["route"] == route]
-        client = [float(r["client_ms"]) for r in mine]
-        server = [float(r["server_ms"]) for r in mine if r["server_ms"]]
-        per_round = [pct([float(r["client_ms"]) for r in mine if r["round"] == lab], 0.99) for lab in sorted(gets_labels)]
+        client, server = series(route, "client", labels), series(route, "server", labels)
+        per_round = [weighted_pct(series(route, "client", [lab]), 0.99) for lab in labels]
         round_p99_over |= max(per_round) > 250
-        per_route[route] = {"n": len(mine), "p50_ms": round(pct(client, 0.5), 1), "p99_ms": round(pct(client, 0.99), 1),
-                            "server_p50_ms": round(pct(server, 0.5), 1) if server else None,
-                            "server_p99_ms": round(pct(server, 0.99), 1) if server else None,
-                            "round_p99_min_ms": round(min(per_round), 1), "round_p99_max_ms": round(max(per_round), 1),
-                            "non_2xx": sum(1 for r in mine if not r["status"].startswith("2"))}
+        per_route[route] = {
+            "n": sum(c for _, c in client), "p50_ms": weighted_pct(client, 0.5), "p99_ms": weighted_pct(client, 0.99),
+            "server_p50_ms": weighted_pct(server, 0.5) if server else None,
+            "server_p99_ms": weighted_pct(server, 0.99) if server else None,
+            "round_p50_ms": [weighted_pct(series(route, "client", [lab]), 0.5) for lab in labels],
+            "round_p99_ms": per_round,
+            "non_2xx": sum(int(h["count"]) for h in hist if h["route"] == route and h["kind"] == "client"
+                           and h["round"] in labels and not h["status"].startswith("2")),
+        }
+    requests = sum(v["n"] for v in per_route.values())
     offered = sum(int(b["iterations"]) + int(b["dropped"]) for _, b in pairs)
     delivered = sum(int(b["iterations"]) for _, b in pairs)
     non2xx = sum(v["non_2xx"] for v in per_route.values())
@@ -645,40 +703,44 @@ def summarise(raw: Path) -> dict:
     load_busy = sum(1 for a, b in pairs for r in (a, b) if r["busy"] == "True")
     control_row = next(r for r in load_rows if r["label"] == "c-healthz")
     control_base = next(r for r in load_rows if r["label"] == "c-shoppers")
-    ctrl_reqs = [r for r in csv.DictReader((raw / "load-requests.csv").open()) if r["round"] == "c-healthz"]
-    ctrl_p50 = pct([float(r["client_ms"]) for r in ctrl_reqs], 0.5)
-    ctrl_server_timing = sum(1 for r in ctrl_reqs if r["server_ms"])
+    ctrl_p50 = weighted_pct(series("healthz", "client", ["c-healthz"]), 0.5)
+    ctrl_server_timing = sum(c for _, c in series("healthz", "server", ["c-healthz"]))
 
-    def marginal(a: dict, b: dict) -> float:
-        rate_a = int(a["server_cpu_usec"]) / float(a["seconds"])
-        rate_b = int(b["server_cpu_usec"]) / float(b["seconds"])
+    def marginal(a: dict, b: dict, field: str = "server_cpu_usec") -> float:
+        rate_a = int(a[field]) / float(a["seconds"])
+        rate_b = int(b[field]) / float(b["seconds"])
         return (rate_b - rate_a) * float(b["seconds"]) / int(b["iterations"])
 
     cpu_each = [marginal(a, b) for a, b in pairs]
-    pg_each = [(int(b["pg_cpu_usec"]) / float(b["seconds"]) - int(a["pg_cpu_usec"]) / float(a["seconds"])) * float(b["seconds"]) / int(b["iterations"]) for a, b in pairs]
+    pg_each = [marginal(a, b, "pg_cpu_usec") for a, b in pairs]
     cpu = paired(cpu_each, [0.0] * len(cpu_each))
     ctrl_cpu = marginal(control_base, control_row)
     k4_latency = not all(ctrl_p50 < v["p50_ms"] for v in per_route.values()) or ctrl_server_timing > 0
     k4_cpu = not ctrl_cpu < cpu["mean"]
     worst_p50 = max(v["p50_ms"] for v in per_route.values())
     worst_p99 = max(v["p99_ms"] for v in per_route.values())
-    rq2_green = (worst_p50 <= 50 and worst_p99 <= 250 and not round_p99_over and non2xx <= 0.001 * len(reqs)
+    rq2_green = (worst_p50 <= 50 and worst_p99 <= 250 and not round_p99_over and non2xx <= 0.001 * requests
                  and delivered >= 0.99 * offered and walks > 0)
-    rq2_red = worst_p99 > 1000 or non2xx > 0.01 * len(reqs) or delivered < 0.95 * offered
+    rq2_red = worst_p99 > 1000 or non2xx > 0.01 * requests or delivered < 0.95 * offered
     too_many_void = load_void * 3 > 2 * len(pairs)
     capped = load_busy * 3 > 2 * len(pairs)
-    data["rq"]["rq2"] = {
+    out: dict = {"rate": rate, "rounds": len(pairs), "busy": load_busy, "void": load_void}
+    out["rq2"] = {
         "verdict": "not measured" if (k4_latency or too_many_void) else "red" if rq2_red else "green" if rq2_green and not capped else "grey",
         "rate": rate, "rounds": len(pairs), "seconds": round(statistics.fmean(float(b["seconds"]) for _, b in pairs)),
-        "requests": len(reqs), "offered": offered, "delivered": delivered, "non_2xx": non2xx,
-        "walks_finished": walks, "walks_failed": walks_failed, "routes": per_route,
-        "control_healthz_p50_ms": round(ctrl_p50, 2), "control_server_timing": ctrl_server_timing,
-        "contamination_max_cores": max(float(r["contamination_cores"]) for a, b in pairs for r in (a, b)),
+        "requests": requests, "offered": offered, "delivered": delivered, "delivered_share": round(delivered / offered, 4),
+        "non_2xx": non2xx, "walks_finished": walks, "walks_failed": walks_failed, "routes": per_route,
+        "control_healthz_p50_ms": ctrl_p50, "control_server_timing": ctrl_server_timing,
+        "round_loadavg": [float(b["loadavg"].split()[0]) for _, b in pairs],
+        "round_contamination_cores": [float(b["contamination_cores"]) for _, b in pairs],
+        "round_delivered_share": [round(int(b["iterations"]) / (int(b["iterations"]) + int(b["dropped"])), 4) for _, b in pairs],
+        "round_walks_failed": [int(a["walks_failed"]) + int(b["walks_failed"]) for a, b in pairs],
     }
-    data["rq"]["rq3"] = {
+    out["rq3"] = {
         "verdict": "not measured" if (k4_cpu or too_many_void) else (
             "red" if cpu["mean"] >= 50_000 else "green" if cpu["mean"] <= 10_000 and cpu["half"] < 0.2 * cpu["mean"] and not capped else "grey"),
         "server_usec": round(cpu["mean"]), "server_half_usec": round(cpu["half"]),
+        "round_server_usec": [round(x) for x in cpu_each], "round_pg_usec": [round(x) for x in pg_each],
         "pg_usec": round(statistics.fmean(pg_each)), "control_healthz_usec": round(ctrl_cpu),
         "shoppers_only_server_cores": round(statistics.fmean(int(a["server_cpu_usec"]) / float(a["seconds"]) / 1e6 for a, _ in pairs), 3),
     }
@@ -687,19 +749,21 @@ def summarise(raw: Path) -> dict:
     oom = max(int(r["oom_kill"]) for r in block)
     state = (raw / "load-server.txt").read_text()
     exited = "state (running oomkilled exitcode restarts): true false 0 0" not in state
-    survival = (raw / "load-survival.txt").read_text()
+    survival_file = raw / "load-survival.txt"
+    survival = survival_file.read_text() if survival_file.exists() else ""
     died = bool(re.search(r"died_after_s=\d|state\(running oomkilled exitcode\)=false", survival))
     limit = 768
     rq4_red = oom > 0 or exited or peak > 0.95 * limit
     rq4_green = peak <= 0.80 * limit and not rq4_red and died
-    data["rq"]["rq4"] = {
+    out["rq4"] = {
         "verdict": "red" if rq4_red else "green" if rq4_green else "grey",
         "limit_mib": limit, "peak_mib": round(peak), "peak_share": round(peak / limit, 3),
         "anon_max_mib": round(max(float(r["anon_mib"]) for r in block)),
         "vmrss_max_mib": round(max(float(r["vmrss_mib"]) for r in block)),
-        "threads_max": max(int(r["threads"]) for r in block), "oom_kill": oom, "exited": exited, "control_died": died,
+        "threads_max": max(int(r["threads"]) for r in block), "oom_kill": oom, "exited": exited,
+        "control_ran": bool(survival), "control_died": died,
     }
-    return data
+    return out
 
 
 def main() -> int:
@@ -710,6 +774,9 @@ def main() -> int:
     s.add_argument("--rounds", type=int, default=12)
     l = sub.add_parser("load")
     l.add_argument("--out", type=Path, required=True)
+    c = sub.add_parser("compact")
+    c.add_argument("--requests", type=Path, required=True)
+    c.add_argument("--out", type=Path, required=True)
     m = sub.add_parser("summarise")
     m.add_argument("--raw", type=Path, required=True)
     m.add_argument("--data", type=Path, required=True)
@@ -719,6 +786,8 @@ def main() -> int:
         startup(args.out, args.rounds)
     elif args.command == "load":
         load(args.out)
+    elif args.command == "compact":
+        histogram(args.requests, args.out)
     else:
         data = summarise(args.raw)
         text = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
