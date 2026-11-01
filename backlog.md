@@ -51,7 +51,7 @@ A stage is a field on the item, not a directory.
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-167](docs/backlog/B-167-keyboard-focus-is-visible.md) `[ ]` | fix: the control the keyboard is on is visibly marked | P2 | S/M | - |
-| [B-173](docs/backlog/B-173-the-stack-in-numbers.md) `[ ]` | feat: «The stack in numbers» — start-up with and without the AOT cache, latency, memory, measured | P2 | M | - |
+| [B-173](docs/backlog/B-173-the-stack-in-numbers.md) `[~]` | feat: «The stack in numbers» — start-up with and without the AOT cache, latency, memory, measured | P2 | M | - |
 | [B-156](docs/backlog/B-156-walk-the-selection-on-a-phone.md) `[ ]` | chore: walk the selection and its toolbar on a phone | P3 | S | B-155 |
 | [B-174](docs/backlog/B-174-two-replicas.md) `[ ]` | feat: the server runs as two replicas — an external bus, one leader for the simulators | P3 | L | - |
 | [B-175](docs/backlog/B-175-the-cost-of-compose-web.md) `[ ]` | docs: audit the pixel workarounds since B-85 and write down what Compose for Web cost | P3 | M | - |

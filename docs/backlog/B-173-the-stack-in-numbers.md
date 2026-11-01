@@ -1,7 +1,7 @@
 ---
 id: B-173
 title: "feat: «The stack in numbers» — start-up with and without the AOT cache, latency, memory, measured"
-status: open
+status: wip
 priority: P2
 size: M
 stage: stage-15-showcase
