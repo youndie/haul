@@ -9,19 +9,27 @@ their place, «Picked for you», the Plus block. A card's «+» is walked here o
 - **Width:** 1440, 390
 - **Preconditions:** a store where the sale is live (on the stand, every day: the sale is re-dated to today).
 - **Steps:**
-  1. Read the hero's eyebrow and the banners.
-  2. Press each banner.
+  1. Read the hero and the banners, then open `/deals` and read its count and its deepest badge.
+  2. Press each banner (as a guest; Tech week's also as Sam, Plus's as Sam and as Maya).
   3. Press «View all deals» (1440; the phone's home draws none) and «All N categories».
   4. Look for «Picked for you».
 - **Expected:**
   - Step 1: the hero's eyebrow is the sale campaign's name and dates («Autumn mega sale · Oct 7 — 14» on the
-    canvas; on the stand today's week). A banner is drawn until its campaign ends.
-  - Step 2: every banner opens `/deals`.
+    canvas; on the stand today's week). Its figures are the deals page's: «Up to −49%» is the deepest badge there,
+    «832 items marked down across 32 categories» its «832 items on sale» and the top-level categories they are in
+    (the seed's numbers). Beside it Tech week's banner, «From $399» under «Tech week · Computers», drawn until its
+    campaign ends, and Haul Plus's, «Free delivery on everything» under «With Haul Plus».
+  - Step 2: Tech week's opens `/c/computers?price_min=399&sort=price-asc` — computers only, the first at $399.99.
+    Plus's is the offer the pill makes: the sign-in for a guest, the trial's dialog for Sam; Maya's reads «Included
+    in your membership» and has nothing to press.
   - Step 3: `/deals`; the catalog's root `/c`, every top-level category as a tile.
   - Step 4: no «Picked for you» for a guest.
-- **Decided in:** B-25, B-37, B-49, B-59, B-107
+- **Decided in:** B-25, B-37, B-49, B-59, B-107, B-172
 - **Coverage:** `HomeRoutesTest` «a guest sees the campaign the deals and the Plus offer»;
-  `server:DrawnActionsTest` «each of home's banners opens the deals page»;
+  `server:DrawnActionsTest` «each of home's banners opens what it names»;
+  `PromisesAgreeTest` «the sale's figures are the deals page's»; `PromisesAgreeTest` «every banner opens what its
+  title names»; `composeApp:DrawnActionsTest` «the tech week banner opens the computers it names»;
+  `composeApp:DrawnActionsTest` «the plus banner presents the trial's dialog»;
   `server:DrawnActionsTest` «all categories on the home page opens the catalog root»;
   `server:DrawnActionsTest` «the home page's deal links go to the deals page»;
   `SaleAnnouncementsTest` «the hero and the empty cart name the sale the campaign row is»;
@@ -141,12 +149,15 @@ their place, «Picked for you», the Plus block. A card's «+» is walked here o
      `scripts/a11y-check.py`), and press Escape.
 - **Expected:**
   - Step 1: a guest and Sam see «Try 30 days free»; Maya sees no upsell, but what Plus saved her this year ($186 on
-    the seed, plus the fees waived on her orders since) and when it renews.
+    the seed, plus the fees waived on her orders since) and when it renews. Every benefit listed — on the block and
+    in the trial's dialog — is a rule the store applies: free delivery with no minimum basket, double points, sale
+    prices 24 hours early. No next-day line: every shopper's courier day is the same, member or not (B-172).
   - Step 2: the sign-in.
   - Step 3: the trial's dialog, and only it is read — nothing of the home page under it; Escape closes it, as it
     closes the menus and the other dialogs, and starts nothing.
-- **Decided in:** B-23; B-151; B-123 (the $186 is the seeding day's year's, so a stand seeded after 2025 shows it too)
-- **Coverage:** `MembershipRoutesTest` «the trial is offered to a non-member and the savings shown to a member»;
+- **Decided in:** B-23; B-151; B-123 (the $186 is the seeding day's year's, so a stand seeded after 2025 shows it too);
+  B-172
+- **Coverage:** `PromisesAgreeTest` «every benefit Plus lists is a rule the store applies»; `MembershipRoutesTest` «the trial is offered to a non-member and the savings shown to a member»;
   `HomeRoutesTest` «a guest sees the campaign the deals and the Plus offer»;
   `PlusTrialWiringTest` «escape closes the dialog and sends nothing»;
   `NamedPressesTest` «an open dialog or sheet leaves only itself in the tree»; `SaleCalendarTest` «a stand seeded on
@@ -164,11 +175,33 @@ their place, «Picked for you», the Plus block. A card's «+» is walked here o
   - Step 1: the hero's right part draws falling leaves under its figure; Tech week's banner a laptop in its corner (from 1280 — at 1024 and on a phone the banner
     has no picture, B-82, golden `Home_Guest_Phone`);
     each category tile its category's object; each card its product's object in its colour. No tile says what it
-    stands for («CAMPAIGN IMAGE», «TECH», «HEADPHONES»). Free delivery weekend's banner draws no picture: the canvas
-    keeps no place for one.
+    stands for («CAMPAIGN IMAGE», «TECH», «HEADPHONES»). Haul Plus's banner draws no picture: the canvas
+    keeps no place for one on the banner it took the place of (B-172).
   - Step 2: every picture is an `/images/art/…svg` of the store's own origin, cached for good; nothing off the origin.
 - **Decided in:** B-78, B-128
 - **Coverage:** `PhotoRoutesTest` «a picture address serves the drawn SVG for good»;
   `PhotoRoutesTest` «a picture that is not the seed's is 404»; `ArtFixturesTest` «every picture the bodies name is the server's, and only those are kept»;
   script `scripts/origin-check.py`; golden `Home_Content`; golden `Home_Guest_Phone`
 
+### TC-HOME-09 — Every promise the store makes is its rule, and no two contradict
+
+- **Who:** guest; Sam; Maya
+- **Width:** 1440
+- **Preconditions:** the home page with the sale live; Sam's account; an empty cart.
+- **Steps:**
+  1. Read every «free delivery» on the home page, the deals page, the headphones' page, Sam's account and the empty
+     cart.
+  2. Put the stoneware mug ($24) alone in the cart as a guest, then as Maya; read the summary's delivery.
+  3. Read every number the home page and the deals page write about the catalogue.
+- **Expected:**
+  - Step 1: each is the header's «Free delivery over $35» or Haul Plus's own — the banner under «With Haul Plus», the
+    Plus block, the trial's dialog, the account's Plus tile («Free delivery and double points, then $4.99 / month»).
+    No «free delivery on everything» that is nobody's: before B-172 a free-delivery weekend banner promised one beside
+    the header's $35.
+  - Step 2: $5.99 for the guest, «Free» for Maya — the rule both promises name (research D7).
+  - Step 3: each is counted from the catalogue — «All 32 categories», the hero's «832 items … across 32 categories»
+    and «Up to −49%», the deals page's «832 items on sale»; no abbreviated count («1.2M», «600K») that nothing counts.
+- **Decided in:** B-107, B-172
+- **Coverage:** `PromisesAgreeTest` «every delivery promise is the cart's rule»; `PromisesAgreeTest` «the sale's
+  figures are the deals page's»; `CampaignPromisesMigrationTest` «the campaigns seeded before V34 are migrated to the
+  seed's»

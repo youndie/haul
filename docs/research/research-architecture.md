@@ -1668,6 +1668,42 @@ left out:
   agree to the Terms of Sale.» named a page the store does not have, and with no card there is no note. Haul Pay's
   reads «The first of 4 payments is charged when the order ships.» (B-152).
 
+**Decided in B-172, the store's promises agree with its rules and with each other.** A shopper reviewing the stand
+(2026-11-01) found the home page contradicting the store: «Free delivery over $35» in the header beside a banner «Free
+delivery on everything», with Haul Plus sold for free delivery; «1.2 million items marked down» beside a deals page of
+832; «Up to −70%» where nothing was more than −49 %; «Laptops from $399» opening the deals page of a store with no
+laptops. Each promise is now the rule, counted, or reworded:
+
+- **The sale's figures are the catalogue's.** The sale's copy names them — «Up to {deepest}», «{items} marked down
+  across {categories}» — and the hero and the empty cart's line write them in (`SaleFigures`,
+  `feature/catalog/domain/Sale.kt`) from what is on sale for the viewer by the rule the deals page lists by (`onSale`:
+  the shown SKU under its old price): «Up to −49%», «832 items marked down across 32 categories» on the seed. They are
+  read from prices alone (`CatalogRepository.priced`), not from listed products: reading every product made the home
+  six times slower (5.8 → 35 ms median in the server's tests; about twice a category page's after). A copy without the
+  names is drawn as it is, so a store's own campaign may still state its figure.
+- **A banner opens what it names.** A campaign carries the address its banner opens (`campaigns.link`, V34; none opens
+  `/deals`, as since B-59). Tech week reads «From $399» under «Tech week · Computers» and opens
+  `/c/computers?price_min=399&sort=price-asc`, whose first card is $399.99: the store sells no laptops, and «Computers
+  from $399» broke mid-word in the desktop banner's title beside its picture, so the eyebrow names them. Rejected:
+  giving Computers a «Laptops» leaf — a change of the generated catalogue, its names and a stand's rows, for a banner.
+- **Free delivery on everything is Haul Plus's.** No rule waived delivery on a free-delivery weekend, so its campaign
+  is gone (V34 deletes the seed's row) and Plus's own banner takes its place (`PlusOffer.banner`), not a campaign:
+  «With Haul Plus», «Free delivery on everything», then the offer — «Start a free month», the trial as the pill presents
+  it (sign-in for a guest, the dialog for a customer: B-59's Plus clause), in words of its own beside the block's «Try
+  30 days free»; to a member «Included in your membership» and nothing to press, as the pill (B-108). It is drawn while
+  the row is, beside the campaigns' banners (campaigns first, two in all). Rejected: making the weekend true — a rule
+  D7 does not have, which the header's «over $35» would then contradict for two days.
+- **Plus lists only what Plus does**: free delivery on every order with no minimum basket, double points, sale prices
+  24 hours early. The canvas's «Next-day courier · Whatever the order total» and «Next-day delivery with no minimum»
+  were not Plus's: every shopper's courier day is the same (`DeliveryCalendar`), member or not, whatever the total.
+- **Kept**: the header's «Free delivery over $35» (read as «from $35» since B-11) on every page, a member's too — true
+  for a member, and the shell draws the same header before it knows who is signed in; the account tile's «Free delivery
+  and double points, then $4.99 / month», though a renewal charges nothing in v1 (B-23).
+- **Held by** `PromisesAgreeTest`: every «free delivery» on the home, deals, product, account and empty cart pages is
+  the $35 rule or Plus's, and `Totals` agrees; every Plus benefit maps to a checked rule, an unknown one fails; the
+  hero's figures are the deals page's counted card by card; every banner opens a page with what its title names, and
+  a banner it cannot read fails it.
+
 **Decided in B-70, a running stand keeps its deals of the day.**
 
 - **The start-up re-date runs at each store midnight too** (`SaleRedater`, `seed/SaleRedater.kt`): a stand started on

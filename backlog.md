@@ -46,7 +46,7 @@ A stage is a field on the item, not a directory.
 
 <!-- BEGIN INDEX -->
 
-## Open (13)
+## Open (12)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
@@ -57,14 +57,13 @@ A stage is a field on the item, not a directory.
 | [B-169](docs/backlog/B-169-on-a-phone-the-variant-comes-before-the-buy.md) `[ ]` | fix: on a phone the product's variant is chosen before its buy buttons | P2 | S | - |
 | [B-170](docs/backlog/B-170-the-header-keeps-its-content-across-pages.md) `[ ]` | fix: the header keeps its content while the next page loads | P2 | S | - |
 | [B-171](docs/backlog/B-171-search-finds-a-product-by-its-kind.md) `[ ]` | fix: search finds a product by the words of its kind, not only of its name | P2 | S | - |
-| [B-172](docs/backlog/B-172-the-stores-promises-agree.md) `[~]` | fix: the store's promises agree with its rules and with each other | P2 | S | - |
 | [B-173](docs/backlog/B-173-the-stack-in-numbers.md) `[ ]` | feat: «The stack in numbers» — start-up with and without the AOT cache, latency, memory, measured | P2 | M | - |
 | [B-156](docs/backlog/B-156-walk-the-selection-on-a-phone.md) `[ ]` | chore: walk the selection and its toolbar on a phone | P3 | S | B-155 |
 | [B-174](docs/backlog/B-174-two-replicas.md) `[ ]` | feat: the server runs as two replicas — an external bus, one leader for the simulators | P3 | L | - |
 | [B-175](docs/backlog/B-175-the-cost-of-compose-web.md) `[ ]` | docs: audit the pixel workarounds since B-85 and write down what Compose for Web cost | P3 | M | - |
 | [B-176](docs/backlog/B-176-a-second-client-draws-the-same-trees.md) `[ ]` | feat: a second client — desktop — draws the same server trees | P3 | L | - |
 
-## Closed (163)
+## Closed (164)
 
 **Skeleton**
 
@@ -273,6 +272,7 @@ A stage is a field on the item, not a directory.
 - [B-162](docs/backlog/B-162-a-visitor-tries-the-money-half-in-one-click.md) `[x]` - feat: a visitor tries checkout, the live order and a return as a demo shopper, in one click
 - [B-165](docs/backlog/B-165-readme-says-what-to-look-at.md) `[x]` - docs: the README says what to look at in five minutes, and the repository points at the stand
 - [B-166](docs/backlog/B-166-sellers-and-brands-are-invented.md) `[x]` - fix: sellers and brands in the sample data are invented, not real companies'
+- [B-172](docs/backlog/B-172-the-stores-promises-agree.md) `[x]` - fix: the store's promises agree with its rules and with each other
 
 <!-- END INDEX -->
 
