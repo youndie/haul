@@ -131,7 +131,8 @@ Verified against the Claude Design project «E-commerce витрина»
 | «Now» on every artboard is 2025-10-07 19:47:23 America/New_York, a Tuesday | *canvas/canvas.json*, `now`; the canvas's weekdays (Wed 8, Thu 9) fit 2025, not 2026 |
 
 **Consequence 7.** The theme is written from `roles`, not from the pictures; a colour on an artboard
-that has no role is drift to raise with the designer, not a token to invent. The fixtures and the
+that has no role is drift to raise with the designer, not a token to invent. The dark scheme is the store's own, the
+canvas drawing none (D9, «Decided in B-180»). The fixtures and the
 seed's fixed clock use the canvas's «now», or every date on a reference differs from its render.
 
 **Decided in B-85 (owner, 2026-10-13): the code is the reference; the canvas is a historical one.** Nothing here
@@ -2769,6 +2770,127 @@ swatch's ring is drawn outside its chosen ring, which is the same Paper-and-Coba
 takes it before the clip (the home's hero and banners). Nothing is drawn while nothing is focused, so the goldens are
 as they were. What Compose's web does with the keys that the ring cannot change is in B-167's findings: the page's
 selection takes a stop of its own, and after a field one Tab is spent by the browser.
+
+#### Decided in B-180: a dark scheme, the system's unless the shopper chose
+
+The store was light only; the owner asked for a dark theme for everything (2026-11-01). The canvas draws no dark
+artboard, and since B-85 the code is the reference, so the dark roles are the store's own, written here.
+
+**Every colour is a role of the scheme being drawn.** `HaulColors` was an object of the canvas's light values; it is
+now the roles of a `HaulColorScheme` read from `LocalHaulColorScheme`
+(`composeApp/src/commonMain/kotlin/io/github/youndie/haul/theme/HaulColors.kt`), so a call site still reads
+`HaulColors.primary` and gets the light Cobalt on a light page and the dark scheme's on a dark one. Where nothing
+chose — a view drawn on its own, every golden, the tests — the scheme is the canvas's light one, so every light golden
+re-recorded with `--force` came out byte-identical. kompot's colour tokens resolve in the same scheme
+(`HaulDesignSystem`). A colour written into the client outside the theme fails `HardCodedColourTest`; the four it keeps
+say why (the schemes themselves, the icons' paths `Icon` tints, a canvas tone drawn through `toneColor`).
+
+**Three roles the canvas did not need, because one light value meant two things.**
+
+- *The band* (`band`, `onBand`, `onBandVariant`, `onBandStrong`, `bandControl`): the header's strip, the footer, the
+  Plus block and the Plus dialog's head, a message, the kept page's notice. On the light page it is the inverse Ink;
+  its Acid words read on nothing light, so it stays a dark ground in both schemes — a charcoal a step above the dark
+  page.
+- *The inverse fill* (`inverseSurface` and its words) is Material's: a chosen chip, day, tab and pager page, the cart
+  button, «Filters», the voted «Helpful». Ink on Paper, Paper on Ink in the dark, so a chosen one still stands out of
+  its unchosen neighbours. `onPrimary` is drawn on it as on Cobalt (white on the light page, Ink on the dark one), and
+  its accent is `inverseAccent`: Acid on Ink, a deeper Cobalt on the dark Paper (a countdown, a chosen day's weekday,
+  a filter's count).
+- *Fixed Cobalt* (`primaryFixed`, `onPrimaryFixed`, Material's «fixed» roles): the campaign and the membership tile,
+  white and Acid words on Cobalt in both schemes. The dark `primary` is lifted to a lavender that reads as a link on
+  the dark page, with Ink on it as a button; Acid on that lavender would not read.
+
+Words on Acid name their ink (`onSecondaryContainer`) wherever they used the page's — the same value in light, Ink in
+the dark where the page's ink is Paper; `HaulButton` on an Acid fill does so by itself.
+
+**The roles, light and dark.**
+
+| Role | Light (the canvas) | Dark |
+|---|---|---|
+| `primary` / `onPrimary` | `#2F2BFF` / `#FFFFFF` | `#A3A0FF` / `#0F0F0F` |
+| `primaryFixed` / `onPrimaryFixed` | `#2F2BFF` / `#FFFFFF` | `#2F2BFF` / `#FFFFFF` |
+| `secondaryContainer` / `onSecondaryContainer` (Acid) | `#DFFF3A` / `#0F0F0F` | the same |
+| `tertiaryContainer` (Hot) | `#FF3D2E` | the same |
+| `error` / `errorContainer` | `#D9230F` / `#FFE5DD` | `#FF7461` / `#3D1D16` |
+| `background` (Paper) | `#F5F3EE` | `#141311` |
+| `surfaceContainerLowest` / `High` / `Highest` | `#FFFFFF` / `#E9E6E0` / `#D6D1C7` | `#211F1C` / `#2A2824` / `#3B3833` |
+| `onSurface` / `onSurfaceVariant` (Ink) | `#0F0F0F` / `#3A3833` | `#F2EFE8` / `#D2CDC3` |
+| `outline` / `outlineMuted` | `#5E5B55` / `#6F6B64` | `#ABA69C` / `#9A958B` |
+| `outlineVariant` / `outlineControl` | `#E2DED6` / `#C9C4BA` | `#3A3731` / `#5C5850` |
+| `inverseSurface` / `inverseOnSurface` / `inverseAccent` | `#0F0F0F` / `#F5F3EE` / `#DFFF3A` | `#F2EFE8` / `#0F0F0F` / `#2420E0` |
+| `band` / `onBand` / `onBandVariant` / `onBandStrong` | `#0F0F0F` / `#F5F3EE` / `#BDB8AE` / `#FFFFFF` | `#2B2925` / `#F5F3EE` / `#C3BEB4` / `#FFFFFF` |
+| `scrim` / `shadow` / `dialogShadow` | Ink 50 % / black 45 % / black 50 % | black 70 % / 60 % / 70 % |
+| `tileHatch` / `bannerHatch` / `shimmer` | Ink 5 % / Ink 8 % / white 55 % | Paper 6 % / Paper 8 % / white 8 % |
+| `knob`, the selection's handle and ground | white; Compose's own `#4286F4` and 40 % of it | `#F2EFE8`; `#A3A0FF` and 40 % of it |
+
+**What the dark scheme is held to: every pair of words and ground at least the light pair's contrast, or 7:1 (WCAG
+AAA) where the light pair is above that** (`HaulColorSchemeTest`, WCAG 2 relative luminance):
+
+| Words on ground | Light | Dark |
+|---|---|---|
+| `onSurface` on `background` / `surfaceContainerLowest` / `surfaceContainerHigh` | 17.29 / 19.17 / 15.39 | 16.17 / 14.32 / 12.81 |
+| `onSurfaceVariant` on `background` / `surfaceContainerLowest` | 10.56 / 11.71 | 11.73 / 10.38 |
+| `outline` on `background` / `surfaceContainerLowest` / `surfaceContainerHigh` | 6.10 / 6.77 / 5.43 | 7.66 / 6.78 / 6.07 |
+| `outlineMuted` on `background` / `surfaceContainerLowest` | 4.78 / 5.30 | 6.23 / 5.52 |
+| `primary` on `background` / `surfaceContainerLowest` | 6.51 / 7.22 | 7.98 / 7.07 |
+| `onPrimary` on `primary` / on `inverseSurface` | 7.22 / 19.17 | 8.24 / 16.69 |
+| `inverseOnSurface` / `inverseAccent` on `inverseSurface` | 17.29 / 16.89 | 16.69 / 7.76 |
+| `onPrimaryFixed` / `secondaryContainer` on `primaryFixed` | 7.22 / 6.36 | 7.22 / 6.36 |
+| `onSecondaryContainer` on `secondaryContainer` | 16.89 | 16.89 |
+| `error` on `background` / `surfaceContainerLowest` / `errorContainer` | 4.51 / 5.00 / 4.17 | 7.01 / 6.20 / 5.72 |
+| `onSurface` on `errorContainer` | 15.98 | 13.20 |
+| `onBand` / `onBandVariant` / `onBandStrong` / `secondaryContainer` / `primary` on `band` | 17.29 / 9.70 / 19.17 / 16.89 / 2.66 | 13.09 / 7.84 / 14.52 / 12.79 / 6.24 |
+
+**A colour a tree carries is a role, or has its counterpart here.** The trees name no kompot colour token outside
+the roles. They do send tile tones, `#RRGGBB` (`tone` on a card, a banner, a category, a review's avatar): the dark
+scheme draws each of the canvas's nine tones as the same hue at about 16 % lightness, as far from the dark page as the
+light tone is from Paper and no further than 1.5:1, and draws a tone it has no counterpart for as sent — the
+campaign's Cobalt, the Acid of a Plus banner and a member's avatar, a Hot banner. The words on a tile take the
+scheme's ink on a counterpart and the canvas's Ink on a tone kept as sent (`HaulColorScheme.onTone`). A product's
+swatch is the product's colour in both schemes; a near-black one is ringed on the dark page, as a white one is on the
+light. The server is unchanged; `HaulColorSchemeTest` reads the tones its sources write and fails on one with no
+counterpart that is not kept.
+
+| Canvas tone | `#E6E4FF` | `#F1EBDD` | `#FFE5DD` | `#F1E4F5` | `#FFF1C9` | `#E3F5D8` | `#E9F0D2` | `#E0EEF7` | `#ECE9E2` |
+|---|---|---|---|---|---|---|---|---|---|
+| Dark | `#1D1B39` | `#302D24` | `#39221B` | `#2E2331` | `#39311B` | `#283321` | `#2E3223` | `#212C33` | `#2D2B27` |
+
+The seed's pictures over the tiles (SVG, `SeedArt`) carry their own light grounds and are B-181's.
+
+**Which scheme.** The system's — the browser's `prefers-color-scheme`, followed while the page is open
+(`browserPrefersDark`), the desktop's through Compose's `isSystemInDarkTheme()`, which skiko reads on macOS and
+Windows and which is light on Linux — unless the shopper chose (`ThemeChoice`, `ThemeMode` System / Light / Dark).
+The choice is kept per browser in `localStorage` (`haul.theme`, `BrowserThemeMemory`), on the desktop in its
+preferences beside the guest and the sign-in (`PreferencesThemeMemory`).
+
+**The switch is in the footer**, a «Theme» column in the place the canvas kept for «Get the app» at 1440 and a row of
+its own under the link columns on a phone: the footer is on every page but checkout, at both widths, and is where a
+shopper looks for what is the site's rather than a page's; the header has no room left at 390 and its menu exists
+only there. Like the demo strip, only the storefront's root holds the switch, so no page golden draws it
+(`HaulFooter_Theme*` do). The desktop app has it in its View menu too.
+
+**The first paint follows.** `index.html`'s frame — the header's shape before the bundle — is drawn in custom
+properties holding the schemes' roles (`StaticFrameTest` holds them to `HaulColorScheme`), dark under
+`prefers-color-scheme: dark` unless `data-theme="light"`, and dark under `data-theme="dark"`; an inline script marks
+the kept choice on the root before the frame is parsed, and the store marks it again when the shopper switches, so a
+dark system or a dark choice sees no white page. **The desktop window** paints its own ground in the scheme's paper
+and, on a Mac, asks for the dark or light title bar (`apple.awt.application.appearance` / `apple.awt.windowAppearance`);
+Windows and Linux draw their title bar in the system's own scheme — asking Windows for a dark one is a DWM call the app
+does not make.
+
+**Dark goldens: a set, not every golden twice.** The dark scheme drawn over the light goldens' own fixtures (`Dark`
+in `FixtureHarness.kt`, `DarkFixtures.kt`), chosen so that between them they draw every role and every place a role
+was split: `Home_Content_Dark` and `Home_Content_Phone_Dark` (the strip, the band's Plus block and footer, the fixed
+Cobalt campaign, the tiles and the words on them, the countdown's inverse accent, cards and badges),
+`Home_Loading_Dark` (the placeholders), `Home_PlusTrialDialog_Dark` (a dialog's scrim, card and band head),
+`Catalog_Content_Dark` (facets, chips, swatches, the switch, the pager), `Search_Autocomplete_Dark` (the panel's
+scrim and shadow), `Product_Description_Dark` (the buy box, the swatches, the seller's inverse tile),
+`Product_ReviewDialog_Phone_Dark` (a dialog's fields on a phone), `Cart_Content_Dark` (the points on Acid),
+`Checkout_PointsApplied_Dark` (the chosen day and window, the points toggle on Acid), `Order_ReadyForPickup_Dark`
+and `Order_InTransit_Phone_Dark` (the pickup code on Acid, the steps), `Account_Content_Dark` (the tiles, the
+avatar on Acid, the side menu, the statuses), `Shell_Message_Dark`, `Demo_Strip_Hood_Dark`, `Hood_Panel_Dark`,
+`Numbers_Content_Dark` and `Live_Content_Dark`, and the footer's switch, `HaulFooter_Theme*`, light and dark at both
+widths.
 
 ### D10. Documentation in English
 

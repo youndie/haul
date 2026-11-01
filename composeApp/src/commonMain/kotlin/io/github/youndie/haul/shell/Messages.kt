@@ -161,7 +161,7 @@ internal fun MessageNotice(
             // block «Added to your cart» was a dark box on a dark block.
             .shadow(16.dp, MESSAGE_SHAPE)
             .border(2.dp, HaulColors.surfaceContainerLowest, MESSAGE_SHAPE)
-            .background(HaulColors.inverseSurface, MESSAGE_SHAPE)
+            .background(HaulColors.band, MESSAGE_SHAPE)
             .padding(start = 20.dp, end = if (onAction != null) 12.dp else 20.dp, top = 12.dp, bottom = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -170,7 +170,7 @@ internal fun MessageNotice(
         Icon(if (error) HaulIcons.alert else HaulIcons.checkBold, 20.dp, HaulColors.secondaryContainer)
         Text(
             message.text,
-            normal(15f, 700).copy(color = HaulColors.inverseOnSurface),
+            normal(15f, 700).copy(color = HaulColors.onBand),
             Modifier.weight(1f).padding(vertical = if (onAction != null) 0.dp else 11.dp),
         )
         val label = message.actionLabel

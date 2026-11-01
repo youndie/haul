@@ -1,14 +1,31 @@
 package io.github.youndie.haul
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertContentDescriptionEquals
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import io.github.youndie.haul.feature.identity.GUEST_HEADER
 import io.github.youndie.haul.feature.identity.MemorySessionStore
 import io.github.youndie.haul.shell.BackStackHistory
 import io.github.youndie.haul.shell.DEMO_NOTE_TREE
 import io.github.youndie.haul.shell.HEADER_TREE
+import io.github.youndie.haul.theme.HaulColorScheme
+import io.github.youndie.haul.theme.MemoryThemeMemory
+import io.github.youndie.haul.theme.ThemeChoice
+import io.github.youndie.haul.theme.ThemeMode
+import io.github.youndie.haul.ui.themeTag
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
@@ -80,6 +97,45 @@ class DesktopStoreTest {
             )
         }
 
+    /**
+     * B-180: the page follows the system's scheme until the shopper chooses in the footer's switch; the choice draws the
+     * page in it at once and is kept, so the next run starts in it.
+     */
+    @Test
+    fun `the footer's switch draws the page in the scheme chosen and keeps the choice`() =
+        runDesktopComposeUiTest(WIDTH, TALL) {
+            val memory = MemoryThemeMemory()
+            var systemDark by mutableStateOf(false)
+            setContent {
+                DesktopStore(
+                    storeClient(ORIGIN, server),
+                    ORIGIN,
+                    BackStackHistory(),
+                    MemorySessionStore(),
+                    theme = remember { ThemeChoice(memory) },
+                    systemDark = systemDark,
+                )
+            }
+            waitUntil(
+                timeoutMillis = 10_000,
+            ) { onAllNodesWithTag(themeTag(ThemeMode.Dark)).fetchSemanticsNodes().isNotEmpty() }
+            assertEquals(HaulColorScheme.Light.background, pageGround())
+
+            systemDark = true
+            waitForIdle()
+            assertEquals(HaulColorScheme.Dark.background, pageGround(), "nothing chosen, the system's scheme")
+
+            onNodeWithTag(themeTag(ThemeMode.Light)).performClick()
+            waitForIdle()
+            assertEquals(HaulColorScheme.Light.background, pageGround(), "chosen, the choice over the system's")
+            assertEquals(ThemeMode.Light, memory.read())
+            onNodeWithTag(themeTag(ThemeMode.Light)).assertContentDescriptionEquals("Light, chosen")
+            onNodeWithTag(themeTag(ThemeMode.Dark)).assertContentDescriptionEquals("Dark, not chosen")
+        }
+
+    /** The page's ground, left of the content in the page's gutter, under the header. */
+    private fun ComposeUiTest.pageGround(): Color = onRoot().captureToImage().toPixelMap()[GUTTER_X, GROUND_Y]
+
     @Test
     fun `the server is the one named, then HAUL_SERVER, then the stand`() {
         assertEquals("http://localhost:8080", serverOrigin(listOf("--server=http://localhost:8080/"), "https://x.test"))
@@ -101,6 +157,11 @@ class DesktopStoreTest {
         const val HERO_ACTION = "Shop the sale"
         const val WIDTH = 1440
         const val HEIGHT = 1200
+
+        /** Tall enough that the home page is laid out down to its footer, where the theme's switch is. */
+        const val TALL = 4000
+        const val GUTTER_X = 8
+        const val GROUND_Y = 1500
         val JSON = headersOf(HttpHeaders.ContentType, "application/json")
     }
 }

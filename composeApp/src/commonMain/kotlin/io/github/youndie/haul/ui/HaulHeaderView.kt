@@ -405,7 +405,7 @@ private fun WideHeader(
         // The Plus offer (`HaulHeader.plus`, B-49): the trial's dialog, a member's account, a guest's sign-in.
         Text(
             "HAUL PLUS",
-            HaulType.label(11f, 600, 0.06f),
+            HaulType.label(11f, 600, 0.06f).copy(color = HaulColors.onSecondaryContainer),
             Modifier
                 .testTag(PLUS_PILL_TAG)
                 .follows(header.plus, CircleShape)
@@ -593,12 +593,12 @@ private fun Strip(
     spacing: Float,
     content: @Composable (TextStyle) -> Unit,
 ) {
-    val style = HaulType.label(size, 500, spacing).copy(color = HaulColors.inverseOnSurface)
+    val style = HaulType.label(size, 500, spacing).copy(color = HaulColors.onBand)
     Row(
         Modifier
             .fillMaxWidth()
             .height(height)
-            .background(HaulColors.inverseSurface)
+            .background(HaulColors.band)
             .padding(horizontal = padding),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -730,7 +730,7 @@ private fun SearchField(
                     },
                 ),
             contentAlignment = Alignment.Center,
-        ) { Icon(HaulIcons.search, glyph, HaulColors.onSurface) }
+        ) { Icon(HaulIcons.search, glyph, HaulColors.onSecondaryContainer) }
     }
 }
 
@@ -914,7 +914,7 @@ private fun CartButton(
                     .background(HaulColors.secondaryContainer, RoundedCornerShape(12.dp))
                     .padding(horizontal = 3.dp),
                 contentAlignment = Alignment.Center,
-            ) { RollingText(count.toString(), HaulType.text(13f, 800)) }
+            ) { RollingText(count.toString(), HaulType.text(13f, 800).copy(color = HaulColors.onSecondaryContainer)) }
         }
     }
 }

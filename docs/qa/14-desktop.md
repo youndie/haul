@@ -93,3 +93,25 @@ registers (`shildik.desktopRedirectUri`, shildik 0.5.0 and later).
   `DesktopSignInTest` «a sign-in nobody finishes ends as one that did not go through, and its port is closed»;
   `DesktopPartsTest` «a sign-in on a server with sign-in off opens no browser, the guest and the cart kept»;
   manual: a tab the person closes is the system's browser's, which no test drives
+
+### TC-DESK-05 — The window follows the system's dark setting, and View → Theme keeps a choice between runs
+
+- **Who:** guest
+- **Width:** 1440
+- **Preconditions:** the app started against the stand, the system's appearance dark, no theme chosen before.
+- **Steps:**
+  1. Look at the window and the page.
+  2. Switch the system's appearance to light with the app open.
+  3. Choose View → Theme → Dark; quit and start the app again.
+  4. Choose «System» in the page's footer.
+- **Expected:**
+  - Step 1: the page is dark; on a Mac the title bar is dark too. On Windows and Linux the title bar is the system's
+    own (B-180's findings).
+  - Step 2: the page turns light within a moment, without a restart.
+  - Step 3: the page and, on a Mac, the title bar turn dark at once; after the restart the app opens dark whatever
+    the system's setting, and the menu's «Dark» is checked.
+  - Step 4: the page follows the system's setting again, and View → Theme checks «System».
+- **Decided in:** B-180
+- **Coverage:** `DesktopStoreTest` «the footer's switch draws the page in the scheme chosen and keeps the choice»;
+  `ThemeChoiceTest` «a choice overrides the system's setting, and is kept for the next visit»; manual: the
+  system's appearance, its title bar and the preferences kept between runs are the operating system's

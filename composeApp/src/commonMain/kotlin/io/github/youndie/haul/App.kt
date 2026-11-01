@@ -1,6 +1,7 @@
 package io.github.youndie.haul
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -21,9 +22,12 @@ import io.github.youndie.haul.shell.MemoryDemoNoteMemory
 import io.github.youndie.haul.shell.Storefront
 import io.github.youndie.haul.shell.TreeCommands
 import io.github.youndie.haul.shell.UnderTheHood
-import io.github.youndie.haul.theme.HaulColors
+import io.github.youndie.haul.theme.HaulColorScheme
 import io.github.youndie.haul.theme.HaulFonts
 import io.github.youndie.haul.theme.HaulTheme
+import io.github.youndie.haul.theme.LocalThemeChoice
+import io.github.youndie.haul.theme.MemoryThemeMemory
+import io.github.youndie.haul.theme.ThemeChoice
 import io.github.youndie.haul.theme.rememberHaulFonts
 import io.github.youndie.haul.ui.KeyboardFocus
 import io.github.youndie.haul.ui.LinkCopier
@@ -57,7 +61,9 @@ import kotlin.time.Clock
  * which follows the page drawn (B-161). [keyboard] says whether the keyboard moved the focus, so that only then a
  * control draws its ring (B-167): the browser's document tells it every key and press, the root what reaches it. The strip's «Under the hood» opens a panel over the page — the screen's tree,
  * the request that brought it and the updates it takes (B-163) — so [transport]'s requests and [cartCommands]'
- * answers are watched here; the root's alone, like the strip.
+ * answers are watched here; the root's alone, like the strip. The page is drawn in the scheme [theme] chooses, the
+ * system's — [systemDark], the browser's `prefers-color-scheme` or the desktop's setting — unless the shopper chose
+ * one with the footer's switch (B-180), which [theme] keeps; the switch is the root's alone too, so no golden draws it.
  */
 @Composable
 public fun App(
@@ -77,12 +83,17 @@ public fun App(
     title: BrowserTitle? = null,
     demoNote: DemoNoteMemory = MemoryDemoNoteMemory(),
     keyboard: KeyboardFocus = remember { KeyboardFocus() },
+    theme: ThemeChoice = remember { ThemeChoice(MemoryThemeMemory()) },
+    systemDark: Boolean = isSystemInDarkTheme(),
 ) {
+    val colors = theme.scheme(systemDark)
     HaulThemeAtWidth(
         fonts ?: rememberHaulFonts(),
-        Modifier.fillMaxSize().background(HaulColors.background).watchesInput(keyboard),
+        Modifier.fillMaxSize().background(colors.background).watchesInput(keyboard),
+        colors,
     ) {
         CompositionLocalProvider(
+            LocalThemeChoice provides theme,
             LocalKeyboardFocus provides keyboard,
             LocalPhotoLoader provides photos,
             LocalLinkCopier provides links,
@@ -117,10 +128,17 @@ public fun App(
 public fun HaulThemeAtWidth(
     fonts: HaulFonts,
     modifier: Modifier = Modifier,
+    colors: HaulColorScheme = HaulColorScheme.Light,
     content: @Composable () -> Unit,
 ) {
     BoxWithConstraints(modifier) {
-        HaulTheme(fonts, compact = maxWidth < COMPACT_BELOW, medium = maxWidth < WIDE_FROM, content = content)
+        HaulTheme(
+            fonts,
+            compact = maxWidth < COMPACT_BELOW,
+            medium = maxWidth < WIDE_FROM,
+            colors = colors,
+            content = content,
+        )
     }
 }
 

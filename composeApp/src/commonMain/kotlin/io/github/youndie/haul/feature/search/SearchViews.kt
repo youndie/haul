@@ -222,10 +222,11 @@ public fun SearchSuggestOverlay(
         val bounds = field.bounds
         val scrimTop = field.scrimTop
         if (panel == null || bounds == null || scrimTop == null) return@Box
+        val scrim = HaulColors.scrim
         Box(
             Modifier.fillMaxSize().fadesIn().drawBehind {
                 val top = scrimTop - origin.y
-                drawRect(HaulColors.scrim, Offset(0f, top), Size(size.width, size.height - top))
+                drawRect(scrim, Offset(0f, top), Size(size.width, size.height - top))
             },
         )
         val density = LocalDensity.current
@@ -488,7 +489,7 @@ private fun TopProducts(
             Image(
                 rememberVectorPainter(HaulIcons.returnKey),
                 contentDescription = null,
-                colorFilter = ColorFilter.tint(HaulColors.secondaryContainer),
+                colorFilter = ColorFilter.tint(HaulColors.inverseAccent),
             )
         }
     }

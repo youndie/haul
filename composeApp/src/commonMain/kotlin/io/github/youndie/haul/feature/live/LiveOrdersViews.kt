@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -355,6 +356,8 @@ private class Look(
     val aside: Color,
 ) {
     companion object {
+        @Composable
+        @ReadOnlyComposable
         fun of(state: LiveStepState): Look =
             when (state) {
                 LiveStepState.Done -> {

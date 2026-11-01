@@ -500,6 +500,7 @@ internal fun Modifier.shimmer(shape: Shape): Modifier {
         LocalWindowInfo.current.containerSize.width
             .toFloat()
     val left = remember { FloatArray(1) }
+    val shine = HaulColors.shimmer
     return onGloballyPositioned { left[0] = it.positionInWindow().x }.drawWithContent {
         drawContent()
         val wide = if (window > 0f) window else size.width
@@ -507,7 +508,7 @@ internal fun Modifier.shimmer(shape: Shape): Modifier {
         val centre = -band + phase.value * (wide + 2 * band) - left[0]
         val light =
             Brush.linearGradient(
-                listOf(Color.Transparent, SHIMMER_LIGHT, Color.Transparent),
+                listOf(Color.Transparent, shine, Color.Transparent),
                 start = Offset(centre - band / 2, 0f),
                 end = Offset(centre + band / 2, band * SHIMMER_SLANT),
             )
@@ -691,4 +692,3 @@ private const val GLOW = 0.1f
 private const val SHIMMER_MS = 1600
 private const val SHIMMER_BAND = 0.32f
 private const val SHIMMER_SLANT = 0.35f
-private val SHIMMER_LIGHT = Color(0x8CFFFFFF)

@@ -99,6 +99,7 @@ internal fun UnderTheHoodPanel(
     label: String,
 ) {
     val compact = LocalHaulCompact.current
+    val edge = HaulColors.outlineControl
     Box(Modifier.fillMaxSize(), contentAlignment = if (compact) Alignment.BottomCenter else Alignment.TopEnd) {
         val shape = if (compact) RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp) else RoundedCornerShape(0.dp)
         Column(
@@ -115,9 +116,9 @@ internal fun UnderTheHoodPanel(
                     // The edge the page meets: its left on a desktop, its top on a phone.
                     val line = 1.dp.toPx()
                     if (compact) {
-                        drawRect(HaulColors.outlineControl, size = size.copy(height = line))
+                        drawRect(edge, size = size.copy(height = line))
                     } else {
-                        drawRect(HaulColors.outlineControl, size = size.copy(width = line))
+                        drawRect(edge, size = size.copy(width = line))
                     }
                 }.background(HaulColors.surfaceContainerLowest, shape)
                 // Its presses are its own: none reaches the page under it.

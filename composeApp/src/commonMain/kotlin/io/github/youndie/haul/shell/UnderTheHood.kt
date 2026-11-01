@@ -328,6 +328,7 @@ private class Flashed(
         formController: FormController,
     ) {
         val id = component.id
+        val accent = HaulColors.primary
         Box(
             Modifier.drawWithContent {
                 drawContent()
@@ -335,9 +336,9 @@ private class Flashed(
                 val glow = hood.glow(id)
                 if (glow > 0f) {
                     val inset = FLASH_STROKE.toPx() / 2
-                    drawRect(HaulColors.primary.copy(alpha = FLASH_WASH * glow))
+                    drawRect(accent.copy(alpha = FLASH_WASH * glow))
                     drawRoundRect(
-                        HaulColors.primary.copy(alpha = glow),
+                        accent.copy(alpha = glow),
                         topLeft = Offset(inset, inset),
                         size = Size(size.width - 2 * inset, size.height - 2 * inset),
                         cornerRadius = CornerRadius(FLASH_CORNER.toPx()),

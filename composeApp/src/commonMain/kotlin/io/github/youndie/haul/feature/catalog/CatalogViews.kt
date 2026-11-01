@@ -93,6 +93,7 @@ public fun BreadcrumbsView(breadcrumbs: Breadcrumbs) {
     val crumbs = breadcrumbs.crumbs
     val shown = if (compact && crumbs.size > COMPACT_CRUMBS) crumbs.takeLast(2) else crumbs
     val actions = LocalHaulActions.current
+    val ink = HaulColors.onSurface
     Text(
         linkedText {
             if (shown.size < crumbs.size) text.append("… / ")
@@ -100,7 +101,7 @@ public fun BreadcrumbsView(breadcrumbs: Breadcrumbs) {
                 link(it.label, it.action, actions)
                 text.append(" / ")
             }
-            text.withStyle(SpanStyle(color = HaulColors.onSurface)) { append(shown.lastOrNull()?.label.orEmpty()) }
+            text.withStyle(SpanStyle(color = ink)) { append(shown.lastOrNull()?.label.orEmpty()) }
         },
         Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = crumbsTop(compact)),
         style = crumbsStyle(),
@@ -265,7 +266,7 @@ private fun BadgeTitle(title: PageTitle) {
         title.count?.let {
             Text(
                 it,
-                HaulType.label(14f, 600, 0f),
+                HaulType.label(14f, 600, 0f).copy(color = HaulColors.onSecondaryContainer),
                 Modifier
                     .padding(top = if (compact) 6.dp else 10.dp)
                     .background(HaulColors.secondaryContainer, RoundedCornerShape(999.dp))
@@ -539,7 +540,12 @@ private fun CompactApplied(
                         .height(22.dp)
                         .background(HaulColors.secondaryContainer, RoundedCornerShape(11.dp)),
                     contentAlignment = Alignment.Center,
-                ) { Text(applied.filterCount.toString(), HaulType.text(12f, 800)) }
+                ) {
+                    Text(
+                        applied.filterCount.toString(),
+                        HaulType.text(12f, 800).copy(color = HaulColors.onSecondaryContainer),
+                    )
+                }
             }
         }
         Sort(applied, Modifier.height(FILTERS_HEIGHT), textSize = 15f)

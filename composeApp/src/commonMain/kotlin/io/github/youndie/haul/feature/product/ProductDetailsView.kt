@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -68,6 +69,7 @@ import io.github.youndie.haul.ui.UNSAVE
 import io.github.youndie.haul.ui.VariantGroup
 import io.github.youndie.haul.ui.VariantOption
 import io.github.youndie.haul.ui.accented
+import io.github.youndie.haul.ui.edgeless
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.followsToTabs
 import io.github.youndie.haul.ui.gutter
@@ -77,6 +79,7 @@ import io.github.youndie.haul.ui.outset
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.rememberHeartPress
 import io.github.youndie.haul.ui.reveal
+import io.github.youndie.haul.ui.swatchColor
 import io.github.youndie.haul.ui.toneColor
 import io.github.youndie.kompot.KompotAction
 import kotlinx.coroutines.delay
@@ -198,7 +201,7 @@ private fun Photo(
         details.badge?.let {
             Text(
                 it,
-                HaulType.text(14f, 800),
+                HaulType.text(14f, 800).copy(color = HaulColors.onSecondaryContainer),
                 Modifier
                     .align(Alignment.TopStart)
                     .padding(16.dp)
@@ -335,6 +338,8 @@ private fun Brand(details: ProductDetails) {
 }
 
 /** A link's words are the theme's link colour only while there is somewhere to go (B-71). */
+@Composable
+@ReadOnlyComposable
 private fun linkColour(action: KompotAction?): Color =
     if (action !=
         null
@@ -450,7 +455,15 @@ private fun Variants(
                             Modifier
                                 .fillMaxSize()
                                 .clip(RoundedCornerShape(14.dp))
-                                .background(toneColor(option.swatch.orEmpty())),
+                                .background(swatchColor(option.swatch.orEmpty()))
+                                .then(
+                                    // A black option on a dark page is ringed, or its edge is lost (B-180).
+                                    if (HaulColors.scheme.isDark && swatchColor(option.swatch.orEmpty()).edgeless()) {
+                                        Modifier.border(1.dp, HaulColors.outlineControl, RoundedCornerShape(14.dp))
+                                    } else {
+                                        Modifier
+                                    },
+                                ),
                         ) {
                             // An option that cannot be had is struck through, corner to corner.
                             if (!option.available) {
@@ -528,15 +541,18 @@ private fun AllSpecifications(details: ProductDetails) {
 }
 
 /** A hairline along the top edge, inside the box: CSS's `border-top: 1px solid`. */
-internal fun Modifier.topRule(): Modifier =
-    drawBehind {
+@Composable
+internal fun Modifier.topRule(): Modifier {
+    val rule = HaulColors.outlineVariant
+    return drawBehind {
         drawRect(
-            HaulColors.outlineVariant,
+            rule,
             size =
                 androidx.compose.ui.geometry
                     .Size(size.width, 1f),
         )
     }.padding(top = 1.dp)
+}
 
 /**
  * CSS's `grid-template-columns: auto 1fr`: the labels as wide as the widest of them, the values in the
@@ -738,7 +754,11 @@ private fun Price(
                     }
 
                     details.discount != null -> {
-                        Pill(details.discount.orEmpty(), HaulColors.secondaryContainer, HaulType.text(14f, 800))
+                        Pill(
+                            details.discount.orEmpty(),
+                            HaulColors.secondaryContainer,
+                            HaulType.text(14f, 800).copy(color = HaulColors.onSecondaryContainer),
+                        )
                     }
                 }
                 details.oldPrice?.let {
@@ -814,7 +834,7 @@ private fun Seller(seller: SellerSummary) {
         ) {
             Text(
                 seller.initial,
-                HaulType.display(22f, 800, letterSpacing = -0.01f).copy(color = HaulColors.secondaryContainer),
+                HaulType.display(22f, 800, letterSpacing = -0.01f).copy(color = HaulColors.inverseAccent),
             )
         }
         Column(Modifier.weight(1f)) {

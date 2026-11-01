@@ -78,7 +78,12 @@ public fun PlusTrialDialogView(
             .then(if (compact) Modifier.fillMaxWidth() else Modifier.width(640.dp))
             .dropShadow(
                 shape,
-                Shadow(radius = 100.dp, spread = (-20).dp, offset = DpOffset(0.dp, 40.dp), color = CARD_SHADOW),
+                Shadow(
+                    radius = 100.dp,
+                    spread = (-20).dp,
+                    offset = DpOffset(0.dp, 40.dp),
+                    color = HaulColors.dialogShadow,
+                ),
             ).clip(shape)
             .background(HaulColors.surfaceContainerLowest),
     ) {
@@ -106,7 +111,7 @@ private fun Head(
     compact: Boolean,
     onClose: (() -> Unit)?,
 ) {
-    Box(Modifier.fillMaxWidth().background(HaulColors.inverseSurface)) {
+    Box(Modifier.fillMaxWidth().background(HaulColors.band)) {
         Column(Modifier.padding(horizontal = if (compact) 24.dp else 40.dp, vertical = if (compact) 28.dp else 40.dp)) {
             InlineLine(
                 dialog.eyebrow.uppercase(),
@@ -123,7 +128,7 @@ private fun Head(
                             800,
                             letterSpacing = if (compact) -0.01f else -0.03f,
                             lineHeight = 0.9f,
-                        ).copy(color = HaulColors.onPrimary),
+                        ).copy(color = HaulColors.onBandStrong),
             )
         }
         Box(
@@ -131,13 +136,13 @@ private fun Head(
                 .align(Alignment.TopEnd)
                 .padding(top = if (compact) 16.dp else 24.dp, end = if (compact) 16.dp else 24.dp)
                 .size(44.dp)
-                .background(HaulColors.inverseControl, CircleShape)
+                .background(HaulColors.bandControl, CircleShape)
                 .testTag(PLUS_CLOSE_TAG)
                 .named(CLOSE)
                 .pressable(CircleShape, onClose),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(HaulIcons.close, 18.dp, HaulColors.onPrimary)
+            Icon(HaulIcons.close, 18.dp, HaulColors.onBandStrong)
         }
     }
 }
@@ -283,9 +288,6 @@ internal suspend fun TreeCommands.startTrial(
         // Throwable: in the browser a failed fetch is a JavaScript error, which is no `Exception` on Wasm.
         noAnswer(again = null)
     }
-
-/** The card's shadow, black at 50 % (`box-shadow: 0 40px 100px -20px rgba(0,0,0,.5)`), as the review dialogs'. */
-private val CARD_SHADOW = Color(0x80000000)
 
 public const val PLUS_START_TAG: String = "plus-trial-start"
 public const val PLUS_DISMISS_TAG: String = "plus-trial-dismiss"

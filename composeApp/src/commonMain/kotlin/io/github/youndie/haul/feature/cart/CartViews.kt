@@ -614,7 +614,8 @@ private fun Points(
     accent: String?,
 ) {
     val at = accent?.let { sentence.indexOf(it) } ?: -1
-    val style = HaulType.text(14f, 500)
+    val ink = HaulColors.onSecondaryContainer
+    val style = HaulType.text(14f, 500).copy(color = ink)
     Row(
         Modifier
             .fillMaxWidth()
@@ -631,7 +632,7 @@ private fun Points(
                 .trim()
                 .takeIf { it.isNotEmpty() }
                 ?.let { Text(it, style, softWrap = false) }
-            Text(accent.orEmpty(), HaulType.text(14f, 800), softWrap = false)
+            Text(accent.orEmpty(), HaulType.text(14f, 800).copy(color = ink), softWrap = false)
             sentence
                 .substring(at + accent.orEmpty().length)
                 .trim()
@@ -739,7 +740,7 @@ private fun AppliedCode(
     ) {
         Text(
             field.code.orEmpty(),
-            HaulType.label(13f, 600, 0f),
+            HaulType.label(13f, 600, 0f).copy(color = HaulColors.onSecondaryContainer),
             Modifier
                 .background(HaulColors.secondaryContainer, RoundedCornerShape(999.dp))
                 .padding(horizontal = 10.dp, vertical = 6.dp),

@@ -138,6 +138,8 @@ private fun HoodToggle(
     modifier: Modifier = Modifier,
 ) {
     val state = if (open) ToggleableState.On else ToggleableState.Off
+    val fill = HaulColors.inverseSurface
+    val edge = HaulColors.outline
     Box(
         modifier
             .testTag(HOOD_TOGGLE_TAG)
@@ -148,9 +150,9 @@ private fun HoodToggle(
                 val topLeft = Offset(0f, -reach)
                 val pill = Size(size.width, size.height + 2 * reach)
                 if (open) {
-                    drawRoundRect(HaulColors.inverseSurface, topLeft, pill, corner)
+                    drawRoundRect(fill, topLeft, pill, corner)
                 } else {
-                    drawRoundRect(HaulColors.outline, topLeft, pill, corner, style = Stroke(1.dp.toPx()))
+                    drawRoundRect(edge, topLeft, pill, corner, style = Stroke(1.dp.toPx()))
                 }
             }.padding(horizontal = 10.dp),
     ) {

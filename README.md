@@ -57,6 +57,8 @@ always orders moving through the saga.
   idempotent — a double press is one order.
 - **After the order**: shipments per seller moving through packed, in transit and delivered; returns, refunds,
   reorders; reviews with photos and questions; a membership with free delivery and a trial.
+- **Light and dark**: the store follows the system's colour scheme, and the footer's «Theme» (the desktop app's
+  View menu too) keeps a choice per browser; even the page before the bundle loads is drawn in it.
 - **Phones too** — the same trees, drawn for the width:
 
 <p align="center">

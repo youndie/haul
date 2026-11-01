@@ -142,13 +142,14 @@ private fun Crumbs(
     modifier: Modifier,
 ) {
     val actions = LocalHaulActions.current
+    val ink = HaulColors.onSurface
     Text(
         linkedText {
             body.crumbs.dropLast(1).forEach {
                 link(it.label, it.action, actions)
                 text.append(" / ")
             }
-            text.withStyle(SpanStyle(color = HaulColors.onSurface)) {
+            text.withStyle(SpanStyle(color = ink)) {
                 append(
                     body.crumbs
                         .lastOrNull()
@@ -194,6 +195,9 @@ internal fun StepColumns(
             val done = reached && !current
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    val accent = HaulColors.primary
+                    val acid = HaulColors.secondaryContainer
+                    val rest = HaulColors.outlineVariant
                     Box(
                         Modifier
                             .size(16.dp)
@@ -201,11 +205,11 @@ internal fun StepColumns(
                                 val radius = size.minDimension / 2
                                 if (current) {
                                     // `box-shadow: 0 0 0 4px` Cobalt around Acid: a ring outside the dot's box.
-                                    drawCircle(HaulColors.primary, radius + RING.toPx(), center)
-                                    drawCircle(HaulColors.secondaryContainer, radius, center)
+                                    drawCircle(accent, radius + RING.toPx(), center)
+                                    drawCircle(acid, radius, center)
                                 } else {
                                     drawCircle(
-                                        if (done) HaulColors.primary else HaulColors.outlineVariant,
+                                        if (done) accent else rest,
                                         radius,
                                         center,
                                     )
@@ -292,12 +296,13 @@ private fun Notice(notice: OrderNotice) {
 private fun Pickup(pickup: PickupCode) {
     val compact = LocalHaulCompact.current
     val codeSize = if (compact) 72f else 96f
+    val ink = HaulColors.onSecondaryContainer
     val code: @Composable () -> Unit = {
         Column {
-            Text(pickup.label.uppercase(), HaulType.label(11f, 600, 0.08f), softWrap = false)
+            Text(pickup.label.uppercase(), HaulType.label(11f, 600, 0.08f).copy(color = ink), softWrap = false)
             Text(
                 pickup.code,
-                HaulType.display(codeSize, 800, letterSpacing = 0.06f, lineHeight = TITLE_LEADING),
+                HaulType.display(codeSize, 800, letterSpacing = 0.06f, lineHeight = TITLE_LEADING).copy(color = ink),
                 Modifier.padding(top = 8.dp),
                 softWrap = false,
             )
@@ -316,7 +321,7 @@ private fun Pickup(pickup: PickupCode) {
                 }
             },
             Modifier.widthIn(max = 380.dp),
-            style = HaulType.text(15f, lineHeight = PICKUP_LEADING),
+            style = HaulType.text(15f, lineHeight = PICKUP_LEADING).copy(color = ink),
         )
     }
     val box =

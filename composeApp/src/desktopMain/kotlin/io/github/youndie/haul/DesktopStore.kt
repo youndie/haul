@@ -15,6 +15,8 @@ import io.github.youndie.haul.shell.ktorCommands
 import io.github.youndie.haul.shell.ktorRealtime
 import io.github.youndie.haul.shell.ktorTransport
 import io.github.youndie.haul.shell.ktorTreeCommands
+import io.github.youndie.haul.theme.MemoryThemeMemory
+import io.github.youndie.haul.theme.ThemeChoice
 import io.github.youndie.haul.ui.LinkCopier
 import io.github.youndie.haul.ui.Motion
 import io.github.youndie.haul.ui.coilPhotoLoader
@@ -42,7 +44,8 @@ internal fun storeClient(
  * browser. What is the browser's there is the window's here: [history] the app's own entries, [title] the window's,
  * [links] the system clipboard and browser, [sessions] the guest and a sign-in kept between runs. [signIn] is the
  * provider's page in the system's browser, returning to a loopback port ([LoopbackSignInFlow], B-178); the fonts are
- * Compose's resources, read as the app starts.
+ * Compose's resources, read as the app starts. [theme] is the shopper's choice over the system's scheme, [systemDark]
+ * (B-180).
  */
 @Composable
 internal fun DesktopStore(
@@ -54,6 +57,8 @@ internal fun DesktopStore(
     links: LinkCopier? = null,
     motion: Motion = Motion.Lively,
     signIn: SignInFlow = remember { LoopbackSignInFlow() },
+    theme: ThemeChoice = remember { ThemeChoice(MemoryThemeMemory()) },
+    systemDark: Boolean = false,
 ) {
     val identity = remember(http, sessions, signIn) { Identity(IdentityApi(http), signIn, sessions) }
     val photos = remember(http, origin) { coilPhotoLoader(http, origin) }
@@ -76,5 +81,7 @@ internal fun DesktopStore(
         links = links,
         motion = motion,
         title = title,
+        theme = theme,
+        systemDark = systemDark,
     )
 }

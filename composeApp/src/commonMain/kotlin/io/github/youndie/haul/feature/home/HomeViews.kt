@@ -131,7 +131,7 @@ private fun Hero(
                     scaleY = 1f + HERO_DRIFT * it
                     transformOrigin = TransformOrigin(1f, 0.5f)
                 },
-        ) { Box(Modifier.fillMaxSize().hatching(HERO_HATCH, period = 14f)) }
+        ) { Box(Modifier.fillMaxSize().hatching(HaulColors.bandHatch, period = 14f)) }
         Column(
             Modifier
                 .fillMaxSize()
@@ -153,12 +153,13 @@ private fun Hero(
                                     if (compact) 40f else 72f,
                                     500,
                                     letterSpacing = if (compact) -0.01f else -0.02f,
-                                ).copy(color = HaulColors.onPrimary),
+                                ).copy(color = HaulColors.onPrimaryFixed),
                     )
                 }
                 // The figure is as large as the card is wide enough for (B-82): 260 px of «70%» run 50 px past
                 // the card's edge at 1024.
                 // A figure drawn, not words to copy: out of the page's selection, as the footer's name (B-155).
+                val acid = HaulColors.secondaryContainer
                 DisableSelection {
                     FittedText(
                         AnnotatedString(figure),
@@ -171,7 +172,7 @@ private fun Hero(
                                     900,
                                     letterSpacing = -0.05f,
                                     lineHeight = if (compact) 0.84f else 0.82f,
-                                ).copy(color = HaulColors.secondaryContainer)
+                                ).copy(color = acid)
                         },
                         modifier =
                             Modifier.offset(x = if (compact) (-4).dp else (-10).dp).onHover(hover) {
@@ -188,7 +189,7 @@ private fun Hero(
                     Text(
                         hero.subtitle,
                         HaulType.text(if (compact) 14f else 15f, lineHeight = 1.4f).copy(
-                            color = HaulColors.onPrimary,
+                            color = HaulColors.onPrimaryFixed,
                         ),
                         Modifier.widthIn(max = if (compact) 260.dp else 230.dp),
                     )
@@ -261,13 +262,14 @@ private fun Banner(
                         scaleX = 1f + PHOTO_GROWTH * it
                         scaleY = 1f + PHOTO_GROWTH * it
                     }.clip(RoundedCornerShape(18.dp)),
-            ) { Box(Modifier.fillMaxSize().hatching(BANNER_HATCH)) }
+            ) { Box(Modifier.fillMaxSize().hatching(HaulColors.bannerHatch)) }
         }
+        val ink = HaulColors.onTone(banner.tone)
         Column(
             Modifier.fillMaxSize().padding(if (compact) 20.dp else 32.dp),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(banner.eyebrow.uppercase(), HaulType.label(if (compact) 11f else 12f, 600, 0.08f))
+            Text(banner.eyebrow.uppercase(), HaulType.label(if (compact) 11f else 12f, 600, 0.08f).copy(color = ink))
             // The phone's banner shrinks a long title (Home_Guest_Phone: 28 px for «Laptops from $399»,
             // 24 px for «Free delivery on everything»).
             val size =
@@ -281,12 +283,13 @@ private fun Banner(
                 accented(banner.title, banner.accent),
                 if (!compact && image != null) Modifier.widthIn(max = 240.dp) else Modifier,
                 style =
-                    HaulType.display(
-                        size,
-                        800,
-                        letterSpacing = if (compact) -0.01f else -0.02f,
-                        lineHeight = 0.95f,
-                    ),
+                    HaulType
+                        .display(
+                            size,
+                            800,
+                            letterSpacing = if (compact) -0.01f else -0.02f,
+                            lineHeight = 0.95f,
+                        ).copy(color = ink),
             )
             val action = banner.actionLabel
             val subtitle = banner.subtitle
@@ -296,11 +299,11 @@ private fun Banner(
                         horizontalArrangement = Arrangement.spacedBy(if (compact) 6.dp else 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(action, HaulType.text(if (compact) 14f else 15f, 700))
+                        Text(action, HaulType.text(if (compact) 14f else 15f, 700).copy(color = ink))
                         Icon(
                             HaulIcons.arrowRight,
                             if (compact) 16.dp else 18.dp,
-                            HaulColors.onSurface,
+                            ink,
                             Modifier.onHover(hover) { translationX = ARROW_LEAN.toPx() * it },
                         )
                     }
@@ -310,9 +313,9 @@ private fun Banner(
                     Text(
                         subtitle,
                         if (compact) {
-                            HaulType.text(13f, 600, lineHeight = 1.3f)
+                            HaulType.text(13f, 600, lineHeight = 1.3f).copy(color = ink)
                         } else {
-                            HaulType.text(15f, 600)
+                            HaulType.text(15f, 600).copy(color = ink)
                         },
                     )
                 }
@@ -331,12 +334,6 @@ private const val BANNER_TILT = 4f
 private const val PHOTO_GROWTH = 0.05f
 private val ARROW_LEAN = 5.dp
 private val TILE_LIFT = 5.dp
-
-/** White at 9 %: the campaign's hatching over Cobalt. */
-private val HERO_HATCH = Color(0x17FFFFFF)
-
-/** Ink at 8 %: the banner's placeholder tile. */
-private val BANNER_HATCH = Color(0x140F0F0F)
 
 /**
  * B-152: the deals a countdown counts end with it, and the server has the next day's from that second — a home page
@@ -406,7 +403,7 @@ public fun SectionHeaderView(header: SectionHeader) {
                                     if (compact) 15f else 18f,
                                     600,
                                     0.04f,
-                                ).copy(color = HaulColors.secondaryContainer),
+                                ).copy(color = HaulColors.inverseAccent),
                             Modifier
                                 .background(HaulColors.inverseSurface, RoundedCornerShape(12.dp))
                                 .padding(
@@ -512,7 +509,7 @@ public fun PlusBlockView(plus: PlusBlock) {
     val box =
         Modifier
             .fillMaxWidth()
-            .background(HaulColors.inverseSurface, RoundedCornerShape(if (compact) 24.dp else 28.dp))
+            .background(HaulColors.band, RoundedCornerShape(if (compact) 24.dp else 28.dp))
     Box(Modifier.fillMaxWidth().padding(start = gutter, end = gutter, top = if (compact) 48.dp else 72.dp).reveal()) {
         if (compact) {
             Column(
@@ -558,7 +555,7 @@ private fun PlusTitle(
             style =
                 HaulType
                     .display(size, 800, letterSpacing = if (compact) -0.01f else -0.03f, lineHeight = 0.92f)
-                    .copy(color = HaulColors.inverseOnSurface),
+                    .copy(color = HaulColors.onBand),
         )
         if (plus.member) {
             Row(
@@ -569,13 +566,13 @@ private fun PlusTitle(
                 plus.renewal?.let {
                     Text(
                         it.uppercase(),
-                        HaulType.label(12f, 600, 0.06f),
+                        HaulType.label(12f, 600, 0.06f).copy(color = HaulColors.onSecondaryContainer),
                         Modifier
                             .background(HaulColors.secondaryContainer, CircleShape)
                             .padding(horizontal = 12.dp, vertical = 8.dp),
                     )
                 }
-                plus.price?.let { Text(it, HaulType.text(15f).copy(color = HaulColors.inverseOnSurfaceVariant)) }
+                plus.price?.let { Text(it, HaulType.text(15f).copy(color = HaulColors.onBandVariant)) }
             }
         }
     }
@@ -590,7 +587,7 @@ private fun PlusDetails(
         if (plus.member) {
             Text(
                 "Your benefits".uppercase(),
-                HaulType.label(11f, 600, 0.08f).copy(color = HaulColors.inverseOnSurfaceVariant),
+                HaulType.label(11f, 600, 0.08f).copy(color = HaulColors.onBandVariant),
             )
         }
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -600,7 +597,7 @@ private fun PlusDetails(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(HaulIcons.check, 20.dp, HaulColors.secondaryContainer)
-                    Text(it, HaulType.text(if (compact) 16f else 17f).copy(color = HaulColors.inverseOnSurface))
+                    Text(it, HaulType.text(if (compact) 16f else 17f).copy(color = HaulColors.onBand))
                 }
             }
         }
@@ -623,7 +620,7 @@ private fun PlusDetails(
                             HaulType
                                 .text(
                                     14f,
-                                ).copy(color = HaulColors.inverseOnSurfaceVariant, textAlign = TextAlign.Center),
+                                ).copy(color = HaulColors.onBandVariant, textAlign = TextAlign.Center),
                             Modifier.fillMaxWidth(),
                         )
                     }
@@ -640,7 +637,7 @@ private fun PlusDetails(
                         fill = HaulColors.secondaryContainer,
                         onClick = following(plus.action),
                     )
-                    price?.let { Text(it, HaulType.text(15f).copy(color = HaulColors.inverseOnSurfaceVariant)) }
+                    price?.let { Text(it, HaulType.text(15f).copy(color = HaulColors.onBandVariant)) }
                 }
             }
         }

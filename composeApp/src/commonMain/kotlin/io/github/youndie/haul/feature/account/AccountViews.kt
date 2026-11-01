@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -136,7 +137,7 @@ private fun Main(
                 heading()
                 Text(
                     count,
-                    HaulType.label(14f, 600, 0f),
+                    HaulType.label(14f, 600, 0f).copy(color = HaulColors.onSecondaryContainer),
                     Modifier
                         .padding(top = if (compact) 6.dp else 10.dp)
                         .background(HaulColors.secondaryContainer, CircleShape)
@@ -176,7 +177,9 @@ private fun Profile(profile: AccountProfile) {
         ) {
             Text(
                 profile.initials,
-                HaulType.display(if (compact) 20f else 26f, 800, letterSpacing = -0.01f),
+                HaulType
+                    .display(if (compact) 20f else 26f, 800, letterSpacing = -0.01f)
+                    .copy(color = HaulColors.onTone(profile.tone)),
                 softWrap = false,
             )
         }
@@ -341,10 +344,12 @@ private fun Tiles(tiles: List<AccountTile>) {
 }
 
 /** A tile's fill: Acid for the points, Cobalt for the membership and its offer, White for the price drops. */
+@Composable
+@ReadOnlyComposable
 private fun AccountTile.fill(): Color =
     when (kind) {
         AccountTileKind.Points -> HaulColors.secondaryContainer
-        AccountTileKind.Plus, AccountTileKind.PlusOffer -> HaulColors.primary
+        AccountTileKind.Plus, AccountTileKind.PlusOffer -> HaulColors.primaryFixed
         AccountTileKind.PriceDrops -> HaulColors.surfaceContainerLowest
     }
 
@@ -357,9 +362,18 @@ private fun TileContent(
     val compact = LocalHaulCompact.current
     val (ink, label) =
         when (tile.kind) {
-            AccountTileKind.Points -> HaulColors.onSurface to HaulColors.onSurface
-            AccountTileKind.Plus, AccountTileKind.PlusOffer -> HaulColors.onPrimary to HaulColors.secondaryContainer
-            AccountTileKind.PriceDrops -> HaulColors.onSurface to HaulColors.outline
+            AccountTileKind.Points -> {
+                HaulColors.onSecondaryContainer to HaulColors.onSecondaryContainer
+            }
+
+            AccountTileKind.Plus, AccountTileKind.PlusOffer -> {
+                HaulColors.onPrimaryFixed to
+                    HaulColors.secondaryContainer
+            }
+
+            AccountTileKind.PriceDrops -> {
+                HaulColors.onSurface to HaulColors.outline
+            }
         }
     val offer = tile.kind == AccountTileKind.PlusOffer
     val size =
@@ -493,8 +507,13 @@ private fun Card(order: ActiveOrder) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Text(pickup.label.uppercase(), HaulType.label(11f, 600, 0.08f), softWrap = false)
-                Text(pickup.code, HaulType.display(44f, 800, letterSpacing = 0.04f), softWrap = false)
+                val ink = HaulColors.onSecondaryContainer
+                Text(pickup.label.uppercase(), HaulType.label(11f, 600, 0.08f).copy(color = ink), softWrap = false)
+                Text(
+                    pickup.code,
+                    HaulType.display(44f, 800, letterSpacing = 0.04f).copy(color = ink),
+                    softWrap = false,
+                )
             }
         } else {
             Tones(order.tones, order.images, if (compact) 56.dp else 64.dp, 14.dp, 8.dp, modifier)
@@ -613,7 +632,7 @@ internal fun Chip(
                     fontSize = 12.sp,
                     fontWeight = FontWeight(500),
                     letterSpacing = 0.em,
-                    color = if (filter.selected) HaulColors.secondaryContainer else HaulColors.outline,
+                    color = if (filter.selected) HaulColors.inverseAccent else HaulColors.outline,
                 ),
             ) { append(filter.count) }
         },
@@ -771,9 +790,10 @@ private fun Status(row: HistoryRow) {
             HistoryStatusKind.Returned -> HaulColors.errorContainer
             HistoryStatusKind.Done -> HaulColors.background
         }
+    val ink = if (row.statusKind == HistoryStatusKind.Active) HaulColors.onSecondaryContainer else HaulColors.onSurface
     Text(
         row.status,
-        normal(13f, 600),
+        normal(13f, 600).copy(color = ink),
         Modifier.background(fill, CircleShape).padding(horizontal = 10.dp, vertical = 6.dp),
         softWrap = false,
     )

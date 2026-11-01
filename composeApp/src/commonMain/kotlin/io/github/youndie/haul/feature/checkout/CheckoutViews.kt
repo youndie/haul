@@ -668,7 +668,7 @@ private fun Slots(
                     day.weekday.uppercase(),
                     HaulType
                         .label(11f, 600, 0.06f)
-                        .copy(color = if (selected) HaulColors.secondaryContainer else HaulColors.outline),
+                        .copy(color = if (selected) HaulColors.inverseAccent else HaulColors.outline),
                     softWrap = false,
                 )
                 Text(
@@ -693,7 +693,7 @@ private fun Slots(
         val style =
             when {
                 slot.selected -> {
-                    normal(15f, 700)
+                    normal(15f, 700).copy(color = HaulColors.onSecondaryContainer)
                 }
 
                 !slot.available -> {
@@ -880,13 +880,16 @@ private fun PointsSwitch(
                 ).padding(3.dp),
             contentAlignment = if (toggle.on) Alignment.CenterEnd else Alignment.CenterStart,
         ) {
-            Box(Modifier.size(20.dp).background(HaulColors.surfaceContainerLowest, CircleShape))
+            Box(Modifier.size(20.dp).background(HaulColors.knob, CircleShape))
         }
         Column(Modifier.weight(1f)) {
-            Text(toggle.label, normal(16f, 700))
+            Text(
+                toggle.label,
+                normal(16f, 700).copy(color = if (toggle.on) HaulColors.onSecondaryContainer else HaulColors.onSurface),
+            )
             Text(
                 toggle.detail,
-                normal(14f).copy(color = if (toggle.on) HaulColors.onSurface else HaulColors.outline),
+                normal(14f).copy(color = if (toggle.on) HaulColors.onSecondaryContainer else HaulColors.outline),
                 Modifier.padding(top = 3.dp),
             )
         }

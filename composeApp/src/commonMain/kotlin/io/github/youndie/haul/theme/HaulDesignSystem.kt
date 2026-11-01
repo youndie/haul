@@ -9,33 +9,35 @@ import io.github.youndie.kompot.TypographyToken
 
 /**
  * kompot's tokens resolved to the canvas's roles, for the standard components a tree is laid out with
- * (`column`, `row`, `text`). A colour token is a role's name (`primary`, `onSurface`, …); anything else
- * is Ink. The Haul components draw with [HaulColors] and [HaulType] directly and never ask.
+ * (`column`, `row`, `text`). A colour token is a role's name (`primary`, `onSurface`, …), resolved in the scheme
+ * being drawn; anything else is Ink. The Haul components draw with [HaulColors] and [HaulType] directly and never ask.
  */
 internal object HaulDesignSystem : KompotDesignSystem {
-    private val roles: Map<String, Color> =
+    private val roles: Map<String, (HaulColorScheme) -> Color> =
         mapOf(
-            "primary" to HaulColors.primary,
-            "onPrimary" to HaulColors.onPrimary,
-            "secondaryContainer" to HaulColors.secondaryContainer,
-            "onSecondaryContainer" to HaulColors.onSecondaryContainer,
-            "tertiaryContainer" to HaulColors.tertiaryContainer,
-            "error" to HaulColors.error,
-            "errorContainer" to HaulColors.errorContainer,
-            "background" to HaulColors.background,
-            "surface" to HaulColors.background,
-            "surfaceContainerLowest" to HaulColors.surfaceContainerLowest,
-            "surfaceContainerHigh" to HaulColors.surfaceContainerHigh,
-            "onSurface" to HaulColors.onSurface,
-            "onSurfaceVariant" to HaulColors.onSurfaceVariant,
-            "outline" to HaulColors.outline,
-            "outlineVariant" to HaulColors.outlineVariant,
-            "inverseSurface" to HaulColors.inverseSurface,
-            "inverseOnSurface" to HaulColors.inverseOnSurface,
+            "primary" to { it.primary },
+            "onPrimary" to { it.onPrimary },
+            "secondaryContainer" to { it.secondaryContainer },
+            "onSecondaryContainer" to { it.onSecondaryContainer },
+            "tertiaryContainer" to { it.tertiaryContainer },
+            "error" to { it.error },
+            "errorContainer" to { it.errorContainer },
+            "background" to { it.background },
+            "surface" to { it.background },
+            "surfaceContainerLowest" to { it.surfaceContainerLowest },
+            "surfaceContainerHigh" to { it.surfaceContainerHigh },
+            "onSurface" to { it.onSurface },
+            "onSurfaceVariant" to { it.onSurfaceVariant },
+            "outline" to { it.outline },
+            "outlineVariant" to { it.outlineVariant },
+            "inverseSurface" to { it.inverseSurface },
+            "inverseOnSurface" to { it.inverseOnSurface },
         )
 
+    /** A role of the scheme being drawn (B-180): a tree that names `primary` gets the dark page's on a dark page. */
     @Composable
-    override fun resolveColor(token: ColorToken): Color = roles[token.key] ?: HaulColors.onSurface
+    override fun resolveColor(token: ColorToken): Color =
+        HaulColors.scheme.let { scheme -> roles[token.key]?.invoke(scheme) ?: scheme.onSurface }
 
     /** The canvas's body copy: Archivo 15 px. */
     @Composable
