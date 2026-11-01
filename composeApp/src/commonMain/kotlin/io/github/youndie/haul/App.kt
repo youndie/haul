@@ -11,6 +11,7 @@ import io.github.youndie.haul.feature.cart.CartCommands
 import io.github.youndie.haul.feature.checkout.CheckoutCommands
 import io.github.youndie.haul.feature.identity.Identity
 import io.github.youndie.haul.shell.BrowserHistory
+import io.github.youndie.haul.shell.BrowserTitle
 import io.github.youndie.haul.shell.DemoNoteMemory
 import io.github.youndie.haul.shell.DemoStripped
 import io.github.youndie.haul.shell.HaulCommands
@@ -47,7 +48,8 @@ import kotlin.time.Clock
  * [motion] is whether the page moves (B-158): [Motion.Still] where the browser asks for reduced motion.
  * [demoNote] remembers whether the visitor closed the demo strip the storefront draws above its pages (B-160): the
  * browser's `sessionStorage` there, memory by default. The strip is the root's alone: `Storefront` drawn on its own —
- * the shell's tests — and every golden have none.
+ * the shell's tests — and every golden have none. [title] is the browser tab's title,
+ * which follows the page drawn (B-161).
  */
 @Composable
 public fun App(
@@ -64,6 +66,7 @@ public fun App(
     links: LinkCopier? = null,
     fonts: HaulFonts? = null,
     motion: Motion = Motion.Lively,
+    title: BrowserTitle? = null,
     demoNote: DemoNoteMemory = MemoryDemoNoteMemory(),
 ) {
     HaulThemeAtWidth(fonts ?: rememberHaulFonts(), Modifier.fillMaxSize().background(HaulColors.background)) {
@@ -84,6 +87,7 @@ public fun App(
                     treeCommands,
                     realtime,
                     session = identity,
+                    title = title,
                 )
             }
         }

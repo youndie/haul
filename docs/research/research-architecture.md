@@ -1908,6 +1908,34 @@ is about a tenth, and the fonts another tenth. The wait is no longer blank since
 header's shape until Compose's first frame replaces it, in the HTML's first round trip (below). Since B-150 that
 first frame is drawn in the store's own faces: the page preloads the fonts and the store mounts once it has them.
 
+**Decided in B-161, the title is the page's; the preview is the stand's.** Every tab read «Haul», and a link to the
+stand previewed as a bare address.
+
+- *The tab's title.* Each page's tree names it on its header — `HaulHeader.tabTitle`, `CheckoutHeader.tabTitle` on
+  checkout — and the client puts it in `document.title` (`shell/TabTitle.kt`, `WindowTitle` in the browser, a
+  recording `BrowserTitle` in the tests): «Sony WH-1000XM6 Wireless Noise Cancelling Headphones · Haul» (the listing
+  name, B-45), «Headphones · Haul», «Search: running shoes · Haul», «Deals · Haul», «Catalog · Haul», «Cart · Haul»,
+  «Checkout · Haul», «Your account · Haul», «Your orders · Haul», «Saved · Haul», «Order #HL-48302 · Haul», and on the
+  home «Haul — a demo store built end to end in Kotlin». A field the server writes rather than a title read off the
+  tree: the trees name their pages in a dozen different nodes (a product's details, a category's `PageTitle`, the
+  cart's title with its count, `CheckoutBody.title`) and the home and the account's overview name none, so the client
+  would have kept a table of node types and invented copy for the rest — and the copy is the server's. It is
+  `Frame.page`'s required `title`, so a page added without one does not compile. The header alone (`/ui/header`) and
+  an `update`'s header name none; the client reads the title from the tree drawn, a refresh's included, never from an
+  override. A page the shell draws with no tree (an error, a page not there, a prompt) is «Haul», the sign-in page —
+  the client's own — «Sign in · Haul», a placeholder «Haul» once a page has named the tab; a cold load keeps
+  `index.html`'s `<title>`, the home's, until the first tree arrives.
+- *The preview.* `index.html` — the one page every storefront address answers (B-36) — carries a fixed description
+  saying what the demo is, Open Graph and Twitter card tags (`og:type website`, `og:url` the stand's root,
+  `summary_large_image`) and one picture, `preview.png`: the top 1440 × 756 of the `Home_Guest` golden scaled to
+  1200 × 630 (240 KB), a file of the bundle served beside the page. Every address previews as the store, a product
+  link included. `GET /robots.txt` is a route of the server, answered with or without the bundle: `User-agent: *`,
+  `Allow: /` — `/ui` stays open, it is what a crawler that renders the page asks for.
+- *Rejected for now:* rendering each page's HTML on the server for crawlers (a per-page title, description and
+  picture in the HTML). The page's words are on a canvas, not in the HTML, so a crawler would read only what the
+  server rendered beside it — a second rendering of every page to keep in step with the trees — and a fixed preview
+  already says what a shared link is. Its own item if the numbers ever ask for it.
+
 #### Measured in B-28
 
 **How.** `scripts/measure-first-load.sh` (it builds the arms and calls `scripts/measure-first-load.py`)

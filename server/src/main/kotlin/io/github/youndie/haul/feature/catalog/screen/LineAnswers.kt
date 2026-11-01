@@ -24,7 +24,8 @@ import io.ktor.http.encodeURLParameter
  * Which node it is, the tree that drew the control wrote into the command's own address ([ANSWER]): a card
  * — built the same from the product and the SKU on every page that draws it, [card] — or the product page's
  * buy box ([DETAILS]) on its tab ([TAB], B-104); on the search page, also the search the header shows
- * ([QUERY]) and the category it is in ([SCOPE], B-72), which the header would otherwise lose. A command
+ * ([QUERY]) and the category it is in ([SCOPE], B-72), which the header would otherwise lose. The header names no
+ * tab title: it does not know which page it tops, and the client keeps the tab as the page's tree named it (B-161). A command
  * without it — the cart page's own lines, and the empty cart's picks, whose line the page then lists (B-95)
  * — is answered `refresh`, as is one whose SKU is no longer listed: there is no node to send.
  *

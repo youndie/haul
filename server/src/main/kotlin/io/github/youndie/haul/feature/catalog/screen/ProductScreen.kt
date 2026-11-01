@@ -150,7 +150,7 @@ internal class ProductScreen(
                     }
                 },
             )
-        return Frame.page("product", viewer, navigation(categories), sections)
+        return Frame.page("product", viewer, navigation(categories), sections, Frame.title(item.product.listingName))
     }
 
     /**
