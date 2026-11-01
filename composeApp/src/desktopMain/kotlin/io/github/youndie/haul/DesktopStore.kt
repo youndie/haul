@@ -6,8 +6,9 @@ import io.github.youndie.haul.feature.cart.ktorCartCommands
 import io.github.youndie.haul.feature.checkout.ktorCheckoutCommands
 import io.github.youndie.haul.feature.identity.Identity
 import io.github.youndie.haul.feature.identity.IdentityApi
-import io.github.youndie.haul.feature.identity.NoDesktopSignIn
+import io.github.youndie.haul.feature.identity.LoopbackSignInFlow
 import io.github.youndie.haul.feature.identity.SessionStore
+import io.github.youndie.haul.feature.identity.SignInFlow
 import io.github.youndie.haul.shell.BrowserHistory
 import io.github.youndie.haul.shell.BrowserTitle
 import io.github.youndie.haul.shell.ktorCommands
@@ -39,8 +40,9 @@ internal fun storeClient(
  * The storefront in a window (B-176): the same [App] the browser mounts, with the same renderers, over [http] to
  * [origin] — the trees, the commands, the photos and the order's stream, each through [Identity]'s headers, as in the
  * browser. What is the browser's there is the window's here: [history] the app's own entries, [title] the window's,
- * [links] the system clipboard and browser, [sessions] the guest kept between runs. Sign-in through the provider is not
- * here yet ([NoDesktopSignIn]); the fonts are Compose's resources, read as the app starts.
+ * [links] the system clipboard and browser, [sessions] the guest and a sign-in kept between runs. [signIn] is the
+ * provider's page in the system's browser, returning to a loopback port ([LoopbackSignInFlow], B-178); the fonts are
+ * Compose's resources, read as the app starts.
  */
 @Composable
 internal fun DesktopStore(
@@ -51,8 +53,9 @@ internal fun DesktopStore(
     title: BrowserTitle? = null,
     links: LinkCopier? = null,
     motion: Motion = Motion.Lively,
+    signIn: SignInFlow = remember { LoopbackSignInFlow() },
 ) {
-    val identity = remember(http, sessions) { Identity(IdentityApi(http), NoDesktopSignIn, sessions) }
+    val identity = remember(http, sessions, signIn) { Identity(IdentityApi(http), signIn, sessions) }
     val photos = remember(http, origin) { coilPhotoLoader(http, origin) }
     val transport = remember(http, origin, identity) { ktorTransport(http, origin, identity::send) }
     val cart = remember(http, origin, identity) { ktorCartCommands(http, origin, identity::send) }
