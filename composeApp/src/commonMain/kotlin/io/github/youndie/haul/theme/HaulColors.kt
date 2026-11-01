@@ -6,12 +6,11 @@ import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 
 /**
  * The canvas's colour roles (`canvas/canvas.json`, `roles`), named as the canvas names them, in one scheme: [Light] is
  * the canvas's, [Dark] the store's own (B-180 — the canvas draws no dark artboard, and since B-85 the code is the
- * reference; the table and its contrasts are in the research, D7, «Decided in B-180»). A colour a renderer needs that
+ * reference; the table and its contrasts are in the research, «Decided in B-180»). A colour a renderer needs that
  * is not here is a role to add to both schemes, not a literal in the renderer (`HardCodedColourTest`).
  *
  * The roles beyond the canvas's are the store's: the band ([band] and what is drawn on it) is the footer's, the
@@ -56,8 +55,8 @@ public class HaulColorScheme(
     public val inverseOnSurface: Color,
     public val inverseOnSurfaceVariant: Color,
     /**
-     * The accent on [inverseSurface]: Acid on Ink, as the canvas draws a countdown and a chosen day; Cobalt on the dark
-     * scheme's Paper, where Acid would not read.
+     * The accent on [inverseSurface]: Acid on Ink, as the canvas draws a countdown and a chosen day; a deeper Cobalt on
+     * the dark scheme's Paper, where Acid would not read.
      */
     public val inverseAccent: Color,
     /** The band: a dark ground in both schemes, for the Acid words (the footer, the strip, the Plus offer, messages). */
@@ -108,16 +107,13 @@ public class HaulColorScheme(
     }
 
     /**
-     * The words drawn on a tile of [tone]: the canvas's Ink on a light tile — every tone of a light page, and the Acid a
-     * Plus banner and a member's avatar keep on a dark one — and the dark scheme's Paper on a dark tile.
+     * The words drawn on a tile of [tone]: the canvas's Ink on every tile it draws them on — every tile of a light page,
+     * and a tone the dark page keeps as sent (the Acid of a Plus banner and a member's avatar, a Hot banner) — and the
+     * scheme's own ink on a tile it draws as its dark counterpart.
      */
-    public fun onTone(tone: String): Color =
-        if (tone(tone).luminance() > LIGHT_TILE) Light.onSurface else Dark.onSurface
+    public fun onTone(tone: String): Color = if (tone.removePrefix("#").uppercase() in tones) onSurface else Light.onSurface
 
     public companion object {
-        /** A tile lighter than this takes Ink; the canvas's tones are all above it, their dark counterparts below. */
-        private const val LIGHT_TILE = 0.4f
-
         /** The canvas's: every value as `canvas.json` and the light goldens draw it. */
         public val Light: HaulColorScheme =
             HaulColorScheme(
@@ -167,7 +163,7 @@ public class HaulColorScheme(
         /**
          * The store's dark scheme (B-180): warm near-black paper, the canvas's ink turned to paper, Cobalt lifted to a
          * lavender that reads on the dark page with Ink on it, Acid and Hot as they are; every pair of words and
-         * ground at least the light one's contrast, or 7:1 where the light one is above that (research D7).
+         * ground at least the light one's contrast, or 7:1 where the light one is above that (the research, «Decided in B-180»).
          */
         public val Dark: HaulColorScheme =
             HaulColorScheme(

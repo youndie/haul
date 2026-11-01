@@ -10,7 +10,7 @@ import kotlin.test.assertTrue
 /**
  * B-180: the dark scheme reads as the light one does. Every pair of words and ground the store draws has at least the
  * light pair's contrast in the dark, or 7:1 (WCAG's AAA) where the light pair is above that — the research's table
- * (D7, «Decided in B-180»). And a colour the server sends — a tile's tone — has its dark counterpart, or is one of the
+ * («Decided in B-180»). And a colour the server sends — a tile's tone — has its dark counterpart, or is one of the
  * two the dark page keeps as they are.
  */
 class HaulColorSchemeTest {
@@ -37,11 +37,23 @@ class HaulColorSchemeTest {
                 counterpart != HaulColorScheme.Light.tone(tone) || tone in KEPT,
                 "$tone has no dark counterpart and is not one the dark page keeps",
             )
-            listOf(HaulColorScheme.Light, HaulColorScheme.Dark).forEach { scheme ->
-                val words = contrast(scheme.onTone(tone) to scheme.tone(tone))
-                assertTrue(words >= AA, "words on $tone in ${if (scheme.isDark) "dark" else "light"}: $words")
+            // The campaign's Cobalt carries white words of its own (onPrimaryFixed), not a tile's.
+            if (tone != COBALT) {
+                listOf(HaulColorScheme.Light, HaulColorScheme.Dark).forEach { scheme ->
+                    val words = contrast(scheme.onTone(tone) to scheme.tone(tone))
+                    assertTrue(words >= AA, "words on $tone in ${if (scheme.isDark) "dark" else "light"}: $words")
+                }
             }
         }
+    }
+
+    @Test
+    fun `a light page's words on a tile are the canvas's Ink, whatever the tile`() {
+        (CANVAS_TONES + KEPT + "#FF3D2E" + "not a tone").forEach {
+            assertEquals(HaulColorScheme.Light.onSurface, HaulColorScheme.Light.onTone(it), it)
+        }
+        assertEquals(HaulColorScheme.Dark.onSurface, HaulColorScheme.Dark.onTone("#E6E4FF"))
+        assertEquals(HaulColorScheme.Light.onSurface, HaulColorScheme.Dark.onTone("#DFFF3A"))
     }
 
     @Test
@@ -93,8 +105,10 @@ class HaulColorSchemeTest {
         val CANVAS_TONES =
             setOf("#E6E4FF", "#F1EBDD", "#FFE5DD", "#F1E4F5", "#FFF1C9", "#E3F5D8", "#E9F0D2", "#E0EEF7", "#ECE9E2")
 
+        const val COBALT = "#2F2BFF"
+
         /** The tones the dark page keeps: Acid (a Plus banner, a member's avatar) and Cobalt (the campaign). */
-        val KEPT = setOf("#DFFF3A", "#2F2BFF")
+        val KEPT = setOf("#DFFF3A", COBALT)
 
         /** The pairs of words (first) and ground (second) the store draws, by the roles' names. */
         val PAIRS: List<Pair<String, (HaulColorScheme) -> Pair<Color, Color>>> =

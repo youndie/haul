@@ -566,7 +566,7 @@ private fun PlusTitle(
                 plus.renewal?.let {
                     Text(
                         it.uppercase(),
-                        HaulType.label(12f, 600, 0.06f),
+                        HaulType.label(12f, 600, 0.06f).copy(color = HaulColors.onSecondaryContainer),
                         Modifier
                             .background(HaulColors.secondaryContainer, CircleShape)
                             .padding(horizontal = 12.dp, vertical = 8.dp),
