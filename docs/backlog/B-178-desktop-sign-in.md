@@ -1,7 +1,7 @@
 ---
 id: B-178
 title: "feat: the desktop client signs in through the system browser"
-status: wip
+status: done
 priority: P3
 size: M
 stage: stage-15-showcase
@@ -57,7 +57,8 @@ which shildik does from `0cbc2c7`, released as 0.5.0. The owner chose sign-in (2
   §4a), so no test asks it twice.
 - **Docs**: research D5 «Decided in B-178», D2's B-176 notes, `docs/qa/14-desktop.md` (TC-DESK-02 rewritten for
   sign-in, TC-DESK-03 renewal, TC-DESK-04 a pending or abandoned sign-in), README's desktop line.
-- **Not done here**: the stand walk (TC-DESK-02…04 against haul.kotlin.website) waits for the release that carries
-  this chart. The library keeps the request's state and PKCE verifier in a file of its own in the user's home while a
+- **Not done here**: the stand walk (TC-DESK-02…04 against haul.kotlin.website) follows the v0.8.1 deploy that
+  carries this chart; no walk by hand against a local stack was made (the composed stack was the test's). The code
+  gate and the e2e on the head are the pull request's CI. The library keeps the request's state and PKCE verifier in a file of its own in the user's home while a
   sign-in is under way (its JVM `PreferencesFactory`), emptied when the code returns; not configurable without
   replacing its flow. Tokens sit in the user's preferences, not the system's keychain (no JVM API).
