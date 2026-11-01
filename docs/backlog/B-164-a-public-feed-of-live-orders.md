@@ -1,7 +1,7 @@
 ---
 id: B-164
 title: "feat: a public feed of live orders shows the saga's steps and its compensations"
-status: wip
+status: done
 priority: P1
 size: M
 stage: stage-15-showcase
@@ -63,3 +63,14 @@ convincing thing the stand does, and it is invisible.
   `Search_Autocomplete` byte-wise on the WSL box; not brought back. The goldens brought back are the new
   `Live_Content`, `Live_Content_Phone` and the four the new links moved: `Demo_Strip`, `Demo_Strip_Phone`,
   `About_Content`, `About_Content_Phone` — each looked at.
+- **Walked on a local stand with the shoppers** (2026-11-01, WSL box): the image built from this branch on a kind
+  cluster by `scripts/stand-kind.sh` (`SHOPPERS=true DECLINE_EVERY=2`, a day in ten seconds), `/live` opened in headless
+  Chromium over CDP through a port-forward and watched for four minutes without a touch. One navigation, one `GET
+  /ui/live`, one `GET /ui/updates?topic=live:orders`; every one of the eleven snapshots of the page's accessible names
+  (taken 20 s apart) differed from the one before — new orders on top (#HL-48311 … #HL-48326), each moving Packed → In
+  transit → Delivered → Returning → Returned, and every second one «Cancelled: card declined» with its members struck
+  through as undone. The server logged no warning beyond the observability being off.
+- **Mutations** (after the commit, reverted with `git checkout`): the anonymity test fails on a row that carried the
+  way to pay; the statements test on a statement per row (26 sent); `LiveFeedTest` on a channel without its pause (19
+  reads for 20 moves); the route test and `LiveFixturesTest` on the compensations undone in another order; the client
+  test on a row's open state keyed to the body.
