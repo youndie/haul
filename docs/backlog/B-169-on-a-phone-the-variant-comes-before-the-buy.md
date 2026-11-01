@@ -1,7 +1,7 @@
 ---
 id: B-169
 title: "fix: on a phone the product's variant is chosen before its buy buttons"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-15-showcase
