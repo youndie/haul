@@ -2600,6 +2600,25 @@ Compose 1.12's web input already drops a finger's enter and exit, so a finger al
 phone's lifted card was not reproduced in Chromium's touch emulation (B-168's findings). Under `Motion.Still` nothing
 of this applies, and a lively page at rest is still the still page to the pixel.
 
+#### Decided in B-167: the control the keyboard is on is ringed, as a browser's `:focus-visible`
+
+Every press of the store is drawn with no indication — the canvas draws none — so Tab moved through the page and
+nothing showed where it was (the designer's review, 2026-11-01). A control the keyboard brought the focus to is now
+ringed in the accent, 2 px of Cobalt over a 4 px halo of Paper just outside its edge (the halo keeps it seen on a
+dark or Cobalt control), around the control's own shape: `pressable`, `follows`, `toggles` and the menus take the
+shape, a 6 px rounded corner where a control draws none (`ui/FocusRing.kt`). The ring is the browser's rule, not the
+focus alone: the page's last input decides, a key with no ⌘, Ctrl or Alt held makes it the keyboard's and a pointer
+press takes it away (`KeyboardFocus`), so a mouse press — which focuses the control it lands on (B-144) — rings
+nothing and the next key rings again. The storefront's root reads the keys and presses that reach it, and in the
+browser the document tells it every one in the capture phase, before Compose (`browserKeyboardFocus`): a Tab pressed
+while nothing has the focus reaches no node of the page. A field's frame rings whenever the field has the focus,
+however it was focused, as a browser's text field matches `:focus-visible` — rung only by the keyboard, it would
+light up at the first letter typed after a press. A card rings for its own press, not while its «+» has the focus; a
+swatch's ring is drawn outside its chosen ring, which is the same Paper-and-Cobalt kind; a press drawn inside a clip
+takes it before the clip (the home's hero and banners). Nothing is drawn while nothing is focused, so the goldens are
+as they were. What Compose's web does with the keys that the ring cannot change is in B-167's findings: the page's
+selection takes a stop of its own, and after a field one Tab is spent by the browser.
+
 ### D10. Documentation in English
 
 As the sibling reference projects; this repository is read from outside.

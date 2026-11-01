@@ -38,6 +38,7 @@ import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
+import androidx.compose.ui.test.withKeyDown
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.youndie.haul.FakeHistory
@@ -155,7 +156,7 @@ class FocusRingTest {
     }
 
     @Test
-    fun `Tab rings the control it reaches and Enter presses it`() =
+    fun `Tab rings the control it reaches, Enter and Space press it, Shift+Tab goes back`() =
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
             controls()
             assertFalse(ringed(FIRST), "a ring before anything has the focus")
@@ -170,6 +171,11 @@ class FocusRingTest {
             assertFalse(ringed(FIRST), "the ring stayed on the control Tab left")
             press(Key.Spacebar)
             assertEquals(listOf(FIRST, SECOND), pressed, "Space did not press the control Tab reached")
+            onRoot().performKeyInput { withKeyDown(Key.ShiftLeft) { pressKey(Key.Tab) } }
+            waitForIdle()
+            onNodeWithTag(FIRST).assertIsFocused()
+            assertTrue(ringed(FIRST), "Shift+Tab back drew no ring")
+            assertFalse(ringed(SECOND), "the ring stayed on the control Shift+Tab left")
         }
 
     @Test
