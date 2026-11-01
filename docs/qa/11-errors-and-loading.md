@@ -14,12 +14,20 @@ the server's own: `503`).
 - **Steps:**
   1. From the home page, open in turn: the catalog's root `/c`, a category, `/deals`, a product, a search, the cart;
      as Maya checkout, an order, the account, the Saved list.
+  2. Reload a page by its address, and read the header while the first page is on its way.
 - **Expected:**
-  - Step 1: each draws its own placeholder under the header (itself a placeholder: no name, no count) — never the
-    header alone over nothing, and never the previous page's content; `/c` and `/deals` too. Checkout's marks no
-    step. A placeholder's cards are as many across as the page's (at 1024 three beside a category's facets).
-- **Decided in:** B-67, B-79, B-108, B-136
+  - Step 1: each draws its own placeholder — never the header alone over nothing, and never the previous page's
+    content; `/c` and `/deals` too. Over it the header is as the last page drew it, unchanged until the page
+    arrives: «Sign in» or the shopper's name, the cart's count (one a card's «+» just changed included), «Try as a
+    demo shopper» — never its placeholders, the grey account slot and «Cart» with no count, back for a moment
+    (B-170). Checkout's marks no step. A placeholder's cards are as many across as the page's (at 1024 three beside
+    a category's facets).
+  - Step 2: the first page on its way, before the store has drawn any header, draws the header's placeholder: no
+    name (a grey account slot), no count.
+- **Decided in:** B-67, B-79, B-108, B-136, B-170
 - **Coverage:** `StorefrontTest` «a page on its way draws its placeholders until the tree arrives»;
+  `KeptHeaderTest` «a page on its way keeps the header the last tree drew»;
+  `KeptHeaderTest` «the count an update wrote is the one a page on its way draws»;
   `LoadingCardsTest` «no card placeholder is narrower than the page's own cards at any desktop width»;
   `StorefrontTest` «the catalog's root and the deals draw their placeholders on their way»;
   `CheckoutWiringTest` «the checkout before its tree marks no step»;

@@ -161,12 +161,23 @@ private const val SAVED = "/account/saved"
 public val LocalShellHeader: ProvidableCompositionLocal<HaulHeader> = staticCompositionLocalOf { SHELL_HEADER }
 
 /**
- * [LocalShellHeader] as a page still loading or failed draws it: who is looking is not shown — the
- * account slot a placeholder, no cart count — and the search field holds [query], a search's.
+ * Whether [LocalShellHeader] is one the server drew for who is looking (B-170) — a tree's, an `update` of it, or
+ * the header alone — rather than the client's own ([SHELL_HEADER], [CUSTOMER_SHELL_HEADER]). Outside the storefront
+ * — a screenshot — it is not.
+ */
+public val LocalShellHeaderDrawn: ProvidableCompositionLocal<Boolean> = staticCompositionLocalOf { false }
+
+/**
+ * [LocalShellHeader] as a page still loading or failed draws it, the search field holding [query], a search's. Once
+ * the server has drawn a header for who is looking ([LocalShellHeaderDrawn]) it is that header as it was drawn — the
+ * shopper's name or «Sign in», the cart's count — and a page on its way changes nothing in it (B-170): the header
+ * went back to its placeholders on every page visited. Before that — the first page on its way, or a page that came
+ * with no tree and whose header alone did not arrive — who is looking is not known: the account slot is a
+ * placeholder and the cart has no count.
  */
 @Composable
 internal fun PendingHeader(query: String? = null) {
-    HaulHeaderView(LocalShellHeader.current.copy(query = query), pending = true)
+    HaulHeaderView(LocalShellHeader.current.copy(query = query), pending = !LocalShellHeaderDrawn.current)
 }
 
 /** Why a screen's tree did not arrive, as the shell words it. */
