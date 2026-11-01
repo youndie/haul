@@ -2705,6 +2705,18 @@ for the database. The canvas's «Search 2.4 million products» is not drawn at a
 The canvas's *canvas/canvas.json* and the artboards hold the rest of the copy (product lists,
 campaigns, reviews); the fixtures take it from there, not from this table.
 
+**The brands and sellers are invented** (B-166). The canvas sold real companies' headphones under their names —
+Sony, Bose and Marshall, from «Sony Official Store», «Bose Store» and «Marshall Store» — beside invented reviews and
+prices, and its brand facet listed JBL, Apple and Sennheiser; the store now sells Sonora, Bellwave and Mallard
+headphones from Sonora Audio, Bellwave Store and Mallard Store, with invented model numbers («Sonora SH-718N»), the
+codec LC3 for LDAC, and Juno, Aspen and Halvorsen in the facet. Prices, categories, pictures and reviews stayed: each
+renamed product id keeps its old id's `String.hashCode()` modulo 2,991, which is what the seed's picture variant
+(3) and generated reviews' copy (997) are chosen by, and sorts where the old one did among every other id — the model
+numbers are what make both hold. V31 renames a catalogue seeded before; `InventedBrandsTest` looks for the removed
+names in every seeded row, the server's code and the client's bodies and fixtures. The canvas and its references
+keep the old names (they are historical, §1.6); the migrations before V31 and the backlog's done items, which record
+what was, do too.
+
 The headphones' histogram on Product_Reviews (78 / 14 / 4 / 2 / 2 % of 2,341) averages 4.6, not the 4.8
 every artboard writes. The seed kept both as drawn until B-86, which made the rating the histogram's average: the
 seed's bars are 84 / 12 / 2 / 1 / 1 % (1,966 / 281 / 47 / 24 / 23), a 4.8, and Product_Reviews is the one artboard
