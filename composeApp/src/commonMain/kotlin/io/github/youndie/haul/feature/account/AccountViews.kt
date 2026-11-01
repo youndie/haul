@@ -17,13 +17,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layout
-import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -49,8 +47,6 @@ import io.github.youndie.haul.ui.AccountTile
 import io.github.youndie.haul.ui.AccountTileKind
 import io.github.youndie.haul.ui.ActiveOrder
 import io.github.youndie.haul.ui.ActiveOrders
-import io.github.youndie.haul.ui.CssBox
-import io.github.youndie.haul.ui.CssColumn
 import io.github.youndie.haul.ui.EmptyStateView
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
@@ -63,23 +59,19 @@ import io.github.youndie.haul.ui.Link
 import io.github.youndie.haul.ui.OrderHistory
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.accented
-import io.github.youndie.haul.ui.css
-import io.github.youndie.haul.ui.cssLines
 import io.github.youndie.haul.ui.following
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.normal
 import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.toneColor
-import kotlin.math.roundToInt
 
 // The Account screen (screen-account): the frame's header, then the profile and the menu in a column of
 // their own at 1440 — a profile row and three tabs on a phone — beside the page: the overview's tiles,
 // active orders and recent history, or the whole history under its filter. The numbers are the artboards'
 // (Account_Content, _NotMember, _Orders, _NoOrders and their _Phone twins; the Saved list's, B-20, are
 // `feature/saved/SavedViews.kt`'s). Links follow the tree's actions; «Reorder» on a row is a command for
-// the renderer to send. The page lays out on the browser's fractional line boxes ([CssColumn]), as the
-// order page does: a phone column is long enough to drift.
+// the renderer to send.
 
 /** The account under the header. [onReorder] sends a row's «Reorder» (`HistoryRow.reorderUrl`). */
 @Composable
@@ -89,14 +81,15 @@ public fun AccountBodyView(
 ) {
     val compact = LocalHaulCompact.current
     if (compact) {
-        val head = remember { CssBox() }
-        val main = remember { CssBox(24.dp, carry = true) }
-        CssColumn(Modifier.fillMaxWidth().padding(horizontal = 16.dp), top = 24.dp, bottom = 64.dp) {
-            Column(Modifier.css(head), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(
+            Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 64.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Profile(body.profile)
                 Tabs(body.menu)
             }
-            Main(body, onReorder, Modifier.fillMaxWidth(), main)
+            Main(body, onReorder, Modifier.fillMaxWidth())
         }
     } else {
         Row(Modifier.fillMaxWidth().padding(start = 48.dp, end = 48.dp, top = 40.dp, bottom = 96.dp)) {
@@ -105,7 +98,7 @@ public fun AccountBodyView(
                 Menu(body.menu)
             }
             Spacer(Modifier.width(48.dp))
-            Main(body, onReorder, Modifier.weight(1f), remember { CssBox(carry = true) })
+            Main(body, onReorder, Modifier.weight(1f))
         }
     }
 }
@@ -116,17 +109,14 @@ private fun Main(
     body: AccountBody,
     onReorder: (String) -> Unit,
     modifier: Modifier,
-    box: CssBox,
 ) {
     val compact = LocalHaulCompact.current
-    val title = remember { CssBox() }
     val size = if (compact) 56f else 112f
-    CssColumn(modifier, gap = if (compact) 32.dp else 40.dp, box = box) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(if (compact) 32.dp else 40.dp)) {
         val heading =
-            @Composable { textModifier: Modifier ->
+            @Composable {
                 Text(
                     accented(body.title, body.accent),
-                    textModifier.cssLines(title, (size * TITLE_LEADING).dp),
                     style =
                         HaulType.display(
                             size,
@@ -139,11 +129,11 @@ private fun Main(
             }
         val count = body.count
         if (count == null) {
-            heading(Modifier)
+            heading()
         } else {
             // «Saved 48»: the count in an Acid pill at the title's top, `margin-top: 10px` (6 on a phone).
-            Row(Modifier.css(title), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                heading(Modifier)
+            Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                heading()
                 Text(
                     count,
                     HaulType.label(14f, 600, 0f),
@@ -163,7 +153,7 @@ private fun Main(
             } else {
                 if (history.filters.isNotEmpty()) Filters(history.filters)
                 history.empty?.let { EmptyStateView(it) }
-                if (history.rows.isNotEmpty()) Rows(history.rows, onReorder, remember { CssBox(carry = true) })
+                if (history.rows.isNotEmpty()) Rows(history.rows, onReorder)
                 history.none?.let { Note(it) }
                 history.pagination?.let { PaginationView(it) }
             }
@@ -300,63 +290,48 @@ private fun Badge(
 
 /**
  * The three tiles, as tall as the tallest at 1440 (a grid row stretches its cells), one under another on a
- * phone. A tile's fill is a child of its own, drawn at the row's height once the contents are measured.
+ * phone. A tile's fill is a child of its own, drawn at the row's height once the contents are measured: the
+ * fill is what is pressed and named, its words are not (B-126), so the two are siblings, not a `Row` of boxes.
  */
 @Composable
 private fun Tiles(tiles: List<AccountTile>) {
     val compact = LocalHaulCompact.current
-    val boxes = remember(tiles.size) { List(tiles.size) { CssBox(carry = true) } }
-    val row = remember { CssBox(carry = true) }
     // Below 1280 three tiles side by side are 189 px at 1024, a figure broken between its digits and the trial's
     // button cut (B-82): one under another, as on a phone.
     if (compact || LocalHaulMedium.current) {
-        CssColumn(Modifier.fillMaxWidth(), gap = 12.dp, box = row) {
-            tiles.forEachIndexed { index, tile ->
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            tiles.forEach { tile ->
                 TileContent(
                     tile,
                     Modifier.fillMaxWidth().background(tile.fill(), TILE_SHAPE).follows(tile.action, TILE_SHAPE),
-                    boxes[index],
                 )
             }
         }
     } else {
         Layout(
             content = {
-                tiles.forEachIndexed { index, tile ->
+                tiles.forEach { tile ->
                     // The fill is the tile's whole height, so it is what is pressed; its content, drawn over
                     // it, takes no press and lets one through to it (but the trial's button). The words are not in
                     // the press, so it is named by the tile's label (B-126).
                     Box(Modifier.background(tile.fill(), TILE_SHAPE).named(tile.label).follows(tile.action, TILE_SHAPE))
-                    TileContent(tile, Modifier, boxes[index])
+                    TileContent(tile, Modifier)
                 }
             },
-            modifier = Modifier.fillMaxWidth().layoutId(row),
+            modifier = Modifier.fillMaxWidth(),
         ) { measurables, constraints ->
             val gap = 16.dp.roundToPx()
             val count = (measurables.size / 2).coerceAtLeast(1)
             val width = ((constraints.maxWidth - gap * (count - 1)) / count).coerceAtLeast(0)
-            // Each tile starts where the row does, in its pixel too.
-            boxes.forEach { it.fraction = row.fraction }
             val contents =
                 measurables
-                    .filterIndexed {
-                        index,
-                        _,
-                        ->
-                        index % 2 == 1
-                    }.map { it.measure(Constraints.fixedWidth(width)) }
-            // The row is as tall as the tallest tile in CSS — 176.6, not the 177 its layout rounds to.
-            val css = boxes.maxOfOrNull { it.height.takeUnless(Float::isNaN) ?: 0f } ?: 0f
-            row.height = css
-            val height = (row.fraction + css).roundToInt()
+                    .filterIndexed { index, _ -> index % 2 == 1 }
+                    .map { it.measure(Constraints.fixedWidth(width)) }
+            val height = contents.maxOfOrNull { it.height } ?: 0
             val fills =
                 measurables
-                    .filterIndexed {
-                        index,
-                        _,
-                        ->
-                        index % 2 == 0
-                    }.map { it.measure(Constraints.fixed(width, height)) }
+                    .filterIndexed { index, _ -> index % 2 == 0 }
+                    .map { it.measure(Constraints.fixed(width, height)) }
             layout(constraints.maxWidth, height) {
                 fills.forEachIndexed { index, placeable -> placeable.place(index * (width + gap), 0) }
                 contents.forEachIndexed { index, placeable -> placeable.place(index * (width + gap), 0) }
@@ -378,7 +353,6 @@ private fun AccountTile.fill(): Color =
 private fun TileContent(
     tile: AccountTile,
     modifier: Modifier,
-    box: CssBox,
 ) {
     val compact = LocalHaulCompact.current
     val (ink, label) =
@@ -393,20 +367,10 @@ private fun TileContent(
             offer -> if (compact) 44f else 52f
             else -> if (compact) 52f else 64f
         }
-    val figure = remember { CssBox() }
-    val button = remember { CssBox(6.dp) }
-    val padding = if (compact) 22.dp else 28.dp
-    CssColumn(
-        modifier.padding(horizontal = padding),
-        gap = 10.dp,
-        top = padding,
-        bottom = padding,
-        box = box,
-    ) {
+    Column(modifier.padding(if (compact) 22.dp else 28.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(tile.label.uppercase(), HaulType.label(11f, 600, 0.08f).copy(color = label), softWrap = false)
         Text(
             accented(tile.figure, tile.accent, if (offer) HaulColors.secondaryContainer else Color.Unspecified),
-            Modifier.cssLines(figure, (size * TITLE_LEADING).dp),
             style =
                 HaulType
                     .display(
@@ -420,7 +384,7 @@ private fun TileContent(
         tile.button?.let {
             HaulButton(
                 it.label,
-                Modifier.css(button),
+                Modifier.padding(top = 6.dp),
                 height = 48.dp,
                 radius = 14.dp,
                 horizontal = 20.dp,
@@ -461,13 +425,14 @@ private fun SectionHead(
 /** «Active orders»: the cards, or the sentence that there are none. */
 @Composable
 private fun Active(active: ActiveOrders) {
-    val cards = remember { CssBox(20.dp, carry = true) }
-    CssColumn(Modifier.fillMaxWidth(), box = remember { CssBox(carry = true) }) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         SectionHead(active.title, null)
         if (active.orders.isEmpty()) {
-            active.empty?.let { Note(it, Modifier.css(cards)) }
+            active.empty?.let { Note(it) }
         } else {
-            CssColumn(Modifier.fillMaxWidth(), gap = 16.dp, box = cards) { active.orders.forEach { Card(it) } }
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                active.orders.forEach { Card(it) }
+            }
         }
     }
 }
@@ -497,30 +462,23 @@ internal fun Note(
 @Composable
 private fun Card(order: ActiveOrder) {
     val compact = LocalHaulCompact.current
-    val text = remember { CssBox(carry = true) }
-    val pair = remember { CssBox(carry = true) }
-    val meta = remember { CssBox() }
-    val title = remember { CssBox(12.dp) }
-    val lead = remember { CssBox(10.dp) }
-    val card = remember { CssBox(carry = true) }
     val titleSize = if (compact) 28f else 36f
     val heading: @Composable (Modifier) -> Unit = { modifier ->
-        CssColumn(modifier, box = text) {
+        Column(modifier) {
             Text(
                 order.meta,
                 HaulType.label(12f, 500, 0.04f).copy(color = HaulColors.outline, lineHeight = (12f * META_LEADING).sp),
-                Modifier.cssLines(meta, (12f * META_LEADING).dp),
             )
             Text(
                 accented(order.title, order.accent),
-                Modifier.cssLines(title, titleSize.dp),
+                Modifier.padding(top = 12.dp),
                 style = HaulType.display(titleSize, 800, letterSpacing = -0.01f),
             )
             order.lead?.let {
                 Text(
                     it,
                     HaulType.text(15f, lineHeight = LEAD_LEADING).copy(color = HaulColors.onSurfaceVariant),
-                    Modifier.cssLines(lead, (15f * LEAD_LEADING).dp),
+                    Modifier.padding(top = 10.dp),
                 )
             }
         }
@@ -554,22 +512,25 @@ private fun Card(order: ActiveOrder) {
         }
     }
     // The whole card opens the order, as a history row does (B-74, B-108); «Details ›» says what the press does.
-    CssColumn(
+    Column(
         Modifier
             .fillMaxWidth()
             .follows(order.details.action, RoundedCornerShape(24.dp))
             .background(HaulColors.surfaceContainerLowest, RoundedCornerShape(24.dp))
-            .padding(horizontal = if (compact) 20.dp else 32.dp),
-        gap = 24.dp,
-        top = if (compact) 22.dp else 28.dp,
-        bottom = if (compact) 22.dp else 28.dp,
-        box = card,
+            .padding(horizontal = if (compact) 20.dp else 32.dp, vertical = if (compact) 22.dp else 28.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
         if (compact) {
             heading(Modifier.fillMaxWidth())
             aside(if (order.pickup != null) Modifier.fillMaxWidth() else Modifier)
         } else {
-            GridPair(heading, aside, gap = 40.dp, firstBox = text, box = pair)
+            // CSS's `grid-template-columns: minmax(0, 1fr) auto; align-items: center`: the aside as wide as it
+            // is, the heading the rest, both centred on the taller.
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                heading(Modifier.weight(1f))
+                Spacer(Modifier.width(40.dp))
+                aside(Modifier)
+            }
         }
         order.steps?.let { StepColumns(it, Modifier.fillMaxWidth()) }
         details()
@@ -594,57 +555,15 @@ private fun Tones(
     }
 }
 
-/**
- * CSS's `grid-template-columns: minmax(0, 1fr) auto; align-items: center` for one row: [second] as wide
- * as it is, [first] the rest, both centred on the taller — counted in [first]'s CSS height ([firstBox]),
- * so a 64.8 px heading beside 64 px tiles makes a 64.8 px row.
- */
-@Composable
-private fun GridPair(
-    first: @Composable (Modifier) -> Unit,
-    second: @Composable (Modifier) -> Unit,
-    gap: Dp,
-    firstBox: CssBox,
-    box: CssBox,
-) {
-    Layout(
-        content = {
-            first(Modifier)
-            second(Modifier)
-        },
-        modifier = Modifier.fillMaxWidth().layoutId(box),
-    ) { measurables, constraints ->
-        val loose = constraints.copy(minWidth = 0, minHeight = 0)
-        val right = measurables[1].measure(loose)
-        val gapPx = gap.roundToPx()
-        // The heading's own column starts where the row does; centring it moves it by whole pixels only
-        // when the tiles are the taller, which a heading of a meta line and a title never is.
-        firstBox.fraction = box.fraction
-        val left =
-            measurables[0].measure(
-                loose.copy(maxWidth = (constraints.maxWidth - right.width - gapPx).coerceAtLeast(0)),
-            )
-        val leftHeight = firstBox.height.takeUnless { it.isNaN() } ?: left.height.toFloat()
-        val height = maxOf(leftHeight, right.height.toFloat())
-        box.height = height
-        val from = box.fraction
-        layout(constraints.maxWidth, (from + height).roundToInt()) {
-            left.place(0, (from + (height - leftHeight) / 2).roundToInt())
-            right.place(constraints.maxWidth - right.width, (from + (height - right.height) / 2).roundToInt())
-        }
-    }
-}
-
 /** «Order history» with «All orders», and its rows. */
 @Composable
 private fun Recent(
     history: OrderHistory,
     onReorder: (String) -> Unit,
 ) {
-    val rows = remember { CssBox(20.dp, carry = true) }
-    CssColumn(Modifier.fillMaxWidth(), box = remember { CssBox(carry = true) }) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         SectionHead(history.title.orEmpty(), history.all)
-        Rows(history.rows, onReorder, rows)
+        Rows(history.rows, onReorder)
     }
 }
 
@@ -727,17 +646,13 @@ internal fun Chip(
 private fun Rows(
     rows: List<HistoryRow>,
     onReorder: (String) -> Unit,
-    box: CssBox,
 ) {
     val compact = LocalHaulCompact.current
-    CssColumn(
+    Column(
         Modifier
             .fillMaxWidth()
             .background(HaulColors.surfaceContainerLowest, RoundedCornerShape(24.dp))
-            .padding(horizontal = if (compact) 16.dp else 32.dp),
-        top = if (compact) 4.dp else 8.dp,
-        bottom = if (compact) 4.dp else 8.dp,
-        box = box,
+            .padding(horizontal = if (compact) 16.dp else 32.dp, vertical = if (compact) 4.dp else 8.dp),
     ) {
         // Below 1280 the fixed columns of a wide row are wider than the card and cut «Reorder» (B-82): the phone's
         // row, a grid of two columns, fits any width.
@@ -745,7 +660,7 @@ private fun Rows(
         rows.forEachIndexed { index, row ->
             val last = index == rows.lastIndex
             if (narrow) {
-                PhoneRow(row, onReorder, last, remember { CssBox(carry = true) })
+                PhoneRow(row, onReorder, last)
             } else {
                 Column(Modifier.fillMaxWidth()) {
                     WideRow(row, onReorder)
@@ -779,25 +694,21 @@ private fun WideRow(
 /**
  * A row on a phone, a grid of two columns: the number over the day and the total, the status beside them;
  * the tiles, the way on beside them. The right column is as wide as the wider of the status and the way
- * on; the status starts it, the way on ends it.
+ * on; the status starts it, the way on ends it — a column two rows share, which no `Row` of `Column`s says,
+ * hence a layout of its own.
  */
 @Composable
 private fun PhoneRow(
     row: HistoryRow,
     onReorder: (String) -> Unit,
     last: Boolean,
-    box: CssBox,
 ) {
-    val number = remember { CssBox() }
-    val info = remember { CssBox() }
-    val gap = 10.dp
     Layout(
         content = {
-            CssColumn(gap = 6.dp, box = info) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     row.number,
                     HaulType.label(12f, 500, 0f).copy(lineHeight = (12f * NUMBER_LEADING).sp),
-                    Modifier.cssLines(number, (12f * NUMBER_LEADING).dp),
                     softWrap = false,
                 )
                 Text(
@@ -816,33 +727,32 @@ private fun PhoneRow(
             Action(row, onReorder)
             Hairline()
         },
-        modifier = Modifier.fillMaxWidth().layoutId(box).follows(row.action),
+        modifier = Modifier.fillMaxWidth().follows(row.action),
     ) { measurables, constraints ->
         val loose = constraints.copy(minWidth = 0, minHeight = 0)
+        val gap = 10.dp.roundToPx()
         val status = measurables[1].measure(loose)
         val action = measurables[3].measure(loose)
         val right = maxOf(status.width, action.width)
-        val leftWidth = (constraints.maxWidth - right - gap.roundToPx()).coerceAtLeast(0)
+        val leftWidth = (constraints.maxWidth - right - gap).coerceAtLeast(0)
         val text = measurables[0].measure(loose.copy(maxWidth = leftWidth))
         val tiles = measurables[2].measure(loose.copy(maxWidth = leftWidth))
         val rule = measurables[4].measure(Constraints.fixedWidth(constraints.maxWidth))
         // `padding: 16px 0`, then the two grid rows `gap: 10px` apart, then the hairline under all but the last.
-        val pad = 16.dp.toPx()
-        val top = box.fraction + pad
-        val textHeight = info.height.takeUnless { it.isNaN() } ?: text.height.toFloat()
-        val first = maxOf(textHeight, status.height.toFloat())
-        val secondTop = top + first + gap.toPx()
-        val second = maxOf(tiles.height, action.height).toFloat()
-        val bottom = secondTop + second + pad
+        val top = 16.dp.roundToPx()
+        val first = maxOf(text.height, status.height)
+        val secondTop = top + first + gap
+        val second = maxOf(tiles.height, action.height)
+        val bottom = secondTop + second + top
         val height = bottom + if (last) 0 else rule.height
-        box.height = height - box.fraction
-        val start = constraints.maxWidth - right
-        layout(constraints.maxWidth, height.roundToInt()) {
-            text.place(0, (top + (first - textHeight) / 2).roundToInt())
-            status.place(start, (top + (first - status.height) / 2).roundToInt())
-            tiles.place(0, (secondTop + (second - tiles.height) / 2).roundToInt())
-            action.place(constraints.maxWidth - action.width, (secondTop + (second - action.height) / 2).roundToInt())
-            if (!last) rule.place(0, bottom.roundToInt())
+        // Each cell centred in its grid row.
+        val centred = Alignment.CenterVertically
+        layout(constraints.maxWidth, height) {
+            text.place(0, top + centred.align(text.height, first))
+            status.place(constraints.maxWidth - right, top + centred.align(status.height, first))
+            tiles.place(0, secondTop + centred.align(tiles.height, second))
+            action.place(constraints.maxWidth - action.width, secondTop + centred.align(action.height, second))
+            if (!last) rule.place(0, bottom)
         }
     }
 }

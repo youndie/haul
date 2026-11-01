@@ -15,14 +15,11 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.layout
-import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -31,8 +28,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.Constraints
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,8 +35,6 @@ import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
 import io.github.youndie.haul.ui.BalancedText
-import io.github.youndie.haul.ui.CssBox
-import io.github.youndie.haul.ui.CssColumn
 import io.github.youndie.haul.ui.HaulButton
 import io.github.youndie.haul.ui.HaulIcons
 import io.github.youndie.haul.ui.Icon
@@ -61,16 +54,12 @@ import io.github.youndie.haul.ui.PlanPaymentState
 import io.github.youndie.haul.ui.SummaryRow
 import io.github.youndie.haul.ui.Text
 import io.github.youndie.haul.ui.accented
-import io.github.youndie.haul.ui.css
-import io.github.youndie.haul.ui.cssLines
 import io.github.youndie.haul.ui.following
 import io.github.youndie.haul.ui.follows
 import io.github.youndie.haul.ui.gutter
-import io.github.youndie.haul.ui.lines
 import io.github.youndie.haul.ui.linkedText
 import io.github.youndie.haul.ui.named
 import io.github.youndie.haul.ui.normal
-import kotlin.math.roundToInt
 
 // The Order screen (screen-order): the frame's header, then the crumbs and the title, and the order —
 // where it is, its shipments — in one column with the summary beside it at 1440 and under it on a phone.
@@ -85,23 +74,22 @@ public fun OrderBodyView(
     onReorder: () -> Unit = {},
 ) {
     val compact = LocalHaulCompact.current
-    val crumbs = remember { CssBox() }
-    val meta = remember(compact) { CssBox(if (compact) 14.dp else 20.dp) }
-    val title = remember(compact) { CssBox(if (compact) 12.dp else 14.dp) }
-    val lead = remember(compact) { CssBox(if (compact) 14.dp else 18.dp) }
-    // The title's bottom margin collapses into the grid's top one when no lead stands between them.
-    val grid = remember(compact) { CssBox(if (compact) 28.dp else 40.dp) }
-    val left = remember { CssBox() }
-    val summary = remember { CssBox() }
     val titleSize = if (compact) 56f else 112f
     val leadSize = if (compact) 17f else 20f
-    CssColumn(
-        Modifier.fillMaxWidth().padding(horizontal = gutter()),
-        top = if (compact) 24.dp else 40.dp,
-        bottom = if (compact) 64.dp else 96.dp,
+    Column(
+        Modifier.fillMaxWidth().padding(
+            start = gutter(),
+            end = gutter(),
+            top = if (compact) 24.dp else 40.dp,
+            bottom = if (compact) 64.dp else 96.dp,
+        ),
     ) {
-        Crumbs(body, Modifier.cssLines(crumbs, MONO_LINE))
-        Text(body.meta, mono().copy(color = HaulColors.outline), Modifier.cssLines(meta, MONO_LINE))
+        Crumbs(body, Modifier)
+        Text(
+            body.meta,
+            mono().copy(color = HaulColors.outline),
+            Modifier.padding(top = if (compact) 14.dp else 20.dp),
+        )
         BalancedText(
             accented(body.title.breakableHyphens(), body.accent?.breakableHyphens()),
             HaulType
@@ -111,7 +99,7 @@ public fun OrderBodyView(
                     letterSpacing = if (compact) -0.01f else -0.03f,
                     lineHeight = TITLE_LEADING,
                 ).copy(lineBreak = LineBreak.Simple),
-            Modifier.cssLines(title, (titleSize * TITLE_LEADING).dp).widthIn(max = 1100.dp),
+            Modifier.padding(top = if (compact) 12.dp else 14.dp).widthIn(max = 1100.dp),
         )
         body.lead?.let {
             Text(
@@ -119,27 +107,29 @@ public fun OrderBodyView(
                 HaulType
                     .text(leadSize, lineHeight = LEAD_LEADING)
                     .copy(color = HaulColors.onSurfaceVariant),
-                Modifier.cssLines(lead, (leadSize * LEAD_LEADING).dp).widthIn(max = 760.dp),
+                Modifier.padding(top = if (compact) 14.dp else 18.dp).widthIn(max = 760.dp),
             )
         }
         val column: @Composable (Modifier) -> Unit = { modifier ->
-            CssColumn(modifier, gap = 16.dp, box = left) {
+            Column(modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 body.steps?.let { Steps(it) }
                 body.notice?.let { Notice(it) }
                 body.pickup?.let { Pickup(it) }
                 body.shipments.forEach { Shipment(it) }
             }
         }
+        // The title's bottom margin collapses into the grid's top one when no lead stands between them.
+        val grid = Modifier.padding(top = if (compact) 28.dp else 40.dp)
         if (compact) {
-            CssColumn(Modifier.fillMaxWidth(), gap = 16.dp, box = grid) {
+            Column(grid.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 column(Modifier.fillMaxWidth())
-                Summary(body.summary, onReorder, Modifier.fillMaxWidth(), summary)
+                Summary(body.summary, onReorder, Modifier.fillMaxWidth())
             }
         } else {
-            Row(Modifier.css(grid)) {
+            Row(grid) {
                 column(Modifier.weight(1f))
                 Spacer(Modifier.width(40.dp))
-                Summary(body.summary, onReorder, Modifier.width(420.dp), summary)
+                Summary(body.summary, onReorder, Modifier.width(420.dp))
             }
         }
     }
@@ -302,15 +292,13 @@ private fun Notice(notice: OrderNotice) {
 private fun Pickup(pickup: PickupCode) {
     val compact = LocalHaulCompact.current
     val codeSize = if (compact) 72f else 96f
-    val column = remember { CssBox() }
-    val digits = remember { CssBox(8.dp) }
     val code: @Composable () -> Unit = {
-        CssColumn(box = column) {
+        Column {
             Text(pickup.label.uppercase(), HaulType.label(11f, 600, 0.08f), softWrap = false)
             Text(
                 pickup.code,
                 HaulType.display(codeSize, 800, letterSpacing = 0.06f, lineHeight = TITLE_LEADING),
-                Modifier.cssLines(digits, (codeSize * TITLE_LEADING).dp),
+                Modifier.padding(top = 8.dp),
                 softWrap = false,
             )
         }
@@ -337,19 +325,9 @@ private fun Pickup(pickup: PickupCode) {
             .background(HaulColors.secondaryContainer, RoundedCornerShape(24.dp))
             .padding(horizontal = if (compact) 20.dp else 32.dp, vertical = if (compact) 24.dp else 28.dp)
     if (compact) {
-        val card = remember { CssBox() }
-        val lines = remember { CssBox(12.dp) }
-        CssColumn(
-            Modifier
-                .fillMaxWidth()
-                .background(HaulColors.secondaryContainer, RoundedCornerShape(24.dp))
-                .padding(horizontal = 20.dp),
-            top = 24.dp,
-            bottom = 24.dp,
-            box = card,
-        ) {
+        Column(box, verticalArrangement = Arrangement.spacedBy(12.dp)) {
             code()
-            Box(Modifier.cssLines(lines, (15f * PICKUP_LEADING).dp)) { text() }
+            text()
         }
     } else {
         Row(box, horizontalArrangement = Arrangement.spacedBy(40.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -473,18 +451,13 @@ private fun Summary(
     totals: OrderTotals,
     onReorder: () -> Unit,
     modifier: Modifier,
-    box: CssBox,
 ) {
     val compact = LocalHaulCompact.current
-    val padding = if (compact) 24.dp else 32.dp
-    CssColumn(
+    Column(
         modifier
             .background(HaulColors.surfaceContainerLowest, RoundedCornerShape(28.dp))
-            .padding(horizontal = padding),
-        gap = 18.dp,
-        top = padding,
-        bottom = padding,
-        box = box,
+            .padding(if (compact) 24.dp else 32.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
         Text(totals.title, HaulType.display(32f, 800, letterSpacing = -0.01f), softWrap = false)
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { totals.rows.forEach { SummaryLine(it) } }
@@ -628,44 +601,29 @@ private fun SummaryLine(row: SummaryRow) {
 }
 
 /**
- * A fact under a hairline: its icon, the title in semibold and the detail under it, on lines of
- * `line-height: 1.45` — 21.75 and 20.3 px, which the summary adds up as they are ([CssBox]).
+ * A fact under a hairline (`border-top: 1px; padding-top: 16px`): its icon, the title in semibold and, `margin-top:
+ * 2px` under it, the detail, on lines of `line-height: 1.45`.
  */
 @Composable
 private fun Fact(fact: OrderFact) {
-    val box = remember { CssBox() }
     val icon =
         when (fact.kind) {
             OrderFactKind.Card -> HaulIcons.lock
             OrderFactKind.Place -> HaulIcons.pin
             OrderFactKind.Points -> HaulIcons.star
         }
-    Layout(
-        content = {
-            Hairline()
-            Icon(icon, 18.dp, HaulColors.outline)
-            Text(fact.title, HaulType.text(15f, 600, lineHeight = FACT_LEADING))
-            Text(fact.detail, HaulType.text(14f, lineHeight = FACT_LEADING).copy(color = HaulColors.outline))
-        },
-        modifier = Modifier.fillMaxWidth().css(box),
-    ) { measurables, constraints ->
-        val (line, glyph, title, detail) = measurables
-        val rule = line.measure(constraints.copy(minHeight = 0))
-        val iconPlaceable = glyph.measure(Constraints())
-        val start = iconPlaceable.width + 14.dp.roundToPx()
-        val text = Constraints(maxWidth = (constraints.maxWidth - start).coerceAtLeast(0))
-        val titlePlaceable = title.measure(text)
-        val detailPlaceable = detail.measure(text)
-        // `border-top: 1px; padding-top: 16px`, then the title's lines, `margin-top: 2px` and the detail's.
-        val top = rule.height + 16.dp.toPx()
-        val detailTop = top + lines(titlePlaceable.height, 15f * FACT_LEADING) + 2.dp.toPx()
-        val height = detailTop + lines(detailPlaceable.height, 14f * FACT_LEADING)
-        box.height = height
-        layout(constraints.maxWidth, height.roundToInt()) {
-            rule.place(0, 0)
-            iconPlaceable.place(0, (top + 1.dp.toPx()).roundToInt())
-            titlePlaceable.place(start, top.roundToInt())
-            detailPlaceable.place(start, detailTop.roundToInt())
+    Column(Modifier.fillMaxWidth()) {
+        Hairline()
+        Row(Modifier.padding(top = 16.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            Box(Modifier.padding(top = 1.dp)) { Icon(icon, 18.dp, HaulColors.outline) }
+            Column(Modifier.weight(1f)) {
+                Text(fact.title, HaulType.text(15f, 600, lineHeight = FACT_LEADING))
+                Text(
+                    fact.detail,
+                    HaulType.text(14f, lineHeight = FACT_LEADING).copy(color = HaulColors.outline),
+                    Modifier.padding(top = 2.dp),
+                )
+            }
         }
     }
 }
@@ -696,9 +654,6 @@ private const val LEAD_LEADING = 1.4f
 
 /** The pickup card's sentence, `line-height: 1.5`. */
 private const val PICKUP_LEADING = 1.5f
-
-/** The crumbs' and the meta line's line box: JetBrains Mono 12 on 1.4. */
-private val MONO_LINE: Dp = (12f * 1.4f).dp
 
 /** The ring around the current step's dot: `box-shadow: 0 0 0 4px`. */
 private val RING: Dp = 4.dp
