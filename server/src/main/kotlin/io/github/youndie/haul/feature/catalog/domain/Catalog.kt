@@ -125,6 +125,8 @@ internal data class Campaign(
     val startsAt: OffsetDateTime,
     val endsAt: OffsetDateTime,
     val plusEarlyAccessAt: OffsetDateTime?,
+    /** The storefront address its banner opens (B-172); `null` opens the deals page, as every banner did (B-59). */
+    val link: String? = null,
 ) {
     /** When its prices hold — the rule a SKU of it is priced by ([CampaignPricing]). */
     val window: CampaignWindow get() = CampaignWindow(startsAt, endsAt, plusEarlyAccessAt)

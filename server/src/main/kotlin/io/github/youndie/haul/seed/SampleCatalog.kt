@@ -154,7 +154,9 @@ internal object SampleCatalog {
 
     /**
      * The campaign on the home page's hero, open from Oct 7 and to Plus members from Oct 6; every
-     * markdown of the seed is its price (B-53).
+     * markdown of the seed is its price (B-53). Its copy names its figures, which the hero and the empty cart
+     * write in from what is on sale (`SaleFigures`, B-172): the canvas's «Up to −70%» and «1.2 million items»
+     * were deeper and more than the catalogue holds.
      */
     const val AUTUMN_MEGA_SALE = "autumn-mega-sale"
 
@@ -163,8 +165,8 @@ internal object SampleCatalog {
             SeedCampaign(
                 slug = AUTUMN_MEGA_SALE,
                 name = "Autumn mega sale",
-                title = "Up to −70%",
-                subtitle = "1.2 million items marked down across 32 categories",
+                title = "Up to {deepest}",
+                subtitle = "{items} marked down across {categories}",
                 position = 0,
                 tone = "#2F2BFF",
                 startsAt = OffsetDateTime.parse("2025-10-07T00:00:00-04:00"),
@@ -174,25 +176,20 @@ internal object SampleCatalog {
             SeedCampaign(
                 slug = "tech-week",
                 name = "Tech week",
-                title = "Laptops from $399",
+                // The store sells no laptops: the canvas's «Laptops from $399» opened the deals page (B-172).
+                // The computers from $399, cheapest first — the cheapest is $399.99 (`PromisesAgreeTest`).
+                title = "Computers from $399",
                 subtitle = "Tech week",
                 position = 1,
                 tone = "#E6E4FF",
                 startsAt = OffsetDateTime.parse("2025-10-06T00:00:00-04:00"),
                 endsAt = OffsetDateTime.parse("2025-10-13T00:00:00-04:00"),
                 plusEarlyAccessAt = null,
+                link = "/c/computers?price_min=399&sort=price-asc",
             ),
-            SeedCampaign(
-                slug = "free-delivery-weekend",
-                name = "Free delivery weekend",
-                title = "Free delivery on everything",
-                subtitle = "600K items from local sellers",
-                position = 2,
-                tone = "#DFFF3A",
-                startsAt = OffsetDateTime.parse("2025-10-11T00:00:00-04:00"),
-                endsAt = OffsetDateTime.parse("2025-10-13T00:00:00-04:00"),
-                plusEarlyAccessAt = null,
-            ),
+            // No free-delivery weekend (B-172): its «Free delivery on everything» was a rule the cart never applied —
+            // delivery is free from $35, or for Haul Plus — and its «600K items from local sellers» counted a
+            // catalogue the store does not have. Plus's own banner takes its place (`PlusOffer.banner`).
         )
 
     private fun options(

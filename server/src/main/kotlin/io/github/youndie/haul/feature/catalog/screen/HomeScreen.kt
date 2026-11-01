@@ -9,7 +9,9 @@ import io.github.youndie.haul.feature.catalog.domain.DeliveryCalendar
 import io.github.youndie.haul.feature.catalog.domain.Listed
 import io.github.youndie.haul.feature.catalog.domain.PriceList
 import io.github.youndie.haul.feature.catalog.domain.ProductPhotos
+import io.github.youndie.haul.feature.catalog.domain.SaleFigures
 import io.github.youndie.haul.feature.catalog.domain.liveSale
+import io.github.youndie.haul.feature.catalog.domain.onSale
 import io.github.youndie.haul.feature.membership.screen.PlusOffer
 import io.github.youndie.haul.feature.recommendations.screen.PickedSection
 import io.github.youndie.haul.shell.Frame
@@ -30,7 +32,8 @@ import java.util.Locale
 
 /**
  * `/ui/home` (screen-home). Everybody sees the campaign and its banners — the hero while the sale is live for
- * the viewer, each banner until its campaign ends (B-59) — the categories, the deals of the day — while a
+ * the viewer, with the sale's figures as the catalogue holds them (B-172), each campaign's banner until its campaign
+ * ends (B-59), then Haul Plus's — the categories, the deals of the day — while a
  * deal is live: with none, the section is not drawn (B-58), and «Popular on Haul» takes its place, so a guest's
  * home always has a row of products (B-70) — and the Plus block: the offer to a guest and a
  * non-member — whose «Try 30 days free» is sign-in or the trial's dialog — and a member's savings and renewal
@@ -56,8 +59,10 @@ internal class HomeScreen(
         // The row is the hero's: with the sale over (or not yet open to this viewer) nothing announces it,
         // and its banners go with it — in the seed the sale outlives both banners, so none is lost (B-59).
         liveSale(campaigns, viewer.prices, at)?.let { sale ->
-            val banners = campaigns.filter { it.slug != sale.slug && !it.endedAt(at) }.take(BANNERS)
-            sections += CampaignRow("campaigns", hero(sale), banners.map(::banner))
+            val figures = saleFigures(catalog, categories, viewer.prices)
+            val banners =
+                campaigns.filter { it.slug != sale.slug && !it.endedAt(at) }.map(::banner) + PlusOffer.banner(viewer)
+            sections += CampaignRow("campaigns", hero(sale, figures), banners.take(BANNERS))
         }
         sections +=
             SectionHeader(
@@ -113,24 +118,33 @@ internal class HomeScreen(
             .flatMap { grid -> grid.cards.map { it.productId } }
             .toSet()
 
-    private fun hero(campaign: Campaign) =
-        CampaignHero(
+    /**
+     * The sale's hero, its figures — «Up to {deepest}», «{items} marked down across {categories}» — written in from
+     * what is on sale for the viewer ([SaleFigures], B-172), the deals page it opens counting the same list.
+     */
+    private fun hero(
+        campaign: Campaign,
+        figures: SaleFigures,
+    ): CampaignHero {
+        val title = figures.fill(campaign.title)
+        return CampaignHero(
             id = "campaign-${campaign.slug}",
             eyebrow = "${campaign.name} · ${dates(campaign)}",
-            title = campaign.title,
-            subtitle = campaign.subtitle,
+            title = title,
+            subtitle = figures.fill(campaign.subtitle),
             actionLabel = "Shop the sale",
             tone = campaign.tone,
             image = photos.hero(campaign),
             action = NavigateAction(Frame.DEALS),
-            accent = campaign.title.substringBeforeLast(' ', "").ifEmpty { null },
+            accent = title.substringBeforeLast(' ', "").ifEmpty { null },
         )
+    }
 
     /**
-     * A campaign's banner leads to the deals page (B-59). The item asks for the deals page filtered to the
-     * campaign, or the deals page itself when the campaign has no page of its own; no SKU names either
-     * banner's campaign (`skus.campaign_slug` is the sale's alone), so neither has one and both open
-     * `/deals`. A banner drawn before B-59 led nowhere.
+     * A campaign's banner opens what its title names (B-172): the campaign's [Campaign.link] — Tech week's «Computers
+     * from $399» the computers from $399, cheapest first — or, with none, the deals page (B-59: a campaign has no page
+     * of its own, `skus.campaign_slug` being the sale's alone). It opened `/deals` whatever it said: «Laptops from
+     * $399» led to headphones and duvet covers, in a store that sells no laptops.
      */
     private fun banner(campaign: Campaign) =
         PromoBanner(
@@ -140,7 +154,7 @@ internal class HomeScreen(
             tone = campaign.tone,
             accent = campaign.title.substringAfterLast(' '),
             image = photos.banner(campaign),
-            action = NavigateAction(Frame.DEALS),
+            action = NavigateAction(campaign.link ?: Frame.DEALS),
         )
 
     /** «Oct 7 — 14»: the canvas's way of writing a window inside one month. */
@@ -153,6 +167,8 @@ internal class HomeScreen(
 
     companion object {
         private const val CATEGORY_TILES = 8
+
+        /** Two banners beside the hero: the campaigns' first, then Haul Plus's ([PlusOffer.banner]). */
         private const val BANNERS = 2
         private const val DEAL_COLUMNS = 6
 
@@ -189,6 +205,16 @@ internal suspend fun popular(
         .sortedWith(compareByDescending<Listed> { it.product.reviewsCount }.thenBy { it.product.id })
         .take(HomeScreen.POPULAR_SIZE)
         .map { card(it, calendar, photos, viewer, inPlace = inPlace) }
+
+/**
+ * The sale's figures for a viewer at [prices] (B-172): [SaleFigures] of what the deals page lists as on sale
+ * ([onSale]) — one read of the catalogue, as the deals page makes, so the hero and that page cannot count apart.
+ */
+internal suspend fun saleFigures(
+    catalog: CatalogRepository,
+    categories: List<Category>,
+    prices: PriceList,
+): SaleFigures = SaleFigures.of(onSale(catalog.listedIn(categories.map { it.slug }.toSet(), prices)), categories)
 
 /**
  * The popular row's header, «Popular on Haul», on home and in the empty cart alike (B-87): the title names what the

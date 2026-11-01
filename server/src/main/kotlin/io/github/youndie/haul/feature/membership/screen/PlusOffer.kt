@@ -8,6 +8,7 @@ import io.github.youndie.haul.shell.Viewer
 import io.github.youndie.haul.ui.PlusBenefit
 import io.github.youndie.haul.ui.PlusBlock
 import io.github.youndie.haul.ui.PlusTrialDialog
+import io.github.youndie.haul.ui.PromoBanner
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.standard.CloseAction
 import io.github.youndie.kompot.standard.NavigateAction
@@ -24,7 +25,11 @@ internal object PlusOffer {
     /** What kompot's `present` is asked to show the trial as: a dialog over the page. */
     const val DIALOG = "dialog"
 
-    /** The trial's dialog, the canvas's copy; «Start trial» is `POST` [MembershipPaths.TRIAL]. */
+    /**
+     * The trial's dialog, the canvas's copy; «Start trial» is `POST` [MembershipPaths.TRIAL]. Each benefit is a rule
+     * the store applies (B-172, `PromisesAgreeTest`): the canvas's «Next-day courier · Whatever the order total» was
+     * not — every shopper's courier day is the same (`DeliveryCalendar`), member or not, whatever the total.
+     */
     val dialog: PlusTrialDialog =
         PlusTrialDialog(
             id = "plus-trial",
@@ -34,7 +39,6 @@ internal object PlusOffer {
             benefits =
                 listOf(
                     PlusBenefit("Free delivery on every order", "No minimum basket"),
-                    PlusBenefit("Next-day courier", "Whatever the order total"),
                     PlusBenefit("Double points", "2 points for every dollar"),
                     PlusBenefit("Early access to sales", "Campaign prices 24 hours early"),
                 ),
@@ -71,10 +75,31 @@ internal object PlusOffer {
             benefits =
                 listOf(
                     "Free delivery on every order",
-                    "Next-day delivery with no minimum",
                     "Double points on every purchase",
                     "Early access to sales",
                 ),
+        )
+    }
+
+    /**
+     * Haul Plus's banner beside the sale's hero (B-172), in the place of the free-delivery weekend's «Free delivery on
+     * everything», a rule the cart never applied (delivery is free from $35, research D7): free delivery on every
+     * order is what Plus does, so the banner says whose promise it is. To a guest and a non-member it is the offer —
+     * «Try 30 days free», the trial as the pill and the block present it ([trial], B-59's Plus clause); to a member,
+     * who is never offered the trial (research D6), it is the membership's mark with nothing to press, as the pill is
+     * (B-108).
+     */
+    fun banner(viewer: Viewer): PromoBanner {
+        val member = viewer.customer?.plus == true
+        return PromoBanner(
+            id = "banner-plus",
+            eyebrow = "With Haul Plus",
+            title = "Free delivery on everything",
+            subtitle = "Included in your membership".takeIf { member },
+            actionLabel = "Try 30 days free".takeUnless { member },
+            tone = BANNER_TONE,
+            accent = "everything",
+            action = trial(viewer).takeUnless { member },
         )
     }
 
@@ -85,7 +110,7 @@ internal object PlusOffer {
             title = HEADLINE,
             benefits =
                 listOf(
-                    "Next-day delivery with no minimum",
+                    "No minimum basket",
                     "Early access to sales",
                     "Double points on every purchase",
                 ),
@@ -96,6 +121,9 @@ internal object PlusOffer {
         )
 
     private const val HEADLINE = "Free delivery. Every order."
+
+    /** Acid, the free-delivery weekend's banner's tone, which this banner took the place of. */
+    private const val BANNER_TONE = "#DFFF3A"
     private const val HEADLINE_ACCENT = "Every"
     private val MONTH_DAY = DateTimeFormatter.ofPattern("MMM d", Locale.US)
 }

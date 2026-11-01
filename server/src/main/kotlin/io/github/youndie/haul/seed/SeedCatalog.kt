@@ -111,6 +111,8 @@ internal data class SeedCampaign(
     val startsAt: OffsetDateTime,
     val endsAt: OffsetDateTime,
     val plusEarlyAccessAt: OffsetDateTime?,
+    /** The storefront address its banner opens (B-172, V34); `null` opens the deals page (B-59). */
+    val link: String? = null,
 )
 
 internal data class SeedDeal(

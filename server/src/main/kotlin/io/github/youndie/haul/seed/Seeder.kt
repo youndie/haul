@@ -119,6 +119,7 @@ internal object Seeder {
                 this[CampaignsTable.startsAt] = it.startsAt
                 this[CampaignsTable.endsAt] = it.endsAt
                 this[CampaignsTable.plusEarlyAccessAt] = it.plusEarlyAccessAt
+                this[CampaignsTable.link] = it.link
             }
             SkusTable.batchInsert(catalog.skus) {
                 this[SkusTable.id] = it.id
