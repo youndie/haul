@@ -109,6 +109,13 @@
           }
         },
         {
+          "label": "Watch the live orders",
+          "action": {
+            "type": "navigate",
+            "deeplink": "/live"
+          }
+        },
+        {
           "label": "Read the README",
           "action": {
             "type": "open_url",

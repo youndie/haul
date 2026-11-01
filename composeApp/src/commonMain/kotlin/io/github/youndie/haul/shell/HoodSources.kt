@@ -81,5 +81,6 @@ internal object HoodSources {
             "haul_account_body" to source("feature/account/AccountViews.kt", "feature/account/screen/AccountScreen.kt"),
             "haul_order_body" to source("feature/order/OrderViews.kt", ORDER),
             "haul_return_form" to source("feature/order/ReturnDialog.kt", ORDER),
+            "haul_live_orders" to source("feature/live/LiveOrdersViews.kt", "feature/live/screen/LiveScreen.kt"),
         )
 }

@@ -11,6 +11,13 @@
       }
     },
     {
+      "label": "Live orders",
+      "action": {
+        "type": "navigate",
+        "deeplink": "/live"
+      }
+    },
+    {
       "label": "Source on GitHub",
       "action": {
         "type": "open_url",

@@ -432,6 +432,46 @@ Four reviews of the stand found nothing on it said it was a demo or what it was 
 - **The footer is left as it is.** A word there would move every footer golden; the strip leads to the About page
   from every page. Rejected: a banner over the hero, a modal on arrival.
 
+**Decided in B-164, «Live orders» shows every order's saga as it runs** (2026-11-01). The synthetic shoppers place,
+ship and return orders all day, one in ten declined on purpose so the saga compensates (B-89), and nothing a visitor
+could open showed it — only tracy did.
+
+- **The page, `/live`, is a server tree in the frame** (`GET /ui/live`, `feature/live/`, a `StorefrontPage`): the last
+  20 orders across the store, newest first, each a row of lanes — «The saga» (the members of `OrderSaga.kt` by
+  `OrderSagaMembers`, in their order), one per seller's shipment (Packed, On its way with what its leaving charged,
+  Delivered — or Ready, Collected), «The return» — and its trail. Its intro says the rows are the petich saga of every
+  order and links to `OrderSaga.kt` on GitHub. Reached from the About page («Watch the live orders») and the demo strip
+  («Live orders», between «About this demo» and «Source on GitHub»: it fits on the strip's one line at 1440 and its
+  links' line at 390).
+- **A row is read off the order's own rows, not off its trail in tracy.** `OrderTrail` (B-109) writes to tracy only;
+  reading tracy from a public page would put another product's API in the request, and a second write of the trail
+  into the database would put a write in every saga member's path, where B-139/B-140 bound the time a member may take.
+  The saga runs inside the request and leaves the order `placed`, or `cancelled` with its reason; the shipments'
+  history, their captures and the return are stamped as they happen. So a placed order ran every member; a declined
+  card refused at `authorise-payment`, and the members before it that took something are undone, in reverse; a member
+  with nothing to take (a pickup's window, no points, pay on delivery) is drawn as having nothing to do. The one thing
+  a row cannot know is which member after the order opened failed in an order cancelled as `failed`: its saga lane says
+  «failed» at the end and «unknown» before it, and its trail says the saga turned back — tracy has the member. The saga's
+  steps carry the moment the order was placed: they run within the request, in milliseconds.
+- **Anonymised by construction.** The feed reads its own projection (`ExposedFeed`, `FeedOrder`), which selects no
+  customer, address, window, pickup point or code — not the orders' repository, which reads all of them.
+  `LiveRoutesTest` reads every such value the orders hold off the database and finds none in the body.
+- **Cheap whoever looks.** Five statements whatever the store holds — the last 20 by the index `orders_placed_at`
+  (V33), then their items, shipments with their sellers and history, captures by the shipments' ids, returns — held
+  by counting statements over two thousand copied orders (B-159's lesson). The live channel is the order page's
+  transport (B-29): the page's tree names `live:orders`, the same `GET /ui/updates` streams it, the same broadcaster
+  delivers it. A move draws the body once for every listener, at most once a second (`LiveFeed.PAUSE`), nothing when
+  nobody listens; a listener that connects while nothing moved is sent the last drawing; at most 200 listen at once
+  (`LiveFeed.CAPACITY`), past that the stream is `503 unavailable` and the client asks again later. The body is sent
+  whole: a new order changes every row, and twenty rows are a few dozen kilobytes.
+- **`GET /ui/updates` moved to the public tier**: one address serves both live pages, and the topic decides who may
+  hear it — `live:orders` anybody, an order's topic the customer's, `401` without a sign-in and `404 order_not_found`
+  for another's, as before (`respondOrderUpdates`).
+- **A row opens in place**, not onto a page of its own: the trail is a dozen lines, the rows stay live while one is
+  open, and no second address or channel is needed. Which rows are open is the only thing the client keeps (by the
+  order's number), so a row stays open as the body arrives again. Rejected: an order's page for the public (it would be
+  a second order page, with the customer's page's rules to keep apart), reading tracy, writing the trail twice.
+
 **Decided in B-163, «Under the hood» shows the tree, what it cost and what updated** (owner, 2026-11-01: «show the
 machinery» led the product and the designer reviews). Every page is a tree the server sends, and nothing on a page said
 so.
@@ -468,8 +508,8 @@ so.
   has the hood: `Storefront` drawn on its own and every golden draw as before.
 - **Closing the panel leaves the page pixel-identical** (`UnderTheHoodTest`); closing the strip closes the panel, and the
   toggle goes with the strip for the session.
-- **What it does not show.** The order page's live moves (B-29) replace nodes through kompot's realtime provider, not
-  the screen's actions, and are drawn without a flash or a line; the checkout's and the dialogs' commands answer
+- **What it does not show.** The order page's live moves (B-29) and «Live orders»' (B-164) replace nodes through
+  kompot's realtime provider, not the screen's actions, and are drawn without a flash or a line; the checkout's and the dialogs' commands answer
   `refresh`, which is a tree, not an update. At 1440 the panel covers the header's right end — the cart's count among
   it; the header an update replaces flashes along its whole width, so the flash shows left of the panel.
 - Rejected: a separate developer page (nobody finds it); the raw JSON (an outline reads, a dump is a scroll); keeping

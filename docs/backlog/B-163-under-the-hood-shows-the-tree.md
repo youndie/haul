@@ -50,7 +50,7 @@ would come to a showcase for.
 - **At 1440 the panel covers the header's right end, the cart's count among it.** The update «+» answers replaces the
   whole header, whose flash runs along its width, so it shows left of the panel; the count itself is seen once the
   panel closes. Left as it is: a panel that pushed the page would change the layout the visitor came to look at.
-- **Not shown:** the order page's live moves (B-29) go through kompot's realtime provider, not the screen's actions —
+- **Not shown:** the order page's and «Live orders»' (B-164) live moves go through kompot's realtime provider, not the screen's actions —
   no flash, no line; the checkout's and the dialogs' commands answer `refresh`, a whole tree.
 - **Mutation checks** (each made on the committed tree, run on the WSL box, then restored with `git checkout`):
   listing updates while closed → «closed nothing is listed and nothing flashes» failed; `close` that left the panel

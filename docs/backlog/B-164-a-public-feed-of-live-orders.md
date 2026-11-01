@@ -1,7 +1,7 @@
 ---
 id: B-164
 title: "feat: a public feed of live orders shows the saga's steps and its compensations"
-status: open
+status: done
 priority: P1
 size: M
 stage: stage-15-showcase
@@ -26,3 +26,51 @@ convincing thing the stand does, and it is invisible.
 - Anchors: `server/src/main/kotlin/io/github/youndie/haul/ops/OrderTrail.kt`,
   `server/src/main/kotlin/io/github/youndie/haul/feature/order/LiveOrders.kt`,
   `server/src/main/kotlin/io/github/youndie/haul/feature/order/saga/OrderSaga.kt`.
+
+## Findings
+
+- **What was built.** `/live` (`StorefrontPage.Live`, tree `GET /ui/live`, `feature/live/`) in the frame, like
+  `/about`: the last 20 orders across the store, newest first; each row its number, time, sellers, «N items · $X» and
+  where it is, then its lanes — «The saga» (the six members of `OrderSaga.kt`, now named once in `OrderSagaMembers`),
+  one per seller's shipment, «The return» — and, opened in place, its trail with every step's time and the saga's
+  members by their keys. The intro says the rows are the petich saga of every order and links to `OrderSaga.kt` on
+  GitHub. Linked from the About page («Watch the live orders») and the demo strip («Live orders»; it fits the strip's
+  line at 1440 and its links' line at 390). The contract gains `LiveOrdersBody` (`haul_live_orders`) and its rows.
+- **The rows are read off the order's own rows, not off `OrderTrail`.** The trail goes to tracy only (B-109); reading
+  tracy from a public page puts another product's API in the request, and writing the trail a second time into the
+  database puts a write in every saga member's path, where B-139/B-140 bound a member's time. A placed order ran every
+  member, a declined card refused at `authorise-payment` and its compensation undid the members before it that held
+  something; a member with nothing to take is drawn as such. The one thing a row cannot say is which member after the
+  order opened failed in an order cancelled `failed` — the row says the saga failed there and tracy has the member.
+  The saga's steps carry the placement's moment: they run inside the request, in milliseconds. Research «Decided in
+  B-164».
+- **Expanded in place, not a page of its own:** a trail is a dozen lines, the rows stay live while one is open, and
+  a page per order would be a second order page with the customer's rules to keep apart, plus a second channel.
+- **Anonymised by construction:** `ExposedFeed` selects no customer, address, window, pickup point or code;
+  `LiveRoutesTest` reads every such value the orders hold off the database and finds none in the body.
+- **Load.** Five statements whatever the store holds, through a new index `orders_placed_at (placed_at, id)` (V33);
+  held by counting statements over 2,001 orders (≤ 10 for the whole page, header included) and a loose 2 s. The live
+  channel reuses the order page's transport — the same broadcaster and `GET /ui/updates`, topic `live:orders` — and
+  draws the body once for every listener, at most once a second, never for nobody; a connecting listener gets the last
+  drawing while nothing moved; at most 200 listen, past that `503 unavailable` and the client's own backoff
+  (`LiveFeedTest`).
+- **`GET /ui/updates` moved from the customer tier to the public one**, the topic deciding the tier: an order's topic
+  is still `401` without a sign-in and `404` for another's (`LiveOrderTest`, `LiveUpdatesTest`).
+- **The migration is V33**: B-166 took V31 and B-162 V32 while this branch was open, and merged first.
+- **Not drawn:** Haul Pay's four payments (the plan is the order's, not a shipment's) and the points an order earns
+  or a return takes back; the clear-cart announcement. The `failed` cancellation's member, above.
+- **Two goldens drift on main, not here**, as B-160 found: a forced recording changes `Search_Results` and
+  `Search_Autocomplete` byte-wise on the WSL box; not brought back. The goldens brought back are the new
+  `Live_Content`, `Live_Content_Phone` and the four the new links moved: `Demo_Strip`, `Demo_Strip_Phone`,
+  `About_Content`, `About_Content_Phone` — each looked at.
+- **Walked on a local stand with the shoppers** (2026-11-01, WSL box): the image built from this branch on a kind
+  cluster by `scripts/stand-kind.sh` (`SHOPPERS=true DECLINE_EVERY=2`, a day in ten seconds), `/live` opened in headless
+  Chromium over CDP through a port-forward and watched for four minutes without a touch. One navigation, one `GET
+  /ui/live`, one `GET /ui/updates?topic=live:orders`; every one of the eleven snapshots of the page's accessible names
+  (taken 20 s apart) differed from the one before — new orders on top (#HL-48311 … #HL-48326), each moving Packed → In
+  transit → Delivered → Returning → Returned, and every second one «Cancelled: card declined» with its members struck
+  through as undone. The server logged no warning beyond the observability being off.
+- **Mutations** (after the commit, reverted with `git checkout`): the anonymity test fails on a row that carried the
+  way to pay; the statements test on a statement per row (26 sent); `LiveFeedTest` on a channel without its pause (19
+  reads for 20 moves); the route test and `LiveFixturesTest` on the compensations undone in another order; the client
+  test on a row's open state keyed to the body.

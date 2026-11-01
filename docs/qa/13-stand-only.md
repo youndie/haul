@@ -172,3 +172,23 @@ host, its tracy and its logs.
   `IdentityTest` «a token that cannot be renewed signs the customer out, back to the guest»;
   script `scripts/chart-check.sh`;
   manual: the stand's own day and its realm
+
+### TC-STAND-09 — The synthetic shoppers' orders move on «Live orders» without a reload
+
+- **Who:** guest
+- **Width:** 1440
+- **Preconditions:** the release on the stand, the shoppers on (`shoppers.enabled`), the page closed for ten minutes.
+- **Steps:**
+  1. Open `https://haul.kotlin.website/live` and leave it open, untouched, for twenty minutes.
+  2. Find a row whose status reads «Cancelled: card declined» (one walk in ten), and open its trail.
+  3. Open the browser's network tab and reload once.
+- **Expected:**
+  - Step 1: rows appear at the top and the ones below them move — packed, on its way, delivered, a return asked
+    for and refunded — with no reload; the page asked for `/ui/live` once.
+  - Step 2: «Authorise the card» red, refused; the members before it struck through as undone, the trail saying so
+    in reverse.
+  - Step 3: one `GET /ui/live`, then `GET /ui/updates?topic=live:orders`, an event stream left open, a `ping` every
+    twenty seconds when nothing moves.
+- **Decided in:** B-164, B-31, B-89
+- **Coverage:** `server:LiveUpdatesTest` «the live orders hear an order go in transit without loading again»;
+  manual: only the stand has the shoppers' traffic, its pace and a real proxy in front of the stream

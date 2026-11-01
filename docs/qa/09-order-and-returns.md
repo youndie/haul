@@ -232,3 +232,50 @@ later (B-27). A local stack runs at `HAUL_FULFILMENT_SPEED`.
 - **Coverage:** `OrderWiringTest` «a Haul Pay order draws its schedule under the payment fact»;
   `OrderWiringTest` «an order paid by card draws no schedule»;
   `HaulPayPlanTest` «an instalment order shows its schedule»; golden `Order_HaulPay`
+
+### TC-ORD-13 — «Live orders» shows every order's saga as it runs, its compensations, and nobody's name
+
+- **Who:** guest; Maya
+- **Width:** 1440, 390
+- **Preconditions:** a store with orders on it — a local stack at a fast `HAUL_FULFILMENT_SPEED`, or the stand.
+  Maya has a cart.
+- **Steps:**
+  1. Open «About this demo» and press «Watch the live orders»; then, from the line above the header, «Live orders».
+  2. Read the page's head and press «Read the saga: OrderSaga.kt».
+  3. Read the rows.
+  4. Press «Show the trail» on a placed order, then on a cancelled one; press «Hide the trail».
+  5. In another tab, as Maya, place an order; then place one with the test card ···· 0002 (as the declining walks
+     do — `X-Haul-Test-Card` on a local stack). Watch the first tab without reloading it.
+  6. Read every row, opened, for a name, an address, a delivery window, a pickup point or a pickup code.
+  7. Reload `/live`; open it in a new tab by its address.
+- **Expected:**
+  - Step 1: `/live`, under the store's header, with the footer, both times.
+  - Step 2: «Live orders», «Every order here is a *saga*», and a paragraph that says the rows are the last 20 orders
+    and that each is a petich saga; the button opens `server/…/saga/OrderSaga.kt` on GitHub in a tab of its own.
+  - Step 3: at most 20 rows, newest first; each says its number, when it was placed, its sellers, «N items · $X»
+    and where it is («Placed», «In transit», «Returned», «Cancelled: card declined»), then its lanes: «The saga»
+    (Reserve stock, Hold the window, Take the points, Open the order, Authorise the card, Confirm), a lane per seller
+    (Packed, On its way, Delivered — or Ready, Collected for a pickup) with each step's time and «charged $X» on the
+    way, and «The return» when there is one. A step that had nothing to do says so in grey («no window», «no
+    points», «pays on delivery»).
+  - Step 4: the row opens in place to its trail — every step with its time to the second, the saga's members by
+    their keys (`reserve-stock` …); a cancelled order's trail reads the members that ran, «The card was declined:
+    the saga turns back» in red, then «Undone: the order cancelled…», «Undone: the points given back» (when it took
+    any), «Undone: the window released», «Undone: the stock released» — in that order; its saga lane has the
+    failed step red and the undone ones struck through. It closes again on «Hide the trail».
+  - Step 5: without a reload, a new row appears at the top within a few seconds, placed; the declined one appears
+    cancelled, its compensation as in step 4; an opened row stays open as the rows move. At the fast pace the
+    placed one's lanes light up step by step.
+  - Step 6: none of them; an order is its number, its sellers, what it cost and what happened to it.
+  - Step 7: the page each time, not a «page isn’t here».
+- **Decided in:** B-164
+- **Coverage:** `server:LiveRoutesTest` «the page draws the last orders newest first with the saga each ran and its
+  compensations»; `server:LiveRoutesTest` «nothing in the feed names a customer, an address, a window or a pickup
+  code»; `server:LiveRoutesTest` «the page reads the same few statements however many orders the store holds»;
+  `server:LiveUpdatesTest` «the live orders hear an order go in transit without loading again»;
+  `server:LiveFeedTest` «moves are drawn once for every listener and at most once a pause»;
+  `server:AboutRoutesTest` «the about page is the frame around the stack what is real and what is not»;
+  `composeApp:LiveOrdersPageTest` «a row opens in place to its trail and closes again»;
+  `composeApp:LiveOrdersPageTest` «a pushed body redraws the rows and keeps the opened one open»;
+  `composeApp:AddressTest` «an address is the page the server serves at it»; golden `Live_Content`; golden
+  `Live_Content_Phone`; manual: the page moving under a real browser's stream, and the stand's own traffic
