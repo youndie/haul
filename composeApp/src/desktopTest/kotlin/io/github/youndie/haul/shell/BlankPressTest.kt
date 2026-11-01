@@ -8,6 +8,7 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.click
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
@@ -118,6 +119,7 @@ class BlankPressTest {
         return offers
     }
 
+    /** Every press under «Every order.» that lands on no words and no control leaves the page at its foot. */
     @Test
     fun `a press on blank space low on the home page keeps its scroll`() =
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
@@ -143,6 +145,7 @@ class BlankPressTest {
             assertEquals(emptyList(), moved)
         }
 
+    /** B-154's: a press off the words clears what a drag selected — and, now, leaves the page where it was. */
     @Test
     fun `a press on blank space still clears the words selected`() =
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
@@ -166,13 +169,23 @@ class BlankPressTest {
             assertTrue(!offersCopy(every.center), "a press on blank space clears the selection")
         }
 
+    /**
+     * B-154's too: a drag from the words past the window's foot scrolls the page with the selection. Seen to fail
+     * with Compose's selection autoscroll turned off (`ComposeFoundationFlags.isSelectionAutoScrollEnabled`).
+     */
     @Test
     fun `a drag past the window's foot scrolls the page with the selection`() =
         runDesktopComposeUiTest(WIDTH, HEIGHT) {
             home()
             assertEquals(0f, scrolled())
-            val every = bounds(EVERY_ORDER)
-            val start = taken().first { it.top > 80f && it.height in 10f..60f && it.width > 40f }
+            // Words that are not a control's, inside the window: the drag starts on them.
+            val start =
+                onAllNodes(
+                    hasText("", substring = true) and !hasClickAction() and !hasAnyAncestor(hasClickAction()),
+                    useUnmergedTree = true,
+                ).fetchSemanticsNodes()
+                    .map { it.boundsInRoot }
+                    .first { it.top > 80f && it.bottom < HEIGHT - 80f && it.width > 40f }
             mainClock.autoAdvance = false
             onRoot().performMouseInput {
                 moveTo(Offset(start.left + 2f, start.center.y))
@@ -185,7 +198,7 @@ class BlankPressTest {
             onRoot().performMouseInput { release() }
             mainClock.autoAdvance = true
             waitForIdle()
-            assertTrue(during > 0f, "a drag past the foot of the window scrolls: $during (from ${every.top})")
+            assertTrue(during > 0f, "a drag past the foot of the window scrolls the page: $during")
         }
 
     private companion object {
