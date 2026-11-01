@@ -121,9 +121,10 @@ compose.desktop {
             // Fixed, and at least 1: macOS refuses an app version whose first number is 0, and nothing here is
             // released, so no installed copy has to be upgraded from it.
             packageVersion = "1.0.0"
-            // jlink keeps only what is named; Compose adds the AWT and Swing it needs itself. The session's guest
-            // is kept in `java.util.prefs`, and Ktor's coroutines debug probes look for `sun.misc`.
-            modules("java.prefs", "jdk.unsupported")
+            // jlink keeps only what is named: these four are what `suggestRuntimeModules` (jdeps over the app's
+            // jars) names beside Compose's own — `java.prefs` is where the guest is kept. A module missing here fails
+            // only in the installed app, never in `run`, which runs on the whole JDK.
+            modules("java.instrument", "java.management", "java.prefs", "jdk.unsupported")
             linux {
                 // `.deb` refuses to build without one.
                 debMaintainer = "youndie@users.noreply.github.com"

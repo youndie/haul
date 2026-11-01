@@ -1,9 +1,19 @@
 package io.github.youndie.haul
 
+import io.github.youndie.haul.feature.identity.Identity
+import io.github.youndie.haul.feature.identity.IdentityApi
+import io.github.youndie.haul.feature.identity.MemorySessionStore
+import io.github.youndie.haul.feature.identity.NoDesktopSignIn
 import io.github.youndie.haul.feature.identity.PreferencesSessionStore
 import io.github.youndie.haul.feature.identity.Session
+import io.github.youndie.haul.feature.identity.SignInActions
 import io.github.youndie.haul.feature.identity.Tokens
 import io.github.youndie.haul.shell.BackStackHistory
+import io.github.youndie.kompot.standard.NavigateAction
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respondError
+import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.runBlocking
 import java.util.prefs.Preferences
 import kotlin.test.AfterTest
 import kotlin.test.Test
@@ -53,4 +63,26 @@ class DesktopPartsTest {
         stand.save(Session())
         assertNull(PreferencesSessionStore("https://haul.kotlin.website", node).load().guestId)
     }
+
+    @Test
+    fun `a sign-in in the window ends as on a server with sign-in off, the guest and the cart kept`() =
+        runBlocking {
+            val asked = mutableListOf<String>()
+            val server =
+                MockEngine {
+                    asked += it.url.encodedPath
+                    respondError(HttpStatusCode.NotFound)
+                }
+            val sessions = MemorySessionStore(Session(guestId = "g-1"))
+            val identity = Identity(IdentityApi(storeClient("https://stand.test", server)), NoDesktopSignIn, sessions)
+            var cancelled = 0
+            val actions = SignInActions(signIn = identity::signIn, redraw = {}, cancelled = { cancelled++ }, open = {})
+
+            assertTrue(actions.handle(NavigateAction(SignInActions.returningTo("/cart"))))
+
+            assertEquals(1, cancelled, "the page is drawn again for the guest")
+            assertFalse(identity.signedIn)
+            assertEquals(Session(guestId = "g-1"), sessions.load())
+            assertEquals(emptyList<String>(), asked, "nothing is asked of the server or the provider")
+        }
 }
