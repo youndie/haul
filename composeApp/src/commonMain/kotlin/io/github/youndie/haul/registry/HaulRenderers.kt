@@ -4,8 +4,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -111,8 +111,15 @@ public class HaulHeaderRenderer : KompotComponentRenderer<HaulHeader> {
         actionHandler: KompotActionHandler,
         formController: FormController,
     ) {
-        // The header as drawn, an `update` included, is the one the shell keeps over the next page's placeholder.
-        LocalHeaderDrawn.current?.let { drawn -> SideEffect { drawn(component) } }
+        // The header as drawn, an `update` included, is the one the shell keeps over the next page's placeholder —
+        // told once per header drawn, not on every recomposition: the shell files it under who is looking when it is
+        // told, and a customer's header drawn again after her sign-in lapsed was filed as the guest's (B-167's CI).
+        LocalHeaderDrawn.current?.let { drawn ->
+            DisposableEffect(component, drawn) {
+                drawn(component)
+                onDispose { }
+            }
+        }
         HaulHeaderView(
             component,
             Modifier.headerMeasured(),
