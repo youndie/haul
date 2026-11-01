@@ -66,7 +66,7 @@ import kotlin.time.toJavaDuration
  * own, since a demo shopper places orders and the sweep gives stock and windows back.
  */
 class DemoShopperRoutesTest {
-    private val headphones = "${SampleCatalog.SONY_HEADPHONES}-0"
+    private val headphones = "${SampleCatalog.SONORA_HEADPHONES}-0"
     private val mug = "${SampleCatalog.STONEWARE_MUG}-0"
 
     private fun withDemo(
