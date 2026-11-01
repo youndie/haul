@@ -146,7 +146,8 @@ public data class AccountPickup(
  * The orders' history: on the overview its [title] «Order history», the last four of the orders that are
  * no longer on their way and [all], «All orders», when that leaves some out; on the orders' page the
  * [filters] above every order. [empty] is drawn instead of the rows when there are none — a customer who
- * has never ordered (`Account_NoOrders`) — and [none] when a filter matches nothing.
+ * has never ordered (`Account_NoOrders`) — and [none] when a filter matches nothing. The orders' page shows
+ * a page of the rows at a time and, when there are more, its [pagination] under them (B-159).
  */
 @Serializable
 public data class OrderHistory(
@@ -156,6 +157,7 @@ public data class OrderHistory(
     val rows: List<HistoryRow> = emptyList(),
     val empty: EmptyState? = null,
     val none: String? = null,
+    val pagination: HaulPagination? = null,
 )
 
 /**

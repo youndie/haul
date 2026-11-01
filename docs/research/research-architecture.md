@@ -1327,6 +1327,13 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   orders' history `/account/orders` (`StorefrontPage.Orders`, tree `GET /ui/account/orders`), which the order pages
   sit under. Both are one `AccountBody` built by `feature/account/screen/AccountScreen.kt` from the customer's own
   orders (`OrderRepository.orders`, the customer in the filter) as `OrderTracking` reads them, newest first.
+  **Decided in B-159:** only the orders a page draws are tracked — the overview's three cards and four rows, the
+  history's page of twenty (`HISTORY_PAGE`); every other order is counted from its own row, shipments and return
+  status, read in four queries whatever the count. Tracking reads each order's shipments' history and payments, a
+  few queries an order, and the synthetic shoppers' customers on the stand waited 6–8 s for a history of thousands.
+  The one state an untracked order cannot tell — a partly refunded return from a whole one — is counted under the
+  same chip either way. The history pages as the Saved list does: `?page=N`, page numbers under the rows, each
+  loading the account's body in place; a page past the last is the last.
 - **The history's filter is the query string**: `?status=active|delivered|returned|cancelled`, none for all; a
   status the history does not have is all of them rather than an error page. The chips count every order and each
   loads the parts of its own address (B-63: before, a `navigate` to it), so a filtered history is a page a reload

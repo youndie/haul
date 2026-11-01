@@ -2,6 +2,8 @@ package io.github.youndie.haul.feature.account
 
 import io.github.youndie.haul.ErrorCode
 import io.github.youndie.haul.feature.account.screen.AccountScreen
+import io.github.youndie.haul.feature.account.screen.HistoryFilterKey
+import io.github.youndie.haul.feature.catalog.domain.count
 import io.github.youndie.haul.feature.checkout.CheckoutChoice
 import io.github.youndie.haul.feature.membership.screen.PlusOffer
 import io.github.youndie.haul.feature.order.OrderPaths
@@ -10,6 +12,7 @@ import io.github.youndie.haul.feature.returns.domain.RequestReturn
 import io.github.youndie.haul.haulWireJson
 import io.github.youndie.haul.seed.SampleCustomers
 import io.github.youndie.haul.shell.Frame
+import io.github.youndie.haul.shell.Parts
 import io.github.youndie.haul.testing.FulfilmentWorld
 import io.github.youndie.haul.testing.ShildikHarness
 import io.github.youndie.haul.testing.TestClock
@@ -37,13 +40,21 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
+import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Proxy
+import java.sql.Connection
+import java.util.concurrent.atomic.AtomicInteger
+import javax.sql.DataSource
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeSource
 
 /**
  * The account's overview and its orders' history over HTTP (feature-account, screen-account,
@@ -299,4 +310,116 @@ class AccountRoutesTest {
             get(AccountPaths.SCREEN).assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
             get(AccountPaths.ORDERS).assertError(HttpStatusCode.Unauthorized, ErrorCode.Unauthenticated)
         }
+
+    /**
+     * A customer with thousands of orders gets their history in time, a page at a time (B-159). The synthetic
+     * shoppers' customers on the stand waited 6–8 s for it: the page tracked every order — its shipments'
+     * history, its payments, a few queries each — and drew a row for each, for a page a person reads twenty of.
+     * The order on its way still comes first, the chips still count every order, and the next page is the next
+     * twenty. The orders behind it are copies of one placed order, delivered, written straight into the tables:
+     * placing five thousand through the saga would take the test longer than the defect took the stand.
+     *
+     * What is held is the number of statements a page sends, which does not depend on the machine: the time
+     * did — 176 ms on an idle box, 489 ms on the CI runner building two pushes at once. The time is still bounded,
+     * loosely, so a page that sends few statements but reads far too much is caught too.
+     */
+    @Test
+    fun `a history of thousands of orders answers in time a page at a time`() =
+        seededFreshDatabase().use { database ->
+            val placed = FulfilmentWorld(database).use { it.place(CheckoutChoice(slotId = "2025-10-08T15")) }
+            database.connection.use { connection ->
+                // The order's number is the server's own (`HL-48302`), so it is written into the statement as it is.
+                connection.createStatement().use { it.execute(COPIES.replace("?", "'$placed'")) }
+                if (!connection.autoCommit) connection.commit()
+            }
+            val counted = CountingDataSource(database)
+            haulTest(counted, signIn = ShildikHarness.signIn) {
+                // The first request warms the route; the best of three is the one compared, so a pause of the
+                // test's own machine is not read as the route's.
+                account(maya, AccountPaths.ORDERS)
+                val sent = counted.statements.get()
+                account(maya, AccountPaths.ORDERS)
+                val statements = counted.statements.get() - sent
+                val took =
+                    (1..3).minOf {
+                        val started = TimeSource.Monotonic.markNow()
+                        account(maya, AccountPaths.ORDERS)
+                        started.elapsedNow()
+                    }
+                val first = checkNotNull(account(maya, AccountPaths.ORDERS).only<AccountBody>().history)
+                assertEquals(20, first.rows.size)
+                assertEquals(placed, first.rows.first().id, "the order on its way comes first")
+                assertEquals(count(COPIED + 1), first.filters.single { it.label == "All" }.count)
+                assertEquals(count(COPIED), first.filters.single { it.label == "Delivered" }.count)
+                val pagination = checkNotNull(first.pagination) { "five thousand orders are more than a page" }
+                assertEquals(listOf("1", "2", "3", "…", "251"), pagination.pages)
+                assertEquals(
+                    LoadAction(Parts.PREFIX + AccountPaths.orders(HistoryFilterKey.All, 2)),
+                    pagination.links.single { it.label == "2" }.action,
+                )
+
+                val second =
+                    checkNotNull(
+                        account(maya, AccountPaths.ORDERS + "?page=2").only<AccountBody>().history,
+                    )
+                assertEquals(20, second.rows.size)
+                assertEquals(emptySet(), second.rows.map { it.id }.toSet() intersect first.rows.map { it.id }.toSet())
+                assertTrue(statements < 100, "a page of the history sent $statements statements")
+                assertTrue(took < 2.seconds, "the history of ${COPIED + 1} orders took $took")
+            }
+        }
+
+    /**
+     * [origin] counting every statement its connections prepare or create: one a query, whichever way Exposed
+     * sends it.
+     */
+    private class CountingDataSource(
+        private val origin: DataSource,
+    ) : DataSource by origin {
+        val statements = AtomicInteger()
+
+        override fun getConnection(): Connection = counting(origin.connection)
+
+        override fun getConnection(
+            username: String?,
+            password: String?,
+        ): Connection = counting(origin.getConnection(username, password))
+
+        private fun counting(connection: Connection): Connection =
+            Proxy.newProxyInstance(javaClass.classLoader, arrayOf(Connection::class.java)) { _, method, args ->
+                if (method.name == "prepareStatement" || method.name == "createStatement" ||
+                    method.name == "prepareCall"
+                ) {
+                    statements.incrementAndGet()
+                }
+                try {
+                    method.invoke(connection, *(args ?: emptyArray()))
+                } catch (e: InvocationTargetException) {
+                    throw e.targetException
+                }
+            } as Connection
+    }
+
+    private companion object {
+        const val COPIED = 5_000
+
+        /**
+         * [COPIED] copies of the order `?`, each an hour older than the one before and delivered: its row, its
+         * lines and its shipments under ids of their own.
+         */
+        val COPIES =
+            """
+            INSERT INTO orders
+            SELECT (jsonb_populate_record(o, jsonb_build_object(
+                'id', o.id || '-' || n, 'saga_id', o.saga_id || '-' || n, 'placed_at', o.placed_at - n * interval '1 hour'))).*
+            FROM orders o, generate_series(1, $COPIED) n WHERE o.id = ?;
+            INSERT INTO order_lines
+            SELECT (jsonb_populate_record(l, jsonb_build_object('order_id', l.order_id || '-' || n))).*
+            FROM order_lines l, generate_series(1, $COPIED) n WHERE l.order_id = ?;
+            INSERT INTO shipments
+            SELECT (jsonb_populate_record(s, jsonb_build_object(
+                'id', s.id || '-' || n, 'order_id', s.order_id || '-' || n, 'status', 'delivered'))).*
+            FROM shipments s, generate_series(1, $COPIED) n WHERE s.order_id = ?;
+            """.trimIndent()
+    }
 }
