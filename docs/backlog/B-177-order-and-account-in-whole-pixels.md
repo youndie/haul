@@ -1,7 +1,7 @@
 ---
 id: B-177
 title: "refactor: lay the order and account pages out in whole pixels"
-status: open
+status: wip
 priority: P2
 size: M
 stage: stage-15-showcase
