@@ -349,7 +349,7 @@
                 "placeEnabled": false,
                 "placeHint": "Pick a delivery window",
                 "placeUrl": "/api/v1/orders",
-                "quote": "ef4cdacf941d9ac30ccfca11c3c003b7",
+                "quote": "e6480570dc9dc0b8002204334cfa60bc",
                 "back": {
                     "label": "Back to cart",
                     "action": {

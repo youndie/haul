@@ -59,11 +59,13 @@ class InventedBrandsTest {
             listOf(
                 File("src/main/kotlin"),
                 bodies,
-                // The client's fixtures beside the bodies: composeApp/src/desktopTest/{resources/bodies,kotlin}.
+                // The client's fixtures beside the bodies (composeApp/src/desktopTest/{resources/bodies,kotlin}), and
+                // the client's own code.
                 bodies.resolve("../../kotlin").normalize(),
+                bodies.resolve("../../../commonMain/kotlin").normalize(),
             )
         val files = roots.flatMap { root -> root.walkTopDown().filter { it.isFile && it.extension in TEXT }.toList() }
-        // Positive control: the walk found the trees it names, not three empty directories.
+        // Positive control: the walk found the trees it names, not empty directories.
         roots.forEach { root -> assertTrue(files.count { it.startsWith(root) } > 10, "nothing read under $root") }
         val found =
             files.flatMap { file ->

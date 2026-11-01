@@ -28,7 +28,7 @@ internal fun DisplayFaceCharacters() =
     Fixture(compact = false) {
         Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             TEXT_SIZES.forEach { size ->
-                Text("WH-1000XM6 — #HL-48303 – $31.49 · 4.8 · −$14", HaulType.display(size, 800), softWrap = false)
+                Text("SH-718N — #HL-48303 – $31.49 · 4.8 · −$14", HaulType.display(size, 800), softWrap = false)
             }
             FIGURE_SIZES.forEach { size ->
                 Text("$31.49 — 4.8 — 4821", HaulType.display(size, 800), softWrap = false)

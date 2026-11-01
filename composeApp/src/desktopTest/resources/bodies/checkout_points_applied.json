@@ -347,7 +347,7 @@
                 "placingLabel": "Placing order…",
                 "placeEnabled": true,
                 "placeUrl": "/api/v1/orders",
-                "quote": "03821cdb6408d8aa01fec7530927a0a6",
+                "quote": "fd45a3837472d3e57926f4f8392bc344",
                 "back": {
                     "label": "Back to cart",
                     "action": {

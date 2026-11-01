@@ -342,7 +342,7 @@
                 "placeEnabled": false,
                 "placeHint": "Fill in the street address and ZIP",
                 "placeUrl": "/api/v1/orders",
-                "quote": "7bb3ef377d025c0546130a22f068f3a1",
+                "quote": "ec11391f01ad890b2b875897ef2d2e2a",
                 "back": {
                     "label": "Back to cart",
                     "action": {

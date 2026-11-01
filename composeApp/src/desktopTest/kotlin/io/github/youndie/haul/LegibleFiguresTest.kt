@@ -67,7 +67,7 @@ class LegibleFiguresTest {
     fun `a family a span already chose is kept`() {
         val text =
             buildAnnotatedString {
-                append("WH-")
+                append("SH-")
                 withStyle(SpanStyle(fontFamily = FontFamily.Monospace)) { append("1000") }
                 append("XM6")
             }
@@ -77,7 +77,7 @@ class LegibleFiguresTest {
 
     @Test
     fun `a body style is left as it is`() {
-        val text = AnnotatedString("WH-1000XM6 — $31.49")
+        val text = AnnotatedString("SH-718N — $31.49")
         val (shown, _) = legible(text, style = { HaulType.text(15f) })
         assertTrue(shown.spanStyles.isEmpty(), "Archivo got spans: ${shown.spanStyles}")
     }
