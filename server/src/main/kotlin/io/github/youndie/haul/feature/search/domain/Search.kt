@@ -52,7 +52,11 @@ internal data class Match(
 
 /** Full-text and substring matching over the catalog, in the database that holds it. */
 internal interface SearchRepository {
-    /** The products matching [query], the most relevant first, then the most reviewed. */
+    /**
+     * The products matching [query]: every word in the product's name or brand, or in what it is — its kind, its
+     * features, its category and the category above (B-171). Those whose name holds the query come first; then the
+     * most relevant, then the most reviewed.
+     */
     suspend fun matching(query: Query): List<Match>
 
     /**
