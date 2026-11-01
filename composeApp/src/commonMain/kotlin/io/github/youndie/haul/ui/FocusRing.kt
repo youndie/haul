@@ -45,7 +45,9 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import io.github.youndie.haul.theme.HaulColorScheme
 import io.github.youndie.haul.theme.HaulColors
+import io.github.youndie.haul.theme.LocalHaulColorScheme
 
 // The control the keyboard is on is marked (B-167): every press of the store's is drawn with no indication — the
 // canvas draws none — so Tab moved through the page and nothing showed where it was. A ring in the accent is drawn
@@ -154,7 +156,9 @@ private class FocusRingNode(
     override fun ContentDrawScope.draw() {
         drawContent()
         // Read in the draw, so that a press of the pointer takes the ring away and a key brings it back.
-        if (focused && currentValueOf(LocalKeyboardFocus)?.byKeyboard != false) drawFocusRing(shape)
+        if (focused && currentValueOf(LocalKeyboardFocus)?.byKeyboard != false) {
+            drawFocusRing(shape, currentValueOf(LocalHaulColorScheme))
+        }
     }
 }
 
@@ -175,14 +179,17 @@ internal fun rememberFieldRing(): FieldRing = remember { FieldRing() }
  * text field matches `:focus-visible` however it was focused. Typed into after a press, it would otherwise ring in
  * the middle of the typing, at the first key.
  */
+@Composable
 internal fun Modifier.ringsAround(
     ring: FieldRing,
     shape: Shape,
-): Modifier =
-    drawWithContent {
+): Modifier {
+    val scheme = HaulColors.scheme
+    return drawWithContent {
         drawContent()
-        if (ring.focused) drawFocusRing(shape)
+        if (ring.focused) drawFocusRing(shape, scheme)
     }
+}
 
 /** The field whose focus [ring] tells its frame. */
 internal fun Modifier.ringedBy(ring: FieldRing): Modifier = onFocusChanged { ring.focused = it.isFocused }
@@ -211,14 +218,17 @@ private data class Outset(
 }
 
 /** The ring itself, just outside what is drawn: the accent over a halo of the page's paper. */
-private fun DrawScope.drawFocusRing(shape: Shape) {
+private fun DrawScope.drawFocusRing(
+    shape: Shape,
+    scheme: HaulColorScheme,
+) {
     val out = RING_OUT.toPx()
     val ringSize = Size(size.width + out * 2, size.height + out * 2)
     translate(-out, -out) {
         val outline = shape.createOutline(ringSize, layoutDirection, this)
         // The halo keeps the ring seen on a dark bar — the demo strip, «Under the hood» — as on the page.
-        drawOutline(outline, HaulColors.background, style = Stroke(RING_HALO.toPx()))
-        drawOutline(outline, HaulColors.primary, style = Stroke(RING_WIDTH.toPx()))
+        drawOutline(outline, scheme.background, style = Stroke(RING_HALO.toPx()))
+        drawOutline(outline, scheme.primary, style = Stroke(RING_WIDTH.toPx()))
     }
 }
 

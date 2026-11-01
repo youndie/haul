@@ -40,7 +40,7 @@ public fun HaulFooterView(footer: HaulFooter) {
         Column(
             Modifier
                 .fillMaxWidth()
-                .background(HaulColors.inverseSurface)
+                .background(HaulColors.band)
                 .clipToBounds()
                 .padding(
                     start = if (compact) 16.dp else 48.dp,
@@ -73,6 +73,7 @@ public fun HaulFooterView(footer: HaulFooter) {
             val size = if (compact) 150f else 420f
             // A picture of the name, not words to copy, and out of the page's selection (B-155): selectable, it took
             // the presses of the column words above it — its text runs past its box — and «Haul Plus» opened nothing.
+            val acid = HaulColors.secondaryContainer
             DisableSelection {
                 FittedText(
                     buildAnnotatedString {
@@ -84,7 +85,7 @@ public fun HaulFooterView(footer: HaulFooter) {
                     style = { fonts, at ->
                         HaulType
                             .display(fonts, at, 900, letterSpacing = -0.05f, lineHeight = 0.78f)
-                            .copy(color = HaulColors.secondaryContainer)
+                            .copy(color = acid)
                     },
                     modifier =
                         Modifier
@@ -109,7 +110,7 @@ private fun LinkColumn(
             .text(
                 if (compact) 14f else 15f,
                 lineHeight = 2f,
-            ).copy(color = HaulColors.inverseOnSurface)
+            ).copy(color = HaulColors.onBand)
     Column(modifier.heightIn(min = columnHeight(compact))) {
         ColumnTitle(column.title, compact)
         column.links.forEach { word ->

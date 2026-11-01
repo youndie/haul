@@ -52,6 +52,7 @@ public const val NOT_UPDATED_TITLE: String = "The page didn’t update"
 internal fun LoadingLine(modifier: Modifier = Modifier) {
     val sweep = rememberInfiniteTransition()
     val at by sweep.animateFloat(0f, 1f, infiniteRepeatable(tween(SWEEP_MS, easing = LinearEasing)))
+    val accent = HaulColors.primary
     Box(
         modifier
             .testTag(LOADING_LINE_TAG)
@@ -62,7 +63,7 @@ internal fun LoadingLine(modifier: Modifier = Modifier) {
             .drawBehind {
                 val width = size.width * SWEEP_SHARE
                 drawRect(
-                    HaulColors.primary,
+                    accent,
                     topLeft = Offset((size.width + width) * at - width, 0f),
                     size = Size(width, size.height),
                 )
@@ -87,15 +88,15 @@ internal fun NotUpdatedNotice(
             .testTag(NOT_UPDATED_TAG)
             .widthIn(max = 560.dp)
             .fillMaxWidth()
-            .background(HaulColors.inverseSurface, RoundedCornerShape(16.dp))
+            .background(HaulColors.band, RoundedCornerShape(16.dp))
             .padding(start = 20.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(HaulIcons.alert, 20.dp, HaulColors.secondaryContainer)
         Column(Modifier.weight(1f)) {
-            Text(NOT_UPDATED_TITLE, normal(15f, 700).copy(color = HaulColors.inverseOnSurface))
-            Text(cause.notUpdatedReason, normal(14f).copy(color = HaulColors.inverseOnSurfaceVariant))
+            Text(NOT_UPDATED_TITLE, normal(15f, 700).copy(color = HaulColors.onBand))
+            Text(cause.notUpdatedReason, normal(14f).copy(color = HaulColors.onBandVariant))
         }
         if (cause.retryHelps) {
             HaulButton(

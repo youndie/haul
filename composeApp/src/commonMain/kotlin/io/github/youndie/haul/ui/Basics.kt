@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
@@ -119,6 +120,7 @@ private const val ACCENT_WEIGHT = 500
  * The canvas's `repeating-linear-gradient(135deg, colour 0 1px, transparent 1px period)`: 1 px lines
  * across the 135° axis, one every [period] px along it, starting at the top left corner.
  */
+@Composable
 internal fun Modifier.hatching(
     color: Color = HaulColors.tileHatch,
     period: Float = 12f,
@@ -155,7 +157,7 @@ internal fun HaulButton(
     radius: Dp,
     horizontal: Dp = 28.dp,
     fill: Color? = null,
-    content: Color = HaulColors.onSurface,
+    content: Color = if (fill == HaulColors.secondaryContainer) HaulColors.onSecondaryContainer else HaulColors.onSurface,
     border: Color? = null,
     textSize: Float = 17f,
     icon: ImageVector? = null,
@@ -336,7 +338,8 @@ internal fun Text(
                 reach[0] = top
                 layout(placeable.width, bottom - top) { placeable.place(0, -top) }
             }.drawsInto(glyphs),
-        style,
+        // A style that names no colour — one built while measuring, `HaulType.display(fonts, …)` — is Ink (B-180).
+        if (style.color.isSpecified) style else style.copy(color = HaulColors.onSurface),
         overflow = overflow,
         softWrap = softWrap,
         maxLines = maxLines,

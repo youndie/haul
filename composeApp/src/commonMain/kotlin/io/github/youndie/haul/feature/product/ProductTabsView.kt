@@ -120,9 +120,10 @@ public fun ProductTabsView(tabs: ProductTabs) {
     }
     // The hairline runs the row's full width — to the page's right edge on a phone, where the row
     // scrolls (`margin-right: -16px`).
+    val rule = HaulColors.outlineVariant
     val hairline =
         Modifier.drawBehind {
-            drawRect(HaulColors.outlineVariant, Offset(0f, size.height - 1f), Size(size.width, 1f))
+            drawRect(rule, Offset(0f, size.height - 1f), Size(size.width, 1f))
         }
     val row =
         if (compact) {
@@ -370,9 +371,12 @@ private fun SpecCard(
 }
 
 /** A hairline along the bottom edge, inside the box: CSS's `border-bottom: 1px solid`. */
-private fun Modifier.bottomRule(): Modifier =
-    drawBehind { drawRect(HaulColors.outlineVariant, Offset(0f, size.height - 1f), Size(size.width, 1f)) }
+@Composable
+private fun Modifier.bottomRule(): Modifier {
+    val rule = HaulColors.outlineVariant
+    return drawBehind { drawRect(rule, Offset(0f, size.height - 1f), Size(size.width, 1f)) }
         .padding(bottom = 1.dp)
+}
 
 /**
  * The reviews: the rating, its histogram and «Write a review» in a 360-wide column beside the reviews,

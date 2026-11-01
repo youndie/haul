@@ -129,7 +129,7 @@ public fun HeaderMenuSheet(
             ) {
                 Text(
                     "HAUL PLUS",
-                    HaulType.label(11f, 600, 0.06f),
+                    HaulType.label(11f, 600, 0.06f).copy(color = HaulColors.onSecondaryContainer),
                     Modifier
                         .background(HaulColors.secondaryContainer, CircleShape)
                         .padding(horizontal = 12.dp, vertical = 7.dp),

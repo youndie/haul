@@ -15,12 +15,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.FirstBaseline
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.testTag
@@ -37,7 +39,9 @@ import io.github.youndie.haul.feature.cart.LocalCartCommands
 import io.github.youndie.haul.feature.cart.linePress
 import io.github.youndie.haul.feature.cart.run
 import io.github.youndie.haul.feature.saved.SaveCommand
+import io.github.youndie.haul.theme.HaulColorScheme
 import io.github.youndie.haul.theme.HaulColors
+import io.github.youndie.haul.theme.hexColor
 import io.github.youndie.haul.theme.HaulType
 import io.github.youndie.haul.theme.LocalHaulCompact
 import io.github.youndie.kompot.KompotAction
@@ -244,7 +248,7 @@ private fun PhotoTile(
         card.badge?.let {
             Text(
                 it,
-                HaulType.text(13f, 800, lineHeight = 1f),
+                HaulType.text(13f, 800, lineHeight = 1f).copy(color = HaulColors.onSecondaryContainer),
                 Modifier
                     .align(Alignment.TopStart)
                     .padding(10.dp)
@@ -325,11 +329,12 @@ private fun PriceDrop(text: String) {
  */
 @Composable
 private fun Hatching(modifier: Modifier) {
+    val hatch = HaulColors.tileHatch
     Canvas(modifier) {
         val step = HATCH_PERIOD * sqrt(2f)
         var c = 0f
         while (c < size.width + size.height) {
-            drawLine(HaulColors.tileHatch, Offset(c, 0f), Offset(0f, c), strokeWidth = 1f)
+            drawLine(hatch, Offset(c, 0f), Offset(0f, c), strokeWidth = 1f)
             c += step
         }
     }
@@ -337,14 +342,34 @@ private fun Hatching(modifier: Modifier) {
 
 private const val HATCH_PERIOD = 12f
 
-/** A tile tone as the server sends it, `#RRGGBB`; anything else is the canvas's stone tone. */
-internal fun toneColor(tone: String): Color =
-    tone
-        .removePrefix("#")
-        .takeIf { it.length == 6 }
-        ?.toLongOrNull(16)
-        ?.let { Color(0xFF000000 or it) }
-        ?: Color(0xFFECE9E2)
+/**
+ * A tile tone as the server sends it, `#RRGGBB`, drawn in the scheme being drawn: the canvas's tones as the scheme's
+ * counterparts (B-180), anything else that is `#RRGGBB` as sent, anything that is not as the scheme's stone.
+ */
+@Composable
+@ReadOnlyComposable
+internal fun toneColor(tone: String): Color = HaulColors.tone(tone)
+
+/**
+ * A product's colour swatch, `#RRGGBB` as its seed names it: the product's colour in every scheme — a black pair of
+ * headphones is black on a dark page too. Anything else is the canvas's stone.
+ */
+internal fun swatchColor(hex: String): Color = hexColor(hex) ?: HaulColorScheme.Light.tone(hex)
+
+/**
+ * Whether a swatch of this colour loses its edge on the page and is ringed: a white one on a light page, as the canvas
+ * rings it, and a near-black one on a dark page (B-180).
+ */
+@Composable
+@ReadOnlyComposable
+internal fun Color.edgeless(): Boolean =
+    if (HaulColors.scheme.isDark) luminance() < DARK_EDGELESS else luminance() > LIGHT_EDGELESS
+
+/** A swatch brighter than this is white, as far as a light page shows its edge. */
+private const val LIGHT_EDGELESS = 0.95f
+
+/** A swatch darker than this — Midnight Black, Midnight — is as dark as a dark page. */
+private const val DARK_EDGELESS = 0.05f
 
 /** The keyboard's ring around a whole card (B-167): its photo's corners, the card's only drawn edge. */
 private val CARD_RING = RoundedCornerShape(18.dp)

@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -402,7 +403,7 @@ internal fun DialogFrame(
             .then(if (compact) Modifier.fillMaxWidth() else Modifier.width(680.dp))
             .dropShadow(
                 shape,
-                Shadow(radius = 100.dp, spread = (-20).dp, offset = DpOffset(0.dp, 40.dp), color = CARD_SHADOW),
+                Shadow(radius = 100.dp, spread = (-20).dp, offset = DpOffset(0.dp, 40.dp), color = HaulColors.dialogShadow),
             ).background(HaulColors.surfaceContainerLowest, shape)
             .padding(if (compact) 24.dp else 40.dp),
         verticalArrangement = Arrangement.spacedBy(22.dp),
@@ -597,6 +598,8 @@ internal fun Buttons(
     }
 }
 
+@Composable
+@ReadOnlyComposable
 private fun borderOf(
     error: String?,
     focused: Boolean,
@@ -606,9 +609,6 @@ private fun borderOf(
         focused -> 2.dp to HaulColors.onSurface
         else -> 1.dp to HaulColors.outlineVariant
     }
-
-/** The card's `box-shadow: 0 40px 100px -20px rgba(0,0,0,.5)`. */
-private val CARD_SHADOW = Color(0x80000000)
 
 internal fun starTag(stars: Int): String = "review-star:$stars"
 

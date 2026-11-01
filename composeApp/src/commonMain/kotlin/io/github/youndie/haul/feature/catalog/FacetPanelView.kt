@@ -88,7 +88,8 @@ import io.github.youndie.haul.ui.pressable
 import io.github.youndie.haul.ui.rememberFieldRing
 import io.github.youndie.haul.ui.ringedBy
 import io.github.youndie.haul.ui.ringsAround
-import io.github.youndie.haul.ui.toneColor
+import io.github.youndie.haul.ui.edgeless
+import io.github.youndie.haul.ui.swatchColor
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -589,7 +590,7 @@ private fun Switch(on: Boolean) {
             .padding(3.dp),
         contentAlignment = if (on) Alignment.CenterEnd else Alignment.CenterStart,
     ) {
-        Box(Modifier.size(20.dp).background(HaulColors.surfaceContainerLowest, CircleShape))
+        Box(Modifier.size(20.dp).background(HaulColors.knob, CircleShape))
     }
 }
 
@@ -605,7 +606,7 @@ private fun Swatches(
         verticalArrangement = Arrangement.spacedBy(if (sheet) 14.dp else 10.dp),
     ) {
         options.forEach { option ->
-            val colour = option.swatch?.let(::toneColor) ?: HaulColors.outlineVariant
+            val colour = option.swatch?.let(::swatchColor) ?: HaulColors.outlineVariant
             // The selected ring is a box shadow on the canvas: 2 px of Paper, then 2 px of Cobalt,
             // drawn outside the swatch without moving its neighbours.
             // A swatch shows no words: its colour's name is what it reads as (B-126).
@@ -627,9 +628,7 @@ private fun Swatches(
                         .size(size)
                         .background(colour, CircleShape)
                         .then(
-                            if (colour ==
-                                WHITE
-                            ) {
+                            if (colour.edgeless()) {
                                 Modifier.border(1.dp, HaulColors.outlineControl, CircleShape)
                             } else {
                                 Modifier
@@ -640,8 +639,6 @@ private fun Swatches(
         }
     }
 }
-
-private val WHITE = Color(0xFFFFFFFF)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -659,7 +656,9 @@ private fun Pills(options: List<FacetOption>) {
                 }
             Text(
                 option.label,
-                HaulType.text(14f, if (option.selected) 600 else 500),
+                HaulType
+                    .text(14f, if (option.selected) 600 else 500)
+                    .copy(color = if (option.selected) HaulColors.onSecondaryContainer else HaulColors.onSurface),
                 box.muted(option).follows(option.action, CircleShape).padding(horizontal = 13.dp, vertical = 9.dp),
                 softWrap = false,
             )

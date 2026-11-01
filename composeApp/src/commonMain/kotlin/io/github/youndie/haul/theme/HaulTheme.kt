@@ -1,10 +1,13 @@
 package io.github.youndie.haul.theme
 
+import androidx.compose.foundation.text.selection.LocalTextSelectionColors
+import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.SpanStyle
@@ -49,14 +52,18 @@ public val LocalHaulCompact: androidx.compose.runtime.ProvidableCompositionLocal
 public val LocalHaulMedium: androidx.compose.runtime.ProvidableCompositionLocal<Boolean> =
     staticCompositionLocalOf { false }
 
+/** The theme: [fonts], the width's arrangement, and [colors] — the canvas's light scheme unless one is chosen (B-180). */
 @Composable
 public fun HaulTheme(
     fonts: HaulFonts,
     compact: Boolean,
     medium: Boolean = false,
+    colors: HaulColorScheme = HaulColorScheme.Light,
     content: @Composable () -> Unit,
 ) {
     CompositionLocalProvider(
+        LocalHaulColorScheme provides colors,
+        LocalTextSelectionColors provides TextSelectionColors(colors.selectionHandle, colors.selectionBackground),
         LocalHaulFonts provides fonts,
         LocalHaulCompact provides compact,
         LocalHaulMedium provides (medium && !compact),
@@ -85,6 +92,7 @@ public object HaulType {
                         it
                 ).sp
             },
+            HaulColors.onSurface,
         )
 
     /**
@@ -97,15 +105,19 @@ public object HaulType {
         weight: Int,
         letterSpacing: Float = 0f,
         lineHeight: Float = 1f,
-    ): TextStyle = display(LocalHaulFonts.current, size, weight, letterSpacing, lineHeight)
+    ): TextStyle = display(LocalHaulFonts.current, size, weight, letterSpacing, lineHeight, HaulColors.onSurface)
 
-    /** [display] in [fonts]: for a size chosen while measuring, where no composition locals are read (B-82). */
+    /**
+     * [display] in [fonts]: for a size chosen while measuring, where no composition locals are read (B-82). Without a
+     * [color] the text is drawn in Ink of the scheme being drawn (`Text` reads it, B-180).
+     */
     public fun display(
         fonts: HaulFonts,
         size: Float,
         weight: Int,
         letterSpacing: Float = 0f,
         lineHeight: Float = 1f,
+        color: Color = Color.Unspecified,
     ): TextStyle =
         style(
             fonts,
@@ -116,6 +128,7 @@ public object HaulType {
                 size *
                     lineHeight
             ).sp,
+            color,
         ).copy(letterSpacing = letterSpacing.em)
 
     /**
@@ -175,6 +188,7 @@ public object HaulType {
             size,
             weight,
             size.sp,
+            HaulColors.onSurface,
         ).copy(letterSpacing = letterSpacing.em)
 
     private fun style(
@@ -183,6 +197,7 @@ public object HaulType {
         size: Float,
         weight: Int,
         lineHeight: TextUnit?,
+        color: Color,
     ): TextStyle =
         TextStyle(
             fontFamily = family,
@@ -191,7 +206,7 @@ public object HaulType {
             lineHeight = lineHeight ?: TextUnit.Unspecified,
             // A set line height is laid out as CSS does: the leading split evenly, nothing trimmed.
             lineHeightStyle = if (lineHeight != null) BROWSER_LEADING else null,
-            color = HaulColors.onSurface,
+            color = color,
             platformStyle = fonts.platformStyle,
         )
 
