@@ -1,7 +1,7 @@
 ---
 id: B-175
 title: "docs: audit the pixel workarounds since B-85 and write down what Compose for Web cost"
-status: open
+status: wip
 priority: P3
 size: M
 stage: stage-15-showcase
