@@ -41,6 +41,8 @@ class AboutRoutesTest {
             assertEquals(NavigateAction("/about"), links["About this demo"])
             assertEquals(OpenUrlAction("https://github.com/youndie/haul"), links["Source on GitHub"])
             assertEquals(StorefrontPage.About, StorefrontPage.of("/about"), "a reload of the strip's link is no page")
+            // The panel's toggle is named by the server; the panel itself is the client's (B-163).
+            assertEquals("Under the hood", note.hood)
         }
 
     @Test
