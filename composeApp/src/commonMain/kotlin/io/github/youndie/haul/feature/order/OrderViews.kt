@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.youndie.haul.theme.HaulColors
 import io.github.youndie.haul.theme.HaulType
-import io.github.youndie.haul.theme.HaulType.browserLeading
 import io.github.youndie.haul.theme.LocalHaulCompact
 import io.github.youndie.haul.ui.BalancedText
 import io.github.youndie.haul.ui.CssBox
@@ -329,7 +328,7 @@ private fun Pickup(pickup: PickupCode) {
                 }
             },
             Modifier.widthIn(max = 380.dp),
-            style = HaulType.text(15f, lineHeight = PICKUP_LEADING).browserLeading(),
+            style = HaulType.text(15f, lineHeight = PICKUP_LEADING),
         )
     }
     val box =
@@ -684,7 +683,7 @@ private fun String.breakableHyphens(): String = replace("-", "-\u200B")
 
 /** JetBrains Mono 12 on 1.4, the crumbs' and the meta line's. */
 @Composable
-private fun mono(): TextStyle = HaulType.label(12f, 500, 0.04f).copy(lineHeight = (12f * 1.4f).sp).browserLeading()
+private fun mono(): TextStyle = HaulType.label(12f, 500, 0.04f).copy(lineHeight = (12f * 1.4f).sp)
 
 /** The facts' `line-height: 1.45`, set on their box and inherited as a number by the title and the detail. */
 private const val FACT_LEADING = 1.45f

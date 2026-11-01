@@ -273,7 +273,8 @@ internal fun ShrinkFirstRow(
  * (Bodoni's natural line is 1.53 em; the canvas sets 1, .9, .82), Compose grows the paragraph so the
  * glyphs stay inside it, and a 112 px title at `line-height: .9` takes 136 px a line instead of 101.
  * CSS keeps the line box and lets the glyphs overflow it; this reports the line boxes as the size and
- * lets the glyphs draw outside, as the canvas does.
+ * lets the glyphs draw outside, as the canvas does. It is the store's typography now, not only the canvas's: every
+ * page is laid out on these boxes, and without them 173 of the goldens move, by up to half the page (B-175).
  */
 @Composable
 internal fun Text(
@@ -516,7 +517,8 @@ internal fun BaselineWrapRow(
  * Two `flex: 1` items [gap] apart. `flex: 1` shares the free space from a basis of zero, and an item's
  * padding and border are not part of that basis: they come on top of its share. So the second item,
  * with [secondFrame] of padding and border, is wider than the first by exactly that — on the phone's
- * catalog, «Filters» 157 px and the sort 191 px, not two halves.
+ * catalog, «Filters» 157 px and the sort 191 px, not two halves. Only the canvas asked for it; it stays because two
+ * halves move the phone catalog's goldens past `viddikVerify` (B-175).
  */
 @Composable
 internal fun FlexPair(
@@ -544,7 +546,8 @@ internal fun FlexPair(
 /**
  * A block holding one inline run of [text] in a font other than the block's: CSS sizes the line by the
  * block's own font as well (its strut), and sits the run on that font's baseline. [strut] is the
- * block's font — Archivo 16 px at the default line height for an eyebrow in a campaign or the Plus block.
+ * block's font — Archivo 16 px at the default line height for an eyebrow in a campaign or the Plus block. Only the
+ * canvas asked for it; the run alone moves fourteen goldens past `viddikVerify`, the home's by up to 9 % (B-175).
  */
 @Composable
 internal fun InlineLine(
@@ -764,7 +767,8 @@ internal fun BalancedText(
  * Archivo at [size] on a line as tall as Chrome's `line-height: normal` draws it: the font's ascent and
  * descent (878 and 210 per 1,000) each rounded to a whole pixel — 19 px at 17, 15 at 14. Compose's own
  * line is a pixel shorter at most sizes, and a form that stacks enough lines on a phone (the checkout,
- * the review dialog) moves by tens of pixels for it.
+ * the review dialog) moves by tens of pixels for it — on Compose's own line 31 goldens move past `viddikVerify`,
+ * checkout's on a phone by 10 % (B-175).
  */
 @Composable
 internal fun normal(
