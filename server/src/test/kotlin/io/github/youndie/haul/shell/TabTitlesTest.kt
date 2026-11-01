@@ -53,6 +53,7 @@ class TabTitlesTest {
                 "/ui/search?q=running%20shoes" to "Search: running shoes · Haul",
                 "/ui/search?q=zzqxv" to "Search: zzqxv · Haul",
                 "/ui/deals" to "Deals · Haul",
+                "/ui/about" to "About this demo · Haul",
                 CartPaths.SCREEN to "Cart · Haul",
             )
     }

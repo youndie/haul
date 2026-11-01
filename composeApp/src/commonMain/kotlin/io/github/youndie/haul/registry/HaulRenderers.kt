@@ -47,6 +47,8 @@ import io.github.youndie.haul.feature.product.ReviewDialog
 import io.github.youndie.haul.feature.product.SpecificationListView
 import io.github.youndie.haul.feature.search.SearchNoResultsView
 import io.github.youndie.haul.theme.LocalHaulCompact
+import io.github.youndie.haul.ui.AboutBody
+import io.github.youndie.haul.ui.AboutBodyView
 import io.github.youndie.haul.ui.AccountBody
 import io.github.youndie.haul.ui.Breadcrumbs
 import io.github.youndie.haul.ui.CampaignRow
@@ -54,6 +56,8 @@ import io.github.youndie.haul.ui.CartBody
 import io.github.youndie.haul.ui.CategoryGrid
 import io.github.youndie.haul.ui.CheckoutBody
 import io.github.youndie.haul.ui.CheckoutHeader
+import io.github.youndie.haul.ui.DemoNote
+import io.github.youndie.haul.ui.DemoNoteView
 import io.github.youndie.haul.ui.EmptyState
 import io.github.youndie.haul.ui.EmptyStateView
 import io.github.youndie.haul.ui.FilterChips
@@ -218,6 +222,37 @@ public class HaulFooterRenderer : KompotComponentRenderer<HaulFooter> {
         formController: FormController,
     ) {
         HaulFooterView(component)
+    }
+}
+
+// What the stand says about itself (B-160).
+
+/** The About page's body (`/about`). */
+@KompotComponentMarker
+public class AboutBodyRenderer : KompotComponentRenderer<AboutBody> {
+    @Composable
+    override fun Render(
+        component: AboutBody,
+        actionHandler: KompotActionHandler,
+        formController: FormController,
+    ) {
+        AboutBodyView(component)
+    }
+}
+
+/**
+ * The demo strip, should a tree carry it: drawn with nothing to close it. The storefront draws the one it asks for
+ * above every page itself, with its close control (`shell/DemoStrip.kt`).
+ */
+@KompotComponentMarker
+public class DemoNoteRenderer : KompotComponentRenderer<DemoNote> {
+    @Composable
+    override fun Render(
+        component: DemoNote,
+        actionHandler: KompotActionHandler,
+        formController: FormController,
+    ) {
+        DemoNoteView(component, onClose = null)
     }
 }
 

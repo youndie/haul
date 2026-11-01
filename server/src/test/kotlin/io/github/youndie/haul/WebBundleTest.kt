@@ -335,6 +335,7 @@ class WebBundleTest {
                 "/account/saved",
                 "/account/saved?filter=price-dropped&page=2",
                 "/sign-in",
+                "/about",
             )
 
         /** The run's four (TC-ERR-04 step 4): a value cut off mid-escape, a name and values that are no escape. */

@@ -1,7 +1,7 @@
 ---
 id: B-161
 title: "feat: every page has its own title, a description and a link preview"
-status: wip
+status: done
 priority: P1
 size: S
 stage: stage-15-showcase

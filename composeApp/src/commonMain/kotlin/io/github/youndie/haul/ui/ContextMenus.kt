@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.round
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.standard.NavigateAction
+import io.github.youndie.kompot.standard.OpenUrlAction
 import kotlin.math.roundToInt
 
 // The browser's own menu never opens over the canvas: Compose takes the right button for itself. On the web its text
@@ -206,19 +207,37 @@ private fun selectedWords(selection: SelectionState): String = selection.selecte
 
 /**
  * The right button over this opens «Open in new tab» and «Copy link» for [action]'s address — an address the server
- * wrote, a [NavigateAction]'s; any other action is a command, with no address to offer, and the right button over it
- * opens the page's. Outside a [Selectable] page, or with nobody to open or copy links, nothing opens.
+ * wrote, a [NavigateAction]'s, or a whole one off the storefront, an [OpenUrlAction]'s (B-160); any other action is a
+ * command, with no address to offer, and the right button over it opens the page's. Outside a [Selectable] page, or
+ * with nobody to open or copy links, nothing opens.
  */
 @Composable
 internal fun Modifier.offersLink(action: KompotAction?): Modifier {
-    val links = LocalLinkCopier.current
+    val links = LocalLinkCopier.current ?: return this
     val path = (action as? NavigateAction)?.deeplink
-    if (links == null || path == null) return this
-    return offersMenu {
-        listOf(
-            MenuEntry(OPEN_IN_NEW_TAB) { links.openApart(path) },
-            MenuEntry(COPY_LINK) { links.copy(path) { } },
-        )
+    val url = (action as? OpenUrlAction)?.url
+    return when {
+        path != null -> {
+            offersMenu {
+                listOf(
+                    MenuEntry(OPEN_IN_NEW_TAB) { links.openApart(path) },
+                    MenuEntry(COPY_LINK) { links.copy(path) { } },
+                )
+            }
+        }
+
+        url != null -> {
+            offersMenu {
+                listOf(
+                    MenuEntry(OPEN_IN_NEW_TAB) { links.openUrl(url) },
+                    MenuEntry(COPY_LINK) { links.copyText(url) { } },
+                )
+            }
+        }
+
+        else -> {
+            this
+        }
     }
 }
 

@@ -2,7 +2,9 @@ package io.github.youndie.haul.shell
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -49,12 +51,14 @@ import io.github.youndie.haul.registry.haulRegistry
 import io.github.youndie.haul.ui.BlankPress
 import io.github.youndie.haul.ui.HaulHeader
 import io.github.youndie.haul.ui.HeaderMenuState
+import io.github.youndie.haul.ui.LinkCopier
 import io.github.youndie.haul.ui.LocalAskForHeader
 import io.github.youndie.haul.ui.LocalBlankPress
 import io.github.youndie.haul.ui.LocalHaulActions
 import io.github.youndie.haul.ui.LocalHaulNow
 import io.github.youndie.haul.ui.LocalHeaderMeasured
 import io.github.youndie.haul.ui.LocalHeaderMenu
+import io.github.youndie.haul.ui.LocalLinkCopier
 import io.github.youndie.haul.ui.LocalLogoAction
 import io.github.youndie.haul.ui.LocalPageScroll
 import io.github.youndie.haul.ui.LocalSearchInput
@@ -89,6 +93,7 @@ import io.github.youndie.kompot.rememberKompotScreenLoaderState
 import io.github.youndie.kompot.standard.CloseAction
 import io.github.youndie.kompot.standard.ColumnComponent
 import io.github.youndie.kompot.standard.NavigateAction
+import io.github.youndie.kompot.standard.OpenUrlAction
 import io.github.youndie.kompot.standard.PresentAction
 import io.github.youndie.kompot.standard.RefreshAction
 import io.github.youndie.kompot.standard.SequenceAction
@@ -335,9 +340,11 @@ public fun Storefront(
     // and sign-out's as everywhere else (B-66), the page loaded again for who is looking once they are done.
     // A `present` — the last tree's «HAUL PLUS» for a customer who is not a member — draws its dialog over
     // the page, and the dialog's `refresh` loads the page again (B-67).
+    val links = LocalLinkCopier.current
+    val demo = LocalDemoStrip.current
     val panelActions =
-        remember(navigator, signing) {
-            val navigate = navigating(navigator)
+        remember(navigator, signing, links) {
+            val navigate = navigating(navigator, links)
             lateinit var panel: KompotActionHandler
             panel =
                 presenting(
@@ -472,6 +479,7 @@ public fun Storefront(
                                     SideEffect { tab.placeholder() }
                                     Scrolled(
                                         scroll,
+                                        drawn = false,
                                     ) { Box(Modifier.testTag(LOADING_TAG)) { Loading(address) } }
                                 },
                                 failed = { cause, retry ->
@@ -485,6 +493,7 @@ public fun Storefront(
                                                 SideEffect { tab.placeholder() }
                                                 Scrolled(
                                                     scroll,
+                                                    drawn = false,
                                                 ) { Box(Modifier.testTag(LOADING_TAG)) { Loading(address) } }
                                             }
                                         }
@@ -550,8 +559,15 @@ public fun Storefront(
                             }
                         }
                         if ((loader.isLoading || loading.isLoading) && loader.screen != null) {
+                            // Under the header, and under the demo strip above it (B-160).
+                            val above = demo?.height ?: 0
                             LoadingLine(
-                                Modifier.offset { IntOffset(0, (headerHeight - scroll.value).coerceAtLeast(0)) },
+                                Modifier.offset {
+                                    IntOffset(
+                                        0,
+                                        (above + headerHeight - scroll.value).coerceAtLeast(0),
+                                    )
+                                },
                             )
                         }
                         // Over whatever is open as well: on a phone a tick is pressed in the filter sheet (B-145).
@@ -601,6 +617,7 @@ private fun PresentedOverlay(
 @Composable
 private fun Scrolled(
     scroll: ScrollState,
+    drawn: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     Box(Modifier.testTag(PAGE_SCROLL_TAG).fillMaxSize().verticalScroll(scroll)) {
@@ -608,7 +625,19 @@ private fun Scrolled(
         CompositionLocalProvider(
             LocalPageScroll provides scroll,
             LocalTabsInView provides tabs,
-        ) { Selectable { content() } }
+        ) {
+            Selectable {
+                // The demo strip above the page, in the storefront only (B-160); a page drawn without it is as before.
+                if (LocalDemoStrip.current == null) {
+                    content()
+                } else {
+                    Column(Modifier.fillMaxWidth()) {
+                        DemoStripAbove(drawn)
+                        content()
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -701,15 +730,16 @@ private fun Shown(
                 }
             }
         }
+    val links = LocalLinkCopier.current
     val actions =
-        remember(address, inPlace.overrides) {
+        remember(address, inPlace.overrides, links) {
             // A sign-in that returns to the page already shown draws it again where it is, without a visit: the
             // page is the same, only who is looking has changed.
             val signInActions =
                 signing.actions(address, redraw = refresh::refresh) { next ->
                     if (next == address.value) refresh.refresh() else navigator.open(next)
                 }
-            val navigate = navigating(navigator)
+            val navigate = navigating(navigator, links)
             lateinit var top: KompotActionHandler
             top =
                 presenting(
@@ -790,9 +820,21 @@ internal fun presenting(
     return self
 }
 
-/** Follows `navigate` to its deeplink; anything else is somebody else's to handle. */
-private fun navigating(navigator: Navigator): KompotActionHandler =
-    KompotActionHandler { action -> if (action is NavigateAction) navigator.open(action.deeplink) }
+/**
+ * Follows `navigate` to its deeplink, and `open_url` — a link off the storefront, the repository's (B-160) — through
+ * [links], in a tab of its own; anything else is somebody else's to handle.
+ */
+private fun navigating(
+    navigator: Navigator,
+    links: LinkCopier?,
+): KompotActionHandler =
+    KompotActionHandler { action ->
+        when (action) {
+            is NavigateAction -> navigator.open(action.deeplink)
+            is OpenUrlAction -> links?.openUrl(action.url)
+            else -> Unit
+        }
+    }
 
 /**
  * The answer of the `load` endpoint at [url] (B-63), or [NOTHING] when it did not arrive — after telling
@@ -851,7 +893,7 @@ private fun Loading(address: Address) {
         PageKind.Order -> OrderLoading()
         PageKind.Categories -> CategoriesLoading()
         PageKind.Deals -> DealsLoading()
-        PageKind.SignIn, PageKind.Other -> PendingHeader()
+        PageKind.SignIn, PageKind.About, PageKind.Other -> PendingHeader()
     }
 }
 
@@ -947,6 +989,7 @@ private val PageKind.subject: String
             PageKind.Categories,
             PageKind.Deals,
             PageKind.SignIn,
+            PageKind.About,
             PageKind.Other,
             -> "This page"
         }
