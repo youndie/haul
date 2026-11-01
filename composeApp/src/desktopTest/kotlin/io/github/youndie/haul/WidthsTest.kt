@@ -30,6 +30,7 @@ import io.github.youndie.haul.ui.ProductCard
 import io.github.youndie.haul.ui.ProductGrid
 import io.github.youndie.haul.ui.ProductGridView
 import io.github.youndie.kompot.standard.ColumnComponent
+import io.github.youndie.kompot.standard.NavigateAction
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -262,6 +263,12 @@ class WidthsTest {
             listOf(
                 Triple("customer", CUSTOMER, false),
                 Triple("guest", CUSTOMER.copy(customerName = null, cartCount = 0), false),
+                // B-162: the demo shopper's pill beside «Sign in» — the widest a guest's row gets.
+                Triple(
+                    "guest offered the demo",
+                    CUSTOMER.copy(customerName = null, cartCount = 0, demo = NavigateAction("/demo-shopper")),
+                    false,
+                ),
                 Triple("placeholder", CUSTOMER, true),
                 Triple("search", CUSTOMER.copy(query = "noise cancelling headphones"), false),
             )

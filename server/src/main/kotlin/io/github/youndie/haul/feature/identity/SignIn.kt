@@ -36,8 +36,8 @@ internal data class SignInConfig(
     fun settings(): SignInSettings =
         SignInSettings(issuer = issuer.trimEnd('/'), clientId = clientId, scope = SCOPE, mergeUrl = CartPaths.MERGE)
 
-    private companion object {
-        const val REALMS = "/realms/"
+    companion object {
+        private const val REALMS = "/realms/"
 
         /** `offline_access`: shildik issues a refresh token only when asked, and its access token lives five minutes. */
         const val SCOPE = "openid profile email offline_access"

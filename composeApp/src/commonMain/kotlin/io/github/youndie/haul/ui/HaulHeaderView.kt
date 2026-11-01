@@ -391,6 +391,10 @@ private fun WideHeader(
     ) {
         Deals(size = 15f, Modifier.follows(header.deals))
         FittingWords(header.categories, 28.dp, HaulType.text(15f, 500), Modifier.weight(1f), links = header.catalog)
+        // «Try as a demo shopper» (B-162), while the server offers one: on the row whose words give way, so it keeps
+        // its whole name at every desktop width — beside «Sign in» on the row above it squeezed the search field to
+        // a sliver at 1280.
+        if (!pending && header.customerName == null) header.demo?.let { DemoShopperPill(it) }
         // The Plus offer (`HaulHeader.plus`, B-49): the trial's dialog, a member's account, a guest's sign-in.
         Text(
             "HAUL PLUS",
@@ -406,6 +410,30 @@ private fun WideHeader(
         )
     }
 }
+
+/**
+ * The wide header's «Try as a demo shopper» (B-162): a pill at the end of the category row, before «HAUL PLUS», in
+ * the colour of what it does — it signs the visitor in.
+ */
+@Composable
+private fun DemoShopperPill(action: KompotAction) {
+    Text(
+        DEMO_SHOPPER_NAME,
+        HaulType.text(13f, 700).copy(color = HaulColors.onPrimary),
+        Modifier
+            .testTag(DEMO_SHOPPER_TAG)
+            .follows(action)
+            .background(HaulColors.primary, CircleShape)
+            .padding(horizontal = 14.dp, vertical = 7.dp),
+        softWrap = false,
+    )
+}
+
+/** What the demo shopper's control says (B-162): the wide header's pill, the phone's menu row. */
+public const val DEMO_SHOPPER_NAME: String = "Try as a demo shopper"
+
+/** The tag of the wide header's demo pill, for the tests that press it. */
+public const val DEMO_SHOPPER_TAG: String = "demo-shopper"
 
 /** The name of the search field's button, an icon (B-126). */
 private const val SEARCH = "Search"

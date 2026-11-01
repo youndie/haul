@@ -31,6 +31,16 @@ server:
   # refused here, as the server refuses it at start.
   fulfilmentSpeed: ""
   dbPoolSize: 10
+  # «Try as a demo shopper» (B-162): one press makes a visitor a customer of their own in the release's realm, with
+  # an address and Haul Pay set, swept with everything they did after a day. Effective only with `shildik.enabled`:
+  # the server then reaches the provider's management port with `shildik.bootstrapToken` — the Secret the release
+  # already holds — and the NetworkPolicy admits it there. No new secret and nothing for a deploy to pass. Off by
+  # default: the bootstrap token can do anything in the realm, and handing it to the server that faces the internet
+  # is the owner's decision (B-162's question), not a default. Off, the store has sign-in alone and the header offers
+  # no demo.
+  demoShoppers: false
+  # At most this many demo shoppers made in any day (`HAUL_DEMO_DAILY_LIMIT`); empty is the server's 500.
+  demoDailyLimit: ""
   # Handed to the start script as JAVA_OPTS, after the AOT cache flag it adds itself. The heap follows
   # the container's limit rather than a number that drifts away from it.
   jvmOptions: >-

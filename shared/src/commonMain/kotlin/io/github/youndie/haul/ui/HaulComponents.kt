@@ -44,6 +44,9 @@ import kotlinx.serialization.Serializable
  * Cancelling Headphones · Haul», «Deals · Haul» — the server's copy, which the client puts in `document.title` and
  * never composes. `null` on a header that tops no page: the header alone (`/ui/header`, B-105) and the header an
  * `update` redraws (B-63), which the client never reads it from.
+ *
+ * [demo] is «Try as a demo shopper» for a guest (B-162): a customer of the visitor's own, made in one press, with the
+ * guest cart merged into it as any sign-in merges it. `null` for a customer, and on a server whose demo is off.
  */
 @Serializable
 @SerialName("haul_header")
@@ -67,6 +70,7 @@ public data class HaulHeader(
     val scopes: List<SearchScope> = emptyList(),
     val scope: String? = null,
     val tabTitle: String? = null,
+    val demo: @Polymorphic KompotAction? = null,
     override val modifiers: List<KompotModifierNode> = emptyList(),
 ) : KompotComponent
 

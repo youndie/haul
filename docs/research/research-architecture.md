@@ -1169,6 +1169,55 @@ the account need a shildik token; signing in merges the guest cart.
   sign-out asks for the password again — the provider kept no session of its own to sign in from. Its
   `end_session_endpoint` is not used.
 
+**Decided in B-162, the demo shopper.** A visitor of the stand had no way into the money half: checkout, the saga,
+the live order and returns all need a customer (above), and the realm is closed — nobody can make an account.
+
+- **«Try as a demo shopper» makes a customer of the visitor's own, in one press.** `POST /api/v1/demo-shoppers`
+  (public tier, `201` with `DemoShopperTokens`, `Cache-Control: no-store`) imports a person into the realm under
+  `demo-` and a random UUID, sets a password of 32 random bytes made on the server — used once, never stored, logged
+  or sent anywhere but to the provider — and signs them in exactly as the popup does: code flow with PKCE at the
+  storefront's public client, the provider's form posted from the issuer's origin, the code exchanged
+  (`ShildikDemoAccounts`). The tokens are therefore the storefront's own kind — `azp` the storefront, a refresh token
+  for `offline_access` — and every route, the merge, the renewal in the browser and the live page take them as any
+  sign-in's. The browser keeps them and merges the guest cart as after any sign-in (`Identity.tryAsDemoShopper`); no
+  popup opens. The customer is made with them, named «Demo Shopper», with the sample address (148 Wythe Avenue,
+  Apt 4F) and Haul Pay chosen — the quote falls back to the card on a total Haul Pay is not offered for. D5's rule
+  stands: money still needs a customer; the demo only makes one quickly.
+- **Where it shows** (`HaulHeader.demo`, the client's word `/demo-shopper`, never a page): at the end of a guest's
+  category row, before «HAUL PLUS», at every desktop width — beside «Sign in» it squeezed the search field until its
+  placeholder was cut at 1280, and on the row whose words give way it keeps its whole name; under «Sign in» in the
+  phone's menu; as the second button of the sign-in page and of a customer's page refused to a guest (B-44), whose
+  press returns where the page would. A refusal (`503`) is said over the page with the server's words.
+- **How the customer is made — compared.** (a) shildik as it is (0.4.1, the stand's): no token exchange, no
+  impersonation, `client_credentials` only for services, but its management API imports a person under a given id,
+  sets a password and turns a person off (`enabled: false`, after which shildik refuses their sign-in and the renewal
+  of any token they hold); with the browser's own code flow that is enough. (b) A change in shildik — a grant or an
+  admin route that issues a person's tokens — would spare scraping its sign-in form, but needs a release and a new
+  version on the stand. (c) A token haul issues itself, verified beside shildik's, would be a second issuer on every
+  customer route and a renewal path of its own in the browser. **(a) was taken:** it needs nothing new on the
+  cluster — the server reaches the release's provider at `http://<release>-shildik:9000` with the bootstrap token from
+  the provider's own Secret, and the NetworkPolicy admits the server to that port (`server.demoShoppers`, **off by
+  default** — handing the realm's admin token to the server that faces the internet is the owner's decision, not a
+  default; on, it needs the release's provider). Its costs: the internet-facing server holds the realm's admin token, which can
+  do everything in the realm, not only make people (the realm holds only the stand's sample people and the
+  storefront's client); the walk reads shildik's sign-in page as the e2e and the server's suite read it, so a page
+  that changes its form breaks it — the server's suite runs it against the provider's image; and shildik 0.4.1 cannot
+  delete a person, so a swept one stays in the realm, turned off. A scoped admin role or a delete route in shildik
+  would remove the first and the last; neither is needed for the demo.
+- **Swept after a day.** Every hour (`DemoOffer.SWEEP_EVERY`) the demo shoppers made more than a day ago
+  (`demo_shoppers`, V32) are turned off at the provider first — one the provider does not turn off waits for the next
+  sweep, since forgotten here first its token would still renew there — and then forgotten in one transaction
+  (`ExposedDemoShoppers.forget`): what their orders reserved goes back on the shelf, less what a return already put
+  back, and their windows' places back to the windows; their payments, saga rows and idempotency keys go; their
+  reviews, questions and «Helpful» votes go with the counts, the histogram and the average they moved; then the
+  customer, whose cascades take the orders, the cart, the Saved list and the rest. One whose order is still being
+  placed is left for the next sweep. A token whose `sub` is a demo shopper's with no customer behind it is refused
+  (`Callers`) rather than made a new, empty customer.
+- **Bounded.** At most `HAUL_DEMO_DAILY_LIMIT` (500 by default) are made in any day; past it `503 unavailable`,
+  «Every demo shopper for today is taken — try again later». The three `HAUL_DEMO_*` are set together or not at all,
+  and a demo without sign-in refuses the start.
+- Rejected, as the item did: one shared demo account with a published password, and a guest checkout.
+
 **Decided in B-14, checkout and the quote.**
 
 - **The quote is the cart's, computed in one place** (`CheckoutCommands.state`, `feature/checkout/`):

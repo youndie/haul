@@ -9,7 +9,8 @@ import io.github.youndie.haul.feature.saved.domain.SavedRepository
 import io.ktor.server.application.ApplicationCall
 
 /**
- * The [Viewer] of a request: a customer's first name, cart, Saved list and place, a guest's cart, or nobody's. Every
+ * The [Viewer] of a request: a customer's first name, cart, Saved list and place, a guest's cart, or nobody's; a guest
+ * and nobody are offered a demo shopper when [demo] is on (B-162). Every
  * screen's header is drawn from this, so the cart's count is the same on the home page as on the cart
  * (feature-identity: the header's states).
  */
@@ -18,17 +19,18 @@ internal class Viewers(
     private val carts: CartRepository,
     private val saved: SavedRepository,
     private val checkouts: CheckoutRepository,
+    private val demo: Boolean = false,
 ) {
     suspend fun of(call: ApplicationCall): Viewer = of(callers.of(call))
 
     suspend fun of(caller: Caller): Viewer =
         when (caller) {
             Caller.Nobody -> {
-                Viewer()
+                Viewer(demo = demo)
             }
 
             is Caller.Guest -> {
-                withCart(Viewer(), CartOwner.Guest(caller.id))
+                withCart(Viewer(demo = demo), CartOwner.Guest(caller.id))
             }
 
             is Caller.Customer -> {

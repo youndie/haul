@@ -3,6 +3,7 @@ package io.github.youndie.haul
 import io.github.youndie.haul.db.DatabaseConfig
 import io.github.youndie.haul.feature.catalog.data.S3Config
 import io.github.youndie.haul.feature.fulfilment.FulfilmentSettings
+import io.github.youndie.haul.feature.identity.DemoShopperConfig
 import io.github.youndie.haul.feature.identity.SignInConfig
 import io.github.youndie.haul.ops.AgentEndpoint
 import io.github.youndie.haul.ops.ObservabilitySettings
@@ -108,6 +109,32 @@ internal class ServerConfig(
                 "HAUL_OIDC_ISSUER and HAUL_OIDC_CLIENT_ID are set together or not at all"
             }
             return if (issuer != null && clientId != null) SignInConfig(issuer, clientId) else null
+        }
+
+    /**
+     * The demo shoppers (B-162): «Try as a demo shopper» makes a customer of the visitor's own in the realm sign-in
+     * names, through shildik's management API at `HAUL_DEMO_MANAGEMENT_URL` with the bearer
+     * `HAUL_DEMO_MANAGEMENT_TOKEN`, and signs them in at the storefront's public client, whose return page is
+     * `HAUL_DEMO_REDIRECT_URI` — the one the realm registered for it. The three are set together or not at all;
+     * none is a server with no demo, whose header offers none and whose `POST /api/v1/demo-shoppers` is
+     * `503 unavailable`. A demo without sign-in refuses the start: its customers would hold tokens no route accepts.
+     * `HAUL_DEMO_DAILY_LIMIT` caps how many are made in a day (default [DemoShopperConfig.DEFAULT_DAILY_LIMIT]).
+     */
+    val demoShoppers: DemoShopperConfig?
+        get() {
+            val names = listOf("HAUL_DEMO_MANAGEMENT_URL", "HAUL_DEMO_MANAGEMENT_TOKEN", "HAUL_DEMO_REDIRECT_URI")
+            val values = names.map { name -> env(name)?.takeIf { it.isNotBlank() } }
+            check(values.all { it == null } || values.none { it == null }) {
+                "${names.joinToString()} are set together or not at all"
+            }
+            val (management, token, redirect) = values
+            if (management == null || token == null || redirect == null) return null
+            check(signIn != null) { "a demo shopper needs sign-in: set HAUL_OIDC_ISSUER and HAUL_OIDC_CLIENT_ID too" }
+            val limit =
+                env("HAUL_DEMO_DAILY_LIMIT")?.let { raw ->
+                    raw.toIntOrNull()?.takeIf { it > 0 } ?: error("HAUL_DEMO_DAILY_LIMIT=$raw is not a positive number")
+                } ?: DemoShopperConfig.DEFAULT_DAILY_LIMIT
+            return DemoShopperConfig(management, token, redirect, limit)
         }
 
     /**

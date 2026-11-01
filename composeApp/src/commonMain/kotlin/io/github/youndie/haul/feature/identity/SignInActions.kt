@@ -26,7 +26,9 @@ import kotlinx.coroutines.CancellationException
  * way ([SignInPending], B-46) does none of these: that sign-in's own press answers when it ends.
  *
  * [SIGN_OUT] is the client's own address for the header's «Sign out» (B-66): [signOut] forgets the
- * customer, then [signedOut] draws what a guest sees. [handle] says whether the action was sign-in's or
+ * customer, then [signedOut] draws what a guest sees. [DEMO_SHOPPER] is its word for «Try as a demo shopper» (B-162):
+ * [demo] signs in as a customer the server makes for this browser, and ends as a sign-in does — [open] its `next` or
+ * [redraw] — except that the server's refusal is no shopper's choice and is said: [refused], with what it said. [handle] says whether the action was sign-in's or
  * sign-out's, so the navigation that owns every other `navigate` can hand it the rest.
  */
 public class SignInActions(
@@ -37,6 +39,8 @@ public class SignInActions(
     private val unreachable: (again: suspend () -> Unit) -> Unit = { cancelled() },
     private val signOut: () -> Unit = {},
     private val signedOut: () -> Unit = redraw,
+    private val demo: suspend () -> Unit = { throw SignInUnavailable() },
+    private val refused: (reason: String?) -> Unit = { cancelled() },
     private val open: (address: String) -> Unit,
 ) {
     public suspend fun handle(action: KompotAction): Boolean {
@@ -47,17 +51,60 @@ public class SignInActions(
             signedOut()
             return true
         }
-        when (attempt()) {
+        val asDemo = deeplink.substringBefore('?') == DEMO_SHOPPER
+        when (val outcome = if (asDemo) demoAttempt() else attempt()) {
             Outcome.SignedIn -> next(deeplink).let { next -> if (next == null) redraw() else open(next) }
+
             Outcome.NotSignedIn -> cancelled()
+
             Outcome.Blocked -> blocked(deeplink)
+
             Outcome.Unreachable -> unreachable { handle(action) }
-            Outcome.AlreadyUnderWay -> Unit // the press that started it answers when it ends
+
+            Outcome.AlreadyUnderWay -> Unit
+
+            // the press that started it answers when it ends
+            is Outcome.Refused -> refused(outcome.reason)
         }
         return true
     }
 
-    private enum class Outcome { SignedIn, NotSignedIn, Blocked, Unreachable, AlreadyUnderWay }
+    private sealed interface Outcome {
+        data object SignedIn : Outcome
+
+        data object NotSignedIn : Outcome
+
+        data object Blocked : Outcome
+
+        data object Unreachable : Outcome
+
+        data object AlreadyUnderWay : Outcome
+
+        /** The server would not make a demo shopper (B-162), and said why when it did. */
+        data class Refused(
+            val reason: String?,
+        ) : Outcome
+    }
+
+    /** How the demo shopper's sign-in came back (B-162): no popup, so nothing to block or close. */
+    @Suppress(
+        "ktlint:kapkan:swallowed-failure",
+        "A demo shopper the server refused, or a sign-in that failed in the browser, is said over the page; the shopper stays the guest they were.",
+    )
+    private suspend fun demoAttempt(): Outcome =
+        try {
+            demo()
+            Outcome.SignedIn
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: DemoShopperRefused) {
+            Outcome.Refused(e.reason)
+        } catch (_: SignInUnreachable) {
+            Outcome.Unreachable
+        } catch (_: Throwable) {
+            // Throwable, as for the popup's: a failed fetch in the browser is no `Exception` on Wasm (B-47).
+            Outcome.Refused(null)
+        }
 
     /** How the shopper came back. */
     @Suppress(
@@ -94,13 +141,23 @@ public class SignInActions(
          */
         public const val SIGN_OUT: String = "/sign-out"
 
+        /**
+         * The client's own word for «Try as a demo shopper» (B-162), as the server writes it in a guest's header
+         * (`HaulHeader.demo`): never a page, answered by signing in as a demo shopper; its `next`, when it has one, is
+         * where the sign-in returns, as `/sign-in`'s is.
+         */
+        public const val DEMO_SHOPPER: String = "/demo-shopper"
+
         /** Whether [action] is sign-in's or sign-out's to answer rather than a page to open. */
         public fun claims(action: KompotAction): Boolean =
             action is NavigateAction &&
-                (action.deeplink.substringBefore('?') == SIGN_IN || action.deeplink == SIGN_OUT)
+                (action.deeplink.substringBefore('?') in setOf(SIGN_IN, DEMO_SHOPPER) || action.deeplink == SIGN_OUT)
 
         /** The sign-in that returns to [address] once it has gone through — what the server writes as `next`. */
         public fun returningTo(address: String): String = "$SIGN_IN?next=" + address.encodeURLParameter()
+
+        /** The demo shopper's sign-in (B-162) that returns to [address] once it has gone through. */
+        public fun demoReturningTo(address: String): String = "$DEMO_SHOPPER?next=" + address.encodeURLParameter()
 
         /**
          * Where a sign-in asked by [deeplink] returns: its `next`, decoded, when that is a storefront

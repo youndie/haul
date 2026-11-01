@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.round
+import io.github.youndie.haul.feature.identity.SignInActions
 import io.github.youndie.kompot.KompotAction
 import io.github.youndie.kompot.standard.NavigateAction
 import io.github.youndie.kompot.standard.OpenUrlAction
@@ -214,7 +215,13 @@ private fun selectedWords(selection: SelectionState): String = selection.selecte
 @Composable
 internal fun Modifier.offersLink(action: KompotAction?): Modifier {
     val links = LocalLinkCopier.current ?: return this
-    val path = (action as? NavigateAction)?.deeplink
+    // The demo shopper's word is a command, not a page (B-162): opened in a tab of its own it would be «not here».
+    val path =
+        (action as? NavigateAction)?.deeplink?.takeUnless {
+            it.substringBefore(
+                '?',
+            ) == SignInActions.DEMO_SHOPPER
+        }
     val url = (action as? OpenUrlAction)?.url
     return when {
         path != null -> {

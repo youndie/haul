@@ -74,6 +74,33 @@ policies=$(printf '%s\n' "$STAND_RENDER" | grep -c '^kind: NetworkPolicy')
 [ "$policies" = 2 ] && say "the stand's render: two network policies" ok \
   || { say "the stand's render: two network policies" "FAILED — $policies"; failed=1; }
 says "the management port admits the hook only" 'app.kubernetes.io/name: shildik-bootstrap'
+# B-162: the demo shoppers — off by default (the bootstrap token is the owner's to hand to the server); on, through
+# the provider's management port and its bootstrap token.
+DEMO=(--set server.demoShoppers=true)
+DEMO_RENDER=$(helm template haul "$CHART" "${STAND[@]}" "${DEMO[@]}" 2>&1)
+says_demo() { # name, expected text — in the stand's render with the demo on
+  case "$DEMO_RENDER" in
+    *"$2"*) say "the demo's render: $1" ok ;;
+    *) say "the demo's render: $1" "FAILED — no «$2»"; failed=1 ;;
+  esac
+}
+says_demo "the server makes demo shoppers through the management port" 'value: "http://haul-shildik:9000"'
+says_demo "the demo's token is the provider's bootstrap token" "$(printf 'name: HAUL_DEMO_MANAGEMENT_TOKEN\n              valueFrom:\n                secretKeyRef:\n                  name: haul-shildik\n                  key: bootstrap-token')"
+says_demo "the management port admits the server" "$(printf 'app.kubernetes.io/name: shildik-bootstrap\n        - podSelector:\n            matchLabels:\n              app.kubernetes.io/instance: haul\n              app.kubernetes.io/name: haul-server')"
+server_admitted() { helm template haul "$CHART" "${STAND[@]}" "$@" -s templates/networkpolicy.yaml 2>&1 | grep -c 'name: haul-server'; }
+if [ "$(server_admitted --set server.demoShoppers=true)" = 2 ] && [ "$(server_admitted)" = 1 ] \
+  && ! printf '%s\n' "$STAND_RENDER" | grep -q HAUL_DEMO_; then
+  say "no demo by default: no demo variables, no management port for the server" ok
+else
+  say "no demo by default: no demo variables, no management port for the server" FAILED; failed=1
+fi
+case "$(helm template haul "$CHART" "${REQUIRED[@]}" --set server.demoShoppers=true 2>&1)" in
+  *HAUL_DEMO_*) say "no provider: no demo shoppers" "FAILED — a demo variable is rendered"; failed=1 ;;
+  *) say "no provider: no demo shoppers" ok ;;
+esac
+renders "the stand's shape, a demo limit" "${STAND[@]}" "${DEMO[@]}" --set server.demoDailyLimit=50
+refuses "a demo limit that is not a positive number" "server.demoDailyLimit=many is not a positive number" \
+  "${STAND[@]}" "${DEMO[@]}" --set server.demoDailyLimit=many
 case "$(helm template haul "$CHART" "${STAND[@]}" -s templates/ingress.yaml)" in
   *"port: 9000"*) say "the management port is not routed" "FAILED — an IngressRoute names 9000"; failed=1 ;;
   *) say "the management port is not routed" ok ;;

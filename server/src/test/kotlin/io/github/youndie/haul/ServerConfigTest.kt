@@ -5,6 +5,7 @@ import java.nio.file.Files
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
@@ -183,5 +184,46 @@ class ServerConfigTest {
         listOf("0", "-2", "fast", "NaN", "Infinity").forEach { raw ->
             assertFailsWith<IllegalStateException>(raw) { config("HAUL_FULFILMENT_SPEED" to raw).fulfilment }
         }
+    }
+
+    private val signIn =
+        arrayOf(
+            "HAUL_OIDC_ISSUER" to "https://id.example/realms/haul",
+            "HAUL_OIDC_CLIENT_ID" to "haul-web",
+        )
+    private val demo =
+        arrayOf(
+            "HAUL_DEMO_MANAGEMENT_URL" to "http://haul-shildik:9000",
+            "HAUL_DEMO_MANAGEMENT_TOKEN" to "management-secret",
+            "HAUL_DEMO_REDIRECT_URI" to "https://haul.example/signed-in.html",
+        )
+
+    @Test
+    fun `no demo variables leave the demo shoppers off`() {
+        assertNull(config(*signIn).demoShoppers)
+    }
+
+    @Test
+    fun `the three demo variables with sign-in turn the demo on, at the default daily limit`() {
+        val made = assertNotNull(config(*signIn, *demo).demoShoppers)
+
+        assertEquals("http://haul-shildik:9000", made.management)
+        assertEquals("https://haul.example/signed-in.html", made.redirectUri)
+        assertEquals(500, made.dailyLimit)
+        assertEquals(20, assertNotNull(config(*signIn, *demo, "HAUL_DEMO_DAILY_LIMIT" to "20").demoShoppers).dailyLimit)
+    }
+
+    @Test
+    fun `half of the demo, a demo without sign-in or a limit that is not a positive number refuses the start`() {
+        assertFailsWith<IllegalStateException> { config(*signIn, demo[0], demo[1]).demoShoppers }
+        assertFailsWith<IllegalStateException> { config(*demo).demoShoppers }
+        assertFailsWith<IllegalStateException> { config(*signIn, *demo, "HAUL_DEMO_DAILY_LIMIT" to "0").demoShoppers }
+    }
+
+    @Test
+    fun `the management token never reaches a log line through toString`() {
+        val printed = assertNotNull(config(*signIn, *demo).demoShoppers).toString()
+
+        assertTrue("management-secret" !in printed, printed)
     }
 }
