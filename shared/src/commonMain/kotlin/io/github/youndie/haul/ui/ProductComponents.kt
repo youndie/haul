@@ -58,7 +58,7 @@ public data class SellerSummary(
  * [stockAdvice] («Silver is out of stock.» and where to turn) takes the delivery lines' place — [delivery] is
  * then empty, since a SKU with nothing in stock has no day to promise (B-120).
  *
- * The product has one photo, [photo] over the tile of [photoTone] captioned [photoLabel]: the canvas's
+ * The product has one photo, [photo] over the tile of [photoTone]: the canvas's
  * thumbnails, «+3» and «1 / 8» drew photos no product has, and are not sent (B-71). [haulPayStrong] is
  * the part of [haulPay] drawn bold.
  *

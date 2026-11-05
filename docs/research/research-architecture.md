@@ -319,7 +319,7 @@ page drew one way and another page another; each line was fixed, or the differen
 - **Every tile of a product carries its stored photo** (D8): a cart line, checkout's lines, an order's lines, the
   suggest panel's products — or, since B-78, its picture where no photo is stored.
 - **A cancelled order says «Back to cart» once**, in its notice beside the reason; the summary's second one is
-  gone (`OrderTotals.back` with it). The notice is the first thing a phone draws, and every other way on of an
+  gone (~~`OrderTotals.back`~~ with it). The notice is the first thing a phone draws, and every other way on of an
   order page is the summary's only because no notice is there.
 - **An order's summary draws the promo code's row**, as the cart's and checkout's do since B-100: an order keeps
   the sale and the code as one sum (`discount_cents`), so «Discount» is read off its lines (each line's price
@@ -1857,7 +1857,7 @@ The canvas contradicted itself in three places and left one promise unbacked; th
   since B-70 and B-87 (below).
 - **The countdown runs to the soonest live deal's `ends_at`**, in the store's zone (`dealsOfTheDay`,
   `feature/catalog/screen/Cards.kt`). A seeded deal of the day ends at the store's midnight (D7), so the countdown is
-  the one it was, `DeliveryCalendar.midnight()` is gone, and a deal written with another end is counted down to that
+  the one it was, ~~`DeliveryCalendar.midnight()`~~ is gone, and a deal written with another end is counted down to that
   end instead of to a midnight it outlives or misses.
 - **The seed dates its sale from the day it seeds** (`CatalogSeed.generate(day)`): the campaigns' and the deals'
   windows are the canvas's, moved by whole store days to `day` and kept on New York's local midnights across a change
@@ -1907,7 +1907,7 @@ left out:
 - **The search field reads «Search products».** The canvas's «Search 2.4 million products» counted a catalogue of
   hundreds; the header is drawn before a page has read the catalogue, and the shell's own header has none to count,
   so the number is left out rather than counted (`Frame.SEARCH_PLACEHOLDER`).
-- **No «Get the app» block in the footer**, since there is no app: `HaulFooter.appTitle` and `appText` left the wire,
+- **No «Get the app» block in the footer**, since there is no app: ~~`HaulFooter.appTitle`~~ and ~~`appText`~~ left the wire,
   and the block's place at 1440 stays empty so the footer keeps the canvas's frame.
 - **Checkout's note is only «Your card is charged when the order ships.»** — for a card; «By placing the order you
   agree to the Terms of Sale.» named a page the store does not have, and with no card there is no note. Haul Pay's
@@ -2204,7 +2204,7 @@ from what names it, and the photo route serves it under `/images/art/<name>.svg`
   the photos, over the same tiles; the tiles lost their captions («CAMPAIGN IMAGE»,
   «TECH», «HEADPHONES», «PRODUCT PHOTO»), which only described the missing picture, and with them the wire's `label`
   fields (`ProductCard`, `CategoryTile`, `CampaignHero`, `PromoBanner` — `image` there now — `CartLine`, `SummaryItem`,
-  `ProductSuggestion`, `ProductDetails.photoLabel`). SVG rather than a PNG the server rasterises: measured in D9
+  `ProductSuggestion`, ~~`ProductDetails.photoLabel`~~). SVG rather than a PNG the server rasterises: measured in D9
   («Measured in B-78»).
 - **The goldens draw the pictures.** The screenshot fixtures draw every `/images/art/…` a body names from
   `composeApp/src/desktopTest/resources/art` at once (`ArtLoader`), and `ArtFixturesTest` holds that directory to what
