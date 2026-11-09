@@ -5,7 +5,7 @@
 # Renovate keeps bumping for nobody.
 
 [versions]
-sborka = "0.5.0.113"
+sborka = "0.5.0.135"
 # A snapshot of kompot's main; kompot-core is what the contract's components are built on. Ahead of the
 # sibling reference service's pin (research §1.1) since B-62: 0.40.0.212 is the first whose screen loader
 # keeps a screen's tree while the next address of it loads (kompot B-81); 0.40.0.213 the first with `load`
