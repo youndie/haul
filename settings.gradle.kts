@@ -24,7 +24,7 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
     // Repositories with their content filters, the shared `wip` catalog (Kotlin, Compose
     // Multiplatform, Ktor, Koin), and the check that `.editorconfig` is the portfolio's.
-    id("io.github.youndie.sborka.settings") version "0.5.0.113"
+    id("io.github.youndie.sborka.settings") version "0.5.0.135"
 }
 
 // The contract both halves read: the Haul components on the wire, routes, error codes.
